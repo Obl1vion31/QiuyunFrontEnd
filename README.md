@@ -2,28 +2,56 @@
 
 本仓库用于建设一个轻量、清晰、便于 AI 协作的前端业务系统网站。
 
-当前阶段以产品框架和上下文文档为主，不急于初始化技术框架。仓库结构会尽量保持克制：每个文档只承担一种职责，避免产品定义、执行计划、参考资料和决策记录互相重复。
+当前项目处于 Phase 01 首页基线阶段：已建立第一套技术基线、结构基线和设计基线，并完成“前端团队总枢纽首页”的本地版本。
 
-## 当前状态
+## 当前技术栈
 
-项目处于产品基础框架阶段。
+- Astro 4
+- React 18
+- TypeScript
+- pnpm
 
-当前已建立：
+说明：当前本地 Node 版本为 `18.19.1`，依赖版本已固定，避免安装到要求更高 Node 版本的 Astro 5。
+
+## 安装和启动
+
+```bash
+pnpm install
+pnpm dev
+```
+
+启动后打开终端输出的本地地址。若默认端口被占用，Astro 会自动切换到下一个可用端口。
+
+## 常用开发命令
+
+```bash
+pnpm dev
+pnpm build
+pnpm preview
+pnpm check
+```
+
+## 当前开发状态
+
+已完成：
 
 - 项目文档结构；
 - Codex 使用说明；
 - 简版产品定义；
 - 参考资料目录；
-- 执行计划目录。
+- 执行计划目录；
+- Astro + React + TypeScript 技术基线；
+- 前端团队总枢纽首页；
+- 首页内容配置；
+- 本地构建和预览脚本。
 
-当前尚未建立：
+尚未建立：
 
-- 前端技术框架；
-- 页面代码；
 - 数据库；
 - 后台管理系统；
 - 登录和权限系统；
-- 部署流程。
+- 生产部署流程；
+- 业务系统、组织人员系统、绩效报酬系统的真实模块。
 
 ## 项目结构
 
@@ -39,94 +67,79 @@ frontend-system/
 │   ├── ROADMAP.md
 │   ├── DECISIONS.md
 │   ├── exec-plans/
-│   │   └── README.md
+│   │   ├── README.md
+│   │   └── phase-01-homepage.md
+│   ├── exec-results/
+│   │   └── phase-01-homepage.md
 │   └── references/
 │       └── README.md
+├── src/
+│   ├── components/
+│   ├── data/
+│   └── pages/
+├── astro.config.mjs
+├── package.json
+├── pnpm-lock.yaml
+├── tsconfig.json
 ├── .gitignore
 └── ...
 ```
 
-## 文件职责
+## 文档索引
 
-### `AGENTS.md`
+### 项目入口
 
-项目级 AI 协作规则。
+- `README.md`：项目级入口，说明状态、技术栈、命令、目录和文档索引。
+- `AGENTS.md`：Codex/agents 的协作规则和必读路径。
+- `instruction.md`：如何更有效地让 Codex 参与网站规划、设计、实现、调试和优化。
 
-用于记录 Codex 或其他 agents 在本项目中工作时需要遵守的规则，例如必读文档、协作流程、实现偏好、验证要求和项目约束。
+### 产品和架构文档
 
-不要在这里写产品正文、路线图细节、页面内容或原始参考资料。
+- `docs/PRODUCT.md`：产品定位、目标用户、核心问题、能力地图、产品边界和开放问题。
+- `docs/STRUCTURE.md`：信息架构、页面结构、导航关系和模块边界。
+- `docs/DESIGN.md`：长期设计原则、视觉语言、中文阅读体验和响应式原则。
+- `docs/ROADMAP.md`：阶段规划、后续功能、暂缓事项和里程碑。
+- `docs/DECISIONS.md`：已经批准、会影响后续产品或技术实现的重要决定。
 
-### `README.md`
+### 执行文档
 
-项目入口文档。
+- `docs/exec-plans/README.md`：执行计划目录说明。
+- `docs/exec-plans/phase-01-homepage.md`：Phase 01 首页计划文件。
+- `docs/exec-results/phase-01-homepage.md`：Phase 01 首页执行结果。
 
-用于说明项目当前状态、目录结构、关键文档入口和基础协作约定。
+### 参考资料
 
-所有 `README.md` 均应使用中文，避免后续协作时因翻译造成歧义。
+- `docs/references/README.md`：参考资料目录说明。
+- `docs/references/Hero_Ref.md`：总枢纽首页应包含的内容范围。它不是样式参考，也不要求复刻 Markdown 格式。
 
-### `instruction.md`
+## 根目录文件管理说明
 
-Codex 使用说明。
+根目录保留少量技术框架必须放置的文件：
 
-用于说明如何更有效地让 Codex 参与网站规划、设计、实现、调试和优化。
+- `package.json`：项目脚本和依赖声明。
+- `pnpm-lock.yaml`：依赖锁定文件，保证安装结果一致。
+- `astro.config.mjs`：Astro 配置。
+- `tsconfig.json`：TypeScript 配置。
+- `.gitignore`：Git 忽略规则。
 
-### `docs/PRODUCT.md`
+以下目录是本地生成内容，已被 `.gitignore` 忽略，不应提交到仓库：
 
-产品定义文档。
+- `node_modules/`
+- `dist/`
+- `.astro/`
 
-用于记录产品定位、目标用户、核心问题、能力地图、产品边界、第一阶段目标和开放问题。
+业务文档统一放在 `docs/`。页面源码统一放在 `src/`。
 
-### `docs/STRUCTURE.md`
+## Phase 索引
 
-信息架构文档。
-
-用于记录页面结构、导航关系、用户路径、页面目标和模块之间的层级关系。
-
-### `docs/DESIGN.md`
-
-设计方向文档。
-
-用于记录长期稳定的视觉原则、信息层级、布局规则、组件风格、响应式原则和可访问性要求。
-
-不用于沉淀单个页面的完整视觉稿或临时设计过程。
-
-### `docs/ROADMAP.md`
-
-路线图文档。
-
-用于记录 MVP 范围、阶段规划、后续功能、暂缓事项和已完成里程碑。
-
-不要在这里写具体任务执行步骤。
-
-### `docs/DECISIONS.md`
-
-决策记录文档。
-
-用于记录已经确认、会影响后续产品或技术实现的重要决定，例如模块边界、技术栈、权限策略、数据来源和报告输出方式。
-
-临时假设不应直接写成正式决策。
-
-### `docs/exec-plans/README.md`
-
-执行计划目录索引。
-
-用于说明具体任务计划如何记录。路线图回答“要做什么”，执行计划回答“某个任务具体怎么做、怎么验证”。
-
-### `docs/references/README.md`
-
-参考资料目录索引。
-
-用于记录外部链接、竞品资料、设计参考、智能文档截图、PDF、素材说明、技术资料和内容来源。
-
-参考资料是输入，不是最终决策。
+| Phase | 计划文件 | 结果文件 | 状态 |
+| --- | --- | --- | --- |
+| Phase 01：首页基线 | `docs/exec-plans/phase-01-homepage.md` | `docs/exec-results/phase-01-homepage.md` | 本地完成，待审核 |
 
 ## 当前优先级
 
-当前优先级是先明确产品结构，再进入设计和技术实现。
-
-建议顺序：
-
-1. 审核 `docs/PRODUCT.md`。
-2. 补充 `docs/STRUCTURE.md`，明确信息架构和模块关系。
-3. 补充 `docs/DESIGN.md`，确定长期设计原则。
-4. 再讨论技术栈、页面实现和部署方式。
+1. 审核 Phase 01 首页结果。
+2. 确认三个系统入口的真实去向或继续保持建设中状态。
+3. 决定是否配置预览环境。
+4. 决定是否提交并推送当前 Phase 01 改动。
+5. 再进入后续业务模块规划。

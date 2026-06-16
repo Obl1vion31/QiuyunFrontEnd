@@ -1,5 +1,8 @@
 .agents/
 .codex/
+node_modules/
+dist/
+.astro/
 
 # Windows downloaded-file metadata
 *:Zone.Identifier

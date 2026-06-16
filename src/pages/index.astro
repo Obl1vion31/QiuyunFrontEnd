@@ -1,0 +1,690 @@
+---
+import SectionHeading from '../components/SectionHeading.astro';
+import { homeContent } from '../data/home';
+
+const { meta, hero, mission, workflow, systems, paths, maintenance } = homeContent;
+
+const statusLabel = {
+  external: '外部入口',
+  placeholder: '建设中',
+  restricted: '授权访问',
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={meta.description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{meta.title}</title>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero__content">
+          <p class="eyebrow">{hero.eyebrow}</p>
+          <h1 id="page-title">{hero.title}</h1>
+          <p class="hero__subtitle">{hero.subtitle}</p>
+          <div class="hero__statement" aria-label="前端核心表达">
+            {hero.statement.map((line, index) => (
+              <>
+                <strong>{line}</strong>
+                {index < hero.statement.length - 1 && <span>并</span>}
+              </>
+            ))}
+          </div>
+          <p class="hero__note">{hero.note}</p>
+          <p class="hero__updated">last updated: {meta.updatedAt}</p>
+        </div>
+        <div class="hero__panel" aria-label="前端协作概览">
+          <div class="signal-card signal-card--main">
+            <span>目标</span>
+            <strong>点击 · 阅读 · 兴趣 · 咨询</strong>
+          </div>
+          <div class="signal-row">
+            <span>计划</span>
+            <span>内容</span>
+            <span>视觉</span>
+            <span>触点</span>
+          </div>
+          <div class="signal-loop">数据反馈回到下一轮规划</div>
+        </div>
+      </section>
+
+      <section class="section mission" id="mission">
+        <SectionHeading number={mission.sectionNo} title={mission.title} subtitle={mission.subtitle} />
+        <div class="mission__grid">
+          <article class="mission__lead">
+            <span>我们的使命</span>
+            <h3>{mission.headline}</h3>
+            <p>{mission.body}</p>
+          </article>
+          <div class="goal-grid">
+            {mission.goals.map((goal, index) => (
+              <article class="goal-card">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{goal.title}</h3>
+                <strong>{goal.lead}</strong>
+                <p>{goal.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+        <aside class="boundary">
+          <strong>前端边界</strong>
+          <p>{mission.boundary}</p>
+        </aside>
+      </section>
+
+      <section class="section workflow" id="workflow">
+        <SectionHeading number={workflow.sectionNo} title={workflow.title} subtitle={workflow.subtitle} />
+        <p class="section-intro">{workflow.intro}</p>
+        <div class="workflow__grid">
+          <ol class="timeline">
+            {workflow.steps.map((step, index) => (
+              <li>
+                <span class="timeline__index">{String(index + 1).padStart(2, '0')}</span>
+                <div>
+                  <h3>{step.role}</h3>
+                  <p>{step.work}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <aside class="foundation">
+            <h3>链路的执行底座</h3>
+            <p>规则不单独漂浮，而是跟着岗位、项目和内容类型进入具体环节。</p>
+            {workflow.foundations.map((item) => (
+              <article>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </article>
+            ))}
+          </aside>
+        </div>
+        <div class="role-strip" aria-label="岗位在链路中的位置">
+          {workflow.roles.map(([role, description]) => (
+            <article>
+              <strong>{role}</strong>
+              <span>{description}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="section systems" id="systems">
+        <SectionHeading number={systems.sectionNo} title={systems.title} subtitle={systems.subtitle} align="center" />
+        <p class="systems__intro">{systems.intro}</p>
+        <div class="systems__grid">
+          {systems.entries.map((entry) => (
+            <article class:list={['system-card', `system-card--${entry.status}`]}>
+              <div class="system-card__top">
+                <span>{entry.eyebrow}</span>
+                <small>{statusLabel[entry.status]}</small>
+              </div>
+              <h3>{entry.title}</h3>
+              <p>{entry.summary}</p>
+              <ul>
+                {entry.scope.map((item) => <li>{item}</li>)}
+              </ul>
+              {entry.href ? (
+                <a href={entry.href}>{entry.cta} ↗</a>
+              ) : (
+                <button type="button" disabled>{entry.cta} · {statusLabel[entry.status]}</button>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="section guide" aria-labelledby="guide-title">
+        <div>
+          <span class="guide__label">使用路径</span>
+          <h2 id="guide-title">不同用户接下来去哪里</h2>
+        </div>
+        <div class="path-grid">
+          {paths.map(([title, body]) => (
+            <article>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="section maintenance" aria-labelledby="maintenance-title">
+        <div>
+          <span class="guide__label">维护边界</span>
+          <h2 id="maintenance-title">本页只在结构性内容变化时更新</h2>
+        </div>
+        <div class="maintenance__grid">
+          <article>
+            <h3>更新本页</h3>
+            <ul>{maintenance.updateWhen.map((item) => <li>{item}</li>)}</ul>
+          </article>
+          <article>
+            <h3>不在本页维护</h3>
+            <ul>{maintenance.notFor.map((item) => <li>{item}</li>)}</ul>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color-scheme: light;
+    --bg: #f5f2eb;
+    --surface: #fffdf8;
+    --ink: #1d232b;
+    --muted: #68717d;
+    --line: rgba(30, 38, 49, 0.12);
+    --gold: #b8893b;
+    --gold-dark: #7f5619;
+    --night: #111821;
+    --night-2: #1a2530;
+    --max: 1180px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+  }
+
+  button,
+  a {
+    font: inherit;
+  }
+
+  .hero {
+    min-height: 92vh;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+    gap: 56px;
+    align-items: center;
+    padding: clamp(64px, 9vw, 118px) max(24px, calc((100vw - var(--max)) / 2));
+    color: #f8f2e6;
+    background:
+      linear-gradient(135deg, rgba(17, 24, 33, 0.94), rgba(26, 37, 48, 0.9)),
+      radial-gradient(circle at 72% 24%, rgba(184, 137, 59, 0.18), transparent 34%),
+      var(--night);
+  }
+
+  .eyebrow,
+  .guide__label {
+    margin: 0;
+    color: #d6b371;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: 780px;
+    margin: 18px 0 0;
+    font-size: clamp(3.2rem, 8vw, 7.8rem);
+    line-height: 0.96;
+    letter-spacing: 0;
+  }
+
+  .hero__subtitle {
+    margin: 24px 0 0;
+    color: #d8d0c2;
+    font-size: clamp(1.1rem, 2vw, 1.45rem);
+  }
+
+  .hero__statement {
+    display: grid;
+    gap: 8px;
+    margin: 44px 0 0;
+    padding-left: 22px;
+    border-left: 2px solid var(--gold);
+  }
+
+  .hero__statement strong {
+    color: #ffd072;
+    font-size: clamp(1.45rem, 3vw, 2.65rem);
+    line-height: 1.16;
+  }
+
+  .hero__statement span {
+    color: #918979;
+    font-size: 0.96rem;
+  }
+
+  .hero__note {
+    max-width: 680px;
+    margin: 34px 0 0;
+    color: #c5beb2;
+    font-size: 1rem;
+  }
+
+  .hero__updated {
+    margin: 28px 0 0;
+    color: #8c8477;
+    font-size: 0.85rem;
+  }
+
+  .hero__panel {
+    min-height: 520px;
+    display: grid;
+    align-content: center;
+    gap: 20px;
+    padding: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+      rgba(255, 255, 255, 0.04);
+  }
+
+  .signal-card,
+  .signal-row,
+  .signal-loop {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(7, 12, 18, 0.32);
+  }
+
+  .signal-card {
+    padding: 30px;
+  }
+
+  .signal-card span,
+  .signal-row span {
+    color: #d2b574;
+    font-size: 0.86rem;
+  }
+
+  .signal-card strong {
+    display: block;
+    margin-top: 14px;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    line-height: 1.3;
+  }
+
+  .signal-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    overflow: hidden;
+  }
+
+  .signal-row span {
+    display: grid;
+    min-height: 92px;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.045);
+  }
+
+  .signal-loop {
+    padding: 22px;
+    color: #f5e6c7;
+    text-align: center;
+  }
+
+  .section {
+    width: min(var(--max), calc(100vw - 40px));
+    margin: 0 auto;
+    padding: clamp(72px, 9vw, 118px) 0;
+  }
+
+  .mission__grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.35fr);
+    gap: 28px;
+    margin-top: 42px;
+  }
+
+  .mission__lead,
+  .goal-card,
+  .foundation,
+  .system-card,
+  .guide,
+  .maintenance,
+  .path-grid article,
+  .maintenance__grid article {
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .mission__lead {
+    padding: 34px;
+  }
+
+  .mission__lead span {
+    color: var(--gold-dark);
+    font-weight: 800;
+  }
+
+  .mission__lead h3 {
+    margin: 18px 0 18px;
+    font-size: clamp(1.7rem, 3vw, 2.35rem);
+    line-height: 1.24;
+  }
+
+  .mission__lead p,
+  .goal-card p,
+  .foundation p,
+  .system-card p,
+  .path-grid p,
+  .maintenance p {
+    color: var(--muted);
+  }
+
+  .goal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .goal-card {
+    min-height: 228px;
+    padding: 26px;
+  }
+
+  .goal-card span {
+    color: var(--gold);
+    font-weight: 800;
+  }
+
+  .goal-card h3 {
+    margin: 18px 0 8px;
+    font-size: 1.35rem;
+  }
+
+  .goal-card strong {
+    color: var(--ink);
+  }
+
+  .boundary {
+    margin-top: 24px;
+    padding: 24px 28px;
+    border-left: 4px solid var(--gold);
+    background: rgba(184, 137, 59, 0.1);
+  }
+
+  .boundary p {
+    margin: 8px 0 0;
+    color: #5d5549;
+  }
+
+  .section-intro,
+  .systems__intro {
+    max-width: 720px;
+    color: var(--muted);
+    font-size: 1.08rem;
+  }
+
+  .workflow__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+    gap: 34px;
+    margin-top: 40px;
+  }
+
+  .timeline {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline li {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 18px;
+    align-items: start;
+    padding: 22px;
+    border: 1px solid var(--line);
+    background: rgba(255, 253, 248, 0.72);
+  }
+
+  .timeline__index {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    color: var(--gold-dark);
+    border: 1px solid rgba(184, 137, 59, 0.35);
+    background: rgba(184, 137, 59, 0.11);
+    font-weight: 800;
+  }
+
+  .timeline h3,
+  .foundation h3,
+  .system-card h3,
+  .guide h2,
+  .maintenance h2 {
+    margin: 0;
+  }
+
+  .timeline p {
+    margin: 8px 0 0;
+    color: var(--muted);
+  }
+
+  .foundation {
+    align-self: start;
+    padding: 30px;
+    position: sticky;
+    top: 28px;
+  }
+
+  .foundation article {
+    display: grid;
+    gap: 6px;
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .foundation article span {
+    color: var(--muted);
+  }
+
+  .role-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .role-strip article {
+    padding: 18px;
+    background: #242c35;
+    color: #f8f2e6;
+  }
+
+  .role-strip span {
+    display: block;
+    margin-top: 8px;
+    color: #c4bdaf;
+    font-size: 0.92rem;
+  }
+
+  .systems__intro {
+    margin: 18px auto 0;
+    text-align: center;
+  }
+
+  .systems__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 42px;
+  }
+
+  .system-card {
+    display: flex;
+    min-height: 560px;
+    flex-direction: column;
+    padding: 28px;
+  }
+
+  .system-card--restricted {
+    border-color: rgba(184, 137, 59, 0.45);
+    background: #fff9eb;
+  }
+
+  .system-card__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--gold-dark);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .system-card small {
+    color: #8d8273;
+    font-size: 0.78rem;
+  }
+
+  .system-card h3 {
+    margin-top: 26px;
+    font-size: 1.7rem;
+  }
+
+  .system-card ul {
+    display: grid;
+    gap: 10px;
+    margin: 24px 0 28px;
+    padding-left: 18px;
+    color: #4e5965;
+  }
+
+  .system-card button,
+  .system-card a {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: auto;
+    padding: 13px 16px;
+    border: 1px solid #26313d;
+    color: #f8f2e6;
+    background: #26313d;
+    text-decoration: none;
+    cursor: default;
+  }
+
+  .system-card button:disabled {
+    opacity: 1;
+  }
+
+  .guide,
+  .maintenance {
+    display: grid;
+    grid-template-columns: 0.6fr 1fr;
+    gap: 34px;
+    padding: clamp(28px, 5vw, 48px);
+  }
+
+  .guide h2,
+  .maintenance h2 {
+    margin-top: 14px;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    line-height: 1.15;
+  }
+
+  .path-grid,
+  .maintenance__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .path-grid article,
+  .maintenance__grid article {
+    padding: 22px;
+  }
+
+  .path-grid h3,
+  .maintenance__grid h3 {
+    margin: 0 0 10px;
+  }
+
+  .maintenance__grid ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 980px) {
+    .hero,
+    .mission__grid,
+    .workflow__grid,
+    .guide,
+    .maintenance {
+      grid-template-columns: 1fr;
+    }
+
+    .hero {
+      min-height: auto;
+    }
+
+    .hero__panel {
+      min-height: 360px;
+    }
+
+    .systems__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .system-card {
+      min-height: auto;
+    }
+
+    .role-strip {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .foundation {
+      position: static;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding: 46px 20px 54px;
+    }
+
+    .hero__statement {
+      margin-top: 34px;
+    }
+
+    .signal-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .section {
+      width: min(100% - 28px, var(--max));
+      padding: 62px 0;
+    }
+
+    .goal-grid,
+    .path-grid,
+    .maintenance__grid,
+    .role-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .timeline li {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
