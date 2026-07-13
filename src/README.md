@@ -201,7 +201,7 @@ public/images/home/content-plan.webp
 image: '/images/home/content-plan.webp'
 ```
 
-如果没有 `image`，组件会显示代码生成的临时封面。
+如果没有 `image`，组件会显示代码生成的备用封面。
 
 ## 二、`pages/index.astro`：整张首页的组装文件
 
@@ -521,7 +521,7 @@ font-size: clamp(3.8rem, 6.8vw, 6.8rem);
 可以按难度逐步尝试：
 
 1. 在 `home.ts` 修改一句文案，观察页面变化。
-2. 修改某个封面的 `tone`，观察临时封面颜色。
+2. 修改某个封面的 `tone`，观察备用封面颜色。
 3. 调整 CSS 中的 `screenShade` 透明度，理解遮罩层。
 4. 把 `.scene` 的 `270vh` 改小再改回来，观察滚动距离。
 5. 调整 `ContentTunnel.tsx` 中的 `1.55`，观察封面循环速度。

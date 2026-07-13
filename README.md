@@ -36,7 +36,6 @@ pnpm preview
 .
 ├── AGENTS.md
 ├── README.md
-├── instruction.md
 ├── docs/
 │   ├── README.md
 │   ├── DECISIONS.md
@@ -62,7 +61,7 @@ pnpm preview
 
 - 首页正文、六阶段工作流和系统入口统一修改 `src/data/home.ts`。
 - 首页图片放在 `public/images/home/`，推荐 3:4 的 WebP 或 AVIF。
-- 图片在配置中使用 `/images/home/文件名.webp`；未配置 `image` 时显示代码生成的临时封面。
+- 图片在配置中使用 `/images/home/文件名.webp`；未配置 `image` 时显示代码生成的备用封面。
 - 系统入口有真实地址后，增加 `href`，并把 `status` 改为 `external`。
 - `src/components/ContentTunnel.tsx` 负责滚动进度、封面循环和当前流程状态。
 - `src/components/ContentTunnel.module.css` 负责 Hero 的层级、遮罩、3D 纵深和响应式排版。
@@ -77,12 +76,11 @@ pnpm preview
 ## 文档
 
 - 主要内容目录均有对应的 `README.md` 说明用途、修改入口和安全边界；`src/pages/` 的说明位于 `src/README.md`，避免 Astro 自动生成额外页面。
-- `docs/README.md`：核心文档导航及历史目录说明。
+- `docs/README.md`：核心文档导航和文档保存原则。
 - `docs/DECISIONS.md`：已经确认的产品、结构和技术结论。
 - `docs/DESIGN.md`：已经确认的长期视觉与交互规则。
 - `docs/ROADMAP.md`：当前、下一步和暂缓事项。
 - `AGENTS.md`：agent 在本仓库中的长期协作规则。
-- `instruction.md`：通用 Codex 网站协作说明。
 
 ## 当前状态
 
