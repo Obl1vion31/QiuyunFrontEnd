@@ -1,6 +1,34 @@
-/* Hero 场景与固定视口 */
+/**
+ * 文件：ContentTunnel.module.css
+ *
+ * 【实现需求】
+ * 为 ContentTunnel.tsx 提供首屏 3D 封面场景、统一遮罩、信息排版、流程轨道和响应式样式。
+ *
+ * 【关联】
+ * - ContentTunnel.tsx 通过 styles.xxx 使用本文件类名；
+ * - React 会写入 --scene-progress、--scene-scale 和每张封面的内联 transform/filter/opacity；
+ * - pages/index.astro 只负责后半段全局样式，不应重复覆盖这里的首屏规则。
+ *
+ * 【修改入口】
+ * - 场景滚动空间：.scene / .sticky；
+ * - 透视和封面尺寸：.stage / .cover；
+ * - 遮罩强度：.screenShade；
+ * - 首屏文案：.copy / .purpose / .statement；
+ * - 01–06 轨道：.rail；
+ * - 平板与手机：文件末尾的 Media Query。
+ *
+ * 【安全边界】
+ * 保持统一全屏遮罩、可读文字层级、移动端布局和 prefers-reduced-motion 支持。
+ */
+
+/*
+ * 1. Hero 滚动容器
+ * 【需求】scene 提供 270vh 滚动距离，sticky 让首屏在动画期间固定一屏。
+ * 【关联】ContentTunnel.tsx 根据 scene 的位置计算 progress。
+ */
 .scene {
   --scene-progress: 0;
+  --scene-scale: 1;
   position: relative;
   height: 270vh;
   background: #10243e;
@@ -17,6 +45,10 @@
   isolation: isolate;
 }
 
+/*
+ * 2. 氛围背景
+ * 【需求】建立深色工作台空间和轻微水平网格，不承担内容信息。
+ */
 .atmosphere {
   position: absolute;
   inset: 0;
@@ -37,12 +69,18 @@
   mask-image: linear-gradient(to bottom, transparent, black 20%, black 84%, transparent);
 }
 
-/* 背景封面流 */
+/*
+ * 3. 3D 封面层与统一遮罩
+ * 【关联】stage 接收 --scene-scale；cover 的具体位置和滤镜由 React 逐帧写入。
+ * 【层级】stage 在最底层，screenShade 在封面之上、全部文字之下。
+ */
 .stage {
   position: absolute;
   inset: 0;
   perspective: 900px;
   perspective-origin: 50% 50%;
+  transform: scale(var(--scene-scale));
+  transform-origin: 50% 50%;
   transform-style: preserve-3d;
   z-index: -1;
 }
@@ -57,9 +95,9 @@
 
 .cover {
   position: absolute;
-  top: calc(50% - min(23vw, 210px));
-  left: calc(50% - min(17.25vw, 158px));
-  width: min(34.5vw, 316px);
+  top: calc(50% - 179px);
+  left: calc(50% - 134px);
+  width: 268px;
   aspect-ratio: 3 / 4;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -76,6 +114,11 @@
   object-fit: cover;
 }
 
+/*
+ * 4. 无图片时的备用封面
+ * 【需求】CoverItem 未提供 image 时仍能看见可辨认的占位视觉。
+ * 【关联】颜色由 tone_blue 等 tone 类设置 CSS 变量。
+ */
 .coverArtwork {
   position: relative;
   width: 100%;
@@ -150,6 +193,7 @@
   letter-spacing: -0.015em;
 }
 
+/* 【修改入口】备用封面的六套 tone 与 data/home.ts 中 CoverItem.tone 一一对应。 */
 .tone_blue { --cover-bg: #dbe7ff; --cover-soft: #7398f4; --cover-ink: #173f9b; --cover-accent: #ff6a3d; }
 .tone_orange { --cover-bg: #ffe1d1; --cover-soft: #ff885d; --cover-ink: #792812; --cover-accent: #2454d3; }
 .tone_mint { --cover-bg: #d7f1e8; --cover-soft: #80ceb5; --cover-ink: #184c42; --cover-accent: #ff6a3d; }
@@ -157,7 +201,11 @@
 .tone_coral { --cover-bg: #ffd8d5; --cover-soft: #f27d72; --cover-ink: #6e2422; --cover-accent: #173f9b; }
 .tone_ink { --cover-bg: #cbd6df; --cover-soft: #8194a5; --cover-ink: #172b3d; --cover-accent: #ff6a3d; }
 
-/* 首屏信息层 */
+/*
+ * 5. 首屏信息层
+ * 【需求】平台定位与 WHY WE EXIST 同屏，用户行动路径横跨两栏。
+ * 【安全边界】z-index 必须高于 screenShade，保证中文文案清晰可读。
+ */
 .topbar {
   position: absolute;
   top: 0;
@@ -277,7 +325,11 @@
   line-height: 1.65;
 }
 
-/* 当前流程轨道 */
+/*
+ * 6. 当前流程轨道
+ * 【关联】ContentTunnel.tsx 的 activeStage 决定哪个 li 获得 active 类。
+ * 【需求】这里只表达当前环节，详细说明位于 index.astro 的 workflow 区域。
+ */
 .rail {
   position: absolute;
   left: clamp(20px, 4vw, 64px);
@@ -356,6 +408,7 @@
   box-shadow: 0 0 0 6px rgba(255, 106, 61, 0.16);
 }
 
+/* 7. 滚动提示：只提示正常滚动，不锁定滚轮或强制翻页。 */
 .scrollHint {
   position: absolute;
   right: clamp(20px, 4vw, 64px);
@@ -391,7 +444,11 @@
   55% { transform: translateY(10px); opacity: 1; }
 }
 
-/* 平板和手机降低封面尺寸与信息密度 */
+/*
+ * 8. 平板与手机
+ * 【需求】820px 以下停用桌面基准画布缩放，改用移动端尺寸和单栏文案。
+ * 【关联】mobileBreakpoint 必须与 ContentTunnel.tsx 中的 820 保持一致。
+ */
 @media (max-width: 820px) {
   .scene { height: 240vh; }
   .sticky { min-height: 560px; }
@@ -431,6 +488,10 @@
   .rail li strong { writing-mode: vertical-rl; max-height: 60px; }
 }
 
+/*
+ * 9. 减少动态效果
+ * 【安全边界】尊重操作系统设置，停用非必要提示动画和状态过渡。
+ */
 @media (prefers-reduced-motion: reduce) {
   .scrollHint span::after { animation: none; }
   .rail li { transition: none; }

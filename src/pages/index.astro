@@ -1,9 +1,41 @@
 ---
+/**
+ * 文件：pages/index.astro
+ *
+ * 【实现需求】
+ * 生成网站根路径 `/` 的完整首页，把高动效首屏、六阶段工作流和系统入口组合在一起。
+ *
+ * 【文件职责】
+ * 1. 从 data/home.ts 读取首页全部内容；
+ * 2. 把首屏数据作为 Props 传给 ContentTunnel React 组件；
+ * 3. 使用 Astro 模板生成后半段静态内容；
+ * 4. 提供页面 Meta、全局基础样式和后半段响应式样式。
+ *
+ * 【关联】
+ * - 数据：../data/home.ts；
+ * - 交互组件：../components/ContentTunnel.tsx；
+ * - 首屏样式：ContentTunnel.module.css，由 React 组件内部导入；
+ * - 路由：Astro 根据本文件位置自动生成 `/`。
+ *
+ * 【修改入口】
+ * - 文案和列表：优先修改 data/home.ts；
+ * - 区块顺序和后半段 HTML：修改本文件模板；
+ * - 后半段布局：修改文件末尾的全局 CSS。
+ *
+ * 【安全边界】
+ * 不把实时业务数据或敏感信息直接写进首页；不要移除 client:load，否则首屏动画不会激活。
+ */
 import ContentTunnel from '../components/ContentTunnel';
 import { homeContent } from '../data/home';
 
-// 首页正文从统一配置读取；本文件只组合 Astro 区块和 React Hero。
+// ============================================================
+// 1. 页面数据准备
+// 【输入】homeContent 是首页唯一内容来源。
+// 【输出】拆分后的变量分别交给 React Hero 和 Astro 静态区块。
+// ============================================================
 const { meta, hero, covers, mission, workflow, systems } = homeContent;
+
+// 【关联】systems.entries 的 status 使用这些标签；存在 href 时则直接显示链接。
 const statusLabel = {
   external: '进入',
   placeholder: '建设中',
@@ -14,6 +46,7 @@ const statusLabel = {
 <!doctype html>
 <html lang="zh-CN">
   <head>
+    {/* 2. 页面 Meta：内容来自 homeContent.meta。 */}
     <meta charset="UTF-8" />
     <meta name="description" content={meta.description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,7 +55,11 @@ const statusLabel = {
   </head>
   <body>
     <main>
-      {/* 唯一的高动效区域：内容封面隧道与同屏使命表达。 */}
+      {/*
+        3. React Hero
+        【需求】唯一的高动效区域，呈现封面隧道、平台定位、使命和当前流程。
+        【关联】client:load 让 Astro 输出初始 HTML 后立即在浏览器激活 React。
+      */}
       <ContentTunnel
         client:load
         covers={covers}
@@ -37,7 +74,11 @@ const statusLabel = {
         boundary={mission.boundary}
       />
 
-      {/* Hero 之后恢复低动效、以阅读为主的页面结构。 */}
+      {/*
+        4. 六阶段工作流
+        【需求】Hero 之后恢复低动效阅读，用同一份 workflow.stages 展示详细说明。
+        【关联】同一数组也传给 Hero 底部轨道，确保两个区域顺序一致。
+      */}
       <section class="workflow" aria-labelledby="workflow-title">
         <div class="shell workflow__inner">
           <header class="section-heading section-heading--light">
@@ -64,6 +105,7 @@ const statusLabel = {
         </div>
       </section>
 
+      {/* 5. 系统入口：有 href 时生成链接，否则根据 status 显示当前状态。 */}
       <section class="systems shell" aria-labelledby="systems-title">
         <header class="section-heading">
           <p>{systems.eyebrow}</p>
@@ -88,6 +130,7 @@ const statusLabel = {
         </div>
       </section>
 
+      {/* 6. 页脚：更新时间来自 homeContent.meta，避免在模板中重复维护。 */}
       <footer>
         <span>QIUYUN FRONTEND</span>
         <span>最后更新 {meta.updatedAt}</span>
@@ -97,7 +140,11 @@ const statusLabel = {
 </html>
 
 <style is:global>
-  /* 全站基础变量与排版 */
+  /*
+   * 7. 全局基础变量与排版
+   * 【作用范围】首页后半段与 body；首屏细节由 ContentTunnel.module.css 管理。
+   * 【修改入口】颜色优先修改 :root 变量，避免在多个选择器重复替换。
+   */
   :root {
     color-scheme: light;
     --paper: #f2f4ef;
@@ -126,7 +173,7 @@ const statusLabel = {
   a { color: inherit; }
   .shell { width: min(var(--max), calc(100vw - 48px)); margin-inline: auto; }
 
-  /* 后半段通用标题 */
+  /* 8. 后半段通用标题：同时服务工作流与系统入口。 */
   .section-heading { max-width: 780px; }
   .section-heading > p {
     margin: 0 0 16px;
@@ -155,7 +202,7 @@ const statusLabel = {
   .section-heading--light > p { color: #85aafa; }
   .section-heading--light > span { color: rgba(245, 248, 242, 0.64); }
 
-  /* 六阶段工作流 */
+  /* 9. 六阶段工作流：桌面横向排列，窄屏允许横向滚动。 */
   .workflow {
     color: #f5f8f2;
     background: var(--night);
@@ -219,7 +266,7 @@ const statusLabel = {
     color: rgba(245, 248, 242, 0.82);
   }
 
-  /* 系统入口 */
+  /* 10. 系统入口：状态、外链与键盘焦点共用同一行结构。 */
   .systems { padding-block: clamp(96px, 13vw, 180px); }
   .systems__list { margin-top: 72px; border-top: 1px solid var(--ink); }
   .systems__list article {
@@ -260,6 +307,7 @@ const statusLabel = {
     letter-spacing: 0.08em;
   }
 
+  /* 11. 响应式：820px 调整平板布局，560px 改为手机单列。 */
   @media (max-width: 820px) {
     .shell { width: min(var(--max), calc(100vw - 36px)); }
     .workflow__track { margin-top: 64px; }
@@ -274,6 +322,7 @@ const statusLabel = {
     footer { gap: 18px; flex-direction: column; }
   }
 
+  /* 12. 减少动态效果：尊重操作系统设置，停用非必要平滑与过渡。 */
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .systems__list article { transition: none; }

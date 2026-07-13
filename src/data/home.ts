@@ -1,4 +1,30 @@
-// 首页全部可编辑文案与展示数据集中在此处；组件只负责结构和交互。
+/**
+ * 文件：data/home.ts
+ *
+ * 【实现需求】
+ * 集中维护首页可编辑内容和展示数据，避免文案散落在 Astro、React 和 CSS 文件中。
+ *
+ * 【文件职责】
+ * 1. 定义封面、工作流和系统入口的数据格式；
+ * 2. 提供 Meta、Hero、使命、六阶段工作流和系统入口内容；
+ * 3. 保存首页真实封面的公开路径。
+ *
+ * 【关联】
+ * - pages/index.astro 读取 homeContent 并组装整张首页；
+ * - components/ContentTunnel.tsx 使用 CoverItem 和 WorkflowStage 类型；
+ * - public/images/home/ 保存 covers 中引用的真实图片。
+ *
+ * 【修改入口】
+ * 修改文案、阶段、入口状态或图片路径时，优先从 homeContent 对应区块进入。
+ *
+ * 【安全边界】
+ * 不写入生产凭据、真实员工隐私、绩效薪资或未经确认的业务结果；公开图片需先检查敏感信息。
+ */
+
+// ============================================================
+// 1. 数据类型
+// 【作用】限制页面可接受的数据形状，让 pnpm check 能发现字段遗漏或错误状态。
+// ============================================================
 export type LinkStatus = 'external' | 'placeholder' | 'restricted';
 
 export interface CoverItem {
@@ -6,7 +32,7 @@ export interface CoverItem {
   label: string;
   caption: string;
   tone: 'blue' | 'orange' | 'mint' | 'yellow' | 'coral' | 'ink';
-  // 图片放在 public/images/home/ 后，填写以 /images/home/ 开头的公开路径。
+  // 【关联】图片放在 public/images/home/，路径必须以 /images/home/ 开头。
   image?: string;
 }
 
@@ -27,15 +53,21 @@ export interface SystemEntry {
   href?: string;
 }
 
+// ============================================================
+// 2. 首页内容
+// 【输出】index.astro 会拆分以下区块，再传给对应页面结构和 React 组件。
+// ============================================================
 export const homeContent = {
-  // 浏览器标题、搜索摘要和页脚更新时间。
+  // 2.1 Meta
+  // 【关联】index.astro 的 <head> 使用 title/description，页脚使用 updatedAt。
   meta: {
     title: '前端内容总控台',
     description: '贯穿策划、内容、视觉、发布、用户触点与复盘的前端工作流总枢纽。',
-    updatedAt: '2026/07/13',
+    updatedAt: '2026/07/14',
   },
 
-  // 首屏平台定位与用户行动路径。
+  // 2.2 Hero
+  // 【关联】全部字段作为 Props 传给 ContentTunnel。
   hero: {
     eyebrow: 'FRONTEND CONTENT WORKSPACE',
     title: ['前端内容', '工作台'],
@@ -44,24 +76,29 @@ export const homeContent = {
     scrollHint: '滚动，查看内容工作流',
   },
 
-  // Hero 会循环复用这些封面；未设置 image 时显示代码生成的临时封面。
+  // 2.3 封面
+  // 【需求】每张真实素材只创建一个循环实例；未设置 image 时显示代码备用封面。
   covers: [
-    { id: 'cover-plan', label: '内容策划', caption: '把一个想法变成清晰选题', tone: 'blue' },
-    { id: 'cover-read', label: '阅读体验', caption: '让复杂信息更容易读完', tone: 'yellow' },
-    { id: 'cover-visual', label: '视觉设计', caption: '用封面建立第一眼吸引力', tone: 'coral' },
-    { id: 'cover-publish', label: '内容发布', caption: '让内容在正确时间被看见', tone: 'orange' },
-    { id: 'cover-touch', label: '用户触点', caption: '把评论与私信变成有效信号', tone: 'mint' },
-    { id: 'cover-review', label: '数据复盘', caption: '让结果回到下一轮内容', tone: 'ink' },
+    { id: 'cover-plan', label: '内容策划', caption: '把一个想法变成清晰选题', tone: 'blue', image: '/images/home/封面模板1.png' },
+    { id: 'cover-read', label: '阅读体验', caption: '让复杂信息更容易读完', tone: 'yellow', image: '/images/home/封面模板2.jpg' },
+    { id: 'cover-visual', label: '视觉设计', caption: '用封面建立第一眼吸引力', tone: 'coral', image: '/images/home/封面模板3.jpg' },
+    { id: 'cover-publish', label: '内容发布', caption: '让内容在正确时间被看见', tone: 'orange', image: '/images/home/封面模板4.jpg' },
+    { id: 'cover-touch', label: '用户触点', caption: '把评论与私信变成有效信号', tone: 'mint', image: '/images/home/封面模板5.jpg' },
+    { id: 'cover-review', label: '数据复盘', caption: '让结果回到下一轮内容', tone: 'ink', image: '/images/home/封面模板6.jpg' },
+    { id: 'cover-step-camp', label: 'STEP 先导营', caption: '课程招生活动封面', tone: 'blue', image: '/images/home/封面模板7.jpg' },
+    { id: 'cover-step-guide', label: 'STEP 讲义', caption: '微分方程内容封面', tone: 'mint', image: '/images/home/封面模板8.jpg' },
   ] as CoverItem[],
 
-  // 与 Hero 同屏展示的使命及业务边界。
+  // 2.4 使命
+  // 【关联】与 Hero 平台定位同屏显示，不再生成独立使命区块。
   mission: {
     eyebrow: 'WHY WE EXIST',
     body: '让每一次内容触达，推进为理解、兴趣与咨询。',
     boundary: '前端负责从“看见内容”到“产生咨询兴趣并完成有效交接”的过程；最终销售成交仍由销售侧承接。',
   },
 
-  // 六阶段工作流，同时驱动 Hero 底部轨道和后续详细说明。
+  // 2.5 六阶段工作流
+  // 【关联】同一 stages 数组同时驱动 Hero 轨道和 index.astro 的详细工作流。
   workflow: {
     eyebrow: 'SIX STAGES · ONE WORKFLOW',
     title: '六个环节，组成一条持续回流的工作流。',
@@ -76,7 +113,8 @@ export const homeContent = {
     ] as WorkflowStage[],
   },
 
-  // 后续系统入口；有真实地址时增加 href 并将 status 改为 external。
+  // 2.6 系统入口
+  // 【修改入口】有真实地址时增加 href，并把 status 改为 external。
   systems: {
     eyebrow: 'SYSTEM ENTRANCES',
     title: '继续进入系统',
