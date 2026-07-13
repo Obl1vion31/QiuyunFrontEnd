@@ -1,198 +1,108 @@
-// 首页内容配置文件。
-// 手动改首页文字、系统入口、入口状态、更新时间时，优先改这里。
-// 页面文件 `src/pages/index.astro` 负责展示结构和样式，不建议把正文散落写到页面里。
-
-// 系统入口状态：
-// - external：已有外部链接，可以点击跳转；
-// - placeholder：入口保留，但当前仍显示“建设中”；
-// - restricted：需要授权访问的入口，当前只表达权限概念，不实现登录。
 export type LinkStatus = 'external' | 'placeholder' | 'restricted';
 
-// 单个系统入口卡片的数据结构。
-// 如果后续要给入口增加真实链接，只需要增加 `href` 并把 `status` 改为 `external`。
+export interface CoverItem {
+  id: string;
+  label: string;
+  caption: string;
+  tone: 'blue' | 'orange' | 'mint' | 'yellow' | 'coral' | 'ink';
+  image?: string;
+}
+
+export interface WorkflowStage {
+  id: string;
+  label: string;
+  verb: string;
+  description: string;
+}
+
 export interface SystemEntry {
   id: string;
   eyebrow: string;
   title: string;
   summary: string;
-  scope: string[];
   cta: string;
   status: LinkStatus;
   href?: string;
 }
 
 export const homeContent = {
-  // 页面基础信息，会进入 <title>、meta description 和首页更新时间。
   meta: {
-    title: '前端团队总枢纽',
-    description: '前端定位、协作链路与系统入口。',
-    updatedAt: '2026/06/15',
+    title: '前端内容总控台',
+    description: '贯穿策划、内容、视觉、发布、用户触点与复盘的前端工作流总枢纽。',
+    updatedAt: '2026/07/13',
   },
 
-  // 首屏 Hero 内容。
-  // `statement` 是首屏核心主旨，页面会自动用“并”连接。
   hero: {
-    eyebrow: 'FRONTEND TEAM HUB',
-    title: '前端团队总枢纽',
-    subtitle: '前端定位 · 协作链路 · 系统入口',
-    statement: ['让用户愿意点击我们的内容', '愿意读完、享受我们的内容', '愿意因此产生进一步咨询的兴趣'],
-    note: '前端团队负责把平台上的用户注意力，逐步转化为可被持续承接的潜在用户，并让数据反馈回到下一轮内容规划。',
-    loopTitle: '用户转化路径',
-    loop: [
-      ['看见', '用户注意到并进入我们的内容'],
-      ['了解', '用户读完内容并理解我们'],
-      ['选择', '用户认可内容和业务，并愿意选择我们'],
-      ['转换', '将已经选择我们的潜在用户辅助转化为正式学员'],
-    ],
+    eyebrow: 'FRONTEND CONTENT WORKSPACE',
+    title: '前端内容工作台',
+    statement: ['让用户愿意点击', '让用户愿意读且阅读完', '让用户愿意进一步了解与咨询'],
+    note: '串联策划、内容、视觉、发布、用户触点与复盘的一体化工作平台。',
+    scrollHint: '滚动，查看内容工作流',
   },
 
-  // “我们为什么存在”区块。
-  // `goals` 控制四个递进目标卡片，顺序会直接影响页面展示顺序。
+  covers: [
+    { id: 'cover-plan', label: '内容策划', caption: '把一个想法变成清晰选题', tone: 'blue' },
+    { id: 'cover-read', label: '阅读体验', caption: '让复杂信息更容易读完', tone: 'yellow' },
+    { id: 'cover-visual', label: '视觉设计', caption: '用封面建立第一眼吸引力', tone: 'coral' },
+    { id: 'cover-publish', label: '内容发布', caption: '让内容在正确时间被看见', tone: 'orange' },
+    { id: 'cover-touch', label: '用户触点', caption: '把评论与私信变成有效信号', tone: 'mint' },
+    { id: 'cover-review', label: '数据复盘', caption: '让结果回到下一轮内容', tone: 'ink' },
+  ] as CoverItem[],
+
   mission: {
-    sectionNo: '01',
-    title: '我们为什么存在',
-    label: '我们的使命：',
-    body: '前端通过内容策划、视觉表达、发布运营、用户触点处理与数据反馈，建立业务与潜在用户之间的第一层连接。',
-    boundary:
-      '前端不直接承担最终销售成交，但负责从“看见内容”到“产生咨询兴趣并完成有效交接”的完整过程，并持续向销售端输送更高质量的潜在用户。',
-    goals: [
-      {
-        title: '获得注意力',
-        lead: '让用户愿意点进来',
-        body: '用选题、标题、封面和信息表达，在大量内容中抓住目标用户。',
-      },
-      {
-        title: '完成阅读',
-        lead: '让用户愿意读下去',
-        body: '让内容结构清晰、信息有效，使用户能够理解并愿意读完。',
-      },
-      {
-        title: '建立兴趣',
-        lead: '让用户享受并认可内容',
-        body: '让用户感到有用、可信、易读，逐步形成对账号与业务的兴趣。',
-      },
-      {
-        title: '形成潜客',
-        lead: '让用户愿意进一步咨询',
-        body: '通过评论、私信和微信等入口完成承接，并形成清晰的用户交接。',
-      },
+    title: '让内容从想法走向反馈。',
+    body: '让每一次内容触达，推进为理解、兴趣与咨询。',
+    outcomes: [
+      ['点击', '选题、标题与封面先获得注意力。'],
+      ['读完', '结构、文字与视觉共同维持阅读。'],
+      ['询问', '内容建立信任，并形成进一步了解的入口。'],
     ],
+    boundary: '前端负责从“看见内容”到“产生咨询兴趣并完成有效交接”的过程；最终销售成交仍由销售侧承接。',
   },
 
-  // “前端如何运作”区块。
-  // `steps` 是完整协作链路，必须保持从规划到反馈回流的顺序。
-  // 每一步以 action 作为视觉主标题，owner 只作为辅助信息。
-  // `foundations` 是链路下方的执行底座，不展开 SOP 正文。
-  // `roles` 是岗位位置摘要，保持短句，避免和完整链路重复。
   workflow: {
-    sectionNo: '02',
-    title: '前端如何运作',
-    subtitle: '计划牵引 · 内容驱动 · 视觉支持 · 触点承接 · 数据反馈',
-    intro: '从规划到转换，再由数据与用户反馈回流到下一轮内容。',
-    steps: [
-      {
-        action: '规划与排序',
-        owner: '运营总监 / 前端主管',
-        description: '确定总周期规划、月度重点、优先级与关键事项。',
-      },
-      {
-        action: '信息输入',
-        owner: '新媒体运营 + 用户触点运营',
-        description: '汇总政策热点、用户问题、销售反馈和历史数据。',
-      },
-      {
-        action: '选题与内容生产',
-        owner: '新媒体运营',
-        description: '完成选题、文案、排期、出帖需求和内容目的定义。',
-      },
-      {
-        action: '视觉设计与交付',
-        owner: '视觉设计',
-        description: '完成封面、正文排版、修改和物料交付。',
-      },
-      {
-        action: '审核、发布与流量管理',
-        owner: '新媒体运营',
-        description: '完成审核、发布，并管理自然流量与推广流量。',
-      },
-      {
-        action: '用户触点承接',
-        owner: '用户触点运营',
-        description: '回复评论私信，统计来源帖，整理有效用户信息。',
-      },
-      {
-        action: '销售交接与后续跟进',
-        owner: '销售协作',
-        description: '承接已经选择我们的潜在用户，并将沟通和转化结果反馈给前端。',
-      },
-      {
-        action: '数据复盘与反馈回流',
-        owner: '全链路共同完成',
-        description: '把数据复盘和用户反馈转化为下一轮内容优化。',
-      },
-    ],
-    foundations: [
-      {
-        title: '岗位 SOP',
-        body: '规定每个岗位的标准动作、交付物与协作边界。',
-      },
-      {
-        title: '项目 SOP',
-        body: '规定一个项目从启动、执行到复盘的共同流程。',
-      },
-      {
-        title: '内容模板',
-        body: '按帖子类型提供 brief、文案、设计与复盘模板。',
-      },
-    ],
-    roles: [
-      ['主管', '方向、排序、资源与关键决策'],
-      ['新媒体运营', '内容主链路与发布复盘'],
-      ['视觉设计', '点击意愿与阅读体验'],
-      ['用户触点运营', '用户入口、来源统计与销售交接'],
-      ['销售协作｜跨部门', '承接已经产生兴趣的潜在用户，并将沟通和转化结果反馈给前端。'],
-    ],
+    eyebrow: 'SIX STAGES · ONE WORKFLOW',
+    title: '六个环节，组成一条持续回流的工作流。',
+    intro: '从策划到复盘，每个环节承接上一步的判断，也为下一轮内容积累依据。',
+    stages: [
+      { id: 'plan', label: '策划', verb: '判断什么值得做', description: '整理目标、热点、用户问题与历史反馈，确定优先级。' },
+      { id: 'content', label: '内容', verb: '把信息讲清楚', description: '完成选题、结构、文案与阅读节奏。' },
+      { id: 'visual', label: '视觉', verb: '让人愿意点开', description: '完成封面、正文排版与视觉表达。' },
+      { id: 'publish', label: '发布', verb: '让内容正确抵达', description: '完成审核、发布、自然与推广流量管理。' },
+      { id: 'touch', label: '触点', verb: '听见用户回应', description: '处理评论与私信，整理来源和有效用户信息。' },
+      { id: 'review', label: '复盘', verb: '把结果带回起点', description: '将数据与用户反馈转化为下一轮内容调整。' },
+    ] as WorkflowStage[],
   },
 
-  // “接下来从哪里进入”区块。
-  // 三个入口代表系统未来的三条方向：业务、组织人员、绩效报酬。
-  // Phase 01 不实现真实后台和权限；入口先用状态表达建设进度。
   systems: {
-    sectionNo: '03',
-    title: '接下来从哪里进入',
-    subtitle: '业务、组织与人员、绩效与报酬',
+    eyebrow: 'SYSTEM ENTRANCES',
+    title: '继续进入系统',
+    intro: '首页负责说明方向。具体工作、人员与敏感管理内容，进入各自边界。',
     entries: [
       {
         id: 'business',
-        eyebrow: 'SYSTEM 01',
+        eyebrow: '01 / WORK',
         title: '业务系统',
-        summary: '看前端要做什么、如何执行、结果怎么样。',
-        scope: ['阶段目标与月度计划', '内容排期与项目任务', '推广帖 / 非推广帖管理', '用户触点与销售交接', '数据复盘、周例会与月例会', '问题跟进与业务决策'],
-        cta: '进入业务系统',
-        // 改为 external 并增加 href 后，页面会自动显示可点击链接。
+        summary: '计划、内容、任务、用户触点与复盘。',
+        cta: '建设中',
         status: 'placeholder',
       },
       {
         id: 'people',
-        eyebrow: 'SYSTEM 02',
+        eyebrow: '02 / GROWTH',
         title: '组织与人员',
-        summary: '看由谁负责、处于什么位置、需要什么能力。',
-        scope: ['人员结构与岗位设置', '岗位职责与职级体系', '能力要求与岗位 SOP', '新人培训与成长路线', '晋升路径与人员调整'],
-        cta: '进入组织与人员系统',
-        // 如果后续继续使用企业微信智能文档，可以把文档链接写到 href。
+        summary: '岗位、能力、SOP 与成长路径。',
+        cta: '建设中',
         status: 'placeholder',
       },
       {
         id: 'performance',
-        eyebrow: 'SYSTEM 03',
+        eyebrow: '03 / PRIVATE',
         title: '绩效与报酬',
-        summary: '看如何评价工作，以及如何匹配激励与报酬。',
-        scope: ['绩效管理规则', '月度绩效与评定结果', '岗位薪资与职级区间', '奖金、调薪与晋升联动', '相关明细按权限查看'],
-        cta: '进入授权入口',
-        // restricted 只表达“需要授权”，不代表已经实现登录或权限系统。
+        summary: '评价、激励与需要授权查看的内容。',
+        cta: '授权访问',
         status: 'restricted',
       },
     ] as SystemEntry[],
   },
-
 };

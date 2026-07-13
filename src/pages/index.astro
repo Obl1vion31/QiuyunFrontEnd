@@ -1,17 +1,10 @@
 ---
-// 首页页面实现文件。
-// 内容来自 `src/data/home.ts`，本文件主要负责页面结构、布局和样式。
-// 如果只是改文字、入口状态或更新时间，优先改 `home.ts`。
-import SectionHeading from '../components/SectionHeading.astro';
+import ContentTunnel from '../components/ContentTunnel';
 import { homeContent } from '../data/home';
 
-// 将配置拆出来，下面模板读取这些对象渲染各个页面区块。
-const { meta, hero, mission, workflow, systems } = homeContent;
-
-// 系统入口状态对应的中文标签。
-// 如果在 `home.ts` 中新增 LinkStatus 类型，这里也要补充对应标签。
+const { meta, hero, covers, mission, workflow, systems } = homeContent;
 const statusLabel = {
-  external: '外部入口',
+  external: '进入',
   placeholder: '建设中',
   restricted: '授权访问',
 };
@@ -23,633 +16,347 @@ const statusLabel = {
     <meta charset="UTF-8" />
     <meta name="description" content={meta.description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10243e" />
     <title>{meta.title}</title>
   </head>
   <body>
     <main>
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero__content">
-          <p class="eyebrow">{hero.eyebrow}</p>
-          <h1 id="page-title">{hero.title}</h1>
-          <p class="hero__subtitle">{hero.subtitle}</p>
-          <div class="hero__statement" aria-label="前端核心表达">
-            {hero.statement.map((line, index) => (
-              <>
-                <strong>{line}</strong>
-                {index < hero.statement.length - 1 && <span>并</span>}
-              </>
-            ))}
-          </div>
-          <p class="hero__note">{hero.note}</p>
-          <p class="hero__updated">last updated: {meta.updatedAt}</p>
-        </div>
-        <div class="hero__panel" aria-label="前端作用闭环">
-          <div class="loop-card">
-            <span>闭环</span>
-            <strong>{hero.loopTitle}</strong>
-          </div>
-          <ol class="hero-loop">
-            {hero.loop.map(([title, body], index) => (
-              <li>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <div>
-                  <strong>{title}</strong>
-                  <p>{body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p class="loop-note">每一次内容发布，都应回到下一轮选题、视觉和触点优化。</p>
-        </div>
-      </section>
+      <ContentTunnel
+        client:load
+        covers={covers}
+        stages={workflow.stages}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        statement={hero.statement}
+        note={hero.note}
+        scrollHint={hero.scrollHint}
+      />
 
-      <section class="section mission" id="mission">
-        <SectionHeading number={mission.sectionNo} title={mission.title} />
-        <p class="mission__intro"><strong>{mission.label}</strong>{mission.body}</p>
-        <div class="mission__grid mission__grid--goals">
-          <div class="goal-grid">
-            {mission.goals.map((goal, index) => (
-              <article class="goal-card">
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <h3>{goal.title}</h3>
-                <strong>{goal.lead}</strong>
-                <p>{goal.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-        <aside class="boundary">
-          <strong>前端边界</strong>
-          <p>{mission.boundary}</p>
-        </aside>
-      </section>
-
-      <section class="section workflow" id="workflow">
-        <SectionHeading number={workflow.sectionNo} title={workflow.title} subtitle={workflow.subtitle} />
-        <p class="section-intro">{workflow.intro}</p>
-        <div class="workflow__grid">
-          <ol class="timeline">
-            {workflow.steps.map((step, index) => (
-              <li>
-                <span class="timeline__index">{String(index + 1).padStart(2, '0')}</span>
-                <div>
-                  <h3>{step.action}</h3>
-                  <span class="timeline__owner">{step.owner}</span>
-                  <p>{step.description}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <aside class="foundation">
-            <h3>链路的执行底座</h3>
-            <p>规则不单独漂浮，而是跟着岗位、项目和内容类型进入具体环节。</p>
-            {workflow.foundations.map((item) => (
+      <section class="mission shell" aria-labelledby="mission-title">
+        <header class="section-heading">
+          <h2 id="mission-title">{mission.title}</h2>
+        </header>
+        <div class="mission__body">
+          <p class="mission__lead">{mission.body}</p>
+          <div class="outcomes">
+            {mission.outcomes.map(([title, description], index) => (
               <article>
-                <strong>{item.title}</strong>
-                <span>{item.body}</span>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{title}</h3>
+                <p>{description}</p>
               </article>
             ))}
-          </aside>
-        </div>
-        <div class="role-strip" aria-label="岗位在链路中的位置">
-          {workflow.roles.map(([role, description]) => (
-            <article>
-              <strong>{role}</strong>
-              <span>{description}</span>
-            </article>
-          ))}
+          </div>
+          <p class="boundary"><strong>工作边界</strong>{mission.boundary}</p>
         </div>
       </section>
 
-      <section class="section systems" id="systems">
-        <SectionHeading number={systems.sectionNo} title={systems.title} subtitle={systems.subtitle} align="center" />
-        <div class="systems__grid">
+      <section class="workflow" aria-labelledby="workflow-title">
+        <div class="shell workflow__inner">
+          <header class="section-heading section-heading--light">
+            <p>{workflow.eyebrow}</p>
+            <h2 id="workflow-title">{workflow.title}</h2>
+            <span>{workflow.intro}</span>
+          </header>
+          <ol class="workflow__track">
+            {workflow.stages.map((stage, index) => (
+              <li>
+                <div class="workflow__marker">
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <i />
+                </div>
+                <div>
+                  <p>{stage.label}</p>
+                  <h3>{stage.verb}</h3>
+                  <span>{stage.description}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p class="workflow__return">结果不是终点，它会沿着轨道回到下一次策划。</p>
+        </div>
+      </section>
+
+      <section class="systems shell" aria-labelledby="systems-title">
+        <header class="section-heading">
+          <p>{systems.eyebrow}</p>
+          <h2 id="systems-title">{systems.title}</h2>
+          <span>{systems.intro}</span>
+        </header>
+        <div class="systems__list">
           {systems.entries.map((entry) => (
-            <article class:list={['system-card', `system-card--${entry.status}`]}>
-              <div class="system-card__top">
-                <span>{entry.eyebrow}</span>
-                <small>{statusLabel[entry.status]}</small>
+            <article>
+              <span>{entry.eyebrow}</span>
+              <div>
+                <h3>{entry.title}</h3>
+                <p>{entry.summary}</p>
               </div>
-              <h3>{entry.title}</h3>
-              <p>{entry.summary}</p>
-              <ul>
-                {entry.scope.map((item) => <li>{item}</li>)}
-              </ul>
               {entry.href ? (
-                <a href={entry.href}>{entry.cta} ↗</a>
+                <a href={entry.href}>{entry.cta}<span aria-hidden="true">↗</span></a>
               ) : (
-                <button type="button" disabled>{entry.cta} · {statusLabel[entry.status]}</button>
+                <span class="systems__status">{statusLabel[entry.status]}</span>
               )}
             </article>
           ))}
         </div>
       </section>
+
+      <footer>
+        <span>QIUYUN FRONTEND</span>
+        <span>最后更新 {meta.updatedAt}</span>
+      </footer>
     </main>
   </body>
 </html>
 
 <style is:global>
-  /*
-    全局设计变量：
-    - --max 控制页面最大内容宽度；
-    - --gold / --night 控制当前首页主视觉色；
-    - 后续如果要建立完整 design tokens，可从这里抽离。
-  */
   :root {
     color-scheme: light;
-    --bg: #f5f2eb;
-    --surface: #fffdf8;
-    --ink: #1d232b;
-    --muted: #68717d;
-    --line: rgba(30, 38, 49, 0.12);
-    --gold: #b8893b;
-    --gold-dark: #7f5619;
-    --cream: #fff3cf;
-    --warm-gray: #e8ded0;
+    --paper: #f2f4ef;
+    --surface: #ffffff;
+    --ink: #17202a;
+    --muted: #63707b;
+    --line: rgba(23, 32, 42, 0.16);
+    --blue: #2454d3;
+    --night: #10243e;
+    --orange: #ff6a3d;
+    --mint: #a9ddc8;
     --max: 1180px;
   }
 
-  /* 基础重置，保证盒模型和滚动行为稳定。 */
-  * {
-    box-sizing: border-box;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* 页面主体字体栈：优先系统字体，并兼顾中文系统字体。 */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; background: var(--paper); }
   body {
     margin: 0;
     color: var(--ink);
-    background: var(--bg);
-    font-family:
-      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-      "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--paper);
+    font-family: 'Noto Sans CJK SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     line-height: 1.6;
+    text-rendering: optimizeLegibility;
   }
+  button, a { font: inherit; }
+  a { color: inherit; }
+  .shell { width: min(var(--max), calc(100vw - 48px)); margin-inline: auto; }
 
-  button,
-  a {
-    font: inherit;
-  }
-
-  /* Hero 首屏布局。当前采用浅暖色背景，降低压迫感。 */
-  .hero {
-    min-height: 88vh;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
-    gap: 56px;
-    align-items: center;
-    padding: clamp(58px, 8vw, 104px) max(24px, calc((100vw - var(--max)) / 2));
-    color: var(--ink);
-    background:
-      radial-gradient(circle at 88% 18%, rgba(255, 216, 128, 0.42), transparent 32%),
-      linear-gradient(135deg, #fff9e9 0%, #f4eadb 48%, #eee5d7 100%);
-  }
-
-  /* 英文辅助标题和小标签的共用样式。 */
-  .eyebrow,
-  .loop-card span {
-    margin: 0;
-    color: var(--gold-dark);
-    font-size: 0.78rem;
+  .section-heading { max-width: 780px; }
+  .section-heading > p {
+    margin: 0 0 16px;
+    color: var(--blue);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
     font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    letter-spacing: 0.14em;
   }
-
-  /* Hero 主标题：控制字号和行长，避免压满首屏。 */
-  h1 {
-    max-width: 720px;
-    margin: 20px 0 0;
-    font-size: clamp(2.75rem, 6vw, 5.2rem);
-    line-height: 1.04;
-    letter-spacing: 0;
+  .section-heading h2 {
+    margin: 0;
+    font-family: 'Arial Narrow', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif;
+    font-size: clamp(2.25rem, 5.2vw, 5rem);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
   }
-
-  .hero__subtitle {
-    margin: 18px 0 0;
-    color: #776d5f;
-    font-size: clamp(1.02rem, 1.7vw, 1.28rem);
-  }
-
-  /* Hero 核心三句表达。保持重点，但不做高对比重压。 */
-  .hero__statement {
-    display: grid;
-    gap: 10px;
-    max-width: 620px;
-    margin: 36px 0 0;
-    padding: 22px 24px;
-    border: 1px solid rgba(184, 137, 59, 0.24);
-    background: rgba(255, 253, 247, 0.58);
-  }
-
-  .hero__statement strong {
-    color: #7a4f12;
-    font-size: clamp(1.25rem, 2.2vw, 1.9rem);
-    line-height: 1.25;
-  }
-
-  .hero__statement span {
-    color: #a1917b;
-    font-size: 0.96rem;
-  }
-
-  .hero__note {
-    max-width: 660px;
-    margin: 28px 0 0;
-    color: #625a50;
-    font-size: 1.02rem;
-  }
-
-  .hero__updated {
-    margin: 24px 0 0;
-    color: #9a8d7b;
-    font-size: 0.85rem;
-  }
-
-  /* Hero 右侧闭环面板，解释前端作用，而不是只堆装饰词。 */
-  .hero__panel {
-    min-height: 500px;
-    display: grid;
-    align-content: center;
-    gap: 18px;
-    padding: 30px;
-    border: 1px solid rgba(80, 65, 45, 0.12);
-    background: rgba(255, 253, 247, 0.72);
-    box-shadow: 0 24px 70px rgba(94, 75, 47, 0.1);
-  }
-
-  .loop-card {
-    padding: 22px;
-    border: 1px solid rgba(184, 137, 59, 0.22);
-    background: var(--cream);
-  }
-
-  .loop-card strong {
+  .section-heading > span {
     display: block;
-    margin-top: 8px;
-    font-size: clamp(1.35rem, 2.5vw, 1.9rem);
-    line-height: 1.25;
-  }
-
-  .hero-loop {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .hero-loop li {
-    display: grid;
-    grid-template-columns: 42px 1fr;
-    gap: 14px;
-    align-items: start;
-    padding: 16px;
-    border: 1px solid rgba(30, 38, 49, 0.09);
-    background: rgba(255, 255, 255, 0.58);
-  }
-
-  .hero-loop li > span {
-    display: grid;
-    width: 34px;
-    height: 34px;
-    place-items: center;
-    color: var(--gold-dark);
-    border: 1px solid rgba(184, 137, 59, 0.3);
-    background: rgba(184, 137, 59, 0.09);
-    font-weight: 800;
-  }
-
-  .hero-loop strong {
-    display: block;
-    color: var(--ink);
-    font-size: 1.04rem;
-  }
-
-  .hero-loop p,
-  .loop-note {
-    margin: 6px 0 0;
-    color: var(--muted);
-    font-size: 0.94rem;
-  }
-
-  .loop-note {
-    padding-top: 12px;
-    border-top: 1px solid rgba(30, 38, 49, 0.08);
-  }
-
-  /* 通用页面区块容器，控制最大宽度和上下留白。 */
-  .section {
-    width: min(var(--max), calc(100vw - 40px));
-    margin: 0 auto;
-    padding: clamp(72px, 9vw, 118px) 0;
-  }
-
-  /* 使命区块：用轻量引导文字连接四阶段目标，避免形成沉重文字墙。 */
-  .mission__intro {
-    max-width: 780px;
-    margin: 20px 0 0;
-    color: #4f5963;
-    font-size: clamp(0.98rem, 1.4vw, 1.08rem);
-  }
-
-  .mission__intro strong {
-    color: var(--ink);
-  }
-
-  .mission__grid {
-    margin-top: 34px;
-  }
-
-  .goal-card,
-  .foundation,
-  .system-card {
-    border: 1px solid var(--line);
-    background: var(--surface);
-  }
-
-  .goal-card p,
-  .foundation p,
-  .system-card p {
-    color: var(--muted);
-  }
-
-  /* 递进目标卡片网格。 */
-  .goal-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-  }
-
-  .goal-card {
-    min-height: 206px;
-    padding: 24px;
-  }
-
-  .goal-card span {
-    color: var(--gold);
-    font-weight: 800;
-  }
-
-  .goal-card h3 {
-    margin: 16px 0 8px;
-    font-size: 1.24rem;
-  }
-
-  .goal-card strong {
-    color: var(--ink);
-  }
-
-  /* 前端边界提示条，用于强调“前端不直接承担最终销售成交”。 */
-  .boundary {
-    margin-top: 22px;
-    padding: 20px 24px;
-    border: 1px solid rgba(184, 137, 59, 0.2);
-    border-left: 4px solid var(--gold);
-    background: rgba(255, 244, 218, 0.66);
-  }
-
-  .boundary p {
-    margin: 8px 0 0;
-    color: #5d5549;
-  }
-
-  .section-intro {
-    max-width: 720px;
-    color: var(--muted);
-    font-size: 1.08rem;
-  }
-
-  /* 协作链路：左侧 timeline，右侧执行底座。 */
-  .workflow__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-    gap: 34px;
-    margin-top: 40px;
-  }
-
-  /* 纵向流程轴，每个 li 对应一个链路节点。 */
-  .timeline {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .timeline li {
-    display: grid;
-    grid-template-columns: 56px 1fr;
-    gap: 20px;
-    align-items: start;
-    padding: 22px 24px;
-    border: 1px solid var(--line);
-    background: rgba(255, 253, 248, 0.72);
-  }
-
-  .timeline__index {
-    display: grid;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    color: var(--gold-dark);
-    border: 1px solid rgba(184, 137, 59, 0.35);
-    background: rgba(184, 137, 59, 0.11);
-    font-weight: 800;
-  }
-
-  .timeline h3,
-  .foundation h3,
-  .system-card h3 {
-    margin: 0;
-  }
-
-  .timeline p {
-    margin: 8px 0 0;
-    color: var(--muted);
-  }
-
-  .timeline h3 {
-    font-size: clamp(1.18rem, 2vw, 1.52rem);
-    line-height: 1.25;
-  }
-
-  .timeline__owner {
-    display: inline-flex;
-    margin-top: 8px;
-    color: var(--gold-dark);
-    font-size: 0.88rem;
-    font-weight: 800;
-  }
-
-  /* 执行底座卡片。桌面端 sticky，方便长链路阅读时保持上下文。 */
-  .foundation {
-    align-self: start;
-    padding: 30px;
-    position: sticky;
-    top: 28px;
-  }
-
-  .foundation article {
-    display: grid;
-    gap: 6px;
-    padding: 18px 0;
-    border-top: 1px solid var(--line);
-  }
-
-  .foundation article span {
-    color: var(--muted);
-  }
-
-  /* 岗位摘要条，补充说明岗位在链路中的位置。 */
-  .role-strip {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
+    max-width: 650px;
     margin-top: 24px;
+    color: var(--muted);
+    font-size: clamp(1rem, 1.45vw, 1.15rem);
   }
+  .section-heading--light > p { color: #85aafa; }
+  .section-heading--light > span { color: rgba(245, 248, 242, 0.64); }
 
-  .role-strip article {
-    padding: 18px;
-    background: #242c35;
-    color: #f8f2e6;
+  .mission {
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
+    gap: clamp(48px, 7vw, 96px);
+    align-items: end;
+    padding-block: clamp(96px, 13vw, 180px);
   }
-
-  .role-strip span {
-    display: block;
-    margin-top: 8px;
-    color: #c4bdaf;
-    font-size: 0.92rem;
+  .mission__body { display: contents; }
+  .mission .section-heading h2 {
+    max-width: 560px;
+    font-size: clamp(2.4rem, 4.4vw, 4.4rem);
+    line-height: 1.18;
+    text-wrap: pretty;
   }
-
-  /* 系统入口卡片区。三列在桌面端展示，移动端改为单列。 */
-  .systems__grid {
+  .mission__lead {
+    max-width: 700px;
+    margin: 0;
+    font-size: clamp(1.25rem, 2.4vw, 2.05rem);
+    font-weight: 650;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+  .outcomes {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
-    margin-top: 42px;
+    margin-top: 12px;
+    border-block: 1px solid var(--ink);
   }
-
-  /* 入口卡片基础样式。 */
-  .system-card {
-    display: flex;
-    min-height: 560px;
-    flex-direction: column;
-    padding: 28px;
+  .outcomes article {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 4px 16px;
+    align-content: start;
+    padding: 28px clamp(20px, 3vw, 40px);
+    border-right: 1px solid var(--line);
   }
-
-  /* 授权入口使用更暖的背景，提示敏感信息边界。 */
-  .system-card--restricted {
-    border-color: rgba(184, 137, 59, 0.45);
-    background: #fff9eb;
-  }
-
-  .system-card__top {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    color: var(--gold-dark);
-    font-size: 0.78rem;
+  .outcomes article:last-child { border-right: 0; }
+  .outcomes article > span {
+    grid-row: 1 / 3;
+    color: var(--blue);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
     font-weight: 800;
   }
-
-  .system-card small {
-    color: #8d8273;
-    font-size: 0.78rem;
-  }
-
-  .system-card h3 {
-    margin-top: 26px;
-    font-size: 1.7rem;
-  }
-
-  .system-card ul {
+  .outcomes h3 { margin: 0; font-size: 1.2rem; line-height: 1.35; }
+  .outcomes p { margin: 0; color: var(--muted); }
+  .boundary {
+    grid-column: 1 / -1;
     display: grid;
-    gap: 10px;
-    margin: 24px 0 28px;
-    padding-left: 18px;
-    color: #4e5965;
+    grid-template-columns: 120px 1fr;
+    gap: 16px;
+    margin: 0;
+    padding-top: 22px;
+    border-top: 3px solid var(--orange);
+    color: var(--muted);
+  }
+  .boundary strong { color: var(--ink); }
+
+  .workflow {
+    color: #f5f8f2;
+    background: var(--night);
+  }
+  .workflow__inner { padding-block: clamp(92px, 12vw, 160px); }
+  .workflow__track {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(150px, 1fr));
+    margin: 92px 0 0;
+    padding: 0 0 26px;
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-color: var(--orange) rgba(255, 255, 255, 0.1);
+  }
+  .workflow__track li { min-width: 160px; padding-right: 22px; }
+  .workflow__marker { display: grid; grid-template-columns: auto 1fr; align-items: center; }
+  .workflow__marker span {
+    color: #85aafa;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+  }
+  .workflow__marker i {
+    position: relative;
+    height: 1px;
+    margin-left: 12px;
+    background: rgba(255, 255, 255, 0.24);
+  }
+  .workflow__marker i::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--orange);
+  }
+  .workflow__track li > div:last-child > p {
+    margin: 30px 0 8px;
+    color: #85aafa;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+  .workflow__track h3 {
+    min-height: 3.2em;
+    margin: 0;
+    font-size: clamp(1.15rem, 1.7vw, 1.45rem);
+    line-height: 1.22;
+  }
+  .workflow__track li > div:last-child > span {
+    display: block;
+    margin-top: 18px;
+    color: rgba(245, 248, 242, 0.6);
+    font-size: 0.9rem;
+  }
+  .workflow__return {
+    width: fit-content;
+    margin: 54px 0 0 auto;
+    padding-bottom: 7px;
+    border-bottom: 2px solid var(--orange);
+    color: rgba(245, 248, 242, 0.82);
   }
 
-  .system-card button,
-  .system-card a {
-    display: inline-flex;
-    justify-content: center;
-    width: 100%;
-    margin-top: auto;
-    padding: 13px 16px;
-    border: 1px solid #26313d;
-    color: #f8f2e6;
-    background: #26313d;
+  .systems { padding-block: clamp(96px, 13vw, 180px); }
+  .systems__list { margin-top: 72px; border-top: 1px solid var(--ink); }
+  .systems__list article {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.28fr) minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: center;
+    padding: 30px 0;
+    border-bottom: 1px solid var(--line);
+    transition: padding 180ms ease, background 180ms ease;
+  }
+  .systems__list article:hover { padding-inline: 16px; background: rgba(36, 84, 211, 0.04); }
+  .systems__list article > span:first-child {
+    color: var(--blue);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+  .systems__list h3 { margin: 0; font-size: clamp(1.35rem, 2.2vw, 1.9rem); }
+  .systems__list p { margin: 5px 0 0; color: var(--muted); }
+  .systems__status, .systems__list a {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.8rem;
     text-decoration: none;
-    cursor: default;
+  }
+  .systems__list a:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 24px max(24px, calc((100vw - var(--max)) / 2));
+    color: rgba(245, 248, 242, 0.55);
+    background: #0b1a2d;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
   }
 
-  .system-card button:disabled {
-    opacity: 1;
+  @media (max-width: 820px) {
+    .shell { width: min(var(--max), calc(100vw - 36px)); }
+    .mission { grid-template-columns: 1fr; gap: 52px; }
+    .mission .section-heading { max-width: 620px; }
+    .workflow__track { margin-top: 64px; }
+    .systems__list article { grid-template-columns: 86px 1fr auto; gap: 16px; }
   }
 
-  /* 平板以下：主要布局从多列改成单列。 */
-  @media (max-width: 980px) {
-    .hero,
-    .workflow__grid {
-      grid-template-columns: 1fr;
+  @media (max-width: 560px) {
+    .outcomes { grid-template-columns: 1fr; }
+    .outcomes article {
+      grid-template-columns: 36px 1fr;
+      gap: 4px 10px;
+      padding-inline: 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
     }
-
-    .hero {
-      min-height: auto;
-    }
-
-    .hero__panel {
-      min-height: 360px;
-    }
-
-    .systems__grid {
-      grid-template-columns: 1fr;
-    }
-
-    .goal-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .system-card {
-      min-height: auto;
-    }
-
-    .role-strip {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .foundation {
-      position: static;
-    }
+    .outcomes article:last-child { border-bottom: 0; }
+    .outcomes p { font-size: 0.9rem; }
+    .boundary { grid-template-columns: 1fr; gap: 6px; }
+    .workflow__track { grid-template-columns: repeat(6, 72vw); }
+    .systems__list article { grid-template-columns: 1fr auto; }
+    .systems__list article > span:first-child { grid-column: 1 / -1; }
+    .systems__list p { max-width: 230px; }
+    footer { gap: 18px; flex-direction: column; }
   }
 
-  /* 手机端：收紧页面留白，确保中文长句不横向溢出。 */
-  @media (max-width: 640px) {
-    .hero {
-      padding: 46px 20px 54px;
-    }
-
-    .hero__statement {
-      margin-top: 34px;
-    }
-
-    .section {
-      width: min(100% - 28px, var(--max));
-      padding: 62px 0;
-    }
-
-    .goal-grid,
-    .role-strip {
-      grid-template-columns: 1fr;
-    }
-
-    .timeline li {
-      grid-template-columns: 1fr;
-    }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .systems__list article { transition: none; }
   }
 </style>
