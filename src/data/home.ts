@@ -1,3 +1,4 @@
+// 首页全部可编辑文案与展示数据集中在此处；组件只负责结构和交互。
 export type LinkStatus = 'external' | 'placeholder' | 'restricted';
 
 export interface CoverItem {
@@ -5,6 +6,7 @@ export interface CoverItem {
   label: string;
   caption: string;
   tone: 'blue' | 'orange' | 'mint' | 'yellow' | 'coral' | 'ink';
+  // 图片放在 public/images/home/ 后，填写以 /images/home/ 开头的公开路径。
   image?: string;
 }
 
@@ -26,20 +28,23 @@ export interface SystemEntry {
 }
 
 export const homeContent = {
+  // 浏览器标题、搜索摘要和页脚更新时间。
   meta: {
     title: '前端内容总控台',
     description: '贯穿策划、内容、视觉、发布、用户触点与复盘的前端工作流总枢纽。',
     updatedAt: '2026/07/13',
   },
 
+  // 首屏平台定位与用户行动路径。
   hero: {
     eyebrow: 'FRONTEND CONTENT WORKSPACE',
-    title: '前端内容工作台',
+    title: ['前端内容', '工作台'],
     statement: ['让用户愿意点击', '让用户愿意读且阅读完', '让用户愿意进一步了解与咨询'],
-    note: '串联策划、内容、视觉、发布、用户触点与复盘的一体化工作平台。',
+    note: '让策划、创作、发布、用户触点与复盘在同一工作台连续发生。',
     scrollHint: '滚动，查看内容工作流',
   },
 
+  // Hero 会循环复用这些封面；未设置 image 时显示代码生成的临时封面。
   covers: [
     { id: 'cover-plan', label: '内容策划', caption: '把一个想法变成清晰选题', tone: 'blue' },
     { id: 'cover-read', label: '阅读体验', caption: '让复杂信息更容易读完', tone: 'yellow' },
@@ -49,17 +54,14 @@ export const homeContent = {
     { id: 'cover-review', label: '数据复盘', caption: '让结果回到下一轮内容', tone: 'ink' },
   ] as CoverItem[],
 
+  // 与 Hero 同屏展示的使命及业务边界。
   mission: {
-    title: '让内容从想法走向反馈。',
+    eyebrow: 'WHY WE EXIST',
     body: '让每一次内容触达，推进为理解、兴趣与咨询。',
-    outcomes: [
-      ['点击', '选题、标题与封面先获得注意力。'],
-      ['读完', '结构、文字与视觉共同维持阅读。'],
-      ['询问', '内容建立信任，并形成进一步了解的入口。'],
-    ],
     boundary: '前端负责从“看见内容”到“产生咨询兴趣并完成有效交接”的过程；最终销售成交仍由销售侧承接。',
   },
 
+  // 六阶段工作流，同时驱动 Hero 底部轨道和后续详细说明。
   workflow: {
     eyebrow: 'SIX STAGES · ONE WORKFLOW',
     title: '六个环节，组成一条持续回流的工作流。',
@@ -74,6 +76,7 @@ export const homeContent = {
     ] as WorkflowStage[],
   },
 
+  // 后续系统入口；有真实地址时增加 href 并将 status 改为 external。
   systems: {
     eyebrow: 'SYSTEM ENTRANCES',
     title: '继续进入系统',

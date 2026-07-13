@@ -12,6 +12,8 @@
 
 ## 2. 文档职责
 
+- 各主要内容目录的 `README.md`：说明目录用途、文件职责、修改入口和安全边界；`src/pages/` 的说明写在 `src/README.md`，避免 Astro 生成额外路由。
+- `docs/README.md`：核心文档导航及历史目录使用规则。
 - `docs/DECISIONS.md`：已经确认的产品、结构和技术结论。
 - `docs/DESIGN.md`：已经确认的长期视觉与交互规则。
 - `docs/ROADMAP.md`：当前、下一步和暂缓事项。

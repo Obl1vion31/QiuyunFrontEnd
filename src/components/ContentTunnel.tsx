@@ -6,12 +6,17 @@ interface Props {
   covers: CoverItem[];
   stages: WorkflowStage[];
   eyebrow: string;
-  title: string;
+  title: string[];
   statement: string[];
   note: string;
   scrollHint: string;
+  purposeEyebrow: string;
+  purposeBody: string;
+  boundary: string;
 }
 
+// 每张封面的横向位置、纵向位置和基础旋转角度。
+// 数组顺序与下方循环生成的 12 张封面一一对应。
 const positions = [
   [-36, -23, -9],
   [34, -18, 7],
@@ -35,11 +40,15 @@ export default function ContentTunnel({
   statement,
   note,
   scrollHint,
+  purposeEyebrow,
+  purposeBody,
+  boundary,
 }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
   const [activeStage, setActiveStage] = useState(0);
 
+  // 重复内容配置形成足够长的视觉流，不需要在数据文件里维护重复项。
   const stream = Array.from({ length: 12 }, (_, index) => covers[index % covers.length]);
 
   useEffect(() => {
@@ -54,7 +63,12 @@ export default function ContentTunnel({
       frame = 0;
       const rect = section.getBoundingClientRect();
       const distance = Math.max(section.offsetHeight - window.innerHeight, 1);
-      const progress = Math.min(1, Math.max(0, -rect.top / distance));
+      const rawProgress = Math.max(0, -rect.top / distance);
+      const progress = Math.min(1, rawProgress);
+
+      // 流程状态在 sticky 阶段结束时停在 06；封面使用未截断的进度，
+      // 因此 sticky 开始离场后仍会继续循环，直到整个 Hero 离开视口。
+      const animationProgress = Math.min(1.75, rawProgress);
       section.style.setProperty('--scene-progress', progress.toFixed(4));
 
       const nextStage = Math.min(stages.length - 1, Math.floor(progress * stages.length));
@@ -67,7 +81,7 @@ export default function ContentTunnel({
         if (!card) return;
         const [xPercent, yPercent, rotation] = positions[index];
         const offset = index / stream.length;
-        const travel = reduceMotion ? offset : (progress * 1.55 + offset) % 1;
+        const travel = reduceMotion ? offset : (animationProgress * 1.55 + offset) % 1;
         const depth = -1450 + travel * 1900;
         const spread = Math.min(window.innerWidth, 1280) / 100;
         const x = xPercent * spread * (0.55 + travel * 0.55);
@@ -83,6 +97,7 @@ export default function ContentTunnel({
       });
     };
 
+    // 将高频 scroll/resize 事件合并到浏览器的下一帧执行。
     const requestRender = () => {
       if (!frame) frame = window.requestAnimationFrame(render);
     };
@@ -101,6 +116,7 @@ export default function ContentTunnel({
   return (
     <section className={styles.scene} ref={sectionRef} aria-labelledby="page-title">
       <div className={styles.sticky}>
+        {/* 背景层：氛围底色、循环封面、全屏统一遮罩。 */}
         <div className={styles.atmosphere} aria-hidden="true" />
         <div className={styles.stage} aria-hidden="true">
           {stream.map((cover, index) => (
@@ -123,16 +139,30 @@ export default function ContentTunnel({
             </article>
           ))}
         </div>
+        <div className={styles.screenShade} aria-hidden="true" />
 
+        {/* 信息层：平台定位、存在意义和用户行动路径保持同屏。 */}
         <header className={styles.topbar}>
           <span>QIUYUN / FRONTEND</span>
           <span>CONTENT WORKSPACE</span>
         </header>
 
         <div className={styles.copy}>
-          <p className={styles.eyebrow}>{eyebrow}</p>
-          <h1 id="page-title">{title}</h1>
-          <div className={styles.statement}>
+          <div className={styles.workspaceIntro}>
+            <p className={styles.eyebrow}>{eyebrow}</p>
+            <h1 id="page-title">
+              {title.map((line) => <span key={line}>{line}</span>)}
+            </h1>
+            <p className={styles.note}>{note}</p>
+          </div>
+
+          <div className={styles.purpose} role="region" aria-labelledby="purpose-title">
+            <p className={styles.purposeEyebrow}>{purposeEyebrow}</p>
+            <h2 id="purpose-title">{purposeBody}</h2>
+            <p className={styles.purposeBoundary}>{boundary}</p>
+          </div>
+
+          <div className={styles.statement} aria-label="内容触达目标">
             {statement.map((line, index) => (
               <Fragment key={line}>
                 {index > 0 && <span className={styles.statementArrow} aria-hidden="true">→</span>}
@@ -140,9 +170,9 @@ export default function ContentTunnel({
               </Fragment>
             ))}
           </div>
-          <p className={styles.note}>{note}</p>
         </div>
 
+        {/* 轨道只表达当前流程环节；详细说明放在后续 workflow 区域。 */}
         <div className={styles.rail} aria-label="当前工作流环节">
           <div className={styles.railMeta}>
             <span>当前流程环节</span>
