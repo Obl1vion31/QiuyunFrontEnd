@@ -16,7 +16,7 @@
  * - 运行方式：index.astro 使用 client:load，把本组件作为 React Island 激活。
  *
  * 【修改入口】
- * - 初始构图：positions、initialTravelPhase；
+ * - 初始构图：positions、initialCompositionScales、initialTravelPhase；
  * - 跨屏一致性：referenceCanvas；
  * - 循环速度和纵深：render() 内的 animationProgress、travel 和 depth；
  * - 首屏结构：文件末尾的 JSX。
@@ -48,20 +48,25 @@ interface Props {
 
 // ============================================================
 // 2. 场景配置
-// 【需求】远景在中间自然交错，近景放大后向视口四角展开。
+// 【需求】远景在中间自然交错，近景放大后向视口四角展开；
+// 初始一帧按左上 → 右上 → 右下 → 左下形成两层顺时针大小关系。
 // 【输出】positions 的每项依次表示横向百分比、纵向百分比、基础旋转角度。
 // 【关联】render() 会把这些配置与每张封面的 travel 进度组合成 transform。
 // ============================================================
 const positions = [
   [-30, -20, -5],
   [25, -25, 3],
-  [-26, 22, -2],
-  [28, 18, 4],
+  [28, 18, -2],
+  [-26, 22, 4],
   [-72, -51, 3],
   [59, -41, -4],
-  [-48, 33, 2],
-  [39, 26, -3],
+  [39, 26, 2],
+  [-48, 33, -3],
 ];
+
+// 【需求】只在初始画面轻微放大尺寸差，增强静态螺旋感。
+// 【安全边界】滚动开始后会平滑回到 1，不改变原有运动轨迹和循环尺寸。
+const initialCompositionScales = [0.92, 0.95, 0.98, 1.01, 1.04, 1.07, 1.1, 1.13];
 
 // 【需求】页面打开时直接采用已确认的初始构图，让第八张封面刚好开始露出。
 const initialTravelPhase = 0.08;
@@ -145,6 +150,11 @@ export default function ContentTunnel({
         setActiveStage(nextStage);
       }
 
+      // 【需求】额外大小关系只属于初始构图；约前 12% 滚动内平滑退出。
+      const initialCompositionBlend = reduceMotion
+        ? 1
+        : Math.max(0, 1 - rawProgress / 0.12);
+
       // --------------------------------------------------------
       // 4.3 单张封面：计算循环相位、纵深、位置和视觉强度。
       // --------------------------------------------------------
@@ -168,8 +178,10 @@ export default function ContentTunnel({
         const opacity = Math.max(0, Math.min(fadeIn, fadeOut)) * 0.88;
         const blur = Math.max(0, (0.55 - travel) * 8);
         const brightness = 1 + Math.max(0, travel - 0.4) * 0.3;
+        const initialScale = initialCompositionScales[index % initialCompositionScales.length];
+        const compositionScale = 1 + (initialScale - 1) * initialCompositionBlend;
 
-        card.style.transform = `translate3d(${x}px, ${y}px, ${depth}px) rotate(${rotation + travel * 4}deg)`;
+        card.style.transform = `translate3d(${x}px, ${y}px, ${depth}px) rotate(${rotation + travel * 4}deg) scale(${compositionScale})`;
         card.style.opacity = opacity.toFixed(3);
         card.style.filter = `blur(${blur.toFixed(2)}px) brightness(${brightness.toFixed(3)})`;
       });
