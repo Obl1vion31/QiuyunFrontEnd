@@ -8,18 +8,30 @@
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
-    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check"
+    "check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
+    "start": "node ./dist/server/entry.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
+    "db:migrate": "drizzle-kit migrate",
+    "db:import": "node scripts/import-operations-content.mjs"
   },
   "dependencies": {
+    "@astrojs/node": "8.3.4",
     "@astrojs/react": "3.6.3",
     "astro": "4.16.18",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "exceljs": "^4.4.0",
+    "postgres": "^3.4.9",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.4",
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
+    "drizzle-kit": "^0.31.10",
     "typescript": "5.8.3"
   }
 }

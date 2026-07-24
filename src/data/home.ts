@@ -125,8 +125,9 @@ export const homeContent = {
         eyebrow: '01 / WORK',
         title: '业务系统',
         summary: '计划、内容、任务、用户触点与复盘。',
-        cta: '建设中',
-        status: 'placeholder',
+        cta: '进入排期台账',
+        status: 'external',
+        href: '/business/operations-schedule',
       },
       {
         id: 'people',

@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1784037448910,
+      "tag": "0000_chemical_thunderbolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784172850476,
+      "tag": "0001_cute_smiling_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784199600000,
+      "tag": "0002_correct_imported_schedule_statuses",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784203200000,
+      "tag": "0003_keep_july_and_reset_promotions",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784206800000,
+      "tag": "0004_fix_july_pending_by_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784880000000,
+      "tag": "0005_content_versions",
+      "breakpoints": true
+    }
+  ]
+}
