@@ -50,7 +50,7 @@ const statusLabel = {
     <meta charset="UTF-8" />
     <meta name="description" content={meta.description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#10243e" />
+    <meta name="theme-color" content="#0b1b2b" />
     <title>{meta.title}</title>
   </head>
   <body>
@@ -81,7 +81,7 @@ const statusLabel = {
       */}
       <section class="workflow" aria-labelledby="workflow-title">
         <div class="shell workflow__inner">
-          <header class="section-heading section-heading--light">
+          <header class="section-heading">
             <p>{workflow.eyebrow}</p>
             <h2 id="workflow-title">{workflow.title}</h2>
             <span>{workflow.intro}</span>
@@ -147,15 +147,16 @@ const statusLabel = {
    */
   :root {
     color-scheme: light;
-    --paper: #f2f4ef;
+    --paper: #f5f7f4;
     --surface: #ffffff;
-    --ink: #17202a;
-    --muted: #63707b;
-    --line: rgba(23, 32, 42, 0.16);
-    --blue: #2454d3;
-    --night: #10243e;
-    --orange: #ff6a3d;
-    --mint: #a9ddc8;
+    --soft-surface: #e9eff2;
+    --ink: #17212b;
+    --muted: #5f6d78;
+    --line: rgba(23, 33, 43, 0.13);
+    --blue: #4e7fe8;
+    --night: #0b1b2b;
+    --orange: #ff8a68;
+    --mint: #9ed8c4;
     --max: 1180px;
   }
 
@@ -164,7 +165,9 @@ const statusLabel = {
   body {
     margin: 0;
     color: var(--ink);
-    background: var(--paper);
+    background:
+      radial-gradient(circle at 82% 76%, rgba(158, 216, 196, 0.16), transparent 26%),
+      var(--paper);
     font-family: 'Noto Sans CJK SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     line-height: 1.6;
     text-rendering: optimizeLegibility;
@@ -199,13 +202,15 @@ const statusLabel = {
     color: var(--muted);
     font-size: clamp(1rem, 1.45vw, 1.15rem);
   }
-  .section-heading--light > p { color: #85aafa; }
-  .section-heading--light > span { color: rgba(245, 248, 242, 0.64); }
-
   /* 9. 六阶段工作流：桌面横向排列，窄屏允许横向滚动。 */
   .workflow {
-    color: #f5f8f2;
-    background: var(--night);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 88% 10%, rgba(91, 140, 255, 0.13), transparent 31%),
+      linear-gradient(180deg, #eef3f5 0%, var(--soft-surface) 100%);
   }
   .workflow__inner { padding-block: clamp(92px, 12vw, 160px); }
   .workflow__track {
@@ -215,12 +220,12 @@ const statusLabel = {
     padding: 0 0 26px;
     overflow-x: auto;
     list-style: none;
-    scrollbar-color: var(--orange) rgba(255, 255, 255, 0.1);
+    scrollbar-color: var(--blue) rgba(23, 33, 43, 0.08);
   }
   .workflow__track li { min-width: 160px; padding-right: 22px; }
   .workflow__marker { display: grid; grid-template-columns: auto 1fr; align-items: center; }
   .workflow__marker span {
-    color: #85aafa;
+    color: var(--blue);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.72rem;
   }
@@ -228,7 +233,7 @@ const statusLabel = {
     position: relative;
     height: 1px;
     margin-left: 12px;
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(23, 33, 43, 0.16);
   }
   .workflow__marker i::before {
     content: '';
@@ -238,11 +243,12 @@ const statusLabel = {
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: var(--orange);
+    background: var(--blue);
+    box-shadow: 0 0 0 5px rgba(78, 127, 232, 0.1);
   }
   .workflow__track li > div:last-child > p {
     margin: 30px 0 8px;
-    color: #85aafa;
+    color: var(--blue);
     font-size: 0.82rem;
     font-weight: 800;
   }
@@ -255,30 +261,39 @@ const statusLabel = {
   .workflow__track li > div:last-child > span {
     display: block;
     margin-top: 18px;
-    color: rgba(245, 248, 242, 0.6);
+    color: var(--muted);
     font-size: 0.9rem;
   }
   .workflow__return {
     width: fit-content;
     margin: 54px 0 0 auto;
     padding-bottom: 7px;
-    border-bottom: 2px solid var(--orange);
-    color: rgba(245, 248, 242, 0.82);
+    border-bottom: 1px solid rgba(78, 127, 232, 0.5);
+    color: var(--muted);
   }
 
   /* 10. 系统入口：状态、外链与键盘焦点共用同一行结构。 */
   .systems { padding-block: clamp(96px, 13vw, 180px); }
-  .systems__list { margin-top: 72px; border-top: 1px solid var(--ink); }
+  .systems__list {
+    margin-top: 72px;
+    overflow: hidden;
+    border: 1px solid rgba(23, 33, 43, 0.1);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 24px 70px rgba(29, 55, 73, 0.08);
+    backdrop-filter: blur(18px) saturate(108%);
+  }
   .systems__list article {
     display: grid;
     grid-template-columns: minmax(110px, 0.28fr) minmax(0, 1fr) auto;
     gap: 28px;
     align-items: center;
-    padding: 30px 0;
+    padding: 28px 24px;
     border-bottom: 1px solid var(--line);
-    transition: padding 180ms ease, background 180ms ease;
+    transition: transform 180ms ease, background 180ms ease;
   }
-  .systems__list article:hover { padding-inline: 16px; background: rgba(36, 84, 211, 0.04); }
+  .systems__list article:last-child { border-bottom: 0; }
+  .systems__list article:hover { transform: translateX(6px); background: rgba(91, 140, 255, 0.07); }
   .systems__list article > span:first-child {
     color: var(--blue);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -288,12 +303,14 @@ const statusLabel = {
   .systems__list h3 { margin: 0; font-size: clamp(1.35rem, 2.2vw, 1.9rem); }
   .systems__list p { margin: 5px 0 0; color: var(--muted); }
   .systems__status, .systems__list a {
-    padding: 8px 12px;
+    padding: 9px 14px;
     border: 1px solid var(--line);
+    border-radius: 999px;
     color: var(--muted);
     font-size: 0.8rem;
     text-decoration: none;
   }
+  .systems__list a { border-color: transparent; color: #fff; background: var(--blue); }
   .systems__list a:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
 
   footer {
@@ -316,7 +333,8 @@ const statusLabel = {
 
   @media (max-width: 560px) {
     .workflow__track { grid-template-columns: repeat(6, 72vw); }
-    .systems__list article { grid-template-columns: 1fr auto; }
+    .systems__list { border-radius: 20px; }
+    .systems__list article { grid-template-columns: 1fr auto; padding: 24px 18px; }
     .systems__list article > span:first-child { grid-column: 1 / -1; }
     .systems__list p { max-width: 230px; }
     footer { gap: 18px; flex-direction: column; }
@@ -325,6 +343,10 @@ const statusLabel = {
   /* 12. 减少动态效果：尊重操作系统设置，停用非必要平滑与过渡。 */
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    .systems__list article { transition: none; }
+    .systems__list article { transition: none; transform: none; }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .systems__list { background: var(--surface); backdrop-filter: none; }
   }
 </style>

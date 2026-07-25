@@ -43,6 +43,13 @@
       "when": 1784880000000,
       "tag": "0005_content_versions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784966400000,
+      "tag": "0006_split_discarded_promotion_statuses",
+      "breakpoints": true
     }
   ]
 }

@@ -63,7 +63,7 @@ export const homeContent = {
   meta: {
     title: '前端内容总控台',
     description: '贯穿策划、内容、视觉、发布、用户触点与复盘的前端工作流总枢纽。',
-    updatedAt: '2026/07/14',
+    updatedAt: '2026/07/25',
   },
 
   // 2.2 Hero

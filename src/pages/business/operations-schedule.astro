@@ -6,11 +6,23 @@ import { delayThresholdMs, promotionStatuses, revisionTypeValues } from '../../d
 
 export const prerender = false;
 
-const promotionLabels = { none: '非推广', pending: '待推广', testing: '测试中', scaling: '放量中', ended: '已结束', discarded: '测试淘汰' };
+const promotionLabels = {
+  none: '非推广',
+  pending: '待推广',
+  testing: '推广测试中',
+  scaling: '推广放量中',
+  ended: '推广周期已结束',
+  test_discarded: '测试淘汰',
+  formal_discarded: '放量淘汰',
+};
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const revisionTypeLabels = { cover: '封面', title: '标题', body: '正文', cta: 'CTA', audience: '受众', format: '内容形式', other: '其他' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
 const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' ? 'calendar' : 'ledger';
+const requestedStatus = Astro.url.searchParams.get('status');
+const selectedStatus = ['pending', 'overdue', 'published'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
+const requestedPromotion = Astro.url.searchParams.get('promotion');
+const selectedPromotion = ['testing', 'scaling'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
 const dateParts = (date: Date) => Object.fromEntries(new Intl.DateTimeFormat('en', {
   timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
@@ -35,7 +47,7 @@ const previousMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber - 2, 1
 const nextMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 1)).toISOString().slice(0, 7);
 const hrefFor = (changes: Record<string, string>) => {
   const params = new URLSearchParams(Astro.url.searchParams);
-  Object.entries(changes).forEach(([key, value]) => params.set(key, value));
+  Object.entries(changes).forEach(([key, value]) => value ? params.set(key, value) : params.delete(key));
   return `?${params.toString()}`;
 };
 
@@ -79,7 +91,14 @@ try {
 const isOverdue = (row: typeof rows[number]) => !row.actualPublishAt && now.getTime() - row.plannedPublishAt.getTime() > delayThresholdMs;
 const monthRows = rows.filter((row) => monthKey(row.plannedPublishAt) === selectedMonth);
 const promotionRows = rows.filter((row) => ['testing', 'scaling'].includes(row.promotionStatus));
-const activeRows = selectedView === 'promotion' ? promotionRows : monthRows;
+const activeRows = selectedView === 'promotion'
+  ? promotionRows.filter((row) => selectedPromotion === 'all' || row.promotionStatus === selectedPromotion)
+  : monthRows.filter((row) => {
+      if (selectedStatus === 'pending') return !row.actualPublishAt;
+      if (selectedStatus === 'overdue') return isOverdue(row);
+      if (selectedStatus === 'published') return Boolean(row.actualPublishAt);
+      return true;
+    });
 const summary = {
   total: monthRows.length,
   pending: monthRows.filter((row) => !row.actualPublishAt).length,
@@ -109,6 +128,11 @@ const clientRows = rows.map((row) => {
     delayReason: row.delayReason ?? '',
     revisionSummary: row.revisionSummary ?? '',
     revisionGoal: row.revisionGoal ?? '',
+    promotionLabel: promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus,
+    completionLabel: isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布',
+    plannedDisplay: displayDateTime(row.plannedPublishAt),
+    actualDisplay: row.actualPublishAt ? displayDateTime(row.actualPublishAt) : '尚未实发',
+    revisionTypeLabels: (row.revisionTypes ?? []).map((type) => revisionTypeLabels[type as keyof typeof revisionTypeLabels] ?? type),
     sourceScheduleId: row.id,
     nextVersionNumber: Math.max(...rows.filter((candidate) => candidate.contentId === row.contentId).map((candidate) => candidate.versionNumber), row.versionNumber) + 1,
     childVersionNumber: child?.versionNumber ?? null,
@@ -127,129 +151,127 @@ const clientRows = rows.map((row) => {
     <title>内容发布控制台 · 排期管理</title>
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="/">FRONTEND <span>／ CONTENT OPS</span></a>
-      <span class="access">INTERNAL ACCESS</span>
-    </header>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="sidebar-brand" href="/"><span>FRONTEND</span><strong>内容发布控制台</strong></a>
+        <nav class="module-nav" aria-label="内容发布控制台模块">
+          <a class="active" href="/business/operations-schedule"><span class="nav-icon">排</span><span><strong>排期管理</strong><small>Schedule</small></span></a>
+          <span class="planned" aria-disabled="true"><span class="nav-icon">日</span><span><strong>日粒度全量复盘</strong><small>计划中</small></span></span>
+          <span class="planned" aria-disabled="true"><span class="nav-icon">阶</span><span><strong>阶段复盘</strong><small>计划中</small></span></span>
+          <span class="planned" aria-disabled="true"><span class="nav-icon">报</span><span><strong>报表中心</strong><small>计划中</small></span></span>
+        </nav>
+        <div class="sidebar-foot"><span>INTERNAL ACCESS</span><a href="/">← 返回总枢纽</a></div>
+      </aside>
 
-    <main>
-      <section class="intro">
-        <div>
-          <p class="eyebrow">CONTENT PUBLISHING CONSOLE</p>
-          <h1>排期管理</h1>
-          <p>新做帖从 V0 开始；内容需要调整时，从原版本派生改帖并保留完整记录。</p>
-        </div>
-        <button class="primary-action" type="button" data-open-new>
-          <span>新做帖</span><b aria-hidden="true">＋</b>
-        </button>
-      </section>
-
-      {databaseError && <p class="notice notice--error" role="alert">{databaseError}</p>}
-
-      <nav class="context-bar" aria-label="排期主视图">
-        <div class="bar-title"><span>当前模块</span><strong>内容排期</strong></div>
-        <div class="segmented">
-          <a class:list={{ active: selectedView === 'promotion' }} href={hrefFor({ view: 'promotion' })}>
-            推广中 <span>{promotionRows.length}</span>
-          </a>
-          <a class:list={{ active: selectedView === 'schedule' }} href={hrefFor({ view: 'schedule' })}>
-            当月排期 <span>{monthRows.length}</span>
-          </a>
-        </div>
-        <p>日粒度复盘、阶段复盘、数据填报与报表中心按 Phase 03 计划后续建设。</p>
-      </nav>
-
-      {selectedView === 'schedule' && <section class="month-controls" aria-label="月份与显示方式">
-        <div class="month-nav">
-          <a href={hrefFor({ month: previousMonth })} aria-label="上个月">←</a>
-          <strong>{selectedMonth}</strong>
-          <a href={hrefFor({ month: nextMonth })} aria-label="下个月">→</a>
-          <a class="today-link" href={hrefFor({ month: currentMonth })}>本月</a>
-        </div>
-        <div class="display-switch">
-          <a class:list={{ active: selectedDisplay === 'ledger' }} href={hrefFor({ display: 'ledger' })}>台账</a>
-          <a class:list={{ active: selectedDisplay === 'calendar' }} href={hrefFor({ display: 'calendar' })}>月历</a>
-        </div>
-      </section>}
-
-      <section class="summary" aria-label="状态汇总">
-        {selectedView === 'promotion' ? <>
-          <div><span>测试中</span><strong>{summary.testing}</strong></div>
-          <div class="signal"><span>放量中</span><strong>{summary.scaling}</strong></div>
-        </> : <>
-          <div><span>本月内容</span><strong>{summary.total}</strong></div>
-          <div class="signal"><span>本月改帖</span><strong>{summary.revisions}</strong></div>
-          <div><span>待发布</span><strong>{summary.pending}</strong></div>
-          <div class="attention"><span>逾期未发</span><strong>{summary.overdue}</strong></div>
-          <div><span>已实发</span><strong>{summary.published}</strong></div>
-        </>}
-      </section>
-
-      {selectedView === 'promotion' && <section class="promotion-board" aria-label="当前推广内容">
-        {(['testing', 'scaling'] as const).map((status) => <div class:list={['promotion-lane', { 'lane-scaling': status === 'scaling' }]}>
-          <header><div><span>{status === 'testing' ? 'TESTING' : 'SCALING'}</span><h2>{promotionLabels[status]}</h2></div><strong>{promotionRows.filter((row) => row.promotionStatus === status).length}</strong></header>
-          <div class="lane-list">
-            {promotionRows.filter((row) => row.promotionStatus === status).map((row) => {
-              const child = rows.find((candidate) => candidate.sourceVersionId === row.versionId);
-              return <article>
-                <div class="time-mark"><span>应发</span><strong>{displayDateTime(row.plannedPublishAt)}</strong><small>{row.actualPublishAt ? `实发 ${displayDateTime(row.actualPublishAt)}` : isOverdue(row) ? '逾期未发' : '等待实发'}</small></div>
-                <div class="content-mark">
-                  <div class="version-line"><span class="version-chip">V{row.versionNumber}</span><span>{row.workType === 'revision' ? '改帖' : '新做帖'}</span>{child && <span>已派生 V{child.versionNumber}</span>}</div>
-                  <h3>{row.contentName}</h3><p>{row.contentType}</p>
-                </div>
-                <div class="row-actions"><button type="button" class="edit-button" data-edit-id={row.id}>编辑排期</button>{child ? <span class="derived-label">已有 V{child.versionNumber}</span> : <button type="button" class="revise-button" data-revise-id={row.id}>改帖</button>}</div>
-                <div class="doc-mark">{row.projectDocUrl ? <a href={row.projectDocUrl} target="_blank" rel="noreferrer">{row.projectDocName || '打开项目文档'} ↗</a> : <span>项目文档待补</span>}</div>
-              </article>;
-            })}
-            {!promotionRows.some((row) => row.promotionStatus === status) && <p class="empty-lane">当前没有{promotionLabels[status]}的内容。</p>}
+      <section class="workspace">
+        <header class="toolbar">
+          <div class="toolbar-title"><span>排期管理</span><small>{selectedView === 'promotion' ? '推广中视角' : `${selectedMonth} 当月排期`}</small></div>
+          {selectedView === 'schedule' && <div class="month-nav">
+            <a href={hrefFor({ month: previousMonth })} aria-label="上个月">‹</a>
+            <strong>{selectedMonth.replace('-', ' 年 ')} 月</strong>
+            <a href={hrefFor({ month: nextMonth })} aria-label="下个月">›</a>
+            <a class="today-link" href={hrefFor({ month: currentMonth })}>本月</a>
+          </div>}
+          <div class="toolbar-actions">
+            <div class="display-switch" aria-label="显示方式">
+              <a class:list={{ active: selectedDisplay === 'ledger' || selectedView === 'promotion' }} href={hrefFor({ display: 'ledger' })}>台账</a>
+              <a class:list={{ active: selectedDisplay === 'calendar' && selectedView === 'schedule' }} href={hrefFor({ view: 'schedule', display: 'calendar', status: '', promotion: '' })}>月历</a>
+            </div>
+            <button class="filter-button" type="button" disabled title="更多筛选将在数据维度确认后开放">筛选</button>
+            <button class="primary-action" type="button" data-open-new><span>新做帖</span><b aria-hidden="true">＋</b></button>
           </div>
-        </div>)}
-      </section>}
+        </header>
 
-      {selectedView === 'schedule' && selectedDisplay === 'ledger' && <section>
-        <div class="table-wrap">
+        <main class="workspace-main">
+          {databaseError && <p class="notice notice--error" role="alert">{databaseError}</p>}
+
+          <nav class="status-strip" aria-label="排期状态视角">
+            <a class:list={{ active: selectedView === 'schedule' && selectedStatus === 'all' }} href={hrefFor({ view: 'schedule', status: '', promotion: '', display: 'ledger' })}>
+              <span>本月内容</span><strong>{summary.total}</strong>
+            </a>
+            <a class:list={{ active: selectedView === 'schedule' && selectedStatus === 'pending' }} href={hrefFor({ view: 'schedule', status: 'pending', promotion: '', display: 'ledger' })}>
+              <span>待发布</span><strong>{summary.pending}</strong>
+            </a>
+            <a class:list={['promotion-summary', { active: selectedView === 'promotion' && selectedPromotion === 'all' }]} href={hrefFor({ view: 'promotion', status: '', promotion: '', display: 'ledger' })}>
+              <span>推广中</span><strong>{promotionRows.length}</strong><small>测试 {summary.testing} · 放量 {summary.scaling}</small>
+            </a>
+            <a class:list={['testing-summary', { active: selectedView === 'promotion' && selectedPromotion === 'testing' }]} href={hrefFor({ view: 'promotion', status: '', promotion: 'testing', display: 'ledger' })}>
+              <span>测试中</span><strong>{summary.testing}</strong>
+            </a>
+            <a class:list={['scaling-summary', { active: selectedView === 'promotion' && selectedPromotion === 'scaling' }]} href={hrefFor({ view: 'promotion', status: '', promotion: 'scaling', display: 'ledger' })}>
+              <span>放量中</span><strong>{summary.scaling}</strong>
+            </a>
+            <a class:list={['attention-summary', { active: selectedView === 'schedule' && selectedStatus === 'overdue' }]} href={hrefFor({ view: 'schedule', status: 'overdue', promotion: '', display: 'ledger' })}>
+              <span>逾期未发</span><strong>{summary.overdue}</strong>
+            </a>
+            <a class:list={{ active: selectedView === 'schedule' && selectedStatus === 'published' }} href={hrefFor({ view: 'schedule', status: 'published', promotion: '', display: 'ledger' })}>
+              <span>已发布</span><strong>{summary.published}</strong>
+            </a>
+          </nav>
+
+          <div class="content-layout">
+            <section class="content-stage">
+              {(selectedDisplay === 'ledger' || selectedView === 'promotion') && <div class="table-wrap">
           <table>
-            <thead><tr><th>发布时间</th><th>版本与内容</th><th>推广阶段</th><th>完成情况</th><th>项目文档</th><th>操作</th></tr></thead>
+            <thead><tr><th>应发时间</th><th>版本</th><th>内容</th><th>推广阶段</th><th>发布状态</th><th>文档</th><th><span class="sr-only">操作</span></th></tr></thead>
             <tbody>
               {activeRows.map((row, index) => {
                 const newDay = index === 0 || dayKey(activeRows[index - 1].plannedPublishAt) !== dayKey(row.plannedPublishAt);
                 const child = rows.find((candidate) => candidate.sourceVersionId === row.versionId);
                 const source = row.sourceVersionId ? rows.find((candidate) => candidate.versionId === row.sourceVersionId) : undefined;
                 return <>
-                  {newDay && <tr class="day-divider"><th colspan="6">{dayKey(row.plannedPublishAt)}{dayKey(row.plannedPublishAt) === dayKey(now) && <span>今天</span>}</th></tr>}
-                  <tr class:list={{ overdue: isOverdue(row) }}>
-                    <td><strong>{displayDateTime(row.plannedPublishAt)}</strong><small>{row.actualPublishAt ? `实发 ${displayDateTime(row.actualPublishAt)}` : isOverdue(row) ? '逾期未发' : '等待实发'}</small></td>
-                    <td>
-                      <div class="version-line"><span class="version-chip">V{row.versionNumber}</span><span>{row.workType === 'revision' ? '改帖' : '新做帖'}</span>{source && <span>来源 V{source.versionNumber}</span>}{child && <span>已派生 V{child.versionNumber}</span>}</div>
-                      <strong>{row.contentName}</strong><small>{row.contentType}{row.syncToMoments ? ' · 同步朋友圈' : ''}</small>
-                      {row.revisionGoal && <small class="revision-note">目标：{row.revisionGoal}</small>}
-                    </td>
+                  {newDay && <tr class="day-divider"><th colspan="7"><span class="timeline-dot"></span><strong>{dayKey(row.plannedPublishAt)}</strong>{dayKey(row.plannedPublishAt) === dayKey(now) && <b>今天</b>}<small>{activeRows.filter((candidate) => dayKey(candidate.plannedPublishAt) === dayKey(row.plannedPublishAt)).length} 条</small></th></tr>}
+                  <tr class:list={['schedule-row', { overdue: isOverdue(row) }]} data-inspect-id={row.id} tabindex="0">
+                    <td class="time-cell"><strong>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</strong><small>{row.actualPublishAt ? `实发 ${displayDateTime(row.actualPublishAt).split(' ')[1]}` : '尚未实发'}</small></td>
+                    <td><span class="version-chip">V{row.versionNumber}</span><small>{row.workType === 'revision' ? '改帖' : '新做帖'}</small></td>
+                    <td class="content-cell"><strong>{row.contentName}</strong><small>{row.contentType}{row.syncToMoments ? ' · 同步朋友圈' : ''}{source ? ` · 来源 V${source.versionNumber}` : ''}{child ? ` · 已派生 V${child.versionNumber}` : ''}</small></td>
                     <td><span class={`tag promotion-${row.promotionStatus}`}>{promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus}</span></td>
-                    <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布'}</span>{row.delayReason && <small>{row.delayReason}</small>}</td>
-                    <td>{row.projectDocUrl ? <a href={row.projectDocUrl} target="_blank" rel="noreferrer">{row.projectDocName || '打开文档'} ↗</a> : <span class="missing">待补链接</span>}</td>
-                    <td><div class="row-actions"><button type="button" class="edit-button" data-edit-id={row.id}>编辑</button>{child ? <span class="derived-label">已有 V{child.versionNumber}</span> : <button type="button" class="revise-button" data-revise-id={row.id}>改帖</button>}</div></td>
+                    <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布'}</span></td>
+                    <td>{row.projectDocUrl ? <a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label={`打开${row.projectDocName || '项目文档'}`}>↗</a> : <span class="missing">待补</span>}</td>
+                    <td><details class="row-menu"><summary aria-label="更多操作">•••</summary><div><button type="button" data-edit-id={row.id}>编辑排期</button>{child ? <span>已有 V{child.versionNumber}</span> : <button type="button" data-revise-id={row.id}>创建改帖</button>}</div></details></td>
                   </tr>
                 </>;
               })}
             </tbody>
           </table>
-          {!databaseError && activeRows.length === 0 && <div class="empty"><strong>这个月还没有排期</strong><p>点击“新做帖”，建立第一条 V0 内容。</p></div>}
+          {!databaseError && activeRows.length === 0 && <div class="empty"><strong>当前视角没有内容</strong><p>切换状态视角，或点击“新做帖”建立一条 V0 内容。</p></div>}
         </div>
-      </section>}
+              }
 
       {selectedView === 'schedule' && selectedDisplay === 'calendar' && <section class="calendar" aria-label={`${selectedMonth} 月历`}>
         <div class="weekdays">{['日','一','二','三','四','五','六'].map((day) => <span>{day}</span>)}</div>
         <div class="calendar-grid">
           {calendarCells.map((cell) => <div class:list={['calendar-day', { outside: !cell.valid, today: cell.key === dayKey(now) }]}>
             {cell.valid && <><strong class="day-number">{cell.day}</strong><div class="calendar-items">
-              {cell.rows.map((row) => <button type="button" data-edit-id={row.id} class:list={['calendar-item', `promotion-${row.promotionStatus}`, { overdue: isOverdue(row) }]}>
+              {cell.rows.map((row) => <button type="button" data-inspect-id={row.id} class:list={['calendar-item', `promotion-${row.promotionStatus}`, { overdue: isOverdue(row) }]}>
                 <time>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</time><span><b>V{row.versionNumber}</b> {row.contentName}</span>
               </button>)}
             </div></>}
           </div>)}
         </div>
       </section>}
-    </main>
+            </section>
+
+            <aside class="inspector" data-inspector hidden aria-label="帖子详情">
+              <header><div><span data-inspector-version>V0</span><small data-inspector-kind>新做帖</small></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
+              <div class="inspector-body">
+                <section class="inspector-title"><p data-inspector-type></p><h2 data-inspector-name></h2></section>
+                <dl class="detail-list">
+                  <div><dt>推广状态</dt><dd data-inspector-promotion></dd></div>
+                  <div><dt>应发时间</dt><dd data-inspector-planned></dd></div>
+                  <div><dt>实发时间</dt><dd data-inspector-actual></dd></div>
+                  <div><dt>发布状态</dt><dd data-inspector-completion></dd></div>
+                </dl>
+                <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
+                <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><p data-inspector-revision-types></p><strong>改动说明</strong><p data-inspector-revision-summary></p><strong>修改目标</strong><p data-inspector-revision-goal></p></section>
+                <section class="inspector-section"><span>项目文档</span><a data-inspector-doc target="_blank" rel="noreferrer">打开项目文档 ↗</a></section>
+              </div>
+              <footer><button type="button" class="secondary-action" data-inspector-edit>编辑排期</button><button type="button" class="save-button" data-inspector-revise>创建改帖</button><span data-inspector-derived hidden></span></footer>
+            </aside>
+          </div>
+        </main>
+      </section>
+    </div>
 
     <dialog id="schedule-dialog" aria-labelledby="dialog-title">
       <form id="schedule-form" action="/api/operations-content" method="post" novalidate>
@@ -299,11 +321,69 @@ const clientRows = rows.map((row) => {
       const completionPreview = document.querySelector('#completion-preview');
       const message = document.querySelector('.form-message');
       const submitButton = form.querySelector('button[type="submit"]');
+      const inspector = document.querySelector('[data-inspector]');
+      const inspectorEdit = document.querySelector('[data-inspector-edit]');
+      const inspectorRevise = document.querySelector('[data-inspector-revise]');
+      const inspectorDerived = document.querySelector('[data-inspector-derived]');
       let dirty = false;
       let mode = 'new';
       let activeRecord;
 
       const field = (name) => form.elements.namedItem(name);
+      const setInspectorText = (selector, value) => {
+        const node = inspector.querySelector(selector);
+        if (node) node.textContent = value || '—';
+      };
+      const openInspector = (record) => {
+        if (!record) return;
+        activeRecord = record;
+        setInspectorText('[data-inspector-version]', `V${record.versionNumber}`);
+        setInspectorText('[data-inspector-kind]', record.workType === 'revision' ? '改帖' : '新做帖');
+        setInspectorText('[data-inspector-type]', record.contentType);
+        setInspectorText('[data-inspector-name]', record.contentName);
+        setInspectorText('[data-inspector-promotion]', record.promotionLabel);
+        setInspectorText('[data-inspector-planned]', record.plannedDisplay);
+        setInspectorText('[data-inspector-actual]', record.actualDisplay);
+        setInspectorText('[data-inspector-completion]', record.completionLabel);
+        setInspectorText('[data-inspector-revision-types]', record.revisionTypeLabels.join('、'));
+        setInspectorText('[data-inspector-revision-summary]', record.revisionSummary);
+        setInspectorText('[data-inspector-revision-goal]', record.revisionGoal);
+        const revisionSection = inspector.querySelector('[data-inspector-revision-section]');
+        revisionSection.hidden = record.workType !== 'revision';
+        const path = inspector.querySelector('[data-inspector-path]');
+        path.replaceChildren();
+        const versions = record.sourceVersionNumber == null
+          ? [`V${record.versionNumber}`]
+          : [`V${record.sourceVersionNumber}`, `V${record.versionNumber}`];
+        if (record.childVersionNumber != null) versions.push(`V${record.childVersionNumber}`);
+        versions.forEach((label, index) => {
+          const chip = document.createElement('span');
+          chip.textContent = label;
+          path.append(chip);
+          if (index < versions.length - 1) path.append(document.createTextNode('→'));
+        });
+        const doc = inspector.querySelector('[data-inspector-doc]');
+        if (record.projectDocUrl) {
+          doc.href = record.projectDocUrl;
+          doc.textContent = `${record.projectDocName || '打开项目文档'} ↗`;
+          doc.removeAttribute('aria-disabled');
+        } else {
+          doc.removeAttribute('href');
+          doc.textContent = '项目文档待补';
+          doc.setAttribute('aria-disabled', 'true');
+        }
+        inspectorRevise.hidden = record.childVersionNumber != null;
+        inspectorDerived.hidden = record.childVersionNumber == null;
+        inspectorDerived.textContent = record.childVersionNumber == null ? '' : `已派生 V${record.childVersionNumber}`;
+        inspector.hidden = false;
+        requestAnimationFrame(() => inspector.classList.add('is-open'));
+        document.querySelectorAll('[data-inspect-id]').forEach((node) => node.classList.toggle('selected', node.dataset.inspectId === record.id));
+      };
+      const closeInspector = () => {
+        inspector.classList.remove('is-open');
+        document.querySelectorAll('[data-inspect-id]').forEach((node) => node.classList.remove('selected'));
+        window.setTimeout(() => { inspector.hidden = true; }, 180);
+      };
       const needsDelayReason = () => {
         const planned = field('plannedPublishAt').value;
         const actual = field('actualPublishAt').value;
@@ -378,7 +458,7 @@ const clientRows = rows.map((row) => {
           field('promotionStatus').value = 'pending';
           field('promotionStatus').disabled = true;
           promotionHelp.textContent = '改帖将以“待推广”开始。';
-          const closing = record.promotionStatus === 'testing' ? '测试淘汰' : record.promotionStatus === 'scaling' ? '已结束' : '保持当前状态';
+          const closing = record.promotionStatus === 'testing' ? '测试淘汰' : record.promotionStatus === 'scaling' ? '放量淘汰' : '保持当前状态';
           sourcePreview.replaceChildren();
           const sourceTitle = document.createElement('strong');
           const sourceStatus = document.createElement('span');
@@ -397,8 +477,30 @@ const clientRows = rows.map((row) => {
         dialog.close();
       };
       document.querySelector('[data-open-new]')?.addEventListener('click', () => openForm('new'));
-      document.querySelectorAll('[data-edit-id]').forEach((button) => button.addEventListener('click', () => openForm('edit', rows.find((row) => row.id === button.dataset.editId))));
-      document.querySelectorAll('[data-revise-id]').forEach((button) => button.addEventListener('click', () => openForm('revision', rows.find((row) => row.id === button.dataset.reviseId))));
+      document.querySelectorAll('[data-inspect-id]').forEach((node) => {
+        const inspect = () => openInspector(rows.find((row) => row.id === node.dataset.inspectId));
+        node.addEventListener('click', inspect);
+        node.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(); }
+        });
+      });
+      document.querySelectorAll('.row-menu').forEach((menu) => {
+        menu.addEventListener('click', (event) => event.stopPropagation());
+      });
+      document.querySelectorAll('[data-edit-id]').forEach((button) => button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openForm('edit', rows.find((row) => row.id === button.dataset.editId));
+      }));
+      document.querySelectorAll('[data-revise-id]').forEach((button) => button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openForm('revision', rows.find((row) => row.id === button.dataset.reviseId));
+      }));
+      document.querySelector('[data-close-inspector]')?.addEventListener('click', closeInspector);
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !dialog.open && !inspector.hidden) closeInspector();
+      });
+      inspectorEdit?.addEventListener('click', () => openForm('edit', activeRecord));
+      inspectorRevise?.addEventListener('click', () => openForm('revision', activeRecord));
       document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeForm));
       dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeForm(); });
       form.addEventListener('input', () => { dirty = true; updateDelayField(); });
@@ -454,11 +556,184 @@ const clientRows = rows.map((row) => {
   .summary{display:flex;margin:24px 0 34px;color:#fff;background:var(--night);border-radius:14px;overflow:hidden}.summary>div{flex:1;padding:18px 22px;border-right:1px solid #476078}.summary span{display:block;color:#b7c6d3;font-size:.75rem}.summary strong{font:900 2rem ui-monospace,monospace}.summary .attention strong{color:#ff9a7c}.summary .signal strong{color:var(--mint)}
   .promotion-board{display:grid;grid-template-columns:1fr 1fr;gap:28px}.promotion-lane{border-top:6px solid var(--blue);background:#fff}.lane-scaling{border-color:var(--orange)}.promotion-lane>header{display:flex;align-items:end;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--ink)}.promotion-lane header span{color:var(--muted);font:800 .68rem ui-monospace,monospace;letter-spacing:.14em}.promotion-lane h2{margin:3px 0 0}.promotion-lane header>strong{font:900 2.2rem ui-monospace,monospace}.lane-list article{display:grid;grid-template-columns:125px 1fr auto;gap:15px;padding:18px 20px;border-bottom:1px solid var(--line)}.time-mark span,.time-mark small{display:block;color:var(--muted);font-size:.7rem}.time-mark strong{display:block;font-size:.8rem}.content-mark h3{margin:4px 0 0;font-size:.95rem}.content-mark p{margin:3px 0;color:var(--muted);font-size:.75rem}.doc-mark{grid-column:2;font-size:.75rem}.doc-mark span,.missing{color:#aa4529;font-weight:750}.empty-lane{margin:0;padding:36px 20px;color:var(--muted);text-align:center}
   .version-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:.66rem;font-weight:750}.version-chip{display:inline-block;padding:2px 6px;border-radius:999px;color:#fff;background:var(--blue);font:850 .65rem ui-monospace,monospace}.revision-note{color:#3853a1!important}.row-actions{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}.edit-button,.revise-button{border:1px solid var(--ink);padding:6px 9px;background:transparent;font-size:.72rem;font-weight:800;cursor:pointer}.revise-button{color:#fff;border-color:var(--blue);background:var(--blue)}.derived-label{padding:6px 4px;color:var(--muted);font-size:.68rem;font-weight:750}
-  .table-wrap{overflow-x:auto;border-top:2px solid var(--ink);background:#fff}table{width:100%;min-width:1120px;border-collapse:collapse;font-size:.8rem}thead th{padding:11px 12px;text-align:left;color:var(--muted);font-size:.7rem;letter-spacing:.04em;border-bottom:1px solid var(--ink)}tbody td{padding:14px 12px;vertical-align:top;border-bottom:1px solid var(--line)}td strong,td small{display:block}td small{margin-top:4px;color:var(--muted)}.day-divider th{padding:9px 12px;text-align:left;background:#e4e8e4;font:850 .75rem ui-monospace,monospace}.day-divider span{margin-left:9px;padding:2px 6px;color:#fff;background:var(--blue);font-family:inherit}.tag,.completion{display:inline-block;padding:3px 7px;font-weight:800;background:#e0e5e2}.promotion-testing{background:#dbe4ff;color:#183fa3}.promotion-scaling{background:#ffe0d6;color:#9e3718}.promotion-ended{background:#e1e2e2;color:#5c6264}.promotion-discarded{background:#efe1e1;color:#743838}.completion-overdue,.completion-delayed{color:#9e3718;background:#ffe0d6}tr.overdue td:first-child{box-shadow:inset 4px 0 var(--orange)}.empty{padding:52px 20px;text-align:center}.empty p{color:var(--muted)}
+  .table-wrap{overflow-x:auto;border-top:2px solid var(--ink);background:#fff}table{width:100%;min-width:1120px;border-collapse:collapse;font-size:.8rem}thead th{padding:11px 12px;text-align:left;color:var(--muted);font-size:.7rem;letter-spacing:.04em;border-bottom:1px solid var(--ink)}tbody td{padding:14px 12px;vertical-align:top;border-bottom:1px solid var(--line)}td strong,td small{display:block}td small{margin-top:4px;color:var(--muted)}.day-divider th{padding:9px 12px;text-align:left;background:#e4e8e4;font:850 .75rem ui-monospace,monospace}.day-divider span{margin-left:9px;padding:2px 6px;color:#fff;background:var(--blue);font-family:inherit}.tag,.completion{display:inline-block;padding:3px 7px;font-weight:800;background:#e0e5e2}.promotion-testing{background:#dbe4ff;color:#183fa3}.promotion-scaling{background:#ffe0d6;color:#9e3718}.promotion-ended{background:#e1e2e2;color:#5c6264}.promotion-test_discarded,.promotion-formal_discarded{background:#efe1e1;color:#743838}.completion-overdue,.completion-delayed{color:#9e3718;background:#ffe0d6}tr.overdue td:first-child{box-shadow:inset 4px 0 var(--orange)}.empty{padding:52px 20px;text-align:center}.empty p{color:var(--muted)}
   .weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}.weekdays span{padding:8px 10px;color:var(--muted);font-size:.7rem;font-weight:800;border-bottom:1px solid var(--ink)}.calendar-grid{border-left:1px solid var(--line);border-top:1px solid var(--line)}.calendar-day{min-height:145px;padding:9px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff}.calendar-day.outside{background:#e8ebe8}.calendar-day.today{box-shadow:inset 0 4px var(--blue)}.day-number{display:block;margin-bottom:8px;font:850 .8rem ui-monospace,monospace}.calendar-items{display:grid;gap:5px}.calendar-item{width:100%;display:grid;grid-template-columns:auto 1fr;gap:6px;padding:6px;border:0;text-align:left;background:#e5e9e6;cursor:pointer}.calendar-item time{font:800 .64rem ui-monospace,monospace}.calendar-item span{overflow:hidden;font-size:.7rem;font-weight:750;white-space:nowrap;text-overflow:ellipsis}.calendar-item.promotion-testing{border-left:3px solid var(--blue)}.calendar-item.promotion-scaling{border-left:3px solid var(--orange)}.calendar-item.overdue{color:#8a3018;background:#ffe0d6}
   dialog{width:min(780px,calc(100% - 32px));max-height:calc(100vh - 32px);padding:0;border:0;border-radius:18px;background:var(--paper);box-shadow:0 28px 90px #07111d70}dialog::backdrop{background:#07111db8;backdrop-filter:blur(5px)}dialog[open]{animation:materialize 220ms cubic-bezier(.2,.8,.2,1)}@keyframes materialize{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}.dialog-head{display:flex;justify-content:space-between;align-items:start;padding:20px 24px;color:#fff;background:#10243ef0;backdrop-filter:blur(16px)}.dialog-head span{color:#9eb8f8;font:800 .65rem ui-monospace,monospace;letter-spacing:.13em}.dialog-head h2{margin:3px 0 0}.dialog-head-actions{display:flex;align-items:center;gap:14px}.dialog-head .dialog-version{padding:6px 10px;border:1px solid #ffffff4a;border-radius:999px;color:#fff;letter-spacing:0}.close-button{border:0;color:#fff;background:transparent;font-size:2rem;line-height:1;cursor:pointer}.source-preview{display:flex;justify-content:space-between;gap:20px;padding:13px 24px;color:#183fa3;background:#dbe4ff;font-size:.76rem}.source-preview span{color:#3853a1}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;padding:24px}.field{margin-bottom:14px}.field-wide{grid-column:1/-1}.field label{display:block;margin-bottom:5px;font-size:.78rem;font-weight:750}.field b{color:var(--orange)}.field input,.field select,.field textarea{width:100%;border:1px solid #9ca7aa;border-radius:9px;padding:9px 10px;color:var(--ink);background:#fff}.field textarea{resize:vertical}.field small{display:block;min-height:16px;color:#b93d23;font-size:.7rem}.field em{display:block;margin-top:3px;color:var(--muted);font-size:.68rem;font-style:normal}.status-preview{display:block;width:100%;min-height:43px;padding:9px 10px;border:1px solid #9ca7aa;border-radius:9px;background:#e5e9e6;font-weight:850}.check-field{display:flex;align-items:center}.check-field label{display:flex;gap:7px;align-items:center}.check-field input{width:auto}.delay-field{padding:13px;border-left:4px solid var(--orange);background:#ffe8e1}.revision-fields{margin:4px 0 18px;padding:16px;border:1px solid #aebeea;border-radius:12px;background:#edf2ff}.revision-fields legend{padding:0 8px;color:#183fa3;font-weight:850}.check-grid{display:flex;gap:8px;flex-wrap:wrap}.check-grid label{display:flex;align-items:center;gap:5px;margin:0;padding:7px 9px;border:1px solid #b8c1c6;border-radius:999px;background:#fff;font-size:.72rem}.check-grid input{width:auto}.form-message{min-height:20px;margin:0 24px;color:#b93d23;font-size:.8rem}.dialog-actions{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--line);background:#f2f4eff2;backdrop-filter:blur(14px)}.secondary-action{border:1px solid var(--ink);padding:11px 16px;border-radius:10px;background:transparent;font-weight:800;cursor:pointer}.save-button{border-radius:10px}.save-button:disabled{opacity:.6}
   @media(max-width:900px){.context-bar{grid-template-columns:auto 1fr}.context-bar>p{display:none}.promotion-board{grid-template-columns:1fr}.calendar-day{min-height:110px}.calendar-item{display:block}.calendar-item time{display:block}.summary{flex-wrap:wrap}.summary>div{min-width:33%}}
   @media(max-width:650px){.access{display:none}.topbar{height:52px}.brand span{display:none}main{width:calc(100% - 28px);padding-top:30px}.intro{display:block}.intro h1{font-size:3rem}.primary-action{width:100%;margin-top:24px}.context-bar{top:60px;display:block;padding:8px}.bar-title{display:none}.segmented{width:100%}.segmented a{flex:1;justify-content:space-between}.month-controls{align-items:flex-start;gap:14px}.month-nav{flex-wrap:wrap}.summary>div{min-width:50%;padding:14px}.lane-list article{grid-template-columns:100px 1fr}.row-actions{grid-column:2}.doc-mark{grid-column:2}.weekdays{display:none}.calendar-grid{grid-template-columns:1fr}.calendar-day.outside{display:none}.calendar-day{min-height:auto}.calendar-item{display:grid}.form-grid{display:block;padding:18px}dialog{width:100%;max-width:none;max-height:100vh;height:100vh;border-radius:0}.source-preview{display:grid;gap:3px}.revision-fields{padding:12px}.dialog-actions{padding:12px 18px}}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}button:active{transform:none}}
   @media(prefers-reduced-transparency:reduce){.topbar,.context-bar,.dialog-head,.dialog-actions{backdrop-filter:none}.topbar,.dialog-head{background:var(--night)}.context-bar,.dialog-actions{background:var(--paper)}}
+
+  /* 内容发布控制台：Apple Workspace 外壳 */
+  html,body{min-height:100%;background:#e9ece8}
+  body{overflow-x:hidden}
+  .app-shell{min-height:100vh;display:grid;grid-template-columns:232px minmax(0,1fr)}
+  .sidebar{position:sticky;top:0;height:100vh;z-index:20;display:flex;flex-direction:column;padding:22px 14px 16px;color:#fff;background:var(--night);box-shadow:inset -1px 0 #ffffff16}
+  .sidebar-brand{display:grid;gap:2px;padding:8px 12px 24px;text-decoration:none}
+  .sidebar-brand span{color:#9eb8f8;font:750 .64rem ui-monospace,monospace;letter-spacing:.13em}
+  .sidebar-brand strong{font-size:1.02rem;letter-spacing:-.02em}
+  .module-nav{display:grid;gap:5px}
+  .module-nav>a,.module-nav>.planned{display:grid;grid-template-columns:30px 1fr;align-items:center;gap:10px;min-height:52px;padding:7px 10px;border-radius:12px;text-decoration:none}
+  .module-nav>a.active{background:#ffffff16;box-shadow:inset 0 0 0 1px #ffffff17,0 8px 24px #06152a26}
+  .module-nav>.planned{color:#a8b5c0}
+  .module-nav strong,.module-nav small{display:block}
+  .module-nav strong{font-size:.8rem}
+  .module-nav small{margin-top:1px;color:#8093a3;font-size:.62rem}
+  .module-nav a.active small{color:#9eb8f8}
+  .nav-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:#dbe5ff;background:#ffffff12;font:800 .68rem ui-monospace,monospace}
+  .module-nav a.active .nav-icon{color:#fff;background:var(--blue)}
+  .sidebar-foot{display:grid;gap:8px;margin-top:auto;padding:14px 12px 4px;border-top:1px solid #ffffff17}
+  .sidebar-foot span{color:#70869a;font:700 .58rem ui-monospace,monospace;letter-spacing:.11em}
+  .sidebar-foot a{color:#b8c7d2;font-size:.72rem;text-decoration:none}
+
+  .workspace{min-width:0}
+  .toolbar{position:sticky;top:0;z-index:14;min-height:72px;display:grid;grid-template-columns:minmax(130px,1fr) auto minmax(320px,1fr);align-items:center;gap:18px;padding:10px 24px;border-bottom:1px solid #bac2bf99;background:#f5f7f3e8;backdrop-filter:blur(22px) saturate(145%)}
+  .toolbar-title{display:grid}
+  .toolbar-title span{font-size:.94rem;font-weight:850;letter-spacing:-.015em}
+  .toolbar-title small{color:var(--muted);font-size:.65rem}
+  .toolbar .month-nav{justify-self:center;display:flex;align-items:center;padding:3px;border-radius:11px;background:#dde2df}
+  .toolbar .month-nav>a{display:grid;place-items:center;min-width:32px;height:31px;padding:0;border:0;border-radius:8px;background:transparent;text-decoration:none;font-weight:850}
+  .toolbar .month-nav>a:hover{background:#fff}
+  .toolbar .month-nav strong{padding:0 10px;font:800 .77rem ui-monospace,monospace}
+  .toolbar .month-nav .today-link{min-width:auto;margin:0;padding:0 9px;color:var(--blue);font-size:.68rem}
+  .toolbar-actions{justify-self:end;display:flex;align-items:center;gap:8px}
+  .display-switch{display:flex;padding:3px;border-radius:10px;background:#dfe4e2}
+  .display-switch a{padding:7px 10px;border:0;border-radius:7px;background:transparent;text-decoration:none;font-size:.72rem;font-weight:800}
+  .display-switch a.active{color:#fff;background:var(--night);box-shadow:0 2px 8px #10243e26}
+  .filter-button{border:1px solid #c1c9c5;border-radius:9px;padding:8px 11px;color:#8d9692;background:#f4f6f3;font-size:.72rem;font-weight:750}
+  .toolbar .primary-action{width:auto;min-width:112px;margin:0;padding:9px 12px;border-radius:10px;box-shadow:none}
+
+  main.workspace-main{width:auto;max-width:none;margin:0;padding:22px 24px 46px}
+  .notice{margin:0 0 14px;border-radius:10px}
+  .status-strip{display:grid;grid-template-columns:repeat(7,minmax(104px,1fr));gap:8px;margin-bottom:18px;overflow-x:auto;scrollbar-width:thin}
+  .status-strip>a{position:relative;min-width:104px;min-height:64px;display:grid;grid-template-columns:1fr auto;align-content:center;gap:2px 8px;padding:10px 12px;border:1px solid #d1d7d3;border-radius:12px;background:#f8faf7;text-decoration:none;transition:border-color 140ms ease,box-shadow 140ms ease,transform 140ms ease}
+  .status-strip>a:hover{border-color:#aeb9b4;box-shadow:0 6px 20px #10243e0d}
+  .status-strip>a.active{border-color:#8fa5e7;background:#f6f8ff;box-shadow:inset 0 0 0 1px #c9d4f7}
+  .status-strip span{color:var(--muted);font-size:.68rem;font-weight:750}
+  .status-strip strong{grid-row:1/3;grid-column:2;font:850 1.35rem ui-monospace,monospace}
+  .status-strip small{color:#7a8580;font-size:.58rem;white-space:nowrap}
+  .status-strip .testing-summary.active{border-color:#9eb5fb;background:#eef2ff}
+  .status-strip .scaling-summary.active{border-color:#91c8b2;background:#edf8f3}
+  .status-strip .scaling-summary strong{color:#28765b}
+  .status-strip .attention-summary strong{color:#a33a1f}
+  .status-strip .attention-summary.active{border-color:#efab96;background:#fff2ed}
+
+  .content-layout{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+  .content-stage{min-width:0}
+  .table-wrap{overflow:auto;border:1px solid #d0d6d2;border-radius:14px;background:#fafbf9;box-shadow:0 10px 32px #10243e0b}
+  table{width:100%;min-width:900px;border-collapse:separate;border-spacing:0;font-size:.76rem}
+  thead{position:sticky;top:0;z-index:2}
+  thead th{padding:9px 12px;border-bottom:1px solid #d8ddda;color:#7d8782;background:#f5f7f4;text-align:left;font-size:.62rem;font-weight:800;letter-spacing:.035em}
+  thead th:first-child{padding-left:22px}
+  tbody td{height:58px;padding:9px 12px;border:0;border-bottom:1px solid #e1e5e2;vertical-align:middle}
+  td strong,td small{display:block}
+  td small{margin-top:2px;color:#7b8581;font-size:.62rem}
+  .schedule-row{cursor:pointer;transition:background 120ms ease,box-shadow 120ms ease}
+  .schedule-row:hover,.schedule-row.selected{background:#f0f4ff}
+  .schedule-row:focus-visible{outline:3px solid var(--orange);outline-offset:-3px}
+  .schedule-row.overdue{box-shadow:inset 3px 0 var(--orange)}
+  .time-cell{padding-left:22px}
+  .time-cell strong{font:850 .78rem ui-monospace,monospace}
+  .content-cell{max-width:330px}
+  .content-cell strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem}
+  .version-chip{display:inline-grid;place-items:center;min-width:30px;padding:3px 6px;border-radius:7px;color:#fff;background:var(--blue);font:850 .62rem ui-monospace,monospace}
+  .tag,.completion{display:inline-block;padding:4px 7px;border-radius:7px;background:#e3e7e4;font-size:.65rem;font-weight:800;white-space:nowrap}
+  .promotion-testing{color:#24459c;background:#e3e9ff}
+  .promotion-scaling{color:#25684f;background:#dff3ea}
+  .promotion-pending{color:#685822;background:#f4edce}
+  .promotion-ended,.promotion-test_discarded,.promotion-formal_discarded{color:#606865;background:#e7e9e8}
+  .completion-overdue,.completion-delayed{color:#9e3718;background:#ffe5dc}
+  .doc-link{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;color:var(--blue);background:#e8edff;text-decoration:none;font-weight:850}
+  .missing{color:#a33a1f;font-size:.65rem;font-weight:750}
+  .day-divider th{position:relative;height:42px;padding:12px 12px 8px 29px;border:0;background:#f2f4ef;color:var(--ink);text-align:left;font:inherit}
+  .day-divider th::after{content:"";position:absolute;left:17px;top:25px;bottom:-18px;width:1px;background:#c8d0cc}
+  .day-divider .timeline-dot{position:absolute;left:13px;top:17px;width:9px;height:9px;margin:0;border:2px solid #f2f4ef;border-radius:50%;background:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+  .day-divider strong{display:inline;font:850 .7rem ui-monospace,monospace}
+  .day-divider b{margin-left:8px;padding:2px 6px;border-radius:6px;color:#fff;background:var(--blue);font-size:.58rem}
+  .day-divider small{display:inline;margin-left:8px;color:var(--muted);font-size:.6rem}
+  .row-menu{position:relative}
+  .row-menu summary{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;cursor:pointer;list-style:none;font-weight:900;letter-spacing:.1em}
+  .row-menu summary::-webkit-details-marker{display:none}
+  .row-menu summary:hover{background:#e7ebe8}
+  .row-menu>div{position:absolute;right:0;top:34px;z-index:8;min-width:130px;display:grid;padding:5px;border:1px solid #d0d6d2;border-radius:10px;background:#fff;box-shadow:0 16px 42px #10243e24}
+  .row-menu button,.row-menu span{border:0;padding:8px 9px;text-align:left;background:transparent;font-size:.7rem;font-weight:750}
+  .row-menu button{cursor:pointer}.row-menu button:hover{background:#f0f3f1}
+  .empty{padding:60px 20px;text-align:center}.empty p{color:var(--muted)}
+
+  .inspector{position:sticky;top:92px;width:0;max-height:calc(100vh - 116px);overflow:hidden;border:1px solid transparent;border-radius:15px;background:#f9faf8;opacity:0;transform:translateX(18px);transition:width 220ms cubic-bezier(.2,.8,.2,1),opacity 160ms ease,transform 220ms cubic-bezier(.2,.8,.2,1)}
+  .inspector.is-open{width:338px;overflow:auto;border-color:#d0d6d2;opacity:1;transform:none;box-shadow:0 14px 42px #10243e13}
+  .inspector>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:16px 17px;border-bottom:1px solid #dce1de;background:#f9faf8ed;backdrop-filter:blur(16px)}
+  .inspector>header>div{display:flex;align-items:center;gap:8px}
+  .inspector>header span{padding:4px 7px;border-radius:7px;color:#fff;background:var(--blue);font:850 .68rem ui-monospace,monospace}
+  .inspector>header small{color:var(--muted);font-size:.66rem;font-weight:750}
+  .inspector>header button{border:0;background:transparent;font-size:1.35rem;cursor:pointer}
+  .inspector-body{padding:18px}
+  .inspector-title p{margin:0 0 4px;color:var(--muted);font-size:.68rem}
+  .inspector-title h2{margin:0;font-size:1.15rem;line-height:1.35;letter-spacing:-.025em}
+  .detail-list{display:grid;margin:18px 0 0}
+  .detail-list>div{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid #e0e4e1}
+  .detail-list dt{color:var(--muted);font-size:.66rem}.detail-list dd{margin:0;text-align:right;font-size:.7rem;font-weight:750}
+  .inspector-section{margin-top:20px}.inspector-section>span{display:block;margin-bottom:8px;color:var(--muted);font-size:.62rem;font-weight:800;letter-spacing:.05em}
+  .inspector-section p{margin:6px 0;color:#4e5954;font-size:.7rem}.inspector-section strong{font-size:.68rem}
+  .inspector-section a{color:var(--blue);font-size:.72rem;font-weight:800;text-decoration:none}
+  .inspector-section a[aria-disabled="true"]{color:#a33a1f}
+  .version-path{display:flex;align-items:center;gap:7px;color:#7c8882;font-size:.68rem}
+  .version-path span{padding:4px 7px;border-radius:7px;background:#e4e9e6;font:800 .65rem ui-monospace,monospace}.version-path span:last-child{color:#fff;background:var(--blue)}
+  .inspector>footer{position:sticky;bottom:0;display:flex;align-items:center;gap:7px;padding:13px 15px;border-top:1px solid #dce1de;background:#f9faf8ed;backdrop-filter:blur(16px)}
+  .inspector>footer button{flex:1;padding:9px 10px}.inspector>footer span{color:var(--muted);font-size:.68rem;font-weight:750}
+
+  .calendar{overflow:hidden;border:1px solid #d0d6d2;border-radius:14px;background:#fafbf9}
+  .weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+  .weekdays span{padding:9px 10px;border-bottom:1px solid #d8ddda;color:var(--muted);font-size:.62rem;font-weight:800}
+  .calendar-grid{border:0}.calendar-day{min-height:136px;padding:9px;border:0;border-right:1px solid #e0e4e1;border-bottom:1px solid #e0e4e1;background:#fff}.calendar-day.outside{background:#f0f2ef}.calendar-day.today{box-shadow:inset 0 3px var(--blue)}
+  .calendar-item{border-radius:7px}.calendar-item.selected{box-shadow:inset 0 0 0 2px var(--blue)}
+  .calendar-item.promotion-testing{border-left:3px solid var(--blue);background:color-mix(in srgb,var(--blue-soft) 78%,white)}
+  .calendar-item.promotion-scaling{border-left:3px solid #4b9b7d;background:#e4f3ec}
+
+  dialog{position:fixed;inset:0 0 0 auto;width:min(680px,calc(100% - 32px));height:100vh;max-height:none;margin:0;padding:0;border:0;border-radius:20px 0 0 20px;background:var(--paper);box-shadow:-24px 0 80px #07111d42}
+  dialog::backdrop{background:#07111d73;backdrop-filter:blur(4px)}
+  dialog[open]{animation:sheet-in 260ms cubic-bezier(.2,.8,.2,1)}
+  @keyframes sheet-in{from{opacity:.7;transform:translateX(36px)}to{opacity:1;transform:none}}
+  .dialog-head{position:sticky;top:0;z-index:3;border-radius:20px 0 0 0}
+
+  @media(max-width:1100px){
+    .app-shell{grid-template-columns:204px minmax(0,1fr)}
+    .toolbar{grid-template-columns:1fr auto}.toolbar .month-nav{display:none}.toolbar-actions{grid-column:2}
+    .status-strip{grid-template-columns:repeat(7,116px)}
+    .inspector.is-open{position:fixed;inset:72px 0 0 auto;z-index:18;width:min(380px,100%);max-height:none;border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}
+  }
+  @media(max-width:760px){
+    .app-shell{display:block}
+    .sidebar{position:fixed;inset:auto 0 0 0;width:auto;height:66px;z-index:30;display:block;padding:6px 8px;color:var(--ink);background:#f7f8f5ee;backdrop-filter:blur(22px) saturate(150%);box-shadow:0 -1px #cbd2ce}
+    .sidebar-brand,.sidebar-foot{display:none}
+    .module-nav{height:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+    .module-nav>a,.module-nav>.planned{min-height:0;display:grid;grid-template-columns:1fr;place-items:center;gap:1px;padding:3px 2px;border-radius:9px;text-align:center}
+    .module-nav>a.active{background:#e6ebff;box-shadow:none}.module-nav>.planned{color:#8a9490}
+    .module-nav strong{font-size:.62rem}.module-nav small{display:none}.nav-icon{width:25px;height:25px;color:#66726d;background:#e7ebe8}.module-nav a.active .nav-icon{color:#fff;background:var(--blue)}
+    .workspace{padding-bottom:66px}
+    .toolbar{min-height:62px;grid-template-columns:1fr auto;padding:8px 12px}.toolbar-title small{display:none}.filter-button,.display-switch{display:none}.toolbar .primary-action{min-width:96px}
+    main.workspace-main{padding:12px 10px 28px}
+    .status-strip{grid-template-columns:repeat(7,102px);margin-bottom:11px}
+    .status-strip>a{min-height:58px;padding:8px 10px}
+    .table-wrap{border-radius:12px}
+    table{display:block;min-width:0}thead{display:none}tbody{display:block}
+    .day-divider{display:block}.day-divider th{display:block;width:100%;height:38px;padding-top:10px}
+    .schedule-row{display:grid;grid-template-columns:54px 38px minmax(0,1fr) 34px;gap:4px;padding:9px 7px;border-bottom:1px solid #e0e4e1}
+    tbody td{height:auto;padding:2px 4px;border:0}
+    .schedule-row .time-cell{grid-column:1;grid-row:1/3;padding-left:4px}
+    .schedule-row td:nth-child(2){grid-column:2;grid-row:1/3}
+    .schedule-row .content-cell{grid-column:3;grid-row:1;max-width:none}
+    .schedule-row td:nth-child(4){grid-column:3;grid-row:2}
+    .schedule-row td:nth-child(5){grid-column:3;grid-row:3}
+    .schedule-row td:nth-child(6){display:none}
+    .schedule-row td:nth-child(7){grid-column:4;grid-row:1/3}
+    .content-cell strong{white-space:normal}
+    .inspector.is-open{inset:62px 0 66px 0;width:100%;border:0;border-radius:0}
+    .weekdays{display:none}.calendar-grid{grid-template-columns:1fr}.calendar-day.outside{display:none}.calendar-day{min-height:auto}.calendar-item{display:grid}
+    dialog{width:100%;height:100vh;border-radius:0}.dialog-head{border-radius:0}.form-grid{display:block;padding:18px}.source-preview{display:grid;gap:3px}.revision-fields{padding:12px}.dialog-actions{padding:12px 18px}
+  }
+  @media(prefers-reduced-transparency:reduce){
+    .sidebar,.toolbar,.inspector>header,.inspector>footer,.dialog-actions{backdrop-filter:none}
+    .toolbar,.inspector>header,.inspector>footer,.dialog-actions{background:var(--paper)}
+  }
 </style>

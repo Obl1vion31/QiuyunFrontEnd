@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-export const promotionStatuses = ['none', 'pending', 'testing', 'scaling', 'ended', 'discarded'] as const;
+export const promotionStatuses = [
+  'none',
+  'pending',
+  'testing',
+  'scaling',
+  'ended',
+  'test_discarded',
+  'formal_discarded',
+] as const;
 export const revisionTypeValues = ['cover', 'title', 'body', 'cta', 'audience', 'format', 'other'] as const;
 export const delayThresholdMs = 12 * 60 * 60 * 1000;
 

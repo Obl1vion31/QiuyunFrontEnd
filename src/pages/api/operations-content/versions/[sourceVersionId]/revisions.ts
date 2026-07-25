@@ -58,9 +58,9 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       const nextVersionNumber = (latest?.versionNumber ?? source.versionNumber) + 1;
 
       const sourceClosingStatus = sourceSchedule.promotionStatus === 'testing'
-        ? 'discarded'
+        ? 'test_discarded'
         : sourceSchedule.promotionStatus === 'scaling'
-          ? 'ended'
+          ? 'formal_discarded'
           : sourceSchedule.promotionStatus;
       if (sourceClosingStatus !== sourceSchedule.promotionStatus) {
         await transaction.update(operationsContentSchedule)

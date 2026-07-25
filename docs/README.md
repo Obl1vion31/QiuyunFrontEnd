@@ -9,7 +9,7 @@
 - `ROADMAP.md`：当前、下一步和暂缓事项。
 - `STRUCTURE.md`：静态首页、动态排期页、接口和数据库层的关系。
 - `exec-plans/`：用户明确要求保存的 phase 02、phase 03 执行计划例外。
-- `exec-results/`：用户明确要求保存的 phase 02 实施结果例外。
+- `exec-results/`：用户明确要求保存的 phase 02、phase 03 实施结果与学习路线例外。
 
 ## 保存原则
 

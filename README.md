@@ -22,6 +22,39 @@ pnpm install
 pnpm dev
 ```
 
+## 临时公网预览
+
+本机已将 Cloudflare Quick Tunnel 工具下载到 `.tools/cloudflared`，该目录被 Git 忽略，不会提交二进制文件。需要让其他人临时访问本地网站时，在项目根目录打开两个终端。
+
+终端一启动本地网站：
+
+```bash
+pnpm dev
+```
+
+终端二启动临时公网隧道：
+
+```bash
+./.tools/cloudflared tunnel --url http://localhost:4321 --no-autoupdate
+```
+
+终端二会输出一个随机的 HTTPS 地址，例如 `https://random-name.trycloudflare.com`。把该地址发给访问者即可；本机仍然使用 `http://localhost:4321`。
+
+- 两个终端都必须保持运行；关闭任一进程或电脑休眠后，公网地址就会失效。
+- 每次重新启动 Quick Tunnel 都会生成不同地址，它只用于临时预览，不是正式部署。
+- 以终端一实际显示的 `Local` 端口为准；如果 `4321` 被占用并自动改为 `4322`，终端二的 URL 也要同步改成 `http://localhost:4322`。
+- 首页会公开给持有链接的人；排期页仍使用 `.env` 中的 HTTP Basic Auth。共享前必须确认账号密码强度，不要发送数据库连接串或 `.env`。
+- 如果 `.tools/cloudflared` 不存在，可在当前 Linux x86_64 环境重新下载：
+
+```bash
+mkdir -p .tools
+curl -fL --retry 3 \
+  -o .tools/cloudflared \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod 0755 .tools/cloudflared
+./.tools/cloudflared --version
+```
+
 常用检查：
 
 ```bash
@@ -195,8 +228,9 @@ pnpm dev
 - 首页内容配置；
 - 八张真实 3:4 内容封面已接入首页内容流；
 - 本地构建与预览脚本。
-- 运营内容新做帖 V0、改帖 V1+、完整编辑、推广中视图与月度台账/月历；
-- 非推广、待推广、测试中、放量中、已结束和测试淘汰六类推广状态；
+- 运营内容新做帖 V0、改帖 V1+、完整编辑、推广状态筛选与月度台账/月历；
+- 内容发布控制台的桌面端 Sidebar / Toolbar / Inspector / Sheet、统一推广筛选和移动端底部导航；
+- 非推广、待推广、推广测试中、推广放量中、推广周期已结束、测试淘汰和放量淘汰七类推广状态；
 - 分钟级应发/实发时间、自动完成状态、12 小时延期校验与 Excel 历史数据导入预检；
 - Neon PostgreSQL 迁移、服务端校验与临时 HTTP Basic Auth。
 
@@ -205,6 +239,7 @@ pnpm dev
 - 审核“内容穿越总控台”新版首页；
 - 根据真实封面的色彩与文字密度检查遮罩和可读性；
 - 检查桌面端、移动端和减少动态效果模式的滚动观感。
+- 验收内容发布控制台在真实大数据量下的桌面端与移动端密度。
 
 尚未建设：
 
@@ -219,4 +254,4 @@ pnpm dev
 - 首页不展示实时数据、项目明细或个人绩效薪资。
 - 业务系统入口已连接排期 MVP；组织与人员、绩效与报酬仍只保留入口概念。
 - 当前只做本地验收，不包含生产部署配置。
-- 本地 `public/excel/20260715 运营内容导入.xlsx` 通过受控脚本一次性导入；原始 `.xlsx` 被 Git 忽略，不上传到公开仓库。非推广帖不会因“非推广投放中”被识别成推广，完成情况按应发/实发时间计算。默认命令只预检，显式传入 `--apply` 才写入开发数据库。
+- 本地 `public/excel/20260725 运营内容导入.xlsx` 通过受控脚本导入 2026 年 4–6 月排期，并在同一事务中清理数据库的 7 月排期；原始 `.xlsx` 被 Git 忽略，不上传到公开仓库。非推广帖不会因“非推广投放中”被识别成推广，完成情况按应发/实发时间计算。默认命令只预检，显式传入 `--apply` 才写入开发数据库。

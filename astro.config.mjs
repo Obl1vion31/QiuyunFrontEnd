@@ -8,4 +8,8 @@ export default defineConfig({
   output: 'hybrid',
   adapter: node({ mode: 'standalone' }),
   integrations: [react()],
+  vite: {
+    // Quick Tunnel 每次生成不同子域名，只允许 Cloudflare 官方临时预览域。
+    server: { allowedHosts: ['.trycloudflare.com'] },
+  },
 });
