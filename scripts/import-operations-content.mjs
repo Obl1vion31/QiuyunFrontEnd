@@ -47,6 +47,22 @@ const completionStatus = (plannedPublishAt, actualPublishAt) => {
   return 'on_time';
 };
 
+const taxonomyForHistoricalRow = (rowNumber) => {
+  if ([51, 52, 54, 33, 37, 38, 41, 43, 28, 29, 32].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'non-promotional-handout' };
+  if ([34, 44].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'success-story' };
+  if ([46, 35, 36, 23].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'small-class-or-tutoring' };
+  if ([39, 40, 21].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'large-class' };
+  if ([47, 48, 50, 42].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'innovation' };
+  if ([53, 45, 30].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'exam-guide' };
+  if ([2, 14, 26].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'exam-information' };
+  if ([49, 31].includes(rowNumber)) return { subjectId: 'tmua', categoryId: 'promotional-handout' };
+  if ([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 22, 24, 25].includes(rowNumber)) {
+    return { subjectId: 'step', categoryId: 'first-analysis-series' };
+  }
+  if (rowNumber === 27) return { subjectId: 'interview', categoryId: null };
+  throw new Error(`第 ${rowNumber} 行没有已确认的两级分类`);
+};
+
 const countBy = (values) => values.reduce((counts, value) => {
   counts[value] = (counts[value] ?? 0) + 1;
   return counts;
@@ -86,10 +102,11 @@ for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber += 1) {
   const actualPublishAt = parseShanghaiDate(text(row.getCell('I')));
   const derivedCompletionStatus = completionStatus(plannedPublishAt, actualPublishAt);
   const importedCompletionStatus = legacyCompletionStatus(text(row.getCell('J')));
+  const taxonomy = taxonomyForHistoricalRow(rowNumber);
   rows.push({
     sourceKey: `${sourceName}:${rowNumber}`,
     contentName,
-    contentType: '未分类（历史导入）',
+    ...taxonomy,
     syncToMoments: ['是', '✅'].includes(text(row.getCell('E'))),
     promotionStatus: promotionStatus(text(row.getCell('D')), text(row.getCell('F')), contentName),
     projectDocName: text(row.getCell('G')) || null,
@@ -197,10 +214,10 @@ try {
       `;
       const [version] = await transaction`
         INSERT INTO operations_content_version
-          (content_id, version_number, work_type, content_name, content_type,
+          (content_id, version_number, work_type, content_name, subject_id, category_id,
            project_doc_name, project_doc_url)
         VALUES
-          (${content.id}, 0, 'new', ${row.contentName}, ${row.contentType},
+          (${content.id}, 0, 'new', ${row.contentName}, ${row.subjectId}, ${row.categoryId},
            ${row.projectDocName}, ${row.projectDocUrl})
         RETURNING id
       `;

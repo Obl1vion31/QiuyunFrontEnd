@@ -8,6 +8,7 @@
 - `DESIGN.md`：已确认的长期视觉、交互和中文阅读规则。
 - `ROADMAP.md`：当前、下一步和暂缓事项。
 - `STRUCTURE.md`：静态首页、动态排期页、接口和数据库层的关系。
+- `database-basics/README.md`：Neon 工作台、PostgreSQL 调试、恢复、安全与账号协作学习指南。
 - `exec-plans/`：用户明确要求保存的 phase 02、phase 03 执行计划例外。
 - `exec-results/`：用户明确要求保存的 phase 02、phase 03 实施结果与学习路线例外。
 

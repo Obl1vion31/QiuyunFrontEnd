@@ -1,8 +1,14 @@
 ---
 import { asc, desc, eq } from 'drizzle-orm';
 import { getDb } from '../../db/client';
-import { operationsContentSchedule, operationsContentVersion } from '../../db/schema';
-import { delayThresholdMs, promotionStatuses, revisionTypeValues } from '../../db/validation';
+import {
+  operationsCategory,
+  operationsContentSchedule,
+  operationsContentVersion,
+  operationsSubject,
+} from '../../db/schema';
+import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
+import { delayThresholdMs, promotionStatuses } from '../../db/validation';
 
 export const prerender = false;
 
@@ -16,7 +22,6 @@ const promotionLabels = {
   formal_discarded: '放量淘汰',
 };
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
-const revisionTypeLabels = { cover: '封面', title: '标题', body: '正文', cta: 'CTA', audience: '受众', format: '内容形式', other: '其他' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
 const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' ? 'calendar' : 'ledger';
 const requestedStatus = Astro.url.searchParams.get('status');
@@ -54,8 +59,8 @@ const hrefFor = (changes: Record<string, string>) => {
 let databaseError = '';
 let rows: Array<{
   id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
-  workType: string; contentName: string; contentType: string; revisionTypes: string[] | null;
-  revisionSummary: string | null; revisionGoal: string | null; projectDocName: string | null; projectDocUrl: string | null;
+  workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
+  revisionSummary: string | null; projectDocName: string | null; projectDocUrl: string | null;
   syncToMoments: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
   completionStatus: string; delayReason: string | null;
 }> = [];
@@ -68,10 +73,11 @@ try {
     sourceVersionId: operationsContentVersion.sourceVersionId,
     workType: operationsContentVersion.workType,
     contentName: operationsContentVersion.contentName,
-    contentType: operationsContentVersion.contentType,
-    revisionTypes: operationsContentVersion.revisionTypes,
+    subjectId: operationsContentVersion.subjectId,
+    subjectName: operationsSubject.name,
+    categoryId: operationsContentVersion.categoryId,
+    categoryName: operationsCategory.name,
     revisionSummary: operationsContentVersion.revisionSummary,
-    revisionGoal: operationsContentVersion.revisionGoal,
     projectDocName: operationsContentVersion.projectDocName,
     projectDocUrl: operationsContentVersion.projectDocUrl,
     syncToMoments: operationsContentSchedule.syncToMoments,
@@ -82,6 +88,8 @@ try {
     delayReason: operationsContentSchedule.delayReason,
   }).from(operationsContentSchedule)
     .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+    .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
+    .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt));
 } catch (error) {
   console.error('operations schedule query failed', error);
@@ -127,18 +135,20 @@ const clientRows = rows.map((row) => {
     projectDocUrl: row.projectDocUrl ?? '',
     delayReason: row.delayReason ?? '',
     revisionSummary: row.revisionSummary ?? '',
-    revisionGoal: row.revisionGoal ?? '',
     promotionLabel: promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus,
     completionLabel: isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布',
     plannedDisplay: displayDateTime(row.plannedPublishAt),
     actualDisplay: row.actualPublishAt ? displayDateTime(row.actualPublishAt) : '尚未实发',
-    revisionTypeLabels: (row.revisionTypes ?? []).map((type) => revisionTypeLabels[type as keyof typeof revisionTypeLabels] ?? type),
     sourceScheduleId: row.id,
     nextVersionNumber: Math.max(...rows.filter((candidate) => candidate.contentId === row.contentId).map((candidate) => candidate.versionNumber), row.versionNumber) + 1,
     childVersionNumber: child?.versionNumber ?? null,
     sourceVersionNumber: source?.versionNumber ?? null,
   };
 });
+const clientCategories = subjectCategoryMappings.map((mapping) => ({
+  subjectId: mapping.subjectId,
+  ...postCategories.find((category) => category.id === mapping.categoryId)!,
+}));
 ---
 
 <!doctype html>
@@ -224,7 +234,7 @@ const clientRows = rows.map((row) => {
                   <tr class:list={['schedule-row', { overdue: isOverdue(row) }]} data-inspect-id={row.id} tabindex="0">
                     <td class="time-cell"><strong>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</strong><small>{row.actualPublishAt ? `实发 ${displayDateTime(row.actualPublishAt).split(' ')[1]}` : '尚未实发'}</small></td>
                     <td><span class="version-chip">V{row.versionNumber}</span><small>{row.workType === 'revision' ? '改帖' : '新做帖'}</small></td>
-                    <td class="content-cell"><strong>{row.contentName}</strong><small>{row.contentType}{row.syncToMoments ? ' · 同步朋友圈' : ''}{source ? ` · 来源 V${source.versionNumber}` : ''}{child ? ` · 已派生 V${child.versionNumber}` : ''}</small></td>
+                    <td class="content-cell"><strong>{row.contentName}</strong><small>{row.subjectName}{row.categoryName ? ` / ${row.categoryName}` : ''}{row.syncToMoments ? ' · 同步朋友圈' : ''}{source ? ` · 来源 V${source.versionNumber}` : ''}{child ? ` · 已派生 V${child.versionNumber}` : ''}</small></td>
                     <td><span class={`tag promotion-${row.promotionStatus}`}>{promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus}</span></td>
                     <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布'}</span></td>
                     <td>{row.projectDocUrl ? <a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label={`打开${row.projectDocName || '项目文档'}`}>↗</a> : <span class="missing">待补</span>}</td>
@@ -255,7 +265,7 @@ const clientRows = rows.map((row) => {
             <aside class="inspector" data-inspector hidden aria-label="帖子详情">
               <header><div><span data-inspector-version>V0</span><small data-inspector-kind>新做帖</small></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
               <div class="inspector-body">
-                <section class="inspector-title"><p data-inspector-type></p><h2 data-inspector-name></h2></section>
+                <section class="inspector-title"><p data-inspector-category></p><h2 data-inspector-name></h2></section>
                 <dl class="detail-list">
                   <div><dt>推广状态</dt><dd data-inspector-promotion></dd></div>
                   <div><dt>应发时间</dt><dd data-inspector-planned></dd></div>
@@ -263,7 +273,7 @@ const clientRows = rows.map((row) => {
                   <div><dt>发布状态</dt><dd data-inspector-completion></dd></div>
                 </dl>
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
-                <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><p data-inspector-revision-types></p><strong>改动说明</strong><p data-inspector-revision-summary></p><strong>修改目标</strong><p data-inspector-revision-goal></p></section>
+                <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
                 <section class="inspector-section"><span>项目文档</span><a data-inspector-doc target="_blank" rel="noreferrer">打开项目文档 ↗</a></section>
               </div>
               <footer><button type="button" class="secondary-action" data-inspector-edit>编辑排期</button><button type="button" class="save-button" data-inspector-revise>创建改帖</button><span data-inspector-derived hidden></span></footer>
@@ -284,14 +294,21 @@ const clientRows = rows.map((row) => {
         <section class="source-preview" data-source-preview hidden></section>
         <div class="form-grid">
           <div class="field field-wide"><label for="contentName">内容名称 <b>*</b></label><input id="contentName" name="contentName" maxlength="200" required /><small data-error="contentName"></small></div>
-          <div class="field"><label for="contentType">内容类型 <b>*</b></label><input id="contentType" name="contentType" list="content-types" maxlength="100" required /><datalist id="content-types"><option value="小红书图文"></option><option value="朋友圈"></option><option value="视频"></option><option value="活动物料"></option></datalist><small data-error="contentType"></small></div>
+          <div class="field"><label for="subjectId">学科 <b>*</b></label><select id="subjectId" name="subjectId" required><option value="">请选择学科</option>{subjects.map((subject) => <option value={subject.id}>{subject.name}</option>)}</select><small data-error="subjectId"></small></div>
+          <div class="field"><label for="categoryId">帖子分类 <b data-category-required>*</b></label><select id="categoryId" name="categoryId" required disabled><option value="">请先选择学科</option></select><small data-error="categoryId"></small><em data-category-help></em></div>
           <div class="field"><label for="promotionStatus">推广状态 <b>*</b></label><select id="promotionStatus" name="promotionStatus" required>{promotionStatuses.map((status) => <option value={status}>{promotionLabels[status]}</option>)}</select><small data-error="promotionStatus"></small><em data-promotion-help></em></div>
 
           <fieldset class="revision-fields field-wide" data-revision-only hidden>
             <legend>本次改帖</legend>
-            <div class="field"><label>改动类型 <b>*</b></label><div class="check-grid">{revisionTypeValues.map((type) => <label><input type="checkbox" name="revisionTypes" value={type} /> {revisionTypeLabels[type]}</label>)}</div><small data-error="revisionTypes"></small></div>
-            <div class="field"><label for="revisionSummary">具体改动说明 <b>*</b></label><textarea id="revisionSummary" name="revisionSummary" rows="3" maxlength="1000"></textarea><small data-error="revisionSummary"></small></div>
-            <div class="field"><label for="revisionGoal">本次修改目标 <b>*</b></label><textarea id="revisionGoal" name="revisionGoal" rows="2" maxlength="500"></textarea><small data-error="revisionGoal"></small></div>
+            <div class="field revision-summary-field"><label for="revisionSummary">具体改动说明 <b>*</b></label><textarea id="revisionSummary" name="revisionSummary" rows="5" maxlength="1000"></textarea><small data-error="revisionSummary"></small>
+              <div class="revision-example" aria-label="填写示例">
+                <strong>填写示例</strong>
+                <ol>
+                  <li><b>本次修改的具体内容：</b>说明改动了封面、标题、正文或引导语等哪些部分。</li>
+                  <li><b>改动原因及希望达到的效果：</b>说明为什么修改，以及希望改善的阅读、理解或咨询效果。</li>
+                </ol>
+              </div>
+            </div>
           </fieldset>
 
           <div class="field"><label for="plannedPublishAt">应发时间 <b>*</b></label><input id="plannedPublishAt" name="plannedPublishAt" type="datetime-local" required /><small data-error="plannedPublishAt"></small></div>
@@ -307,8 +324,9 @@ const clientRows = rows.map((row) => {
       </form>
     </dialog>
 
-    <script is:inline define:vars={{ clientRows }}>
+    <script is:inline define:vars={{ clientRows, clientCategories }}>
       const rows = clientRows;
+      const categories = clientCategories;
       const dialog = document.querySelector('#schedule-dialog');
       const form = document.querySelector('#schedule-form');
       const title = document.querySelector('#dialog-title');
@@ -317,6 +335,8 @@ const clientRows = rows.map((row) => {
       const revisionOnly = document.querySelector('[data-revision-only]');
       const sourcePreview = document.querySelector('[data-source-preview]');
       const promotionHelp = document.querySelector('[data-promotion-help]');
+      const categoryHelp = document.querySelector('[data-category-help]');
+      const categoryRequired = document.querySelector('[data-category-required]');
       const delayField = document.querySelector('.delay-field');
       const completionPreview = document.querySelector('#completion-preview');
       const message = document.querySelector('.form-message');
@@ -339,15 +359,13 @@ const clientRows = rows.map((row) => {
         activeRecord = record;
         setInspectorText('[data-inspector-version]', `V${record.versionNumber}`);
         setInspectorText('[data-inspector-kind]', record.workType === 'revision' ? '改帖' : '新做帖');
-        setInspectorText('[data-inspector-type]', record.contentType);
+        setInspectorText('[data-inspector-category]', record.categoryName ? `${record.subjectName} / ${record.categoryName}` : record.subjectName);
         setInspectorText('[data-inspector-name]', record.contentName);
         setInspectorText('[data-inspector-promotion]', record.promotionLabel);
         setInspectorText('[data-inspector-planned]', record.plannedDisplay);
         setInspectorText('[data-inspector-actual]', record.actualDisplay);
         setInspectorText('[data-inspector-completion]', record.completionLabel);
-        setInspectorText('[data-inspector-revision-types]', record.revisionTypeLabels.join('、'));
         setInspectorText('[data-inspector-revision-summary]', record.revisionSummary);
-        setInspectorText('[data-inspector-revision-goal]', record.revisionGoal);
         const revisionSection = inspector.querySelector('[data-inspector-revision-section]');
         revisionSection.hidden = record.workType !== 'revision';
         const path = inspector.querySelector('[data-inspector-path]');
@@ -414,7 +432,30 @@ const clientRows = rows.map((row) => {
         form.querySelectorAll('[data-error]').forEach((node) => node.textContent = '');
         form.querySelectorAll('[aria-invalid="true"]').forEach((node) => node.removeAttribute('aria-invalid'));
       };
+      const updateCategoryOptions = (selectedValue = '') => {
+        const subjectId = field('subjectId').value;
+        const categorySelect = field('categoryId');
+        const matching = categories.filter((category) => category.subjectId === subjectId);
+        categorySelect.replaceChildren();
+        const prompt = document.createElement('option');
+        prompt.value = '';
+        prompt.textContent = matching.length ? '请选择帖子分类' : subjectId === 'interview' ? '面试课暂未配置分类' : '请先选择学科';
+        categorySelect.append(prompt);
+        matching.forEach((category) => {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.textContent = category.name;
+          categorySelect.append(option);
+        });
+        categorySelect.disabled = matching.length === 0;
+        categorySelect.required = matching.length > 0;
+        categoryRequired.hidden = matching.length === 0;
+        categoryHelp.textContent = subjectId === 'interview' ? '面试课暂未配置帖子分类，可直接保存。' : '';
+        categorySelect.value = matching.some((category) => category.id === selectedValue) ? selectedValue : '';
+      };
       const setRecordValues = (record) => {
+        field('subjectId').value = record.subjectId ?? '';
+        updateCategoryOptions(record.categoryId ?? '');
         for (const [name, value] of Object.entries(record)) {
           const control = form.elements.namedItem(name);
           if (control instanceof HTMLInputElement && control.type === 'checkbox') control.checked = Boolean(value);
@@ -430,7 +471,7 @@ const clientRows = rows.map((row) => {
         sourcePreview.hidden = nextMode !== 'revision';
         field('promotionStatus').disabled = false;
         promotionHelp.textContent = '';
-        form.querySelectorAll('input[name="revisionTypes"]').forEach((input) => { input.checked = false; });
+        updateCategoryOptions();
 
         if (nextMode === 'new') {
           title.textContent = '新做帖';
@@ -504,6 +545,7 @@ const clientRows = rows.map((row) => {
       document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeForm));
       dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeForm(); });
       form.addEventListener('input', () => { dirty = true; updateDelayField(); });
+      field('subjectId').addEventListener('change', () => updateCategoryOptions());
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         clearErrors();
@@ -702,6 +744,12 @@ const clientRows = rows.map((row) => {
     .status-strip{grid-template-columns:repeat(7,116px)}
     .inspector.is-open{position:fixed;inset:72px 0 0 auto;z-index:18;width:min(380px,100%);max-height:none;border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}
   }
+  .revision-summary-field{margin-bottom:0}
+  .revision-example{margin-top:4px;padding:12px 14px;border-left:3px solid var(--blue);color:#33486c;background:#fff;font-size:.72rem;line-height:1.65}
+  .revision-example>strong{color:#183fa3}
+  .revision-example ol{margin:5px 0 0;padding-left:1.25rem}
+  .revision-example li+li{margin-top:3px}
+  .revision-example b{color:#263a5a}
   @media(max-width:760px){
     .app-shell{display:block}
     .sidebar{position:fixed;inset:auto 0 0 0;width:auto;height:66px;z-index:30;display:block;padding:6px 8px;color:var(--ink);background:#f7f8f5ee;backdrop-filter:blur(22px) saturate(150%);box-shadow:0 -1px #cbd2ce}

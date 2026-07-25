@@ -1,14 +1,42 @@
 import {
   boolean,
+  check,
+  foreignKey,
   index,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   uuid,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+
+export const operationsSubject = pgTable('operations_subject', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  sortOrder: integer('sort_order').notNull(),
+});
+
+export const operationsCategory = pgTable('operations_category', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  sortOrder: integer('sort_order').notNull(),
+});
+
+export const operationsSubjectCategory = pgTable(
+  'operations_subject_category',
+  {
+    subjectId: text('subject_id').notNull().references(() => operationsSubject.id, { onDelete: 'restrict' }),
+    categoryId: text('category_id').notNull().references(() => operationsCategory.id, { onDelete: 'restrict' }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.subjectId, table.categoryId] }),
+    index('operations_subject_category_category_idx').on(table.categoryId),
+  ],
+);
 
 export const operationsContent = pgTable('operations_content', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -28,10 +56,9 @@ export const operationsContentVersion = pgTable(
     ),
     workType: text('work_type').notNull(),
     contentName: text('content_name').notNull(),
-    contentType: text('content_type').notNull(),
-    revisionTypes: text('revision_types').array(),
+    subjectId: text('subject_id').notNull().references(() => operationsSubject.id, { onDelete: 'restrict' }),
+    categoryId: text('category_id').references(() => operationsCategory.id, { onDelete: 'restrict' }),
     revisionSummary: text('revision_summary'),
-    revisionGoal: text('revision_goal'),
     projectDocName: text('project_doc_name'),
     projectDocUrl: text('project_doc_url'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -40,6 +67,15 @@ export const operationsContentVersion = pgTable(
   (table) => [
     uniqueIndex('operations_content_version_number_idx').on(table.contentId, table.versionNumber),
     index('operations_content_version_source_idx').on(table.sourceVersionId),
+    foreignKey({
+      name: 'operations_content_version_subject_category_fk',
+      columns: [table.subjectId, table.categoryId],
+      foreignColumns: [operationsSubjectCategory.subjectId, operationsSubjectCategory.categoryId],
+    }).onDelete('restrict'),
+    check(
+      'operations_content_version_category_required_check',
+      sql`((${table.subjectId} IN ('tmua', 'step') AND ${table.categoryId} IS NOT NULL) OR (${table.subjectId} = 'interview' AND ${table.categoryId} IS NULL))`,
+    ),
   ],
 );
 

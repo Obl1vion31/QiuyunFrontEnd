@@ -74,10 +74,9 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         sourceVersionId: source.id,
         workType: 'revision',
         contentName: result.data.contentName,
-        contentType: result.data.contentType,
-        revisionTypes: result.data.revisionTypes,
+        subjectId: result.data.subjectId,
+        categoryId: result.data.categoryId,
         revisionSummary: result.data.revisionSummary,
-        revisionGoal: result.data.revisionGoal,
         projectDocName: result.data.projectDocName,
         projectDocUrl: result.data.projectDocUrl,
       }).returning({ id: operationsContentVersion.id });

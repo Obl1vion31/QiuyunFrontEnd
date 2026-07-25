@@ -39,7 +39,8 @@ export const PATCH: APIRoute = async ({ params, request, url }) => {
 
       await transaction.update(operationsContentVersion).set({
         contentName: result.data.contentName,
-        contentType: result.data.contentType,
+        subjectId: result.data.subjectId,
+        categoryId: result.data.categoryId,
         projectDocName: result.data.projectDocName,
         projectDocUrl: result.data.projectDocUrl,
         updatedAt: new Date(),
