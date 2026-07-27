@@ -185,7 +185,7 @@ Neon Auth 用于建设应用自身的用户注册、登录、Session、组织和
 - **PostgreSQL Role**：应用或工具连接数据库；
 - **本项目临时 HTTP Basic Auth**：访问排期网页时浏览器弹出的共享账号密码。
 
-本项目目前没有启用 Neon Auth，也没有正式多人权限。排期页面支持 `.env` 中配置多套临时 Basic Auth 凭据，但所有账号权限相同，也不记录操作者。
+本项目目前没有启用 Neon Auth，也没有正式多人权限。业务页面支持 `.env` 中配置多套临时 Basic Auth 凭据，但所有账号权限相同；总周期规划仅把凭据用户名记录为版本的基础修改标识，不构成完整操作者审计。
 
 ## 三、本项目最常用的查询
 
@@ -360,4 +360,3 @@ JSON key 是用户名，value 是该用户的密码。所有账号权限相同�
 - [Data API 权限与 RLS 提示](https://neon.com/docs/changelog/2025-09-19)
 - [Neon Auth 的分支化身份模型](https://neon.com/docs/changelog/2025-12-12)
 - [Data Masking 的隔离分支工作流](https://neon.com/blog/environments-masked-production-data)
-

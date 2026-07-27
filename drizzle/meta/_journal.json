@@ -64,6 +64,41 @@
       "when": 1785081600000,
       "tag": "0008_shared_subject_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1785085200000,
+      "tag": "0009_the_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785171600000,
+      "tag": "0010_rebuild_the_plan_matrix",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785258000000,
+      "tag": "0011_normalize_plan_taxonomy",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785344400000,
+      "tag": "0012_derive_annual_plan_summary",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785430800000,
+      "tag": "0013_reset_annual_plan_to_v0",
+      "breakpoints": true
     }
   ]
 }

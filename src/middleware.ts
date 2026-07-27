@@ -1,7 +1,12 @@
 import { timingSafeEqual } from 'node:crypto';
 import { defineMiddleware } from 'astro:middleware';
 
-const protectedPaths = ['/business/operations-schedule', '/api/operations-content'];
+const protectedPaths = [
+  '/business/operations-schedule',
+  '/business/annual-plan',
+  '/api/operations-content',
+  '/api/operations-annual-plans',
+];
 
 interface BasicAuthCredential {
   user: string;
@@ -39,7 +44,7 @@ function configuredCredentials(): BasicAuthCredential[] {
   return user && password ? [{ user, password }] : [];
 }
 
-export const onRequest = defineMiddleware(async ({ request, url }, next) => {
+export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
   if (!protectedPaths.some((path) => url.pathname === path || url.pathname.startsWith(`${path}/`))) return next();
 
   const header = request.headers.get('authorization');
@@ -61,5 +66,6 @@ export const onRequest = defineMiddleware(async ({ request, url }, next) => {
       headers: { 'WWW-Authenticate': 'Basic realm="Operations Schedule", charset="UTF-8"' },
     });
   }
+  locals.operationsUser = user;
   return next();
 });

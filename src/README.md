@@ -45,6 +45,7 @@ src/
 └── pages/
     ├── index.astro                   # 静态首页路由、页面结构和后半段样式
     ├── business/
+    │   ├── annual-plan.astro          # 年度内容总周期规划与版本历史
     │   └── operations-schedule.astro # 新做帖、改帖版本、动态排期页面与汇总
     └── api/
         ├── operations-content.ts     # 新做帖 V0 写入接口
