@@ -7,6 +7,7 @@
 - `DECISIONS.md`：已确认的产品、页面边界、结构和技术结论。
 - `DESIGN.md`：已确认的长期视觉、交互和中文阅读规则。
 - `ROADMAP.md`：当前、下一步和暂缓事项。
+- `CURRENT-STAGE-SUMMARY.md`：面向下一阶段规划的视觉、功能和数据库现状总结。
 - `STRUCTURE.md`：静态首页、动态排期页、接口和数据库层的关系。
 - `database-basics/README.md`：Neon 工作台、PostgreSQL 调试、恢复、安全与账号协作学习指南。
 - `exec-plans/`：用户明确要求保存的 phase 02、phase 03 执行计划例外。

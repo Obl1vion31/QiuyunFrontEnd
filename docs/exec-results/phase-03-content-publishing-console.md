@@ -2,6 +2,8 @@
 
 本文记录 Phase 03 已落地的内容发布控制台、帖子版本化、Excel 历史排期替换，以及后续学习和小范围修改的入口。它是 `docs/exec-plans/phase-03-content-publishing-console.md` 的实施结果，不替代 `DECISIONS.md` 中的长期结论。
 
+> 历史快照：本文中的 Excel 文件名、月份、条数、数据库快照和导入命令仅记录当时的验收背景，可能已经失效，不代表当前数据库状态，也不得作为当前操作说明。长期规则以 `docs/DECISIONS.md`、根 `README.md` 和各目录 `README.md` 为准。
+
 ## 一、当前实施结果
 
 - 数据结构已拆分为帖子身份、内容版本和发布排期三层。

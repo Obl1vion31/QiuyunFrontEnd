@@ -185,7 +185,7 @@ Neon Auth 用于建设应用自身的用户注册、登录、Session、组织和
 - **PostgreSQL Role**：应用或工具连接数据库；
 - **本项目临时 HTTP Basic Auth**：访问排期网页时浏览器弹出的共享账号密码。
 
-本项目目前没有启用 Neon Auth，也没有正式多人权限。排期页面只使用 `.env` 中的一套临时 Basic Auth，无法区分操作者。
+本项目目前没有启用 Neon Auth，也没有正式多人权限。排期页面支持 `.env` 中配置多套临时 Basic Auth 凭据，但所有账号权限相同，也不记录操作者。
 
 ## 三、本项目最常用的查询
 
@@ -296,19 +296,15 @@ Project Collaborator 可以访问共享项目的大部分管理能力；按 Neon
 
 ### 当前排期网页
 
-排期网页的 Basic Auth 与 Neon 工作台账号无关。当前只读取：
+排期网页的 Basic Auth 与 Neon 工作台账号无关。当前推荐配置：
 
 ```text
-OPERATIONS_ADMIN_USER
-OPERATIONS_ADMIN_PASSWORD
+OPERATIONS_BASIC_AUTH_USERS='{"owner":"独立密码","colleague":"另一套独立密码"}'
 ```
 
-因此现在只有一套共享凭据。要实现“你和同事使用不同密码，但权限相同”，需要调整应用认证：
+JSON key 是用户名，value 是该用户的密码。所有账号权限相同；删除某个条目并重启服务即可撤销该账号。真实密码只保存在 `.env` 或部署环境变量中。
 
-- 推荐新增多账号凭据配置，每位使用者有独立用户名和密码；
-- 密码不进入 Git，只保存在部署环境变量或秘密管理系统；
-- 中期应升级为正式登录，记录操作者身份和审计信息；
-- 不能只在 Neon 中新增 Role，因为浏览器的 Basic Auth 校验发生在应用层。
+旧版 `OPERATIONS_ADMIN_USER` 和 `OPERATIONS_ADMIN_PASSWORD` 仍可在未配置新变量时继续使用。只要配置了新变量，系统就以多账号 JSON 为准；JSON 格式错误时全部拒绝访问，不会回退旧密码。中期仍应升级为正式登录以支持修改密码、找回密码和操作者审计。
 
 ### PostgreSQL 连接
 
@@ -364,3 +360,4 @@ OPERATIONS_ADMIN_PASSWORD
 - [Data API 权限与 RLS 提示](https://neon.com/docs/changelog/2025-09-19)
 - [Neon Auth 的分支化身份模型](https://neon.com/docs/changelog/2025-12-12)
 - [Data Masking 的隔离分支工作流](https://neon.com/blog/environments-masked-production-data)
+

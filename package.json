@@ -12,8 +12,7 @@
     "start": "node ./dist/server/entry.mjs",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "db:migrate": "drizzle-kit migrate",
-    "db:import": "node scripts/import-operations-content.mjs"
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@astrojs/node": "8.3.4",

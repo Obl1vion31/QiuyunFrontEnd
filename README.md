@@ -65,8 +65,6 @@ pnpm start
 pnpm db:generate
 pnpm db:check
 pnpm db:migrate
-pnpm db:import                 # 只读预检 Excel
-pnpm db:import -- --apply      # 确认开发库迁移完成后写入
 ```
 
 `pnpm build` 会先执行 Astro 类型检查，再生成静态站点到 `dist/`。
@@ -98,29 +96,9 @@ pnpm dev
 3. `pnpm db:migrate` 把尚未执行的结构迁移和受控数据修正应用到 `.env` 指向的数据库。
 4. `pnpm dev` 启动本地网站；访问 `/business/operations-schedule` 查看排期。
 
-### 初版 Excel 一次性录入
-
-Excel 只用于初始化现有排期，不是后续维护数据的长期入口。推荐先确认 Excel 内容，再一次性写入：
-
-```bash
-pnpm db:check
-pnpm db:migrate
-pnpm db:import
-pnpm db:import -- --apply
-```
-
-执行顺序不能颠倒：先运行迁移，确保数据库具有最新字段，再导入数据。
-
-- `pnpm db:import` 只读取固定 Excel 并显示校验结果，不连接或修改数据库。
-- 确认数量和状态正确后，`pnpm db:import -- --apply` 才真正写入 Neon 开发数据库。
-- 导入成功后不需要再次执行 `pnpm db:migrate`，刷新排期页面即可看到数据。
-- 当前一次性导入以“Excel 来源 + 行号”作为唯一标识；重复执行会跳过已经导入的行，不会用后来修改的 Excel 覆盖数据库现有记录。
-
-因此，如果 Excel 在真正执行 `--apply` 之前发生变化，可以替换文件后重新预检；如果已经成功导入，后续少量修正应直接在排期页面点击“编辑”完成，不要依赖重复导入覆盖旧数据。
-
 ### 日常新做帖、改帖和编辑排期
 
-日常工作不再使用 Excel。启动网站后直接在排期页面新增或编辑：
+启动网站后直接在排期页面新增或编辑：
 
 ```bash
 pnpm dev
@@ -130,7 +108,6 @@ pnpm dev
 
 ```text
 pnpm db:migrate
-pnpm db:import
 pnpm build
 ```
 
@@ -152,14 +129,14 @@ pnpm dev
 
 ### 最常见情况速查
 
-| 发生的事情 | 需要执行的命令 |
-| --- | --- |
-| 在网页新增或编辑排期 | 不需要数据库命令，保存后立即生效 |
-| Excel 尚未正式导入，只修改了 Excel | 重新运行 `pnpm db:import` 预检，确认后执行 `pnpm db:import -- --apply` |
-| Excel 已导入，又修改了同一批旧行 | 在网页编辑；重复导入不会覆盖旧记录 |
-| 代码新增了数据库迁移 | `pnpm db:check`，然后 `pnpm db:migrate` |
-| 数据已经成功写入 Neon | 不需要 `migrate`，刷新页面即可 |
-| 只是修改前端样式或文案 | 本地开发只需 `pnpm dev`，不需要数据库命令 |
+
+| 发生的事情                   | 需要执行的命令                                                    |
+| ----------------------- | ---------------------------------------------------------- |
+| 在网页新增或编辑排期              | 不需要数据库命令，保存后立即生效                                           |
+| 代码新增了数据库迁移              | `pnpm db:check`，然后 `pnpm db:migrate`                       |
+| 数据已经成功写入 Neon           | 不需要 `migrate`，刷新页面即可                                       |
+| 只是修改前端样式或文案             | 本地开发只需 `pnpm dev`，不需要数据库命令                                 |
+
 
 ## 项目结构
 
@@ -177,7 +154,7 @@ pnpm dev
 │   ├── README.md
 │   └── images/home/        # 首页真实封面素材及目录说明
 ├── drizzle/                   # 数据库迁移
-├── scripts/                    # 受控 Excel 导入预检与写入脚本
+├── scripts/                    # 临时维护脚本的安全边界说明
 ├── src/
 │   ├── README.md
 │   ├── components/
@@ -203,7 +180,7 @@ pnpm dev
 
 ## 排期 MVP
 
-复制 `.env.example` 为 `.env`，填写 Neon 开发分支连接串和共享访问凭据，然后执行 `pnpm db:migrate`。访问 `/business/operations-schedule` 时浏览器会要求输入共享账号密码。生产环境必须使用 HTTPS；真实 `.env` 不得提交。
+复制 `.env.example` 为 `.env`，填写 Neon 开发分支连接串和 `OPERATIONS_BASIC_AUTH_USERS` 多账号访问凭据，然后执行 `pnpm db:migrate`。访问 `/business/operations-schedule` 时浏览器会要求输入其中任意一组账号密码；各账号权限相同。旧版 `OPERATIONS_ADMIN_USER` / `OPERATIONS_ADMIN_PASSWORD` 仍可作为单账号兼容配置。生产环境必须使用 HTTPS；真实 `.env` 不得提交。
 
 ## 首页交互说明
 
@@ -233,11 +210,11 @@ pnpm dev
 - 八张真实 3:4 内容封面已接入首页内容流；
 - 本地构建与预览脚本。
 - 运营内容新做帖 V0、改帖 V1+、完整编辑、推广状态筛选与月度台账/月历；
-- TMUA、STEP、面试课学科字典、12 个通用帖子分类及学科可用分类映射，以及 53 条历史排期分类回填；
+- TMUA、STEP、面试课学科字典、12 个通用帖子分类及学科可用分类映射；
 - 内容发布控制台的桌面端 Sidebar / Toolbar / Inspector / Sheet、统一推广筛选和移动端底部导航；
 - 非推广、待推广、推广测试中、推广放量中、推广周期已结束、测试淘汰和放量淘汰七类推广状态；
-- 分钟级应发/实发时间、自动完成状态、12 小时延期校验与 Excel 历史数据导入预检；
-- Neon PostgreSQL 迁移、服务端校验与临时 HTTP Basic Auth。
+- 分钟级应发/实发时间、自动完成状态与 12 小时延期校验；
+- Neon PostgreSQL 迁移、服务端校验与临时多账号 HTTP Basic Auth。
 
 当前进行：
 
@@ -255,8 +232,7 @@ pnpm dev
 
 ## 当前边界
 
-- 当前仅排期 MVP 使用数据库和临时共享凭据，没有正式后台、登录或细粒度权限。
+- 当前仅排期 MVP 使用数据库和临时多账号 Basic Auth，没有正式后台、细粒度权限或操作者审计。
 - 首页不展示实时数据、项目明细或个人绩效薪资。
 - 业务系统入口已连接排期 MVP；组织与人员、绩效与报酬仍只保留入口概念。
 - 当前只做本地验收，不包含生产部署配置。
-- 本地 `public/excel/20260725 运营内容导入.xlsx` 通过受控脚本导入 2026 年 4–6 月排期，并在同一事务中清理数据库的 7 月排期；原始 `.xlsx` 被 Git 忽略，不上传到公开仓库。非推广帖不会因“非推广投放中”被识别成推广，完成情况按应发/实发时间计算。默认命令只预检，显式传入 `--apply` 才写入开发数据库。
