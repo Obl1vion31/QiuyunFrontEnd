@@ -2,7 +2,7 @@
 
 本文面向需要维护本项目、但还不熟悉 PostgreSQL 和 Neon 的协作者。目标不是覆盖所有数据库理论，而是说明 Neon 工作台各区域解决什么问题、什么时候使用，以及如何安全地查看和调试当前项目。
 
-> 最后核对：2026-07-25。Neon 控制台会持续更新；界面名称变化时，以文末官方文档为准。
+> 最后核对：2026-07-28。Neon 控制台会持续更新；界面名称变化时，以文末官方文档为准。
 
 ## 一、先建立整体概念
 
@@ -26,7 +26,7 @@ Neon 账号
 - **Compute**：负责执行 SQL 的计算资源；空闲时可能暂停，首次连接会有冷启动。
 - **Connection string**：应用连接数据库所需的地址、数据库名、Role 和密码组合。本项目保存在未提交的 `.env` 中。
 
-本项目必须确认 `.env` 的 `DATABASE_URL` 指向隔离开发分支，不能误连生产分支。
+本项目本地开发必须确认 `.env` 的 `DATABASE_URL` 指向隔离的 development 分支，不能误连 production。Neon 分支创建后独立变化：development 的结构和业务数据不会自动发布到 production。
 
 ## 二、工作台主要区域
 
@@ -207,7 +207,7 @@ ORDER BY subject.sort_order, category.sort_order;
 
 - TMUA：12 个分类；
 - STEP：11 个分类，不包含“冲刺班”；
-- 面试课：暂未配置分类。
+- 面试课：7 个分类，包括面试课、推广讲义帖、成功案例、喜报、面试信息、面试准备须知和创新帖。
 
 ### 2. 查看某学科的实际内容、分类和推广状态
 
@@ -267,8 +267,7 @@ SELECT
   version.category_id
 FROM operations_content_version AS version
 WHERE version.subject_id IS NULL
-   OR (version.subject_id IN ('tmua', 'step') AND version.category_id IS NULL)
-   OR (version.subject_id = 'interview' AND version.category_id IS NOT NULL)
+   OR version.category_id IS NULL
    OR (
      version.category_id IS NOT NULL
      AND NOT EXISTS (
@@ -281,6 +280,43 @@ WHERE version.subject_id IS NULL
 ```
 
 正常情况下应返回 0 行。
+
+旧面试课内容在迁移兼容层面允许保留空分类；如果数据库仍有此类历史记录，上述查询会把它们列为需要人工核对，而不是自动猜测分类。
+
+### 5. 查看 THE PLAN 当前结构和 V0
+
+```sql
+SELECT
+  plan.section_key,
+  plan.row_name,
+  plan.subject_id,
+  plan.category_id,
+  plan.current_version_number,
+  COUNT(block.id) AS "时间块数量"
+FROM operations_annual_plan AS plan
+LEFT JOIN operations_annual_plan_block AS block
+  ON block.plan_id = plan.id
+GROUP BY plan.id
+ORDER BY plan.year, plan.section_key, plan.sort_order;
+```
+
+当前初始化阶段的细致规划应为 V0。总规划在页面查询时由启用的细致规划计算，不需要从 `operations_annual_plan` 读取可编辑总规划行。development 中遗留的 `section_key = 'general'` 记录是 Phase 04 待审核清理数据，不应直接在 Tables 中手工删除。
+
+### 6. 核对年度规划版本快照
+
+```sql
+SELECT
+  plan.row_name,
+  plan.current_version_number,
+  COUNT(version.id) AS "版本快照数量"
+FROM operations_annual_plan AS plan
+LEFT JOIN operations_annual_plan_version AS version
+  ON version.plan_id = plan.id
+GROUP BY plan.id
+ORDER BY plan.section_key, plan.sort_order;
+```
+
+初始化整理完成后，每条规划应至少具有一个 V0 快照。用户明确结束初始化后，真实修改才依次生成 V1、V2。
 
 ## 四、账号、密码与同事协作
 
@@ -329,6 +365,17 @@ JSON key 是用户名，value 是该用户的密码。所有账号权限相同�
 5. 执行 `pnpm db:migrate`。
 6. 使用 SQL Editor 只读核对迁移结果。
 7. 执行 `pnpm check` 和 `pnpm build`。
+
+### 从 Development 准备 Production
+
+1. 在 development 完成结构、数据和页面验收。
+2. 审核全部未进入 production 的 migration。
+3. 明确哪些 development 业务数据需要单独迁移；网页录入数据不会随 migration 自动复制。
+4. 为 production 建立恢复点并确认目标连接。
+5. 在受控上线环境对 production 执行相同迁移。
+6. 使用单独审核的数据迁移导入正式业务数据。
+7. 配置生产环境变量并执行冒烟测试。
+8. 本地 `.env` 继续连接 development，不长期保留 production 连接串。
 
 ### 误操作恢复
 

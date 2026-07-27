@@ -4,7 +4,7 @@
 
 ## 先记住一条主线
 
-当前代码分为静态首页和动态排期 MVP 两条主线。首页可以理解为四层：
+当前代码分为静态首页、动态年度规划和动态内容排期三条主线。首页可以理解为四层：
 
 ```text
 src/data/home.ts
@@ -48,13 +48,15 @@ src/
     │   ├── annual-plan.astro          # 年度内容总周期规划与版本历史
     │   └── operations-schedule.astro # 新做帖、改帖版本、动态排期页面与汇总
     └── api/
-        ├── operations-content.ts     # 新做帖 V0 写入接口
-        └── operations-content/       # 排期编辑与改帖 V1+ 接口
+        ├── operations-annual-plans.ts # 新建年度细致规划 V0
+        ├── operations-annual-plans/   # 年度说明、编辑、历史和恢复接口
+        ├── operations-content.ts      # 新做帖 V0 写入接口
+        └── operations-content/        # 排期编辑与改帖 V1+ 接口
 ```
 
 `src/pages/` 不单独放置 `README.md`，因为 Astro 会把该目录里的 Markdown 文件自动生成为公开页面。它的说明统一写在这里。
 
-排期相关的服务端代码位于 `src/db/`：`schema.ts` 分别定义学科、通用帖子分类、学科可用分类映射、帖子、内容版本和排期，`taxonomy.ts` 维护表单使用的固定分类与映射，`validation.ts` 定义分类关系、新做帖、编辑、改帖与延期规则，`client.ts` 建立惰性数据库连接。`src/middleware.ts` 保护动态排期页和接口。一次性 Excel 导入只使用临时受控脚本，完成后不保留为日常入口。数据库和认证变量不得进入客户端代码。
+业务控制台的服务端代码位于 `src/db/`：`schema.ts` 定义年度规划、学科、通用帖子分类、学科可用分类映射、帖子、内容版本和排期；`annual-plan.ts` 与 `annual-plan-rules.mjs` 负责规划校验、快照、时间块和自动总规划；`taxonomy.ts` 维护固定分类与映射；`validation.ts` 定义内容分类、新做帖、编辑、改帖与延期规则；`client.ts` 建立惰性数据库连接。`src/middleware.ts` 同时保护年度规划、排期页和相关接口。一次性导入只使用临时受控脚本，完成后不保留为日常入口。数据库和认证变量不得进入客户端代码。
 
 ## 先用 30 秒判断一个文件是否相关
 

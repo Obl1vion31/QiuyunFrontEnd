@@ -1,6 +1,6 @@
 # 前端团队管理系统
 
-这是一个面向前端业务工作的轻量网站。当前包含静态总枢纽首页，以及受临时多账号凭据保护的年度内容总周期规划和内容发布排期。
+这是一个面向前端业务工作的轻量网站。当前包含静态总枢纽首页，以及受临时多账号凭据保护的 `THE PLAN` 年度总周期规划和内容发布排期。
 
 首页以部门工作流为叙事核心，呈现策划、内容、视觉、发布、用户触点和复盘如何持续衔接。首屏采用“内容穿越总控台”视觉：3:4 内容封面随页面滚动穿过工作台，底部轨道同步显示当前流程环节。
 
@@ -24,7 +24,7 @@ pnpm dev
 
 业务页面：
 
-- `/business/annual-plan`：`THE PLAN` 年度内容总周期规划；
+- `/business/annual-plan`：`THE PLAN` 年度内容总周期规划，统一查看自动总规划和各学科细致规划；
 - `/business/operations-schedule`：具体内容与发布排期。
 
 ## 临时公网预览
@@ -99,7 +99,16 @@ pnpm dev
 1. `pnpm install` 安装项目依赖。
 2. `pnpm db:check` 检查数据库结构定义和迁移文件是否一致，不写入数据库。
 3. `pnpm db:migrate` 把尚未执行的结构迁移和受控数据修正应用到 `.env` 指向的数据库。
-4. `pnpm dev` 启动本地网站；访问 `/business/operations-schedule` 查看排期。
+4. `pnpm dev` 启动本地网站；访问 `/business/annual-plan` 查看年度规划，访问 `/business/operations-schedule` 查看具体排期。
+
+### 日常维护 THE PLAN
+
+- 总规划是从启用的细致规划实时计算出的只读结果，不单独填写；
+- 细致规划按照学科与帖子分类建立，一条规划行可以包含多个不重叠时间块；
+- 时间块可以保存弹性频次、硬性组合，或在初始化待确认时暂不填写数量；
+- 当前年度规划仍处于初始化 V0，第一次真实运营修改才进入 V1；
+- 在用户明确宣布初始化结束前，初始数据整理不应被记录成正式业务版本；
+- 网页保存只更新 `.env` 当前连接的数据库分支，不会自动同步到 Neon production。
 
 ### 日常新做帖、改帖和编辑排期
 
@@ -137,7 +146,7 @@ pnpm dev
 
 | 发生的事情                   | 需要执行的命令                                                    |
 | ----------------------- | ---------------------------------------------------------- |
-| 在网页新增或编辑排期              | 不需要数据库命令，保存后立即生效                                           |
+| 在网页新增或编辑年度规划、排期         | 不需要数据库命令，保存后在当前连接分支立即生效                                    |
 | 代码新增了数据库迁移              | `pnpm db:check`，然后 `pnpm db:migrate`                       |
 | 数据已经成功写入 Neon           | 不需要 `migrate`，刷新页面即可                                       |
 | 只是修改前端样式或文案             | 本地开发只需 `pnpm dev`，不需要数据库命令                                 |
@@ -153,7 +162,10 @@ pnpm dev
 │   ├── README.md
 │   ├── DECISIONS.md
 │   ├── DESIGN.md
+│   ├── CURRENT-STAGE-SUMMARY.md
 │   ├── database-basics/README.md # Neon 工作台与数据库调试学习指南
+│   ├── exec-plans/               # 用户要求长期保存的阶段计划
+│   ├── exec-results/             # 用户要求长期保存的阶段结果
 │   └── ROADMAP.md
 ├── public/
 │   ├── README.md
@@ -183,9 +195,9 @@ pnpm dev
 - `src/components/ContentTunnel.tsx` 负责滚动进度、封面循环和当前流程状态。
 - `src/components/ContentTunnel.module.css` 负责 Hero 的层级、遮罩、3D 纵深和响应式排版。
 
-## 排期 MVP
+## 业务控制台
 
-复制 `.env.example` 为 `.env`，填写 Neon 开发分支连接串和 `OPERATIONS_BASIC_AUTH_USERS` 多账号访问凭据，然后执行 `pnpm db:migrate`。访问 `/business/operations-schedule` 时浏览器会要求输入其中任意一组账号密码；各账号权限相同。旧版 `OPERATIONS_ADMIN_USER` / `OPERATIONS_ADMIN_PASSWORD` 仍可作为单账号兼容配置。生产环境必须使用 HTTPS；真实 `.env` 不得提交。
+复制 `.env.example` 为 `.env`，填写 Neon development 分支连接串和 `OPERATIONS_BASIC_AUTH_USERS` 多账号访问凭据，然后执行 `pnpm db:migrate`。访问年度规划或排期页面时，浏览器会要求输入其中任意一组账号密码；各账号权限相同。旧版 `OPERATIONS_ADMIN_USER` / `OPERATIONS_ADMIN_PASSWORD` 仍可作为单账号兼容配置。生产环境必须使用 HTTPS；真实 `.env` 不得提交。
 
 ## 首页交互说明
 
@@ -202,6 +214,8 @@ pnpm dev
 - `docs/DECISIONS.md`：已经确认的产品、结构和技术结论。
 - `docs/DESIGN.md`：已经确认的长期视觉与交互规则。
 - `docs/ROADMAP.md`：当前、下一步和暂缓事项。
+- `docs/CURRENT-STAGE-SUMMARY.md`：当前视觉、功能、数据库结构和 development 数据摘要。
+- `docs/exec-results/phase-04-the-plan.md`：Phase 04 实施结果、数据审查与下一轮优化 Plan。
 - `docs/database-basics/README.md`：Neon 工作台、数据库查询、恢复和账号协作学习指南。
 - `AGENTS.md`：agent 在本仓库中的长期协作规则。
 
@@ -216,7 +230,8 @@ pnpm dev
 - 本地构建与预览脚本。
 - 运营内容新做帖 V0、改帖 V1+、完整编辑、推广状态筛选与月度台账/月历；
 - TMUA、STEP、面试课学科字典、共享帖子分类及学科可用分类映射；
-- `THE PLAN` 统一年度总周期规划矩阵、分区规划行、多时间块、行级文档链接和完整版本历史；
+- `THE PLAN` 统一年度总周期规划矩阵、自动总规划、学科细致规划、多时间块、行级文档链接和完整版本历史；
+- 年度规划初始化历史已统一归档为 V0，后续真实修改从 V1 开始；
 - 内容发布控制台的桌面端 Sidebar / Toolbar / Inspector / Sheet、统一推广筛选和移动端底部导航；
 - 非推广、待推广、推广测试中、推广放量中、推广周期已结束、测试淘汰和放量淘汰七类推广状态；
 - 分钟级应发/实发时间、自动完成状态与 12 小时延期校验；
@@ -224,6 +239,8 @@ pnpm dev
 
 当前进行：
 
+- Phase 04 继续优化：补齐或标记待确认数量，重做年度矩阵、Inspector 和版本历史视觉；
+- 审核并准备清理 7 条已不参与页面计算的旧总规划记录；
 - 审核“内容穿越总控台”新版首页；
 - 根据真实封面的色彩与文字密度检查遮罩和可读性；
 - 检查桌面端、移动端和减少动态效果模式的滚动观感。
@@ -239,6 +256,9 @@ pnpm dev
 ## 当前边界
 
 - 当前总周期规划和排期使用数据库与临时多账号 Basic Auth，没有正式后台或细粒度权限；规划版本只记录凭据用户名，不是完整操作者审计。
+- 总规划是细致规划的派生视图；`operations_annual_plan` 的长期职责是保存可编辑细致规划，不应维护第二份可编辑总规划事实。
+- 当前 development 中仍有 7 条初始化旧总规划记录等待 Phase 04 安全清理；它们不进入现有页面和自动汇总。
+- development 与 production 不会自动同步；上线必须分别审核代码、结构迁移和业务数据迁移。
 - 首页不展示实时数据、项目明细或个人绩效薪资。
-- 业务系统入口已连接排期 MVP；组织与人员、绩效与报酬仍只保留入口概念。
+- 业务系统入口已连接包含 THE PLAN 和排期管理的内容发布控制台；组织与人员、绩效与报酬仍只保留入口概念。
 - 当前只做本地验收，不包含生产部署配置。
