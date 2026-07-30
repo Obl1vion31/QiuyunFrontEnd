@@ -16,6 +16,12 @@ export const nextDateKey = (dateKey) => {
   return shanghaiDateKey(date);
 };
 
+export const inclusivePromotionDays = (startedOn, endedOn) => {
+  const start = new Date(`${startedOn}T00:00:00+08:00`).getTime();
+  const end = new Date(`${endedOn}T00:00:00+08:00`).getTime();
+  return Math.max(0, Math.round((end - start) / 86400000) + 1);
+};
+
 export const isDecisionAllowed = (stage, decision) =>
   promotionReviewDecisions[stage]?.includes(decision) ?? false;
 

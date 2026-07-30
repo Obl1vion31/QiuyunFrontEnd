@@ -239,7 +239,7 @@ pnpm dev
 - 内容发布控制台的桌面端 Sidebar / Toolbar / Inspector / Sheet、统一推广筛选和移动端底部导航；
 - 非推广、待推广、推广测试中、推广放量中、推广周期已结束、测试淘汰和放量淘汰七类推广状态；
 - 分钟级应发/实发时间、自动完成状态与 12 小时延期校验；
-- 推广帖 Daily Promotion Review：推广生命周期、T+1 日度复盘、六项输入、两项实际成本和截止复盘日的自适应日期轴；
+- 推广帖 Daily Promotion Review：月份语义生命周期、T+1 日度复盘、六项输入、两项实际成本和最近 90 天历史总览；
 - Neon PostgreSQL 迁移、服务端校验与临时多账号 HTTP Basic Auth。
 
 当前进行：

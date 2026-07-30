@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   calculateActualPromotionCosts,
+  inclusivePromotionDays,
   isDecisionAllowed,
   nextDateKey,
   nextPromotionState,
@@ -11,6 +12,11 @@ import {
 test('formats campaign dates in Asia/Shanghai', () => {
   assert.equal(shanghaiDateKey(new Date('2026-07-30T16:30:00.000Z')), '2026-07-31');
   assert.equal(nextDateKey('2026-07-31'), '2026-08-01');
+});
+
+test('counts promotion stage days inclusively across months', () => {
+  assert.equal(inclusivePromotionDays('2026-07-26', '2026-07-28'), 3);
+  assert.equal(inclusivePromotionDays('2026-07-29', '2026-08-02'), 5);
 });
 
 test('only allows decisions for the current stage', () => {

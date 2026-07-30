@@ -1,6 +1,7 @@
 export const promotionReviewDecisions: Record<'testing' | 'scaling', string[]>;
 export const shanghaiDateKey: (date: Date) => string;
 export const nextDateKey: (dateKey: string) => string;
+export const inclusivePromotionDays: (startedOn: string, endedOn: string) => number;
 export const isDecisionAllowed: (stage: string, decision: string) => boolean;
 export const nextPromotionState: (
   stage: string,
