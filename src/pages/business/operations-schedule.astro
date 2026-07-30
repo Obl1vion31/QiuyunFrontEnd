@@ -8,7 +8,7 @@ import {
   operationsSubject,
 } from '../../db/schema';
 import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
-import { delayThresholdMs, promotionStatuses } from '../../db/validation';
+import { delayThresholdMs } from '../../db/validation';
 
 export const prerender = false;
 
@@ -61,7 +61,7 @@ let rows: Array<{
   id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
   revisionSummary: string | null; projectDocName: string | null; projectDocUrl: string | null;
-  syncToMoments: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
+  syncToMoments: boolean; isPromoted: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
   completionStatus: string; delayReason: string | null;
 }> = [];
 try {
@@ -81,6 +81,7 @@ try {
     projectDocName: operationsContentVersion.projectDocName,
     projectDocUrl: operationsContentVersion.projectDocUrl,
     syncToMoments: operationsContentSchedule.syncToMoments,
+    isPromoted: operationsContentSchedule.isPromoted,
     promotionStatus: operationsContentSchedule.promotionStatus,
     plannedPublishAt: operationsContentSchedule.plannedPublishAt,
     actualPublishAt: operationsContentSchedule.actualPublishAt,
@@ -167,7 +168,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
         <nav class="module-nav" aria-label="内容发布控制台模块">
           <a href="/business/annual-plan"><span class="nav-icon">总</span><span><strong>总周期规划</strong><small>THE PLAN</small></span></a>
           <a class="active" href="/business/operations-schedule"><span class="nav-icon">排</span><span><strong>排期管理</strong><small>Schedule</small></span></a>
-          <span class="planned" aria-disabled="true"><span class="nav-icon">日</span><span><strong>日粒度全量复盘</strong><small>计划中</small></span></span>
+          <a href="/business/daily-promotion-review"><span class="nav-icon">日</span><span><strong>推广日度复盘</strong><small>Daily Review</small></span></a>
           <span class="planned" aria-disabled="true"><span class="nav-icon">阶</span><span><strong>阶段复盘</strong><small>计划中</small></span></span>
           <span class="planned" aria-disabled="true"><span class="nav-icon">报</span><span><strong>报表中心</strong><small>计划中</small></span></span>
         </nav>
@@ -297,7 +298,12 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
           <div class="field field-wide"><label for="contentName">内容名称 <b>*</b></label><input id="contentName" name="contentName" maxlength="200" required /><small data-error="contentName"></small></div>
           <div class="field"><label for="subjectId">学科 <b>*</b></label><select id="subjectId" name="subjectId" required><option value="">请选择学科</option>{subjects.map((subject) => <option value={subject.id}>{subject.name}</option>)}</select><small data-error="subjectId"></small></div>
           <div class="field"><label for="categoryId">帖子分类 <b data-category-required>*</b></label><select id="categoryId" name="categoryId" required disabled><option value="">请先选择学科</option></select><small data-error="categoryId"></small><em data-category-help></em></div>
-          <div class="field"><label for="promotionStatus">推广状态 <b>*</b></label><select id="promotionStatus" name="promotionStatus" required>{promotionStatuses.map((status) => <option value={status}>{promotionLabels[status]}</option>)}</select><small data-error="promotionStatus"></small><em data-promotion-help></em></div>
+          <div class="field promotion-field">
+            <label class="promotion-toggle"><input type="checkbox" name="isPromoted" /> <span><strong>推广帖</strong><small>实发后自动进入测试期</small></span></label>
+            <input id="promotionStatus" name="promotionStatus" type="hidden" value="none" />
+            <output class="promotion-preview" data-promotion-preview>非推广</output>
+            <small data-error="isPromoted"></small><em data-promotion-help></em>
+          </div>
 
           <fieldset class="revision-fields field-wide" data-revision-only hidden>
             <legend>本次改帖</legend>
@@ -336,6 +342,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
       const revisionOnly = document.querySelector('[data-revision-only]');
       const sourcePreview = document.querySelector('[data-source-preview]');
       const promotionHelp = document.querySelector('[data-promotion-help]');
+      const promotionPreview = document.querySelector('[data-promotion-preview]');
       const categoryHelp = document.querySelector('[data-category-help]');
       const categoryRequired = document.querySelector('[data-category-required]');
       const delayField = document.querySelector('.delay-field');
@@ -428,6 +435,32 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
         field('delayReason').required = required;
         updateCompletionPreview();
       };
+      const updatePromotionPreview = () => {
+        const promoted = field('isPromoted').checked;
+        const actual = field('actualPublishAt').value;
+        if (!promoted) {
+          field('promotionStatus').value = 'none';
+          promotionPreview.textContent = '非推广';
+          return;
+        }
+        if (!actual) {
+          field('promotionStatus').value = 'pending';
+          promotionPreview.textContent = '待推广 · 实发后进入测试';
+          return;
+        }
+        if (
+          mode === 'new'
+          || mode === 'revision'
+          || !activeRecord?.actualPublishAt
+          || !activeRecord?.isPromoted
+        ) {
+          field('promotionStatus').value = 'testing';
+          promotionPreview.textContent = '推广测试中';
+          return;
+        }
+        field('promotionStatus').value = activeRecord.promotionStatus;
+        promotionPreview.textContent = activeRecord.promotionLabel;
+      };
       const clearErrors = () => {
         message.textContent = '';
         form.querySelectorAll('[data-error]').forEach((node) => node.textContent = '');
@@ -480,6 +513,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
           version.textContent = 'V0';
           submitButton.innerHTML = '保存新做帖 <span aria-hidden="true">→</span>';
           field('promotionStatus').value = 'none';
+          field('isPromoted').checked = false;
         } else if (nextMode === 'edit') {
           title.textContent = '编辑排期';
           context.textContent = 'SCHEDULE DETAILS';
@@ -509,6 +543,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
           sourcePreview.append(sourceTitle, sourceStatus);
         }
         updateDelayField();
+        updatePromotionPreview();
         dirty = false;
         dialog.showModal();
         field('contentName').focus();
@@ -545,7 +580,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
       inspectorRevise?.addEventListener('click', () => openForm('revision', activeRecord));
       document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeForm));
       dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeForm(); });
-      form.addEventListener('input', () => { dirty = true; updateDelayField(); });
+      form.addEventListener('input', () => { dirty = true; updateDelayField(); updatePromotionPreview(); });
       field('subjectId').addEventListener('change', () => updateCategoryOptions());
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -563,12 +598,27 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
             ? `/api/operations-content/versions/${activeRecord.versionId}/revisions`
             : '/api/operations-content';
         try {
-          const response = await fetch(endpoint, {
+          let response = await fetch(endpoint, {
             method: mode === 'edit' ? 'PATCH' : 'POST',
             body,
             headers: { Accept: 'application/json' },
           });
-          const result = await response.json();
+          let result = await response.json();
+          if (response.status === 409 && result.resetRequired) {
+            const impact = result.impact ?? {};
+            const confirmed = window.confirm(
+              `修改实发日期会永久删除 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并从新日期重新进入测试期。确定继续吗？`,
+            );
+            if (confirmed) {
+              body.set('confirmPromotionReset', '1');
+              response = await fetch(endpoint, {
+                method: 'PATCH',
+                body,
+                headers: { Accept: 'application/json' },
+              });
+              result = await response.json();
+            }
+          }
           if (response.ok) { dirty = false; window.location.reload(); return; }
           message.textContent = result.message ?? '保存失败，请重试。';
           for (const [name, errors] of Object.entries(result.fields ?? {})) {
@@ -634,6 +684,13 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
   .toolbar-title{display:grid}
   .toolbar-title span{font-size:.94rem;font-weight:850;letter-spacing:-.015em}
   .toolbar-title small{color:var(--muted);font-size:.65rem}
+  .promotion-field{display:grid;grid-template-columns:1fr auto;align-items:center;gap:7px 12px}
+  .promotion-toggle{display:flex!important;align-items:center;gap:9px;margin:0!important}
+  .promotion-toggle input{width:18px!important;height:18px;margin:0}
+  .promotion-toggle span,.promotion-toggle strong,.promotion-toggle small{display:block}
+  .promotion-toggle small{min-height:0;color:var(--muted);font-size:.64rem;font-weight:500}
+  .promotion-preview{padding:5px 8px;border-radius:999px;color:#24459c;background:#e3e9ff;font-size:.66rem;font-weight:850;white-space:nowrap}
+  .promotion-field>small,.promotion-field>em{grid-column:1/-1}
   .toolbar .month-nav{justify-self:center;display:flex;align-items:center;padding:3px;border-radius:11px;background:#dde2df}
   .toolbar .month-nav>a{display:grid;place-items:center;min-width:32px;height:31px;padding:0;border:0;border-radius:8px;background:transparent;text-decoration:none;font-weight:850}
   .toolbar .month-nav>a:hover{background:#fff}

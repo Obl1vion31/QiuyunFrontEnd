@@ -1,6 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getDb } from '../../db/client';
-import { operationsContent, operationsContentSchedule, operationsContentVersion } from '../../db/schema';
+import {
+  operationsContent,
+  operationsContentSchedule,
+  operationsContentVersion,
+  operationsPromotionCampaign,
+  operationsPromotionStage,
+} from '../../db/schema';
+import { shanghaiDateKey } from '../../db/promotion-rules.mjs';
 import {
   issuesByField,
   newPostInputFromForm,
@@ -28,6 +35,9 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
 
   try {
     const completionStatus = normalizeCompletionStatus(result.data);
+    const promotionStatus = result.data.isPromoted
+      ? result.data.actualPublishAt ? 'testing' : 'pending'
+      : 'none';
     const created = await getDb().transaction(async (transaction) => {
       const [content] = await transaction.insert(operationsContent).values({}).returning({ id: operationsContent.id });
       const [version] = await transaction.insert(operationsContentVersion).values({
@@ -43,12 +53,27 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
       const [schedule] = await transaction.insert(operationsContentSchedule).values({
         contentVersionId: version.id,
         syncToMoments: result.data.syncToMoments,
-        promotionStatus: result.data.promotionStatus,
+        isPromoted: result.data.isPromoted,
+        promotionStatus,
         plannedPublishAt: result.data.plannedPublishAt,
         actualPublishAt: result.data.actualPublishAt,
         completionStatus,
         delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
       }).returning({ id: operationsContentSchedule.id });
+      if (result.data.isPromoted && result.data.actualPublishAt) {
+        const startedOn = shanghaiDateKey(result.data.actualPublishAt);
+        const [campaign] = await transaction.insert(operationsPromotionCampaign).values({
+          scheduleId: schedule.id,
+          startedOn,
+          currentStage: 'testing',
+          currentStatus: 'testing',
+        }).returning({ id: operationsPromotionCampaign.id });
+        await transaction.insert(operationsPromotionStage).values({
+          campaignId: campaign.id,
+          stageType: 'testing',
+          startedOn,
+        });
+      }
       return schedule;
     });
     return wantsJson ? Response.json({ ok: true, id: created.id, version: 0 }, { status: 201 }) : redirect('/business/operations-schedule?created=1', 303);

@@ -42,6 +42,7 @@ const versionFields = {
 
 const scheduleFields = {
   syncToMoments: z.boolean(),
+  isPromoted: z.boolean(),
   promotionStatus: z.enum(promotionStatuses, { message: '请选择有效推广状态' }),
   plannedPublishAt: shanghaiDateTime,
   actualPublishAt: optionalShanghaiDateTime,
@@ -88,6 +89,7 @@ const commonInputFromForm = (form: FormData) => ({
   subjectId: form.get('subjectId'),
   categoryId: form.get('categoryId'),
   syncToMoments: form.get('syncToMoments') === 'on',
+  isPromoted: form.get('isPromoted') === 'on',
   promotionStatus: form.get('promotionStatus'),
   projectDocName: form.get('projectDocName'),
   projectDocUrl: form.get('projectDocUrl'),

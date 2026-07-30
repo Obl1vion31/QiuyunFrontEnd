@@ -1,10 +1,12 @@
 import {
   boolean,
   check,
+  date,
   foreignKey,
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   primaryKey,
   text,
@@ -232,6 +234,7 @@ export const operationsContentSchedule = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     contentVersionId: uuid('content_version_id').notNull().references(() => operationsContentVersion.id, { onDelete: 'restrict' }),
     syncToMoments: boolean('sync_to_moments').notNull().default(false),
+    isPromoted: boolean('is_promoted').notNull().default(false),
     promotionStatus: text('promotion_status').notNull().default('none'),
     plannedPublishAt: timestamp('planned_publish_at', { withTimezone: true }).notNull(),
     actualPublishAt: timestamp('actual_publish_at', { withTimezone: true }),
@@ -245,8 +248,122 @@ export const operationsContentSchedule = pgTable(
     index('operations_schedule_version_idx').on(table.contentVersionId),
     index('operations_schedule_planned_at_idx').on(table.plannedPublishAt),
     index('operations_schedule_promotion_idx').on(table.promotionStatus),
+    index('operations_schedule_is_promoted_idx').on(table.isPromoted),
     index('operations_schedule_completion_idx').on(table.completionStatus),
     uniqueIndex('operations_schedule_source_key_idx').on(table.sourceKey),
+    check(
+      'operations_schedule_promotion_consistency_check',
+      sql`(
+        (${table.isPromoted} = false AND ${table.promotionStatus} = 'none')
+        OR
+        (${table.isPromoted} = true AND ${table.promotionStatus} IN (
+          'pending', 'testing', 'scaling', 'ended', 'test_discarded', 'formal_discarded'
+        ))
+      )`,
+    ),
+  ],
+);
+
+export const operationsPromotionCampaign = pgTable(
+  'operations_promotion_campaign',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'cascade' }),
+    startedOn: date('started_on').notNull(),
+    endedOn: date('ended_on'),
+    currentStage: text('current_stage'),
+    currentStatus: text('current_status').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('operations_promotion_campaign_schedule_idx').on(table.scheduleId),
+    index('operations_promotion_campaign_status_idx').on(table.currentStatus),
+    check(
+      'operations_promotion_campaign_status_check',
+      sql`${table.currentStatus} IN ('testing', 'scaling', 'ended', 'test_discarded', 'formal_discarded')`,
+    ),
+    check(
+      'operations_promotion_campaign_stage_check',
+      sql`(
+        (${table.currentStatus} = 'testing' AND ${table.currentStage} = 'testing')
+        OR (${table.currentStatus} = 'scaling' AND ${table.currentStage} = 'scaling')
+        OR (${table.currentStatus} IN ('ended', 'test_discarded', 'formal_discarded') AND ${table.currentStage} IS NULL)
+      )`,
+    ),
+    check(
+      'operations_promotion_campaign_dates_check',
+      sql`${table.endedOn} IS NULL OR ${table.endedOn} >= ${table.startedOn}`,
+    ),
+  ],
+);
+
+export const operationsPromotionStage = pgTable(
+  'operations_promotion_stage',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'cascade' }),
+    stageType: text('stage_type').notNull(),
+    startedOn: date('started_on').notNull(),
+    endedOn: date('ended_on'),
+    outcome: text('outcome'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('operations_promotion_stage_campaign_idx').on(table.campaignId, table.startedOn),
+    check('operations_promotion_stage_type_check', sql`${table.stageType} IN ('testing', 'scaling')`),
+    check(
+      'operations_promotion_stage_outcome_check',
+      sql`${table.outcome} IS NULL OR ${table.outcome} IN ('continued', 'start_scaling', 'test_discarded', 'scaling_continued', 'ended', 'formal_discarded')`,
+    ),
+    check(
+      'operations_promotion_stage_dates_check',
+      sql`${table.endedOn} IS NULL OR ${table.endedOn} >= ${table.startedOn}`,
+    ),
+  ],
+);
+
+export const operationsPromotionDailyMetric = pgTable(
+  'operations_promotion_daily_metric',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'cascade' }),
+    metricDate: date('metric_date').notNull(),
+    stageTypeSnapshot: text('stage_type_snapshot').notNull(),
+    spend: numeric('spend', { precision: 12, scale: 2 }).notNull(),
+    clickRate: numeric('click_rate', { precision: 7, scale: 4 }).notNull(),
+    platformOpenCount: integer('platform_open_count').notNull(),
+    actualOpenCount: integer('actual_open_count').notNull(),
+    platformLeadCount: integer('platform_lead_count').notNull(),
+    actualLeadCount: integer('actual_lead_count').notNull(),
+    reviewDecision: text('review_decision').notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }).notNull().defaultNow(),
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('operations_promotion_daily_campaign_date_idx').on(table.campaignId, table.metricDate),
+    index('operations_promotion_daily_date_idx').on(table.metricDate),
+    check('operations_promotion_daily_stage_check', sql`${table.stageTypeSnapshot} IN ('testing', 'scaling')`),
+    check('operations_promotion_daily_spend_check', sql`${table.spend} >= 0`),
+    check('operations_promotion_daily_click_rate_check', sql`${table.clickRate} BETWEEN 0 AND 100`),
+    check(
+      'operations_promotion_daily_counts_check',
+      sql`${table.platformOpenCount} >= 0
+        AND ${table.actualOpenCount} >= 0
+        AND ${table.platformLeadCount} >= 0
+        AND ${table.actualLeadCount} >= 0`,
+    ),
+    check(
+      'operations_promotion_daily_decision_check',
+      sql`(
+        (${table.stageTypeSnapshot} = 'testing' AND ${table.reviewDecision} IN ('test_continue', 'test_discarded', 'start_scaling'))
+        OR
+        (${table.stageTypeSnapshot} = 'scaling' AND ${table.reviewDecision} IN ('scaling_continue', 'formal_discarded', 'ended'))
+      )`,
+    ),
   ],
 );
 

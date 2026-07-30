@@ -1,7 +1,14 @@
 import type { APIRoute } from 'astro';
 import { and, desc, eq } from 'drizzle-orm';
 import { getDb } from '../../../../../db/client';
-import { operationsContent, operationsContentSchedule, operationsContentVersion } from '../../../../../db/schema';
+import {
+  operationsContent,
+  operationsContentSchedule,
+  operationsContentVersion,
+  operationsPromotionCampaign,
+  operationsPromotionStage,
+} from '../../../../../db/schema';
+import { shanghaiDateKey } from '../../../../../db/promotion-rules.mjs';
 import {
   issuesByField,
   normalizeCompletionStatus,
@@ -66,6 +73,30 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         await transaction.update(operationsContentSchedule)
           .set({ promotionStatus: sourceClosingStatus, updatedAt: new Date() })
           .where(eq(operationsContentSchedule.id, sourceSchedule.id));
+        const [activeCampaign] = await transaction.select({
+          id: operationsPromotionCampaign.id,
+          currentStage: operationsPromotionCampaign.currentStage,
+        }).from(operationsPromotionCampaign)
+          .where(eq(operationsPromotionCampaign.scheduleId, sourceSchedule.id))
+          .orderBy(desc(operationsPromotionCampaign.createdAt))
+          .limit(1);
+        if (activeCampaign?.currentStage) {
+          const endedOn = shanghaiDateKey(new Date());
+          await transaction.update(operationsPromotionStage).set({
+            endedOn,
+            outcome: sourceClosingStatus,
+            updatedAt: new Date(),
+          }).where(and(
+            eq(operationsPromotionStage.campaignId, activeCampaign.id),
+            eq(operationsPromotionStage.stageType, activeCampaign.currentStage),
+          ));
+          await transaction.update(operationsPromotionCampaign).set({
+            currentStage: null,
+            currentStatus: sourceClosingStatus,
+            endedOn,
+            updatedAt: new Date(),
+          }).where(eq(operationsPromotionCampaign.id, activeCampaign.id));
+        }
       }
 
       const [version] = await transaction.insert(operationsContentVersion).values({
@@ -82,15 +113,33 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       }).returning({ id: operationsContentVersion.id });
 
       const completionStatus = normalizeCompletionStatus(result.data);
+      const promotionStatus = result.data.isPromoted
+        ? result.data.actualPublishAt ? 'testing' : 'pending'
+        : 'none';
       const [schedule] = await transaction.insert(operationsContentSchedule).values({
         contentVersionId: version.id,
         syncToMoments: result.data.syncToMoments,
-        promotionStatus: 'pending',
+        isPromoted: result.data.isPromoted,
+        promotionStatus,
         plannedPublishAt: result.data.plannedPublishAt,
         actualPublishAt: result.data.actualPublishAt,
         completionStatus,
         delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
       }).returning({ id: operationsContentSchedule.id });
+      if (result.data.isPromoted && result.data.actualPublishAt) {
+        const startedOn = shanghaiDateKey(result.data.actualPublishAt);
+        const [campaign] = await transaction.insert(operationsPromotionCampaign).values({
+          scheduleId: schedule.id,
+          startedOn,
+          currentStage: 'testing',
+          currentStatus: 'testing',
+        }).returning({ id: operationsPromotionCampaign.id });
+        await transaction.insert(operationsPromotionStage).values({
+          campaignId: campaign.id,
+          stageType: 'testing',
+          startedOn,
+        });
+      }
       await transaction.update(operationsContent).set({ updatedAt: new Date() })
         .where(eq(operationsContent.id, source.contentId));
       return { kind: 'created' as const, scheduleId: schedule.id, versionNumber: nextVersionNumber };

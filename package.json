@@ -9,7 +9,7 @@
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
-    "test": "node --test tests/annual-plan.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "start": "node ./dist/server/entry.mjs",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
