@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  calculatePromotionCosts,
+  calculateActualPromotionCosts,
   isDecisionAllowed,
   nextDateKey,
   nextPromotionState,
@@ -28,17 +28,13 @@ test('only allows decisions for the current stage', () => {
   });
 });
 
-test('calculates platform and actual costs independently', () => {
-  assert.deepEqual(calculatePromotionCosts({
+test('calculates actual costs and returns null for a zero denominator', () => {
+  assert.deepEqual(calculateActualPromotionCosts({
     spend: 100,
-    platformOpenCount: 20,
     actualOpenCount: 10,
-    platformLeadCount: 5,
     actualLeadCount: 0,
   }), {
-    platformOpenCost: 5,
     actualOpenCost: 10,
-    platformLeadCost: 20,
     actualLeadCost: null,
   });
 });

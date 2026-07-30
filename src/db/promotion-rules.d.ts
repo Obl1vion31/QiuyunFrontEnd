@@ -6,15 +6,11 @@ export const nextPromotionState: (
   stage: string,
   decision: string,
 ) => { status: string; stage: string | null; outcome: string } | null;
-export const calculatePromotionCosts: (input: {
+export const calculateActualPromotionCosts: (input: {
   spend: number;
-  platformOpenCount: number;
   actualOpenCount: number;
-  platformLeadCount: number;
   actualLeadCount: number;
 }) => {
-  platformOpenCost: number | null;
   actualOpenCost: number | null;
-  platformLeadCost: number | null;
   actualLeadCost: number | null;
 };

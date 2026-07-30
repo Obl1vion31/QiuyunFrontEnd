@@ -10,7 +10,7 @@ import {
   operationsPromotionStage,
   operationsSubject,
 } from '../../db/schema';
-import { calculatePromotionCosts, shanghaiDateKey } from '../../db/promotion-rules.mjs';
+import { calculateActualPromotionCosts, shanghaiDateKey } from '../../db/promotion-rules.mjs';
 
 export const prerender = false;
 
@@ -118,17 +118,30 @@ const reviewRows = campaigns
   .map((campaign) => ({ campaign, stage: stageAt(campaign.id, selectedDate), metric: metricAt(campaign.id, selectedDate) }))
   .filter((row) => row.stage || row.metric);
 
-const earliestStart = campaigns.reduce((earliest, campaign) => campaign.startedOn < earliest ? campaign.startedOn : earliest, selectedDate);
-const latestEnd = campaigns.reduce((latest, campaign) => {
-  const end = campaign.endedOn ?? today;
-  return end > latest ? end : latest;
-}, today);
-const calendarStart = addDays(earliestStart, -1);
-const calendarEnd = addDays(latestEnd, 1);
+const stagesVisibleBySelectedDate = stages.filter((stage) => stage.startedOn <= selectedDate);
+const earliestStageStart = stagesVisibleBySelectedDate.reduce(
+  (earliest, stage) => stage.startedOn < earliest ? stage.startedOn : earliest,
+  selectedDate,
+);
+const thirtyDayFloor = addDays(selectedDate, -30);
+const calendarStart = earliestStageStart < thirtyDayFloor ? thirtyDayFloor : earliestStageStart;
+const calendarEnd = selectedDate;
 const calendarDays = Array.from({ length: daysBetween(calendarStart, calendarEnd) + 1 }, (_, index) => addDays(calendarStart, index));
 const dayColumn = (dateKey: string) => daysBetween(calendarStart, dateKey) + 1;
 const selectedColumn = dayColumn(selectedDate);
-const todayColumn = dayColumn(today);
+const overlapsCalendar = (stage: typeof stages[number]) =>
+  stage.startedOn <= calendarEnd && (!stage.endedOn || stage.endedOn >= calendarStart);
+const displayedCampaigns = campaigns.filter((campaign) =>
+  stages.some((stage) => stage.campaignId === campaign.id && overlapsCalendar(stage)));
+const axisLabelDates = new Set([
+  calendarStart,
+  calendarEnd,
+  ...stages.flatMap((stage) => [stage.startedOn, stage.endedOn].filter(Boolean) as string[]),
+]);
+const shortDate = (dateKey: string) => {
+  const [, month, day] = dateKey.split('-');
+  return `${Number(month)}/${Number(day)}`;
+};
 ---
 
 <!doctype html>
@@ -172,21 +185,29 @@ const todayColumn = dayColumn(today);
           <section class="calendar-section" aria-labelledby="calendar-title">
             <header class="section-head">
               <div><span>LIFECYCLE CALENDAR</span><h1 id="calendar-title">推广生命周期</h1></div>
-              <p><i class="legend testing"></i>测试 <i class="legend scaling"></i>放量 <b>│</b> 时间游标</p>
+              <p><i class="legend testing"></i>测试 <i class="legend scaling"></i>放量 <b>│</b> 当前复盘日</p>
             </header>
             {!databaseError && campaigns.length === 0
               ? <div class="empty-state"><strong>还没有推广活动</strong><p>在排期中勾选“推广帖”并填写实发时间后，测试期会自动出现在这里。</p></div>
               : <div class="lifecycle-scroll">
                 <div class="lifecycle-board" style={`--days:${calendarDays.length}`}>
                   <div class="corner">帖子 / 日期</div>
-                  <div class="date-axis">
-                    {calendarDays.map((dateKey) => <a class:list={{ selected: dateKey === selectedDate, today: dateKey === today }} href={`?date=${dateKey < today ? dateKey : yesterday}`}>
-                      <span>{dateKey.slice(5).replace('-', '/')}</span>
+                  <div class="date-axis" aria-label={`${formatDate(calendarStart)}至${formatDate(calendarEnd)}`}>
+                    {calendarDays.map((dateKey) => <a
+                      class:list={{ selected: dateKey === selectedDate, labelled: axisLabelDates.has(dateKey) }}
+                      href={`?date=${dateKey}`}
+                      aria-label={formatDate(dateKey)}
+                    >
+                      <span>{axisLabelDates.has(dateKey) ? shortDate(dateKey) : ''}</span>
                     </a>)}
                   </div>
-                  {campaigns.map((campaign) => {
-                    const campaignStages = stages.filter((stage) => stage.campaignId === campaign.id);
-                    const campaignMetrics = metrics.filter((metric) => metric.campaignId === campaign.id);
+                  {displayedCampaigns.map((campaign) => {
+                    const campaignStages = stages.filter((stage) => stage.campaignId === campaign.id && overlapsCalendar(stage));
+                    const campaignMetrics = metrics.filter((metric) => {
+                      return metric.campaignId === campaign.id
+                        && metric.metricDate.localeCompare(calendarStart) >= 0
+                        && metric.metricDate.localeCompare(calendarEnd) < 1;
+                    });
                     return <>
                       <a class="campaign-label" href={`/business/operations-schedule?view=promotion#${campaign.scheduleId}`}>
                         <strong>{campaign.contentName}</strong>
@@ -196,13 +217,16 @@ const todayColumn = dayColumn(today);
                       <div class="campaign-track">
                         {calendarDays.map((dateKey) => <span class:list={['day-grid', { week: new Date(`${dateKey}T00:00:00+08:00`).getDay() === 1 }]}></span>)}
                         {campaignStages.map((stage) => {
-                          const start = dayColumn(stage.startedOn);
-                          const end = dayColumn(stage.endedOn ?? calendarEnd);
+                          const clippedStart = stage.startedOn < calendarStart ? calendarStart : stage.startedOn;
+                          const stageVisibleEnd = stage.endedOn && stage.endedOn < calendarEnd ? stage.endedOn : calendarEnd;
+                          const start = dayColumn(clippedStart);
+                          const end = dayColumn(stageVisibleEnd);
+                          const stageName = stage.stageType === 'testing' ? '测试' : '放量';
                           return <span
-                            class:list={['stage-segment', stage.stageType]}
+                            class:list={['stage-segment', stage.stageType, { continued: stage.startedOn < calendarStart, open: !stage.endedOn || stage.endedOn > calendarEnd }]}
                             style={`grid-column:${start}/${Math.min(end + 1, calendarDays.length + 1)}`}
-                            title={`${stage.stageType === 'testing' ? '测试' : '放量'} · ${stage.startedOn}—${stage.endedOn ?? '进行中'}`}
-                          ><b>{stage.stageType === 'testing' ? '测试' : '放量'}</b></span>;
+                            title={`${stageName} · ${formatDate(stage.startedOn)}—${stage.endedOn ? formatDate(stage.endedOn) : '进行中'}`}
+                          ><b>{stageName} <em>{shortDate(clippedStart)}–{shortDate(stageVisibleEnd)}</em></b></span>;
                         })}
                         {campaignMetrics.map((metric) => <a
                           class="metric-dot"
@@ -210,13 +234,12 @@ const todayColumn = dayColumn(today);
                           href={`?date=${metric.metricDate}#daily-table`}
                           title={`${metric.metricDate} 已复盘`}
                         ></a>)}
-                        {campaign.endedOn && <span
+                        {campaign.endedOn && campaign.endedOn >= calendarStart && campaign.endedOn <= calendarEnd && <span
                           class:list={['end-node', { discarded: campaign.currentStatus.includes('discarded') }]}
                           style={`grid-column:${dayColumn(campaign.endedOn)}`}
                           title={statusLabels[campaign.currentStatus]}
                         >{campaign.currentStatus.includes('discarded') ? '×' : '●'}</span>}
-                        {todayColumn >= 1 && todayColumn <= calendarDays.length && <span class="time-cursor today" style={`grid-column:${todayColumn}`}><i>今天</i></span>}
-                        {selectedColumn >= 1 && selectedColumn <= calendarDays.length && selectedDate !== today && <span class="time-cursor selected" style={`grid-column:${selectedColumn}`}><i>{selectedDate.slice(5)}</i></span>}
+                        {selectedColumn >= 1 && selectedColumn <= calendarDays.length && <span class="time-cursor selected" style={`grid-column:${selectedColumn}`}><i>{shortDate(selectedDate)}</i></span>}
                       </div>
                     </>;
                   })}
@@ -227,63 +250,68 @@ const todayColumn = dayColumn(today);
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
             <header class="section-head">
               <div><span>T+1 DAILY INPUT</span><h2 id="daily-title">{formatDate(selectedDate)} 日度数据</h2></div>
-              <p>六项输入，四项成本自动计算；保存时必须确认下一步。</p>
+              <p>填写六项原始数据，系统只计算实际开口与实际留资成本。</p>
             </header>
             {!databaseError && reviewRows.length === 0
               ? <div class="empty-state"><strong>这一天没有待复盘推广帖</strong><p>切换日期查看其他推广数据。</p></div>
               : <div class="daily-table-wrap">
-                <table>
-                  <thead>
-                    <tr><th>帖子</th><th>阶段</th><th>消耗</th><th>点击率</th><th>平台/实际开口</th><th>平台/实际留资</th><th>四项成本</th><th>下一步</th><th></th></tr>
-                  </thead>
-                  <tbody>
-                    {reviewRows.map(({ campaign, stage, metric }) => {
-                      const stageType = metric?.stageTypeSnapshot ?? stage?.stageType ?? campaign.currentStage;
-                      const costs = metric ? calculatePromotionCosts({
-                        spend: Number(metric.spend),
-                        platformOpenCount: metric.platformOpenCount,
-                        actualOpenCount: metric.actualOpenCount,
-                        platformLeadCount: metric.platformLeadCount,
-                        actualLeadCount: metric.actualLeadCount,
-                      }) : null;
-                      return <tr>
-                        <td class="identity"><strong>{campaign.contentName}</strong><span>V{campaign.versionNumber} · {campaign.subjectName}</span></td>
-                        <td><span class={`stage-chip ${stageType}`}>{stageType === 'scaling' ? '放量' : '测试'}</span></td>
-                        <td colspan="7">
-                          {metric
-                            ? <div class="reviewed-row">
-                                <strong>¥{Number(metric.spend).toFixed(2)}</strong>
-                                <span>{Number(metric.clickRate)}%</span>
-                                <span>开口 {metric.platformOpenCount} / {metric.actualOpenCount}</span>
-                                <span>留资 {metric.platformLeadCount} / {metric.actualLeadCount}</span>
-                                <span>成本 {costs?.platformOpenCost ?? '—'} / {costs?.actualOpenCost ?? '—'} / {costs?.platformLeadCost ?? '—'} / {costs?.actualLeadCost ?? '—'}</span>
-                                <b>{decisionLabels[metric.reviewDecision]}</b>
-                              </div>
-                            : <form class="metric-form" data-metric-form>
-                                <input type="hidden" name="campaignId" value={campaign.id} />
-                                <input type="hidden" name="metricDate" value={selectedDate} />
-                                <label><span>消耗 ¥</span><input name="spend" type="number" min="0" step="0.01" required /></label>
-                                <label><span>点击率 %</span><input name="clickRate" type="number" min="0" max="100" step="0.0001" required /></label>
-                                <label><span>平台开口</span><input name="platformOpenCount" type="number" min="0" step="1" required /></label>
-                                <label><span>实际开口</span><input name="actualOpenCount" type="number" min="0" step="1" required /></label>
-                                <label><span>平台留资</span><input name="platformLeadCount" type="number" min="0" step="1" required /></label>
-                                <label><span>实际留资</span><input name="actualLeadCount" type="number" min="0" step="1" required /></label>
-                                <output data-cost-preview>成本将在填写后计算</output>
-                                <label class="decision"><span>下一步</span><select name="reviewDecision" required>
-                                  <option value="">请选择</option>
-                                  {(stageType === 'scaling'
-                                    ? ['scaling_continue','formal_discarded','ended']
-                                    : ['test_continue','test_discarded','start_scaling'])
-                                    .map((decision) => <option value={decision}>{decisionLabels[decision]}</option>)}
-                                </select></label>
-                                <button type="submit">完成复盘</button>
-                                <p role="alert" data-form-message></p>
-                              </form>}
-                        </td>
-                      </tr>;
-                    })}
-                  </tbody>
-                </table>
+                <div class="daily-grid" role="table" aria-label={`${formatDate(selectedDate)}推广日度数据`}>
+                  <div class="column-groups" aria-hidden="true">
+                    <span class="raw-group">当日原始数据</span>
+                    <span class="cost-group">自动计算</span>
+                    <span class="review-group">复盘决定</span>
+                  </div>
+                  <div class="daily-header daily-row" role="row">
+                    {['帖子','阶段','消耗','点击率','平台开口','实际开口','平台留资','实际留资','实际开口成本','实际留资成本','下一步','操作']
+                      .map((label) => <span role="columnheader">{label}</span>)}
+                  </div>
+                  {reviewRows.map(({ campaign, stage, metric }) => {
+                    const stageType = metric?.stageTypeSnapshot ?? stage?.stageType ?? campaign.currentStage;
+                    const costs = metric ? calculateActualPromotionCosts({
+                      spend: Number(metric.spend),
+                      actualOpenCount: metric.actualOpenCount,
+                      actualLeadCount: metric.actualLeadCount,
+                    }) : null;
+                    const decisionOptions = stageType === 'scaling'
+                      ? ['scaling_continue','formal_discarded','ended']
+                      : ['test_continue','test_discarded','start_scaling'];
+                    return metric
+                      ? <div class="daily-row reviewed-row" role="row">
+                          <span class="identity" role="cell" data-label="帖子"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></span>
+                          <span class={`stage-cell ${stageType}`} role="cell" data-label="阶段">{stageType === 'scaling' ? '放量' : '测试'}</span>
+                          <span class="group-start" role="cell" data-label="消耗">¥{Number(metric.spend).toFixed(2)}</span>
+                          <span role="cell" data-label="点击率">{Number(metric.clickRate)}%</span>
+                          <span role="cell" data-label="平台开口">{metric.platformOpenCount}</span>
+                          <span role="cell" data-label="实际开口">{metric.actualOpenCount}</span>
+                          <span role="cell" data-label="平台留资">{metric.platformLeadCount}</span>
+                          <span role="cell" data-label="实际留资">{metric.actualLeadCount}</span>
+                          <span class="calculated group-start" role="cell" data-label="实际开口成本">{costs?.actualOpenCost == null ? '—' : `¥${costs.actualOpenCost.toFixed(2)}`}</span>
+                          <span class="calculated" role="cell" data-label="实际留资成本">{costs?.actualLeadCost == null ? '—' : `¥${costs.actualLeadCost.toFixed(2)}`}</span>
+                          <strong class="decision-value group-start" role="cell" data-label="下一步">{decisionLabels[metric.reviewDecision]}</strong>
+                          <span class="completed" role="cell" data-label="操作">已完成</span>
+                        </div>
+                      : <form class="daily-row metric-form" data-metric-form role="row">
+                          <input type="hidden" name="campaignId" value={campaign.id} />
+                          <input type="hidden" name="metricDate" value={selectedDate} />
+                          <span class="identity" role="cell" data-label="帖子"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></span>
+                          <span class={`stage-cell ${stageType}`} role="cell" data-label="阶段">{stageType === 'scaling' ? '放量' : '测试'}</span>
+                          <label class="field-cell group-start" role="cell" data-label="消耗"><span class="sr-only">消耗</span><input aria-label="消耗" name="spend" type="number" min="0" step="0.01" placeholder="¥" required /></label>
+                          <label class="field-cell" role="cell" data-label="点击率"><span class="sr-only">点击率</span><input aria-label="点击率百分比" name="clickRate" type="number" min="0" max="100" step="0.0001" placeholder="%" required /></label>
+                          <label class="field-cell" role="cell" data-label="平台开口"><span class="sr-only">平台开口</span><input aria-label="平台开口人数" name="platformOpenCount" type="number" min="0" step="1" required /></label>
+                          <label class="field-cell" role="cell" data-label="实际开口"><span class="sr-only">实际开口</span><input aria-label="实际开口人数" name="actualOpenCount" type="number" min="0" step="1" required /></label>
+                          <label class="field-cell" role="cell" data-label="平台留资"><span class="sr-only">平台留资</span><input aria-label="平台留资人数" name="platformLeadCount" type="number" min="0" step="1" required /></label>
+                          <label class="field-cell" role="cell" data-label="实际留资"><span class="sr-only">实际留资</span><input aria-label="实际留资人数" name="actualLeadCount" type="number" min="0" step="1" required /></label>
+                          <output class="cost-output group-start" data-open-cost role="cell" data-label="实际开口成本">—</output>
+                          <output class="cost-output" data-lead-cost role="cell" data-label="实际留资成本">—</output>
+                          <label class="decision field-cell group-start" role="cell" data-label="下一步"><span class="sr-only">下一步</span><select aria-label="下一步" name="reviewDecision" required>
+                            <option value="">请选择</option>
+                            {decisionOptions.map((decision) => <option value={decision}>{decisionLabels[decision]}</option>)}
+                          </select></label>
+                          <button type="submit" role="cell">完成复盘</button>
+                          <p role="alert" data-form-message></p>
+                        </form>;
+                  })}
+                </div>
               </div>}
           </section>
         </main>
@@ -293,15 +321,16 @@ const todayColumn = dayColumn(today);
     <script>
       const formatCost = (spend: number, count: number) => count > 0 ? `¥${(spend / count).toFixed(2)}` : '—';
       document.querySelectorAll<HTMLFormElement>('[data-metric-form]').forEach((form) => {
-        const preview = form.querySelector<HTMLOutputElement>('[data-cost-preview]');
+        const openCost = form.querySelector<HTMLOutputElement>('[data-open-cost]');
+        const leadCost = form.querySelector<HTMLOutputElement>('[data-lead-cost]');
         const message = form.querySelector<HTMLElement>('[data-form-message]');
         const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-        if (!preview || !message || !button) return;
+        if (!openCost || !leadCost || !message || !button) return;
         const updateCosts = () => {
           const data = new FormData(form);
           const spend = Number(data.get('spend'));
-          const counts = ['platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].map((name) => Number(data.get(name)));
-          preview.textContent = `平台/实际开口 ${formatCost(spend, counts[0])} / ${formatCost(spend, counts[1])} · 平台/实际留资 ${formatCost(spend, counts[2])} / ${formatCost(spend, counts[3])}`;
+          openCost.textContent = formatCost(spend, Number(data.get('actualOpenCount')));
+          leadCost.textContent = formatCost(spend, Number(data.get('actualLeadCount')));
         };
         form.addEventListener('input', updateCosts);
         form.addEventListener('submit', async (event) => {
@@ -332,14 +361,15 @@ const todayColumn = dayColumn(today);
 </html>
 
 <style>
-  :root{--paper:#eef1ed;--ink:#17202a;--muted:#64716b;--line:#c8d0cb;--night:#10243e;--blue:#2454d3;--blue-soft:#dfe7ff;--mint:#4b9b7d;--mint-soft:#dff3ea;--red:#a64a43;--white:#fff;--day-width:38px;--label-width:240px}
+  :root{--paper:#eef1ed;--ink:#17202a;--muted:#64716b;--line:#c8d0cb;--night:#10243e;--blue:#2454d3;--blue-soft:#dfe7ff;--mint:#4b9b7d;--mint-soft:#dff3ea;--red:#a64a43;--white:#fff;--label-width:240px}
   *{box-sizing:border-box}html,body{min-height:100%;margin:0;background:var(--paper)}body{color:var(--ink);font-family:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;line-height:1.45}button,input,select{font:inherit}a{color:inherit}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ff6a3d;outline-offset:2px}
   .app-shell{min-height:100vh;display:grid;grid-template-columns:232px minmax(0,1fr)}.sidebar{position:sticky;top:0;height:100vh;z-index:20;display:flex;flex-direction:column;padding:22px 14px 16px;color:#fff;background:var(--night)}.sidebar-brand{display:grid;gap:2px;padding:8px 12px 24px;text-decoration:none}.sidebar-brand span{color:#9eb8f8;font:750 .64rem ui-monospace,monospace;letter-spacing:.13em}.sidebar-brand strong{font-size:1.02rem}.module-nav{display:grid;gap:5px}.module-nav>a,.module-nav>.planned{display:grid;grid-template-columns:30px 1fr;align-items:center;gap:10px;min-height:52px;padding:7px 10px;border-radius:12px;text-decoration:none}.module-nav>a.active{background:#ffffff16;box-shadow:inset 0 0 0 1px #ffffff17}.module-nav>.planned{color:#a8b5c0}.module-nav strong,.module-nav small{display:block}.module-nav strong{font-size:.8rem}.module-nav small{color:#8093a3;font-size:.62rem}.module-nav a.active small{color:#9eb8f8}.nav-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:#dbe5ff;background:#ffffff12;font:800 .68rem ui-monospace,monospace}.module-nav a.active .nav-icon{color:#fff;background:var(--blue)}.sidebar-foot{display:grid;gap:8px;margin-top:auto;padding:14px 12px 4px;border-top:1px solid #ffffff17}.sidebar-foot span{color:#70869a;font:700 .58rem ui-monospace,monospace;letter-spacing:.11em}.sidebar-foot a{color:#b8c7d2;font-size:.72rem;text-decoration:none}
   .workspace{min-width:0}.toolbar{position:sticky;top:0;z-index:14;min-height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;padding:10px 24px;border-bottom:1px solid #bac2bf;background:#f5f7f3ed;backdrop-filter:blur(20px)}.toolbar-title{display:grid}.toolbar-title span{font-size:.92rem;font-weight:900}.toolbar-title small{color:var(--muted);font-size:.64rem}.date-nav{display:flex;align-items:center;padding:3px;border-radius:11px;background:#dce2df}.date-nav a,.date-nav strong{display:grid;place-items:center;min-height:32px;padding:0 11px;text-decoration:none;font:800 .72rem ui-monospace,monospace}.date-nav a{border-radius:8px}.date-nav a:hover{background:#fff}.date-nav a[aria-disabled="true"]{pointer-events:none;opacity:.35}.toolbar-summary{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 7px}.toolbar-summary span,.toolbar-summary small{color:var(--muted);font-size:.62rem}.toolbar-summary strong{font:900 1.3rem ui-monospace,monospace}.toolbar-summary small{grid-column:1/-1}
   main{padding:28px 26px 80px}.notice{padding:12px 15px;border-left:4px solid var(--red);background:#f9e6e3}.calendar-section,.daily-section{margin-bottom:30px;border:1px solid var(--line);border-radius:16px;background:#f8faf7;overflow:hidden}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:18px 20px;border-bottom:1px solid var(--line)}.section-head span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.section-head h1,.section-head h2{margin:3px 0 0;font-size:1.15rem;letter-spacing:-.02em}.section-head p{margin:0;color:var(--muted);font-size:.66rem}.legend{display:inline-block;width:18px;height:7px;margin:0 5px 0 12px;border-radius:99px;background:var(--blue)}.legend.scaling{background:var(--mint)}
-  .lifecycle-scroll{overflow:auto}.lifecycle-board{display:grid;grid-template-columns:var(--label-width) calc(var(--days) * var(--day-width));min-width:max-content}.corner{position:sticky;left:0;z-index:8;display:flex;align-items:end;padding:9px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);background:#edf1ed;font-size:.62rem;font-weight:800}.date-axis{display:grid;grid-template-columns:repeat(var(--days),var(--day-width));border-bottom:1px solid var(--line);background:#edf1ed}.date-axis a{display:grid;place-items:center;min-height:38px;border-left:1px solid #d8ded9;color:#748079;font:700 .58rem ui-monospace,monospace;text-decoration:none}.date-axis a.selected{color:#fff;background:var(--night)}.date-axis a.today{box-shadow:inset 2px 0 var(--blue),inset -2px 0 var(--blue)}.campaign-label{position:sticky;left:0;z-index:7;display:grid;align-content:center;min-height:62px;padding:9px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;text-decoration:none}.campaign-label strong{max-width:205px;overflow:hidden;font-size:.72rem;text-overflow:ellipsis;white-space:nowrap}.campaign-label span,.campaign-label small{color:var(--muted);font-size:.56rem}.campaign-label small{margin-top:3px;color:#42534c;font-weight:800}.campaign-track{position:relative;display:grid;grid-template-columns:repeat(var(--days),var(--day-width));min-height:62px;border-bottom:1px solid var(--line);background:#fff}.day-grid{grid-row:1;border-left:1px solid #edf0ee}.day-grid.week{border-left-color:#c4ccc7}.stage-segment{z-index:2;grid-row:1;align-self:center;height:22px;display:flex;align-items:center;padding:0 7px;border-radius:5px;overflow:hidden}.stage-segment b{color:#173c9a;font-size:.56rem;white-space:nowrap}.stage-segment.testing{border-left:3px solid var(--blue);background:var(--blue-soft)}.stage-segment.scaling{border-left:3px solid var(--mint);background:var(--mint-soft)}.stage-segment.scaling b{color:#26634f}.metric-dot{z-index:5;grid-row:1;align-self:end;justify-self:center;width:6px;height:6px;margin-bottom:8px;border-radius:50%;background:var(--night)}.end-node{z-index:6;grid-row:1;align-self:center;justify-self:end;color:#56615c;font-size:.8rem}.end-node.discarded{color:var(--red);font-size:1rem;font-weight:900}.time-cursor{z-index:4;grid-row:1;width:2px;justify-self:center;background:#24374888;pointer-events:none}.time-cursor.today{background:var(--blue)}.time-cursor.selected{background:#ff6a3d}.time-cursor i{position:absolute;top:2px;padding:1px 4px;border-radius:4px;color:#fff;background:inherit;font-size:.46rem;font-style:normal;transform:translateX(-50%);white-space:nowrap}
-  .daily-table-wrap{overflow:auto}.daily-table-wrap table{width:100%;min-width:1180px;border-collapse:collapse;font-size:.68rem}.daily-table-wrap th{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--muted);text-align:left;font-size:.58rem}.daily-table-wrap td{padding:10px;border-bottom:1px solid #dce1de;vertical-align:middle}.identity strong,.identity span{display:block}.identity strong{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.identity span{color:var(--muted);font-size:.58rem}.stage-chip{display:inline-block;padding:3px 7px;border-radius:999px;color:#24459c;background:var(--blue-soft);font-weight:850}.stage-chip.scaling{color:#26634f;background:var(--mint-soft)}.metric-form{display:grid;grid-template-columns:repeat(6,minmax(86px,1fr)) minmax(230px,1.4fr) 135px auto;align-items:end;gap:7px}.metric-form label{display:grid;gap:3px}.metric-form label span{color:var(--muted);font-size:.53rem;font-weight:800}.metric-form input,.metric-form select{width:100%;min-height:34px;border:1px solid #aeb8b2;border-radius:6px;padding:6px 7px;background:#fff}.metric-form output{align-self:center;color:#405049;font-size:.56rem;line-height:1.5}.metric-form button{min-height:34px;border:0;border-radius:7px;padding:7px 10px;color:#fff;background:var(--blue);font-weight:850;cursor:pointer}.metric-form button:disabled{opacity:.5}.metric-form p{grid-column:1/-1;margin:0;color:var(--red);font-size:.58rem}.reviewed-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.reviewed-row span{color:#4e5b55}.reviewed-row b{margin-left:auto;padding:4px 8px;border-radius:999px;background:#e7ebe8}.empty-state{padding:42px 20px;text-align:center}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:.7rem}
-  @media(max-width:900px){.app-shell{display:block}.sidebar{position:static;width:100%;height:auto}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>.planned,.sidebar-foot{display:none}.toolbar{grid-template-columns:1fr auto}.toolbar-summary{display:none}main{padding:18px 14px 70px}.section-head{align-items:start}.section-head p{max-width:250px}.metric-form{grid-template-columns:repeat(2,1fr)}.metric-form output,.metric-form .decision,.metric-form button{grid-column:1/-1}.lifecycle-board{--label-width:190px}.campaign-label strong{max-width:160px}}
+  .lifecycle-scroll{overflow:hidden}.lifecycle-board{display:grid;grid-template-columns:var(--label-width) minmax(0,1fr);width:100%}.corner{display:flex;align-items:end;padding:9px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);background:#edf1ed;font-size:.62rem;font-weight:800}.date-axis{display:grid;grid-template-columns:repeat(var(--days),minmax(0,1fr));border-bottom:1px solid var(--line);background:#edf1ed}.date-axis a{display:grid;place-items:center;min-width:0;min-height:38px;border-left:1px solid #e0e5e2;color:#748079;font:700 .58rem ui-monospace,monospace;text-decoration:none}.date-axis a:not(.labelled){border-left-color:transparent}.date-axis a.selected{color:#fff;background:var(--night)}.campaign-label{display:grid;align-content:center;min-height:68px;padding:10px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;text-decoration:none}.campaign-label strong{max-width:205px;overflow:hidden;font-size:.72rem;text-overflow:ellipsis;white-space:nowrap}.campaign-label span,.campaign-label small{color:var(--muted);font-size:.56rem}.campaign-label small{margin-top:3px;color:#42534c;font-weight:800}.campaign-track{position:relative;display:grid;grid-template-columns:repeat(var(--days),minmax(0,1fr));min-width:0;min-height:68px;border-bottom:1px solid var(--line);background:#fff}.day-grid{grid-row:1;border-left:1px solid #f0f2f1}.day-grid.week{border-left-color:#d8ddda}.stage-segment{z-index:2;grid-row:1;align-self:center;height:30px;display:flex;align-items:center;min-width:0;padding:0 9px;border-radius:6px;overflow:hidden}.stage-segment b{overflow:hidden;color:#173c9a;font-size:.61rem;text-overflow:ellipsis;white-space:nowrap}.stage-segment b em{font-style:normal;font-weight:650;opacity:.78}.stage-segment.testing{border-left:3px solid var(--blue);background:var(--blue-soft)}.stage-segment.scaling{border-left:3px solid var(--mint);background:var(--mint-soft)}.stage-segment.scaling b{color:#26634f}.stage-segment.continued{border-left-style:dashed;border-radius:0 6px 6px 0}.stage-segment.open{border-right:3px solid transparent;border-radius:6px 0 0 6px}.metric-dot{z-index:5;grid-row:1;align-self:end;justify-self:center;width:6px;height:6px;margin-bottom:8px;border-radius:50%;background:var(--night)}.end-node{z-index:6;grid-row:1;align-self:center;justify-self:end;color:#56615c;font-size:.8rem}.end-node.discarded{color:var(--red);font-size:1rem;font-weight:900}.time-cursor{z-index:4;grid-row:1;width:2px;justify-self:center;pointer-events:none}.time-cursor.selected{background:#ff6a3d}.time-cursor i{position:absolute;top:2px;padding:1px 4px;border-radius:4px;color:#fff;background:inherit;font-size:.46rem;font-style:normal;transform:translateX(-50%);white-space:nowrap}
+  .daily-table-wrap{overflow:visible}.daily-grid{--daily-cols:minmax(145px,1.45fr) 38px repeat(6,minmax(52px,.62fr)) repeat(2,minmax(72px,.78fr)) minmax(102px,1fr) 92px;font-size:.65rem}.column-groups,.daily-row{display:grid;grid-template-columns:var(--daily-cols);align-items:center}.column-groups{min-height:29px;color:var(--muted);background:#edf1ee;font-size:.52rem;font-weight:850;letter-spacing:.08em;text-align:center}.column-groups .raw-group{grid-column:3/9}.column-groups .cost-group{grid-column:9/11;border-left:1px solid #b9c3bd}.column-groups .review-group{grid-column:11/13;border-left:1px solid #b9c3bd}.daily-header{min-height:38px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);background:#f5f7f4;font-size:.54rem;font-weight:800}.daily-header>span,.daily-row>[role="cell"]{min-width:0;padding:6px;text-align:center}.daily-header>span:first-child,.daily-row>.identity{text-align:left}.daily-header>span:nth-child(3),.daily-header>span:nth-child(9),.daily-header>span:nth-child(11),.daily-row>.group-start{border-left:1px solid #b9c3bd}.daily-row{min-height:58px;padding:7px 0;border-bottom:1px solid #dce1de;background:#fff}.identity{display:grid;align-content:center;padding-left:12px!important}.identity strong{overflow:hidden;font-size:.66rem;text-overflow:ellipsis;white-space:nowrap}.identity small{overflow:hidden;color:var(--muted);font-size:.53rem;text-overflow:ellipsis;white-space:nowrap}.stage-cell{justify-self:center;display:grid;place-items:center;width:25px;min-height:42px!important;padding:5px 3px!important;border-radius:6px;color:#24459c;background:var(--blue-soft);font-size:.56rem;font-weight:900;line-height:1;writing-mode:vertical-rl}.stage-cell.scaling{color:#26634f;background:var(--mint-soft)}.field-cell{display:block;min-width:0;padding:4px}.field-cell input,.field-cell select{width:100%;height:36px;min-width:0;border:1px solid #aeb8b2;border-radius:6px;padding:6px;background:#fff;font-size:.62rem}.field-cell input{text-align:right}.field-cell input::placeholder{color:#89938e}.cost-output,.calculated{color:#324b40;font-weight:850;font-variant-numeric:tabular-nums}.metric-form button{height:36px;margin:4px 6px;border:0;border-radius:7px;padding:0 8px;color:#fff;background:var(--blue);font-size:.62rem;font-weight:850;white-space:nowrap;cursor:pointer}.metric-form button:disabled{opacity:.5}.metric-form p{grid-column:3/-1;margin:0;padding:0 7px;color:var(--red);font-size:.56rem}.reviewed-row>span,.reviewed-row>strong{font-variant-numeric:tabular-nums}.decision-value{display:block;padding:5px;color:#314139;font-size:.58rem;text-align:center}.completed{justify-self:center;padding:4px 7px!important;border-radius:999px;color:#42534c;background:#e7ebe8;font-weight:800;white-space:nowrap}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.empty-state{padding:42px 20px;text-align:center}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:.7rem}
+  @media(max-width:1240px){.column-groups,.daily-header{display:none}.daily-grid{display:grid;gap:10px;padding:10px}.daily-row{position:relative;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:0;padding:12px;border:1px solid var(--line);border-radius:10px}.daily-row>.identity{grid-column:1/-1;padding:0 0 8px!important;border-bottom:1px solid #e0e5e2}.daily-row>.stage-cell{position:absolute;right:12px;top:12px}.daily-row>[role="cell"]{display:grid;grid-template-columns:78px minmax(0,1fr);align-items:center;gap:6px;padding:0;border-left:0!important;text-align:right}.daily-row>[role="cell"]:not(.identity):not(.stage-cell)::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.field-cell{display:grid}.daily-row>.field-cell::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.decision,.daily-row>button,.daily-row>p{grid-column:1/-1}.daily-row>button{margin:0}.daily-row>p{padding:0}.reviewed-row>.completed{justify-self:stretch}.stage-cell{writing-mode:horizontal-tb;width:auto;min-height:24px!important}.lifecycle-board{--label-width:190px}.campaign-label strong{max-width:160px}}
+  @media(max-width:900px){.app-shell{display:block}.sidebar{position:static;width:100%;height:auto}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>.planned,.sidebar-foot{display:none}.toolbar{grid-template-columns:1fr auto}.toolbar-summary{display:none}main{padding:18px 14px 70px}.section-head{align-items:start}.section-head p{max-width:250px}.lifecycle-board{--label-width:190px}.campaign-label strong{max-width:160px}}
   @media(max-width:600px){.toolbar{display:grid;grid-template-columns:1fr;padding:10px 14px}.date-nav{justify-self:stretch;justify-content:center}.section-head{display:block}.section-head p{margin-top:8px}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>a{grid-template-columns:24px 1fr;padding:6px}.nav-icon{width:24px;height:24px}.lifecycle-board{--label-width:160px}.campaign-label strong{max-width:130px}}
   @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>

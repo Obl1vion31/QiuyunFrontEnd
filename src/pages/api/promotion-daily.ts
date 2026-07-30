@@ -11,7 +11,7 @@ import {
   operationsSubject,
 } from '../../db/schema';
 import {
-  calculatePromotionCosts,
+  calculateActualPromotionCosts,
   isDecisionAllowed,
   nextDateKey,
   nextPromotionState,
@@ -75,11 +75,9 @@ export const GET: APIRoute = async ({ url }) => {
     return Response.json({
       date: metricDate,
       rows: rows.map((row) => {
-        const costs = row.spend == null ? null : calculatePromotionCosts({
+        const costs = row.spend == null ? null : calculateActualPromotionCosts({
           spend: Number(row.spend),
-          platformOpenCount: row.platformOpenCount ?? 0,
           actualOpenCount: row.actualOpenCount ?? 0,
-          platformLeadCount: row.platformLeadCount ?? 0,
           actualLeadCount: row.actualLeadCount ?? 0,
         });
         return { ...row, costs, completed: row.reviewDecision != null };

@@ -31,15 +31,11 @@ export const nextPromotionState = (stage, decision) => {
 
 const cost = (spend, count) => count > 0 ? Math.round((spend / count) * 100) / 100 : null;
 
-export const calculatePromotionCosts = ({
+export const calculateActualPromotionCosts = ({
   spend,
-  platformOpenCount,
   actualOpenCount,
-  platformLeadCount,
   actualLeadCount,
 }) => ({
-  platformOpenCost: cost(spend, platformOpenCount),
   actualOpenCost: cost(spend, actualOpenCount),
-  platformLeadCost: cost(spend, platformLeadCount),
   actualLeadCost: cost(spend, actualLeadCount),
 });
