@@ -22,6 +22,11 @@ export const inclusivePromotionDays = (startedOn, endedOn) => {
   return Math.max(0, Math.round((end - start) / 86400000) + 1);
 };
 
+export const promotionStageShares = (days) => {
+  const total = days.reduce((sum, value) => sum + Math.max(0, value), 0);
+  return days.map((value) => total > 0 ? (Math.max(0, value) / total) * 100 : 0);
+};
+
 export const isDecisionAllowed = (stage, decision) =>
   promotionReviewDecisions[stage]?.includes(decision) ?? false;
 

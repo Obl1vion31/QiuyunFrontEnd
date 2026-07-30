@@ -6,6 +6,7 @@ import {
   isDecisionAllowed,
   nextDateKey,
   nextPromotionState,
+  promotionStageShares,
   shanghaiDateKey,
 } from '../src/db/promotion-rules.mjs';
 
@@ -17,6 +18,12 @@ test('formats campaign dates in Asia/Shanghai', () => {
 test('counts promotion stage days inclusively across months', () => {
   assert.equal(inclusivePromotionDays('2026-07-26', '2026-07-28'), 3);
   assert.equal(inclusivePromotionDays('2026-07-29', '2026-08-02'), 5);
+});
+
+test('converts stage days into a full relative lifecycle', () => {
+  assert.deepEqual(promotionStageShares([3, 2]), [60, 40]);
+  assert.deepEqual(promotionStageShares([2]), [100]);
+  assert.deepEqual(promotionStageShares([0, 0]), [0, 0]);
 });
 
 test('only allows decisions for the current stage', () => {
