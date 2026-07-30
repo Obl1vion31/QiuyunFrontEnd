@@ -216,6 +216,7 @@ pnpm dev
 - `docs/ROADMAP.md`：当前、下一步和暂缓事项。
 - `docs/CURRENT-STAGE-SUMMARY.md`：当前视觉、功能、数据库结构和 development 数据摘要。
 - `docs/exec-results/phase-04-the-plan.md`：Phase 04 Executive Result、数据核对与最终验收结论。
+- `docs/exec-results/phase-05-daily-promotion-review.md`：Phase 05 Executive Result、完整数据库逻辑与进入下一阶段前的待确认事项。
 - `docs/exec-plans/phase-05-daily-promotion-review.md`：Phase 05 Daily Promotion Review 简化计划。
 - `docs/database-basics/README.md`：Neon 工作台、数据库查询、恢复和账号协作学习指南。
 - `AGENTS.md`：agent 在本仓库中的长期协作规则。
