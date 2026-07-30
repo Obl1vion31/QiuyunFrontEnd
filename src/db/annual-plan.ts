@@ -50,7 +50,6 @@ const rowFields = {
   subjectId: z.string().trim().min(1).nullable(),
   rowName: z.string().trim().min(1, '请填写规划项目名称').max(200),
   categoryId: z.string().trim().min(1).nullable(),
-  courseName: optionalText(200),
   note: optionalText(1000),
   sortOrder: z.int().min(0).max(9999),
   isActive: z.boolean(),
@@ -99,7 +98,7 @@ export function normalizedPlanInput(input: AnnualPlanInput) {
     ...input,
     subjectId: input.subjectId ?? null,
     categoryId: input.categoryId ?? null,
-    courseName: input.courseName ?? null,
+    courseName: null,
     note: input.note ?? null,
     blocks: [...input.blocks]
       .sort((left, right) => left.sortOrder - right.sortOrder || left.startMonth - right.startMonth)
@@ -160,7 +159,6 @@ export function diffAnnualPlanSnapshots(previous: AnnualPlanSnapshot | null, nex
     ['subjectId', '学科关联'],
     ['rowName', '规划项目名称'],
     ['categoryId', '帖子分类'],
-    ['courseName', '课程名称'],
     ['note', '备注'],
     ['sortOrder', '显示顺序'],
     ['isActive', '启用状态'],

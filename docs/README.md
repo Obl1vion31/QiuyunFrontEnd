@@ -10,7 +10,7 @@
 - `CURRENT-STAGE-SUMMARY.md`：面向下一阶段规划的视觉、功能和数据库现状总结。
 - `STRUCTURE.md`：静态首页、动态排期页、接口和数据库层的关系。
 - `database-basics/README.md`：Neon 工作台、PostgreSQL 调试、恢复、安全与账号协作学习指南。
-- `exec-plans/`：用户明确要求保存的 phase 02、phase 03、phase 04 执行计划例外。
+- `exec-plans/`：用户明确要求保存的 phase 02、phase 03、phase 04、phase 05 执行计划例外。
 - `exec-results/`：用户明确要求保存的 phase 02、phase 03、phase 04 实施结果与后续方向例外。
 
 ## 保存原则

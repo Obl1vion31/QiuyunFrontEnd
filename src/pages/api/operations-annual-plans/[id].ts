@@ -82,7 +82,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         subjectId: result.data.subjectId,
         rowName: result.data.rowName,
         categoryId: result.data.categoryId,
-        courseName: result.data.courseName,
+        courseName: null,
         note: result.data.note,
         sortOrder: result.data.sortOrder,
         isActive: result.data.isActive,

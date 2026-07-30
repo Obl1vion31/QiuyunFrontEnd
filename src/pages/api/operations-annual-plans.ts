@@ -61,7 +61,6 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         subjectId: result.data.subjectId,
         rowName: result.data.rowName,
         categoryId: result.data.categoryId,
-        courseName: result.data.courseName,
         note: result.data.note,
         sortOrder: result.data.sortOrder,
         isActive: result.data.isActive,

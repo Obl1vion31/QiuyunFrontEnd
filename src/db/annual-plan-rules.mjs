@@ -15,7 +15,7 @@ export function formatBlockRule(block) {
     return `${block.monthlyFrequency}×${block.endMonth - block.startMonth + 1}`;
   }
   if (block.ruleType === 'fixed') return block.quantityParts.join('+');
-  return '';
+  return '?';
 }
 
 export function coverageSpans(months) {

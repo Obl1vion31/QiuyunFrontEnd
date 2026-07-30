@@ -62,7 +62,6 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
         categoryId: usesLegacyInterviewGuide
           ? 'interview-preparation-guide'
           : source.snapshot.row.categoryId,
-        courseName: source.snapshot.row.courseName,
         note: source.snapshot.row.note,
         sortOrder: source.snapshot.row.sortOrder,
         isActive: source.snapshot.row.isActive,
@@ -108,7 +107,7 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
         subjectId: validated.data.subjectId,
         rowName: validated.data.rowName,
         categoryId: validated.data.categoryId,
-        courseName: validated.data.courseName,
+        courseName: null,
         note: validated.data.note,
         sortOrder: validated.data.sortOrder,
         isActive: validated.data.isActive,

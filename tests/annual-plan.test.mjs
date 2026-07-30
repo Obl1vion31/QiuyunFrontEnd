@@ -52,6 +52,16 @@ test('硬性组合保持各数量的顺序', () => {
   }), '3+3+4');
 });
 
+test('未填写数量规则时明确显示为待确认', () => {
+  assert.equal(formatBlockRule({
+    startMonth: 8,
+    endMonth: 10,
+    ruleType: null,
+    monthlyFrequency: null,
+    quantityParts: null,
+  }), '?');
+});
+
 test('月份覆盖会合并为连续区间并保留断点', () => {
   assert.deepEqual(coverageSpans(new Set([1, 2, 3, 6, 11, 12])), [
     { startMonth: 1, endMonth: 3 },

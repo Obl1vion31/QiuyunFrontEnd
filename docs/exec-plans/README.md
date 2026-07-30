@@ -5,3 +5,4 @@
 - `phase-02-business-system.md`：运营内容排期 MVP。
 - `phase-03-content-publishing-console.md`：帖子版本化与内容发布控制台后续规划。
 - `phase-04-the-plan.md`：统一年度总览、分区规划行、多时间块与完整版本历史。
+- `phase-05-daily-promotion-review.md`：推广帖日度数据、测试/放量生命周期日历与日度录入。

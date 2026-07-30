@@ -36,7 +36,6 @@ let rows: Array<{
   categoryId: string | null;
   categoryName: string | null;
   categorySortOrder: number | null;
-  courseName: string | null;
   note: string | null;
   sortOrder: number;
   isActive: boolean;
@@ -83,7 +82,6 @@ try {
     categoryId: operationsAnnualPlan.categoryId,
     categoryName: operationsCategory.name,
     categorySortOrder: operationsCategory.sortOrder,
-    courseName: operationsAnnualPlan.courseName,
     note: operationsAnnualPlan.note,
     sortOrder: operationsAnnualPlan.sortOrder,
     isActive: operationsAnnualPlan.isActive,
@@ -147,7 +145,6 @@ const clientRows = rows.filter((row) => row.sectionKey !== 'general').sort((left
 )).map((row) => ({
   ...row,
   note: row.note ?? '',
-  courseName: row.courseName ?? '',
   blocks: blocks.filter((block) => block.planId === row.id).map((block) => ({
     ...block,
     note: block.note ?? '',
@@ -236,34 +233,35 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
               <div><span>AUTO SUMMARY</span><strong id="summary-title">总规划</strong></div>
               <p>由下方启用的细致规划自动汇总，不需要单独填写。</p>
             </header>
-            <div class="summary-matrix">
-              <div class="summary-head">科目</div>
-              <div class="summary-head">周期</div>
-              {months.map((month) => <div class="summary-head month-col"><strong>{month}</strong><span>月</span></div>)}
-              {annualSummaries.map((summary) => [
-                <div class="summary-subject" data-tone={summary.tone}>{summary.subjectName}</div>,
-                <div class="summary-label">发帖周期</div>,
-                <div class="summary-timeline" data-tone={summary.tone}>
-                  {months.map((month) => <span class="month-grid" style={`grid-column:${month}`} aria-hidden="true"></span>)}
-                  {summary.postingSpans.map((span) => <span
-                    class="summary-block"
-                    style={`grid-column:${span.startMonth}/${span.endMonth + 1}`}
-                    title={`${summary.subjectName} 发帖周期：${span.startMonth}—${span.endMonth} 月`}
-                    aria-label={`${summary.subjectName} 发帖周期：${span.startMonth}—${span.endMonth} 月`}
-                  ></span>)}
-                </div>,
-                <div class="summary-subject secondary" data-tone={summary.tone}>{summary.subjectName}</div>,
-                <div class="summary-label">推广周期</div>,
-                <div class="summary-timeline" data-tone={summary.tone}>
-                  {months.map((month) => <span class="month-grid" style={`grid-column:${month}`} aria-hidden="true"></span>)}
-                  {summary.promotionSpans.map((span) => <span
-                    class="summary-block"
-                    style={`grid-column:${span.startMonth}/${span.endMonth + 1}`}
-                    title={`${summary.subjectName} 推广周期：${span.startMonth}—${span.endMonth} 月`}
-                    aria-label={`${summary.subjectName} 推广周期：${span.startMonth}—${span.endMonth} 月`}
-                  ></span>)}
-                </div>,
-              ])}
+            <div class="summary-scroll">
+              <div class="summary-matrix">
+                <div class="summary-head summary-subject-head">科目</div>
+                <div class="summary-head summary-period-head">周期</div>
+                {months.map((month) => <div class:list={['summary-head', 'month-col', { 'quarter-start': [1, 4, 7, 10].includes(month) }]}><strong>{month}</strong><span>月</span></div>)}
+                {annualSummaries.map((summary) => [
+                  <div class="summary-subject" data-tone={summary.tone}>{summary.subjectName}</div>,
+                  <div class="summary-label">发帖周期</div>,
+                  <div class="summary-timeline" data-tone={summary.tone}>
+                    {months.map((month) => <span class:list={['month-grid', { 'quarter-start': [1, 4, 7, 10].includes(month) }]} style={`grid-column:${month}`} aria-hidden="true"></span>)}
+                    {summary.postingSpans.map((span) => <span
+                      class="summary-block"
+                      style={`grid-column:${span.startMonth}/${span.endMonth + 1}`}
+                      title={`${summary.subjectName} 发帖周期：${span.startMonth}—${span.endMonth} 月`}
+                      aria-label={`${summary.subjectName} 发帖周期：${span.startMonth}—${span.endMonth} 月`}
+                    ></span>)}
+                  </div>,
+                  <div class="summary-label">推广周期</div>,
+                  <div class="summary-timeline" data-tone={summary.tone}>
+                    {months.map((month) => <span class:list={['month-grid', { 'quarter-start': [1, 4, 7, 10].includes(month) }]} style={`grid-column:${month}`} aria-hidden="true"></span>)}
+                    {summary.promotionSpans.map((span) => <span
+                      class="summary-block"
+                      style={`grid-column:${span.startMonth}/${span.endMonth + 1}`}
+                      title={`${summary.subjectName} 推广周期：${span.startMonth}—${span.endMonth} 月`}
+                      aria-label={`${summary.subjectName} 推广周期：${span.startMonth}—${span.endMonth} 月`}
+                    ></span>)}
+                  </div>,
+                ])}
+              </div>
             </div>
           </section>}
           {!databaseError && <section class="matrix-shell">
@@ -271,7 +269,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
               <div class="head section-col">规划分区</div>
               <div class="head sop-col">SOP</div>
               <div class="head item-col">规划项目</div>
-              {months.map((month) => <div class="head month-col"><strong>{month}</strong><span>月</span></div>)}
+              {months.map((month) => <div class:list={['head', 'month-col', { 'quarter-start': [1, 4, 7, 10].includes(month) }]}><strong>{month}</strong><span>月</span></div>)}
 
               {sectionInfo.map((section) => {
                 const sectionRows = clientRows.filter((row) => row.sectionKey === section.key);
@@ -284,7 +282,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
                         ? row.links.map((link, index) => <a href={link.url} target="_blank" rel="noreferrer" aria-label={`打开 SOP ${index + 1}`} title={link.label || '打开 SOP'}>↗</a>)
                         : <span>—</span>}
                     </div>
-                    <button class="item-cell" type="button" data-inspect-id={row.id} title={`${row.rowName} · V${row.currentVersionNumber}`}>
+                    <button class="item-cell" type="button" data-inspect-id={row.id} aria-expanded="false" title={`${row.rowName} · V${row.currentVersionNumber}`}>
                       <strong>{row.rowName}</strong>
                       <span class="row-badges">
                         <small>V{row.currentVersionNumber}</small>
@@ -292,12 +290,13 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
                       </span>
                     </button>
                     <div class="timeline">
-                      {months.map((month) => <span class="month-grid" style={`grid-column:${month}`} aria-hidden="true"></span>)}
+                      {months.map((month) => <span class:list={['month-grid', { 'quarter-start': [1, 4, 7, 10].includes(month) }]} style={`grid-column:${month}`} aria-hidden="true"></span>)}
                       {row.blocks.map((block) => <button
                         class:list={['time-block', block.ruleType ?? 'plain']}
                         style={`grid-column:${block.startMonth}/${block.endMonth + 1}`}
                         type="button"
                         data-inspect-id={row.id}
+                        aria-expanded="false"
                         title={`${block.label} · ${block.startMonth}—${block.endMonth} 月${block.ruleLabel ? ` · ${block.ruleLabel}` : ''}${block.note ? `：${block.note}` : ''}`}
                         aria-label={`${row.rowName}，${block.label}，${block.startMonth}—${block.endMonth} 月${block.ruleLabel ? `，${block.ruleLabel}` : ''}`}
                       >
@@ -317,22 +316,48 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
       </section>
     </div>
 
-    <aside class="inspector" data-inspector hidden>
-      <header><div><span data-version>V0</span><small>规划行版本</small></div><button type="button" data-close-inspector aria-label="关闭">×</button></header>
+    <aside class="inspector" data-inspector aria-labelledby="inspector-title" hidden>
+      <header class="inspector-top">
+        <div><span>PLAN INSPECTOR</span><small>年度规划详情</small></div>
+        <button type="button" data-close-inspector aria-label="关闭规划详情">×</button>
+      </header>
       <div class="inspector-body">
-        <p data-section-label></p>
-        <h2 data-row-name></h2>
-        <dl>
-          <div><dt>关联</dt><dd data-relation></dd></div>
-          <div><dt>状态</dt><dd data-status></dd></div>
-          <div><dt>推广汇总</dt><dd data-promotion></dd></div>
-          <div><dt>备注</dt><dd data-note></dd></div>
-        </dl>
-        <section><span>时间块</span><div data-block-list></div></section>
-        <section><span>SOP / 帖集链接</span><div class="link-list" data-link-list></div></section>
-        <section><span>版本历史</span><button class="history-button" type="button" data-load-history>查看全部版本</button><div class="history-list" data-history-list></div></section>
+        <div class="inspector-identity">
+          <p data-section-label></p>
+          <h2 id="inspector-title" data-row-name></h2>
+          <p class="relation-line" data-relation></p>
+          <div class="status-line">
+            <span class="version-chip" data-version>V0</span>
+            <span class="status-chip" data-status></span>
+            <span class="status-chip promotion-chip" data-promotion></span>
+          </div>
+        </div>
+        <section class="inspector-section timeline-section">
+          <header><span>YEAR TRACK</span><strong>年度时间轨道</strong></header>
+          <div class="mini-months" aria-hidden="true">
+            {months.map((month) => <span class:list={{ 'quarter-start': [1, 4, 7, 10].includes(month) }}>{month}</span>)}
+          </div>
+          <div class="mini-timeline" data-mini-timeline></div>
+        </section>
+        <section class="inspector-section">
+          <header><span>TIME BLOCKS</span><strong>时间块</strong></header>
+          <div class="block-list" data-block-list></div>
+        </section>
+        <section class="inspector-section">
+          <header><span>REFERENCE</span><strong>SOP / 帖集链接</strong></header>
+          <div class="link-list" data-link-list></div>
+        </section>
+        <section class="inspector-section note-section">
+          <header><span>NOTE</span><strong>规划备注</strong></header>
+          <p data-note></p>
+        </section>
+        <section class="inspector-section history-section">
+          <header><span>VERSION HISTORY</span><strong>版本历史</strong></header>
+          <button class="history-button" type="button" data-load-history>查看全部版本</button>
+          <div class="history-list" data-history-list></div>
+        </section>
       </div>
-      <footer><button class="quiet-button" type="button" data-edit-row>编辑规划行</button></footer>
+      <footer><button class="primary-action inspector-edit" type="button" data-edit-row>编辑规划行 →</button></footer>
     </aside>
 
     <dialog id="row-dialog">
@@ -350,7 +375,6 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
             </select></label>
             <label>规划项目名称<input name="rowName" maxlength="200" required placeholder="例如：TMUA 发帖周期" /></label>
             <label>帖子分类（可选）<select name="categoryId"><option value="">不关联分类</option></select></label>
-            <label>课程名称（可选）<input name="courseName" maxlength="200" placeholder="仅在需要补充课程名称时填写" /></label>
             <label class="check-label"><input name="isActive" type="checkbox" checked /> <span><b>参与本年度规划</b><small>关闭后默认隐藏，不参与总规划汇总，但保留历史。</small></span></label>
             <label class="check-label"><input name="countsTowardPromotion" type="checkbox" /> <span><b>计入推广周期</b><small>该规划行覆盖的月份会进入自动推广周期。</small></span></label>
             <label class="wide">行备注<textarea name="note" rows="2" maxlength="1000"></textarea></label>
@@ -395,6 +419,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
       const blockRows = rowForm.querySelector('[data-block-rows]');
       const linkRows = rowForm.querySelector('[data-link-rows]');
       let activeRow = null;
+      let inspectorTrigger = null;
       let dirty = false;
       let activeSectionFilter = 'all';
       let showInactive = false;
@@ -427,7 +452,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
           <label class="block-stage"><span>阶段说明（可选）</span><input data-label maxlength="200" placeholder="留空则使用规划项目名称" value="${escapeHtml(block.label)}"></label>
           <div class="rule-editor">
             <label><span>数量规则</span><select data-rule>
-              <option value="" ${block.ruleType == null ? 'selected' : ''}>无数量规则</option>
+              <option value="" ${block.ruleType == null ? 'selected' : ''}>数量待确认</option>
               <option value="flexible" ${block.ruleType === 'flexible' ? 'selected' : ''}>弹性频次</option>
               <option value="fixed" ${block.ruleType === 'fixed' ? 'selected' : ''}>硬性组合</option>
             </select></label>
@@ -474,7 +499,6 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
         field('planId').value = row?.id ?? '';
         field('expectedVersionNumber').value = row?.currentVersionNumber ?? 0;
         field('rowName').value = row?.rowName ?? '';
-        field('courseName').value = row?.courseName ?? '';
         field('isActive').checked = row?.isActive ?? true;
         field('countsTowardPromotion').checked = row?.countsTowardPromotion ?? false;
         field('note').value = row?.note ?? '';
@@ -500,7 +524,6 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
         subjectId: field('subjectId').value || null,
         rowName: field('rowName').value.trim(),
         categoryId: field('categoryId').value || null,
-        courseName: field('courseName').value.trim() || null,
         note: field('note').value.trim() || null,
         sortOrder: categories.find((category) => category.id === field('categoryId').value)?.sortOrder ?? activeRow?.sortOrder ?? 9999,
         isActive: field('isActive').checked,
@@ -530,23 +553,60 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
         const node = inspector.querySelector(selector);
         if (node) node.textContent = value || '—';
       };
-      const openInspector = (row) => {
+      const setSelectedRow = (rowId = null) => {
+        document.querySelectorAll('[data-row-id]').forEach((rowNode) => {
+          rowNode.classList.toggle('selected', rowNode.dataset.rowId === rowId);
+        });
+        document.querySelectorAll('[data-inspect-id]').forEach((button) => {
+          button.setAttribute('aria-expanded', button.dataset.inspectId === rowId ? 'true' : 'false');
+        });
+      };
+      const renderMiniTimeline = (row) => {
+        const timeline = inspector.querySelector('[data-mini-timeline]');
+        timeline.replaceChildren();
+        for (let month = 1; month <= 12; month += 1) {
+          const grid = document.createElement('span');
+          grid.className = `mini-grid${[1, 4, 7, 10].includes(month) ? ' quarter-start' : ''}`;
+          grid.style.gridColumn = month;
+          grid.setAttribute('aria-hidden', 'true');
+          timeline.append(grid);
+        }
+        row.blocks.forEach((block) => {
+          const item = document.createElement('span');
+          item.className = `mini-block ${block.ruleType ?? 'plain'}`;
+          item.style.gridColumn = `${block.startMonth}/${block.endMonth + 1}`;
+          item.title = `${block.startMonth}—${block.endMonth} 月 · ${block.ruleLabel === '?' ? '数量待确认' : block.ruleLabel}`;
+          timeline.append(item);
+        });
+      };
+      const openInspector = (row, trigger) => {
         if (!row) return;
         activeRow = row;
+        inspectorTrigger = trigger ?? inspectorTrigger;
+        const section = sectionByKey(row.sectionKey);
+        inspector.dataset.tone = section?.tone ?? 0;
         setText('[data-version]', `V${row.currentVersionNumber}`);
         setText('[data-section-label]', row.sectionLabel);
         setText('[data-row-name]', row.rowName);
-        setText('[data-relation]', [row.subjectName, row.categoryName, row.courseName].filter(Boolean).join(' / ') || '通用规划行');
+        setText('[data-relation]', [row.subjectName, row.categoryName].filter(Boolean).join(' / ') || '通用规划行');
         setText('[data-status]', row.isActive ? '启用' : '已停用');
         setText('[data-promotion]', row.countsTowardPromotion ? '计入推广周期' : '不计入推广周期');
-        setText('[data-note]', row.note);
+        setText('[data-note]', row.note || '暂无备注');
+        renderMiniTimeline(row);
         const blockList = inspector.querySelector('[data-block-list]');
         blockList.replaceChildren(...row.blocks.map((block) => {
           const article = document.createElement('article');
           article.className = `block-detail ${block.ruleType ?? 'plain'}`;
-          article.innerHTML = `<strong>${block.startMonth}—${block.endMonth} 月</strong><span>${escapeHtml(block.label)}${block.ruleLabel ? ` [${escapeHtml(block.ruleLabel)}]` : ''}</span>${block.note ? `<small>${escapeHtml(block.note)}</small>` : ''}`;
+          const ruleDetail = block.ruleLabel === '?' ? '数量待确认' : block.ruleLabel;
+          article.innerHTML = `<div class="block-primary"><div class="block-name"><b title="${escapeHtml(block.label)}">${escapeHtml(block.label)}</b><span>${escapeHtml(ruleDetail || '仅规划月份')}</span></div><strong>${block.startMonth}—${block.endMonth} 月</strong></div>${block.note ? `<small class="block-secondary">${escapeHtml(block.note)}</small>` : ''}`;
           return article;
         }));
+        if (row.blocks.length === 0) {
+          const empty = document.createElement('p');
+          empty.className = 'inspector-empty';
+          empty.textContent = '尚未设置时间块。';
+          blockList.append(empty);
+        }
         const linkList = inspector.querySelector('[data-link-list]');
         linkList.replaceChildren(...row.links.map((link) => {
           const anchor = document.createElement('a');
@@ -554,19 +614,38 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
           anchor.textContent = `${link.label} ↗`;
           return anchor;
         }));
+        if (row.links.length === 0) {
+          const empty = document.createElement('p');
+          empty.className = 'inspector-empty';
+          empty.textContent = '尚未添加 SOP 或帖集链接。';
+          linkList.append(empty);
+        }
         inspector.querySelector('[data-history-list]').replaceChildren();
+        setSelectedRow(row.id);
         inspector.hidden = false;
-        requestAnimationFrame(() => inspector.classList.add('open'));
+        requestAnimationFrame(() => {
+          inspector.classList.add('open');
+          inspector.querySelector('[data-close-inspector]').focus({ preventScroll: true });
+        });
       };
       const closeInspector = () => {
         inspector.classList.remove('open');
-        setTimeout(() => { inspector.hidden = true; }, 180);
+        setSelectedRow();
+        const returnTarget = inspectorTrigger;
+        inspectorTrigger = null;
+        setTimeout(() => {
+          inspector.hidden = true;
+          returnTarget?.focus({ preventScroll: true });
+        }, 180);
       };
 
       document.querySelectorAll('[data-open-new]').forEach((button) => button.addEventListener('click', () => openRow()));
       document.querySelectorAll('[data-new-section]').forEach((button) => button.addEventListener('click', () => openRow(null, button.dataset.newSection)));
-      document.querySelectorAll('[data-inspect-id]').forEach((button) => button.addEventListener('click', () => openInspector(rows.find((row) => row.id === button.dataset.inspectId))));
+      document.querySelectorAll('[data-inspect-id]').forEach((button) => button.addEventListener('click', () => openInspector(rows.find((row) => row.id === button.dataset.inspectId), button)));
       document.querySelector('[data-close-inspector]').addEventListener('click', closeInspector);
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !inspector.hidden && !rowDialog.open && !yearDialog.open) closeInspector();
+      });
       document.querySelector('[data-edit-row]').addEventListener('click', () => openRow(activeRow));
       document.querySelectorAll('[data-close-row]').forEach((button) => button.addEventListener('click', closeRow));
       rowDialog.addEventListener('cancel', (event) => { event.preventDefault(); closeRow(); });
@@ -647,7 +726,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
               const title = document.createElement('strong');
               title.textContent = `${snapshot.row.sectionLabel} / ${snapshot.row.rowName}`;
               const relation = document.createElement('p');
-              relation.textContent = [snapshot.row.subjectName, snapshot.row.categoryName, snapshot.row.courseName].filter(Boolean).join(' / ') || '通用规划行';
+              relation.textContent = [snapshot.row.subjectName, snapshot.row.categoryName].filter(Boolean).join(' / ') || '通用规划行';
               const blockTitle = document.createElement('b');
               blockTitle.textContent = '时间块';
               const blockList = document.createElement('ul');
@@ -655,7 +734,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
                 const item = document.createElement('li');
                 const rule = block.ruleType === 'flexible'
                   ? `${block.monthlyFrequency}×${block.endMonth - block.startMonth + 1}`
-                  : block.ruleType === 'fixed' ? block.quantityParts.join('+') : '';
+                  : block.ruleType === 'fixed' ? block.quantityParts.join('+') : '数量待确认';
                 item.textContent = `${block.startMonth}—${block.endMonth} 月 · ${block.label}${rule ? ` [${rule}]` : ''}${block.note ? ` · ${block.note}` : ''}`;
                 blockList.append(item);
               });
@@ -724,13 +803,13 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
   *{box-sizing:border-box}html{font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;color:var(--ink);background:var(--paper)}body{margin:0}.app-shell{min-height:100vh;padding-left:224px}.sidebar{position:fixed;inset:0 auto 0 0;z-index:40;width:224px;display:flex;flex-direction:column;padding:22px 14px;color:#eaf0f7;background:var(--night)}.sidebar-brand{padding:5px 10px 20px;color:inherit;text-decoration:none}.sidebar-brand span,.eyebrow,.dialog-head span,.editor-section header span{display:block;color:#91afff;font:800 .62rem ui-monospace,monospace;letter-spacing:.14em}.sidebar-brand strong{display:block;margin-top:4px;font-size:.96rem}.module-nav{display:grid;gap:5px}.module-nav>a,.module-nav>span{display:grid;grid-template-columns:32px 1fr;gap:9px;align-items:center;padding:10px;border-radius:9px;color:#aebbc8;text-decoration:none}.module-nav .active{color:#fff;background:#ffffff12;box-shadow:inset 3px 0 var(--blue)}.module-nav strong,.module-nav small{display:block}.module-nav strong{font-size:.78rem}.module-nav small{margin-top:2px;color:#748699;font-size:.62rem}.nav-icon{display:grid;width:28px;height:28px;place-items:center;border:1px solid #ffffff25;border-radius:7px;font-size:.68rem}.planned{opacity:.55}.sidebar-foot{margin-top:auto;padding:16px 10px 4px;border-top:1px solid #ffffff1a}.sidebar-foot span{display:block;color:#718397;font:700 .56rem ui-monospace,monospace;letter-spacing:.12em}.sidebar-foot a{display:block;margin-top:10px;color:#b9c8d6;font-size:.72rem;text-decoration:none}
   .toolbar{position:sticky;top:0;z-index:30;min-height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 24px;border-bottom:1px solid #bbc4bf;background:#f5f7f3e8;backdrop-filter:blur(20px)}.toolbar-title span{display:block;color:var(--blue);font:800 .6rem ui-monospace,monospace;letter-spacing:.14em}.toolbar-title strong{font-size:.86rem}.year-nav,.toolbar-actions{display:flex;align-items:center;gap:9px}.year-nav a{display:grid;width:30px;height:30px;place-items:center;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#fff;text-decoration:none}.year-nav strong{font:900 1.05rem ui-monospace,monospace}.toolbar-actions{justify-content:flex-end}.primary-action,.save-button,.quiet-button{border:0;border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer}.primary-action,.save-button{color:#fff;background:var(--blue)}.quiet-button{border:1px solid #aeb8b3;background:#fff}.primary-action b{margin-left:12px}
   main{padding:30px 24px 80px}.overview-head{display:flex;justify-content:space-between;align-items:end;gap:28px}.overview-head h1{margin:6px 0 10px;font-family:"Arial Narrow","Microsoft YaHei",sans-serif;font-size:clamp(2.5rem,5vw,4.7rem);line-height:.9;letter-spacing:-.05em}.overview-head p{max-width:800px;margin:0;color:var(--muted);white-space:pre-line}.updated{text-align:right}.updated span,.updated strong{display:block}.updated span{color:var(--muted);font-size:.62rem}.updated strong{margin-top:4px;font:750 .68rem ui-monospace,monospace}.section-jumps{display:flex;gap:6px;margin:24px 0 12px;overflow:auto}.section-jumps button{flex:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:var(--muted);background:#fff;font-size:.68rem;font-weight:800;cursor:pointer}.section-jumps .active{color:#fff;background:var(--night)}.notice{padding:13px;border-left:4px solid var(--orange);background:var(--orange-soft)}
-  .matrix-shell{overflow:auto;border:1px solid #cbd3cf;border-radius:13px;background:#fff;box-shadow:0 18px 55px #0b1b2b0b}.plan-matrix{min-width:1720px;display:grid;grid-template-columns:150px 180px 230px repeat(12,minmax(80px,1fr))}.head{position:sticky;top:0;z-index:12;min-height:52px;display:flex;align-items:center;padding:9px;border-bottom:1px solid #aeb8b3;background:#edf1ed;font-size:.65rem;font-weight:850}.head.section-col{left:0;z-index:16}.head.sop-col{left:150px;z-index:16}.head.item-col{left:330px;z-index:16}.month-col{justify-content:center;gap:2px;border-left:1px solid #d8dedb}.month-col strong{font:900 .8rem ui-monospace,monospace}.month-col span{color:var(--muted);font-size:.58rem}.section-group{display:contents}.section-group[hidden]{display:none!important}.section-band{grid-column:1/16;position:relative;z-index:8;display:flex;justify-content:space-between;padding:8px 12px;border-top:2px solid var(--night);background:#e8ece9}.section-band strong{font-size:.73rem}.section-band span{color:var(--muted);font-size:.62rem}.plan-row{display:contents}.section-cell,.sop-cell,.item-cell{position:sticky;z-index:6;min-height:58px;border:0;border-bottom:1px solid #dfe4e1;background:#fff}.section-cell{left:0;padding:10px;color:var(--muted);font-size:.63rem}.sop-cell{left:150px;display:grid;align-content:center;gap:3px;padding:8px}.sop-cell a{overflow:hidden;color:#2856b7;font-size:.62rem;text-overflow:ellipsis;white-space:nowrap;text-decoration:none}.sop-cell span{color:#b1b8b4}.item-cell{left:330px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;text-align:left;cursor:pointer}.item-cell strong{min-width:0;overflow:hidden;font-size:.77rem;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}.row-badges{display:flex;flex:none;gap:4px}.row-badges small{display:inline-flex;align-items:center;margin:0;border:1px solid #c7d0cb;border-radius:999px;padding:2px 5px;color:var(--muted);background:#f4f6f4;font:800 .52rem ui-monospace,monospace;white-space:nowrap}.row-badges .inactive-badge{border-color:#d8aa9b;color:#8b3e28;background:#fff0ea}.timeline{grid-column:4/16;position:relative;display:grid;grid-template-columns:repeat(12,1fr);min-height:58px;border-bottom:1px solid #dfe4e1;background:#fff}.month-grid{grid-row:1;border-left:1px solid #e0e5e2}.time-block{z-index:2;grid-row:1;align-self:stretch;margin:5px 2px;border:0;border-left:4px solid var(--blue);border-radius:5px;padding:5px 7px;color:#183b91;background:var(--blue-soft);overflow:hidden;text-align:center;cursor:pointer}.time-block strong,.time-block small{display:inline;font-size:.62rem}.time-block small{margin-left:4px;font:800 .59rem ui-monospace,monospace}.section-group[data-tone="0"] .time-block{border-color:#243a54;color:#17304b;background:#dce5ec}.section-group[data-tone="2"] .time-block{border-color:var(--violet);color:#66239e;background:var(--violet-soft)}.section-group[data-tone="3"] .time-block{border-color:var(--orange);color:#8a4314;background:var(--orange-soft)}.section-group[data-tone="4"] .time-block{border-color:var(--mint);color:#28634f;background:var(--mint-soft)}.time-block.fixed{filter:saturate(1.18);box-shadow:inset 0 0 0 1px #00000012}.time-block.plain{background:#edf0ee;color:#43504a;border-color:#909a95}.inactive{opacity:.5}.item-cell:hover,.time-block:hover{box-shadow:inset 0 0 0 2px var(--blue)}.section-empty{grid-column:1/16;padding:18px;text-align:center;color:var(--muted);background:#fafbf9}.section-empty button{margin-left:8px;border:0;color:#2856b7;background:transparent;font-weight:800;cursor:pointer}
-  .inspector{position:fixed;inset:0 0 0 auto;z-index:60;width:min(400px,100%);overflow:auto;border-left:1px solid var(--line);background:#fafbf9;box-shadow:-20px 0 60px #0b1b2b1c;transform:translateX(100%);transition:transform .18s}.inspector.open{transform:none}.inspector>header{position:sticky;top:0;display:flex;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--line);background:#fafbf9ed}.inspector>header span,.inspector>header small{display:block}.inspector>header span{color:var(--blue);font:900 .8rem ui-monospace,monospace}.inspector>header button,.dialog-head>button{border:0;color:inherit;background:transparent;font-size:1.7rem;cursor:pointer}.inspector-body{padding:20px 18px 90px}.inspector-body>p{margin:0;color:var(--muted);font-size:.68rem}.inspector h2{margin:5px 0 18px}.inspector dl{margin:0}.inspector dl>div{display:grid;grid-template-columns:60px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}.inspector dt{color:var(--muted);font-size:.65rem}.inspector dd{margin:0;font-size:.7rem}.inspector section{margin-top:22px}.inspector section>span{display:block;margin-bottom:8px;color:var(--muted);font-size:.6rem;font-weight:850;letter-spacing:.07em}.block-detail{display:grid;grid-template-columns:60px 1fr;gap:7px;padding:9px;border-left:3px solid var(--blue);background:var(--blue-soft);font-size:.66rem}.block-detail small{grid-column:2;color:var(--muted)}.link-list{display:grid;gap:5px}.link-list a{padding:8px;border:1px solid var(--line);border-radius:7px;color:#2856b7;font-size:.66rem;text-decoration:none}.history-button{width:100%;border:1px solid var(--line);padding:8px;border-radius:8px;background:#fff;font-weight:800}.history-list article{margin-top:7px;padding:9px;border:1px solid var(--line);border-radius:8px;background:#fff}.history-list article>div{display:flex;justify-content:space-between}.history-list p{font-size:.68rem}.history-list small{font-size:.58rem;color:var(--muted)}.history-list button{display:inline-block;margin:7px 6px 0 0;border:0;padding:6px;color:#2856b7;background:var(--blue-soft);font-weight:800}.snapshot-view{margin-top:8px;padding:9px;border-top:1px dashed var(--line);background:#f7f9f7}.snapshot-view>strong,.snapshot-view>b{display:block;margin-top:5px;font-size:.65rem}.snapshot-view p,.snapshot-view ul{margin:5px 0;color:var(--muted);font-size:.62rem}.snapshot-view ul{padding-left:18px}.snapshot-view a{color:#2856b7}.inspector>footer{position:fixed;right:0;bottom:0;width:min(400px,100%);padding:13px;border-top:1px solid var(--line);background:#fafbf9ed}
+  .matrix-shell{overflow:auto;border:1px solid #c4cdc8;border-radius:8px;background:#fff;isolation:isolate}.summary-matrix,.plan-matrix{--section-track:92px;--sop-track:44px;--item-track:216px;--summary-subject-track:136px;width:100%;min-width:976px;display:grid;grid-template-columns:var(--section-track) var(--sop-track) var(--item-track) repeat(12,minmax(52px,1fr))}.month-col{justify-content:center;gap:2px;border-left:1px solid #dfe4e1}.month-col.quarter-start{border-left-color:#aeb9b3;border-left-width:2px}.month-col strong{font:900 .8rem ui-monospace,monospace}.month-col span{color:var(--muted);font-size:.58rem}.month-grid{grid-row:1;border-left:1px solid #e3e7e5}.month-grid.quarter-start{border-left:2px solid #bdc7c2;background:#f7f9f755}.section-group,.plan-row{display:contents}.section-group[hidden],.plan-row[hidden]{display:none!important}
+  .inspector{--inspector-tone:#5b8cff;--inspector-soft:#dfe8ff;position:fixed;inset:0 0 0 auto;z-index:60;width:min(420px,100%);overflow:auto;border-left:1px solid #bcc6c1;background:#f8faf8;box-shadow:-18px 0 52px #0b1b2b20;transform:translateX(100%);transition:transform .18s}.inspector[data-tone="2"]{--inspector-tone:#9142cf;--inspector-soft:#ead5f8}.inspector[data-tone="3"]{--inspector-tone:#f28b3c;--inspector-soft:#ffddc3}.inspector.open{transform:none}.inspector-top{position:sticky;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #cbd3cf;background:#f8faf8f2;backdrop-filter:blur(14px)}.inspector-top span,.inspector-top small{display:block}.inspector-top span{color:var(--inspector-tone);font:900 .62rem ui-monospace,monospace;letter-spacing:.12em}.inspector-top small{margin-top:2px;color:var(--muted);font-size:.58rem}.inspector-top button,.dialog-head>button{border:0;color:inherit;background:transparent;font-size:1.7rem;cursor:pointer}.inspector-body{padding:20px 20px 94px}.inspector-identity{padding:0 0 18px;border-bottom:1px solid #cbd3cf}.inspector-identity>p{margin:0;color:var(--muted);font-size:.66rem}.inspector-identity h2{margin:6px 0 5px;font-size:1.28rem;line-height:1.18;letter-spacing:-.02em}.inspector-identity .relation-line{color:#43504a;font-size:.7rem}.status-line{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}.status-line>span{display:inline-flex;align-items:center;min-height:24px;border:1px solid #c7d0cb;border-radius:999px;padding:3px 8px;color:#4d5b55;background:#fff;font-size:.58rem;font-weight:800}.status-line .version-chip{border-color:color-mix(in srgb,var(--inspector-tone) 45%,#c7d0cb);color:color-mix(in srgb,var(--inspector-tone) 72%,#14212b);font-family:ui-monospace,monospace}.status-line .promotion-chip{background:var(--inspector-soft)}.inspector-section{margin-top:22px}.inspector-section>header{display:flex;align-items:end;justify-content:space-between;margin-bottom:9px}.inspector-section>header span{color:var(--inspector-tone);font:850 .54rem ui-monospace,monospace;letter-spacing:.1em}.inspector-section>header strong{font-size:.7rem}.mini-months,.mini-timeline{display:grid;grid-template-columns:repeat(12,1fr)}.mini-months span{padding:0 0 5px;border-left:1px solid transparent;color:#87918c;font:700 .48rem ui-monospace,monospace;text-align:center}.mini-months span.quarter-start{border-left-color:#aeb9b3}.mini-timeline{position:relative;min-height:42px;border:1px solid #c7d0cb;background:#fff}.mini-grid{grid-row:1;border-left:1px solid #e3e7e5}.mini-grid.quarter-start{border-left:2px solid #aeb9b3;background:#f4f7f555}.mini-block{z-index:2;grid-row:1;align-self:center;height:17px;margin:0 2px;border-left:3px solid var(--inspector-tone);border-radius:3px;background:var(--inspector-soft)}.mini-block.plain{background:repeating-linear-gradient(135deg,var(--inspector-soft) 0 4px,#fff 4px 7px)}.block-list{display:grid}.block-detail{padding:10px 0;border-top:1px solid #d8dedb}.block-detail:first-child{border-top-color:#aeb9b3}.block-primary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;min-height:24px}.block-name{display:flex;align-items:center;min-width:0;gap:7px}.block-name b{min-width:0;overflow:hidden;font-size:.68rem;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}.block-name span{flex:none;color:#43504a;font:850 .62rem ui-monospace,monospace;white-space:nowrap}.block-primary>strong{color:var(--inspector-tone);font:850 .62rem ui-monospace,monospace;white-space:nowrap}.block-secondary{display:block;min-width:0;overflow:hidden;margin-top:4px;color:var(--muted);font-size:.6rem;text-overflow:ellipsis;white-space:nowrap}.link-list{display:grid;gap:5px}.link-list a{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border:1px solid #c8d1cc;border-radius:6px;color:#2856b7;background:#fff;font-size:.66rem;font-weight:800;text-decoration:none}.note-section>p,.inspector-empty{margin:0;padding:10px;border-left:2px solid #cbd3cf;color:var(--muted);background:#f0f3f1;font-size:.64rem;line-height:1.55}.history-section{padding-top:2px;border-top:1px solid #d8dedb}.history-button{width:100%;border:1px solid #c7d0cb;padding:8px;border-radius:6px;background:#fff;font-weight:800}.history-list article{margin-top:7px;padding:9px;border:1px solid var(--line);border-radius:6px;background:#fff}.history-list article>div{display:flex;justify-content:space-between}.history-list p{font-size:.68rem}.history-list small{font-size:.58rem;color:var(--muted)}.history-list button{display:inline-block;margin:7px 6px 0 0;border:0;padding:6px;color:#2856b7;background:var(--blue-soft);font-weight:800}.snapshot-view{margin-top:8px;padding:9px;border-top:1px dashed var(--line);background:#f7f9f7}.snapshot-view>strong,.snapshot-view>b{display:block;margin-top:5px;font-size:.65rem}.snapshot-view p,.snapshot-view ul{margin:5px 0;color:var(--muted);font-size:.62rem}.snapshot-view ul{padding-left:18px}.snapshot-view a{color:#2856b7}.inspector>footer{position:fixed;right:0;bottom:0;width:min(420px,100%);padding:12px 20px;border-top:1px solid #c3ccc7;background:#f8faf8f2;backdrop-filter:blur(14px)}.inspector-edit{width:100%}
   dialog{width:min(1080px,calc(100% - 32px));max-height:calc(100vh - 28px);padding:0;border:0;border-radius:17px;background:var(--paper);box-shadow:0 30px 100px #07111d70}dialog::backdrop{background:#07111db3;backdrop-filter:blur(5px)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;color:#fff;background:var(--night)}.dialog-head h2{margin:3px 0 0}.form-content{padding:20px}.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.form-grid label,.change-summary,.year-form-body label{display:grid;gap:5px;color:#43504a;font-size:.68rem;font-weight:750}.form-grid input,.form-grid select,.form-grid textarea,.change-summary textarea,.year-form-body textarea,.block-row input,.block-row select,.link-row input{width:100%;border:1px solid #aeb8b3;border-radius:8px;padding:9px;color:var(--ink);background:#fff}.form-grid .wide{grid-column:1/-1}.check-label{display:flex!important;align-items:center}.check-label input{width:auto}.editor-section{margin-top:22px}.editor-section>header{display:flex;justify-content:space-between;align-items:end}.editor-section h3{margin:3px 0 0}.editor-section>p{margin:5px 0 10px;color:var(--muted);font-size:.65rem}.block-row{display:grid;grid-template-columns:78px 18px 78px 1.3fr 105px 1fr 1.2fr 34px;gap:6px;margin-bottom:7px;align-items:center}.block-row>span{text-align:center;color:var(--muted);font-size:.65rem}.block-row button,.link-row button{height:36px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:1.1rem}.link-row{display:grid;grid-template-columns:1fr 1.7fr 34px;gap:7px;margin-top:8px}.change-summary{margin-top:20px}.change-summary b{color:#b4482c}.form-message{min-height:18px;color:#b4482c;font-size:.7rem}.dialog-actions{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:8px;padding:13px 22px;border-top:1px solid var(--line);background:#f5f7f4ed}.year-form-body{padding:22px}.year-form-body p{color:#b4482c}
   :focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 60%,white);outline-offset:2px}@media(max-width:900px){.app-shell{padding-left:0}.sidebar{inset:auto 0 0;width:auto;height:62px;display:block;padding:5px 8px}.sidebar-brand,.sidebar-foot{display:none}.module-nav{display:flex;justify-content:space-around}.module-nav>a,.module-nav>span{display:flex;padding:6px}.module-nav small{display:none}.module-nav>span:nth-last-child(-n+3){display:none}.workspace{padding-bottom:62px}.toolbar{grid-template-columns:auto 1fr;padding:9px 12px}.toolbar-title{display:none}.toolbar-actions{justify-self:end}.overview-head{display:block}.updated{margin-top:14px;text-align:left}.form-grid{grid-template-columns:1fr 1fr}.block-row{grid-template-columns:72px 18px 72px 1fr 34px}.block-row [data-rule],.block-row [data-value],.block-row [data-note]{grid-column:1/5}.block-row button{grid-column:5;grid-row:1/5}}@media(max-width:620px){main{padding:22px 12px 72px}.toolbar-actions .quiet-button{display:none}.overview-head h1{font-size:3rem}.form-grid{grid-template-columns:1fr}.link-row{grid-template-columns:1fr 34px}.link-row [data-link-url]{grid-column:1}.link-row button{grid-column:2;grid-row:1/3}dialog{width:100%;height:100vh;max-height:100vh;border-radius:0}}@media(prefers-reduced-motion:reduce){.inspector{transition:none}}
   /* 年度矩阵：把完整 12 月横轴作为页面的唯一视觉主角。 */
-  .summary-shell{margin:0 0 14px;border:1px solid #bfc9c4;border-radius:12px;background:#fff;overflow:hidden}.summary-title{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);background:#eef2ef}.summary-title span{display:block;color:#60706a;font:800 .55rem ui-monospace,monospace;letter-spacing:.12em}.summary-title strong{display:block;margin-top:2px;font-size:.8rem}.summary-title p{margin:0;color:var(--muted);font-size:.62rem}.summary-matrix{min-width:920px;display:grid;grid-template-columns:72px 222px repeat(12,minmax(48px,1fr))}.summary-head{min-height:34px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:#f7f9f7;color:var(--muted);font-size:.58rem;font-weight:800}.summary-head.month-col{border-left:1px solid #e1e6e3}.summary-subject,.summary-label{min-height:36px;display:flex;align-items:center;border-bottom:1px solid #e1e6e3;background:#fff}.summary-subject{padding:0 8px;font-size:.62rem;font-weight:900}.summary-subject.secondary{color:transparent}.summary-label{padding:0 9px;color:#4e5c56;font-size:.63rem;font-weight:750}.summary-timeline{grid-column:3/15;position:relative;display:grid;grid-template-columns:repeat(12,1fr);min-height:36px;border-bottom:1px solid #e1e6e3;background:#fff}.summary-block{z-index:2;grid-row:1;align-self:center;height:20px;margin:0 2px;border-radius:4px;display:grid;place-items:center;overflow:hidden;font-size:.54rem;font-weight:850}.summary-timeline[data-tone="1"] .summary-block{color:#07587a;background:#bde9f8;border-left:3px solid #159dd8}.summary-timeline[data-tone="2"] .summary-block{color:#61228f;background:#ead5f8;border-left:3px solid #9142cf}.summary-timeline[data-tone="3"] .summary-block{color:#88400f;background:#ffddc3;border-left:3px solid #f28b3c}
-  .plan-matrix{width:100%;min-width:920px;grid-template-columns:72px 42px minmax(160px,180px) repeat(12,minmax(48px,1fr))}.head{min-height:42px;padding:6px;font-size:.59rem}.head.section-col{left:0}.head.sop-col{left:72px}.head.item-col{left:114px}.section-cell{left:0;padding:7px;font-size:.58rem;font-weight:800}.sop-cell{left:72px;place-items:center;padding:4px}.sop-cell a{display:grid;width:27px;height:27px;place-items:center;border:1px solid #cbd5d0;border-radius:7px;color:#2856b7;background:#f7f9f8;font-size:.88rem;font-weight:900}.item-cell{left:114px;padding:6px 8px}.section-cell,.sop-cell,.item-cell,.timeline{min-height:48px}.section-band{padding:6px 9px}.section-band strong{font-size:.66rem}.section-band span{font-size:.56rem}.plan-row[hidden]{display:none!important}.time-block{display:grid;place-items:center;margin:4px 2px;padding:4px;border-left-width:3px;border-radius:4px}.time-block strong{overflow:hidden;max-width:100%;font:900 .61rem ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.02em;text-overflow:ellipsis;white-space:nowrap}.time-block.fixed strong{font-size:.5rem;letter-spacing:-.07em}.time-block.fixed,.time-block.plain{filter:none;box-shadow:none}.section-group[data-tone="1"] .time-block{border-color:#159dd8;color:#07587a;background:#bde9f8}.section-group[data-tone="2"] .time-block{border-color:#9142cf;color:#61228f;background:#ead5f8}.section-group[data-tone="3"] .time-block{border-color:#f28b3c;color:#88400f;background:#ffddc3}
+  .summary-shell{margin:0 0 14px;overflow:hidden;border:1px solid #c4cdc8;border-radius:8px;background:#fff}.summary-title{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:#f1f4f1}.summary-title span{display:block;color:#60706a;font:800 .53rem ui-monospace,monospace;letter-spacing:.12em}.summary-title strong{display:block;margin-top:1px;font-size:.76rem}.summary-title p{margin:0;color:var(--muted);font-size:.6rem}.summary-scroll{overflow:auto;isolation:isolate}.summary-head{position:sticky;top:0;z-index:3;min-height:34px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:#f8faf8;color:#65716c;font-size:.56rem;font-weight:800}.summary-head.month-col{border-left:1px solid #e1e6e3}.summary-head.month-col.quarter-start{border-left:2px solid #aeb9b3}.summary-subject-head{grid-column:1/3;left:0;z-index:7}.summary-period-head{grid-column:3;left:var(--summary-subject-track);z-index:7}.summary-subject{grid-column:1/3;grid-row:span 2;position:sticky;left:0;z-index:5;min-height:72px;display:grid;place-items:center;padding:0 10px;border-right:1px solid #d6deda;border-bottom:1px solid #dfe5e2;background:#fbfcfb;font-size:.62rem;font-weight:900;text-align:center}.summary-label{grid-column:3;position:sticky;left:var(--summary-subject-track);z-index:5;min-height:36px;display:grid;place-items:center;padding:0 10px;border-right:1px solid #d6deda;border-bottom:1px solid #e2e7e4;background:#fff;color:#4e5c56;font-size:.61rem;font-weight:800;text-align:center}.summary-timeline{grid-column:4/16;position:relative;display:grid;grid-template-columns:repeat(12,1fr);min-height:36px;border-bottom:1px solid #e2e7e4;background:#fff}.summary-block{z-index:2;grid-row:1;align-self:stretch;margin:4px 2px;border-left:3px solid;border-radius:3px;opacity:.72}.summary-timeline[data-tone="1"] .summary-block{border-color:#159dd8;background:#bde9f8}.summary-timeline[data-tone="2"] .summary-block{border-color:#9142cf;background:#ead5f8}.summary-timeline[data-tone="3"] .summary-block{border-color:#f28b3c;background:#ffddc3}
+  .head{position:sticky;top:0;z-index:6;min-height:42px;display:flex;align-items:center;padding:6px 9px;border-bottom:1px solid #aeb8b3;background:#edf1ed;font-size:.58rem;font-weight:850}.head.section-col{left:0;z-index:9;justify-content:center}.head.sop-col{left:var(--section-track);z-index:9;justify-content:center}.head.item-col{left:calc(var(--section-track) + var(--sop-track));z-index:9;justify-content:flex-start}.section-band{grid-column:1/16;position:relative;z-index:2;display:flex;justify-content:space-between;min-height:30px;padding:5px 9px;border-top:2px solid var(--night);background:#e8ece9}.section-band strong{position:sticky;left:9px;font-size:.62rem}.section-band span{color:var(--muted);font-size:.54rem}.section-cell,.sop-cell,.item-cell{position:sticky;z-index:4;min-height:44px;border:0;border-bottom:1px solid #dfe4e1;background:#fff}.section-cell{left:0;display:flex;align-items:center;padding:6px 9px;color:var(--muted);font-size:.58rem;font-weight:800}.sop-cell{left:var(--section-track);display:grid;place-items:center;padding:3px}.sop-cell a{display:grid;width:25px;height:25px;place-items:center;border:1px solid #cbd5d0;border-radius:5px;color:#2856b7;background:#f7f9f8;font-size:.82rem;font-weight:900;text-decoration:none}.sop-cell span{color:#a7b0ab}.item-cell{left:calc(var(--section-track) + var(--sop-track));display:flex;align-items:center;justify-content:space-between;gap:7px;padding:5px 9px;text-align:left;cursor:pointer;box-shadow:1px 0 #d6deda}.item-cell strong{min-width:0;overflow:hidden;font-size:.68rem;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.row-badges{display:flex;flex:none;gap:3px}.row-badges small{display:inline-flex;align-items:center;margin:0;border:1px solid #c7d0cb;border-radius:999px;padding:1px 5px;color:var(--muted);background:#f4f6f4;font:800 .5rem ui-monospace,monospace;white-space:nowrap}.row-badges .inactive-badge{border-color:#d8aa9b;color:#8b3e28;background:#fff0ea}.timeline{grid-column:4/16;position:relative;display:grid;grid-template-columns:repeat(12,1fr);min-height:44px;border-bottom:1px solid #dfe4e1;background:#fff}.time-block{z-index:2;grid-row:1;align-self:stretch;display:grid;place-items:center;overflow:hidden;margin:3px 2px;border:0;border-left:3px solid var(--blue);border-radius:3px;padding:3px;color:#183b91;background:var(--blue-soft);text-align:center;cursor:pointer}.time-block strong{overflow:hidden;max-width:100%;font:900 .58rem ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.025em;text-overflow:ellipsis;white-space:nowrap}.time-block.fixed strong{font-size:.58rem;letter-spacing:-.025em}.time-block.fixed,.time-block.plain{filter:none;box-shadow:none}.time-block.plain{border-color:#909a95;color:#43504a;background:#edf0ee}.section-group[data-tone="0"] .time-block{border-color:#243a54;color:#17304b;background:#dce5ec}.section-group[data-tone="1"] .time-block{border-color:#159dd8;color:#07587a;background:#bde9f8}.section-group[data-tone="2"] .time-block{border-color:#9142cf;color:#61228f;background:#ead5f8}.section-group[data-tone="3"] .time-block{border-color:#f28b3c;color:#88400f;background:#ffddc3}.section-group[data-tone="4"] .time-block{border-color:var(--mint);color:#28634f;background:var(--mint-soft)}.inactive{opacity:.5}.item-cell:hover,.time-block:hover{box-shadow:inset 0 0 0 2px var(--blue)}.plan-row.selected>.section-cell,.plan-row.selected>.sop-cell,.plan-row.selected>.item-cell,.plan-row.selected>.timeline{background:#f1f5f3}.plan-row.selected>.section-cell{box-shadow:inset 3px 0 var(--blue)}.plan-row.selected>.item-cell{color:#183b91;box-shadow:1px 0 #9daaa4}.plan-row.selected>.timeline{box-shadow:inset 0 1px #9daaa4,inset 0 -1px #9daaa4}.plan-row.selected .time-block{box-shadow:inset 0 0 0 1px #ffffffaa,0 0 0 1px currentColor}.section-empty{grid-column:1/16;padding:18px;text-align:center;color:var(--muted);background:#fafbf9}.section-empty button{margin-left:8px;border:0;color:#2856b7;background:transparent;font-weight:800;cursor:pointer}
   .check-label{gap:9px}.check-label>span{display:grid;gap:2px}.check-label b{font-size:.68rem}.check-label small{color:var(--muted);font-size:.58rem;font-weight:500}.block-row{position:relative;display:grid;grid-template-columns:190px minmax(190px,1fr) minmax(280px,1.4fr);gap:10px;align-items:end;margin-bottom:10px;padding:12px 46px 12px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}.block-row label{display:grid;gap:4px}.block-row label>span,.rule-editor>label>span{color:var(--muted);font-size:.58rem;font-weight:750}.block-range{display:grid;grid-template-columns:1fr 18px 1fr;gap:5px;align-items:end}.block-range>span{padding-bottom:10px;text-align:center;color:var(--muted);font-size:.6rem}.rule-editor{display:grid;grid-template-columns:120px 1fr;gap:7px;align-items:end}.rule-editor output{grid-column:1/-1;min-height:13px;color:#2856b7;font-size:.58rem;font-weight:800}.block-note{grid-column:2/4}.block-row .remove-row{position:absolute;top:12px;right:10px;width:30px;height:30px}.link-row{grid-template-columns:1fr 34px}.form-grid{grid-template-columns:repeat(2,1fr)}
-  @media(max-width:1279px){.matrix-shell,.summary-shell{overflow:auto}}@media(min-width:1280px){.matrix-shell,.summary-shell{overflow:hidden}}@media(max-width:900px){.block-row{grid-template-columns:1fr;padding-right:46px}.block-stage,.rule-editor,.block-note{grid-column:1}.summary-title{align-items:flex-start}.summary-title p{max-width:55%;text-align:right}}@media(max-width:620px){.form-grid{grid-template-columns:1fr}.summary-title p{display:none}}
+  @media(max-width:900px){.block-row{grid-template-columns:1fr;padding-right:46px}.block-stage,.rule-editor,.block-note{grid-column:1}.summary-title{align-items:flex-start}.summary-title p{max-width:55%;text-align:right}}@media(max-width:620px){.form-grid{grid-template-columns:1fr}.summary-title p{display:none}}
 </style>

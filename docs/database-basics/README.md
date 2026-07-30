@@ -300,7 +300,7 @@ GROUP BY plan.id
 ORDER BY plan.year, plan.section_key, plan.sort_order;
 ```
 
-当前初始化阶段的细致规划应为 V0。总规划在页面查询时由启用的细致规划计算，不需要从 `operations_annual_plan` 读取可编辑总规划行。development 中遗留的 `section_key = 'general'` 记录是 Phase 04 待审核清理数据，不应直接在 Tables 中手工删除。
+当前初始化阶段的细致规划应为 V0。总规划在页面查询时由启用的细致规划计算，不需要从 `operations_annual_plan` 读取可编辑总规划行。旧 `section_key = 'general'` 初始化记录由受控迁移清理，不应在 Tables 中手工恢复或重新建立。
 
 ### 6. 核对年度规划版本快照
 
@@ -368,14 +368,34 @@ JSON key 是用户名，value 是该用户的密码。所有账号权限相同�
 
 ### 从 Development 准备 Production
 
-1. 在 development 完成结构、数据和页面验收。
-2. 审核全部未进入 production 的 migration。
-3. 明确哪些 development 业务数据需要单独迁移；网页录入数据不会随 migration 自动复制。
-4. 为 production 建立恢复点并确认目标连接。
-5. 在受控上线环境对 production 执行相同迁移。
-6. 使用单独审核的数据迁移导入正式业务数据。
-7. 配置生产环境变量并执行冒烟测试。
-8. 本地 `.env` 继续连接 development，不长期保留 production 连接串。
+本项目当前的实际关系是：production 是原稳定状态，development 从 production 分出，后续结构和业务数据修改都发生在 development。如果分支建立后 production 没有独立写入，上线不是逐表合并，而是把 development 当前完整状态提升到 production。
+
+#### 上线前检查
+
+1. 在 development 执行 `pnpm test`、`pnpm db:check`、`pnpm check` 和 `pnpm build`。
+2. 启动受保护业务页面，实际检查年度规划、排期管理、新建、编辑、版本历史和数据库错误状态。
+3. 只读核对关键数量、外键关系、年度规划 V0 和 `general` 旧总规划为 0。
+4. 审核 development 的 `drizzle.__drizzle_migrations`，确认最新迁移与仓库一致。
+5. 确认 development 分出后 production 没有需要保留的新写入。
+6. 为当前 production 建立恢复点，并记录上线前时间。
+7. 暂停 development 写入，记录准备用于上线的准确时间点。
+
+#### 当前项目的最短上线流程
+
+1. 在 Neon Console 选择 production。
+2. 进入 **Restore / Backup & Restore**。
+3. 选择 **From another branch**，来源选择 development。
+4. 时间点选择刚刚验收完成的 development 当前状态。
+5. 先使用 Time Travel Assist / Schema Diff 核对来源确实是 development、目标确实是 production。
+6. 执行 Restore，并等待 Neon 操作完全结束。
+7. 在 production 重新核对迁移记录、学科—分类关系、排期数量、30 条细致规划和 0 条旧总规划。
+8. 用 production 部署连接串执行页面冒烟测试。
+
+这次 Restore 会用 development 的完整 schema、数据和迁移记录替换 production，因此不需要另做 `pg_dump`、逐表复制或再跑一遍已经包含在 development 中的 migration。production 的应用连接入口可以继续保持稳定；Neon 会保留可用于回退的旧 production 状态，确认新版无误后再决定何时清理。
+
+不要对 development 使用 **Reset to parent**。该操作方向相反，会用旧 production 完整覆盖 development，丢失 development 当前改动。
+
+只有 production 在分支建立后也产生了必须保留的新业务写入时，才需要另行设计数据合并；当前“production 只作为旧稳定备份”的情况不属于这一类。
 
 ### 误操作恢复
 
@@ -407,3 +427,7 @@ JSON key 是用户名，value 是该用户的密码。所有账号权限相同�
 - [Data API 权限与 RLS 提示](https://neon.com/docs/changelog/2025-09-19)
 - [Neon Auth 的分支化身份模型](https://neon.com/docs/changelog/2025-12-12)
 - [Data Masking 的隔离分支工作流](https://neon.com/blog/environments-masked-production-data)
+- [Neon：数据库分支工作流](https://neon.com/docs/get-started-with-neon/workflow-primer)
+- [Neon：从另一分支历史恢复](https://neon.com/docs/changelog/2024-02-23)
+- [Neon：安全提升 development 到 production](https://neon.com/blog/promoting-postgres-changes-safely-production)
+- [Neon：Protected branches](https://neon.com/docs/guides/protected-branches)

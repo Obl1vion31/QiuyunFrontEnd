@@ -99,6 +99,13 @@
       "when": 1785430800000,
       "tag": "0013_reset_annual_plan_to_v0",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785434400000,
+      "tag": "0014_remove_legacy_annual_summaries",
+      "breakpoints": true
     }
   ]
 }
