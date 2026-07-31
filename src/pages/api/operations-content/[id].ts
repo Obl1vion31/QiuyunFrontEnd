@@ -6,9 +6,7 @@ import {
   operationsContentVersion,
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
-  operationsPromotionStage,
 } from '../../../db/schema';
-import { shanghaiDateKey } from '../../../db/promotion-rules.mjs';
 import {
   editScheduleInputFromForm,
   editScheduleSchema,
@@ -86,39 +84,28 @@ export const PATCH: APIRoute = async ({ params, request, url }) => {
           .where(eq(operationsPromotionCampaign.scheduleId, params.id!));
       }
 
-      const shouldStartCampaign = result.data.isPromoted && result.data.actualPublishAt
-        && (campaignCount === 0 || resetCampaigns);
       const promotionStatus = !result.data.isPromoted
         ? 'none'
-        : shouldStartCampaign
-          ? 'testing'
-          : result.data.actualPublishAt
-            ? schedule.promotionStatus
-            : 'pending';
+        : !result.data.actualPublishAt
+          ? 'pending'
+          : resetCampaigns || campaignCount === 0
+            ? 'awaiting_promotion'
+            : schedule.promotionStatus;
       const [saved] = await transaction.update(operationsContentSchedule).set({
         syncToMoments: result.data.syncToMoments,
         isPromoted: result.data.isPromoted,
         promotionStatus,
+        promotionDeferredThrough: promotionStatus === 'awaiting_promotion'
+          ? schedule.actualPublishAt?.getTime() === result.data.actualPublishAt?.getTime()
+            ? undefined
+            : null
+          : null,
         plannedPublishAt: result.data.plannedPublishAt,
         actualPublishAt: result.data.actualPublishAt,
         completionStatus,
         delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, params.id!)).returning({ id: operationsContentSchedule.id });
-      if (shouldStartCampaign) {
-        const startedOn = shanghaiDateKey(result.data.actualPublishAt!);
-        const [campaign] = await transaction.insert(operationsPromotionCampaign).values({
-          scheduleId: saved.id,
-          startedOn,
-          currentStage: 'testing',
-          currentStatus: 'testing',
-        }).returning({ id: operationsPromotionCampaign.id });
-        await transaction.insert(operationsPromotionStage).values({
-          campaignId: campaign.id,
-          stageType: 'testing',
-          startedOn,
-        });
-      }
       return saved;
     });
     if (!updated) return Response.json({ message: '没有找到这条排期。' }, { status: 404 });

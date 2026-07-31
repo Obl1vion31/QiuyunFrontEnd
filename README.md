@@ -163,6 +163,7 @@ pnpm dev
 │   ├── DECISIONS.md
 │   ├── DESIGN.md
 │   ├── CURRENT-STAGE-SUMMARY.md
+│   ├── data-model/                # 数据模型说明与 ER / 状态 / 版本图
 │   ├── database-basics/README.md # Neon 工作台与数据库调试学习指南
 │   ├── exec-plans/               # 用户要求长期保存的阶段计划
 │   ├── exec-results/             # 用户要求长期保存的阶段结果
@@ -215,9 +216,11 @@ pnpm dev
 - `docs/DESIGN.md`：已经确认的长期视觉与交互规则。
 - `docs/ROADMAP.md`：当前、下一步和暂缓事项。
 - `docs/CURRENT-STAGE-SUMMARY.md`：当前视觉、功能、数据库结构和 development 数据摘要。
+- `docs/data-model/DATA-MODEL.md`：当前数据表、主外键、版本链和推广生命周期逻辑。
 - `docs/exec-results/phase-04-the-plan.md`：Phase 04 Executive Result、数据核对与最终验收结论。
-- `docs/exec-results/phase-05-daily-promotion-review.md`：Phase 05 Executive Result、完整数据库逻辑与进入下一阶段前的待确认事项。
+- `docs/exec-results/phase-05-daily-promotion-review.md`：已正式完结的 Phase 05 Daily Promotion Review 交付结论。
 - `docs/exec-plans/phase-05-daily-promotion-review.md`：Phase 05 Daily Promotion Review 简化计划。
+- `docs/exec-plans/phase-06-stage-review.md`：Phase 06 阶段复盘与会议中心分步计划。
 - `docs/database-basics/README.md`：Neon 工作台、数据库查询、恢复和账号协作学习指南。
 - `AGENTS.md`：agent 在本仓库中的长期协作规则。
 
@@ -240,7 +243,7 @@ pnpm dev
 - 内容发布控制台的桌面端 Sidebar / Toolbar / Inspector / Sheet、统一推广筛选和移动端底部导航；
 - 非推广、待推广、推广测试中、推广放量中、推广周期已结束、测试淘汰和放量淘汰七类推广状态；
 - 分钟级应发/实发时间、自动完成状态与 12 小时延期校验；
-- 推广帖 Daily Promotion Review：全宽相对生命周期卡片、T+1 日度复盘、六项输入、两项实际成本和最近 90 天历史总览；
+- 推广帖 Daily Promotion Review：全宽相对生命周期卡片、T+1 日度复盘、历史事实更正，以及默认 90 天的帖子/日双粒度历史总览；
 - Neon PostgreSQL 迁移、服务端校验与临时多账号 HTTP Basic Auth。
 
 当前进行：
@@ -249,7 +252,7 @@ pnpm dev
 - 根据真实封面的色彩与文字密度检查遮罩和可读性；
 - 检查桌面端、移动端和减少动态效果模式的滚动观感。
 - 验收内容发布控制台在真实大数据量下的桌面端与移动端密度。
-- 使用真实推广数据验收连续补录、阶段流转和生命周期日历。
+- 审视 Phase 06 非推广阶段复盘的复盘单位、自定义周期和未复盘结转规则。
 
 尚未建设：
 

@@ -3,9 +3,12 @@ import { defineMiddleware } from 'astro:middleware';
 
 const protectedPaths = [
   '/business/operations-schedule',
+  '/business/daily-promotion-review',
   '/business/annual-plan',
   '/api/operations-content',
   '/api/operations-annual-plans',
+  '/api/promotion-daily',
+  '/api/promotion-awaiting',
 ];
 
 interface BasicAuthCredential {

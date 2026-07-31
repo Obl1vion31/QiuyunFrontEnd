@@ -113,6 +113,20 @@
       "when": 1785438000000,
       "tag": "0015_daily_promotion_review",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1785520800000,
+      "tag": "0016_guard_promotion_stages",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785524400000,
+      "tag": "0017_awaiting_promotion",
+      "breakpoints": true
     }
   ]
 }

@@ -53,7 +53,8 @@ src/
         ├── operations-annual-plans/   # 年度说明、编辑、历史和恢复接口
         ├── operations-content.ts      # 新做帖 V0 写入接口
         ├── operations-content/        # 排期编辑与改帖 V1+ 接口
-        └── promotion-daily.ts         # 推广日度事实读取、填写与阶段流转
+        ├── promotion-daily.ts         # 推广日度事实读取、填写与阶段流转
+        └── promotion-daily/[id].ts    # 历史事实更正与生命周期受控重建
 ```
 
 `src/pages/` 不单独放置 `README.md`，因为 Astro 会把该目录里的 Markdown 文件自动生成为公开页面。它的说明统一写在这里。

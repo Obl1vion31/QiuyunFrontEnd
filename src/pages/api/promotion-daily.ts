@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
@@ -14,6 +14,7 @@ import {
   calculateActualPromotionCosts,
   isDecisionAllowed,
   nextDateKey,
+  nextPendingPromotionDate,
   nextPromotionState,
   shanghaiDateKey,
 } from '../../db/promotion-rules.mjs';
@@ -138,6 +139,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         .where(and(
           eq(operationsPromotionStage.campaignId, campaign.id),
           eq(operationsPromotionStage.stageType, campaign.currentStage),
+          isNull(operationsPromotionStage.endedOn),
         ))
         .orderBy(desc(operationsPromotionStage.startedOn))
         .limit(1);
@@ -149,7 +151,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         .where(eq(operationsPromotionDailyMetric.campaignId, campaign.id))
         .orderBy(desc(operationsPromotionDailyMetric.metricDate))
         .limit(1);
-      const expectedDate = latest ? nextDateKey(latest.metricDate) : activeStage.startedOn;
+      const expectedDate = nextPendingPromotionDate(latest?.metricDate, activeStage.startedOn);
       if (result.data.metricDate !== expectedDate) {
         return { kind: 'out-of-order' as const, expectedDate };
       }
@@ -164,7 +166,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         metricDate: result.data.metricDate,
         stageTypeSnapshot: campaign.currentStage,
         spend: result.data.spend.toFixed(2),
-        clickRate: result.data.clickRate.toFixed(4),
+        clickRate: null,
         platformOpenCount: result.data.platformOpenCount,
         actualOpenCount: result.data.actualOpenCount,
         platformLeadCount: result.data.platformLeadCount,
@@ -182,6 +184,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         }).where(and(
           eq(operationsPromotionStage.campaignId, campaign.id),
           eq(operationsPromotionStage.stageType, campaign.currentStage),
+          isNull(operationsPromotionStage.endedOn),
         ));
         if (nextState.stage === 'scaling') {
           await transaction.insert(operationsPromotionStage).values({

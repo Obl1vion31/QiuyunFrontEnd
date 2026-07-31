@@ -9,8 +9,10 @@
 - `ROADMAP.md`：当前、下一步和暂缓事项。
 - `CURRENT-STAGE-SUMMARY.md`：面向下一阶段规划的视觉、功能和数据库现状总结。
 - `STRUCTURE.md`：静态首页、动态排期页、接口和数据库层的关系。
+- `data-model/DATA-MODEL.md`：当前业务表、主外键、版本关系、推广生命周期和状态流转。
 - `database-basics/README.md`：Neon 工作台、PostgreSQL 调试、恢复、安全与账号协作学习指南。
-- `exec-plans/`：用户明确要求保存的 phase 02、phase 03、phase 04、phase 05 执行计划例外。
+- `exec-plans/`：用户明确要求保存的各阶段执行计划例外。
+- `exec-plans/phase-06-stage-review.md`：阶段复盘、会议中心、周例会与后续月例会的分步计划。
 - `exec-results/`：用户明确要求保存的 phase 02、phase 03、phase 04、phase 05 实施结果与后续方向例外。
 
 ## 保存原则

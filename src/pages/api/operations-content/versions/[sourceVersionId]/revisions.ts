@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import { getDb } from '../../../../../db/client';
 import {
   operationsContent,
@@ -89,6 +89,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
           }).where(and(
             eq(operationsPromotionStage.campaignId, activeCampaign.id),
             eq(operationsPromotionStage.stageType, activeCampaign.currentStage),
+            isNull(operationsPromotionStage.endedOn),
           ));
           await transaction.update(operationsPromotionCampaign).set({
             currentStage: null,
@@ -114,7 +115,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
 
       const completionStatus = normalizeCompletionStatus(result.data);
       const promotionStatus = result.data.isPromoted
-        ? result.data.actualPublishAt ? 'testing' : 'pending'
+        ? result.data.actualPublishAt ? 'awaiting_promotion' : 'pending'
         : 'none';
       const [schedule] = await transaction.insert(operationsContentSchedule).values({
         contentVersionId: version.id,
@@ -126,20 +127,6 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         completionStatus,
         delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
       }).returning({ id: operationsContentSchedule.id });
-      if (result.data.isPromoted && result.data.actualPublishAt) {
-        const startedOn = shanghaiDateKey(result.data.actualPublishAt);
-        const [campaign] = await transaction.insert(operationsPromotionCampaign).values({
-          scheduleId: schedule.id,
-          startedOn,
-          currentStage: 'testing',
-          currentStatus: 'testing',
-        }).returning({ id: operationsPromotionCampaign.id });
-        await transaction.insert(operationsPromotionStage).values({
-          campaignId: campaign.id,
-          stageType: 'testing',
-          startedOn,
-        });
-      }
       await transaction.update(operationsContent).set({ updatedAt: new Date() })
         .where(eq(operationsContent.id, source.contentId));
       return { kind: 'created' as const, scheduleId: schedule.id, versionNumber: nextVersionNumber };

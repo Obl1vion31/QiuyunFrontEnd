@@ -236,6 +236,7 @@ export const operationsContentSchedule = pgTable(
     syncToMoments: boolean('sync_to_moments').notNull().default(false),
     isPromoted: boolean('is_promoted').notNull().default(false),
     promotionStatus: text('promotion_status').notNull().default('none'),
+    promotionDeferredThrough: date('promotion_deferred_through'),
     plannedPublishAt: timestamp('planned_publish_at', { withTimezone: true }).notNull(),
     actualPublishAt: timestamp('actual_publish_at', { withTimezone: true }),
     completionStatus: text('completion_status').notNull(),
@@ -257,7 +258,7 @@ export const operationsContentSchedule = pgTable(
         (${table.isPromoted} = false AND ${table.promotionStatus} = 'none')
         OR
         (${table.isPromoted} = true AND ${table.promotionStatus} IN (
-          'pending', 'testing', 'scaling', 'ended', 'test_discarded', 'formal_discarded'
+          'pending', 'awaiting_promotion', 'testing', 'scaling', 'ended', 'test_discarded', 'formal_discarded'
         ))
       )`,
     ),
@@ -312,6 +313,9 @@ export const operationsPromotionStage = pgTable(
   },
   (table) => [
     index('operations_promotion_stage_campaign_idx').on(table.campaignId, table.startedOn),
+    uniqueIndex('operations_promotion_stage_one_open_idx')
+      .on(table.campaignId)
+      .where(sql`${table.endedOn} IS NULL`),
     check('operations_promotion_stage_type_check', sql`${table.stageType} IN ('testing', 'scaling')`),
     check(
       'operations_promotion_stage_outcome_check',
@@ -332,7 +336,7 @@ export const operationsPromotionDailyMetric = pgTable(
     metricDate: date('metric_date').notNull(),
     stageTypeSnapshot: text('stage_type_snapshot').notNull(),
     spend: numeric('spend', { precision: 12, scale: 2 }).notNull(),
-    clickRate: numeric('click_rate', { precision: 7, scale: 4 }).notNull(),
+    clickRate: numeric('click_rate', { precision: 7, scale: 4 }),
     platformOpenCount: integer('platform_open_count').notNull(),
     actualOpenCount: integer('actual_open_count').notNull(),
     platformLeadCount: integer('platform_lead_count').notNull(),
@@ -348,7 +352,10 @@ export const operationsPromotionDailyMetric = pgTable(
     index('operations_promotion_daily_date_idx').on(table.metricDate),
     check('operations_promotion_daily_stage_check', sql`${table.stageTypeSnapshot} IN ('testing', 'scaling')`),
     check('operations_promotion_daily_spend_check', sql`${table.spend} >= 0`),
-    check('operations_promotion_daily_click_rate_check', sql`${table.clickRate} BETWEEN 0 AND 100`),
+    check(
+      'operations_promotion_daily_click_rate_check',
+      sql`${table.clickRate} IS NULL OR ${table.clickRate} BETWEEN 0 AND 100`,
+    ),
     check(
       'operations_promotion_daily_counts_check',
       sql`${table.platformOpenCount} >= 0

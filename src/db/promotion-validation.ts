@@ -7,7 +7,6 @@ export const promotionDailySchema = z.object({
   campaignId: z.uuid('推广活动无效'),
   metricDate: dateKey,
   spend: z.coerce.number().min(0, '消耗不能小于 0').max(9999999999.99, '消耗金额过大'),
-  clickRate: z.coerce.number().min(0, '点击率不能小于 0').max(100, '点击率不能超过 100%'),
   platformOpenCount: nonNegativeInteger,
   actualOpenCount: nonNegativeInteger,
   platformLeadCount: nonNegativeInteger,
@@ -27,11 +26,28 @@ export const promotionDailyInputFromForm = (form: FormData) => ({
   campaignId: form.get('campaignId'),
   metricDate: form.get('metricDate'),
   spend: form.get('spend'),
-  clickRate: form.get('clickRate'),
   platformOpenCount: form.get('platformOpenCount'),
   actualOpenCount: form.get('actualOpenCount'),
   platformLeadCount: form.get('platformLeadCount'),
   actualLeadCount: form.get('actualLeadCount'),
   reviewDecision: form.get('reviewDecision'),
   note: form.get('note') || null,
+});
+
+export const promotionDailyUpdateSchema = promotionDailySchema.omit({
+  campaignId: true,
+  metricDate: true,
+}).extend({
+  confirmCascade: z.coerce.boolean().default(false),
+});
+
+export const promotionDailyUpdateInputFromForm = (form: FormData) => ({
+  spend: form.get('spend'),
+  platformOpenCount: form.get('platformOpenCount'),
+  actualOpenCount: form.get('actualOpenCount'),
+  platformLeadCount: form.get('platformLeadCount'),
+  actualLeadCount: form.get('actualLeadCount'),
+  reviewDecision: form.get('reviewDecision'),
+  note: form.get('note') || null,
+  confirmCascade: form.get('confirmCascade') === 'true',
 });

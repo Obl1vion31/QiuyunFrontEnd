@@ -13,6 +13,8 @@ import {
 import {
   calculateActualPromotionCosts,
   inclusivePromotionDays,
+  nextDateKey,
+  nextPendingPromotionDate,
   promotionStageShares,
   shanghaiDateKey,
 } from '../../db/promotion-rules.mjs';
@@ -27,8 +29,6 @@ const addDays = (dateKey: string, amount: number) => {
 const today = shanghaiDateKey(new Date());
 const yesterday = addDays(today, -1);
 const activeView = Astro.url.searchParams.get('view') === 'history' ? 'history' : 'daily';
-const requestedDate = Astro.url.searchParams.get('date') ?? yesterday;
-const selectedDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate < today ? requestedDate : yesterday;
 const isDateKey = (value: string | null): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 const requestedHistoryFrom = Astro.url.searchParams.get('from');
 const requestedHistoryTo = Astro.url.searchParams.get('to');
@@ -38,6 +38,7 @@ const historyFrom = isDateKey(requestedHistoryFrom) && requestedHistoryFrom <= h
   : addDays(historyTo, -89);
 const historyQuery = (Astro.url.searchParams.get('q') ?? '').trim();
 const historyStatus = Astro.url.searchParams.get('status') ?? '';
+const historyMode = Astro.url.searchParams.get('mode') === 'day' ? 'day' : 'post';
 const selectedCampaignId = Astro.url.searchParams.get('campaign');
 const formatDate = (dateKey: string) => {
   const [, month, day] = dateKey.split('-');
@@ -78,6 +79,15 @@ let campaigns: Array<{
   subjectName: string;
   categoryName: string | null;
 }> = [];
+let awaitingSchedules: Array<{
+  scheduleId: string;
+  actualPublishAt: Date | null;
+  promotionDeferredThrough: string | null;
+  contentName: string;
+  versionNumber: number;
+  subjectName: string;
+  categoryName: string | null;
+}> = [];
 let stages: Array<{
   id: string;
   campaignId: string;
@@ -92,7 +102,7 @@ let metrics: Array<{
   metricDate: string;
   stageTypeSnapshot: string;
   spend: string;
-  clickRate: string;
+  clickRate: string | null;
   platformOpenCount: number;
   actualOpenCount: number;
   platformLeadCount: number;
@@ -123,6 +133,20 @@ try {
     .orderBy(asc(operationsPromotionStage.startedOn));
   metrics = await getDb().select().from(operationsPromotionDailyMetric)
     .orderBy(asc(operationsPromotionDailyMetric.metricDate));
+  awaitingSchedules = await getDb().select({
+    scheduleId: operationsContentSchedule.id,
+    actualPublishAt: operationsContentSchedule.actualPublishAt,
+    promotionDeferredThrough: operationsContentSchedule.promotionDeferredThrough,
+    contentName: operationsContentVersion.contentName,
+    versionNumber: operationsContentVersion.versionNumber,
+    subjectName: operationsSubject.name,
+    categoryName: operationsCategory.name,
+  }).from(operationsContentSchedule)
+    .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+    .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
+    .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
+    .where(eq(operationsContentSchedule.promotionStatus, 'awaiting_promotion'))
+    .orderBy(asc(operationsContentSchedule.actualPublishAt), asc(operationsContentVersion.contentName)) as typeof awaitingSchedules;
 } catch (error) {
   console.error('daily promotion review query failed', error);
   databaseError = '推广日度数据暂时不可用。请确认开发库已经执行最新迁移。';
@@ -132,18 +156,38 @@ const stageAt = (campaignId: string, dateKey: string) => stages.find((stage) =>
   stage.campaignId === campaignId
   && stage.startedOn <= dateKey
   && (!stage.endedOn || stage.endedOn >= dateKey));
-const metricAt = (campaignId: string, dateKey: string) => metrics.find((metric) =>
-  metric.campaignId === campaignId && metric.metricDate === dateKey);
-const reviewRows = campaigns
-  .map((campaign) => ({ campaign, stage: stageAt(campaign.id, selectedDate), metric: metricAt(campaign.id, selectedDate) }))
-  .filter((row) => row.stage || row.metric);
+const dateRange = (start: string, end: string) => {
+  const dates: string[] = [];
+  for (let date = start; date <= end; date = nextDateKey(date)) dates.push(date);
+  return dates;
+};
 
-const displayedCampaigns = campaigns.filter((campaign) =>
-  stages.some((stage) =>
+const displayedCampaigns = campaigns.filter((campaign) => Boolean(stageAt(campaign.id, yesterday)));
+const awaitingRows = awaitingSchedules.filter((schedule) =>
+  schedule.actualPublishAt
+  && shanghaiDateKey(schedule.actualPublishAt) <= yesterday
+  && (!schedule.promotionDeferredThrough || schedule.promotionDeferredThrough < yesterday));
+const pendingRows = campaigns.flatMap((campaign) => {
+  if (!campaign.currentStage || campaign.startedOn > yesterday) return [];
+  const campaignMetrics = metrics.filter((metric) => metric.campaignId === campaign.id);
+  const latestMetric = campaignMetrics.at(-1);
+  const currentStage = stages.find((stage) =>
     stage.campaignId === campaign.id
-    && stage.startedOn <= selectedDate
-    && (!stage.endedOn || stage.endedOn >= selectedDate))
-  || metrics.some((metric) => metric.campaignId === campaign.id && metric.metricDate === selectedDate));
+    && stage.stageType === campaign.currentStage
+    && stage.endedOn === null);
+  if (!currentStage) return [];
+  const expectedDate = nextPendingPromotionDate(latestMetric?.metricDate, currentStage.startedOn);
+  if (expectedDate > yesterday) return [];
+  return dateRange(expectedDate, yesterday).map((metricDate, index) => ({
+    campaign,
+    metricDate,
+    unlocked: index === 0,
+    stageType: index === 0 ? campaign.currentStage : null,
+    blockedBy: expectedDate,
+  }));
+}).sort((left, right) =>
+  left.metricDate.localeCompare(right.metricDate)
+  || left.campaign.contentName.localeCompare(right.campaign.contentName, 'zh-CN'));
 
 const historyRows = campaigns.map((campaign) => {
   const campaignStages = stages.filter((stage) => stage.campaignId === campaign.id);
@@ -175,13 +219,48 @@ const historyRows = campaigns.map((campaign) => {
     || row.campaign.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase());
   const matchesStatus = !historyStatus || row.campaign.currentStatus === historyStatus;
   return overlapsRange && matchesQuery && matchesStatus;
+}).sort((left, right) => {
+  const leftActive = ['testing', 'scaling'].includes(left.campaign.currentStatus) ? 0 : 1;
+  const rightActive = ['testing', 'scaling'].includes(right.campaign.currentStatus) ? 0 : 1;
+  return leftActive - rightActive || right.startedOn.localeCompare(left.startedOn);
 });
+const activeHistoryRows = historyRows.filter((row) => ['testing', 'scaling'].includes(row.campaign.currentStatus));
+const endedHistoryRows = historyRows.filter((row) => !['testing', 'scaling'].includes(row.campaign.currentStatus));
+const forceOpenEnded = Boolean(historyQuery || historyStatus || (selectedCampaignId && endedHistoryRows.some((row) => row.campaign.id === selectedCampaignId)));
+const campaignById = new Map(campaigns.map((campaign) => [campaign.id, campaign]));
+const historyDayGroups = [...new Set(metrics
+  .filter((metric) => metric.metricDate >= historyFrom && metric.metricDate <= historyTo)
+  .filter((metric) => {
+    const campaign = campaignById.get(metric.campaignId);
+    return campaign
+      && (!historyQuery || campaign.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))
+      && (!historyStatus || campaign.currentStatus === historyStatus);
+  })
+  .map((metric) => metric.metricDate))]
+  .sort((left, right) => right.localeCompare(left))
+  .map((metricDate) => {
+    const rows = metrics.filter((metric) => metric.metricDate === metricDate && campaignById.has(metric.campaignId))
+      .filter((metric) => {
+        const campaign = campaignById.get(metric.campaignId)!;
+        return (!historyQuery || campaign.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))
+          && (!historyStatus || campaign.currentStatus === historyStatus);
+      });
+    return {
+      metricDate,
+      rows,
+      spend: rows.reduce((sum, metric) => sum + Number(metric.spend), 0),
+      platformOpenCount: rows.reduce((sum, metric) => sum + metric.platformOpenCount, 0),
+      actualOpenCount: rows.reduce((sum, metric) => sum + metric.actualOpenCount, 0),
+      actualLeadCount: rows.reduce((sum, metric) => sum + metric.actualLeadCount, 0),
+    };
+  });
 const selectedHistoryRow = selectedCampaignId
   ? historyRows.find((row) => row.campaign.id === selectedCampaignId) ?? null
   : null;
 const historyHref = (overrides: Record<string, string>) => {
   const params = new URLSearchParams({
     view: 'history',
+    mode: historyMode,
     from: historyFrom,
     to: historyTo,
     ...(historyQuery ? { q: historyQuery } : {}),
@@ -217,25 +296,20 @@ const historyHref = (overrides: Record<string, string>) => {
 
       <section class="workspace">
         <header class="toolbar">
-          <div class="toolbar-title"><span>Daily Promotion Review</span><small>{activeView === 'daily' ? '下一天填写上一天' : '最近 90 天推广活动'}</small></div>
+          <div class="toolbar-title"><span>Daily Promotion Review</span><small>{activeView === 'daily' ? '只处理尚未完成的日度复盘' : '推广事实与完整生命周期'}</small></div>
           <div class="toolbar-center">
             <nav class="view-switch" aria-label="推广复盘视图">
-              <a class:list={{ active: activeView === 'daily' }} href={`?view=daily&date=${selectedDate}`}>每日复盘</a>
+              <a class:list={{ active: activeView === 'daily' }} href="?view=daily">每日复盘</a>
               <a class:list={{ active: activeView === 'history' }} href="?view=history">历史总览</a>
             </nav>
             {activeView === 'daily'
-              ? <nav class="date-nav" aria-label="复盘日期">
-                  <a href={`?view=daily&date=${addDays(selectedDate, -1)}`} aria-label="前一天">‹</a>
-                  <strong>{formatDate(selectedDate)}</strong>
-                  <a href={`?view=daily&date=${addDays(selectedDate, 1)}`} aria-label="后一天" aria-disabled={selectedDate >= yesterday}>›</a>
-                  <a href={`?view=daily&date=${yesterday}`}>昨天</a>
-                </nav>
+              ? <strong class="latest-cutoff">最新状态 · 截至 {formatDate(yesterday)}</strong>
               : <strong class="history-range-label">{formatDate(historyFrom)}—{formatDate(historyTo)}</strong>}
           </div>
           <div class="toolbar-summary">
-            <span>{activeView === 'daily' ? '应复盘' : '推广活动'}</span>
-            <strong>{activeView === 'daily' ? reviewRows.length : historyRows.length}</strong>
-            <small>{activeView === 'daily' ? `已完成 ${reviewRows.filter((row) => row.metric).length}` : '点击活动查看逐日明细'}</small>
+            <span>{activeView === 'daily' ? '待完成' : '推广活动'}</span>
+            <strong>{activeView === 'daily' ? pendingRows.length + awaitingRows.length : historyRows.length}</strong>
+            <small>{activeView === 'daily' ? `${pendingRows.filter((row) => row.unlocked).length + awaitingRows.length} 项可立即处理` : '点击活动查看逐日明细'}</small>
           </div>
         </header>
 
@@ -245,20 +319,20 @@ const historyHref = (overrides: Record<string, string>) => {
           {activeView === 'daily' && <>
           <section class="calendar-section" aria-labelledby="calendar-title">
             <header class="section-head">
-              <div><span>LIFECYCLE CALENDAR</span><h1 id="calendar-title">推广生命周期</h1></div>
-              <p><i class="legend testing"></i>测试 <i class="legend scaling"></i>放量 · 截止 {formatDate(selectedDate)}</p>
+              <div><span>LATEST LIFECYCLE</span><h1 id="calendar-title">最新推广生命周期</h1></div>
+              <p><i class="legend testing"></i>测试 <i class="legend scaling"></i>放量 · 截止 {formatFullDate(yesterday)}</p>
             </header>
             {!databaseError && displayedCampaigns.length === 0
-              ? <div class="empty-state"><strong>截止这一天没有进行中的推广活动</strong><p>切换复盘日期，或在排期中确认推广帖的实发时间。</p></div>
+              ? <div class="empty-state"><strong>截至昨天没有推广活动</strong><p>在排期中确认推广帖的实发时间后，生命周期会从实发日开始。</p></div>
               : <div class="lifecycle-list">
                   {displayedCampaigns.map((campaign) => {
                     const campaignStages = stages
                       .filter((stage) => {
-                        return stage.campaignId === campaign.id && !(stage.startedOn > selectedDate);
+                        return stage.campaignId === campaign.id && !(stage.startedOn > yesterday);
                       });
                     const stageDetails = campaignStages.map((stage) => {
-                      const visibleEnd = stage.endedOn && stage.endedOn < selectedDate ? stage.endedOn : selectedDate;
-                      const open = !stage.endedOn || stage.endedOn > selectedDate;
+                      const visibleEnd = stage.endedOn && stage.endedOn < yesterday ? stage.endedOn : yesterday;
+                      const open = !stage.endedOn || stage.endedOn > yesterday;
                       return {
                         ...stage,
                         visibleEnd,
@@ -297,54 +371,51 @@ const historyHref = (overrides: Record<string, string>) => {
 
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
             <header class="section-head">
-              <div><span>T+1 DAILY INPUT</span><h2 id="daily-title">{formatDate(selectedDate)} 日度数据</h2></div>
-              <p>填写六项原始数据，系统只计算实际开口与实际留资成本。</p>
+              <div><span>T+1 REVIEW QUEUE</span><h2 id="daily-title">待完成复盘</h2></div>
+              <p>按日期顺序完成；已填数据请到历史总览查看。</p>
             </header>
-            {!databaseError && reviewRows.length === 0
-              ? <div class="empty-state"><strong>这一天没有待复盘推广帖</strong><p>切换日期查看其他推广数据。</p></div>
+            {awaitingRows.length > 0 && <div class="awaiting-list" aria-label="待开始推广">
+              {awaitingRows.map((schedule) => <form class="awaiting-row" data-awaiting-form>
+                <input type="hidden" name="scheduleId" value={schedule.scheduleId} />
+                <input type="hidden" name="reviewDate" value={yesterday} />
+                <div>
+                  <span>AWAITING PROMOTION</span>
+                  <strong>{schedule.contentName}</strong>
+                  <small>V{schedule.versionNumber} · {schedule.subjectName} · {formatDate(yesterday)}</small>
+                </div>
+                <p>帖子已发布，但这一天尚未进入测试。确认暂不推广，或从这一天开始测试。</p>
+                <div class="awaiting-actions">
+                  <button type="submit" name="action" value="defer">当日未推广</button>
+                  <button type="submit" name="action" value="start_testing">开始测试</button>
+                </div>
+                <p class="awaiting-message" data-awaiting-message role="alert"></p>
+              </form>)}
+            </div>}
+            {!databaseError && pendingRows.length === 0 && awaitingRows.length === 0
+              ? <div class="empty-state"><strong>截至昨天已全部完成</strong><p>已填数据保存在历史总览；新的待办会在下一复盘日出现。</p></div>
               : <div class="daily-table-wrap">
-                <div class="daily-grid" role="table" aria-label={`${formatDate(selectedDate)}推广日度数据`}>
+                <div class="daily-grid" role="table" aria-label="待完成推广日度复盘">
                   <div class="column-groups" aria-hidden="true">
                     <span class="raw-group">当日原始数据</span>
                     <span class="cost-group">自动计算</span>
                     <span class="review-group">复盘决定</span>
                   </div>
                   <div class="daily-header daily-row" role="row">
-                    {['帖子','阶段','消耗','点击率','平台开口','实际开口','平台留资','实际留资','实际开口成本','实际留资成本','下一步','操作']
+                    {['帖子','日期','阶段','消耗','平台开口','实际开口','平台留资','实际留资','实际开口成本','实际留资成本','下一步','操作']
                       .map((label) => <span role="columnheader">{label}</span>)}
                   </div>
-                  {reviewRows.map(({ campaign, stage, metric }) => {
-                    const stageType = metric?.stageTypeSnapshot ?? stage?.stageType ?? campaign.currentStage;
-                    const costs = metric ? calculateActualPromotionCosts({
-                      spend: Number(metric.spend),
-                      actualOpenCount: metric.actualOpenCount,
-                      actualLeadCount: metric.actualLeadCount,
-                    }) : null;
+                  {pendingRows.map(({ campaign, metricDate, unlocked, stageType, blockedBy }) => {
                     const decisionOptions = stageType === 'scaling'
                       ? ['scaling_continue','formal_discarded','ended']
                       : ['test_continue','test_discarded','start_scaling'];
-                    return metric
-                      ? <div class="daily-row reviewed-row" role="row">
-                          <span class="identity" role="cell" data-label="帖子"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></span>
-                          <span class={`stage-cell ${stageType}`} role="cell" data-label="阶段">{stageType === 'scaling' ? '放量' : '测试'}</span>
-                          <span class="group-start" role="cell" data-label="消耗">¥{Number(metric.spend).toFixed(2)}</span>
-                          <span role="cell" data-label="点击率">{Number(metric.clickRate)}%</span>
-                          <span role="cell" data-label="平台开口">{metric.platformOpenCount}</span>
-                          <span role="cell" data-label="实际开口">{metric.actualOpenCount}</span>
-                          <span role="cell" data-label="平台留资">{metric.platformLeadCount}</span>
-                          <span role="cell" data-label="实际留资">{metric.actualLeadCount}</span>
-                          <span class="calculated group-start" role="cell" data-label="实际开口成本">{costs?.actualOpenCost == null ? '—' : `¥${costs.actualOpenCost.toFixed(2)}`}</span>
-                          <span class="calculated" role="cell" data-label="实际留资成本">{costs?.actualLeadCost == null ? '—' : `¥${costs.actualLeadCost.toFixed(2)}`}</span>
-                          <strong class="decision-value group-start" role="cell" data-label="下一步">{decisionLabels[metric.reviewDecision]}</strong>
-                          <span class="completed" role="cell" data-label="操作">已完成</span>
-                        </div>
-                      : <form class="daily-row metric-form" data-metric-form role="row">
+                    return unlocked
+                      ? <form class="daily-row metric-form" data-metric-form role="row">
                           <input type="hidden" name="campaignId" value={campaign.id} />
-                          <input type="hidden" name="metricDate" value={selectedDate} />
+                          <input type="hidden" name="metricDate" value={metricDate} />
                           <span class="identity" role="cell" data-label="帖子"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></span>
+                          <strong class="metric-date" role="cell" data-label="日期">{formatDate(metricDate)}</strong>
                           <span class={`stage-cell ${stageType}`} role="cell" data-label="阶段">{stageType === 'scaling' ? '放量' : '测试'}</span>
                           <label class="field-cell group-start" role="cell" data-label="消耗"><span class="sr-only">消耗</span><input aria-label="消耗" name="spend" type="number" min="0" step="0.01" placeholder="¥" required /></label>
-                          <label class="field-cell" role="cell" data-label="点击率"><span class="sr-only">点击率</span><input aria-label="点击率百分比" name="clickRate" type="number" min="0" max="100" step="0.0001" placeholder="%" required /></label>
                           <label class="field-cell" role="cell" data-label="平台开口"><span class="sr-only">平台开口</span><input aria-label="平台开口人数" name="platformOpenCount" type="number" min="0" step="1" required /></label>
                           <label class="field-cell" role="cell" data-label="实际开口"><span class="sr-only">实际开口</span><input aria-label="实际开口人数" name="actualOpenCount" type="number" min="0" step="1" required /></label>
                           <label class="field-cell" role="cell" data-label="平台留资"><span class="sr-only">平台留资</span><input aria-label="平台留资人数" name="platformLeadCount" type="number" min="0" step="1" required /></label>
@@ -357,7 +428,13 @@ const historyHref = (overrides: Record<string, string>) => {
                           </select></label>
                           <button type="submit" role="cell">完成复盘</button>
                           <p role="alert" data-form-message></p>
-                        </form>;
+                        </form>
+                      : <div class="daily-row locked-row" role="row">
+                          <span class="identity" role="cell" data-label="帖子"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></span>
+                          <strong class="metric-date" role="cell" data-label="日期">{formatDate(metricDate)}</strong>
+                          <span class="stage-cell pending" role="cell" data-label="阶段">待定</span>
+                          <p class="locked-explanation" role="cell">请先完成 {formatDate(blockedBy)}，系统将根据复盘决定解锁并确认本日阶段。</p>
+                        </div>;
                   })}
                 </div>
               </div>}
@@ -366,9 +443,10 @@ const historyHref = (overrides: Record<string, string>) => {
 
           {activeView === 'history' && <section class="history-workspace" aria-labelledby="history-title">
             <header class="history-head">
-              <div><span>PROMOTION ARCHIVE</span><h1 id="history-title">推广历史总览</h1><p>先定位活动，再在右侧查看每天的复盘事实。</p></div>
+              <div><span>PROMOTION ARCHIVE</span><h1 id="history-title">推广历史总览</h1><p>{historyMode === 'post' ? '进行中的活动优先，已结束活动按需展开。' : '按日期对账，每篇帖子保留一行事实。'}</p></div>
               <form class="history-filters" method="get">
                 <input type="hidden" name="view" value="history" />
+                <input type="hidden" name="mode" value={historyMode} />
                 <label><span>开始日期</span><input type="date" name="from" value={historyFrom} max={historyTo} /></label>
                 <label><span>结束日期</span><input type="date" name="to" value={historyTo} max={yesterday} /></label>
                 <label class="history-search"><span>帖子</span><input type="search" name="q" value={historyQuery} placeholder="搜索帖子名称" /></label>
@@ -377,17 +455,21 @@ const historyHref = (overrides: Record<string, string>) => {
                   {Object.entries(statusLabels).map(([value, label]) => <option value={value} selected={historyStatus === value}>{label}</option>)}
                 </select></label>
                 <button type="submit">查看</button>
-                <a href="?view=history">最近 90 天</a>
+                <a href={`?view=history&mode=${historyMode}`}>重置范围</a>
               </form>
             </header>
+            <nav class="history-mode-switch" aria-label="历史总览粒度">
+              <a class:list={{ active: historyMode === 'post' }} href={historyHref({ mode: 'post', campaign: '' })}>帖子视角</a>
+              <a class:list={{ active: historyMode === 'day' }} href={historyHref({ mode: 'day', campaign: '' })}>日视角</a>
+            </nav>
             <div class:list={['history-layout', { inspecting: selectedHistoryRow }]}>
-              <div class="history-list" role="table" aria-label="推广历史活动">
+              {historyMode === 'post' ? <div class="history-list" role="table" aria-label="推广历史活动">
                 <div class="history-table-head history-record" role="row">
                   <span>帖子</span><span>推广区间</span><span>测试</span><span>放量</span><span>复盘完成</span><span>状态</span>
                 </div>
                 {historyRows.length === 0
                   ? <div class="empty-state"><strong>该范围内没有推广活动</strong><p>调整日期、帖子名称或状态筛选。</p></div>
-                  : historyRows.map((row) => {
+                  : activeHistoryRows.map((row) => {
                       const completion = row.expectedDays > 0
                         ? Math.min(100, Math.round((row.reviewedDays / row.expectedDays) * 100))
                         : 0;
@@ -404,7 +486,48 @@ const historyHref = (overrides: Record<string, string>) => {
                         <span role="cell" data-label="状态"><mark class={`history-status ${row.campaign.currentStatus}`}>{statusLabels[row.campaign.currentStatus]}</mark></span>
                       </a>;
                     })}
-              </div>
+                {endedHistoryRows.length > 0 && <details class="ended-campaigns" open={forceOpenEnded}>
+                  <summary><span>已结束推广</span><b>{endedHistoryRows.length} 个活动</b></summary>
+                  {endedHistoryRows.map((row) => {
+                    const completion = row.expectedDays > 0
+                      ? Math.min(100, Math.round((row.reviewedDays / row.expectedDays) * 100)) : 0;
+                    return <a class:list={['history-record', { selected: selectedHistoryRow?.campaign.id === row.campaign.id }]}
+                      href={historyHref({ campaign: row.campaign.id })} role="row">
+                      <span class="history-identity" role="cell"><strong>{row.campaign.contentName}</strong><small>V{row.campaign.versionNumber} · {row.campaign.subjectName}</small></span>
+                      <span role="cell" data-label="推广区间">{formatRange(row.startedOn, row.endedOn)}</span>
+                      <span role="cell" data-label="测试"><b>{row.testingDays}</b> 天</span>
+                      <span role="cell" data-label="放量"><b>{row.scalingDays}</b> 天</span>
+                      <span class="history-progress" role="cell" data-label="复盘完成"><b>{row.reviewedDays}/{row.expectedDays}</b><i><em style={`width:${completion}%`}></em></i></span>
+                      <span role="cell" data-label="状态"><mark class={`history-status ${row.campaign.currentStatus}`}>{statusLabels[row.campaign.currentStatus]}</mark></span>
+                    </a>;
+                  })}
+                </details>}
+              </div> : <div class="day-history" aria-label="按日期查看推广历史">
+                {historyDayGroups.length === 0
+                  ? <div class="empty-state"><strong>该范围内没有日度记录</strong><p>调整日期、帖子名称或状态筛选。</p></div>
+                  : historyDayGroups.map((group) => <section class="day-group">
+                    <header>
+                      <div><span>DAILY TOTAL</span><h2>{formatFullDate(group.metricDate)}</h2></div>
+                      <dl>
+                        <div><dt>总消耗</dt><dd>¥{group.spend.toFixed(2)}</dd></div>
+                        <div><dt>总开口</dt><dd>{group.platformOpenCount}</dd></div>
+                        <div><dt>总实际开口</dt><dd>{group.actualOpenCount}</dd></div>
+                        <div><dt>总实际留资</dt><dd>{group.actualLeadCount}</dd></div>
+                      </dl>
+                    </header>
+                    <div class="day-table">
+                      <div class="day-row day-row-head"><span>帖子</span><span>阶段 / 下一步</span><span>消耗</span><span>开口</span><span>实际开口</span><span>实际留资</span></div>
+                      {group.rows.map((metric) => {
+                        const campaign = campaignById.get(metric.campaignId)!;
+                        return <a class="day-row" href={historyHref({ mode: 'post', campaign: campaign.id })}>
+                          <span class="history-identity"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></span>
+                          <span><mark class={`history-status ${metric.stageTypeSnapshot}`}>{metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</mark><small>{decisionLabels[metric.reviewDecision]}</small></span>
+                          <span>¥{Number(metric.spend).toFixed(2)}</span><span>{metric.platformOpenCount}</span><span>{metric.actualOpenCount}</span><span>{metric.actualLeadCount}</span>
+                        </a>;
+                      })}
+                    </div>
+                  </section>)}
+              </div>}
               {selectedHistoryRow && <aside class="history-inspector" aria-labelledby="inspector-title">
                 <header>
                   <div><span>CAMPAIGN INSPECTOR</span><h2 id="inspector-title">{selectedHistoryRow.campaign.contentName}</h2><p>V{selectedHistoryRow.campaign.versionNumber} · {selectedHistoryRow.campaign.subjectName}</p></div>
@@ -432,17 +555,38 @@ const historyHref = (overrides: Record<string, string>) => {
                           actualOpenCount: metric.actualOpenCount,
                           actualLeadCount: metric.actualLeadCount,
                         });
-                        return <a href={`?view=daily&date=${metric.metricDate}#daily-table`} class="history-day">
+                        const decisionOptions = metric.stageTypeSnapshot === 'scaling'
+                          ? ['scaling_continue','formal_discarded','ended']
+                          : ['test_continue','test_discarded','start_scaling'];
+                        return <article class="history-day" data-metric-card={metric.id}>
                           <header><strong>{formatDate(metric.metricDate)}</strong><span>{metric.stageTypeSnapshot === 'testing' ? '测试' : '放量'} · {decisionLabels[metric.reviewDecision]}</span></header>
                           <dl>
                             <div><dt>消耗</dt><dd>¥{Number(metric.spend).toFixed(2)}</dd></div>
-                            <div><dt>点击率</dt><dd>{Number(metric.clickRate)}%</dd></div>
                             <div><dt>开口</dt><dd>{metric.platformOpenCount} / {metric.actualOpenCount}</dd></div>
                             <div><dt>留资</dt><dd>{metric.platformLeadCount} / {metric.actualLeadCount}</dd></div>
                             <div><dt>实际开口成本</dt><dd>{costs.actualOpenCost == null ? '—' : `¥${costs.actualOpenCost.toFixed(2)}`}</dd></div>
                             <div><dt>实际留资成本</dt><dd>{costs.actualLeadCost == null ? '—' : `¥${costs.actualLeadCost.toFixed(2)}`}</dd></div>
                           </dl>
-                        </a>;
+                          {metric.note && <p class="history-note">{metric.note}</p>}
+                          <button type="button" class="edit-history-button" data-edit-trigger={metric.id}>编辑这一天</button>
+                          <dialog class="history-edit-dialog" data-edit-dialog={metric.id}>
+                            <form data-history-edit-form>
+                              <header><div><span>EDIT DAILY FACT</span><h3>{formatFullDate(metric.metricDate)}</h3><p>{selectedHistoryRow.campaign.contentName} · {metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
+                              <input type="hidden" name="metricId" value={metric.id} />
+                              <div class="edit-fields">
+                                <label>消耗<input name="spend" type="number" min="0" step="0.01" value={Number(metric.spend).toFixed(2)} required /></label>
+                                <label>平台开口<input name="platformOpenCount" type="number" min="0" step="1" value={metric.platformOpenCount} required /></label>
+                                <label>实际开口<input name="actualOpenCount" type="number" min="0" step="1" value={metric.actualOpenCount} required /></label>
+                                <label>平台留资<input name="platformLeadCount" type="number" min="0" step="1" value={metric.platformLeadCount} required /></label>
+                                <label>实际留资<input name="actualLeadCount" type="number" min="0" step="1" value={metric.actualLeadCount} required /></label>
+                                <label>下一步<select name="reviewDecision" required>{decisionOptions.map((decision) => <option value={decision} selected={metric.reviewDecision === decision}>{decisionLabels[decision]}</option>)}</select></label>
+                                <label class="edit-note">备注<textarea name="note" maxlength="500" rows="3">{metric.note ?? ''}</textarea></label>
+                              </div>
+                              <p class="edit-impact" data-edit-message role="alert"></p>
+                              <footer><button type="button" data-close-edit>取消</button><button type="submit">保存修改</button></footer>
+                            </form>
+                          </dialog>
+                        </article>;
                       })}
                 </section>
               </aside>}
@@ -490,6 +634,74 @@ const historyHref = (overrides: Record<string, string>) => {
           }
         });
       });
+      document.querySelectorAll<HTMLFormElement>('[data-awaiting-form]').forEach((form) => {
+        const message = form.querySelector<HTMLElement>('[data-awaiting-message]');
+        const buttons = [...form.querySelectorAll<HTMLButtonElement>('button[type="submit"]')];
+        if (!message || buttons.length === 0) return;
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const submitter = event.submitter as HTMLButtonElement | null;
+          if (!submitter) return;
+          const data = new FormData(form);
+          data.set('action', submitter.value);
+          buttons.forEach((button) => { button.disabled = true; });
+          message.textContent = submitter.value === 'start_testing' ? '正在建立测试阶段…' : '正在确认当日未推广…';
+          try {
+            const response = await fetch('/api/promotion-awaiting', {
+              method: 'POST',
+              body: data,
+              headers: { Accept: 'application/json' },
+            });
+            const result = await response.json();
+            if (response.ok) {
+              window.location.reload();
+              return;
+            }
+            message.textContent = result.message ?? '保存失败，请重试。';
+          } catch {
+            message.textContent = '无法连接服务，请稍后重试。';
+          } finally {
+            buttons.forEach((button) => { button.disabled = false; });
+          }
+        });
+      });
+      document.querySelectorAll<HTMLButtonElement>('[data-edit-trigger]').forEach((trigger) => {
+        const dialog = document.querySelector<HTMLDialogElement>(`[data-edit-dialog="${trigger.dataset.editTrigger}"]`);
+        if (!dialog) return;
+        trigger.addEventListener('click', () => dialog.showModal());
+        dialog.querySelectorAll<HTMLButtonElement>('[data-close-edit]').forEach((button) => button.addEventListener('click', () => dialog.close()));
+      });
+      document.querySelectorAll<HTMLFormElement>('[data-history-edit-form]').forEach((form) => {
+        const message = form.querySelector<HTMLElement>('[data-edit-message]');
+        const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+        if (!message || !submit) return;
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const data = new FormData(form);
+          const metricId = String(data.get('metricId'));
+          submit.disabled = true;
+          message.textContent = '正在保存修改…';
+          try {
+            let response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
+            let result = await response.json();
+            if (response.status === 409 && result.correctionRequired) {
+              if (!window.confirm(`${result.message}\n\n确认后，后续日期会重新回到待填队列。是否继续？`)) {
+                message.textContent = '已取消修改，原数据未变化。';
+                return;
+              }
+              data.set('confirmCascade', 'true');
+              response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
+              result = await response.json();
+            }
+            if (response.ok) return window.location.reload();
+            message.textContent = result.message ?? '保存失败，请重试。';
+          } catch {
+            message.textContent = '无法连接服务，请稍后重试。';
+          } finally {
+            submit.disabled = false;
+          }
+        });
+      });
     </script>
   </body>
 </html>
@@ -498,13 +710,15 @@ const historyHref = (overrides: Record<string, string>) => {
   :root{--paper:#eef1ed;--ink:#17202a;--muted:#64716b;--line:#c8d0cb;--night:#10243e;--blue:#2454d3;--blue-soft:#dfe7ff;--test:#d49a12;--test-soft:#fff1bf;--test-ink:#6a4a00;--scale:#3f9272;--scale-soft:#ddf2e8;--scale-ink:#205d48;--red:#a64a43;--white:#fff}
   *{box-sizing:border-box}html,body{min-height:100%;margin:0;background:var(--paper)}body{color:var(--ink);font-family:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;line-height:1.45}button,input,select{font:inherit}a{color:inherit}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ff6a3d;outline-offset:2px}
   .app-shell{min-height:100vh;display:grid;grid-template-columns:232px minmax(0,1fr)}.sidebar{position:sticky;top:0;height:100vh;z-index:20;display:flex;flex-direction:column;padding:22px 14px 16px;color:#fff;background:var(--night)}.sidebar-brand{display:grid;gap:2px;padding:8px 12px 24px;text-decoration:none}.sidebar-brand span{color:#9eb8f8;font:750 .64rem ui-monospace,monospace;letter-spacing:.13em}.sidebar-brand strong{font-size:1.02rem}.module-nav{display:grid;gap:5px}.module-nav>a,.module-nav>.planned{display:grid;grid-template-columns:30px 1fr;align-items:center;gap:10px;min-height:52px;padding:7px 10px;border-radius:12px;text-decoration:none}.module-nav>a.active{background:#ffffff16;box-shadow:inset 0 0 0 1px #ffffff17}.module-nav>.planned{color:#a8b5c0}.module-nav strong,.module-nav small{display:block}.module-nav strong{font-size:.8rem}.module-nav small{color:#8093a3;font-size:.62rem}.module-nav a.active small{color:#9eb8f8}.nav-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:#dbe5ff;background:#ffffff12;font:800 .68rem ui-monospace,monospace}.module-nav a.active .nav-icon{color:#fff;background:var(--blue)}.sidebar-foot{display:grid;gap:8px;margin-top:auto;padding:14px 12px 4px;border-top:1px solid #ffffff17}.sidebar-foot span{color:#70869a;font:700 .58rem ui-monospace,monospace;letter-spacing:.11em}.sidebar-foot a{color:#b8c7d2;font-size:.72rem;text-decoration:none}
-  .workspace{min-width:0}.toolbar{position:sticky;top:0;z-index:14;min-height:82px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;padding:9px 24px;border-bottom:1px solid #bac2bf;background:#f5f7f3ed;backdrop-filter:blur(20px)}.toolbar-title{display:grid}.toolbar-title span{font-size:.92rem;font-weight:900}.toolbar-title small{color:var(--muted);font-size:.64rem}.toolbar-center{display:grid;justify-items:center;gap:5px}.view-switch{display:flex;padding:3px;border-radius:10px;background:#cfd7d3}.view-switch a{min-height:28px;display:grid;place-items:center;padding:0 11px;border-radius:7px;color:#58645e;font-size:.62rem;font-weight:850;text-decoration:none}.view-switch a.active{color:#fff;background:var(--night)}.date-nav{display:flex;align-items:center;padding:3px;border-radius:11px;background:#dce2df}.date-nav a,.date-nav strong{display:grid;place-items:center;min-height:30px;padding:0 11px;text-decoration:none;font:800 .68rem ui-monospace,monospace}.date-nav a{border-radius:8px}.date-nav a:hover{background:#fff}.date-nav a[aria-disabled="true"]{pointer-events:none;opacity:.35}.history-range-label{color:#4d5a54;font:800 .62rem ui-monospace,monospace}.toolbar-summary{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 7px}.toolbar-summary span,.toolbar-summary small{color:var(--muted);font-size:.62rem}.toolbar-summary strong{font:900 1.3rem ui-monospace,monospace}.toolbar-summary small{grid-column:1/-1}
+  .workspace{min-width:0}.toolbar{position:sticky;top:0;z-index:14;min-height:82px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;padding:9px 24px;border-bottom:1px solid #bac2bf;background:#f5f7f3ed;backdrop-filter:blur(20px)}.toolbar-title{display:grid}.toolbar-title span{font-size:.92rem;font-weight:900}.toolbar-title small{color:var(--muted);font-size:.64rem}.toolbar-center{display:grid;justify-items:center;gap:5px}.view-switch{display:flex;padding:3px;border-radius:10px;background:#cfd7d3}.view-switch a{min-height:28px;display:grid;place-items:center;padding:0 11px;border-radius:7px;color:#58645e;font-size:.62rem;font-weight:850;text-decoration:none}.view-switch a.active{color:#fff;background:var(--night)}.latest-cutoff,.history-range-label{color:#4d5a54;font:800 .62rem ui-monospace,monospace}.latest-cutoff{padding:5px 9px;border-radius:7px;background:#e3e8e5}.toolbar-summary{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 7px}.toolbar-summary span,.toolbar-summary small{color:var(--muted);font-size:.62rem}.toolbar-summary strong{font:900 1.3rem ui-monospace,monospace}.toolbar-summary small{grid-column:1/-1}
   main{padding:28px 26px 80px}.notice{padding:12px 15px;border-left:4px solid var(--red);background:#f9e6e3}.calendar-section,.daily-section{margin-bottom:30px;border:1px solid var(--line);border-radius:16px;background:#f8faf7;overflow:hidden}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:18px 20px;border-bottom:1px solid var(--line)}.section-head span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.section-head h1,.section-head h2{margin:3px 0 0;font-size:1.15rem;letter-spacing:-.02em}.section-head p{margin:0;color:var(--muted);font-size:.66rem}.legend{display:inline-block;width:18px;height:7px;margin:0 5px 0 12px;border-radius:99px;background:var(--test)}.legend.scaling{background:var(--scale)}
   .lifecycle-list{display:grid;background:#edf1ee}.lifecycle-card{display:grid;gap:12px;padding:17px 20px 19px;border-bottom:1px solid var(--line);background:#fff}.lifecycle-card:last-child{border-bottom:0}.lifecycle-card>header{display:flex;align-items:start;justify-content:space-between;gap:18px}.lifecycle-card>header a{display:grid;min-width:0;text-decoration:none}.lifecycle-card>header strong{overflow:hidden;font-size:.78rem;text-overflow:ellipsis;white-space:nowrap}.lifecycle-card>header span{color:var(--muted);font-size:.58rem}.lifecycle-status,.history-status{display:inline-block;padding:4px 8px;border-radius:999px;color:#56615c;background:#e7e9e8;font-size:.56rem;font-weight:850;white-space:nowrap}.lifecycle-status.testing,.history-status.testing{color:var(--test-ink);background:var(--test-soft)}.lifecycle-status.scaling,.history-status.scaling{color:var(--scale-ink);background:var(--scale-soft)}.stage-summaries{display:flex;align-items:center;gap:10px 24px;flex-wrap:wrap}.stage-summaries p{display:flex;align-items:baseline;gap:5px;margin:0;color:var(--test-ink);font-size:.62rem}.stage-summaries p.scaling{color:var(--scale-ink)}.stage-summaries p span{color:var(--muted);font-size:.58rem}.relative-track{height:34px;display:flex;overflow:hidden;border-radius:7px;background:#e7ebe8}.relative-track>span{min-width:0;display:flex;align-items:center;padding:0 10px;border-left:3px solid var(--test);color:var(--test-ink);background:var(--test-soft)}.relative-track>span+span{border-radius:0}.relative-track>span.scaling{border-color:var(--scale);color:var(--scale-ink);background:var(--scale-soft)}.relative-track b{overflow:hidden;font-size:.61rem;text-overflow:ellipsis;white-space:nowrap}
-  .daily-table-wrap{overflow:visible}.daily-grid{--daily-cols:minmax(145px,1.45fr) 38px repeat(6,minmax(52px,.62fr)) repeat(2,minmax(72px,.78fr)) minmax(102px,1fr) 92px;font-size:.65rem}.column-groups,.daily-row{display:grid;grid-template-columns:var(--daily-cols);align-items:center}.column-groups{min-height:29px;color:var(--muted);background:#edf1ee;font-size:.52rem;font-weight:850;letter-spacing:.08em;text-align:center}.column-groups .raw-group{grid-column:3/9}.column-groups .cost-group{grid-column:9/11;border-left:1px solid #b9c3bd}.column-groups .review-group{grid-column:11/13;border-left:1px solid #b9c3bd}.daily-header{min-height:38px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);background:#f5f7f4;font-size:.54rem;font-weight:800}.daily-header>span,.daily-row>[role="cell"]{min-width:0;padding:6px;text-align:center}.daily-header>span:first-child,.daily-row>.identity{text-align:left}.daily-header>span:nth-child(3),.daily-header>span:nth-child(9),.daily-header>span:nth-child(11),.daily-row>.group-start{border-left:1px solid #b9c3bd}.daily-row{min-height:58px;padding:7px 0;border-bottom:1px solid #dce1de;background:#fff}.identity{display:grid;align-content:center;padding-left:12px!important}.identity strong{overflow:hidden;font-size:.66rem;text-overflow:ellipsis;white-space:nowrap}.identity small{overflow:hidden;color:var(--muted);font-size:.53rem;text-overflow:ellipsis;white-space:nowrap}.stage-cell{justify-self:center;display:grid;place-items:center;width:25px;min-height:42px!important;padding:5px 3px!important;border-radius:6px;color:var(--test-ink);background:var(--test-soft);font-size:.56rem;font-weight:900;line-height:1;writing-mode:vertical-rl}.stage-cell.scaling{color:var(--scale-ink);background:var(--scale-soft)}.field-cell{display:block;min-width:0;padding:4px}.field-cell input,.field-cell select{width:100%;height:36px;min-width:0;border:1px solid #aeb8b2;border-radius:6px;padding:6px;background:#fff;font-size:.62rem}.field-cell input{text-align:right}.field-cell input::placeholder{color:#89938e}.cost-output,.calculated{color:#324b40;font-weight:850;font-variant-numeric:tabular-nums}.metric-form button{height:36px;margin:4px 6px;border:0;border-radius:7px;padding:0 8px;color:#fff;background:var(--blue);font-size:.62rem;font-weight:850;white-space:nowrap;cursor:pointer}.metric-form button:disabled{opacity:.5}.metric-form p{grid-column:3/-1;margin:0;padding:0 7px;color:var(--red);font-size:.56rem}.reviewed-row>span,.reviewed-row>strong{font-variant-numeric:tabular-nums}.decision-value{display:block;padding:5px;color:#314139;font-size:.58rem;text-align:center}.completed{justify-self:center;padding:4px 7px!important;border-radius:999px;color:#42534c;background:#e7ebe8;font-weight:800;white-space:nowrap}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.empty-state{padding:42px 20px;text-align:center}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:.7rem}
+  .awaiting-list{display:grid;gap:8px;padding:12px;border-bottom:1px solid var(--line);background:#e9eef4}.awaiting-row{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(220px,1fr) auto;align-items:center;gap:16px;padding:12px 14px;border:1px solid #b8c7d8;border-radius:10px;background:#f8fafc}.awaiting-row>div:first-child{display:grid}.awaiting-row span{color:#426489;font:850 .52rem ui-monospace,monospace;letter-spacing:.1em}.awaiting-row strong{font-size:.72rem}.awaiting-row small,.awaiting-row>p{color:var(--muted);font-size:.58rem}.awaiting-row>p{margin:0}.awaiting-actions{display:flex;gap:7px}.awaiting-actions button{height:34px;border:1px solid #9eacb9;border-radius:7px;padding:0 10px;color:#33485f;background:#fff;font-size:.59rem;font-weight:850;cursor:pointer}.awaiting-actions button:last-child{border-color:var(--blue);color:#fff;background:var(--blue)}.awaiting-actions button:disabled{opacity:.5}.awaiting-message{grid-column:2/-1;color:var(--red)!important}.daily-table-wrap{overflow:visible}.daily-grid{--daily-cols:minmax(145px,1.4fr) 62px 38px repeat(5,minmax(52px,.62fr)) repeat(2,minmax(72px,.78fr)) minmax(102px,1fr) 92px;font-size:.65rem}.column-groups,.daily-row{display:grid;grid-template-columns:var(--daily-cols);align-items:center}.column-groups{min-height:29px;color:var(--muted);background:#edf1ee;font-size:.52rem;font-weight:850;letter-spacing:.08em;text-align:center}.column-groups .raw-group{grid-column:4/9}.column-groups .cost-group{grid-column:9/11;border-left:1px solid #b9c3bd}.column-groups .review-group{grid-column:11/13;border-left:1px solid #b9c3bd}.daily-header{min-height:38px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);background:#f5f7f4;font-size:.54rem;font-weight:800}.daily-header>span,.daily-row>[role="cell"]{min-width:0;padding:6px;text-align:center}.daily-header>span:first-child,.daily-row>.identity{text-align:left}.daily-header>span:nth-child(4),.daily-header>span:nth-child(9),.daily-header>span:nth-child(11),.daily-row>.group-start{border-left:1px solid #b9c3bd}.daily-row{min-height:58px;padding:7px 0;border-bottom:1px solid #dce1de;background:#fff}.identity{display:grid;align-content:center;padding-left:12px!important}.identity strong{overflow:hidden;font-size:.66rem;text-overflow:ellipsis;white-space:nowrap}.identity small{overflow:hidden;color:var(--muted);font-size:.53rem;text-overflow:ellipsis;white-space:nowrap}.metric-date{font:850 .59rem ui-monospace,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}.stage-cell{justify-self:center;display:grid;place-items:center;width:25px;min-height:42px!important;padding:5px 3px!important;border-radius:6px;color:var(--test-ink);background:var(--test-soft);font-size:.56rem;font-weight:900;line-height:1;writing-mode:vertical-rl}.stage-cell.scaling{color:var(--scale-ink);background:var(--scale-soft)}.stage-cell.pending{color:#68736d;background:#e8ece9}.field-cell{display:block;min-width:0;padding:4px}.field-cell input,.field-cell select{width:100%;height:36px;min-width:0;border:1px solid #aeb8b2;border-radius:6px;padding:6px;background:#fff;font-size:.62rem}.field-cell input{text-align:right}.field-cell input::placeholder{color:#89938e}.cost-output{color:#324b40;font-weight:850;font-variant-numeric:tabular-nums}.metric-form button{height:36px;margin:4px 6px;border:0;border-radius:7px;padding:0 8px;color:#fff;background:var(--blue);font-size:.62rem;font-weight:850;white-space:nowrap;cursor:pointer}.metric-form button:disabled{opacity:.5}.metric-form>p{grid-column:4/-1;margin:0;padding:0 7px;color:var(--red);font-size:.56rem}.locked-row{min-height:50px;background:#f7f9f7}.locked-explanation{grid-column:4/-1!important;margin:0;padding:8px 12px!important;border-left:1px solid #d4dad6;color:var(--muted);font-size:.58rem;text-align:left!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.empty-state{padding:42px 20px;text-align:center}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:.7rem}
   .history-workspace{border:1px solid var(--line);border-radius:16px;background:#f8faf7;overflow:hidden}.history-head{display:flex;justify-content:space-between;align-items:end;gap:24px;padding:20px;border-bottom:1px solid var(--line)}.history-head>div>span,.history-inspector header span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.history-head h1,.history-inspector h2{margin:3px 0 0;font-size:1.15rem;letter-spacing:-.02em}.history-head p,.history-inspector header p{margin:3px 0 0;color:var(--muted);font-size:.64rem}.history-filters{display:flex;align-items:end;gap:7px}.history-filters label{display:grid;gap:3px}.history-filters label span{color:var(--muted);font-size:.52rem;font-weight:800}.history-filters input,.history-filters select{height:34px;min-width:112px;border:1px solid #aeb8b2;border-radius:7px;padding:5px 7px;background:#fff;font-size:.61rem}.history-filters .history-search input{min-width:150px}.history-filters button,.history-filters>a{height:34px;display:grid;place-items:center;border:0;border-radius:7px;padding:0 11px;font-size:.61rem;font-weight:850;text-decoration:none}.history-filters button{color:#fff;background:var(--blue);cursor:pointer}.history-filters>a{color:#435149;background:#e3e8e5}.history-layout{display:grid;grid-template-columns:minmax(0,1fr)}.history-layout.inspecting{grid-template-columns:minmax(0,1fr) 360px}.history-list{min-width:0}.history-record{display:grid;grid-template-columns:minmax(190px,1.5fr) minmax(145px,1fr) 62px 62px minmax(120px,.8fr) 112px;align-items:center;min-height:62px;border-bottom:1px solid #dce1de;color:inherit;background:#fff;font-size:.64rem;text-decoration:none}.history-record>span{min-width:0;padding:8px 10px;text-align:center}.history-record>span:first-child{text-align:left}.history-record:hover,.history-record.selected{background:#f1f5f2}.history-record.selected{box-shadow:inset 3px 0 var(--blue)}.history-table-head{min-height:38px;color:var(--muted);background:#edf1ee;font-size:.55rem;font-weight:850}.history-identity{display:grid}.history-identity strong,.history-identity small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-identity small{color:var(--muted);font-size:.54rem}.history-progress{display:grid;gap:4px}.history-progress i{height:4px;border-radius:99px;background:#dce3df;overflow:hidden}.history-progress em{display:block;height:100%;background:var(--blue)}.history-status{display:inline-block;padding:4px 7px;border-radius:999px;color:#42534c;background:#e7ebe8;font-size:.55rem;font-weight:850;white-space:nowrap}.history-status.testing{color:var(--test-ink);background:var(--test-soft)}.history-status.scaling{color:var(--scale-ink);background:var(--scale-soft)}.history-inspector{position:sticky;top:82px;align-self:start;max-height:calc(100vh - 82px);overflow:auto;border-left:1px solid var(--line);background:#f9fbf8}.history-inspector>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:10px;padding:17px 18px;border-bottom:1px solid var(--line);background:#f9fbf8ed;backdrop-filter:blur(12px)}.history-inspector>header>a{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:#53615a;background:#e4e9e6;font-size:1.1rem;text-decoration:none}.inspector-summary{margin:0;padding:4px 18px 14px}.inspector-summary div{display:grid;grid-template-columns:74px 1fr;gap:8px;padding:9px 0;border-bottom:1px solid #e0e5e2}.inspector-summary dt{color:var(--muted);font-size:.57rem}.inspector-summary dd{margin:0;font-size:.62rem;font-weight:750}.stage-history{display:grid;gap:6px;padding:0 18px 16px}.stage-history p{display:flex;justify-content:space-between;gap:8px;margin:0;padding:8px 10px;border-left:3px solid var(--test);border-radius:5px;color:var(--test-ink);background:var(--test-soft);font-size:.58rem}.stage-history p.scaling{border-color:var(--scale);color:var(--scale-ink);background:var(--scale-soft)}.stage-history span{color:var(--muted)}.inspector-days{padding:0 18px 24px}.inspector-days h3{margin:0;padding:12px 0 8px;border-top:1px solid var(--line);font-size:.7rem}.inspector-empty{padding:18px 0;color:var(--muted);font-size:.62rem}.history-day{display:block;margin-bottom:8px;padding:10px;border:1px solid #d9dfdb;border-radius:9px;color:inherit;background:#fff;text-decoration:none}.history-day>header{display:flex;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:1px solid #e4e8e5;font-size:.58rem}.history-day>header span{color:var(--muted)}.history-day dl{display:grid;grid-template-columns:repeat(2,1fr);gap:7px 12px;margin:9px 0 0}.history-day dl div{display:flex;justify-content:space-between;gap:6px}.history-day dt{color:var(--muted);font-size:.54rem}.history-day dd{margin:0;font-size:.57rem;font-weight:800}
-  @media(max-width:1240px){.column-groups,.daily-header{display:none}.daily-grid{display:grid;gap:10px;padding:10px}.daily-row{position:relative;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:0;padding:12px;border:1px solid var(--line);border-radius:10px}.daily-row>.identity{grid-column:1/-1;padding:0 0 8px!important;border-bottom:1px solid #e0e5e2}.daily-row>.stage-cell{position:absolute;right:12px;top:12px}.daily-row>[role="cell"]{display:grid;grid-template-columns:78px minmax(0,1fr);align-items:center;gap:6px;padding:0;border-left:0!important;text-align:right}.daily-row>[role="cell"]:not(.identity):not(.stage-cell)::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.field-cell{display:grid}.daily-row>.field-cell::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.decision,.daily-row>button,.daily-row>p{grid-column:1/-1}.daily-row>button{margin:0}.daily-row>p{padding:0}.reviewed-row>.completed{justify-self:stretch}.stage-cell{writing-mode:horizontal-tb;width:auto;min-height:24px!important}.history-head{display:grid}.history-filters{flex-wrap:wrap}.history-layout.inspecting{grid-template-columns:minmax(0,1fr) 330px}.history-record{grid-template-columns:minmax(160px,1.3fr) minmax(130px,1fr) 52px 52px minmax(105px,.8fr) 105px}}
+  .history-mode-switch{display:flex;gap:4px;padding:10px 20px;border-bottom:1px solid var(--line);background:#edf1ee}.history-mode-switch a{padding:7px 14px;border-radius:7px;color:var(--muted);font-size:.62rem;font-weight:850;text-decoration:none}.history-mode-switch a.active{color:#fff;background:var(--night)}.ended-campaigns summary{display:flex;justify-content:space-between;padding:13px 15px;border-bottom:1px solid var(--line);color:#435149;background:#e7ebe8;font-size:.62rem;cursor:pointer}.ended-campaigns summary b{color:var(--muted)}.day-history{display:grid;gap:12px;padding:14px;background:#e9eeeb}.day-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.day-group>header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 15px;background:#f8faf7}.day-group>header span{color:var(--blue);font:800 .5rem ui-monospace,monospace;letter-spacing:.1em}.day-group h2{margin:2px 0 0;font-size:.8rem}.day-group>header dl{display:grid;grid-template-columns:repeat(4,minmax(82px,1fr));gap:8px;margin:0}.day-group>header dl div{display:grid}.day-group dt{color:var(--muted);font-size:.5rem}.day-group dd{margin:1px 0 0;font:850 .72rem ui-monospace,monospace}.day-row{display:grid;grid-template-columns:minmax(180px,1.5fr) minmax(135px,1fr) repeat(4,minmax(65px,.55fr));align-items:center;min-height:52px;border:0;border-top:1px solid #e0e5e2;color:inherit;background:#fff;font-size:.61rem;text-align:center;text-decoration:none}.day-row>span{min-width:0;padding:8px}.day-row>span:first-child{text-align:left}.day-row>span:nth-child(2){display:flex;align-items:center;justify-content:center;gap:6px}.day-row>span:nth-child(2) small{color:var(--muted)}.day-row:not(.day-row-head):hover{background:#f1f5f2}.day-row-head{min-height:32px;color:var(--muted);background:#edf1ee;font-size:.52rem;font-weight:850}.history-note{margin:8px 0 0;padding-top:7px;border-top:1px solid #e4e8e5;color:var(--muted);font-size:.56rem}.edit-history-button{width:100%;margin-top:9px;border:1px solid #b8c2bc;border-radius:6px;padding:6px;color:#34473e;background:#f5f7f4;font-size:.57rem;font-weight:850;cursor:pointer}.history-edit-dialog{width:min(520px,calc(100vw - 24px));border:0;border-radius:14px;padding:0;box-shadow:0 24px 80px #10243e55}.history-edit-dialog::backdrop{background:#10243e99}.history-edit-dialog form>header{display:flex;justify-content:space-between;padding:17px 18px;color:#fff;background:var(--night)}.history-edit-dialog form>header span{color:#a9c1ff;font:800 .52rem ui-monospace,monospace;letter-spacing:.1em}.history-edit-dialog h3{margin:2px 0 0}.history-edit-dialog header p{margin:2px 0 0;color:#c6d1df;font-size:.58rem}.history-edit-dialog header button{border:0;color:#fff;background:transparent;font-size:1.25rem;cursor:pointer}.edit-fields{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;padding:18px}.edit-fields label{display:grid;gap:4px;color:var(--muted);font-size:.56rem;font-weight:800}.edit-fields input,.edit-fields select,.edit-fields textarea{width:100%;border:1px solid #abb6af;border-radius:7px;padding:8px;background:#fff;font-size:.65rem}.edit-note{grid-column:1/-1}.edit-impact{min-height:20px;margin:0;padding:0 18px;color:var(--red);font-size:.58rem}.history-edit-dialog footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px 18px}.history-edit-dialog footer button{border:0;border-radius:7px;padding:9px 14px;font-size:.62rem;font-weight:850;cursor:pointer}.history-edit-dialog footer button:last-child{color:#fff;background:var(--blue)}
+  @media(max-width:1240px){.awaiting-row{grid-template-columns:1fr auto}.awaiting-row>p{grid-column:1/2}.awaiting-message{grid-column:1/-1!important}.column-groups,.daily-header{display:none}.daily-grid{display:grid;gap:10px;padding:10px}.daily-row{position:relative;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:0;padding:12px;border:1px solid var(--line);border-radius:10px}.daily-row>.identity{grid-column:1/-1;padding:0 0 8px!important;border-bottom:1px solid #e0e5e2}.daily-row>.stage-cell{position:absolute;right:12px;top:12px}.daily-row>[role="cell"]{display:grid;grid-template-columns:78px minmax(0,1fr);align-items:center;gap:6px;padding:0;border-left:0!important;text-align:right}.daily-row>[role="cell"]:not(.identity):not(.stage-cell):not(.locked-explanation)::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.field-cell{display:grid}.daily-row>.field-cell::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.decision,.daily-row>button,.daily-row>p{grid-column:1/-1!important}.daily-row>button{margin:0}.daily-row>p{padding:0}.locked-row>.metric-date{grid-column:1/-1}.locked-explanation{border-left:0!important;border-top:1px solid #e0e5e2!important;padding-top:9px!important}.stage-cell{writing-mode:horizontal-tb;width:auto;min-height:24px!important}.history-head{display:grid}.history-filters{flex-wrap:wrap}.history-layout.inspecting{grid-template-columns:minmax(0,1fr) 330px}.history-record{grid-template-columns:minmax(160px,1.3fr) minmax(130px,1fr) 52px 52px minmax(105px,.8fr) 105px}}
   @media(max-width:900px){.app-shell{display:block}.sidebar{position:static;width:100%;height:auto}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>.planned,.sidebar-foot{display:none}.toolbar{grid-template-columns:1fr auto}.toolbar-summary{display:none}main{padding:18px 14px 70px}.section-head{align-items:start}.section-head p{max-width:250px}.history-layout.inspecting{display:block}.history-inspector{position:fixed;inset:0;z-index:40;max-height:none;border:0}.history-record{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px}.history-table-head{display:none}.history-record>span{display:flex;justify-content:space-between;gap:8px;padding:0;text-align:right}.history-record>span::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800}.history-record>.history-identity{grid-column:1/-1;display:grid;padding-bottom:7px;border-bottom:1px solid #e1e6e3;text-align:left}.history-record>.history-identity::before{display:none}}
-  @media(max-width:600px){.toolbar{display:grid;grid-template-columns:1fr;padding:10px 14px}.toolbar-center{justify-items:stretch}.view-switch,.date-nav{justify-content:center}.date-nav{justify-self:stretch}.section-head{display:block}.section-head p{margin-top:8px}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>a{grid-template-columns:24px 1fr;padding:6px}.nav-icon{width:24px;height:24px}.lifecycle-card{padding:15px 14px}.lifecycle-card>header{align-items:start}.stage-summaries{display:grid;gap:7px}.stage-summaries p{display:grid;gap:1px}.relative-track{height:30px}.relative-track>span{padding:0 6px}.relative-track b{font-size:.54rem}.history-filters{display:grid;grid-template-columns:repeat(2,1fr)}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-filters .history-search{grid-column:1/-1}.history-filters button,.history-filters>a{width:100%}}
+  @media(max-width:760px){.day-group>header{display:grid}.day-group>header dl{grid-template-columns:repeat(2,1fr)}.day-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:11px}.day-row-head{display:none}.day-row>span{display:flex;justify-content:space-between;padding:0;text-align:right}.day-row>span:first-child{grid-column:1/-1;display:grid;padding-bottom:7px;border-bottom:1px solid #e1e6e3}.day-row>span:nth-child(2){grid-column:1/-1;justify-content:flex-start}.edit-fields{grid-template-columns:1fr}.edit-note{grid-column:auto}}
+  @media(max-width:600px){.toolbar{display:grid;grid-template-columns:1fr;padding:10px 14px}.toolbar-center{justify-items:stretch}.view-switch{justify-content:center}.latest-cutoff{text-align:center}.section-head{display:block}.section-head p{margin-top:8px}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>a{grid-template-columns:24px 1fr;padding:6px}.nav-icon{width:24px;height:24px}.lifecycle-card{padding:15px 14px}.lifecycle-card>header{align-items:start}.stage-summaries{display:grid;gap:7px}.stage-summaries p{display:grid;gap:1px}.relative-track{height:30px}.relative-track>span{padding:0 6px}.relative-track b{font-size:.54rem}.history-filters{display:grid;grid-template-columns:repeat(2,1fr)}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-filters .history-search{grid-column:1/-1}.history-filters button,.history-filters>a{width:100%}}
   @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>

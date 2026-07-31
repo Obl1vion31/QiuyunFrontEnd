@@ -407,11 +407,8 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
       </form>
     </dialog>
 
-    <script is:inline define:vars={{ clientRows, categoryMappings, sectionInfo, selectedYear }}>
-      // @ts-ignore Astro 会在客户端脚本前注入 define:vars。
-      const rows = clientRows;
-      const categories = categoryMappings;
-      const sections = sectionInfo;
+    <script is:inline define:vars={{ rows: clientRows, categories: categoryMappings, sections: sectionInfo, selectedYear }}>
+      // @ts-nocheck define:vars 在运行时注入以下客户端别名。
       const rowDialog = document.querySelector('#row-dialog');
       const rowForm = document.querySelector('#row-form');
       const yearDialog = document.querySelector('#year-dialog');

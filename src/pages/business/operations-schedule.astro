@@ -15,6 +15,7 @@ export const prerender = false;
 const promotionLabels = {
   none: '非推广',
   pending: '待推广',
+  awaiting_promotion: '待开始推广',
   testing: '推广测试中',
   scaling: '推广放量中',
   ended: '推广周期已结束',
@@ -299,7 +300,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
           <div class="field"><label for="subjectId">学科 <b>*</b></label><select id="subjectId" name="subjectId" required><option value="">请选择学科</option>{subjects.map((subject) => <option value={subject.id}>{subject.name}</option>)}</select><small data-error="subjectId"></small></div>
           <div class="field"><label for="categoryId">帖子分类 <b data-category-required>*</b></label><select id="categoryId" name="categoryId" required disabled><option value="">请先选择学科</option></select><small data-error="categoryId"></small><em data-category-help></em></div>
           <div class="field promotion-field">
-            <label class="promotion-toggle"><input type="checkbox" name="isPromoted" /> <span><strong>推广帖</strong><small>实发后自动进入测试期</small></span></label>
+            <label class="promotion-toggle"><input type="checkbox" name="isPromoted" /> <span><strong>推广帖</strong><small>实发后进入待开始推广</small></span></label>
             <input id="promotionStatus" name="promotionStatus" type="hidden" value="none" />
             <output class="promotion-preview" data-promotion-preview>非推广</output>
             <small data-error="isPromoted"></small><em data-promotion-help></em>
@@ -445,7 +446,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
         }
         if (!actual) {
           field('promotionStatus').value = 'pending';
-          promotionPreview.textContent = '待推广 · 实发后进入测试';
+          promotionPreview.textContent = '待推广 · 尚未实发';
           return;
         }
         if (
@@ -454,8 +455,8 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
           || !activeRecord?.actualPublishAt
           || !activeRecord?.isPromoted
         ) {
-          field('promotionStatus').value = 'testing';
-          promotionPreview.textContent = '推广测试中';
+          field('promotionStatus').value = 'awaiting_promotion';
+          promotionPreview.textContent = '待开始推广 · 实发后在每日复盘确认测试';
           return;
         }
         field('promotionStatus').value = activeRecord.promotionStatus;
@@ -607,7 +608,7 @@ const clientCategories = subjectCategoryMappings.map((mapping) => ({
           if (response.status === 409 && result.resetRequired) {
             const impact = result.impact ?? {};
             const confirmed = window.confirm(
-              `修改实发日期会永久删除 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并从新日期重新进入测试期。确定继续吗？`,
+              `修改实发日期会永久删除 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并从新日期重新进入待开始推广。确定继续吗？`,
             );
             if (confirmed) {
               body.set('confirmPromotionReset', '1');

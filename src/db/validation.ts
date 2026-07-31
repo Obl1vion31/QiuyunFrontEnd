@@ -9,6 +9,7 @@ import {
 export const promotionStatuses = [
   'none',
   'pending',
+  'awaiting_promotion',
   'testing',
   'scaling',
   'ended',
