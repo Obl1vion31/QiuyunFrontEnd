@@ -1,0 +1,12 @@
+---
+interface Props { label: string; value: string | number; detail?: string }
+const { label, value, detail } = Astro.props;
+---
+
+<div class="toolbar-summary-block">
+  <span>{label}</span><strong>{value}</strong>{detail && <small>{detail}</small>}
+</div>
+
+<style>
+  .toolbar-summary-block,.toolbar-summary-block *{box-sizing:border-box}.toolbar-summary-block{height:34px;display:grid;grid-template-columns:auto auto;align-content:center;align-items:baseline;gap:0 7px;color:#17211c;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;white-space:nowrap}.toolbar-summary-block span,.toolbar-summary-block small{color:#68736d;font-size:10px;line-height:12px;font-weight:500}.toolbar-summary-block strong{font:850 20px/20px ui-monospace,SFMono-Regular,Consolas,monospace}.toolbar-summary-block small{grid-column:1/-1}
+</style>

@@ -1,0 +1,63 @@
+---
+import { desc, inArray } from 'drizzle-orm';
+import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
+import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
+import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
+import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
+import BusinessToolbarContext from '../../components/BusinessToolbarContext.astro';
+import { getDb } from '../../db/client';
+import { operationsNonPromotionReview, operationsStageReviewMeeting } from '../../db/schema';
+
+export const prerender = false;
+const dateTimeLocal = (date = new Date()) => new Date(date.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16);
+const dateKey = (date = new Date()) => dateTimeLocal(date).slice(0, 10);
+const minusDays = (key: string, days: number) => { const value = new Date(`${key}T00:00:00+08:00`); value.setUTCDate(value.getUTCDate() - days); return dateKey(value); };
+let meetings: Array<typeof operationsStageReviewMeeting.$inferSelect> = [];
+let reviews: Array<typeof operationsNonPromotionReview.$inferSelect> = [];
+let loadError = '';
+const databaseStartedAt = performance.now();
+try {
+  [meetings, reviews] = await Promise.all([
+    getDb().select().from(operationsStageReviewMeeting).orderBy(desc(operationsStageReviewMeeting.meetingAt)),
+    getDb().select().from(operationsNonPromotionReview)
+      .where(inArray(operationsNonPromotionReview.checkpointType, ['day_7', 'day_15']))
+      .orderBy(desc(operationsNonPromotionReview.reviewedAt)),
+  ]);
+} catch (error) {
+  console.error('meeting review query failed', error);
+  loadError = '例会复盘数据暂时不可用。请检查数据库连接和最新迁移。';
+}
+Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
+const selectedId = Astro.url.searchParams.get('meeting') || meetings[0]?.id;
+const selected = meetings.find((meeting) => meeting.id === selectedId);
+const selectedReviews = selected ? reviews.filter((review) => { const key = dateKey(review.reviewedAt); return key >= selected.periodStart && key <= selected.periodEnd; }) : [];
+---
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>例会复盘 · 内容发布控制台</title></head>
+<body>
+<BusinessConsoleFrame active="meeting-review">
+  <BusinessConsoleToolbar title="例会复盘" subtitle="业务例会与结论归档">
+    <BusinessToolbarContext slot="center" text={selected?.name || '尚未建立例会'} />
+    <BusinessToolbarActions slot="end"><button class="primary-action" data-open>新建例会</button></BusinessToolbarActions>
+  </BusinessConsoleToolbar>
+  <main>
+    <BusinessPageHeader eyebrow="MEETING REVIEW" title="业务例会复盘" description="集中查看已经完成的非推广复盘结果；推广复盘与计划对齐将在后续阶段接入。" />
+    {loadError && <p class="error">{loadError}</p>}
+    <section class="meeting-list">{meetings.length ? meetings.map((meeting) => <a class:list={{active:meeting.id===selectedId}} href={`?meeting=${meeting.id}`}><time>{meeting.periodStart}—{meeting.periodEnd}</time><strong>{meeting.name}</strong><small>{meeting.status==='completed'?'已锁定':'草稿'}</small></a>) : <p>还没有例会。创建后可按会议范围引用已完成复盘。</p>}</section>
+    {selected && <section class="meeting-card">
+      <header><div><small>会议范围</small><h2>{selected.name}</h2><p>{selected.periodStart}—{selected.periodEnd}</p></div><strong>{selectedReviews.length}<small>条非推广复盘</small></strong></header>
+      <div class="review-results">{selectedReviews.length ? selectedReviews.map((review) => <article><div><span>{review.subjectNameSnapshot} / {review.categoryNameSnapshot||'未分类'} · {review.checkpointType.replace('day_','')} 天</span><h3>{review.contentNameSnapshot}</h3></div><dl><div><dt>点击率</dt><dd>{Number(review.clickRateSnapshot).toFixed(2)}%</dd></div><div><dt>3 秒阅读率</dt><dd>{Number(review.threeSecondReadRateSnapshot).toFixed(2)}%</dd></div></dl><p>{review.conclusion}</p></article>) : <div class="empty">该会议范围内还没有已完成的非推广复盘。</div>}</div>
+      {selected.status==='draft' && <footer><output></output><button data-complete data-id={selected.id}>完成并锁定例会</button></footer>}
+    </section>}
+  </main>
+</BusinessConsoleFrame>
+<dialog><form data-form><header><h2>新建例会</h2><button type="button" data-close aria-label="关闭">×</button></header><label>会议名称<input name="name" required/></label><div class="dates"><label>开始日<input type="date" name="periodStart" value={minusDays(dateKey(),7)} required/></label><label>结束日<input type="date" name="periodEnd" value={minusDays(dateKey(),1)} required/></label></div><label>会议时间<input type="datetime-local" name="meetingAt" value={dateTimeLocal()} required/></label><output></output><button class="save">创建并查看</button></form></dialog>
+<script>
+const dialog=document.querySelector<HTMLDialogElement>('dialog');document.querySelector('[data-open]')?.addEventListener('click',()=>dialog?.showModal());document.querySelector('[data-close]')?.addEventListener('click',()=>dialog?.close());document.querySelector<HTMLFormElement>('[data-form]')?.addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement;const output=form.querySelector('output');const response=await fetch('/api/meeting-reviews',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'创建失败';return}location.assign(`/business/meeting-review?meeting=${result.id}`)});document.querySelector<HTMLButtonElement>('[data-complete]')?.addEventListener('click',async(event)=>{const button=event.currentTarget as HTMLButtonElement;if(!confirm('完成后本场例会将停止写入，确认锁定吗？'))return;const response=await fetch(`/api/meeting-reviews/${button.dataset.id}`,{method:'PATCH',headers:{Accept:'application/json'}});if(response.ok)location.reload()});
+</script>
+</body></html>
+
+<style>
+  *{box-sizing:border-box}.toolbar-context{color:var(--console-muted);font-size:.7rem}.primary-action,.meeting-card footer button,.save{padding:10px 14px;border:0;border-radius:9px;color:#fff;background:var(--console-blue);font-weight:800}main{padding:30px clamp(18px,3vw,38px) 80px}.meeting-list{display:flex;gap:8px;overflow:auto;margin:20px 0}.meeting-list>a{min-width:300px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:12px;border:1px solid var(--console-line);border-radius:11px;color:inherit;background:#f8faf8;text-decoration:none}.meeting-list>a.active{background:var(--console-blue-soft)}.meeting-list time,.meeting-list small{color:var(--console-muted);font-size:.62rem}.meeting-card{overflow:hidden;border:1px solid var(--console-line);border-radius:14px;background:#fff}.meeting-card>header{display:flex;justify-content:space-between;padding:20px;border-bottom:1px solid var(--console-line)}.meeting-card h2{margin:3px 0}.meeting-card header p,.meeting-card header small{margin:0;color:var(--console-muted);font-size:.62rem}.meeting-card>header>strong{font:850 1.8rem ui-monospace,monospace}.meeting-card>header>strong small{display:block}.review-results article{display:grid;grid-template-columns:1fr auto 1.2fr;gap:18px;align-items:center;padding:15px 20px;border-bottom:1px solid #e2e6e3}.review-results span{color:var(--console-muted);font-size:.6rem}.review-results h3{margin:3px 0;font-size:.82rem}.review-results dl{display:flex;gap:16px;margin:0}.review-results dl div{display:grid}.review-results dt{color:var(--console-muted);font-size:.55rem}.review-results dd{margin:1px 0 0;font:800 .78rem ui-monospace,monospace}.review-results p{margin:0;font-size:.66rem}.empty{padding:45px;text-align:center;color:var(--console-muted)}.meeting-card footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 20px}dialog{width:min(500px,calc(100vw - 24px));padding:0;border:1px solid var(--console-line);border-radius:15px}dialog form{display:grid;gap:14px;padding:20px}dialog header{display:flex;justify-content:space-between;border-bottom:1px solid var(--console-line)}dialog h2{margin:2px 0 12px}dialog header button{border:0;background:none;font-size:1.4rem}.dates{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{color:var(--console-muted);font-size:.65rem;font-weight:700}input{width:100%;margin-top:4px;padding:9px;border:1px solid #aeb8b2;border-radius:7px}.error{padding:12px;background:#ffe5dc}@media(max-width:900px){main{padding:22px 12px 76px}}@media(max-width:650px){.review-results article{grid-template-columns:1fr}.toolbar-context{display:none}}
+</style>

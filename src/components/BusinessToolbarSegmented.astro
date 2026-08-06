@@ -1,0 +1,13 @@
+---
+interface Item { label: string; href: string; active: boolean }
+interface Props { items: Item[]; label: string }
+const { items, label } = Astro.props;
+---
+
+<nav class="toolbar-segmented" aria-label={label}>
+  {items.map((item) => <a class:list={{ active: item.active }} href={item.href} aria-current={item.active ? 'page' : undefined}>{item.label}</a>)}
+</nav>
+
+<style>
+  .toolbar-segmented,.toolbar-segmented *{box-sizing:border-box}.toolbar-segmented{height:34px;display:flex;align-items:center;padding:3px;border-radius:10px;background:#dfe4e2;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;white-space:nowrap}.toolbar-segmented a{height:28px;display:grid;place-items:center;padding:0 11px;border-radius:7px;color:#58645e;font-size:11px;line-height:1;font-weight:800;text-decoration:none}.toolbar-segmented a:hover{color:#17211c;background:#eef1ef}.toolbar-segmented a:active{transform:scale(.97)}.toolbar-segmented a:focus-visible{outline:2px solid #315fd6;outline-offset:1px}.toolbar-segmented a.active{color:#fff;background:#17211c}
+</style>

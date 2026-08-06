@@ -174,7 +174,7 @@ UNIQUE `(plan_id, version_number)`；INDEX `(plan_id, created_at)`。
 | `subject_id` | text | FK → `operations_subject.id`, RESTRICT | 学科 |
 | `category_id` | text | FK → `operations_category.id`, RESTRICT, NULL | 帖子分类 |
 | `revision_summary` | text | NULL | 改帖说明 |
-| `project_doc_name` | text | NULL | 项目文档名称，新数据应用层必填 |
+| `project_doc_name` | text | NULL | 历史项目文档名称，仅保留兼容，新数据不再要求填写 |
 | `project_doc_url` | text | NULL | HTTP/HTTPS 项目文档地址，新数据应用层必填 |
 | `created_at` | timestamptz | NOT NULL, default now | 创建时间 |
 | `updated_at` | timestamptz | NOT NULL, default now | 更新时间 |
@@ -334,7 +334,7 @@ Campaign 存在后，`campaign.current_status` 与 `schedule.promotion_status` �
 
 - 只改指标：更新 Daily Metric，不改变生命周期；
 - 改 `review_decision`：先统计后续事实并二次确认，再事务删除该日之后的 Daily Metric、重建全部 Stage、重算 Campaign，并同步 Schedule；删除日期重新进入待填队列；
-- 改实发日期或取消推广身份：先提示关联 Campaign 与 Daily Metric 数量，确认后删除 Schedule 下的 Campaign；Stage 和 Daily Metric 随外键级联删除，排期回到 `none`、`pending` 或 `awaiting_promotion`；
+- 改实发日期：先提示关联 Campaign 与 Daily Metric 数量，确认后重置推广事实；推广身份改为非推广则填写原因、结束开放 Stage / Campaign 并记录用途事件，已有推广事实不删除；
 - 改帖：旧版本若正在测试或放量，分别关闭为 `test_discarded` 或 `formal_discarded`；新版本创建独立 Schedule，不继承旧 Campaign。
 
 ## 8. 删除规则摘要
@@ -355,3 +355,12 @@ Content
 ```
 
 数据库硬约束负责主外键、唯一性、数值范围、状态组合、唯一开放 Stage 和 Stage 不重叠；应用层负责版本乐观锁、时间块不重叠、连续日度填报、状态同步和破坏性操作二次确认。
+
+## 9. 非推广阶段复盘与用途历史
+
+- `operations_stage_review_meeting` 保存自定义会议范围、会议时间、状态和创建人。
+- `operations_content_performance_metric` 以 `(schedule_id, checkpoint_type)` 唯一保存 T+7、T+15 的点击率、3 秒阅读率和数据截至日。
+- `operations_non_promotion_review` 以 `(schedule_id, checkpoint_type)` 唯一保存内容身份、指标、cohort 快照和人工结论；它不依赖会议，应用层按 T+7 → T+15 顺序开放。
+- `operations_category_policy_version` 为稳定分类保存显示名称、默认推广身份、是否可选、生效日期和递增版本。
+- `operations_schedule_usage_event` 保存推广与非推广之间的用途变更。推广转非推广只结束开放 Campaign / Stage，不删除已有推广事实。
+- 正式非推广复盘起始日为 `2026-07-01`；此前内容不生成待办或 cohort 样本。

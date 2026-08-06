@@ -44,7 +44,6 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
         contentName: result.data.contentName,
         subjectId: result.data.subjectId,
         categoryId: result.data.categoryId,
-        projectDocName: result.data.projectDocName,
         projectDocUrl: result.data.projectDocUrl,
       }).returning({ id: operationsContentVersion.id });
       const [schedule] = await transaction.insert(operationsContentSchedule).values({

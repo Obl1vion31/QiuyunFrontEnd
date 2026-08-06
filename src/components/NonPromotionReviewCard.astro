@@ -1,0 +1,86 @@
+---
+import { reviewCheckpoints, shanghaiDateKey } from '../db/stage-review-rules.mjs';
+const { card, today } = Astro.props;
+const { row, checkpoint, metric, review, dueOn, cohort } = card;
+const names: Record<string, string> = { day_7: '7 天', day_15: '15 天' };
+const formatRate = (value: number | null) => value == null ? '—' : `${value.toFixed(2)}%`;
+---
+
+<article class="review-card">
+  <header class="review-card__head">
+    <div class="review-card__identity">
+      <span>{row.subjectName} / {row.categoryName || '未分类'} · V{row.versionNumber}</span>
+      {row.projectDocUrl
+        ? <h2><a href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label={`打开${row.contentName}的项目文档`}>{row.contentName}<i aria-hidden="true">↗</i></a></h2>
+        : <h2>{row.contentName}<small>项目文档待补</small></h2>}
+      <p><span>实发 {shanghaiDateKey(row.actualPublishAt)}</span><span>应复盘 {dueOn}</span></p>
+    </div>
+    <mark class:list={{ overdue: dueOn < today }}>{names[checkpoint.type]}{dueOn < today && !review ? ' · 逾期' : ''}</mark>
+  </header>
+
+  <div class="checkpoint-track" aria-label="复盘节点进度">
+    {reviewCheckpoints.map((item) => (
+      <span class:list={{ complete: row.completed.includes(item.type), current: item.type === checkpoint.type }}>
+        <i aria-hidden="true">{row.completed.includes(item.type) ? '✓' : item.type === checkpoint.type ? '•' : ''}</i>
+        <b>{item.days} 天</b>
+      </span>
+    ))}
+  </div>
+
+  <div class="metric-strip">
+    <section>
+      <span>点击率</span>
+      <strong>{metric ? formatRate(Number(metric.clickRate)) : '待录入'}</strong>
+      <small>同类 {cohort.click.count} 篇 · 均值 {formatRate(cohort.click.mean)} · {formatRate(cohort.click.min)}—{formatRate(cohort.click.max)}</small>
+    </section>
+    <section>
+      <span>3 秒阅读率</span>
+      <strong>{metric ? formatRate(Number(metric.threeSecondReadRate)) : '待录入'}</strong>
+      <small>同类 {cohort.read.count} 篇 · 均值 {formatRate(cohort.read.mean)} · {formatRate(cohort.read.min)}—{formatRate(cohort.read.max)}</small>
+    </section>
+  </div>
+
+  <details open={!review}>
+    <summary>{review ? '编辑本节点复盘' : '填写本节点复盘'}</summary>
+    <form class="review-form" data-review-form>
+      <input type="hidden" name="scheduleId" value={row.id}/>
+      <input type="hidden" name="checkpointType" value={checkpoint.type}/>
+
+      <div class="review-form__fields">
+        <label class="review-field review-field--date">
+          <span>数据截至</span>
+          <input type="date" name="recordedThrough" value={metric?.recordedThrough || dueOn} required/>
+        </label>
+        <label class="review-field">
+          <span>点击率</span>
+          <div class="rate-control"><input type="number" min="0" max="100" step="0.0001" name="clickRate" value={metric?.clickRate ?? ''} required/><b aria-hidden="true">%</b></div>
+        </label>
+        <label class="review-field">
+          <span>3 秒阅读率</span>
+          <div class="rate-control"><input type="number" min="0" max="100" step="0.0001" name="threeSecondReadRate" value={metric?.threeSecondReadRate ?? ''} required/><b aria-hidden="true">%</b></div>
+        </label>
+      </div>
+
+      <label class="review-field review-field--conclusion">
+        <span>复盘结论</span>
+        <textarea name="conclusion" required>{review?.conclusion || ''}</textarea>
+      </label>
+
+      <div class="review-form__actions">
+        <output></output>
+        <button type="submit">{review ? '保存修改' : `完成 ${names[checkpoint.type]}复盘`}</button>
+      </div>
+    </form>
+  </details>
+</article>
+
+<style>
+  .review-card,.review-card *{box-sizing:border-box}.review-card{overflow:hidden;border:1px solid var(--console-line);border-radius:14px;background:var(--console-surface)}
+  .review-card__head{display:flex;justify-content:space-between;gap:20px;padding:16px 18px;border-bottom:1px solid var(--console-line)}.review-card__identity{min-width:0}.review-card__identity>span{color:var(--console-muted);font-size:.62rem}.review-card h2{display:flex;align-items:center;gap:9px;margin:4px 0 5px;font-size:1rem;line-height:1.25}.review-card h2 a{min-width:0;color:var(--console-ink);text-decoration:none}.review-card h2 a:hover{color:var(--console-blue);text-decoration:underline;text-underline-offset:3px}.review-card h2 a:focus-visible{border-radius:4px;outline:2px solid var(--console-blue);outline-offset:3px}.review-card h2 i{margin-left:5px;color:var(--console-blue);font-style:normal;font-size:.72rem}.review-card h2 small{padding:3px 6px;border-radius:999px;color:var(--console-muted);background:var(--console-surface-subtle);font-size:.56rem;font-weight:650}.review-card__identity>p{display:flex;gap:12px;margin:0;color:var(--console-muted);font-size:.61rem}.review-card mark{align-self:start;padding:6px 9px;border-radius:999px;color:#3156b5;background:var(--console-blue-soft);font-size:.62rem;font-weight:800;white-space:nowrap}.review-card mark.overdue{color:#934021;background:#ffe2d6}
+  .checkpoint-track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:10px 18px;background:var(--console-surface-subtle)}.checkpoint-track span{height:34px;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--console-line);border-radius:8px;color:#7b8680;background:#f8faf8;font:750 .64rem/1.2 ui-monospace,monospace}.checkpoint-track i{width:12px;color:inherit;font-style:normal;text-align:center}.checkpoint-track .complete{color:#326f59;border-color:#b8d8cb;background:#e7f3ed}.checkpoint-track .current{color:#3156b5;border-color:#b9c8f5;background:var(--console-blue-soft)}
+  .metric-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--console-line);border-bottom:1px solid var(--console-line)}.metric-strip section{min-width:0;display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:3px 10px;padding:13px 18px}.metric-strip section+section{border-left:1px solid var(--console-line)}.metric-strip span{color:var(--console-muted);font-size:.61rem;font-weight:650}.metric-strip strong{color:var(--console-ink);font:850 .94rem/1.2 ui-monospace,monospace}.metric-strip small{grid-column:1/-1;overflow:hidden;color:var(--console-muted);font-size:.59rem;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
+  .review-card details summary{padding:11px 18px;color:var(--console-ink);font-size:.66rem;font-weight:800;cursor:pointer}.review-card details summary:focus-visible{outline:2px solid var(--console-blue);outline-offset:-3px}
+  .review-form{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 18px 18px;border-top:1px solid var(--console-line);background:#fbfcfa}.review-form__fields{display:grid;grid-template-columns:minmax(150px,.8fr) repeat(2,minmax(150px,1fr));gap:12px}.review-field{min-width:0;display:grid;align-content:start;gap:6px;margin:0;color:var(--console-muted);font-size:.63rem;font-weight:750;white-space:normal}.review-field>span{display:block;line-height:1.2}.review-field input,.review-field textarea{box-sizing:border-box;width:100%;margin:0;border:1px solid #aeb8b2;border-radius:8px;color:var(--console-ink);background:#fff;font:650 .72rem/1.2 system-ui,"PingFang SC","Microsoft YaHei",sans-serif;outline:none}.review-field>input{height:42px;padding:0 12px}.review-field textarea{min-height:96px;padding:11px 12px;line-height:1.55;resize:vertical}.review-field input:focus,.review-field textarea:focus{border-color:var(--console-blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--console-blue) 14%,transparent)}.rate-control{height:42px;display:grid;grid-template-columns:minmax(0,1fr) 32px;align-items:center;overflow:hidden;border:1px solid #aeb8b2;border-radius:8px;background:#fff}.rate-control:focus-within{border-color:var(--console-blue);box-shadow:0 0 0 3px color-mix(in srgb,var(--console-blue) 14%,transparent)}.rate-control input{height:40px;border:0;border-radius:0;padding:0 4px 0 12px;box-shadow:none!important}.rate-control b{display:grid;height:100%;place-items:center;border-left:1px solid #d7ddda;color:var(--console-muted);background:#f4f6f3;font-size:.65rem}.review-form__actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}.review-form__actions output{margin-right:auto;color:#a33b22;font-size:.63rem}.review-form__actions button{height:40px;padding:0 15px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font:800 .68rem/1 system-ui,"PingFang SC","Microsoft YaHei",sans-serif;cursor:pointer}.review-form__actions button:hover{background:#274eb8}.review-form__actions button:active{transform:scale(.98)}.review-form__actions button:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+  @media(max-width:759px){.review-form__fields{grid-template-columns:repeat(2,minmax(0,1fr))}.review-field--date{grid-column:1/-1}}
+  @media(max-width:519px){.review-card__head{padding:14px}.checkpoint-track{padding:9px 14px}.metric-strip{grid-template-columns:1fr}.metric-strip section{padding:12px 14px}.metric-strip section+section{border-left:0;border-top:1px solid var(--console-line)}.review-form{padding:14px}.review-form__fields{grid-template-columns:1fr}.review-field--date{grid-column:auto}.review-form__actions{align-items:stretch;flex-direction:column}.review-form__actions output{margin:0}.review-form__actions button{width:100%}}
+</style>

@@ -1,0 +1,18 @@
+---
+interface Props { eyebrow: string; title: string; description?: string; headingId?: string; contained?: boolean }
+const { eyebrow, title, description, headingId, contained = false } = Astro.props;
+---
+
+<header class:list={["business-page-header", { "business-page-header--contained": contained }]}>
+  <div class="business-page-header__copy">
+    <span>{eyebrow}</span>
+    <h1 id={headingId}>{title}</h1>
+    {description && <p>{description}</p>}
+  </div>
+  <div class="business-page-header__meta"><slot name="meta" /></div>
+</header>
+
+<style>
+  .business-page-header{display:flex;align-items:end;justify-content:space-between;gap:28px}.business-page-header--contained{padding:18px 20px;border-bottom:1px solid var(--console-line)}.business-page-header__copy{min-width:0}.business-page-header__copy>span{color:var(--console-blue);font:800 .58rem/1.2 ui-monospace,monospace;letter-spacing:.12em}.business-page-header h1{margin:5px 0 5px;font-size:1.5rem;line-height:1.05;letter-spacing:-.03em}.business-page-header p{max-width:780px;margin:0;color:var(--console-muted);font-size:.68rem;line-height:1.55}.business-page-header__meta{flex:none;text-align:right}.business-page-header__meta :global(p){margin:0;color:var(--console-muted);font:500 .68rem/1.55 system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+  @media(max-width:700px){.business-page-header{display:block}.business-page-header__meta{margin-top:12px;text-align:left}}
+</style>

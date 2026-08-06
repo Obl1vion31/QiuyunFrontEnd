@@ -1,0 +1,19 @@
+---
+interface Props { title: string; subtitle?: string; mobilePriority?: 'center' | 'end' }
+const { title, subtitle, mobilePriority = 'end' } = Astro.props;
+---
+
+<header class:list={["business-toolbar", `business-toolbar--mobile-${mobilePriority}`]}>
+  <div class="business-toolbar__title"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</div>
+  <div class="business-toolbar__center"><slot name="center" /></div>
+  <div class="business-toolbar__end"><slot name="end" /></div>
+</header>
+
+<style>
+  .business-toolbar,.business-toolbar *{box-sizing:border-box}
+  .business-toolbar{position:sticky;top:0;z-index:14;width:100%;height:72px;min-height:72px;max-height:72px;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr);align-items:center;gap:18px;overflow:hidden;padding:0 24px;color:#17211c;border-bottom:1px solid color-mix(in srgb,#c9d1cc 76%,transparent);background:color-mix(in srgb,#f7f8f5 92%,transparent);font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2;backdrop-filter:blur(20px) saturate(140%)}
+  .business-toolbar__title{min-width:0;display:grid;gap:3px}.business-toolbar__title strong{overflow:hidden;color:#17211c;font-size:15px;line-height:18px;font-weight:800;letter-spacing:-.015em;text-overflow:ellipsis;white-space:nowrap}.business-toolbar__title small{overflow:hidden;color:#68736d;font-size:11px;line-height:14px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
+  .business-toolbar__center{min-width:0;max-height:36px;justify-self:center}.business-toolbar__end{min-width:0;max-height:36px;justify-self:end}
+  @media(max-width:900px){.business-toolbar{height:62px;min-height:62px;max-height:62px;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:0 12px}.business-toolbar__title small{display:none}.business-toolbar--mobile-end .business-toolbar__center,.business-toolbar--mobile-center .business-toolbar__end{display:none}.business-toolbar--mobile-center .business-toolbar__center{display:block;justify-self:end}}
+  @media(prefers-reduced-transparency:reduce){.business-toolbar{backdrop-filter:none;background:var(--console-paper)}}
+</style>

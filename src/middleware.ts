@@ -5,10 +5,18 @@ const protectedPaths = [
   '/business/operations-schedule',
   '/business/daily-promotion-review',
   '/business/annual-plan',
+  '/business/stage-review',
+  '/business/non-promotion-review',
+  '/business/meeting-review',
+  '/business/settings',
   '/api/operations-content',
   '/api/operations-annual-plans',
   '/api/promotion-daily',
   '/api/promotion-awaiting',
+  '/api/stage-reviews',
+  '/api/non-promotion-reviews',
+  '/api/meeting-reviews',
+  '/api/business-settings',
 ];
 
 interface BasicAuthCredential {
@@ -49,6 +57,7 @@ function configuredCredentials(): BasicAuthCredential[] {
 
 export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
   if (!protectedPaths.some((path) => url.pathname === path || url.pathname.startsWith(`${path}/`))) return next();
+  const requestStartedAt = performance.now();
 
   const header = request.headers.get('authorization');
   let user = '';
@@ -70,5 +79,16 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
     });
   }
   locals.operationsUser = user;
-  return next();
+  const response = await next();
+  const totalDuration = performance.now() - requestStartedAt;
+  const existingTiming = response.headers.get('Server-Timing') ?? '';
+  const databaseDuration = Number(existingTiming.match(/(?:^|,)\s*db;dur=([\d.]+)/)?.[1] ?? 0);
+  const renderDuration = Math.max(0, totalDuration - databaseDuration);
+  const timing = [
+    existingTiming,
+    `render;dur=${renderDuration.toFixed(1)}`,
+    `total;dur=${totalDuration.toFixed(1)}`,
+  ].filter(Boolean).join(', ');
+  response.headers.set('Server-Timing', timing);
+  return response;
 });

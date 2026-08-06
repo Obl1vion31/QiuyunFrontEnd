@@ -374,5 +374,116 @@ export const operationsPromotionDailyMetric = pgTable(
   ],
 );
 
+export const operationsStageReviewMeeting = pgTable(
+  'operations_stage_review_meeting',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    periodStart: date('period_start').notNull(),
+    periodEnd: date('period_end').notNull(),
+    meetingAt: timestamp('meeting_at', { withTimezone: true }).notNull(),
+    status: text('status').notNull().default('draft'),
+    createdByLabel: text('created_by_label').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('operations_stage_review_meeting_at_idx').on(table.meetingAt),
+    check('operations_stage_review_meeting_range_check', sql`${table.periodEnd} >= ${table.periodStart}`),
+    check('operations_stage_review_meeting_status_check', sql`${table.status} IN ('draft', 'completed')`),
+  ],
+);
+
+export const operationsContentPerformanceMetric = pgTable(
+  'operations_content_performance_metric',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+    checkpointType: text('checkpoint_type').notNull(),
+    recordedThrough: date('recorded_through').notNull(),
+    clickRate: numeric('click_rate', { precision: 7, scale: 4 }).notNull(),
+    threeSecondReadRate: numeric('three_second_read_rate', { precision: 7, scale: 4 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('operations_content_metric_schedule_checkpoint_idx').on(table.scheduleId, table.checkpointType),
+    index('operations_content_metric_checkpoint_idx').on(table.checkpointType),
+    check('operations_content_metric_checkpoint_check', sql`${table.checkpointType} IN ('day_7', 'day_15')`),
+    check('operations_content_metric_click_check', sql`${table.clickRate} BETWEEN 0 AND 100`),
+    check('operations_content_metric_read_check', sql`${table.threeSecondReadRate} BETWEEN 0 AND 100`),
+  ],
+);
+
+export const operationsNonPromotionReview = pgTable(
+  'operations_non_promotion_review',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+    metricId: uuid('metric_id').notNull().references(() => operationsContentPerformanceMetric.id, { onDelete: 'restrict' }),
+    checkpointType: text('checkpoint_type').notNull(),
+    actualPublishAtSnapshot: timestamp('actual_publish_at_snapshot', { withTimezone: true }).notNull(),
+    subjectIdSnapshot: text('subject_id_snapshot').notNull(),
+    subjectNameSnapshot: text('subject_name_snapshot').notNull(),
+    categoryIdSnapshot: text('category_id_snapshot'),
+    categoryNameSnapshot: text('category_name_snapshot'),
+    contentNameSnapshot: text('content_name_snapshot').notNull(),
+    clickRateSnapshot: numeric('click_rate_snapshot', { precision: 7, scale: 4 }).notNull(),
+    threeSecondReadRateSnapshot: numeric('three_second_read_rate_snapshot', { precision: 7, scale: 4 }).notNull(),
+    cohortSnapshot: jsonb('cohort_snapshot').$type<Record<string, unknown>>().notNull(),
+    conclusion: text('conclusion').notNull(),
+    cause: text('cause'),
+    nextAction: text('next_action'),
+    reviewedByLabel: text('reviewed_by_label').notNull(),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('operations_non_promotion_review_checkpoint_idx').on(table.scheduleId, table.checkpointType),
+    index('operations_non_promotion_review_reviewed_idx').on(table.reviewedAt),
+    check('operations_non_promotion_review_checkpoint_check', sql`${table.checkpointType} IN ('day_7', 'day_15')`),
+  ],
+);
+
+export const operationsScheduleUsageEvent = pgTable(
+  'operations_schedule_usage_event',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+    fromUsage: text('from_usage').notNull(),
+    toUsage: text('to_usage').notNull(),
+    effectiveOn: date('effective_on').notNull(),
+    reason: text('reason').notNull(),
+    changedByLabel: text('changed_by_label').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('operations_schedule_usage_event_schedule_idx').on(table.scheduleId, table.effectiveOn),
+    check('operations_schedule_usage_event_usage_check', sql`${table.fromUsage} IN ('promotion', 'non_promotion') AND ${table.toUsage} IN ('promotion', 'non_promotion') AND ${table.fromUsage} <> ${table.toUsage}`),
+  ],
+);
+
+export const operationsCategoryPolicyVersion = pgTable(
+  'operations_category_policy_version',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    categoryId: text('category_id').notNull().references(() => operationsCategory.id, { onDelete: 'restrict' }),
+    versionNumber: integer('version_number').notNull(),
+    displayName: text('display_name').notNull(),
+    defaultIsPromoted: boolean('default_is_promoted').notNull().default(false),
+    isSelectable: boolean('is_selectable').notNull().default(true),
+    effectiveOn: date('effective_on').notNull(),
+    changeSummary: text('change_summary').notNull(),
+    changedByLabel: text('changed_by_label').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('operations_category_policy_version_idx').on(table.categoryId, table.versionNumber),
+    index('operations_category_policy_effective_idx').on(table.categoryId, table.effectiveOn),
+    check('operations_category_policy_version_check', sql`${table.versionNumber} >= 1`),
+  ],
+);
+
 export type OperationsScheduleRow = typeof operationsContentSchedule.$inferSelect;
 export type OperationsContentVersionRow = typeof operationsContentVersion.$inferSelect;

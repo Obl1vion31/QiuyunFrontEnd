@@ -48,6 +48,10 @@ src/
     │   ├── annual-plan.astro          # 年度内容总周期规划与版本历史
     │   ├── operations-schedule.astro  # 新做帖、改帖版本、动态排期页面与汇总
     │   └── daily-promotion-review.astro # 推广生命周期日历与 T+1 日度复盘
+    │   ├── non-promotion-review.astro  # 非推广 7 / 15 天顺序复盘
+    │   ├── meeting-review.astro        # 业务例会复盘与结果引用
+    │   ├── settings.astro              # 全局分类与默认用途规则
+    │   └── stage-review.astro          # 旧地址兼容跳转
     └── api/
         ├── operations-annual-plans.ts # 新建年度细致规划 V0
         ├── operations-annual-plans/   # 年度说明、编辑、历史和恢复接口
@@ -59,7 +63,9 @@ src/
 
 `src/pages/` 不单独放置 `README.md`，因为 Astro 会把该目录里的 Markdown 文件自动生成为公开页面。它的说明统一写在这里。
 
-业务控制台的服务端代码位于 `src/db/`：`schema.ts` 定义年度规划、学科、通用帖子分类、学科可用分类映射、帖子、内容版本、排期、推广活动、阶段和日度事实；`annual-plan.ts` 与 `annual-plan-rules.mjs` 负责规划校验、快照、时间块和自动总规划；`promotion-rules.mjs` 与 `promotion-validation.ts` 负责 T+1 日期、阶段决策、成本计算和日度输入校验；`taxonomy.ts` 维护固定分类与映射；`validation.ts` 定义内容分类、新做帖、编辑、改帖与延期规则；`client.ts` 建立惰性数据库连接。`src/middleware.ts` 同时保护年度规划、排期页、日度复盘页和相关接口。一次性导入只使用临时受控脚本，完成后不保留为日常入口。数据库和认证变量不得进入客户端代码。
+业务控制台的服务端代码位于 `src/db/`：`schema.ts` 定义年度规划、学科、分类、帖子、排期、推广事实和非推广复盘；`annual-plan.ts` 与 `annual-plan-rules.mjs` 负责规划校验、快照、时间块和自动总规划；`promotion-rules.mjs` 与 `promotion-validation.ts` 负责 T+1 推广复盘；`stage-review-rules.mjs` 与 `stage-review-validation.ts` 负责非推广节点、比率、同类基准和写入校验；`taxonomy.ts` 维护稳定分类与映射；`validation.ts` 定义内容排期工作流；`client.ts` 建立惰性数据库连接。`src/middleware.ts` 保护所有业务页和相关接口。一次性导入只使用临时受控脚本，完成后不保留为日常入口。数据库和认证变量不得进入客户端代码。
+
+业务控制台统一由 `components/BusinessConsoleFrame.astro` 装配应用壳层和 `BusinessConsoleSidebar.astro`，并使用 `BusinessConsoleToolbar.astro`、`BusinessPageHeader.astro`、`BusinessSectionHeader.astro` 复用工具栏与标题层级。业务页面只传入当前激活项并组合内容，不得复制侧栏 DOM、Toolbar 结构或 CSS。共享组件必须自行固定所有后代的盒模型、字体和行高，不能依赖页面的 scoped/global 基础样式；调整右侧 Workspace 时不得使用能命中 `business-sidebar` 命名空间的选择器。对应回归约束位于 `tests/business-sidebar.test.mjs`。
 
 ## 先用 30 秒判断一个文件是否相关
 

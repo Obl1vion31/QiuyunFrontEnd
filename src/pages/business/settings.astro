@@ -1,0 +1,56 @@
+---
+import { desc } from 'drizzle-orm';
+import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
+import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
+import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
+import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
+import { getDb } from '../../db/client';
+import { operationsCategoryPolicyVersion } from '../../db/schema';
+import { postCategories } from '../../db/taxonomy';
+import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
+
+export const prerender = false;
+let policies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
+let loadError = '';
+const databaseStartedAt = performance.now();
+try {
+  policies = await getDb().select().from(operationsCategoryPolicyVersion).orderBy(desc(operationsCategoryPolicyVersion.createdAt));
+} catch (error) {
+  console.error('settings query failed', error);
+  loadError = '系统设置暂时不可用。请检查数据库连接和最新迁移。';
+}
+Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
+---
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>系统设置 · 内容发布控制台</title></head>
+<body>
+<BusinessConsoleFrame active="settings">
+  <BusinessConsoleToolbar title="系统设置" subtitle="影响新建内容的全局业务规则" />
+  <main>
+    <BusinessPageHeader eyebrow="BUSINESS SETTINGS" title="分类与默认用途" description="每次保存创建新的生效版本，不改写旧内容、Campaign 或复盘快照。" />
+    {loadError && <p class="error">{loadError}</p>}
+    <div class="settings-layout">
+      <form data-form>
+        <label>稳定分类<select name="categoryId" required><option value="">请选择</option>{postCategories.map((category) => <option value={category.id}>{category.name}</option>)}</select></label>
+        <label>新显示名称<input name="displayName" required/></label>
+        <div class="checks"><label><input type="checkbox" name="defaultIsPromoted"/> 新建时默认推广</label><label><input type="checkbox" name="isSelectable" checked/> 允许新建选择</label></div>
+        <label>生效日期<input type="date" name="effectiveOn" value={shanghaiDateKey(new Date())} required/></label>
+        <label>变更说明<textarea name="changeSummary" required></textarea></label>
+        <output></output><button>保存新规则版本</button>
+      </form>
+      <section class="history">
+        <BusinessSectionHeader title="规则版本历史" description="按创建时间倒序保留全部规则事实。" contained><span slot="end">{policies.length} 个版本</span></BusinessSectionHeader>
+        {policies.length ? policies.map((policy) => <article><div><strong>{policy.displayName}</strong><small>{policy.categoryId} · V{policy.versionNumber}</small></div><p>{policy.effectiveOn} 生效 · {policy.defaultIsPromoted ? '默认推广' : '默认非推广'}{policy.isSelectable ? '' : ' · 停止新选'}</p><span>{policy.changeSummary}</span></article>) : <p class="empty">尚未建立分类规则版本，当前继续使用代码字典名称和手动推广选择。</p>}
+      </section>
+    </div>
+  </main>
+</BusinessConsoleFrame>
+<script>
+document.querySelector<HTMLFormElement>('[data-form]')?.addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement;const output=form.querySelector('output');const response=await fetch('/api/business-settings/category-policies',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败';return}location.reload()});
+</script>
+</body></html>
+
+<style>
+  *{box-sizing:border-box}main{padding:30px clamp(18px,3vw,38px) 80px}.settings-layout{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-top:22px}form,.history{border:1px solid var(--console-line);border-radius:14px;background:var(--console-surface)}form{align-self:start;display:grid;gap:13px;padding:20px}label{color:var(--console-muted);font-size:.65rem;font-weight:700}input,select,textarea{width:100%;margin-top:4px;padding:9px;border:1px solid #aeb8b2;border-radius:7px;background:#fff}textarea{min-height:80px}.checks{display:grid;gap:8px}.checks label{display:flex;align-items:center;gap:7px}.checks input{width:auto;margin:0}form button{padding:10px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font-weight:800}.history :global(.business-section-header){padding:16px 18px;border-bottom:1px solid var(--console-line)}.history article{display:grid;grid-template-columns:1fr auto;gap:4px 18px;padding:14px 18px;border-bottom:1px solid #e1e5e2}.history article div{display:grid}.history article p{margin:0;font-size:.64rem}.history article>span,.history small{color:var(--console-muted);font-size:.6rem}.history article>span{grid-column:1/-1}.empty,.error{padding:18px;color:var(--console-muted);font-size:.68rem}.error{background:#ffe5dc}@media(max-width:900px){main{padding:22px 12px 76px}.settings-layout{grid-template-columns:1fr}}
+</style>

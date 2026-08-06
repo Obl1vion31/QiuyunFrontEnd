@@ -8,6 +8,8 @@ export default defineConfig({
   output: 'hybrid',
   adapter: node({ mode: 'standalone' }),
   integrations: [react()],
+  // 控制台只在用户表达导航意图时预取，避免首屏并发触发全部动态页面查询。
+  prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   vite: {
     // Quick Tunnel 每次生成不同子域名，只允许 Cloudflare 官方临时预览域。
     server: { allowedHosts: ['.trycloudflare.com'] },

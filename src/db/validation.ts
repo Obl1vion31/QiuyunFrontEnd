@@ -22,7 +22,6 @@ const categoryIds = postCategories.map((category) => category.id) as [string, ..
 
 const emptyToNull = (value: unknown) => typeof value === 'string' && value.trim() === '' ? null : value;
 const optionalText = z.preprocess(emptyToNull, z.string().trim().max(500).nullable());
-const requiredDocText = z.string().trim().min(1, '请填写项目文档名称').max(500);
 const shanghaiDateTime = z.string().trim().min(1, '请选择时间').transform((value, context) => {
   const date = new Date(`${value}:00+08:00`);
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value) || Number.isNaN(date.getTime())) {
@@ -37,7 +36,6 @@ const versionFields = {
   contentName: z.string().trim().min(1, '请填写内容名称').max(200),
   subjectId: z.enum(subjectIds, { message: '请选择有效学科' }),
   categoryId: z.preprocess(emptyToNull, z.enum(categoryIds, { message: '请选择有效帖子分类' }).nullable()),
-  projectDocName: requiredDocText,
   projectDocUrl: z.url('请输入有效的 HTTP/HTTPS 链接').refine((url) => /^https?:\/\//.test(url), '仅支持 HTTP/HTTPS 链接'),
 };
 
@@ -92,7 +90,6 @@ const commonInputFromForm = (form: FormData) => ({
   syncToMoments: form.get('syncToMoments') === 'on',
   isPromoted: form.get('isPromoted') === 'on',
   promotionStatus: form.get('promotionStatus'),
-  projectDocName: form.get('projectDocName'),
   projectDocUrl: form.get('projectDocUrl'),
   plannedPublishAt: form.get('plannedPublishAt'),
   actualPublishAt: form.get('actualPublishAt'),

@@ -1,5 +1,11 @@
 ---
-import { asc, eq } from 'drizzle-orm';
+import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
+import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
+import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
+import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
+import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
+import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
+import { and, asc, between, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
@@ -111,8 +117,18 @@ let metrics: Array<{
   note: string | null;
 }> = [];
 
+const databaseStartedAt = performance.now();
 try {
-  campaigns = await getDb().select({
+  const database = getDb();
+  const activeStatuses = ['testing', 'scaling'];
+  const campaignScope = activeView === 'daily'
+    ? inArray(operationsPromotionCampaign.currentStatus, activeStatuses)
+    : and(
+        lte(operationsPromotionCampaign.startedOn, historyTo),
+        or(isNull(operationsPromotionCampaign.endedOn), gte(operationsPromotionCampaign.endedOn, historyFrom)),
+        historyStatus ? eq(operationsPromotionCampaign.currentStatus, historyStatus) : undefined,
+      );
+  [campaigns, stages, metrics, awaitingSchedules] = await Promise.all([database.select({
     id: operationsPromotionCampaign.id,
     scheduleId: operationsPromotionCampaign.scheduleId,
     startedOn: operationsPromotionCampaign.startedOn,
@@ -128,12 +144,39 @@ try {
     .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
     .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
-    .orderBy(asc(operationsPromotionCampaign.startedOn), asc(operationsContentVersion.contentName));
-  stages = await getDb().select().from(operationsPromotionStage)
-    .orderBy(asc(operationsPromotionStage.startedOn));
-  metrics = await getDb().select().from(operationsPromotionDailyMetric)
-    .orderBy(asc(operationsPromotionDailyMetric.metricDate));
-  awaitingSchedules = await getDb().select({
+    .where(campaignScope)
+    .orderBy(asc(operationsPromotionCampaign.startedOn), asc(operationsContentVersion.contentName)),
+  database.select({
+    id: operationsPromotionStage.id,
+    campaignId: operationsPromotionStage.campaignId,
+    stageType: operationsPromotionStage.stageType,
+    startedOn: operationsPromotionStage.startedOn,
+    endedOn: operationsPromotionStage.endedOn,
+    outcome: operationsPromotionStage.outcome,
+  }).from(operationsPromotionStage)
+    .innerJoin(operationsPromotionCampaign, eq(operationsPromotionStage.campaignId, operationsPromotionCampaign.id))
+    .where(campaignScope)
+    .orderBy(asc(operationsPromotionStage.startedOn)),
+  database.select({
+    id: operationsPromotionDailyMetric.id,
+    campaignId: operationsPromotionDailyMetric.campaignId,
+    metricDate: operationsPromotionDailyMetric.metricDate,
+    stageTypeSnapshot: operationsPromotionDailyMetric.stageTypeSnapshot,
+    spend: operationsPromotionDailyMetric.spend,
+    clickRate: operationsPromotionDailyMetric.clickRate,
+    platformOpenCount: operationsPromotionDailyMetric.platformOpenCount,
+    actualOpenCount: operationsPromotionDailyMetric.actualOpenCount,
+    platformLeadCount: operationsPromotionDailyMetric.platformLeadCount,
+    actualLeadCount: operationsPromotionDailyMetric.actualLeadCount,
+    reviewDecision: operationsPromotionDailyMetric.reviewDecision,
+    note: operationsPromotionDailyMetric.note,
+  }).from(operationsPromotionDailyMetric)
+    .innerJoin(operationsPromotionCampaign, eq(operationsPromotionDailyMetric.campaignId, operationsPromotionCampaign.id))
+    .where(activeView === 'history' && historyMode === 'day'
+      ? and(campaignScope, between(operationsPromotionDailyMetric.metricDate, historyFrom, historyTo))
+      : campaignScope)
+    .orderBy(asc(operationsPromotionDailyMetric.metricDate)),
+  activeView === 'daily' ? database.select({
     scheduleId: operationsContentSchedule.id,
     actualPublishAt: operationsContentSchedule.actualPublishAt,
     promotionDeferredThrough: operationsContentSchedule.promotionDeferredThrough,
@@ -146,23 +189,26 @@ try {
     .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
     .where(eq(operationsContentSchedule.promotionStatus, 'awaiting_promotion'))
-    .orderBy(asc(operationsContentSchedule.actualPublishAt), asc(operationsContentVersion.contentName)) as typeof awaitingSchedules;
+    .orderBy(asc(operationsContentSchedule.actualPublishAt), asc(operationsContentVersion.contentName)) : Promise.resolve([]),
+  ]) as [typeof campaigns, typeof stages, typeof metrics, typeof awaitingSchedules];
 } catch (error) {
   console.error('daily promotion review query failed', error);
   databaseError = '推广日度数据暂时不可用。请确认开发库已经执行最新迁移。';
 }
+Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 
-const stageAt = (campaignId: string, dateKey: string) => stages.find((stage) =>
-  stage.campaignId === campaignId
-  && stage.startedOn <= dateKey
-  && (!stage.endedOn || stage.endedOn >= dateKey));
 const dateRange = (start: string, end: string) => {
   const dates: string[] = [];
   for (let date = start; date <= end; date = nextDateKey(date)) dates.push(date);
   return dates;
 };
 
-const displayedCampaigns = campaigns.filter((campaign) => Boolean(stageAt(campaign.id, yesterday)));
+const latestFilledDate = metrics.at(-1)?.metricDate ?? null;
+const displayedCampaigns = campaigns.filter((campaign) =>
+  campaign.endedOn === null
+  && campaign.currentStage !== null
+  && (campaign.currentStatus === 'testing' || campaign.currentStatus === 'scaling')
+  && metrics.some((metric) => metric.campaignId === campaign.id));
 const awaitingRows = awaitingSchedules.filter((schedule) =>
   schedule.actualPublishAt
   && shanghaiDateKey(schedule.actualPublishAt) <= yesterday
@@ -192,12 +238,15 @@ const pendingRows = campaigns.flatMap((campaign) => {
 const historyRows = campaigns.map((campaign) => {
   const campaignStages = stages.filter((stage) => stage.campaignId === campaign.id);
   const campaignMetrics = metrics.filter((metric) => metric.campaignId === campaign.id);
+  const lifecycleCutoff = campaignMetrics.at(-1)?.metricDate ?? campaign.startedOn;
   const testingDays = campaignStages
     .filter((stage) => stage.stageType === 'testing')
-    .reduce((total, stage) => total + inclusivePromotionDays(stage.startedOn, stage.endedOn ?? yesterday), 0);
+    .filter((stage) => stage.startedOn <= lifecycleCutoff)
+    .reduce((total, stage) => total + inclusivePromotionDays(stage.startedOn, stage.endedOn && stage.endedOn < lifecycleCutoff ? stage.endedOn : lifecycleCutoff), 0);
   const scalingDays = campaignStages
     .filter((stage) => stage.stageType === 'scaling')
-    .reduce((total, stage) => total + inclusivePromotionDays(stage.startedOn, stage.endedOn ?? yesterday), 0);
+    .filter((stage) => stage.startedOn <= lifecycleCutoff)
+    .reduce((total, stage) => total + inclusivePromotionDays(stage.startedOn, stage.endedOn && stage.endedOn < lifecycleCutoff ? stage.endedOn : lifecycleCutoff), 0);
   const firstStage = campaignStages[0];
   const lastStage = campaignStages.at(-1);
   const startedOn = firstStage?.startedOn ?? campaign.startedOn;
@@ -281,58 +330,35 @@ const historyHref = (overrides: Record<string, string>) => {
     <title>Daily Promotion Review · 内容发布控制台</title>
   </head>
   <body>
-    <div class="app-shell">
-      <aside class="sidebar">
-        <a class="sidebar-brand" href="/"><span>FRONTEND</span><strong>内容发布控制台</strong></a>
-        <nav class="module-nav" aria-label="内容发布控制台模块">
-          <a href="/business/annual-plan"><span class="nav-icon">总</span><span><strong>总周期规划</strong><small>THE PLAN</small></span></a>
-          <a href="/business/operations-schedule"><span class="nav-icon">排</span><span><strong>排期管理</strong><small>Schedule</small></span></a>
-          <a class="active" href="/business/daily-promotion-review"><span class="nav-icon">日</span><span><strong>推广日度复盘</strong><small>Daily Review</small></span></a>
-          <span class="planned" aria-disabled="true"><span class="nav-icon">阶</span><span><strong>阶段复盘</strong><small>计划中</small></span></span>
-          <span class="planned" aria-disabled="true"><span class="nav-icon">报</span><span><strong>报表中心</strong><small>计划中</small></span></span>
-        </nav>
-        <div class="sidebar-foot"><span>INTERNAL ACCESS</span><a href="/">← 返回总枢纽</a></div>
-      </aside>
-
-      <section class="workspace">
-        <header class="toolbar">
-          <div class="toolbar-title"><span>推广日度复盘</span><small>{activeView === 'daily' ? 'Daily Review · 只处理尚未完成项' : 'Daily Review · 推广历史总览'}</small></div>
-          <div class="toolbar-center">
-            <nav class="view-switch" aria-label="推广复盘视图">
-              <a class:list={{ active: activeView === 'daily' }} href="?view=daily">每日复盘</a>
-              <a class:list={{ active: activeView === 'history' }} href="?view=history">历史总览</a>
-            </nav>
-            {activeView === 'daily'
-              ? <strong class="latest-cutoff">最新状态 · 截至 {formatDate(yesterday)}</strong>
-              : <strong class="history-range-label">{formatDate(historyFrom)}—{formatDate(historyTo)}</strong>}
-          </div>
-          <div class="toolbar-summary">
-            <span>{activeView === 'daily' ? '待完成' : '推广活动'}</span>
-            <strong>{activeView === 'daily' ? pendingRows.length + awaitingRows.length : historyRows.length}</strong>
-            <small>{activeView === 'daily' ? `${pendingRows.filter((row) => row.unlocked).length + awaitingRows.length} 项可立即处理` : '点击活动查看逐日明细'}</small>
-          </div>
-        </header>
+    <BusinessConsoleFrame active="daily-promotion">
+        <BusinessConsoleToolbar title="推广日度复盘" subtitle={activeView === 'daily' ? `只处理尚未完成项 · 数据截至 ${latestFilledDate ? formatDate(latestFilledDate) : '尚未填写'}` : `推广历史总览 · ${formatDate(historyFrom)}—${formatDate(historyTo)}`} mobilePriority="center">
+          <BusinessToolbarSegmented slot="center" label="推广复盘视图" items={[
+            { label: '每日复盘', href: '?view=daily', active: activeView === 'daily' },
+            { label: '历史总览', href: '?view=history', active: activeView === 'history' },
+          ]} />
+          <BusinessToolbarSummary slot="end" label={activeView === 'daily' ? '待完成' : '推广活动'} value={activeView === 'daily' ? pendingRows.length + awaitingRows.length : historyRows.length} detail={activeView === 'daily' ? `${pendingRows.filter((row) => row.unlocked).length + awaitingRows.length} 项可立即处理` : '点击活动查看逐日明细'} />
+        </BusinessConsoleToolbar>
 
         <main>
           {databaseError && <p class="notice" role="alert">{databaseError}</p>}
 
           {activeView === 'daily' && <>
           <section class="calendar-section" aria-labelledby="calendar-title">
-            <header class="section-head">
-              <div><span>LATEST LIFECYCLE</span><h1 id="calendar-title">最新推广生命周期</h1></div>
-              <p><i class="legend testing"></i>测试 <i class="legend scaling"></i>放量 · 截止 {formatFullDate(yesterday)}</p>
-            </header>
+            <BusinessPageHeader eyebrow="DAILY PROMOTION REVIEW" title="最新推广生命周期" headingId="calendar-title" description="只展示仍处于测试或放量中的推广活动。" contained>
+              <p class="lifecycle-meta" slot="meta"><span><i class="legend testing"></i>测试</span><span><i class="legend scaling"></i>放量</span><span class="lifecycle-cutoff">数据截至 {latestFilledDate ? formatFullDate(latestFilledDate) : '尚未填写'}</span></p>
+            </BusinessPageHeader>
             {!databaseError && displayedCampaigns.length === 0
-              ? <div class="empty-state"><strong>截至昨天没有推广活动</strong><p>在排期中确认推广帖的实发时间后，生命周期会从实发日开始。</p></div>
+              ? <div class="empty-state"><strong>当前没有进行中的推广生命周期</strong><p>已经结束或淘汰的推广内容只保留在历史记录中。</p></div>
               : <div class="lifecycle-list">
                   {displayedCampaigns.map((campaign) => {
+                    const lifecycleCutoff = metrics.filter((metric) => metric.campaignId === campaign.id).at(-1)!.metricDate;
                     const campaignStages = stages
                       .filter((stage) => {
-                        return stage.campaignId === campaign.id && !(stage.startedOn > yesterday);
+                        return stage.campaignId === campaign.id && !(stage.startedOn > lifecycleCutoff);
                       });
                     const stageDetails = campaignStages.map((stage) => {
-                      const visibleEnd = stage.endedOn && stage.endedOn < yesterday ? stage.endedOn : yesterday;
-                      const open = !stage.endedOn || stage.endedOn > yesterday;
+                      const visibleEnd = stage.endedOn && stage.endedOn < lifecycleCutoff ? stage.endedOn : lifecycleCutoff;
+                      const open = !stage.endedOn || stage.endedOn > lifecycleCutoff;
                       return {
                         ...stage,
                         visibleEnd,
@@ -370,16 +396,13 @@ const historyHref = (overrides: Record<string, string>) => {
           </section>
 
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
-            <header class="section-head">
-              <div><span>T+1 REVIEW QUEUE</span><h2 id="daily-title">待完成复盘</h2></div>
-              <p>按日期顺序完成；已填数据请到历史总览查看。</p>
-            </header>
+            <BusinessSectionHeader title="待完成复盘" headingId="daily-title" description="按日期顺序完成；已填数据请到历史总览查看。" contained />
             {awaitingRows.length > 0 && <div class="awaiting-list" aria-label="待开始推广">
               {awaitingRows.map((schedule) => <form class="awaiting-row" data-awaiting-form>
                 <input type="hidden" name="scheduleId" value={schedule.scheduleId} />
                 <input type="hidden" name="reviewDate" value={yesterday} />
                 <div>
-                  <span>AWAITING PROMOTION</span>
+                  <span>待开始推广</span>
                   <strong>{schedule.contentName}</strong>
                   <small>V{schedule.versionNumber} · {schedule.subjectName} · {formatDate(yesterday)}</small>
                 </div>
@@ -442,8 +465,8 @@ const historyHref = (overrides: Record<string, string>) => {
           </>}
 
           {activeView === 'history' && <section class="history-workspace" aria-labelledby="history-title">
-            <header class="history-head">
-              <div><span>PROMOTION ARCHIVE</span><h1 id="history-title">推广历史总览</h1><p>{historyMode === 'post' ? '进行中的活动优先，已结束活动按需展开。' : '按日期对账，每篇帖子保留一行事实。'}</p></div>
+            <div class="history-head">
+              <BusinessPageHeader eyebrow="PROMOTION ARCHIVE" title="推广历史总览" headingId="history-title" description={historyMode === 'post' ? '进行中的活动优先，已结束活动按需展开。' : '按日期对账，每篇帖子保留一行事实。'} />
               <form class="history-filters" method="get">
                 <input type="hidden" name="view" value="history" />
                 <input type="hidden" name="mode" value={historyMode} />
@@ -457,7 +480,7 @@ const historyHref = (overrides: Record<string, string>) => {
                 <button type="submit">查看</button>
                 <a href={`?view=history&mode=${historyMode}`}>重置范围</a>
               </form>
-            </header>
+            </div>
             <nav class="history-mode-switch" aria-label="历史总览粒度">
               <a class:list={{ active: historyMode === 'post' }} href={historyHref({ mode: 'post', campaign: '' })}>帖子视角</a>
               <a class:list={{ active: historyMode === 'day' }} href={historyHref({ mode: 'day', campaign: '' })}>日视角</a>
@@ -507,7 +530,7 @@ const historyHref = (overrides: Record<string, string>) => {
                   ? <div class="empty-state"><strong>该范围内没有日度记录</strong><p>调整日期、帖子名称或状态筛选。</p></div>
                   : historyDayGroups.map((group) => <section class="day-group">
                     <header>
-                      <div><span>DAILY TOTAL</span><h2>{formatFullDate(group.metricDate)}</h2></div>
+                      <div><h2>{formatFullDate(group.metricDate)}</h2></div>
                       <dl>
                         <div><dt>总消耗</dt><dd>¥{group.spend.toFixed(2)}</dd></div>
                         <div><dt>总开口</dt><dd>{group.platformOpenCount}</dd></div>
@@ -530,7 +553,7 @@ const historyHref = (overrides: Record<string, string>) => {
               </div>}
               {selectedHistoryRow && <aside class="history-inspector" aria-labelledby="inspector-title">
                 <header>
-                  <div><span>CAMPAIGN INSPECTOR</span><h2 id="inspector-title">{selectedHistoryRow.campaign.contentName}</h2><p>V{selectedHistoryRow.campaign.versionNumber} · {selectedHistoryRow.campaign.subjectName}</p></div>
+                  <div><h2 id="inspector-title">{selectedHistoryRow.campaign.contentName}</h2><p>V{selectedHistoryRow.campaign.versionNumber} · {selectedHistoryRow.campaign.subjectName}</p></div>
                   <a href={historyHref({ campaign: '' })} aria-label="关闭历史详情">×</a>
                 </header>
                 <dl class="inspector-summary">
@@ -571,7 +594,7 @@ const historyHref = (overrides: Record<string, string>) => {
                           <button type="button" class="edit-history-button" data-edit-trigger={metric.id}>编辑这一天</button>
                           <dialog class="history-edit-dialog" data-edit-dialog={metric.id}>
                             <form data-history-edit-form>
-                              <header><div><span>EDIT DAILY FACT</span><h3>{formatFullDate(metric.metricDate)}</h3><p>{selectedHistoryRow.campaign.contentName} · {metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
+                              <header><div><h3>{formatFullDate(metric.metricDate)}</h3><p>{selectedHistoryRow.campaign.contentName} · {metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
                               <input type="hidden" name="metricId" value={metric.id} />
                               <div class="edit-fields">
                                 <label>消耗<input name="spend" type="number" min="0" step="0.01" value={Number(metric.spend).toFixed(2)} required /></label>
@@ -593,8 +616,7 @@ const historyHref = (overrides: Record<string, string>) => {
             </div>
           </section>}
         </main>
-      </section>
-    </div>
+    </BusinessConsoleFrame>
 
     <script>
       const formatCost = (spend: number, count: number) => count > 0 ? `¥${(spend / count).toFixed(2)}` : '—';
@@ -709,16 +731,16 @@ const historyHref = (overrides: Record<string, string>) => {
 <style>
   :root{--paper:#eef1ed;--ink:#17202a;--muted:#64716b;--line:#c8d0cb;--night:#10243e;--blue:#2454d3;--blue-soft:#dfe7ff;--test:#d49a12;--test-soft:#fff1bf;--test-ink:#6a4a00;--scale:#3f9272;--scale-soft:#ddf2e8;--scale-ink:#205d48;--red:#a64a43;--white:#fff}
   *{box-sizing:border-box}html,body{min-height:100%;margin:0;background:var(--paper)}body{color:var(--ink);font-family:system-ui,'PingFang SC','Microsoft YaHei',sans-serif;line-height:1.45}button,input,select{font:inherit}a{color:inherit}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ff6a3d;outline-offset:2px}
-  .app-shell{min-height:100vh;display:grid;grid-template-columns:232px minmax(0,1fr)}.sidebar{position:sticky;top:0;height:100vh;z-index:20;display:flex;flex-direction:column;padding:22px 14px 16px;color:#fff;background:var(--night)}.sidebar-brand{display:grid;gap:2px;padding:8px 12px 24px;text-decoration:none}.sidebar-brand span{color:#9eb8f8;font:750 .64rem ui-monospace,monospace;letter-spacing:.13em}.sidebar-brand strong{font-size:1.02rem}.module-nav{display:grid;gap:5px}.module-nav>a,.module-nav>.planned{display:grid;grid-template-columns:30px 1fr;align-items:center;gap:10px;min-height:52px;padding:7px 10px;border-radius:12px;text-decoration:none}.module-nav>a.active{background:#ffffff16;box-shadow:inset 0 0 0 1px #ffffff17}.module-nav>.planned{color:#a8b5c0}.module-nav strong,.module-nav small{display:block}.module-nav strong{font-size:.8rem}.module-nav small{color:#8093a3;font-size:.62rem}.module-nav a.active small{color:#9eb8f8}.nav-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:#dbe5ff;background:#ffffff12;font:800 .68rem ui-monospace,monospace}.module-nav a.active .nav-icon{color:#fff;background:var(--blue)}.sidebar-foot{display:grid;gap:8px;margin-top:auto;padding:14px 12px 4px;border-top:1px solid #ffffff17}.sidebar-foot span{color:#70869a;font:700 .58rem ui-monospace,monospace;letter-spacing:.11em}.sidebar-foot a{color:#b8c7d2;font-size:.72rem;text-decoration:none}
   .workspace{min-width:0}.toolbar{position:sticky;top:0;z-index:14;min-height:72px;display:grid;grid-template-columns:minmax(130px,1fr) auto minmax(320px,1fr);align-items:center;gap:18px;padding:8px 24px;border-bottom:1px solid #bac2bf99;background:#f5f7f3e8;backdrop-filter:blur(22px) saturate(145%)}.toolbar-title{display:grid}.toolbar-title span{font-size:.94rem;font-weight:850;letter-spacing:-.015em}.toolbar-title small{color:var(--muted);font-size:.65rem}.toolbar-center{display:grid;justify-items:center;gap:3px}.view-switch{display:flex;padding:3px;border-radius:10px;background:#dfe4e2}.view-switch a{min-height:27px;display:grid;place-items:center;padding:0 11px;border-radius:7px;color:#58645e;font-size:.62rem;font-weight:850;text-decoration:none}.view-switch a.active{color:#fff;background:var(--night)}.latest-cutoff,.history-range-label{color:#4d5a54;font:800 .58rem ui-monospace,monospace}.latest-cutoff{padding:1px 7px;border-radius:6px;background:#e3e8e5}.toolbar-summary{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 7px}.toolbar-summary span,.toolbar-summary small{color:var(--muted);font-size:.62rem}.toolbar-summary strong{font:900 1.3rem ui-monospace,monospace}.toolbar-summary small{grid-column:1/-1}
-  main{padding:28px 26px 80px}.notice{padding:12px 15px;border-left:4px solid var(--red);background:#f9e6e3}.calendar-section,.daily-section{margin-bottom:30px;border:1px solid var(--line);border-radius:16px;background:#f8faf7;overflow:hidden}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:18px 20px;border-bottom:1px solid var(--line)}.section-head span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.section-head h1,.section-head h2{margin:3px 0 0;font-size:1.15rem;letter-spacing:-.02em}.section-head p{margin:0;color:var(--muted);font-size:.66rem}.legend{display:inline-block;width:18px;height:7px;margin:0 5px 0 12px;border-radius:99px;background:var(--test)}.legend.scaling{background:var(--scale)}
+  main{padding:28px 26px 80px}.notice{padding:12px 15px;border-left:4px solid var(--red);background:#f9e6e3}.calendar-section,.daily-section{margin-bottom:30px;border:1px solid var(--line);border-radius:16px;background:#f8faf7;overflow:hidden}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:18px 20px;border-bottom:1px solid var(--line)}.section-head span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.section-head h1,.section-head h2{margin:3px 0 0;font-size:1.15rem;letter-spacing:-.02em}.section-head p{margin:0;color:var(--muted);font-size:.66rem}.lifecycle-meta{display:flex;align-items:center;justify-content:flex-end;gap:10px}.lifecycle-meta>span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.lifecycle-cutoff{padding-left:10px;border-left:1px solid var(--console-line)}.legend{display:inline-block;width:18px;height:7px;margin:0;border-radius:99px;background:var(--test)}.legend.scaling{background:var(--scale)}
   .lifecycle-list{display:grid;background:#edf1ee}.lifecycle-card{display:grid;gap:12px;padding:17px 20px 19px;border-bottom:1px solid var(--line);background:#fff}.lifecycle-card:last-child{border-bottom:0}.lifecycle-card>header{display:flex;align-items:start;justify-content:space-between;gap:18px}.lifecycle-card>header a{display:grid;min-width:0;text-decoration:none}.lifecycle-card>header strong{overflow:hidden;font-size:.78rem;text-overflow:ellipsis;white-space:nowrap}.lifecycle-card>header span{color:var(--muted);font-size:.58rem}.lifecycle-status,.history-status{display:inline-block;padding:4px 8px;border-radius:999px;color:#56615c;background:#e7e9e8;font-size:.56rem;font-weight:850;white-space:nowrap}.lifecycle-status.testing,.history-status.testing{color:var(--test-ink);background:var(--test-soft)}.lifecycle-status.scaling,.history-status.scaling{color:var(--scale-ink);background:var(--scale-soft)}.stage-summaries{display:flex;align-items:center;gap:10px 24px;flex-wrap:wrap}.stage-summaries p{display:flex;align-items:baseline;gap:5px;margin:0;color:var(--test-ink);font-size:.62rem}.stage-summaries p.scaling{color:var(--scale-ink)}.stage-summaries p span{color:var(--muted);font-size:.58rem}.relative-track{height:34px;display:flex;overflow:hidden;border-radius:7px;background:#e7ebe8}.relative-track>span{min-width:0;display:flex;align-items:center;padding:0 10px;border-left:3px solid var(--test);color:var(--test-ink);background:var(--test-soft)}.relative-track>span+span{border-radius:0}.relative-track>span.scaling{border-color:var(--scale);color:var(--scale-ink);background:var(--scale-soft)}.relative-track b{overflow:hidden;font-size:.61rem;text-overflow:ellipsis;white-space:nowrap}
   .awaiting-list{display:grid;gap:8px;padding:12px;border-bottom:1px solid var(--line);background:#e9eef4}.awaiting-row{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(220px,1fr) auto;align-items:center;gap:16px;padding:12px 14px;border:1px solid #b8c7d8;border-radius:10px;background:#f8fafc}.awaiting-row>div:first-child{display:grid}.awaiting-row span{color:#426489;font:850 .52rem ui-monospace,monospace;letter-spacing:.1em}.awaiting-row strong{font-size:.72rem}.awaiting-row small,.awaiting-row>p{color:var(--muted);font-size:.58rem}.awaiting-row>p{margin:0}.awaiting-actions{display:flex;gap:7px}.awaiting-actions button{height:34px;border:1px solid #9eacb9;border-radius:7px;padding:0 10px;color:#33485f;background:#fff;font-size:.59rem;font-weight:850;cursor:pointer}.awaiting-actions button:last-child{border-color:var(--blue);color:#fff;background:var(--blue)}.awaiting-actions button:disabled{opacity:.5}.awaiting-message{grid-column:2/-1;color:var(--red)!important}.daily-table-wrap{overflow:visible}.daily-grid{--daily-cols:minmax(145px,1.4fr) 62px 38px repeat(5,minmax(52px,.62fr)) repeat(2,minmax(72px,.78fr)) minmax(102px,1fr) 92px;font-size:.65rem}.column-groups,.daily-row{display:grid;grid-template-columns:var(--daily-cols);align-items:center}.column-groups{min-height:29px;color:var(--muted);background:#edf1ee;font-size:.52rem;font-weight:850;letter-spacing:.08em;text-align:center}.column-groups .raw-group{grid-column:4/9}.column-groups .cost-group{grid-column:9/11;border-left:1px solid #b9c3bd}.column-groups .review-group{grid-column:11/13;border-left:1px solid #b9c3bd}.daily-header{min-height:38px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);background:#f5f7f4;font-size:.54rem;font-weight:800}.daily-header>span,.daily-row>[role="cell"]{min-width:0;padding:6px;text-align:center}.daily-header>span:first-child,.daily-row>.identity{text-align:left}.daily-header>span:nth-child(4),.daily-header>span:nth-child(9),.daily-header>span:nth-child(11),.daily-row>.group-start{border-left:1px solid #b9c3bd}.daily-row{min-height:58px;padding:7px 0;border-bottom:1px solid #dce1de;background:#fff}.identity{display:grid;align-content:center;padding-left:12px!important}.identity strong{overflow:hidden;font-size:.66rem;text-overflow:ellipsis;white-space:nowrap}.identity small{overflow:hidden;color:var(--muted);font-size:.53rem;text-overflow:ellipsis;white-space:nowrap}.metric-date{font:850 .59rem ui-monospace,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}.stage-cell{justify-self:center;display:grid;place-items:center;width:25px;min-height:42px!important;padding:5px 3px!important;border-radius:6px;color:var(--test-ink);background:var(--test-soft);font-size:.56rem;font-weight:900;line-height:1;writing-mode:vertical-rl}.stage-cell.scaling{color:var(--scale-ink);background:var(--scale-soft)}.stage-cell.pending{color:#68736d;background:#e8ece9}.field-cell{display:block;min-width:0;padding:4px}.field-cell input,.field-cell select{width:100%;height:36px;min-width:0;border:1px solid #aeb8b2;border-radius:6px;padding:6px;background:#fff;font-size:.62rem}.field-cell input{text-align:right}.field-cell input::placeholder{color:#89938e}.cost-output{color:#324b40;font-weight:850;font-variant-numeric:tabular-nums}.metric-form button{height:36px;margin:4px 6px;border:0;border-radius:7px;padding:0 8px;color:#fff;background:var(--blue);font-size:.62rem;font-weight:850;white-space:nowrap;cursor:pointer}.metric-form button:disabled{opacity:.5}.metric-form>p{grid-column:4/-1;margin:0;padding:0 7px;color:var(--red);font-size:.56rem}.locked-row{min-height:50px;background:#f7f9f7}.locked-explanation{grid-column:4/-1!important;margin:0;padding:8px 12px!important;border-left:1px solid #d4dad6;color:var(--muted);font-size:.58rem;text-align:left!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.empty-state{padding:42px 20px;text-align:center}.empty-state p{margin:5px 0 0;color:var(--muted);font-size:.7rem}
   .history-workspace{border:1px solid var(--line);border-radius:16px;background:#f8faf7;overflow:hidden}.history-head{display:flex;justify-content:space-between;align-items:end;gap:24px;padding:20px;border-bottom:1px solid var(--line)}.history-head>div>span,.history-inspector header span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.history-head h1,.history-inspector h2{margin:3px 0 0;font-size:1.15rem;letter-spacing:-.02em}.history-head p,.history-inspector header p{margin:3px 0 0;color:var(--muted);font-size:.64rem}.history-filters{display:flex;align-items:end;gap:7px}.history-filters label{display:grid;gap:3px}.history-filters label span{color:var(--muted);font-size:.52rem;font-weight:800}.history-filters input,.history-filters select{height:34px;min-width:112px;border:1px solid #aeb8b2;border-radius:7px;padding:5px 7px;background:#fff;font-size:.61rem}.history-filters .history-search input{min-width:150px}.history-filters button,.history-filters>a{height:34px;display:grid;place-items:center;border:0;border-radius:7px;padding:0 11px;font-size:.61rem;font-weight:850;text-decoration:none}.history-filters button{color:#fff;background:var(--blue);cursor:pointer}.history-filters>a{color:#435149;background:#e3e8e5}.history-layout{display:grid;grid-template-columns:minmax(0,1fr)}.history-layout.inspecting{grid-template-columns:minmax(0,1fr) 360px}.history-list{min-width:0}.history-record{display:grid;grid-template-columns:minmax(190px,1.5fr) minmax(145px,1fr) 62px 62px minmax(120px,.8fr) 112px;align-items:center;min-height:62px;border-bottom:1px solid #dce1de;color:inherit;background:#fff;font-size:.64rem;text-decoration:none}.history-record>span{min-width:0;padding:8px 10px;text-align:center}.history-record>span:first-child{text-align:left}.history-record:hover,.history-record.selected{background:#f1f5f2}.history-record.selected{box-shadow:inset 3px 0 var(--blue)}.history-table-head{min-height:38px;color:var(--muted);background:#edf1ee;font-size:.55rem;font-weight:850}.history-identity{display:grid}.history-identity strong,.history-identity small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-identity small{color:var(--muted);font-size:.54rem}.history-progress{display:grid;gap:4px}.history-progress i{height:4px;border-radius:99px;background:#dce3df;overflow:hidden}.history-progress em{display:block;height:100%;background:var(--blue)}.history-status{display:inline-block;padding:4px 7px;border-radius:999px;color:#42534c;background:#e7ebe8;font-size:.55rem;font-weight:850;white-space:nowrap}.history-status.testing{color:var(--test-ink);background:var(--test-soft)}.history-status.scaling{color:var(--scale-ink);background:var(--scale-soft)}.history-inspector{position:sticky;top:82px;align-self:start;max-height:calc(100vh - 82px);overflow:auto;border-left:1px solid var(--line);background:#f9fbf8}.history-inspector>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:10px;padding:17px 18px;border-bottom:1px solid var(--line);background:#f9fbf8ed;backdrop-filter:blur(12px)}.history-inspector>header>a{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:#53615a;background:#e4e9e6;font-size:1.1rem;text-decoration:none}.inspector-summary{margin:0;padding:4px 18px 14px}.inspector-summary div{display:grid;grid-template-columns:74px 1fr;gap:8px;padding:9px 0;border-bottom:1px solid #e0e5e2}.inspector-summary dt{color:var(--muted);font-size:.57rem}.inspector-summary dd{margin:0;font-size:.62rem;font-weight:750}.stage-history{display:grid;gap:6px;padding:0 18px 16px}.stage-history p{display:flex;justify-content:space-between;gap:8px;margin:0;padding:8px 10px;border-left:3px solid var(--test);border-radius:5px;color:var(--test-ink);background:var(--test-soft);font-size:.58rem}.stage-history p.scaling{border-color:var(--scale);color:var(--scale-ink);background:var(--scale-soft)}.stage-history span{color:var(--muted)}.inspector-days{padding:0 18px 24px}.inspector-days h3{margin:0;padding:12px 0 8px;border-top:1px solid var(--line);font-size:.7rem}.inspector-empty{padding:18px 0;color:var(--muted);font-size:.62rem}.history-day{display:block;margin-bottom:8px;padding:10px;border:1px solid #d9dfdb;border-radius:9px;color:inherit;background:#fff;text-decoration:none}.history-day>header{display:flex;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:1px solid #e4e8e5;font-size:.58rem}.history-day>header span{color:var(--muted)}.history-day dl{display:grid;grid-template-columns:repeat(2,1fr);gap:7px 12px;margin:9px 0 0}.history-day dl div{display:flex;justify-content:space-between;gap:6px}.history-day dt{color:var(--muted);font-size:.54rem}.history-day dd{margin:0;font-size:.57rem;font-weight:800}
   .history-mode-switch{display:flex;gap:4px;padding:10px 20px;border-bottom:1px solid var(--line);background:#edf1ee}.history-mode-switch a{padding:7px 14px;border-radius:7px;color:var(--muted);font-size:.62rem;font-weight:850;text-decoration:none}.history-mode-switch a.active{color:#fff;background:var(--night)}.ended-campaigns summary{display:flex;justify-content:space-between;padding:13px 15px;border-bottom:1px solid var(--line);color:#435149;background:#e7ebe8;font-size:.62rem;cursor:pointer}.ended-campaigns summary b{color:var(--muted)}.day-history{display:grid;gap:12px;padding:14px;background:#e9eeeb}.day-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.day-group>header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:13px 15px;background:#f8faf7}.day-group>header span{color:var(--blue);font:800 .5rem ui-monospace,monospace;letter-spacing:.1em}.day-group h2{margin:2px 0 0;font-size:.8rem}.day-group>header dl{display:grid;grid-template-columns:repeat(4,minmax(82px,1fr));gap:8px;margin:0}.day-group>header dl div{display:grid}.day-group dt{color:var(--muted);font-size:.5rem}.day-group dd{margin:1px 0 0;font:850 .72rem ui-monospace,monospace}.day-row{display:grid;grid-template-columns:minmax(180px,1.5fr) minmax(135px,1fr) repeat(4,minmax(65px,.55fr));align-items:center;min-height:52px;border:0;border-top:1px solid #e0e5e2;color:inherit;background:#fff;font-size:.61rem;text-align:center;text-decoration:none}.day-row>span{min-width:0;padding:8px}.day-row>span:first-child{text-align:left}.day-row>span:nth-child(2){display:flex;align-items:center;justify-content:center;gap:6px}.day-row>span:nth-child(2) small{color:var(--muted)}.day-row:not(.day-row-head):hover{background:#f1f5f2}.day-row-head{min-height:32px;color:var(--muted);background:#edf1ee;font-size:.52rem;font-weight:850}.history-note{margin:8px 0 0;padding-top:7px;border-top:1px solid #e4e8e5;color:var(--muted);font-size:.56rem}.edit-history-button{width:100%;margin-top:9px;border:1px solid #b8c2bc;border-radius:6px;padding:6px;color:#34473e;background:#f5f7f4;font-size:.57rem;font-weight:850;cursor:pointer}.history-edit-dialog{width:min(520px,calc(100vw - 24px));border:0;border-radius:14px;padding:0;box-shadow:0 24px 80px #10243e55}.history-edit-dialog::backdrop{background:#10243e99}.history-edit-dialog form>header{display:flex;justify-content:space-between;padding:17px 18px;color:#fff;background:var(--night)}.history-edit-dialog form>header span{color:#a9c1ff;font:800 .52rem ui-monospace,monospace;letter-spacing:.1em}.history-edit-dialog h3{margin:2px 0 0}.history-edit-dialog header p{margin:2px 0 0;color:#c6d1df;font-size:.58rem}.history-edit-dialog header button{border:0;color:#fff;background:transparent;font-size:1.25rem;cursor:pointer}.edit-fields{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;padding:18px}.edit-fields label{display:grid;gap:4px;color:var(--muted);font-size:.56rem;font-weight:800}.edit-fields input,.edit-fields select,.edit-fields textarea{width:100%;border:1px solid #abb6af;border-radius:7px;padding:8px;background:#fff;font-size:.65rem}.edit-note{grid-column:1/-1}.edit-impact{min-height:20px;margin:0;padding:0 18px;color:var(--red);font-size:.58rem}.history-edit-dialog footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px 18px}.history-edit-dialog footer button{border:0;border-radius:7px;padding:9px 14px;font-size:.62rem;font-weight:850;cursor:pointer}.history-edit-dialog footer button:last-child{color:#fff;background:var(--blue)}
   @media(max-width:1240px){.awaiting-row{grid-template-columns:1fr auto}.awaiting-row>p{grid-column:1/2}.awaiting-message{grid-column:1/-1!important}.column-groups,.daily-header{display:none}.daily-grid{display:grid;gap:10px;padding:10px}.daily-row{position:relative;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-height:0;padding:12px;border:1px solid var(--line);border-radius:10px}.daily-row>.identity{grid-column:1/-1;padding:0 0 8px!important;border-bottom:1px solid #e0e5e2}.daily-row>.stage-cell{position:absolute;right:12px;top:12px}.daily-row>[role="cell"]{display:grid;grid-template-columns:78px minmax(0,1fr);align-items:center;gap:6px;padding:0;border-left:0!important;text-align:right}.daily-row>[role="cell"]:not(.identity):not(.stage-cell):not(.locked-explanation)::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.field-cell{display:grid}.daily-row>.field-cell::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800;text-align:left}.daily-row>.decision,.daily-row>button,.daily-row>p{grid-column:1/-1!important}.daily-row>button{margin:0}.daily-row>p{padding:0}.locked-row>.metric-date{grid-column:1/-1}.locked-explanation{border-left:0!important;border-top:1px solid #e0e5e2!important;padding-top:9px!important}.stage-cell{writing-mode:horizontal-tb;width:auto;min-height:24px!important}.history-head{display:grid}.history-filters{flex-wrap:wrap}.history-layout.inspecting{grid-template-columns:minmax(0,1fr) 330px}.history-record{grid-template-columns:minmax(160px,1.3fr) minmax(130px,1fr) 52px 52px minmax(105px,.8fr) 105px}}
-  @media(max-width:900px){.app-shell{display:block}.sidebar{position:static;width:100%;height:auto}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>.planned,.sidebar-foot{display:none}.toolbar{grid-template-columns:1fr auto}.toolbar-summary{display:none}main{padding:18px 14px 70px}.section-head{align-items:start}.section-head p{max-width:250px}.history-layout.inspecting{display:block}.history-inspector{position:fixed;inset:0;z-index:40;max-height:none;border:0}.history-record{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px}.history-table-head{display:none}.history-record>span{display:flex;justify-content:space-between;gap:8px;padding:0;text-align:right}.history-record>span::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800}.history-record>.history-identity{grid-column:1/-1;display:grid;padding-bottom:7px;border-bottom:1px solid #e1e6e3;text-align:left}.history-record>.history-identity::before{display:none}}
+  @media(max-width:900px){.toolbar{grid-template-columns:1fr auto}.toolbar-summary{display:none}main{padding:18px 14px 70px}.section-head{align-items:start}.section-head p{max-width:250px}.history-layout.inspecting{display:block}.history-inspector{position:fixed;inset:0;z-index:40;max-height:none;border:0}.history-record{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:12px}.history-table-head{display:none}.history-record>span{display:flex;justify-content:space-between;gap:8px;padding:0;text-align:right}.history-record>span::before{content:attr(data-label);color:var(--muted);font-size:.54rem;font-weight:800}.history-record>.history-identity{grid-column:1/-1;display:grid;padding-bottom:7px;border-bottom:1px solid #e1e6e3;text-align:left}.history-record>.history-identity::before{display:none}}
   @media(max-width:760px){.day-group>header{display:grid}.day-group>header dl{grid-template-columns:repeat(2,1fr)}.day-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:11px}.day-row-head{display:none}.day-row>span{display:flex;justify-content:space-between;padding:0;text-align:right}.day-row>span:first-child{grid-column:1/-1;display:grid;padding-bottom:7px;border-bottom:1px solid #e1e6e3}.day-row>span:nth-child(2){grid-column:1/-1;justify-content:flex-start}.edit-fields{grid-template-columns:1fr}.edit-note{grid-column:auto}}
-  @media(max-width:600px){.toolbar{display:grid;grid-template-columns:1fr;padding:10px 14px}.toolbar-center{justify-items:stretch}.view-switch{justify-content:center}.latest-cutoff{text-align:center}.section-head{display:block}.section-head p{margin-top:8px}.module-nav{grid-template-columns:repeat(3,1fr)}.module-nav>a{grid-template-columns:24px 1fr;padding:6px}.nav-icon{width:24px;height:24px}.lifecycle-card{padding:15px 14px}.lifecycle-card>header{align-items:start}.stage-summaries{display:grid;gap:7px}.stage-summaries p{display:grid;gap:1px}.relative-track{height:30px}.relative-track>span{padding:0 6px}.relative-track b{font-size:.54rem}.history-filters{display:grid;grid-template-columns:repeat(2,1fr)}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-filters .history-search{grid-column:1/-1}.history-filters button,.history-filters>a{width:100%}}
+  @media(max-width:600px){.toolbar{display:grid;grid-template-columns:1fr;padding:10px 14px}.toolbar-center{justify-items:stretch}.view-switch{justify-content:center}.latest-cutoff{text-align:center}.section-head{display:block}.section-head p{margin-top:8px}.lifecycle-card{padding:15px 14px}.lifecycle-card>header{align-items:start}.stage-summaries{display:grid;gap:7px}.stage-summaries p{display:grid;gap:1px}.relative-track{height:30px}.relative-track>span{padding:0 6px}.relative-track b{font-size:.54rem}.history-filters{display:grid;grid-template-columns:repeat(2,1fr)}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-filters .history-search{grid-column:1/-1}.history-filters button,.history-filters>a{width:100%}}
+  @media(max-width:700px){.lifecycle-meta{justify-content:flex-start;flex-wrap:wrap}.lifecycle-cutoff{width:100%;padding:2px 0 0;border-left:0}}
   @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>

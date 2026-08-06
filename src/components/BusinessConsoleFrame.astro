@@ -1,0 +1,30 @@
+---
+import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
+interface Props { active: ModuleId }
+const { active } = Astro.props;
+---
+
+<div class="app-shell business-console-frame">
+  <BusinessConsoleSidebar active={active} />
+  <section class="workspace business-console-workspace"><slot /></section>
+</div>
+
+<style is:global>
+  :root{
+    --console-canvas:#e9ece8;
+    --console-paper:#f7f8f5;
+    --console-surface:#fff;
+    --console-surface-subtle:#f2f5f2;
+    --console-ink:#17211c;
+    --console-muted:#68736d;
+    --console-line:#c9d1cc;
+    --console-blue:#315fd6;
+    --console-blue-soft:#dce5ff;
+  }
+  html,body{min-height:100%;background:var(--console-canvas)}
+  body{margin:0;overflow-x:hidden}
+  .business-console-frame{width:100%;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2}
+  .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
+  @media(max-width:900px){.business-console-workspace{padding-bottom:66px}}
+</style>

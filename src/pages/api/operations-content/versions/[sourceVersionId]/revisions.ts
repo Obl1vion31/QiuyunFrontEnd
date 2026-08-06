@@ -109,7 +109,6 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         subjectId: result.data.subjectId,
         categoryId: result.data.categoryId,
         revisionSummary: result.data.revisionSummary,
-        projectDocName: result.data.projectDocName,
         projectDocUrl: result.data.projectDocUrl,
       }).returning({ id: operationsContentVersion.id });
 
