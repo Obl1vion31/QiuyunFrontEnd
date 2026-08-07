@@ -27,7 +27,7 @@ pnpm dev
 - `/business/annual-plan`：`THE PLAN` 年度内容总周期规划，统一查看自动总规划和各学科细致规划；
 - `/business/operations-schedule`：具体内容与发布排期。
 - `/business/non-promotion-review`：2026 年 7 月起非推广帖 T+7 / T+15 顺序复盘与同类基准。
-- `/business/meeting-review`：业务例会复盘，引用已经完成的内容复盘结果。
+- `/business/meeting-review`：例会总复盘，按自选区间生成周度总览、排期对齐、推广区间与非推广到期复盘，并跟进跨周事项。
 - `/business/settings`：分类名称、可选状态和默认推广用途的全局规则版本。
 
 ## 临时公网预览
@@ -223,7 +223,8 @@ pnpm dev
 - `docs/exec-results/phase-04-the-plan.md`：Phase 04 Executive Result、数据核对与最终验收结论。
 - `docs/exec-results/phase-05-daily-promotion-review.md`：已正式完结的 Phase 05 Daily Promotion Review 交付结论。
 - `docs/exec-plans/phase-05-daily-promotion-review.md`：Phase 05 Daily Promotion Review 简化计划。
-- `docs/exec-plans/phase-06-stage-review.md`：Phase 06 阶段复盘与会议中心分步计划。
+- `docs/exec-plans/phase-06-meeting-and-weekly-review.md`：Phase 06 Meeting and Weekly Review 分步计划。
+- `docs/exec-results/phase-06-meeting-and-weekly-review.md`：Phase 06 Meeting and Weekly Review 实施结果与收尾验收入口。
 - `docs/database-basics/README.md`：Neon 工作台、数据库查询、恢复和账号协作学习指南。
 - `AGENTS.md`：agent 在本仓库中的长期协作规则。
 

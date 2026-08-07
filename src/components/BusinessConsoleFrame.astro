@@ -8,7 +8,103 @@ const { active } = Astro.props;
 <div class="app-shell business-console-frame">
   <BusinessConsoleSidebar active={active} />
   <section class="workspace business-console-workspace"><slot /></section>
+  <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
+    <span class="business-operation-feedback__spinner" aria-hidden="true"></span>
+    <span data-operation-label>正在处理…</span>
+  </div>
 </div>
+
+<script is:inline>
+  (() => {
+    if (window.__businessOperationFeedbackReady) return;
+    window.__businessOperationFeedbackReady = true;
+
+    const nativeFetch = window.fetch.bind(window);
+    let pendingCount = 0;
+    let shownAt = 0;
+    let recentTrigger = null;
+    let recentTriggerAt = 0;
+
+    const closestTrigger = (node) => node instanceof Element
+      ? node.closest('button, input[type="submit"], input[type="button"], [role="button"], a')
+      : null;
+
+    const rememberTrigger = (node) => {
+      recentTrigger = closestTrigger(node);
+      recentTriggerAt = performance.now();
+    };
+
+    document.addEventListener('pointerdown', (event) => rememberTrigger(event.target), true);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') rememberTrigger(event.target);
+    }, true);
+    document.addEventListener('submit', (event) => {
+      recentTrigger = event.submitter || event.target?.querySelector?.('[type="submit"]') || event.target;
+      recentTriggerAt = performance.now();
+    }, true);
+
+    const feedbackNodes = () => ({
+      feedback: document.querySelector('[data-operation-feedback]'),
+      workspace: document.querySelector('.business-console-workspace'),
+    });
+
+    const defaultLabel = (method) => {
+      if (method === 'DELETE') return '正在删除…';
+      if (method === 'GET' || method === 'HEAD') return '正在加载…';
+      return '正在保存…';
+    };
+
+    const begin = (method, trigger) => {
+      pendingCount += 1;
+      const { feedback, workspace } = feedbackNodes();
+      const label = trigger?.dataset?.loadingLabel
+        || trigger?.closest?.('form')?.dataset?.loadingLabel
+        || defaultLabel(method);
+      if (feedback) {
+        feedback.querySelector('[data-operation-label]').textContent = label;
+        feedback.setAttribute('aria-hidden', 'false');
+      }
+      workspace?.setAttribute('aria-busy', 'true');
+      if (trigger && !trigger.matches('a')) {
+        trigger.dataset.operationWasDisabled = trigger.disabled ? 'true' : 'false';
+        trigger.disabled = true;
+        trigger.setAttribute('aria-busy', 'true');
+      }
+      shownAt = performance.now();
+    };
+
+    const finish = async (trigger) => {
+      const elapsed = performance.now() - shownAt;
+      if (elapsed < 180) await new Promise((resolve) => setTimeout(resolve, 180 - elapsed));
+      pendingCount = Math.max(0, pendingCount - 1);
+      if (trigger && !trigger.matches('a')) {
+        if (trigger.dataset.operationWasDisabled !== 'true') trigger.disabled = false;
+        delete trigger.dataset.operationWasDisabled;
+        trigger.removeAttribute('aria-busy');
+      }
+      if (pendingCount > 0) return;
+      const { feedback, workspace } = feedbackNodes();
+      feedback?.setAttribute('aria-hidden', 'true');
+      workspace?.removeAttribute('aria-busy');
+    };
+
+    window.fetch = async (...args) => {
+      const [input, init] = args;
+      const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+      const trigger = performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
+      const shouldReport = Boolean(trigger) || !['GET', 'HEAD'].includes(method);
+      if (!shouldReport) return nativeFetch(...args);
+      begin(method, trigger);
+      recentTrigger = null;
+      recentTriggerAt = 0;
+      try {
+        return await nativeFetch(...args);
+      } finally {
+        await finish(trigger);
+      }
+    };
+  })();
+</script>
 
 <style is:global>
   :root{
@@ -26,5 +122,15 @@ const { active } = Astro.props;
   body{margin:0;overflow-x:hidden}
   .business-console-frame{width:100%;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2}
   .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
+  .business-operation-feedback{position:fixed;z-index:1200;right:20px;bottom:20px;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 14px;border:1px solid rgba(23,33,28,.14);border-radius:10px;background:rgba(247,248,245,.96);box-shadow:0 10px 28px rgba(23,33,28,.14);color:var(--console-ink);font-size:13px;font-weight:700;opacity:1;transform:translateY(0);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
+  .business-operation-feedback[aria-hidden="true"]{opacity:0;transform:translateY(6px)}
+  .business-operation-feedback__spinner{width:15px;height:15px;border:2px solid var(--console-blue-soft);border-top-color:var(--console-blue);border-radius:50%;animation:business-operation-spin .72s linear infinite}
+  .business-console-frame button[aria-busy="true"]{cursor:wait;opacity:.72}
+  @keyframes business-operation-spin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){
+    .business-operation-feedback{transition:none}
+    .business-operation-feedback__spinner{animation:none;border-color:var(--console-blue);background:var(--console-blue-soft)}
+  }
   @media(max-width:900px){.business-console-workspace{padding-bottom:66px}}
+  @media(max-width:900px){.business-operation-feedback{right:12px;bottom:78px}}
 </style>

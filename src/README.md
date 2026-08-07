@@ -49,7 +49,7 @@ src/
     │   ├── operations-schedule.astro  # 新做帖、改帖版本、动态排期页面与汇总
     │   └── daily-promotion-review.astro # 推广生命周期日历与 T+1 日度复盘
     │   ├── non-promotion-review.astro  # 非推广 7 / 15 天顺序复盘
-    │   ├── meeting-review.astro        # 业务例会复盘与结果引用
+    │   ├── meeting-review.astro        # 周度业务复盘、双视图策略与跨周事项
     │   ├── settings.astro              # 全局分类与默认用途规则
     │   └── stage-review.astro          # 旧地址兼容跳转
     └── api/

@@ -358,7 +358,9 @@ Content
 
 ## 9. 非推广阶段复盘与用途历史
 
-- `operations_stage_review_meeting` 保存自定义会议范围、会议时间、状态和创建人。
+- `operations_review_meeting` 保存自选会议范围、会议时间、类型、当前版本和可编辑草稿；旧 `operations_stage_review_meeting` 由迁移原位改名并保留 ID。
+- `operations_review_meeting_version` 以不可变 V0 / V1+ 快照保存排期对齐、推广区间聚合、非推广节点引用、人工指标和结论。
+- `operations_review_action_item` 保存跨周问题与当前状态；`operations_review_action_progress` 按会议追加进展和结论，不覆盖旧记录。
 - `operations_content_performance_metric` 以 `(schedule_id, checkpoint_type)` 唯一保存 T+7、T+15 的点击率、3 秒阅读率和数据截至日。
 - `operations_non_promotion_review` 以 `(schedule_id, checkpoint_type)` 唯一保存内容身份、指标、cohort 快照和人工结论；它不依赖会议，应用层按 T+7 → T+15 顺序开放。
 - `operations_category_policy_version` 为稳定分类保存显示名称、默认推广身份、是否可选、生效日期和递增版本。

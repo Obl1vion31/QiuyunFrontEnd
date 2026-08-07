@@ -32,6 +32,26 @@ test('控制台壳层集中装配侧栏并提供统一视觉变量', async () =>
   assert.match(source, /\.business-console-workspace\{width:100%;min-width:0/);
 });
 
+test('控制台壳层为所有异步业务交互提供统一加载反馈', async () => {
+  const frame = await readFile(new URL('../src/components/BusinessConsoleFrame.astro', import.meta.url), 'utf8');
+  assert.match(frame, /data-operation-feedback/);
+  assert.match(frame, /role="status" aria-live="polite"/);
+  assert.match(frame, /正在加载…/);
+  assert.match(frame, /正在保存…/);
+  assert.match(frame, /正在删除…/);
+  assert.match(frame, /window\.fetch = async/);
+  assert.match(frame, /setAttribute\('aria-busy', 'true'\)/);
+  assert.match(frame, /trigger\.disabled = true/);
+  assert.match(frame, /prefers-reduced-motion:reduce/);
+
+  for (const page of pages) {
+    const source = await readFile(new URL(`../src/pages/business/${page}.astro`, import.meta.url), 'utf8');
+    if (source.includes('fetch(')) {
+      assert.match(source, /<BusinessConsoleFrame\b/, `${page} 发起请求但没有使用全局加载反馈壳层`);
+    }
+  }
+});
+
 test('共享工具栏锁定跨页几何、字体与颜色', async () => {
   const source = await readFile(new URL('../src/components/BusinessConsoleToolbar.astro', import.meta.url), 'utf8');
   for (const declaration of [
@@ -57,7 +77,8 @@ test('六个页面只通过共享组件表达工具栏控件', async () => {
   for (const [page, components] of expected) {
     const source = await readFile(new URL(`../src/pages/business/${page}.astro`, import.meta.url), 'utf8');
     for (const component of components) assert.match(source, new RegExp(`<${component}\\b`), `${page} 未使用 ${component}`);
-    assert.doesNotMatch(source, /\.business-toolbar(?:__|\{|\b)/, `${page} 不得覆盖共享工具栏样式`);
+    const withoutSegmentedPlacement = source.replaceAll(':global(.business-toolbar-segmented)', '');
+    assert.doesNotMatch(withoutSegmentedPlacement, /\.business-toolbar(?:__|\{|\b)/, `${page} 不得覆盖共享工具栏样式`);
   }
 });
 

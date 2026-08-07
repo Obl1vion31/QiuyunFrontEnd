@@ -374,8 +374,16 @@ export const operationsPromotionDailyMetric = pgTable(
   ],
 );
 
-export const operationsStageReviewMeeting = pgTable(
-  'operations_stage_review_meeting',
+export interface WeeklyMeetingDraft {
+  schemaVersion: 1;
+  coreConclusion: string;
+  nextAction: string;
+  promotionInputs: Record<string, { clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
+  issues: Array<{ id?: string; problem: string; conclusion: string; status: 'pending' | 'validating' | 'resolved' | 'paused' }>;
+}
+
+export const operationsReviewMeeting = pgTable(
+  'operations_review_meeting',
   {
     id: uuid('id').defaultRandom().primaryKey(),
     name: text('name').notNull(),
@@ -383,16 +391,61 @@ export const operationsStageReviewMeeting = pgTable(
     periodEnd: date('period_end').notNull(),
     meetingAt: timestamp('meeting_at', { withTimezone: true }).notNull(),
     status: text('status').notNull().default('draft'),
+    meetingType: text('meeting_type').notNull().default('weekly'),
+    currentVersionNumber: integer('current_version_number').notNull().default(0),
+    draftSnapshot: jsonb('draft_snapshot').$type<WeeklyMeetingDraft>().notNull().default({ schemaVersion: 1, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [] }),
+    finalizedAt: timestamp('finalized_at', { withTimezone: true }),
     createdByLabel: text('created_by_label').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index('operations_stage_review_meeting_at_idx').on(table.meetingAt),
-    check('operations_stage_review_meeting_range_check', sql`${table.periodEnd} >= ${table.periodStart}`),
-    check('operations_stage_review_meeting_status_check', sql`${table.status} IN ('draft', 'completed')`),
+    index('operations_review_meeting_at_idx').on(table.meetingAt),
+    check('operations_review_meeting_range_check', sql`${table.periodEnd} >= ${table.periodStart}`),
+    check('operations_review_meeting_status_check', sql`${table.status} IN ('draft', 'completed')`),
+    check('operations_review_meeting_type_check', sql`${table.meetingType} IN ('weekly', 'monthly')`),
+    check('operations_review_meeting_version_check', sql`${table.currentVersionNumber} >= 0`),
   ],
 );
+
+export const operationsReviewMeetingVersion = pgTable('operations_review_meeting_version', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  meetingId: uuid('meeting_id').notNull().references(() => operationsReviewMeeting.id, { onDelete: 'restrict' }),
+  versionNumber: integer('version_number').notNull(),
+  snapshot: jsonb('snapshot').$type<Record<string, unknown>>().notNull(),
+  changeSummary: text('change_summary').notNull(),
+  finalizedByLabel: text('finalized_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('operations_review_meeting_version_idx').on(table.meetingId, table.versionNumber),
+  check('operations_review_meeting_version_number_check', sql`${table.versionNumber} >= 0`),
+]);
+
+export const operationsReviewActionItem = pgTable('operations_review_action_item', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  problem: text('problem').notNull(),
+  status: text('status').notNull().default('pending'),
+  createdMeetingId: uuid('created_meeting_id').notNull().references(() => operationsReviewMeeting.id, { onDelete: 'restrict' }),
+  resolvedMeetingId: uuid('resolved_meeting_id').references(() => operationsReviewMeeting.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('operations_review_action_status_idx').on(table.status, table.updatedAt),
+  check('operations_review_action_status_check', sql`${table.status} IN ('pending', 'validating', 'resolved', 'paused')`),
+]);
+
+export const operationsReviewActionProgress = pgTable('operations_review_action_progress', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  itemId: uuid('item_id').notNull().references(() => operationsReviewActionItem.id, { onDelete: 'cascade' }),
+  meetingId: uuid('meeting_id').notNull().references(() => operationsReviewMeeting.id, { onDelete: 'restrict' }),
+  conclusion: text('conclusion').notNull(),
+  statusSnapshot: text('status_snapshot').notNull(),
+  recordedByLabel: text('recorded_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('operations_review_action_progress_meeting_idx').on(table.itemId, table.meetingId),
+  check('operations_review_action_progress_status_check', sql`${table.statusSnapshot} IN ('pending', 'validating', 'resolved', 'paused')`),
+]);
 
 export const operationsContentPerformanceMetric = pgTable(
   'operations_content_performance_metric',

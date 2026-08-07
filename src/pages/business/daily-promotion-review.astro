@@ -331,7 +331,7 @@ const historyHref = (overrides: Record<string, string>) => {
   </head>
   <body>
     <BusinessConsoleFrame active="daily-promotion">
-        <BusinessConsoleToolbar title="推广日度复盘" subtitle={activeView === 'daily' ? `只处理尚未完成项 · 数据截至 ${latestFilledDate ? formatDate(latestFilledDate) : '尚未填写'}` : `推广历史总览 · ${formatDate(historyFrom)}—${formatDate(historyTo)}`} mobilePriority="center">
+        <BusinessConsoleToolbar title="日度推广复盘" subtitle={activeView === 'daily' ? `只处理尚未完成项 · 数据截至 ${latestFilledDate ? formatDate(latestFilledDate) : '尚未填写'}` : `推广历史总览 · ${formatDate(historyFrom)}—${formatDate(historyTo)}`} mobilePriority="center">
           <BusinessToolbarSegmented slot="center" label="推广复盘视图" items={[
             { label: '每日复盘', href: '?view=daily', active: activeView === 'daily' },
             { label: '历史总览', href: '?view=history', active: activeView === 'history' },
@@ -417,7 +417,7 @@ const historyHref = (overrides: Record<string, string>) => {
             {!databaseError && pendingRows.length === 0 && awaitingRows.length === 0
               ? <div class="empty-state"><strong>截至昨天已全部完成</strong><p>已填数据保存在历史总览；新的待办会在下一复盘日出现。</p></div>
               : <div class="daily-table-wrap">
-                <div class="daily-grid" role="table" aria-label="待完成推广日度复盘">
+                <div class="daily-grid" role="table" aria-label="待完成日度推广复盘">
                   <div class="column-groups" aria-hidden="true">
                     <span class="raw-group">当日原始数据</span>
                     <span class="cost-group">自动计算</span>
