@@ -1,0 +1,125 @@
+---
+import { and, desc, eq, gte, inArray, isNotNull } from 'drizzle-orm';
+import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
+import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
+import NonPromotionReviewCard from '../../components/NonPromotionReviewCard.astro';
+import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
+import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
+import { getDb } from '../../db/client';
+import {
+  operationsCategory,
+  operationsContentPerformanceMetric,
+  operationsContentSchedule,
+  operationsContentVersion,
+  operationsNonPromotionReview,
+  operationsSubject,
+} from '../../db/schema';
+import { checkpointsForPublishDate, nextReviewCheckpoint, nonPromotionReviewStart, reviewCheckpoints, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
+
+export const prerender = false;
+const today = shanghaiDateKey(new Date());
+let loadError = '';
+let schedules: Array<{ id: string; actualPublishAt: Date; contentName: string; projectDocUrl: string | null; versionNumber: number; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null }> = [];
+let metrics: Array<typeof operationsContentPerformanceMetric.$inferSelect & { subjectId: string; categoryId: string | null }> = [];
+let reviews: Array<typeof operationsNonPromotionReview.$inferSelect> = [];
+
+const databaseStartedAt = performance.now();
+try {
+  [schedules, metrics, reviews] = await Promise.all([
+    getDb().select({
+      id: operationsContentSchedule.id,
+      actualPublishAt: operationsContentSchedule.actualPublishAt,
+      contentName: operationsContentVersion.contentName,
+      projectDocUrl: operationsContentVersion.projectDocUrl,
+      versionNumber: operationsContentVersion.versionNumber,
+      subjectId: operationsContentVersion.subjectId,
+      subjectName: operationsSubject.name,
+      categoryId: operationsContentVersion.categoryId,
+      categoryName: operationsCategory.name,
+    }).from(operationsContentSchedule)
+      .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+      .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
+      .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
+      .where(and(
+        eq(operationsContentSchedule.isPromoted, false),
+        isNotNull(operationsContentSchedule.actualPublishAt),
+        gte(operationsContentSchedule.actualPublishAt, new Date(`${nonPromotionReviewStart}T00:00:00+08:00`)),
+      )).orderBy(desc(operationsContentSchedule.actualPublishAt)) as Promise<typeof schedules>,
+    getDb().select({
+      id: operationsContentPerformanceMetric.id,
+      scheduleId: operationsContentPerformanceMetric.scheduleId,
+      checkpointType: operationsContentPerformanceMetric.checkpointType,
+      recordedThrough: operationsContentPerformanceMetric.recordedThrough,
+      clickRate: operationsContentPerformanceMetric.clickRate,
+      threeSecondReadRate: operationsContentPerformanceMetric.threeSecondReadRate,
+      createdAt: operationsContentPerformanceMetric.createdAt,
+      updatedAt: operationsContentPerformanceMetric.updatedAt,
+      subjectId: operationsContentVersion.subjectId,
+      categoryId: operationsContentVersion.categoryId,
+    }).from(operationsContentPerformanceMetric)
+      .innerJoin(operationsContentSchedule, eq(operationsContentPerformanceMetric.scheduleId, operationsContentSchedule.id))
+      .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+      .where(inArray(operationsContentPerformanceMetric.checkpointType, ['day_7', 'day_15'])),
+    getDb().select().from(operationsNonPromotionReview)
+      .where(inArray(operationsNonPromotionReview.checkpointType, ['day_7', 'day_15']))
+      .orderBy(desc(operationsNonPromotionReview.reviewedAt)),
+  ]);
+} catch (error) {
+  console.error('non-promotion review query failed', error);
+  loadError = '非推广复盘数据暂时不可用。请检查数据库连接和最新迁移。';
+}
+Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
+
+const reviewMap = new Map(reviews.map((review) => [`${review.scheduleId}:${review.checkpointType}`, review]));
+const metricMap = new Map(metrics.map((metric) => [`${metric.scheduleId}:${metric.checkpointType}`, metric]));
+const rows = schedules.map((schedule) => {
+  const completed = reviewCheckpoints.filter((checkpoint) => reviewMap.has(`${schedule.id}:${checkpoint.type}`)).map((checkpoint) => checkpoint.type);
+  const next = nextReviewCheckpoint(schedule.actualPublishAt, completed, today);
+  const checkpoints = checkpointsForPublishDate(schedule.actualPublishAt);
+  return { ...schedule, completed, next, checkpoints };
+});
+const pending = rows.filter((row) => row.next);
+const completedRows = rows.filter((row) => row.completed.length === reviewCheckpoints.length);
+const activeView = Astro.url.searchParams.get('view') === 'history' ? 'history' : 'pending';
+const visibleRows = activeView === 'history' ? rows.filter((row) => row.completed.length > 0) : pending;
+const visibleCards = visibleRows.flatMap((row) => {
+  const checkpoint = activeView === 'pending' ? row.next : [...reviewCheckpoints].reverse().find((item) => row.completed.includes(item.type));
+  if (!checkpoint) return [];
+  const key = `${row.id}:${checkpoint.type}`;
+  const metric = metricMap.get(key);
+  const review = reviewMap.get(key);
+  const dueOn = row.checkpoints.find((item) => item.type === checkpoint.type)!.dueOn!;
+  const peerMetrics = metrics.filter((peer) => peer.checkpointType === checkpoint.type && peer.subjectId === row.subjectId && peer.categoryId === row.categoryId);
+  return [{ row, checkpoint, metric, review, dueOn, cohort: {
+    click: summarizeRates(peerMetrics.map((peer) => Number(peer.clickRate))),
+    read: summarizeRates(peerMetrics.map((peer) => Number(peer.threeSecondReadRate))),
+  } }];
+});
+---
+
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>非推广阶段复盘 · 内容发布控制台</title></head>
+<body>
+<BusinessConsoleFrame active="non-promotion-review">
+    <BusinessConsoleToolbar title="非推广阶段复盘" subtitle="正式口径自 2026-07-01 起" mobilePriority="center">
+      <BusinessToolbarSegmented slot="center" label="非推广复盘视图" items={[{ label: '待复盘', href: '?view=pending', active: activeView === 'pending' }, { label: '已录历史', href: '?view=history', active: activeView === 'history' }]} />
+      <BusinessToolbarSummary slot="end" label="待处理" value={pending.length} detail={`完整双节点 ${completedRows.length}`} />
+    </BusinessConsoleToolbar>
+    <main>
+      {loadError && <div class="error-banner">{loadError}</div>}
+      <section class="review-list">
+        {visibleCards.length === 0 && <div class="empty"><strong>{activeView === 'pending' ? '当前没有待复盘节点' : '还没有复盘历史'}</strong><p>仅纳入 2026 年 7 月起已实发的非推广帖子。</p></div>}
+        {visibleCards.map((card) => <NonPromotionReviewCard card={card} today={today} />)}
+      </section>
+    </main>
+</BusinessConsoleFrame>
+<script>
+document.querySelectorAll<HTMLFormElement>('[data-review-form]').forEach((form)=>form.addEventListener('submit',async(event)=>{event.preventDefault();const output=form.querySelector<HTMLOutputElement>('output');if(output)output.textContent='正在保存…';const response=await fetch('/api/non-promotion-reviews',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败。';return}window.location.reload()}));
+</script>
+</body></html>
+
+<style>
+:root{--night:#0b1b2b;--ink:#1d2923;--muted:#68746e;--line:#cfd6d2;--paper:#fff;--blue:#496fda;--mint:#3f9272;--orange:#d97842;font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#e9ece8}*{box-sizing:border-box}body{margin:0}.workspace{min-width:0}.toolbar{position:sticky;top:0;z-index:14;min-height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;padding:10px 24px;border-bottom:1px solid #bac2bf99;background:#f5f7f3e8;backdrop-filter:blur(22px) saturate(145%)}.toolbar-title{display:grid}.toolbar-title span{font-size:.94rem;font-weight:850}.toolbar-title small{color:var(--muted);font-size:.65rem}.view-switch{display:flex;padding:3px;border-radius:10px;background:#dfe4e2}.view-switch a{padding:7px 11px;border-radius:7px;color:#58645e;font-size:.62rem;font-weight:850;text-decoration:none}.view-switch a.active{color:#fff;background:var(--night)}.toolbar-summary{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 7px}.toolbar-summary span,.toolbar-summary small{color:var(--muted);font-size:.62rem}.toolbar-summary strong{font:900 1.3rem ui-monospace,monospace}.toolbar-summary small{grid-column:1/-1}main{padding:30px clamp(18px,3vw,38px) 80px}.overview-head span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.overview-head h1{margin:4px 0 3px;font-size:1.5rem}.overview-head p{margin:0;color:var(--muted);font-size:.68rem}.review-list{display:grid;gap:14px;margin-top:20px}.review-card,.empty{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff}.review-card>header{display:flex;justify-content:space-between;gap:18px;padding:18px 20px;border-bottom:1px solid var(--line)}.review-card header span,.review-card header small{color:var(--muted);font-size:.64rem}.review-card h2{margin:4px 0;font-size:1rem}.review-card mark{align-self:start;padding:6px 9px;border-radius:999px;color:#3856a6;background:#e6ebff;font-size:.62rem;font-weight:850}.review-card mark.overdue{color:#934021;background:#ffe2d6}.track{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 20px}.track span{position:relative;display:flex;align-items:center;gap:6px;color:#8b9690;font:800 .62rem ui-monospace,monospace}.track span:after{content:"";position:absolute;left:12px;right:-50%;height:2px;background:#d8dfdb}.track span:last-child:after{display:none}.track i,.track b{position:relative;z-index:1}.track i{width:12px;height:12px;border:2px solid #a8b2ac;border-radius:50%;background:#fff}.track .complete i{border-color:var(--mint);background:var(--mint)}.track .current i{border-color:var(--blue);box-shadow:0 0 0 3px #e6ebff}.benchmarks{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f4f7f4}.benchmarks>div{padding:15px 20px}.benchmarks>div+div{border-left:1px solid var(--line)}.benchmarks small,.benchmarks strong{display:block}.benchmarks small{color:var(--muted);font-size:.6rem}.benchmarks strong{margin:3px 0;font:900 1.35rem ui-monospace,monospace}.benchmarks p{margin:0;color:var(--muted);font-size:.62rem}details summary{padding:11px 20px;font-size:.68rem;font-weight:850;cursor:pointer}form{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px 20px;border-top:1px solid var(--line)}label,fieldset{min-width:0;margin:0;color:var(--muted);font-size:.65rem;font-weight:750}input,textarea{width:100%;margin-top:4px;padding:9px;border:1px solid #aeb8b2;border-radius:7px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:70px;resize:vertical}fieldset{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:9px;border:1px solid var(--line);border-radius:9px}.wide{grid-column:1/-1}.actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}.actions output{margin-right:auto;color:#a33b22}.actions button{padding:10px 14px;border:0;border-radius:8px;color:#fff;background:var(--blue);font-weight:850;cursor:pointer}.empty{padding:55px;text-align:center}.empty p,.error-banner{color:var(--muted);font-size:.68rem}.error-banner{margin-top:18px;padding:12px;border-radius:9px;background:#ffe5dc}
+@media(max-width:900px){.workspace{padding-bottom:66px}.toolbar{grid-template-columns:1fr auto;padding:8px 12px}.toolbar-summary{display:none}main{padding:22px 12px 76px}}@media(max-width:620px){.toolbar-title{display:none}.toolbar{display:flex;justify-content:center}.review-card>header,form{grid-template-columns:1fr}.benchmarks{grid-template-columns:1fr}.benchmarks>div+div{border-left:0;border-top:1px solid var(--line)}.wide{grid-column:auto}}
+</style>

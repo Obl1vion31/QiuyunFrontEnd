@@ -4,7 +4,7 @@
 
 ## 先记住一条主线
 
-当前首页可以理解为四层：
+当前代码分为静态首页、动态年度规划、动态内容排期和推广帖日度复盘四条主线。首页可以理解为四层：
 
 ```text
 src/data/home.ts
@@ -43,10 +43,29 @@ src/
 │   ├── ContentTunnel.tsx             # 首屏 React 交互组件
 │   └── ContentTunnel.module.css      # 首屏局部样式
 └── pages/
-    └── index.astro                   # 首页路由、页面结构和后半段样式
+    ├── index.astro                   # 静态首页路由、页面结构和后半段样式
+    ├── business/
+    │   ├── annual-plan.astro          # 年度内容总周期规划与版本历史
+    │   ├── operations-schedule.astro  # 新做帖、改帖版本、动态排期页面与汇总
+    │   └── daily-promotion-review.astro # 推广生命周期日历与 T+1 日度复盘
+    │   ├── non-promotion-review.astro  # 非推广 7 / 15 天顺序复盘
+    │   ├── meeting-review.astro        # 周度业务复盘、双视图策略与跨周事项
+    │   ├── settings.astro              # 全局分类与默认用途规则
+    │   └── stage-review.astro          # 旧地址兼容跳转
+    └── api/
+        ├── operations-annual-plans.ts # 新建年度细致规划 V0
+        ├── operations-annual-plans/   # 年度说明、编辑、历史和恢复接口
+        ├── operations-content.ts      # 新做帖 V0 写入接口
+        ├── operations-content/        # 排期编辑与改帖 V1+ 接口
+        ├── promotion-daily.ts         # 推广日度事实读取、填写与阶段流转
+        └── promotion-daily/[id].ts    # 历史事实更正与生命周期受控重建
 ```
 
 `src/pages/` 不单独放置 `README.md`，因为 Astro 会把该目录里的 Markdown 文件自动生成为公开页面。它的说明统一写在这里。
+
+业务控制台的服务端代码位于 `src/db/`：`schema.ts` 定义年度规划、学科、分类、帖子、排期、推广事实和非推广复盘；`annual-plan.ts` 与 `annual-plan-rules.mjs` 负责规划校验、快照、时间块和自动总规划；`promotion-rules.mjs` 与 `promotion-validation.ts` 负责 T+1 推广复盘；`stage-review-rules.mjs` 与 `stage-review-validation.ts` 负责非推广节点、比率、同类基准和写入校验；`taxonomy.ts` 维护稳定分类与映射；`validation.ts` 定义内容排期工作流；`client.ts` 建立惰性数据库连接。`src/middleware.ts` 保护所有业务页和相关接口。一次性导入只使用临时受控脚本，完成后不保留为日常入口。数据库和认证变量不得进入客户端代码。
+
+业务控制台统一由 `components/BusinessConsoleFrame.astro` 装配应用壳层和 `BusinessConsoleSidebar.astro`，并使用 `BusinessConsoleToolbar.astro`、`BusinessPageHeader.astro`、`BusinessSectionHeader.astro` 复用工具栏与标题层级。业务页面只传入当前激活项并组合内容，不得复制侧栏 DOM、Toolbar 结构或 CSS。共享组件必须自行固定所有后代的盒模型、字体和行高，不能依赖页面的 scoped/global 基础样式；调整右侧 Workspace 时不得使用能命中 `business-sidebar` 命名空间的选择器。对应回归约束位于 `tests/business-sidebar.test.mjs`。
 
 ## 先用 30 秒判断一个文件是否相关
 
@@ -107,16 +126,18 @@ const depthProgress = Math.sqrt(travel);
 
 统一标签含义：
 
-| 标签 | 回答的问题 |
-| --- | --- |
-| `【实现需求】` | 用户最终会看到或得到什么 |
-| `【文件职责】` / `【组件职责】` | 当前文件负责哪些工作 |
-| `【关联】` | 数据从哪里来、结果会影响哪里 |
-| `【输入】` | 当前逻辑依赖什么 |
-| `【输出】` | 当前逻辑产生什么 |
-| `【原因】` | 为什么使用这种实现 |
-| `【修改入口】` | 需求变化时优先改哪里 |
-| `【安全边界】` | 哪些既有能力不能破坏 |
+
+| 标签                  | 回答的问题          |
+| ------------------- | -------------- |
+| `【实现需求】`            | 用户最终会看到或得到什么   |
+| `【文件职责】` / `【组件职责】` | 当前文件负责哪些工作     |
+| `【关联】`              | 数据从哪里来、结果会影响哪里 |
+| `【输入】`              | 当前逻辑依赖什么       |
+| `【输出】`              | 当前逻辑产生什么       |
+| `【原因】`              | 为什么使用这种实现      |
+| `【修改入口】`            | 需求变化时优先改哪里     |
+| `【安全边界】`            | 哪些既有能力不能破坏     |
+
 
 CSS 使用相同标签，但以选择器区块为单位；HTML/Astro 模板以页面区域为单位。
 
@@ -475,34 +496,38 @@ font-size: clamp(3.8rem, 6.8vw, 6.8rem);
 
 ## 常用术语速查
 
-| 术语 | 在本项目中的含义 |
-| --- | --- |
-| Astro | 负责路由、HTML 生成和静态构建的主框架 |
-| React Island | 只在首屏交互区域启用的 React 组件 |
-| TypeScript | 带类型检查的 JavaScript |
-| Component | 可独立维护和复用的界面单元 |
-| Props | 父页面传给组件的数据 |
-| State | 会影响界面显示、更新后触发渲染的数据 |
-| Ref | 对真实 DOM 元素或持久值的引用 |
-| Hook | `useState`、`useEffect`、`useRef` 等 React 功能函数 |
-| JSX / TSX | 在 JavaScript/TypeScript 中描述界面的语法 |
-| CSS Module | 只作用于特定组件的局部 CSS |
-| `.map()` | 把数组中的每项转换为一段界面 |
-| 响应式 | 根据不同屏幕宽度调整布局 |
-| 无障碍 | 让键盘、屏幕阅读器和减少动画设置可正常使用 |
+
+| 术语           | 在本项目中的含义                                     |
+| ------------ | -------------------------------------------- |
+| Astro        | 负责路由、HTML 生成和静态构建的主框架                        |
+| React Island | 只在首屏交互区域启用的 React 组件                         |
+| TypeScript   | 带类型检查的 JavaScript                            |
+| Component    | 可独立维护和复用的界面单元                                |
+| Props        | 父页面传给组件的数据                                   |
+| State        | 会影响界面显示、更新后触发渲染的数据                           |
+| Ref          | 对真实 DOM 元素或持久值的引用                            |
+| Hook         | `useState`、`useEffect`、`useRef` 等 React 功能函数 |
+| JSX / TSX    | 在 JavaScript/TypeScript 中描述界面的语法             |
+| CSS Module   | 只作用于特定组件的局部 CSS                              |
+| `.map()`     | 把数组中的每项转换为一段界面                               |
+| 响应式          | 根据不同屏幕宽度调整布局                                 |
+| 无障碍          | 让键盘、屏幕阅读器和减少动画设置可正常使用                        |
+
 
 ## 修改需求时应该去哪
 
-| 你想做的事 | 优先修改 |
-| --- | --- |
-| 修改首页文字 | `data/home.ts` |
-| 替换真实封面 | `public/images/home/` 和 `data/home.ts` |
-| 修改 01–06 阶段 | `data/home.ts` 的 `workflow.stages` |
-| 调整封面速度或深度 | `components/ContentTunnel.tsx` |
-| 调整首屏颜色、大小、遮罩 | `components/ContentTunnel.module.css` |
-| 调整后半段工作流或入口布局 | `pages/index.astro` |
-| 修改浏览器标题或更新时间 | `data/home.ts` 的 `meta` |
-| 新增页面 | 先确认范围，再在 `pages/` 中增加路由文件 |
+
+| 你想做的事         | 优先修改                                   |
+| ------------- | -------------------------------------- |
+| 修改首页文字        | `data/home.ts`                         |
+| 替换真实封面        | `public/images/home/` 和 `data/home.ts` |
+| 修改 01–06 阶段   | `data/home.ts` 的 `workflow.stages`     |
+| 调整封面速度或深度     | `components/ContentTunnel.tsx`         |
+| 调整首屏颜色、大小、遮罩  | `components/ContentTunnel.module.css`  |
+| 调整后半段工作流或入口布局 | `pages/index.astro`                    |
+| 修改浏览器标题或更新时间  | `data/home.ts` 的 `meta`                |
+| 新增页面          | 先确认范围，再在 `pages/` 中增加路由文件              |
+
 
 ## 推荐阅读顺序
 

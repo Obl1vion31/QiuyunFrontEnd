@@ -1,0 +1,71 @@
+
+digraph VERSION {
+  graph [
+    rankdir=LR,
+    splines=polyline,
+    nodesep=0.55,
+    ranksep=0.9,
+    pad=0.25,
+    bgcolor="white",
+    fontname="Noto Sans CJK SC",
+    labelloc="t",
+    label="内容版本链图（Version Lineage Diagram）",
+    fontsize=20,
+    dpi=180
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#F7F9FC",
+    color="#7B8798",
+    fontname="Noto Sans CJK SC",
+    fontsize=10,
+    margin="0.12,0.08"
+  ];
+  edge [fontname="Noto Sans CJK SC", fontsize=9, color="#4A5568", arrowsize=0.75];
+
+  content [label="operations_content\n跨版本稳定的帖子身份\n同一帖子始终使用同一个 content_id", penwidth=1.8, color="#2F5D8A"];
+
+  v0 [label="Content Version V0\nwork_type = new\nsource_version_id = null"];
+  v1 [label="Content Version V1\nwork_type = revision\nsource_version_id = V0.id"];
+  v2 [label="Content Version V2\nwork_type = revision\nsource_version_id = V1.id"];
+
+  s0 [label="V0 的 Schedule"];
+  s1 [label="V1 的 Schedule"];
+  s2 [label="V2 的 Schedule"];
+
+  c0 [label="V0 的 Campaign"];
+  st0 [label="V0 的 Stage"];
+  dm0 [label="V0 的 Daily Metric"];
+
+  c1 [label="V1 的 Campaign"];
+  st1 [label="V1 的 Stage"];
+  dm1 [label="V1 的 Daily Metric"];
+
+  edit [shape=note, label="编辑排期\n只更新原 Schedule\n不创建 Content Version"];
+  revise [shape=note, label="改帖\n从最新版本创建 V+1\n并记录 source_version_id"];
+  noinherit [shape=note, label="新版本只创建自己的 Schedule\n不继承旧版本的 Campaign、Stage、Daily Metric"];
+
+  content -> v0 [label="content_id"];
+  content -> v1 [label="content_id"];
+  content -> v2 [label="content_id"];
+
+  v0 -> v1 [label="source_version_id", penwidth=1.8, color="#2F5D8A"];
+  v1 -> v2 [label="source_version_id", penwidth=1.8, color="#2F5D8A"];
+
+  v0 -> s0 [label="自己的排期"];
+  v1 -> s1 [label="自己的排期"];
+  v2 -> s2 [label="自己的排期"];
+
+  s0 -> c0;
+  c0 -> st0;
+  c0 -> dm0;
+
+  s1 -> c1;
+  c1 -> st1;
+  c1 -> dm1;
+
+  edit -> s1 [style=dashed];
+  revise -> v2 [style=dashed];
+  v2 -> noinherit [style=dotted, arrowhead=none];
+}

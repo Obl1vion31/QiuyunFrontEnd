@@ -1,0 +1,15 @@
+---
+interface Props { previousHref: string; nextHref: string; label: string; todayHref?: string; todayLabel?: string }
+const { previousHref, nextHref, label, todayHref, todayLabel = '当前' } = Astro.props;
+---
+
+<nav class="toolbar-period" aria-label={`${label}切换`}>
+  <a href={previousHref} aria-label={`上一${label.includes('月') ? '月' : '年'}`}>‹</a>
+  <strong>{label}</strong>
+  <a href={nextHref} aria-label={`下一${label.includes('月') ? '月' : '年'}`}>›</a>
+  {todayHref && <a class="toolbar-period__today" href={todayHref}>{todayLabel}</a>}
+</nav>
+
+<style>
+  .toolbar-period,.toolbar-period *{box-sizing:border-box}.toolbar-period{height:34px;display:flex;align-items:center;padding:3px;border-radius:10px;background:#dfe4e2;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;white-space:nowrap}.toolbar-period a{height:28px;min-width:28px;display:grid;place-items:center;border:0;border-radius:7px;padding:0;color:#17211c;background:transparent;font-size:14px;font-weight:800;text-decoration:none}.toolbar-period a:hover{background:#fff}.toolbar-period a:active{transform:scale(.96)}.toolbar-period a:focus-visible{outline:2px solid #315fd6;outline-offset:1px}.toolbar-period strong{padding:0 9px;color:#17211c;font:800 12px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace}.toolbar-period .toolbar-period__today{min-width:auto;padding:0 8px;color:#315fd6;font-size:11px}
+</style>

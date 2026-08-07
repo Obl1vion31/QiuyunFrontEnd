@@ -1,0 +1,160 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1784037448910,
+      "tag": "0000_chemical_thunderbolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784172850476,
+      "tag": "0001_cute_smiling_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784199600000,
+      "tag": "0002_correct_imported_schedule_statuses",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784203200000,
+      "tag": "0003_keep_july_and_reset_promotions",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784206800000,
+      "tag": "0004_fix_july_pending_by_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784880000000,
+      "tag": "0005_content_versions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784966400000,
+      "tag": "0006_split_discarded_promotion_statuses",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784995200000,
+      "tag": "0007_two_level_post_categories",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785081600000,
+      "tag": "0008_shared_subject_categories",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1785085200000,
+      "tag": "0009_the_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785171600000,
+      "tag": "0010_rebuild_the_plan_matrix",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785258000000,
+      "tag": "0011_normalize_plan_taxonomy",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785344400000,
+      "tag": "0012_derive_annual_plan_summary",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785430800000,
+      "tag": "0013_reset_annual_plan_to_v0",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785434400000,
+      "tag": "0014_remove_legacy_annual_summaries",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1785438000000,
+      "tag": "0015_daily_promotion_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1785520800000,
+      "tag": "0016_guard_promotion_stages",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785524400000,
+      "tag": "0017_awaiting_promotion",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1785916800000,
+      "tag": "0018_stage_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1786003200000,
+      "tag": "0019_direct_review_rates",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786089600000,
+      "tag": "0020_remove_day_30_reviews",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786176000000,
+      "tag": "0021_weekly_meeting_review",
+      "breakpoints": true
+    }
+  ]
+}

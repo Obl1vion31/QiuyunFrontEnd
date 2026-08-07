@@ -6,6 +6,17 @@
 
 - `ContentTunnel.tsx`：首页 React Island，负责滚动进度、封面循环、流程状态和首屏结构。
 - `ContentTunnel.module.css`：负责 Hero 的封面纵深、统一遮罩、信息排版、流程轨道和响应式样式。
+- `BusinessConsoleSidebar.astro`：业务控制台共享导航，负责 Quiet Operations 视觉、持久化跨页切换、即时选择反馈、受控预取和加载状态。
+- `BusinessConsoleFrame.astro`：六个业务页面的共享应用壳层，集中装配 Sidebar、Workspace 与控制台视觉变量。
+- `BusinessConsoleToolbar.astro`：业务页统一工具栏，通过中部和右侧插槽承载日期、视角、汇总与主要动作。
+- `BusinessToolbarPeriodNav.astro`：Toolbar 统一年月切换控件。
+- `BusinessToolbarSegmented.astro`：Toolbar 统一视角与显示方式切换控件。
+- `BusinessToolbarSummary.astro`：Toolbar 统一“标签 + 数值 + 补充信息”汇总结构。
+- `BusinessToolbarActions.astro`：Toolbar 统一主要与次要操作按钮的几何和交互状态。
+- `BusinessToolbarContext.astro`：Toolbar 中部的单行上下文信息。
+- `BusinessPageHeader.astro`：统一“英文眉题 + 中文主标题 + 必要说明”的页面标题结构。
+- `BusinessSectionHeader.astro`：统一内容区块的标题、说明和右侧元信息。
+- `NonPromotionReviewCard.astro`：非推广阶段复盘卡，承载项目文档入口、节点轨道、指标与结论录入。
 
 ## 文件关系
 

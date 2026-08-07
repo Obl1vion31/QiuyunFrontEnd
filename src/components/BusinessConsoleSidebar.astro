@@ -1,0 +1,186 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
+interface Props { active: ModuleId }
+const { active } = Astro.props;
+const groups = [
+  {
+    label: '计划与执行',
+    modules: [
+      { id: 'annual-plan', href: '/business/annual-plan', label: '总周期规划', icon: 'plan' },
+      { id: 'schedule', href: '/business/operations-schedule', label: '排期管理', icon: 'schedule' },
+    ],
+  },
+  {
+    label: '复盘与沉淀',
+    modules: [
+      { id: 'daily-promotion', href: '/business/daily-promotion-review', label: '日度推广复盘', icon: 'daily' },
+      { id: 'non-promotion-review', href: '/business/non-promotion-review', label: '非推广复盘', icon: 'review' },
+      { id: 'meeting-review', href: '/business/meeting-review', label: '例会总复盘', icon: 'meeting' },
+    ],
+  },
+] as const;
+const iconPaths = {
+  plan: '<path d="M4 5.5h16M6.5 3v5M17.5 3v5"/><rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M8 11h3M13.5 11H16M8 15.5h3M13.5 15.5H16"/>',
+  schedule: '<path d="M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2Z"/><path d="M7.5 2.5v4M16.5 2.5v4M3 9h18M7.5 13h4M7.5 16h7"/>',
+  daily: '<path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/><path d="M12 7v5l3.5 2M15.5 3.5H21V9"/>',
+  review: '<path d="M5 3.5h11l3 3v14H5z"/><path d="M15.5 3.5V7H19M8.5 11h7M8.5 14.5h5M8.5 18h3"/>',
+  meeting: '<path d="M4.5 5.5h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4.5 3v-3h-2a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z"/><path d="M7 10h10M7 13.5h6"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1v.1H9.55V21a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.05 15a1.7 1.7 0 0 0-1.6-1H2.4V10h.05a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.5 4.2l.06.06A1.7 1.7 0 0 0 8.45 4a1.7 1.7 0 0 0 1.1-1.6v-.1h4.05v.1A1.7 1.7 0 0 0 14.7 4a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.1 8.4a1.7 1.7 0 0 0 1.6 1h.1v4.05h-.1a1.7 1.7 0 0 0-1.3 1.55Z"/>',
+};
+---
+<ViewTransitions fallback="swap" />
+<aside class="business-sidebar" transition:persist="business-console-sidebar" data-business-console-sidebar>
+  <a class="business-sidebar__brand" href="/" data-astro-reload>
+    <span>OPERATIONS</span>
+    <strong>内容发布控制台</strong>
+  </a>
+
+  <nav class="business-sidebar__nav" aria-label="内容发布控制台模块">
+    {groups.map((group) => <section class="business-sidebar__group">
+      <h2>{group.label}</h2>
+      <div>
+        {group.modules.map((module) => <a
+          class:list={{ active: active === module.id }}
+          href={module.href}
+          data-module-id={module.id}
+          data-module-href={module.href}
+          data-astro-prefetch="hover"
+          aria-current={active === module.id ? 'page' : undefined}
+        >
+          <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths[module.icon]} /></svg>
+          <strong>{module.label}</strong>
+        </a>)}
+      </div>
+    </section>)}
+    <span class="business-sidebar__planned" aria-disabled="true">
+      <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg>
+      <strong>报表中心</strong><small>计划中</small>
+    </span>
+  </nav>
+
+  <div class="business-sidebar__foot">
+    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href="/business/settings" data-module-id="settings" data-module-href="/business/settings" data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
+      <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.settings} /></svg>
+      <strong>系统设置</strong>
+    </a>
+    <a class="business-sidebar__hub" href="/" data-astro-reload><span aria-hidden="true">←</span> 返回总枢纽</a>
+  </div>
+
+  <div class="business-console-progress" role="progressbar" aria-label="正在切换页面" aria-hidden="true"><i></i></div>
+  <span class="business-console-status" role="status" aria-live="polite"></span>
+</aside>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const sidebar = document.querySelector<HTMLElement>('[data-business-console-sidebar]');
+  if (sidebar && !sidebar.dataset.ready) {
+    sidebar.dataset.ready = 'true';
+    const links = [...sidebar.querySelectorAll<HTMLAnchorElement>('a[data-module-id]')];
+    const progress = sidebar.querySelector<HTMLElement>('.business-console-progress');
+    const status = sidebar.querySelector<HTMLElement>('.business-console-status');
+    let progressDelay = 0;
+    let progressStartedAt = 0;
+    let pendingLabel = '';
+
+    const moduleForPath = (pathname: string) => links.find((link) => new URL(link.dataset.moduleHref!, location.origin).pathname === pathname)?.dataset.moduleId;
+    const storageKey = (id: string) => `business-console:last-url:${id}`;
+    const rememberCurrentLocation = () => {
+      const id = moduleForPath(location.pathname);
+      if (id) sessionStorage.setItem(storageKey(id), `${location.pathname}${location.search}${location.hash}`);
+    };
+    const restoreModuleHrefs = () => links.forEach((link) => {
+      const saved = sessionStorage.getItem(storageKey(link.dataset.moduleId!));
+      link.href = saved && new URL(saved, location.origin).pathname === new URL(link.dataset.moduleHref!, location.origin).pathname
+        ? saved
+        : link.dataset.moduleHref!;
+    });
+    const selectPath = (pathname: string) => links.forEach((link) => {
+      const selected = new URL(link.dataset.moduleHref!, location.origin).pathname === pathname;
+      link.classList.toggle('active', selected);
+      if (selected) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    const startProgress = (label: string) => {
+      pendingLabel = label;
+      window.clearTimeout(progressDelay);
+      progressDelay = window.setTimeout(() => {
+        progressStartedAt = performance.now();
+        progress?.classList.add('is-visible');
+        progress?.setAttribute('aria-hidden', 'false');
+        document.querySelector<HTMLElement>('.workspace')?.setAttribute('aria-busy', 'true');
+        progressDelay = window.setTimeout(() => { if (status) status.textContent = `正在打开${pendingLabel}`; }, 1880);
+      }, 120);
+    };
+    const finishProgress = () => {
+      window.clearTimeout(progressDelay);
+      const elapsed = performance.now() - progressStartedAt;
+      const finish = () => {
+        progress?.classList.remove('is-visible');
+        progress?.setAttribute('aria-hidden', 'true');
+        document.querySelector<HTMLElement>('.workspace')?.removeAttribute('aria-busy');
+        if (status) status.textContent = '';
+        progressStartedAt = 0;
+      };
+      if (progressStartedAt && elapsed < 180) window.setTimeout(finish, 180 - elapsed);
+      else finish();
+    };
+
+    rememberCurrentLocation();
+    restoreModuleHrefs();
+    selectPath(location.pathname);
+
+    sidebar.addEventListener('pointerdown', (event) => {
+      const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-module-id]');
+      if (link && event.pointerType === 'touch') prefetch(link.href, { ignoreSlowConnection: true });
+    }, { passive: true });
+
+    sidebar.addEventListener('click', (event) => {
+      const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-module-id]');
+      if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      if (new URL(link.href).pathname === location.pathname && new URL(link.href).search === location.search) {
+        event.preventDefault();
+        return;
+      }
+      if (document.documentElement.dataset.unsaved === 'true' && !window.confirm('有尚未保存的修改，确定离开当前页面吗？')) {
+        event.preventDefault();
+        return;
+      }
+      document.documentElement.dataset.unsaved = 'false';
+      rememberCurrentLocation();
+      selectPath(new URL(link.href).pathname);
+      startProgress(link.textContent?.trim() ?? '页面');
+    });
+
+    document.addEventListener('astro:after-swap', () => {
+      rememberCurrentLocation();
+      restoreModuleHrefs();
+      selectPath(location.pathname);
+    });
+    document.addEventListener('astro:page-load', finishProgress);
+  }
+</script>
+
+<style is:global>
+  body .app-shell{min-height:100vh!important;display:grid!important;grid-template-columns:232px minmax(0,1fr)!important}
+  @media(max-width:900px){body .app-shell{display:block!important}}
+</style>
+
+<style>
+  .business-sidebar,.business-sidebar *{box-sizing:border-box}
+  .business-sidebar{position:sticky;top:0;width:232px;height:100vh;z-index:20;display:flex;flex-direction:column;padding:18px 12px 14px;color:#17211c;background:#e7ece8;border-right:1px solid #c9d1cc;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2}
+  .business-sidebar__brand{display:grid;gap:3px;padding:8px 10px 22px;color:inherit;text-decoration:none}.business-sidebar__brand span{color:#4e6b5b;font:750 .62rem/1.2 ui-monospace,monospace;letter-spacing:.14em}.business-sidebar__brand strong{font-size:1rem;line-height:1.2;letter-spacing:-.02em}
+  .business-sidebar__nav{display:grid;gap:14px}.business-sidebar__group{display:grid;gap:5px}.business-sidebar__group h2{margin:0;padding:0 10px;color:#68736d;font-size:.66rem;line-height:1.2;font-weight:700}.business-sidebar__group>div{display:grid;gap:4px}
+  .business-sidebar__nav a,.business-sidebar__planned,.business-sidebar__settings{position:relative;display:grid;grid-template-columns:18px minmax(0,1fr);align-items:center;gap:10px;min-height:42px;padding:6px 10px;border-radius:10px;color:inherit;text-decoration:none;outline:none;transition:background-color 120ms ease,color 120ms ease,transform 70ms ease}
+  .business-sidebar__nav a:hover,.business-sidebar__settings:hover{background:#dce3de}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:scale(.985);background:#d2dbd5}.business-sidebar__nav a:focus-visible,.business-sidebar__settings:focus-visible,.business-sidebar__hub:focus-visible{box-shadow:inset 0 0 0 2px #315fd6}
+  .business-sidebar__nav a.active,.business-sidebar__settings.active{color:#244fbf;background:#dce5ff}.business-sidebar__nav a.active strong,.business-sidebar__settings.active strong{font-weight:700}
+  .business-sidebar__icon{width:18px;height:18px;display:block;overflow:visible}.business-sidebar__nav strong,.business-sidebar__settings strong{overflow:hidden;font-size:.79rem;line-height:1.2;font-weight:600;text-overflow:ellipsis;white-space:nowrap}
+  .business-sidebar__planned{grid-template-columns:18px minmax(0,1fr) auto;margin-top:-2px;color:#87918c;cursor:not-allowed}.business-sidebar__planned strong{font-size:.76rem;font-weight:600}.business-sidebar__planned small{padding:3px 6px;border:1px solid #c9d1cc;border-radius:999px;color:#79837e;font-size:.56rem;line-height:1}
+  .business-sidebar__foot{display:grid;gap:5px;margin-top:auto;padding-top:12px;border-top:1px solid #c9d1cc}.business-sidebar__settings{width:100%}.business-sidebar__hub{padding:9px 10px;border-radius:8px;color:#68736d;font-size:.72rem;text-decoration:none}.business-sidebar__hub:hover{color:#17211c;background:#dce3de}
+  .business-console-progress{position:fixed;left:232px;right:0;top:71px;z-index:80;height:2px;overflow:hidden;pointer-events:none;opacity:0;background:#cbd5f4;transition:opacity 80ms ease}.business-console-progress i{display:block;width:42%;height:100%;background:#315fd6;transform:translateX(-110%)}.business-console-progress.is-visible{opacity:1}.business-console-progress.is-visible i{animation:business-console-progress 1s ease-in-out infinite}.business-console-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  @keyframes business-console-progress{0%{transform:translateX(-110%)}60%{transform:translateX(155%)}100%{transform:translateX(255%)}}
+  @media(max-width:900px){.business-sidebar{position:fixed;inset:auto 0 0;width:100%;height:66px;display:block;padding:6px 8px;color:#17211c;background:#f7f8f5f2;border:0;border-top:1px solid #c9d1cc;backdrop-filter:blur(18px) saturate(135%)}.business-sidebar__brand,.business-sidebar__group h2,.business-sidebar__planned,.business-sidebar__hub{display:none}.business-sidebar__nav{height:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:2px}.business-sidebar__group{display:contents}.business-sidebar__group>div{display:contents}.business-sidebar__nav a,.business-sidebar__settings{min-height:0;height:54px;display:grid;grid-template-columns:1fr;place-items:center;align-content:center;gap:3px;padding:3px 2px;border-radius:9px;text-align:center}.business-sidebar__nav a:hover,.business-sidebar__settings:hover{background:transparent}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:scale(.96);background:#dce3de}.business-sidebar__nav a.active,.business-sidebar__settings.active{background:#dce5ff}.business-sidebar__nav strong,.business-sidebar__settings strong{max-width:100%;font-size:.58rem}.business-sidebar__icon{width:20px;height:20px}.business-sidebar__foot{position:absolute;right:8px;top:6px;width:calc((100vw - 16px)/6);display:block;margin:0;padding:0;border:0}.business-console-progress{left:0;top:61px}}
+  @media(prefers-reduced-motion:reduce){.business-sidebar__nav a,.business-sidebar__settings,.business-console-progress{transition:none}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:none}.business-console-progress.is-visible i{animation:none;transform:none;width:100%}}
+  @media(prefers-reduced-transparency:reduce){.business-sidebar{backdrop-filter:none;background:#f7f8f5}}
+</style>

@@ -1,0 +1,14 @@
+---
+interface Props { title: string; description?: string; headingId?: string; level?: 2 | 3; contained?: boolean }
+const { title, description, headingId, level = 2, contained = false } = Astro.props;
+---
+
+<header class:list={["business-section-header", { "business-section-header--contained": contained }]}>
+  <div>{level === 3 ? <h3 id={headingId}>{title}</h3> : <h2 id={headingId}>{title}</h2>}{description && <p>{description}</p>}</div>
+  <div class="business-section-header__end"><slot name="end" /></div>
+</header>
+
+<style>
+  .business-section-header{display:flex;align-items:end;justify-content:space-between;gap:18px}.business-section-header--contained{padding:16px 18px;border-bottom:1px solid var(--console-line)}.business-section-header h2,.business-section-header h3{margin:0;color:var(--console-ink);font-size:.96rem;line-height:1.2;letter-spacing:-.015em}.business-section-header h3{font-size:.84rem}.business-section-header p{margin:4px 0 0;color:var(--console-muted);font-size:.64rem;line-height:1.45}.business-section-header__end{flex:none;color:var(--console-muted);font-size:.64rem}
+  @media(max-width:620px){.business-section-header{display:block}.business-section-header__end{margin-top:7px}}
+</style>
