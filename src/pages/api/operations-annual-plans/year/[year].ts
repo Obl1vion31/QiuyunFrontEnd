@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { sql } from 'drizzle-orm';
 import { annualPlanYearSchema } from '../../../../db/annual-plan';
 import { getDb } from '../../../../db/client';
+import { lockAnnualPlanWrites } from '../../../../db/annual-plan-storage';
 import { operationsAnnualPlanYear } from '../../../../db/schema';
 
 export const prerender = false;
@@ -17,13 +18,16 @@ export const PATCH: APIRoute = async ({ params, request, url }) => {
   const parsed = annualPlanYearSchema.safeParse({ ...(payload as object), year: Number(params.year) });
   if (!parsed.success) return Response.json({ message: '年度说明无效。' }, { status: 422 });
   try {
-    await getDb().insert(operationsAnnualPlanYear).values({
+    await getDb().transaction(async transaction => {
+      await lockAnnualPlanWrites(transaction);
+      await transaction.insert(operationsAnnualPlanYear).values({
       year: parsed.data.year,
       instructions: parsed.data.instructions,
       updatedAt: new Date(),
     }).onConflictDoUpdate({
       target: operationsAnnualPlanYear.year,
       set: { instructions: parsed.data.instructions, updatedAt: new Date() },
+    });
     });
     const [saved] = await getDb().select({
       year: operationsAnnualPlanYear.year,

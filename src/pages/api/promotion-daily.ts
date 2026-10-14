@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
-import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, or, sql } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
+  operationsContent,
   operationsContentSchedule,
   operationsContentVersion,
   operationsPromotionCampaign,
@@ -12,10 +13,8 @@ import {
 } from '../../db/schema';
 import {
   calculateActualPromotionCosts,
-  isDecisionAllowed,
-  nextDateKey,
   nextPendingPromotionDate,
-  nextPromotionState,
+  replayPromotionHistory,
   shanghaiDateKey,
 } from '../../db/promotion-rules.mjs';
 import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/promotion-validation';
@@ -49,6 +48,7 @@ export const GET: APIRoute = async ({ url }) => {
       currentStage: operationsPromotionCampaign.currentStage,
       startedOn: operationsPromotionCampaign.startedOn,
       endedOn: operationsPromotionCampaign.endedOn,
+      dailyStatus: operationsPromotionDailyMetric.dailyStatus,
       stageTypeSnapshot: operationsPromotionDailyMetric.stageTypeSnapshot,
       spend: operationsPromotionDailyMetric.spend,
       clickRate: operationsPromotionDailyMetric.clickRate,
@@ -68,7 +68,7 @@ export const GET: APIRoute = async ({ url }) => {
         eq(operationsPromotionDailyMetric.metricDate, metricDate),
       ))
       .where(or(
-        inArray(operationsPromotionCampaign.currentStatus, ['testing', 'scaling']),
+        inArray(operationsPromotionCampaign.currentStatus, ['testing', 'scaling', 'waiting_action']),
         eq(operationsPromotionDailyMetric.metricDate, metricDate),
       ))
       .orderBy(operationsContentVersion.contentName);
@@ -128,43 +128,43 @@ export const POST: APIRoute = async ({ request, url }) => {
         startedOn: operationsPromotionCampaign.startedOn,
         currentStage: operationsPromotionCampaign.currentStage,
         currentStatus: operationsPromotionCampaign.currentStatus,
+        contentId: operationsContent.id,
+        platformNoteId: operationsContent.platformNoteId,
       }).from(operationsPromotionCampaign)
+        .innerJoin(operationsContentSchedule, eq(operationsPromotionCampaign.scheduleId, operationsContentSchedule.id))
+        .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+        .innerJoin(operationsContent, eq(operationsContentVersion.contentId, operationsContent.id))
         .where(eq(operationsPromotionCampaign.id, result.data.campaignId))
         .limit(1);
       if (!campaign) return { kind: 'missing' as const };
       if (!campaign.currentStage) return { kind: 'closed' as const };
-      const [activeStage] = await transaction.select({
-        startedOn: operationsPromotionStage.startedOn,
-      }).from(operationsPromotionStage)
-        .where(and(
-          eq(operationsPromotionStage.campaignId, campaign.id),
-          eq(operationsPromotionStage.stageType, campaign.currentStage),
-          isNull(operationsPromotionStage.endedOn),
-        ))
-        .orderBy(desc(operationsPromotionStage.startedOn))
-        .limit(1);
-      if (!activeStage) return { kind: 'closed' as const };
-
-      const [latest] = await transaction.select({
-        metricDate: operationsPromotionDailyMetric.metricDate,
-      }).from(operationsPromotionDailyMetric)
+      if (!campaign.platformNoteId && !result.data.platformNoteId) return { kind: 'note-id-required' as const };
+      if (!campaign.platformNoteId && result.data.platformNoteId) {
+        await transaction.update(operationsContent).set({
+          platformNoteId: result.data.platformNoteId,
+          updatedAt: new Date(),
+        }).where(eq(operationsContent.id, campaign.contentId));
+      }
+      const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.campaignId, campaign.id))
-        .orderBy(desc(operationsPromotionDailyMetric.metricDate))
-        .limit(1);
-      const expectedDate = nextPendingPromotionDate(latest?.metricDate, activeStage.startedOn);
+        .orderBy(asc(operationsPromotionDailyMetric.metricDate));
+      const latest = allMetrics.at(-1);
+      const expectedDate = nextPendingPromotionDate(latest?.metricDate, campaign.startedOn);
       if (result.data.metricDate !== expectedDate) {
         return { kind: 'out-of-order' as const, expectedDate };
       }
-      if (!isDecisionAllowed(campaign.currentStage, result.data.reviewDecision)) {
+      const expectedDailyStatus = campaign.currentStatus === 'waiting_action' ? 'waiting_action' : 'active';
+      if (result.data.dailyStatus !== expectedDailyStatus || result.data.stageTypeSnapshot !== campaign.currentStage) {
         return { kind: 'invalid-decision' as const };
       }
-      const nextState = nextPromotionState(campaign.currentStage, result.data.reviewDecision);
-      if (!nextState) return { kind: 'invalid-decision' as const };
+      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data]);
+      if (!replayed) return { kind: 'invalid-decision' as const };
 
       const [metric] = await transaction.insert(operationsPromotionDailyMetric).values({
         campaignId: campaign.id,
         metricDate: result.data.metricDate,
-        stageTypeSnapshot: campaign.currentStage,
+        dailyStatus: result.data.dailyStatus,
+        stageTypeSnapshot: result.data.stageTypeSnapshot,
         spend: result.data.spend.toFixed(2),
         clickRate: null,
         platformOpenCount: result.data.platformOpenCount,
@@ -175,42 +175,29 @@ export const POST: APIRoute = async ({ request, url }) => {
         note: result.data.note ?? null,
       }).returning({ id: operationsPromotionDailyMetric.id });
 
-      const stageChanged = nextState.stage !== campaign.currentStage;
-      if (stageChanged) {
-        await transaction.update(operationsPromotionStage).set({
-          endedOn: result.data.metricDate,
-          outcome: nextState.outcome,
-          updatedAt: new Date(),
-        }).where(and(
-          eq(operationsPromotionStage.campaignId, campaign.id),
-          eq(operationsPromotionStage.stageType, campaign.currentStage),
-          isNull(operationsPromotionStage.endedOn),
-        ));
-        if (nextState.stage === 'scaling') {
-          await transaction.insert(operationsPromotionStage).values({
-            campaignId: campaign.id,
-            stageType: 'scaling',
-            startedOn: nextDateKey(result.data.metricDate),
-          });
-        }
+      await transaction.delete(operationsPromotionStage)
+        .where(eq(operationsPromotionStage.campaignId, campaign.id));
+      for (const stage of replayed.stages) {
+        await transaction.insert(operationsPromotionStage).values({ campaignId: campaign.id, ...stage });
       }
 
       await transaction.update(operationsPromotionCampaign).set({
-        currentStage: nextState.stage,
-        currentStatus: nextState.status,
-        endedOn: nextState.stage ? null : result.data.metricDate,
+        currentStage: replayed.currentStage,
+        currentStatus: replayed.currentStatus,
+        endedOn: replayed.endedOn,
         updatedAt: new Date(),
       }).where(eq(operationsPromotionCampaign.id, campaign.id));
       await transaction.update(operationsContentSchedule).set({
-        promotionStatus: nextState.status,
+        promotionStatus: replayed.currentStatus,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, campaign.scheduleId));
 
-      return { kind: 'saved' as const, id: metric.id, nextStatus: nextState.status };
+      return { kind: 'saved' as const, id: metric.id, nextStatus: replayed.currentStatus };
     });
 
     if (saved.kind === 'missing') return Response.json({ message: '没有找到推广活动。' }, { status: 404 });
     if (saved.kind === 'closed') return Response.json({ message: '该推广活动已经结束。' }, { status: 409 });
+    if (saved.kind === 'note-id-required') return Response.json({ message: '保存日度复盘前，请补填这篇帖子的小红书笔记 ID。' }, { status: 422 });
     if (saved.kind === 'out-of-order') {
       return Response.json({ message: `请先完成 ${saved.expectedDate} 的日度复盘。`, expectedDate: saved.expectedDate }, { status: 409 });
     }
@@ -221,7 +208,7 @@ export const POST: APIRoute = async ({ request, url }) => {
   } catch (error) {
     const postgresError = error as { code?: string };
     if (postgresError.code === '23505') {
-      return Response.json({ message: '这一天已经完成复盘，请刷新后查看。' }, { status: 409 });
+      return Response.json({ message: '这一天已经完成复盘，或笔记 ID 已属于另一篇帖子，请刷新并核对。' }, { status: 409 });
     }
     console.error('promotion daily save failed', error);
     return Response.json({ message: '推广日度数据保存失败，请稍后重试。' }, { status: 503 });

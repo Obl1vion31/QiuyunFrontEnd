@@ -1,0 +1,20 @@
+---
+/**
+ * 文件：MetricCell.astro
+ * 【实现需求】统一展示百分比、相对基准差值与未来绩效状态。
+ * 【组件职责】展示主指标和 pp 差值，并通过 tooltip 保留同类均值与样本量。
+ * 【安全边界】颜色只辅助表达状态；主数值始终保持深色并使用等宽数字。
+ */
+interface Props { value:number|null; benchmark:number|null; delta:number|null; sampleSize:number; state:'positive'|'neutral'|'negative' }
+const { value, benchmark, delta, sampleSize, state } = Astro.props;
+const formatRate=(number:number|null)=>number==null?'—':`${number.toFixed(2)}%`;
+const formatDelta=(number:number|null)=>number==null?'暂无同类基准':`${number>0?'+':''}${number.toFixed(2)}pp vs 同类`;
+const title=benchmark==null?`同类样本 n=${sampleSize} 篇，暂无法计算均值`:`同类均值 ${formatRate(benchmark)} · n=${sampleSize} 篇`;
+---
+<span class:list={['metric-cell',state]} title={title}>
+  <strong>{value==null?'待录入':formatRate(value)}</strong>
+  <small>{delta!=null&&<span aria-hidden="true">{delta>0?'↑':delta<0?'↓':'–'}</span>} {formatDelta(delta)}</small>
+</span>
+<style>
+.metric-cell,.metric-cell *{box-sizing:border-box}.metric-cell{min-width:0;display:grid;justify-items:end;gap:3px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}.metric-cell strong{color:#17211c;font:700 14px/18px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.015em}.metric-cell small{color:#747f79;font:600 11px/14px system-ui,"PingFang SC","Microsoft YaHei",sans-serif}.metric-cell.positive small{color:#4f7d68}.metric-cell.negative small{color:#a35f59}.metric-cell small span{display:inline-block;width:10px;font-size:10px}
+</style>

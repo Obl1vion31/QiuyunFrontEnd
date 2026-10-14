@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { requireAdmin, permissionErrorResponse } from '../../../auth/permissions';
 import { asc, eq, sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
@@ -7,7 +8,7 @@ import {
   operationsPromotionDailyMetric,
   operationsPromotionStage,
 } from '../../../db/schema';
-import { isDecisionAllowed, replayPromotionHistory } from '../../../db/promotion-rules.mjs';
+import { replayPromotionHistory } from '../../../db/promotion-rules.mjs';
 import {
   promotionDailyUpdateInputFromForm,
   promotionDailyUpdateSchema,
@@ -24,7 +25,7 @@ const validationResponse = (issues: Array<{ path: PropertyKey[]; message: string
   return Response.json({ message: '请检查日度数据。', fields }, { status: 422 });
 };
 
-export const PATCH: APIRoute = async ({ request, url, params }) => {
+export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
   let form: FormData;
   try {
@@ -37,23 +38,26 @@ export const PATCH: APIRoute = async ({ request, url, params }) => {
 
   try {
     const result = await getDb().transaction(async (transaction) => {
+      const [reference] = await transaction.select({ campaignId: operationsPromotionDailyMetric.campaignId }).from(operationsPromotionDailyMetric)
+        .where(eq(operationsPromotionDailyMetric.id, params.id!)).limit(1);
+      if (!reference) return { kind: 'missing' as const };
+      await transaction.execute(sql`select id from operations_promotion_campaign where id = ${reference.campaignId} for update`);
+      // 排队期间管理员可能已更正或删除此事实，锁定活动后重新读取，避免用旧决定绕过权限。
       const [existing] = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.id, params.id!)).limit(1);
       if (!existing) return { kind: 'missing' as const };
-      await transaction.execute(sql`select id from operations_promotion_campaign where id = ${existing.campaignId} for update`);
 
       const [campaign] = await transaction.select().from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.id, existing.campaignId)).limit(1);
       if (!campaign) return { kind: 'missing' as const };
-      if (!isDecisionAllowed(existing.stageTypeSnapshot, parsed.data.reviewDecision)) {
-        return { kind: 'invalid-decision' as const };
-      }
-
-      const decisionChanged = existing.reviewDecision !== parsed.data.reviewDecision;
+      const lifecycleChanged = existing.reviewDecision !== parsed.data.reviewDecision
+        || existing.dailyStatus !== parsed.data.dailyStatus
+        || existing.stageTypeSnapshot !== parsed.data.stageTypeSnapshot;
+      if (lifecycleChanged) requireAdmin(locals.user);
       const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
-      const later = decisionChanged ? allMetrics.filter((metric) => metric.metricDate > existing.metricDate) : [];
+      const later = lifecycleChanged ? allMetrics.filter((metric) => metric.metricDate > existing.metricDate) : [];
       if (later.length > 0 && !parsed.data.confirmCascade) {
         const laterStages = await transaction.select({ id: operationsPromotionStage.id })
           .from(operationsPromotionStage)
@@ -62,15 +66,22 @@ export const PATCH: APIRoute = async ({ request, url, params }) => {
       }
 
       const retainedCandidate = allMetrics
-        .filter((metric) => !decisionChanged || metric.metricDate <= existing.metricDate)
-        .map((metric) => metric.id === existing.id ? { ...metric, reviewDecision: parsed.data.reviewDecision } : metric);
-      const replayed = decisionChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate) : null;
-      if (decisionChanged && !replayed) return { kind: 'invalid-decision' as const };
+        .filter((metric) => !lifecycleChanged || metric.metricDate <= existing.metricDate)
+        .map((metric) => metric.id === existing.id ? {
+          ...metric,
+          dailyStatus: parsed.data.dailyStatus,
+          stageTypeSnapshot: parsed.data.stageTypeSnapshot,
+          reviewDecision: parsed.data.reviewDecision,
+        } : metric);
+      const replayed = lifecycleChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate) : null;
+      if (lifecycleChanged && !replayed) return { kind: 'invalid-decision' as const };
 
-      if (decisionChanged && later.length > 0) {
+      if (lifecycleChanged && later.length > 0) {
         await transaction.delete(operationsPromotionDailyMetric).where(sql`${operationsPromotionDailyMetric.campaignId} = ${existing.campaignId} and ${operationsPromotionDailyMetric.metricDate} > ${existing.metricDate}`);
       }
       await transaction.update(operationsPromotionDailyMetric).set({
+        dailyStatus: parsed.data.dailyStatus,
+        stageTypeSnapshot: parsed.data.stageTypeSnapshot,
         spend: parsed.data.spend.toFixed(2),
         platformOpenCount: parsed.data.platformOpenCount,
         actualOpenCount: parsed.data.actualOpenCount,
@@ -81,7 +92,7 @@ export const PATCH: APIRoute = async ({ request, url, params }) => {
         updatedAt: new Date(),
       }).where(eq(operationsPromotionDailyMetric.id, existing.id));
 
-      if (!decisionChanged) return { kind: 'saved' as const, deleted: 0 };
+      if (!lifecycleChanged) return { kind: 'saved' as const, deleted: 0 };
 
       await transaction.delete(operationsPromotionStage)
         .where(eq(operationsPromotionStage.campaignId, existing.campaignId));
@@ -112,6 +123,7 @@ export const PATCH: APIRoute = async ({ request, url, params }) => {
     }
     return Response.json({ ok: true, deleted: result.deleted });
   } catch (error) {
+    const denied = permissionErrorResponse(error); if (denied) return denied;
     console.error('promotion daily update failed', error);
     return Response.json({ message: '历史日度数据保存失败，请稍后重试。' }, { status: 503 });
   }

@@ -1,22 +1,108 @@
 import type { APIRoute } from 'astro';
+import { changeSchedulePlan, WorkflowError } from '../../../db/schedule-workflow';
+import { workflowErrorResponse } from '../../../db/workflow-api';
+import { requireAdmin } from '../../../auth/permissions';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
+  operationsContent,
+  operationsContentPerformanceMetric,
   operationsContentSchedule,
   operationsContentVersion,
+  operationsNonPromotionReview,
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
   operationsPromotionStage,
   operationsScheduleUsageEvent,
+  operationsSchedulePlanHistory,
+  operationsScheduleChangeRequest,
+  operationsScheduleDelayReason,
+  operationsNonPromotionCheckpointEvent,
 } from '../../../db/schema';
 import {
   editScheduleInputFromForm,
   editScheduleSchema,
   issuesByField,
-  normalizeCompletionStatus,
 } from '../../../db/validation';
 
 export const prerender = false;
+
+export const DELETE: APIRoute = async ({ params, request, url }) => {
+  const origin = request.headers.get('origin');
+  if (!origin || origin !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (!params.id) return Response.json({ message: '缺少排期编号。' }, { status: 400 });
+
+  try {
+    const result = await getDb().transaction(async (transaction) => {
+      const [schedule] = await transaction.select({
+        id: operationsContentSchedule.id,
+        versionId: operationsContentSchedule.contentVersionId,
+      }).from(operationsContentSchedule)
+        .where(eq(operationsContentSchedule.id, params.id!))
+        .limit(1)
+        .for('update');
+      if (!schedule) return { kind: 'missing' as const };
+
+      const [version] = await transaction.select({
+        id: operationsContentVersion.id,
+        contentId: operationsContentVersion.contentId,
+      }).from(operationsContentVersion)
+        .where(eq(operationsContentVersion.id, schedule.versionId))
+        .limit(1)
+        .for('update');
+      if (!version) return { kind: 'missing' as const };
+
+      const [versionCountRow, campaignCountRow, metricCountRow, reviewCountRow, usageCountRow, planCountRow, requestCountRow, reasonCountRow, checkpointCountRow] = await Promise.all([
+        transaction.select({ value: count() }).from(operationsContentVersion)
+          .where(eq(operationsContentVersion.contentId, version.contentId)),
+        transaction.select({ value: count() }).from(operationsPromotionCampaign)
+          .where(eq(operationsPromotionCampaign.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsContentPerformanceMetric)
+          .where(eq(operationsContentPerformanceMetric.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsNonPromotionReview)
+          .where(eq(operationsNonPromotionReview.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsScheduleUsageEvent)
+          .where(eq(operationsScheduleUsageEvent.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsSchedulePlanHistory).where(eq(operationsSchedulePlanHistory.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsScheduleChangeRequest).where(eq(operationsScheduleChangeRequest.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsScheduleDelayReason).where(eq(operationsScheduleDelayReason.scheduleId, schedule.id)),
+        transaction.select({ value: count() }).from(operationsNonPromotionCheckpointEvent).where(eq(operationsNonPromotionCheckpointEvent.scheduleId, schedule.id)),
+      ]);
+      const blockers = {
+        versions: Number(versionCountRow?.[0]?.value ?? 0) > 1,
+        campaigns: Number(campaignCountRow?.[0]?.value ?? 0),
+        performanceMetrics: Number(metricCountRow?.[0]?.value ?? 0),
+        reviews: Number(reviewCountRow?.[0]?.value ?? 0),
+        usageEvents: Number(usageCountRow?.[0]?.value ?? 0),
+        planHistory: Number(planCountRow?.[0]?.value ?? 0), changeRequests: Number(requestCountRow?.[0]?.value ?? 0),
+        delayReasons: Number(reasonCountRow?.[0]?.value ?? 0), checkpointEvents: Number(checkpointCountRow?.[0]?.value ?? 0),
+      };
+      if (blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents) {
+        return { kind: 'blocked' as const, blockers };
+      }
+
+      await transaction.delete(operationsContentSchedule).where(eq(operationsContentSchedule.id, schedule.id));
+      await transaction.delete(operationsContentVersion).where(eq(operationsContentVersion.id, version.id));
+      await transaction.delete(operationsContent).where(eq(operationsContent.id, version.contentId));
+      return { kind: 'deleted' as const, id: schedule.id };
+    });
+
+    if (result.kind === 'missing') return Response.json({ message: '没有找到这条排期。' }, { status: 404 });
+    if (result.kind === 'blocked') {
+      return Response.json({
+        message: '这条排期已有改帖、推广、复盘、改期或延期记录，为保护历史记录不能删除。',
+        blockers: result.blockers,
+      }, { status: 409 });
+    }
+    return Response.json({ ok: true, id: result.id });
+  } catch (error) {
+    if ((error as { code?: string }).code === '23503') {
+      return Response.json({ message: '这条排期刚刚产生了关联数据，不能删除。' }, { status: 409 });
+    }
+    console.error('operations schedule delete failed', error);
+    return Response.json({ message: '删除失败，请稍后重试。' }, { status: 503 });
+  }
+};
 
 export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   const origin = request.headers.get('origin');
@@ -36,7 +122,6 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   }
 
   try {
-    const completionStatus = normalizeCompletionStatus(result.data);
     const confirmPromotionReset = form.get('confirmPromotionReset') === '1';
     const usageChangeReason = String(form.get('usageChangeReason') ?? '').trim();
     const updated = await getDb().transaction(async (transaction) => {
@@ -45,21 +130,28 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         isPromoted: operationsContentSchedule.isPromoted,
         promotionStatus: operationsContentSchedule.promotionStatus,
         actualPublishAt: operationsContentSchedule.actualPublishAt,
+        id: operationsContentSchedule.id, plannedPublishAt: operationsContentSchedule.plannedPublishAt,
+        planRevision: operationsContentSchedule.planRevision, planEffectiveAt: operationsContentSchedule.planEffectiveAt,
       })
         .from(operationsContentSchedule)
         .where(eq(operationsContentSchedule.id, params.id!))
-        .limit(1);
+        .limit(1).for('update');
       if (!schedule) return null;
+      const planChanged = schedule.plannedPublishAt.getTime() !== result.data.plannedPublishAt.getTime();
+      if (planChanged) {
+        if (locals.user?.role !== 'admin') throw new WorkflowError('修改应发时间需要提交改期申请，由管理员审批。', 403);
+        if (form.get('expectedPlanRevision') === null || Number(form.get('expectedPlanRevision')) !== schedule.planRevision) throw new WorkflowError('排期已更新，请刷新后重试。');
+        if (!String(form.get('planChangeReason') ?? '').trim()) throw new WorkflowError('请填写改期理由。', 422);
+      }
 
-      const actualChanged = schedule.actualPublishAt?.getTime() !== result.data.actualPublishAt?.getTime();
       const [campaignCountRow] = await transaction.select({ value: count() })
         .from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.scheduleId, params.id!));
       const campaignCount = Number(campaignCountRow?.value ?? 0);
       const endCampaigns = campaignCount > 0 && schedule.isPromoted && !result.data.isPromoted;
-      const resetCampaigns = campaignCount > 0 && actualChanged && !endCampaigns;
+      if (endCampaigns) requireAdmin(locals.user);
 
-      if ((resetCampaigns || endCampaigns) && !confirmPromotionReset) {
+      if (endCampaigns && !confirmPromotionReset) {
         const campaigns = await transaction.select({ id: operationsPromotionCampaign.id })
           .from(operationsPromotionCampaign)
           .where(eq(operationsPromotionCampaign.scheduleId, params.id!));
@@ -70,7 +162,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
           : [{ value: 0 }];
         return {
           resetRequired: true as const,
-          preserveHistory: endCampaigns && !resetCampaigns,
+          preserveHistory: true,
           impact: { campaigns: campaignCount, dailyMetrics: Number(metricCountRow?.value ?? 0) },
         };
       }
@@ -84,11 +176,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         updatedAt: new Date(),
       }).where(eq(operationsContentVersion.id, schedule.versionId));
 
-      if (resetCampaigns) {
-        await transaction.delete(operationsPromotionCampaign)
-          .where(eq(operationsPromotionCampaign.scheduleId, params.id!));
-      }
-      if (endCampaigns && !resetCampaigns) {
+      if (endCampaigns) {
         const effectiveOn = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date());
         const openCampaigns = await transaction.select({
           id: operationsPromotionCampaign.id,
@@ -125,24 +213,24 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
 
       const promotionStatus = !result.data.isPromoted
         ? 'none'
-        : !result.data.actualPublishAt
+        : !schedule.actualPublishAt
           ? 'pending'
-          : resetCampaigns || campaignCount === 0
+          : campaignCount === 0
             ? 'awaiting_promotion'
             : schedule.promotionStatus;
+      if (planChanged) {
+        const [fullSchedule] = await transaction.select().from(operationsContentSchedule).where(eq(operationsContentSchedule.id, params.id!));
+        await changeSchedulePlan(transaction, fullSchedule, result.data.plannedPublishAt, String(form.get('planChangeReason')), locals.user!);
+      }
       const [saved] = await transaction.update(operationsContentSchedule).set({
         syncToMoments: result.data.syncToMoments,
         isPromoted: result.data.isPromoted,
         promotionStatus,
         promotionDeferredThrough: promotionStatus === 'awaiting_promotion'
-          ? schedule.actualPublishAt?.getTime() === result.data.actualPublishAt?.getTime()
+          ? schedule.promotionStatus === 'awaiting_promotion'
             ? undefined
             : null
           : null,
-        plannedPublishAt: result.data.plannedPublishAt,
-        actualPublishAt: result.data.actualPublishAt,
-        completionStatus,
-        delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, params.id!)).returning({ id: operationsContentSchedule.id });
       return saved;
@@ -152,7 +240,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       return Response.json({
         message: updated.preserveHistory
           ? '改为非推广会结束仍开放的推广阶段；已有推广活动和日度数据将完整保留。'
-          : '修改实发日期会删除关联的推广日历和日度数据。',
+          : '排期变更需要确认。',
         resetRequired: true,
         preserveHistory: updated.preserveHistory,
         impact: updated.impact,
@@ -160,8 +248,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
     }
     if ('usageReasonRequired' in updated) return Response.json({ message: '请填写改为非推广的原因。', fields: { usageChangeReason: ['请填写用途变更原因'] } }, { status: 422 });
   } catch (error) {
-    console.error('operations schedule update failed', error);
-    return Response.json({ message: '数据库暂时不可用，请稍后重试。' }, { status: 503 });
+    return workflowErrorResponse(error);
   }
   return Response.json({ ok: true });
 };

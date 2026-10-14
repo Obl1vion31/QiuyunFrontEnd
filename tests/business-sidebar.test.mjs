@@ -98,6 +98,15 @@ test('生命周期图例与共享标题说明使用同一字体基线', async ()
   assert.match(daily, /\.lifecycle-meta\{display:flex;align-items:center/);
 });
 
+test('推广历史 Inspector 隔离左表溢出并使用独立视口滚动', async () => {
+  const daily = await readFile(new URL('../src/pages/business/daily-promotion-review.astro', import.meta.url), 'utf8');
+  assert.match(daily, /\.history-layout\.inspecting \.history-list\{min-width:0;overflow:hidden\}/);
+  assert.match(daily, /\.history-inspector\{z-index:3;height:calc\(100vh - 82px\);max-height:none;overflow:auto/);
+  assert.doesNotMatch(daily, /data-day-mode/);
+  assert.match(daily, /\['test_continue','wait_continue','test_discarded','start_scaling'\]/);
+  assert.match(daily, /readonly=\{defaultWaiting\}/);
+});
+
 test('非推广复盘使用项目文档链接与精细的三列录入行', async () => {
   const page = await readFile(new URL('../src/pages/business/non-promotion-review.astro', import.meta.url), 'utf8');
   const card = await readFile(new URL('../src/components/NonPromotionReviewCard.astro', import.meta.url), 'utf8');
@@ -124,6 +133,16 @@ test('非推广复盘仅接受 7 天和 15 天节点', async () => {
   assert.match(migration, /CHECK \("checkpoint_type" IN \('day_7', 'day_15'\)\)/);
 });
 
+test('非推广复盘使用首轮二轮名称并允许选填结论', async () => {
+  const card = await readFile(new URL('../src/components/NonPromotionReviewCard.astro', import.meta.url), 'utf8');
+  const validation = await readFile(new URL('../src/db/stage-review-validation.ts', import.meta.url), 'utf8');
+  assert.match(card, /首轮复盘/);
+  assert.match(card, /二轮复盘/);
+  assert.match(card, /复盘结论（选填）/);
+  assert.doesNotMatch(card, /name="conclusion" required/);
+  assert.match(validation, /conclusion: optionalText/);
+});
+
 test('共享侧栏提供稳定的 Quiet Operations 几何与视觉基准', async () => {
   const source = await readFile(new URL('../src/components/BusinessConsoleSidebar.astro', import.meta.url), 'utf8');
   for (const declaration of [
@@ -144,7 +163,7 @@ test('共享侧栏提供稳定的 Quiet Operations 几何与视觉基准', async
 test('共享侧栏使用持久化路由、受控预取和语义图标', async () => {
   const source = await readFile(new URL('../src/components/BusinessConsoleSidebar.astro', import.meta.url), 'utf8');
   assert.match(source, /transition:persist="business-console-sidebar"/);
-  assert.match(source, /<ViewTransitions fallback="swap"/);
+  assert.match(source, /<ClientRouter fallback="swap"/);
   assert.match(source, /data-astro-prefetch="hover"/);
   assert.match(source, /prefetch\(link\.href/);
   assert.match(source, /计划与执行/);
@@ -163,7 +182,12 @@ test('Astro 禁止控制台首屏全量预取', async () => {
 test('带 Inspector 的业务页在客户端切换后重新初始化交互', async () => {
   for (const page of ['annual-plan', 'operations-schedule']) {
     const source = await readFile(new URL(`../src/pages/business/${page}.astro`, import.meta.url), 'utf8');
-    assert.match(source, /<script is:inline data-astro-rerun define:vars=/, `${page} 的交互脚本不会在 View Transition 后重跑`);
+    if (page === 'annual-plan') {
+      assert.match(source, /import '\.\.\/\.\.\/scripts\/annual-plan'/);
+      const client = await readFile(new URL('../src/scripts/annual-plan.ts', import.meta.url), 'utf8');
+      assert.match(client, /document\.addEventListener\('astro:page-load', initializeAnnualPlan\)/);
+      assert.match(client, /dataNode\.dataset\.bound/);
+    } else assert.match(source, /<script is:inline data-astro-rerun define:vars=/, `${page} 的交互脚本不会在 View Transition 后重跑`);
   }
   const schedule = await readFile(new URL('../src/pages/business/operations-schedule.astro', import.meta.url), 'utf8');
   assert.match(schedule, /window\.__operationsScheduleKeydown/);

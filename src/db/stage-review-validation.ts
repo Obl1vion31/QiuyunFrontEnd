@@ -1,9 +1,10 @@
 import { z } from 'zod';
+import { optionalPlatformNoteIdSchema } from './platform-note-id';
 
 const checkpoint = z.enum(['day_7', 'day_15']);
 const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '请选择有效日期');
-const requiredText = (message: string) => z.string().trim().min(1, message).max(2000, '内容过长');
-const rate = z.coerce.number().min(0, '不能小于 0').max(100, '不能大于 100');
+const optionalText = z.preprocess((value) => typeof value === 'string' && value.trim() === '' ? null : value, z.string().trim().max(2000, '内容过长').nullable());
+const rate = z.preprocess(value => value == null || (typeof value === 'string' && !value.trim()) ? Number.NaN : value, z.coerce.number().min(0, '不能小于 0').max(100, '不能大于 100'));
 
 export const meetingReviewSchema = z.object({
   name: z.string().trim().max(120, '会议名称过长').optional().default(''),
@@ -22,7 +23,8 @@ export const stageReviewItemSchema = z.object({
   recordedThrough: dateKey,
   clickRate: rate,
   threeSecondReadRate: rate,
-  conclusion: requiredText('请填写复盘结论'),
+  conclusion: optionalText,
+  platformNoteId: optionalPlatformNoteIdSchema.optional(),
 });
 
 export const formObject = (form: FormData) => Object.fromEntries(form.entries());

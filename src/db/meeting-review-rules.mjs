@@ -1,3 +1,4 @@
+import { isDelayed } from './schedule-rules.mjs';
 export const shanghaiKey = (value) => new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
 }).format(value);
@@ -31,7 +32,7 @@ export const sumPromotionMetrics = (metrics) => {
   };
 };
 
-export const classifySchedule = (plannedAt, actualAt, thresholdMs = 12 * 60 * 60 * 1000) => {
+export const classifySchedule = (plannedAt, actualAt) => {
   if (!actualAt) return 'unpublished';
-  return actualAt.getTime() - plannedAt.getTime() > thresholdMs ? 'delayed' : 'published';
+  return isDelayed(plannedAt, actualAt) ? 'delayed' : 'published';
 };

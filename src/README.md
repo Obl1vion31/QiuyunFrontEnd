@@ -42,6 +42,8 @@ src/
 │   ├── README.md
 │   ├── ContentTunnel.tsx             # 首屏 React 交互组件
 │   └── ContentTunnel.module.css      # 首屏局部样式
+├── scripts/
+│   └── annual-plan.ts                # 自由备注、半月周期、详情与年度复制交互
 └── pages/
     ├── index.astro                   # 静态首页路由、页面结构和后半段样式
     ├── business/
@@ -54,9 +56,9 @@ src/
     │   └── stage-review.astro          # 旧地址兼容跳转
     └── api/
         ├── operations-annual-plans.ts # 新建年度细致规划 V0
-        ├── operations-annual-plans/   # 年度说明、编辑、历史和恢复接口
+        ├── operations-annual-plans/   # 年度说明、编辑、历史、恢复和年度复制接口
         ├── operations-content.ts      # 新做帖 V0 写入接口
-        ├── operations-content/        # 排期编辑与改帖 V1+ 接口
+        ├── operations-content/        # 排期编辑、受保护删除与改帖 V1+ 接口
         ├── promotion-daily.ts         # 推广日度事实读取、填写与阶段流转
         └── promotion-daily/[id].ts    # 历史事实更正与生命周期受控重建
 ```
@@ -561,3 +563,11 @@ pnpm build
 ```
 
 不要直接修改 `dist/` 或 `.astro/`。它们是工具生成的目录，下次构建时会被覆盖。
+
+## 账号与部署
+
+`auth/` 集中管理 Better Auth、权限和账号创建；`middleware.ts` 为全部业务页面与接口校验会话和角色。`/login` 提供登录表单，`/api/auth/*` 仅开放登录、会话读取和退出；页面中的管理员操作使用共享角色标识隐藏，服务端仍独立验证。
+
+Astro 使用 server 输出，首页显式静态生成。共享侧栏使用 ClientRouter；本机和 Vercel 的适配器由构建环境选择。
+
+排期的改期申请、逐日理由与只读工作流接口位于 `pages/api/operations-content/[id]/`，审批入口由服务端限制管理员；非推广节点处置使用 `pages/api/non-promotion-checkpoints.ts`。两类状态通过数据库层共用排期锁，客户端不能直接更改应发时间或伪造节点完成。

@@ -1,7 +1,6 @@
 export type ReviewCheckpointType = 'day_7' | 'day_15';
 export interface ReviewCheckpoint { type: ReviewCheckpointType; days: number; label: string; publishedOn?: string; dueOn?: string }
 export const reviewCheckpoints: ReviewCheckpoint[];
-export const nonPromotionReviewStart: string;
 export const shanghaiDateKey: (value: Date) => string;
 export const addDays: (dateKey: string, days: number) => string;
 export const checkpointsForPublishDate: (actualPublishAt: Date) => ReviewCheckpoint[];

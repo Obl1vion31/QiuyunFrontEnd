@@ -1,101 +1,46 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  coverageSpans,
-  deriveAnnualSummary,
-  formatBlockRule,
-  overlappingBlockPairs,
-} from '../src/db/annual-plan-rules.mjs';
+import { coverageSpans, deriveAnnualSummary, formatSlotRange, normalizeBlock, splitBlockSegments, overlappingBlockPairs } from '../src/db/annual-plan-rules.mjs';
+const block = (startSlot, endSlot, promotionRanges = []) => ({ startSlot, endSlot, promotionRanges, label: '', note: '', sortOrder: 0 });
 
-test('允许同一规划行拥有多个不连续时间块', () => {
-  const blocks = [
-    { startMonth: 3, endMonth: 7 },
-    { startMonth: 11, endMonth: 12 },
-  ];
-  assert.deepEqual(overlappingBlockPairs(blocks), []);
+test('同月的前后半月可以相邻，实际重叠仍会被识别', () => {
+  assert.deepEqual(overlappingBlockPairs([block(5, 17), block(18, 24)]), []);
+  assert.deepEqual(overlappingBlockPairs([block(5, 17), block(17, 24)]), [[0, 1]]);
 });
-
-test('相邻但不相交的时间块不会被判为重叠', () => {
-  const blocks = [
-    { startMonth: 1, endMonth: 3 },
-    { startMonth: 4, endMonth: 6 },
-  ];
-  assert.deepEqual(overlappingBlockPairs(blocks), []);
+test('半月边界显示月初、月中和月末', () => {
+  assert.equal(formatSlotRange(block(5, 17)), '3 月初—9 月中旬');
+  assert.equal(formatSlotRange(block(20, 23)), '10 月中旬—12 月中旬');
+  assert.equal(formatSlotRange(block(1, 24)), '1 月初—12 月末');
 });
-
-test('单月和跨月时间块发生相交时返回对应位置', () => {
-  const blocks = [
-    { startMonth: 3, endMonth: 7 },
-    { startMonth: 5, endMonth: 5 },
-    { startMonth: 11, endMonth: 12 },
-  ];
-  assert.deepEqual(overlappingBlockPairs(blocks), [[0, 1]]);
+test('讲义周期保持连续，仅首月付费，其余观察', () => {
+  assert.deepEqual(splitBlockSegments(block(5, 17, [{ startSlot: 5, endSlot: 6 }])), [
+    { startSlot: 5, endSlot: 6, paid: true }, { startSlot: 7, endSlot: 17, paid: false },
+  ]);
+  assert.deepEqual(splitBlockSegments(block(20, 23)), [{ startSlot: 20, endSlot: 23, paid: false }]);
 });
-
-test('弹性频次按月频次和时间块长度展示', () => {
-  assert.equal(formatBlockRule({
-    startMonth: 3,
-    endMonth: 7,
-    ruleType: 'flexible',
-    monthlyFrequency: 2,
-    quantityParts: null,
-  }), '2×5');
-});
-
-test('硬性组合保持各数量的顺序', () => {
-  assert.equal(formatBlockRule({
-    startMonth: 8,
-    endMonth: 8,
-    ruleType: 'fixed',
-    monthlyFrequency: null,
-    quantityParts: [3, 3, 4],
-  }), '3+3+4');
-});
-
-test('未填写数量规则时明确显示为待确认', () => {
-  assert.equal(formatBlockRule({
-    startMonth: 8,
-    endMonth: 10,
-    ruleType: null,
-    monthlyFrequency: null,
-    quantityParts: null,
-  }), '?');
-});
-
-test('月份覆盖会合并为连续区间并保留断点', () => {
-  assert.deepEqual(coverageSpans(new Set([1, 2, 3, 6, 11, 12])), [
-    { startMonth: 1, endMonth: 3 },
-    { startMonth: 6, endMonth: 6 },
-    { startMonth: 11, endMonth: 12 },
+test('自定义付费区间允许多个独立阶段', () => {
+  assert.deepEqual(splitBlockSegments(block(1, 8, [{ startSlot: 2, endSlot: 3 }, { startSlot: 7, endSlot: 8 }])), [
+    { startSlot: 1, endSlot: 1, paid: false }, { startSlot: 2, endSlot: 3, paid: true }, { startSlot: 4, endSlot: 6, paid: false }, { startSlot: 7, endSlot: 8, paid: true },
   ]);
 });
-
-test('年度汇总排除停用行并独立计算推广周期', () => {
+test('年度汇总仅计算付费子区间，并排除停用行', () => {
   assert.deepEqual(deriveAnnualSummary([
-    {
-      isActive: true,
-      countsTowardPromotion: false,
-      blocks: [{ startMonth: 1, endMonth: 2 }],
-    },
-    {
-      isActive: true,
-      countsTowardPromotion: true,
-      blocks: [{ startMonth: 3, endMonth: 5 }],
-    },
-    {
-      isActive: false,
-      countsTowardPromotion: true,
-      blocks: [{ startMonth: 8, endMonth: 12 }],
-    },
-  ]), {
-    postingSpans: [{ startMonth: 1, endMonth: 5 }],
-    promotionSpans: [{ startMonth: 3, endMonth: 5 }],
-  });
+    { isActive: true, blocks: [block(5, 17, [{ startSlot: 5, endSlot: 6 }]), block(20, 23)] },
+    { isActive: false, blocks: [block(1, 24, [{ startSlot: 1, endSlot: 24 }])] },
+  ]), { postingSpans: [{ startSlot: 5, endSlot: 17, promotionRanges: [{ startSlot: 5, endSlot: 6 }] }, { startSlot: 20, endSlot: 23, promotionRanges: [] }], promotionSpans: [{ startSlot: 5, endSlot: 6 }] });
 });
-
-test('没有细致规划时年度汇总为空', () => {
-  assert.deepEqual(deriveAnnualSummary([]), {
-    postingSpans: [],
-    promotionSpans: [],
-  });
+test('半月覆盖合并相邻格，保留真正空档', () => {
+  assert.deepEqual(coverageSpans(new Set([1, 2, 3, 6, 23, 24])), [{ startSlot: 1, endSlot: 3 }, { startSlot: 6, endSlot: 6 }, { startSlot: 23, endSlot: 24 }]);
+});
+test('旧数量规则只在兼容读取时转换成文字，不改原对象', () => {
+  const old = { startMonth: 3, endMonth: 6, label: '旧规划', note: null, ruleType: 'fixed', quantityParts: [3, 3, 3, 4], monthlyFrequency: null, sortOrder: 0 };
+  assert.deepEqual(normalizeBlock(old), { startSlot: 5, endSlot: 12, label: '旧规划', note: '本周期共 13 篇', promotionRanges: [], sortOrder: 0 });
+  assert.equal(old.note, null); assert.deepEqual(old.quantityParts, [3, 3, 3, 4]);
+  assert.equal(normalizeBlock({ ...old, ruleType: null }).note, '待定');
+  assert.equal(normalizeBlock({ ...old, note: '已有业务说明' }).note, '已有业务说明');
+});
+test('新备注包括空文本直接保留，不恢复问号或自动计算数量', () => {
+  assert.equal(normalizeBlock({ ...block(5, 17), note: '每月至多两篇' }).note, '每月至多两篇');
+  assert.equal(normalizeBlock(block(5, 17)).note, '');
+  assert.deepEqual(deriveAnnualSummary([]), { postingSpans: [], promotionSpans: [] });
 });

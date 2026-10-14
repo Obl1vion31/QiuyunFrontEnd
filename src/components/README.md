@@ -16,7 +16,8 @@
 - `BusinessToolbarContext.astro`：Toolbar 中部的单行上下文信息。
 - `BusinessPageHeader.astro`：统一“英文眉题 + 中文主标题 + 必要说明”的页面标题结构。
 - `BusinessSectionHeader.astro`：统一内容区块的标题、说明和右侧元信息。
-- `NonPromotionReviewCard.astro`：非推广阶段复盘卡，承载项目文档入口、节点轨道、指标与结论录入。
+- `NonPromotionReviewCard.astro`：旧版非推广阶段复盘卡，当前主页面不再使用。
+- `MetricCell.astro`：数据表复用指标单元格，统一百分比、同类 pp 差值、样本 tooltip 与正向/中性/负向状态。
 
 ## 文件关系
 
@@ -47,3 +48,7 @@ ContentTunnel.module.css
 - 非直观的动画计算需要说明进度范围和视觉目的。
 - 新增动效时继续支持 `prefers-reduced-motion`，并避免锁定正常滚动。
 - 注释优先说明需求、关联和原因，不逐行复述能够直接看懂的语法。
+
+`BusinessAccountMenu.astro` 在桌面侧栏和手机工具栏显示账号与退出，原生 popover 避免层级裁切。Frame 统一维护并发请求、延迟反馈及登录失效提示；管理员动作使用 `data-admin-only`，服务端权限另由 middleware 和业务事务检查。
+
+`BusinessScheduleNotifications.astro` 在共享侧栏提供团队排期待办，手机通过排期导航角标显示延期数量；刷新逻辑位于 `src/scripts/schedule-notifications.ts`。

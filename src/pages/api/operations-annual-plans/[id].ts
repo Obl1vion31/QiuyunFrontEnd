@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
+import { lockAnnualPlanWrites } from '../../../db/annual-plan-storage';
 import { and, eq } from 'drizzle-orm';
 import {
   annualPlanIssues,
   buildAnnualPlanSnapshot,
+  annualPlanBlockValues,
   diffAnnualPlanSnapshots,
   snapshotsEqual,
   updateAnnualPlanSchema,
@@ -36,6 +38,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
 
   try {
     const saved = await getDb().transaction(async (transaction) => {
+      await lockAnnualPlanWrites(transaction);
       const [current] = await transaction.select({
         id: operationsAnnualPlan.id,
         version: operationsAnnualPlan.currentVersionNumber,
@@ -86,7 +89,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         note: result.data.note,
         sortOrder: result.data.sortOrder,
         isActive: result.data.isActive,
-        countsTowardPromotion: result.data.countsTowardPromotion,
+        countsTowardPromotion: nextSnapshot.row.countsTowardPromotion,
         currentVersionNumber: nextVersion,
         updatedAt: new Date(),
       }).where(and(
@@ -98,17 +101,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       await transaction.delete(operationsAnnualPlanBlock).where(eq(operationsAnnualPlanBlock.planId, current.id));
       await transaction.delete(operationsAnnualPlanLink).where(eq(operationsAnnualPlanLink.planId, current.id));
       if (result.data.blocks.length) {
-        await transaction.insert(operationsAnnualPlanBlock).values(result.data.blocks.map((block) => ({
-          planId: current.id,
-          startMonth: block.startMonth,
-          endMonth: block.endMonth,
-          label: block.label,
-          ruleType: block.ruleType,
-          monthlyFrequency: block.ruleType === 'flexible' ? block.monthlyFrequency : null,
-          quantityParts: block.ruleType === 'fixed' ? block.quantityParts : null,
-          note: block.note,
-          sortOrder: block.sortOrder,
-        })));
+        await transaction.insert(operationsAnnualPlanBlock).values(nextSnapshot.blocks.map(block => annualPlanBlockValues(current.id, block)));
       }
       if (result.data.links.length) {
         await transaction.insert(operationsAnnualPlanLink).values(result.data.links.map((link) => ({
@@ -122,7 +115,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         planId: current.id,
         versionNumber: nextVersion,
         snapshot: nextSnapshot,
-        changeSummary: result.data.changeSummary,
+        changeSummary: result.data.changeSummary || '调整周期规划',
         diffSummary: diffAnnualPlanSnapshots(previousVersion?.snapshot ?? null, nextSnapshot),
         changedByLabel: locals.operationsUser ?? 'unknown',
       });

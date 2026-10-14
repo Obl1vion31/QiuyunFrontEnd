@@ -9,7 +9,6 @@ import {
   issuesByField,
   newPostInputFromForm,
   newPostSchema,
-  normalizeCompletionStatus,
 } from '../../db/validation';
 
 export const prerender = false;
@@ -31,10 +30,7 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
   }
 
   try {
-    const completionStatus = normalizeCompletionStatus(result.data);
-    const promotionStatus = result.data.isPromoted
-      ? result.data.actualPublishAt ? 'awaiting_promotion' : 'pending'
-      : 'none';
+    const promotionStatus = result.data.isPromoted ? 'pending' : 'none';
     const created = await getDb().transaction(async (transaction) => {
       const [content] = await transaction.insert(operationsContent).values({}).returning({ id: operationsContent.id });
       const [version] = await transaction.insert(operationsContentVersion).values({
@@ -52,9 +48,9 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
         isPromoted: result.data.isPromoted,
         promotionStatus,
         plannedPublishAt: result.data.plannedPublishAt,
-        actualPublishAt: result.data.actualPublishAt,
-        completionStatus,
-        delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
+        actualPublishAt: null,
+        completionStatus: 'pending',
+        delayReason: null,
       }).returning({ id: operationsContentSchedule.id });
       return schedule;
     });

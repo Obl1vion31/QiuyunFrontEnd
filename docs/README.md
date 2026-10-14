@@ -15,6 +15,11 @@
 - `exec-plans/phase-06-meeting-and-weekly-review.md`：Phase 06 Meeting and Weekly Review 分步计划。
 - `exec-plans/phase-07-monthly-review-and-moments-schedule.md`：Phase 07 Monthly Review 与朋友圈排期简化计划。
 - `exec-results/`：用户明确要求保存的各阶段实施结果与后续方向例外。
+- `exec-results/20260829跟进内容.md`：2026 年 8 月运营内容导入后的交接与唯一待处理事项。
+- `exec-results/20260830跟进内容.md`：非推广数据录入及历史周例会复盘的后续安排。
+- `exec-results/20260831跟进内容.md`：非推广数据录入、出分合集、周例会推荐榜与后续排期清理安排。
+- [20261014 跟进内容](exec-results/20261014跟进内容.md)：公网与账号上线、总周期规划调整、年度复制及后续安排。
+- [20261015 跟进内容](exec-results/20261015跟进内容.md)：排期审批与逐日延期、推广和非推广复盘优化、公网发布及数据导入待办。
 
 ## 保存原则
 

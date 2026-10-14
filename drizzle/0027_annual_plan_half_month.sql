@@ -1,0 +1,4 @@
+ALTER TABLE "operations_annual_plan_block" ADD COLUMN "start_slot" integer;--> statement-breakpoint
+ALTER TABLE "operations_annual_plan_block" ADD COLUMN "end_slot" integer;--> statement-breakpoint
+ALTER TABLE "operations_annual_plan_block" ADD COLUMN "promotion_ranges" jsonb;--> statement-breakpoint
+ALTER TABLE "operations_annual_plan_block" ADD CONSTRAINT "operations_annual_plan_block_slot_check" CHECK (("operations_annual_plan_block"."start_slot" IS NULL AND "operations_annual_plan_block"."end_slot" IS NULL AND "operations_annual_plan_block"."promotion_ranges" IS NULL) OR ("operations_annual_plan_block"."start_slot" IS NOT NULL AND "operations_annual_plan_block"."end_slot" IS NOT NULL AND "operations_annual_plan_block"."promotion_ranges" IS NOT NULL AND "operations_annual_plan_block"."start_slot" BETWEEN 1 AND 24 AND "operations_annual_plan_block"."end_slot" BETWEEN "operations_annual_plan_block"."start_slot" AND 24));

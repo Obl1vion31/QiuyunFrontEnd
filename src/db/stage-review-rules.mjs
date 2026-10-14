@@ -2,7 +2,6 @@ export const reviewCheckpoints = [
   { type: 'day_7', days: 7, label: '7 天' },
   { type: 'day_15', days: 15, label: '15 天' },
 ];
-export const nonPromotionReviewStart = '2026-07-01';
 
 export const shanghaiDateKey = (value) => new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit',
@@ -25,7 +24,6 @@ export const checkpointsForPublishDate = (actualPublishAt) => {
 
 export const nextReviewCheckpoint = (actualPublishAt, completedTypes, todayKey) => {
   const checkpoints = checkpointsForPublishDate(actualPublishAt);
-  if (checkpoints[0].publishedOn < nonPromotionReviewStart) return null;
   return checkpoints.find((checkpoint) => !completedTypes.includes(checkpoint.type) && checkpoint.dueOn <= todayKey) ?? null;
 };
 

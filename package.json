@@ -3,22 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": { "node": "22.x" },
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
     "check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --import tsx --test --test-reporter=spec tests/*.test.mjs tests/*.test.ts",
+    "test:browser": "node --import tsx tests/auth.browser.ts",
+    "test:workflows": "node --import tsx tests/schedule-workflow.browser.ts",
+    "test:annual-plan": "node --import tsx tests/annual-plan.browser.ts",
+    "account:create": "node --import tsx scripts/create-account.ts",
     "start": "node ./dist/server/entry.mjs",
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "node --import tsx scripts/migrate.ts",
+    "db:backup": "node --import tsx scripts/backup-database.ts"
   },
   "dependencies": {
-    "@astrojs/node": "8.3.4",
-    "@astrojs/react": "3.6.3",
-    "astro": "4.16.18",
+    "@astrojs/node": "9.5.5",
+    "@astrojs/react": "4.4.2",
+    "@astrojs/vercel": "8.2.11",
+    "@better-auth/drizzle-adapter": "1.7.7",
+    "astro": "5.18.2",
+    "better-auth": "1.7.7",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
@@ -29,9 +38,13 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.4",
+    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite-socket": "0.2.11",
+    "@types/node": "22.19.15",
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "drizzle-kit": "^0.31.10",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "tsx": "4.23.15"
   }
 }

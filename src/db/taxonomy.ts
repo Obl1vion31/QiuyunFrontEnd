@@ -2,6 +2,7 @@ export const subjects = [
   { id: 'tmua', name: 'TMUA' },
   { id: 'step', name: 'STEP' },
   { id: 'interview', name: '面试课' },
+  { id: 'temporary', name: '临时学科' },
 ] as const;
 
 export const postCategories = [
@@ -15,19 +16,21 @@ export const postCategories = [
   { id: 'exam-information', name: '考试信息' },
   { id: 'first-analysis-series', name: '第一时间解析帖集' },
   { id: 'score-release-celebration', name: '喜报' },
+  { id: 'score-release-collection', name: '出分合集' },
   { id: 'exam-guide', name: '备考须知' },
   { id: 'innovation', name: '创新帖' },
   { id: 'interview-course', name: '面试课' },
   { id: 'interview-information', name: '面试信息' },
   { id: 'interview-preparation-guide', name: '面试准备须知' },
+  { id: 'temporary', name: '临时帖' },
 ] as const;
 
 export const subjectCategoryMappings = [
   ...postCategories
-    .filter((category) => !category.id.startsWith('interview-'))
+    .filter((category) => !category.id.startsWith('interview-') && category.id !== 'score-release-celebration')
     .map((category) => ({ subjectId: 'tmua' as const, categoryId: category.id })),
   ...postCategories
-    .filter((category) => category.id !== 'intensive-course' && !category.id.startsWith('interview-'))
+    .filter((category) => category.id !== 'intensive-course' && !category.id.startsWith('interview-') && category.id !== 'score-release-celebration')
     .map((category) => ({ subjectId: 'step' as const, categoryId: category.id })),
   ...[
     'interview-course',
@@ -37,7 +40,9 @@ export const subjectCategoryMappings = [
     'interview-information',
     'interview-preparation-guide',
     'innovation',
+    'temporary',
   ].map((categoryId) => ({ subjectId: 'interview' as const, categoryId })),
+  { subjectId: 'temporary', categoryId: 'temporary' },
 ] as const;
 
 export type SubjectId = typeof subjects[number]['id'];

@@ -12,6 +12,7 @@ const schema = z.object({
   displayName: z.string().trim().min(1, '请填写显示名称').max(100, '名称过长'),
   defaultIsPromoted: z.string().optional().transform((value) => value === 'on'),
   isSelectable: z.string().optional().transform((value) => value === 'on'),
+  requiresNonPromotionReview: z.string().optional().transform((value) => value === 'on'),
   effectiveOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '请选择生效日期'),
   changeSummary: z.string().trim().min(1, '请填写变更说明').max(500, '变更说明过长'),
 });

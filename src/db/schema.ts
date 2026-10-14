@@ -1,5 +1,6 @@
 import {
   boolean,
+  bigint,
   check,
   date,
   foreignKey,
@@ -17,7 +18,47 @@ import {
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
-export interface AnnualPlanSnapshot {
+// 内部账号与业务事实分开保存，两个角色共享团队数据。
+export const authUser = pgTable('auth_user', {
+  id: text('id').primaryKey(), name: text('name').notNull(), email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').notNull().default(false), image: text('image'),
+  username: text('username').notNull().unique(), displayUsername: text('display_username'),
+  role: text('role').$type<'admin' | 'employee'>().notNull().default('employee'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [check('auth_user_role_check', sql`${table.role} IN ('admin', 'employee')`)]);
+
+export const authSession = pgTable('auth_session', {
+  id: text('id').primaryKey(), userId: text('user_id').notNull().references(() => authUser.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(), expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  ipAddress: text('ip_address'), userAgent: text('user_agent'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [index('auth_session_user_idx').on(table.userId)]);
+
+export const authAccount = pgTable('auth_account', {
+  id: text('id').primaryKey(), userId: text('user_id').notNull().references(() => authUser.id, { onDelete: 'cascade' }),
+  accountId: text('account_id').notNull(), providerId: text('provider_id').notNull(), password: text('password'),
+  accessToken: text('access_token'), refreshToken: text('refresh_token'), idToken: text('id_token'), scope: text('scope'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [index('auth_account_user_idx').on(table.userId), uniqueIndex('auth_account_provider_idx').on(table.providerId, table.accountId)]);
+
+export const authVerification = pgTable('auth_verification', {
+  id: text('id').primaryKey(), identifier: text('identifier').notNull(), value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [index('auth_verification_identifier_idx').on(table.identifier)]);
+
+export const authRateLimit = pgTable('auth_rate_limit', {
+  id: text('id').primaryKey(), key: text('key').notNull().unique(), count: integer('count').notNull(),
+  lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
+}, table => [index('auth_rate_limit_last_request_idx').on(table.lastRequest)]);
+
+export interface LegacyAnnualPlanSnapshot {
   schemaVersion: 2 | 3;
   row: {
     year: number;
@@ -50,6 +91,21 @@ export interface AnnualPlanSnapshot {
     sortOrder: number;
   }>;
 }
+
+export interface AnnualPlanSnapshotV4 {
+  schemaVersion: 4;
+  row: LegacyAnnualPlanSnapshot['row'];
+  blocks: Array<{
+    startSlot: number;
+    endSlot: number;
+    label: string;
+    note: string;
+    promotionRanges: Array<{ startSlot: number; endSlot: number }>;
+    sortOrder: number;
+  }>;
+  links: LegacyAnnualPlanSnapshot['links'];
+}
+export type AnnualPlanSnapshot = LegacyAnnualPlanSnapshot | AnnualPlanSnapshotV4;
 
 export const operationsSubject = pgTable('operations_subject', {
   id: text('id').primaryKey(),
@@ -125,6 +181,9 @@ export const operationsAnnualPlanBlock = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     planId: uuid('plan_id').notNull().references(() => operationsAnnualPlan.id, { onDelete: 'cascade' }),
+    startSlot: integer('start_slot'),
+    endSlot: integer('end_slot'),
+    promotionRanges: jsonb('promotion_ranges').$type<Array<{ startSlot: number; endSlot: number }>>(),
     startMonth: integer('start_month').notNull(),
     endMonth: integer('end_month').notNull(),
     label: text('label').notNull(),
@@ -136,6 +195,7 @@ export const operationsAnnualPlanBlock = pgTable(
   },
   (table) => [
     index('operations_annual_plan_block_plan_sort_idx').on(table.planId, table.sortOrder),
+    check('operations_annual_plan_block_slot_check', sql`(${table.startSlot} IS NULL AND ${table.endSlot} IS NULL AND ${table.promotionRanges} IS NULL) OR (${table.startSlot} IS NOT NULL AND ${table.endSlot} IS NOT NULL AND ${table.promotionRanges} IS NOT NULL AND ${table.startSlot} BETWEEN 1 AND 24 AND ${table.endSlot} BETWEEN ${table.startSlot} AND 24)`),
     check(
       'operations_annual_plan_block_month_check',
       sql`${table.startMonth} BETWEEN 1 AND 12 AND ${table.endMonth} BETWEEN ${table.startMonth} AND 12`,
@@ -189,6 +249,7 @@ export const operationsAnnualPlanVersion = pgTable(
 
 export const operationsContent = pgTable('operations_content', {
   id: uuid('id').defaultRandom().primaryKey(),
+  platformNoteId: text('platform_note_id').unique(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -223,7 +284,7 @@ export const operationsContentVersion = pgTable(
     }).onDelete('restrict'),
     check(
       'operations_content_version_category_required_check',
-      sql`((${table.subjectId} IN ('tmua', 'step') AND ${table.categoryId} IS NOT NULL) OR ${table.subjectId} = 'interview')`,
+      sql`(${table.categoryId} IS NOT NULL OR ${table.subjectId} = 'interview')`,
     ),
   ],
 );
@@ -238,6 +299,8 @@ export const operationsContentSchedule = pgTable(
     promotionStatus: text('promotion_status').notNull().default('none'),
     promotionDeferredThrough: date('promotion_deferred_through'),
     plannedPublishAt: timestamp('planned_publish_at', { withTimezone: true }).notNull(),
+    planRevision: integer('plan_revision').notNull().default(0),
+    planEffectiveAt: timestamp('plan_effective_at', { withTimezone: true }),
     actualPublishAt: timestamp('actual_publish_at', { withTimezone: true }),
     completionStatus: text('completion_status').notNull(),
     delayReason: text('delay_reason'),
@@ -258,12 +321,84 @@ export const operationsContentSchedule = pgTable(
         (${table.isPromoted} = false AND ${table.promotionStatus} = 'none')
         OR
         (${table.isPromoted} = true AND ${table.promotionStatus} IN (
-          'pending', 'awaiting_promotion', 'testing', 'scaling', 'ended', 'test_discarded', 'formal_discarded'
+          'pending', 'awaiting_promotion', 'testing', 'scaling', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded'
         ))
       )`,
     ),
   ],
 );
+
+// 改期关闭旧排期计时段；逐日理由依然归属当时的排期修订，不随新日期覆盖。
+export const operationsSchedulePlanHistory = pgTable('operations_schedule_plan_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  revision: integer('revision').notNull(),
+  plannedPublishAt: timestamp('planned_publish_at', { withTimezone: true }).notNull(),
+  effectiveAt: timestamp('effective_at', { withTimezone: true }),
+  endedAt: timestamp('ended_at', { withTimezone: true }).notNull(),
+  newPlannedPublishAt: timestamp('new_planned_publish_at', { withTimezone: true }).notNull(),
+  reason: text('reason').notNull(),
+  changedById: text('changed_by_id').notNull(),
+  changedByLabel: text('changed_by_label').notNull(),
+}, table => [uniqueIndex('operations_plan_history_revision_idx').on(table.scheduleId, table.revision)]);
+
+export const operationsScheduleChangeRequest = pgTable('operations_schedule_change_request', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  planRevision: integer('plan_revision').notNull(),
+  originalPlannedPublishAt: timestamp('original_planned_publish_at', { withTimezone: true }).notNull(),
+  requestedPublishAt: timestamp('requested_publish_at', { withTimezone: true }).notNull(),
+  reason: text('reason').notNull(),
+  status: text('status').$type<'pending' | 'approved' | 'rejected' | 'obsolete'>().notNull().default('pending'),
+  requestedById: text('requested_by_id').notNull(),
+  requestedByLabel: text('requested_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  decidedById: text('decided_by_id'),
+  decidedByLabel: text('decided_by_label'),
+  decisionReason: text('decision_reason'),
+  decidedAt: timestamp('decided_at', { withTimezone: true }),
+}, table => [
+  uniqueIndex('operations_change_request_pending_idx').on(table.scheduleId).where(sql`${table.status} = 'pending'`),
+  index('operations_change_request_status_idx').on(table.status),
+  check('operations_change_request_status_check', sql`${table.status} IN ('pending','approved','rejected','obsolete')`),
+]);
+
+export const operationsScheduleDelayReason = pgTable('operations_schedule_delay_reason', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  planRevision: integer('plan_revision').notNull(),
+  dayNumber: integer('day_number').notNull(),
+  dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+  responsibility: text('responsibility').$type<'self' | 'requester' | 'unknown'>().notNull(),
+  reason: text('reason').notNull(),
+  source: text('source').$type<'manual' | 'historical'>().notNull().default('manual'),
+  changedById: text('changed_by_id'),
+  changedByLabel: text('changed_by_label').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  history: jsonb('history').$type<Array<Record<string, unknown>>>().notNull().default([]),
+}, table => [
+  uniqueIndex('operations_delay_reason_day_idx').on(table.scheduleId, table.planRevision, table.dayNumber),
+  check('operations_delay_reason_day_check', sql`${table.dayNumber} > 0`),
+  check('operations_delay_reason_responsibility_check', sql`${table.responsibility} IN ('self','requester','unknown')`),
+  check('operations_delay_reason_source_check', sql`${table.source} IN ('manual','historical')`),
+  check('operations_delay_reason_text_check', sql`length(trim(${table.reason})) > 0`),
+]);
+
+export const operationsNonPromotionCheckpointEvent = pgTable('operations_non_promotion_checkpoint_event', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sequence: bigint('sequence', { mode: 'number' }).generatedAlwaysAsIdentity().notNull(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  checkpointType: text('checkpoint_type').$type<'day_7' | 'day_15'>().notNull(),
+  action: text('action').$type<'skip' | 'restore'>().notNull(),
+  reason: text('reason').notNull(),
+  changedById: text('changed_by_id').notNull(),
+  changedByLabel: text('changed_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('operations_checkpoint_event_schedule_idx').on(table.scheduleId, table.checkpointType, table.createdAt),
+  check('operations_checkpoint_event_type_check', sql`${table.checkpointType} IN ('day_7','day_15')`),
+  check('operations_checkpoint_event_action_check', sql`${table.action} IN ('skip','restore')`),
+]);
 
 export const operationsPromotionCampaign = pgTable(
   'operations_promotion_campaign',
@@ -282,13 +417,14 @@ export const operationsPromotionCampaign = pgTable(
     index('operations_promotion_campaign_status_idx').on(table.currentStatus),
     check(
       'operations_promotion_campaign_status_check',
-      sql`${table.currentStatus} IN ('testing', 'scaling', 'ended', 'test_discarded', 'formal_discarded')`,
+      sql`${table.currentStatus} IN ('testing', 'scaling', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded')`,
     ),
     check(
       'operations_promotion_campaign_stage_check',
       sql`(
         (${table.currentStatus} = 'testing' AND ${table.currentStage} = 'testing')
         OR (${table.currentStatus} = 'scaling' AND ${table.currentStage} = 'scaling')
+        OR (${table.currentStatus} = 'waiting_action' AND ${table.currentStage} IN ('testing', 'scaling'))
         OR (${table.currentStatus} IN ('ended', 'test_discarded', 'formal_discarded') AND ${table.currentStage} IS NULL)
       )`,
     ),
@@ -319,7 +455,7 @@ export const operationsPromotionStage = pgTable(
     check('operations_promotion_stage_type_check', sql`${table.stageType} IN ('testing', 'scaling')`),
     check(
       'operations_promotion_stage_outcome_check',
-      sql`${table.outcome} IS NULL OR ${table.outcome} IN ('continued', 'start_scaling', 'test_discarded', 'scaling_continued', 'ended', 'formal_discarded')`,
+      sql`${table.outcome} IS NULL OR ${table.outcome} IN ('continued', 'paused', 'start_scaling', 'test_discarded', 'scaling_continued', 'ended', 'formal_discarded')`,
     ),
     check(
       'operations_promotion_stage_dates_check',
@@ -334,6 +470,7 @@ export const operationsPromotionDailyMetric = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'cascade' }),
     metricDate: date('metric_date').notNull(),
+    dailyStatus: text('daily_status').notNull().default('active'),
     stageTypeSnapshot: text('stage_type_snapshot').notNull(),
     spend: numeric('spend', { precision: 12, scale: 2 }).notNull(),
     clickRate: numeric('click_rate', { precision: 7, scale: 4 }),
@@ -351,6 +488,7 @@ export const operationsPromotionDailyMetric = pgTable(
     uniqueIndex('operations_promotion_daily_campaign_date_idx').on(table.campaignId, table.metricDate),
     index('operations_promotion_daily_date_idx').on(table.metricDate),
     check('operations_promotion_daily_stage_check', sql`${table.stageTypeSnapshot} IN ('testing', 'scaling')`),
+    check('operations_promotion_daily_status_check', sql`${table.dailyStatus} IN ('active', 'waiting_action')`),
     check('operations_promotion_daily_spend_check', sql`${table.spend} >= 0`),
     check(
       'operations_promotion_daily_click_rate_check',
@@ -366,20 +504,35 @@ export const operationsPromotionDailyMetric = pgTable(
     check(
       'operations_promotion_daily_decision_check',
       sql`(
-        (${table.stageTypeSnapshot} = 'testing' AND ${table.reviewDecision} IN ('test_continue', 'test_discarded', 'start_scaling'))
+        (${table.dailyStatus} = 'active' AND ${table.stageTypeSnapshot} = 'testing' AND ${table.reviewDecision} IN ('test_continue', 'wait_continue', 'test_discarded', 'start_scaling'))
         OR
-        (${table.stageTypeSnapshot} = 'scaling' AND ${table.reviewDecision} IN ('scaling_continue', 'formal_discarded', 'ended'))
+        (${table.dailyStatus} = 'active' AND ${table.stageTypeSnapshot} = 'scaling' AND ${table.reviewDecision} IN ('scaling_continue', 'wait_continue', 'formal_discarded', 'ended'))
+        OR
+        (${table.dailyStatus} = 'waiting_action' AND ${table.stageTypeSnapshot} = 'testing' AND ${table.reviewDecision} IN ('wait_continue', 'test_continue', 'test_discarded', 'start_scaling'))
+        OR
+        (${table.dailyStatus} = 'waiting_action' AND ${table.stageTypeSnapshot} = 'scaling' AND ${table.reviewDecision} IN ('wait_continue', 'scaling_continue', 'formal_discarded', 'ended'))
+      )`,
+    ),
+    check(
+      'operations_promotion_daily_waiting_zero_check',
+      sql`${table.dailyStatus} <> 'waiting_action' OR (
+        ${table.spend} = 0
+        AND ${table.platformOpenCount} = 0
+        AND ${table.actualOpenCount} = 0
+        AND ${table.platformLeadCount} = 0
+        AND ${table.actualLeadCount} = 0
       )`,
     ),
   ],
 );
 
 export interface WeeklyMeetingDraft {
-  schemaVersion: 1;
+  schemaVersion: 2;
   coreConclusion: string;
   nextAction: string;
   promotionInputs: Record<string, { clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
   issues: Array<{ id?: string; problem: string; conclusion: string; status: 'pending' | 'validating' | 'resolved' | 'paused' }>;
+  nonPromotionSelections: Array<{ scheduleId: string; checkpointType: 'day_7' | 'day_15' }>;
 }
 
 export const operationsReviewMeeting = pgTable(
@@ -393,7 +546,7 @@ export const operationsReviewMeeting = pgTable(
     status: text('status').notNull().default('draft'),
     meetingType: text('meeting_type').notNull().default('weekly'),
     currentVersionNumber: integer('current_version_number').notNull().default(0),
-    draftSnapshot: jsonb('draft_snapshot').$type<WeeklyMeetingDraft>().notNull().default({ schemaVersion: 1, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [] }),
+    draftSnapshot: jsonb('draft_snapshot').$type<WeeklyMeetingDraft>().notNull().default({ schemaVersion: 2, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [], nonPromotionSelections: [] }),
     finalizedAt: timestamp('finalized_at', { withTimezone: true }),
     createdByLabel: text('created_by_label').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -484,10 +637,11 @@ export const operationsNonPromotionReview = pgTable(
     clickRateSnapshot: numeric('click_rate_snapshot', { precision: 7, scale: 4 }).notNull(),
     threeSecondReadRateSnapshot: numeric('three_second_read_rate_snapshot', { precision: 7, scale: 4 }).notNull(),
     cohortSnapshot: jsonb('cohort_snapshot').$type<Record<string, unknown>>().notNull(),
-    conclusion: text('conclusion').notNull(),
+    conclusion: text('conclusion'),
     cause: text('cause'),
     nextAction: text('next_action'),
     reviewedByLabel: text('reviewed_by_label').notNull(),
+    currentVersionNumber: integer('current_version_number').notNull().default(0),
     reviewedAt: timestamp('reviewed_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -496,8 +650,22 @@ export const operationsNonPromotionReview = pgTable(
     uniqueIndex('operations_non_promotion_review_checkpoint_idx').on(table.scheduleId, table.checkpointType),
     index('operations_non_promotion_review_reviewed_idx').on(table.reviewedAt),
     check('operations_non_promotion_review_checkpoint_check', sql`${table.checkpointType} IN ('day_7', 'day_15')`),
+    check('operations_non_promotion_review_version_check', sql`${table.currentVersionNumber} >= 0`),
   ],
 );
+
+export const operationsNonPromotionReviewVersion = pgTable('operations_non_promotion_review_version', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  reviewId: uuid('review_id').notNull().references(() => operationsNonPromotionReview.id, { onDelete: 'restrict' }),
+  versionNumber: integer('version_number').notNull(),
+  snapshot: jsonb('snapshot').$type<Record<string, unknown>>().notNull(),
+  changeSummary: text('change_summary').notNull(),
+  changedByLabel: text('changed_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('operations_non_promotion_review_version_idx').on(table.reviewId, table.versionNumber),
+  check('operations_non_promotion_review_version_number_check', sql`${table.versionNumber} >= 0`),
+]);
 
 export const operationsScheduleUsageEvent = pgTable(
   'operations_schedule_usage_event',
@@ -526,6 +694,7 @@ export const operationsCategoryPolicyVersion = pgTable(
     displayName: text('display_name').notNull(),
     defaultIsPromoted: boolean('default_is_promoted').notNull().default(false),
     isSelectable: boolean('is_selectable').notNull().default(true),
+    requiresNonPromotionReview: boolean('requires_non_promotion_review').notNull().default(true),
     effectiveOn: date('effective_on').notNull(),
     changeSummary: text('change_summary').notNull(),
     changedByLabel: text('changed_by_label').notNull(),

@@ -5,102 +5,93 @@ interface Props { active: ModuleId }
 const { active } = Astro.props;
 ---
 
-<div class="app-shell business-console-frame">
+<div class="app-shell business-console-frame" data-user-role={Astro.locals.user?.role}>
   <BusinessConsoleSidebar active={active} />
   <section class="workspace business-console-workspace"><slot /></section>
   <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
     <span class="business-operation-feedback__spinner" aria-hidden="true"></span>
     <span data-operation-label>正在处理…</span>
   </div>
+  <div class="business-session-notice" data-session-notice role="alert" hidden><span data-session-message></span><a href="/login" target="_blank" rel="noopener" data-session-login hidden>重新登录 ↗</a><button type="button" data-session-dismiss aria-label="关闭提示">×</button></div>
 </div>
 
 <script is:inline>
   (() => {
     if (window.__businessOperationFeedbackReady) return;
     window.__businessOperationFeedbackReady = true;
-
     const nativeFetch = window.fetch.bind(window);
-    let pendingCount = 0;
-    let shownAt = 0;
+    const tasks = new Map();
+    const triggers = new WeakMap();
+    let timer = 0;
     let recentTrigger = null;
     let recentTriggerAt = 0;
-
-    const closestTrigger = (node) => node instanceof Element
-      ? node.closest('button, input[type="submit"], input[type="button"], [role="button"], a')
-      : null;
-
-    const rememberTrigger = (node) => {
-      recentTrigger = closestTrigger(node);
+    const remember = node => {
+      recentTrigger = node instanceof Element ? node.closest('button, input[type="submit"], input[type="button"], [role="button"], a') : null;
       recentTriggerAt = performance.now();
     };
-
-    document.addEventListener('pointerdown', (event) => rememberTrigger(event.target), true);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') rememberTrigger(event.target);
-    }, true);
-    document.addEventListener('submit', (event) => {
-      recentTrigger = event.submitter || event.target?.querySelector?.('[type="submit"]') || event.target;
-      recentTriggerAt = performance.now();
-    }, true);
-
-    const feedbackNodes = () => ({
-      feedback: document.querySelector('[data-operation-feedback]'),
-      workspace: document.querySelector('.business-console-workspace'),
-    });
-
-    const defaultLabel = (method) => {
-      if (method === 'DELETE') return '正在删除…';
-      if (method === 'GET' || method === 'HEAD') return '正在加载…';
-      return '正在保存…';
-    };
-
-    const begin = (method, trigger) => {
-      pendingCount += 1;
-      const { feedback, workspace } = feedbackNodes();
-      const label = trigger?.dataset?.loadingLabel
-        || trigger?.closest?.('form')?.dataset?.loadingLabel
-        || defaultLabel(method);
-      if (feedback) {
-        feedback.querySelector('[data-operation-label]').textContent = label;
-        feedback.setAttribute('aria-hidden', 'false');
+    document.addEventListener('pointerdown', event => remember(event.target), true);
+    document.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') remember(event.target); }, true);
+    document.addEventListener('submit', event => remember(event.submitter || event.target?.querySelector?.('[type="submit"]')), true);
+    document.addEventListener('click', event => { if (event.target.closest?.('[data-session-dismiss]')) document.querySelector('[data-session-notice]').hidden = true; });
+    const defaultLabel = method => method === 'DELETE' ? '正在删除…' : ['GET', 'HEAD'].includes(method) ? '正在加载…' : '正在保存…';
+    const update = () => {
+      const feedback = document.querySelector('[data-operation-feedback]');
+      if (feedback && tasks.size) feedback.querySelector('[data-operation-label]').textContent = [...tasks.values()].at(-1);
+      document.querySelector('.business-console-workspace')?.setAttribute('aria-busy', tasks.size ? 'true' : 'false');
+      if (!tasks.size) {
+        clearTimeout(timer); timer = 0;
+        feedback?.setAttribute('aria-hidden', 'true');
+      } else if (!timer) {
+        timer = setTimeout(() => { if (tasks.size) document.querySelector('[data-operation-feedback]')?.setAttribute('aria-hidden', 'false'); }, 200);
       }
-      workspace?.setAttribute('aria-busy', 'true');
-      if (trigger && !trigger.matches('a')) {
-        trigger.dataset.operationWasDisabled = trigger.disabled ? 'true' : 'false';
-        trigger.disabled = true;
-        trigger.setAttribute('aria-busy', 'true');
-      }
-      shownAt = performance.now();
     };
-
-    const finish = async (trigger) => {
-      const elapsed = performance.now() - shownAt;
-      if (elapsed < 180) await new Promise((resolve) => setTimeout(resolve, 180 - elapsed));
-      pendingCount = Math.max(0, pendingCount - 1);
-      if (trigger && !trigger.matches('a')) {
-        if (trigger.dataset.operationWasDisabled !== 'true') trigger.disabled = false;
-        delete trigger.dataset.operationWasDisabled;
-        trigger.removeAttribute('aria-busy');
-      }
-      if (pendingCount > 0) return;
-      const { feedback, workspace } = feedbackNodes();
-      feedback?.setAttribute('aria-hidden', 'true');
-      workspace?.removeAttribute('aria-busy');
+    const showError = (message, login = false) => {
+      const notice = document.querySelector('[data-session-notice]');
+      if (!notice) return;
+      notice.querySelector('[data-session-message]').textContent = message;
+      notice.querySelector('[data-session-login]').hidden = !login;
+      notice.hidden = false;
     };
-
     window.fetch = async (...args) => {
       const [input, init] = args;
+      const target = new URL(input instanceof Request ? input.url : String(input), location.href);
+      if (target.origin !== location.origin || !target.pathname.startsWith('/api/')) return nativeFetch(...args);
       const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
       const trigger = performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
       const shouldReport = Boolean(trigger) || !['GET', 'HEAD'].includes(method);
       if (!shouldReport) return nativeFetch(...args);
-      begin(method, trigger);
-      recentTrigger = null;
-      recentTriggerAt = 0;
+      recentTrigger = null; recentTriggerAt = 0;
+      const id = Symbol('business-operation');
+      const label = trigger?.dataset?.loadingLabel || trigger?.closest?.('form')?.dataset?.loadingLabel || defaultLabel(method);
+      tasks.set(id, label);
+      if (trigger && !trigger.matches('a')) {
+        const state = triggers.get(trigger) || { count: 0, wasDisabled: trigger.disabled, markup: trigger.innerHTML, changedLabel: !trigger.textContent.includes('正在') };
+        state.count += 1; triggers.set(trigger, state);
+        trigger.disabled = true; trigger.setAttribute('aria-busy', 'true');
+        if (state.changedLabel && trigger.matches('button')) trigger.textContent = label;
+      }
+      update();
       try {
-        return await nativeFetch(...args);
+        const response = await nativeFetch(...args);
+        if (response.status === 401 || response.status === 403) {
+          const result = await response.clone().json().catch(() => ({}));
+          showError(result.message || (response.status === 401 ? '登录已过期，请重新登录后重试。' : '这项操作需要管理员权限。'), response.status === 401);
+        }
+        return response;
+      } catch (error) {
+        showError('连接失败，请检查网络后重试。当前输入已保留。');
+        throw error;
       } finally {
-        await finish(trigger);
+        tasks.delete(id);
+        if (trigger && triggers.has(trigger)) {
+          const state = triggers.get(trigger); state.count -= 1;
+          if (!state.count) {
+            trigger.disabled = state.wasDisabled; trigger.removeAttribute('aria-busy');
+            if (state.changedLabel && trigger.textContent === label) trigger.innerHTML = state.markup;
+            triggers.delete(trigger);
+          }
+        }
+        update();
       }
     };
   })();
@@ -122,6 +113,7 @@ const { active } = Astro.props;
   body{margin:0;overflow-x:hidden}
   .business-console-frame{width:100%;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2}
   .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
+  .business-console-frame[data-user-role="employee"] [data-admin-only]{display:none!important}
   .business-operation-feedback{position:fixed;z-index:1200;right:20px;bottom:20px;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 14px;border:1px solid rgba(23,33,28,.14);border-radius:10px;background:rgba(247,248,245,.96);box-shadow:0 10px 28px rgba(23,33,28,.14);color:var(--console-ink);font-size:13px;font-weight:700;opacity:1;transform:translateY(0);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
   .business-operation-feedback[aria-hidden="true"]{opacity:0;transform:translateY(6px)}
   .business-operation-feedback__spinner{width:15px;height:15px;border:2px solid var(--console-blue-soft);border-top-color:var(--console-blue);border-radius:50%;animation:business-operation-spin .72s linear infinite}
@@ -133,4 +125,8 @@ const { active } = Astro.props;
   }
   @media(max-width:900px){.business-console-workspace{padding-bottom:66px}}
   @media(max-width:900px){.business-operation-feedback{right:12px;bottom:78px}}
+</style>
+
+<style is:global>
+.business-session-notice{position:fixed;z-index:1300;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);padding:12px 16px;border:1px solid #c9d1cc;border-radius:10px;color:#17211c;background:#f7f8f5;box-shadow:0 10px 28px #17211c22;font:13px/1.4 system-ui,sans-serif}.business-session-notice[hidden],.business-session-notice [hidden]{display:none!important}.business-session-notice a{flex:none;color:#315fd6}.business-session-notice button{border:0;background:transparent;font-size:18px;cursor:pointer}@media(max-width:900px){.business-session-notice{bottom:78px;width:calc(100vw - 24px);flex-wrap:wrap}}
 </style>

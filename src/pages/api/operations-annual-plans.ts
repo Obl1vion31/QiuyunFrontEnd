@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
+import { lockAnnualPlanWrites } from '../../db/annual-plan-storage';
 import { and, eq } from 'drizzle-orm';
 import {
   annualPlanIssues,
   buildAnnualPlanSnapshot,
+  annualPlanBlockValues,
   createAnnualPlanSchema,
   diffAnnualPlanSnapshots,
 } from '../../db/annual-plan';
@@ -34,6 +36,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 
   try {
     const created = await getDb().transaction(async (transaction) => {
+      await lockAnnualPlanWrites(transaction);
       let subjectName: string | null = null;
       let categoryName: string | null = null;
       if (result.data.subjectId) {
@@ -64,20 +67,10 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         note: result.data.note,
         sortOrder: result.data.sortOrder,
         isActive: result.data.isActive,
-        countsTowardPromotion: result.data.countsTowardPromotion,
+        countsTowardPromotion: snapshot.row.countsTowardPromotion,
       }).returning({ id: operationsAnnualPlan.id });
       if (result.data.blocks.length) {
-        await transaction.insert(operationsAnnualPlanBlock).values(result.data.blocks.map((block) => ({
-          planId: plan.id,
-          startMonth: block.startMonth,
-          endMonth: block.endMonth,
-          label: block.label,
-          ruleType: block.ruleType,
-          monthlyFrequency: block.ruleType === 'flexible' ? block.monthlyFrequency : null,
-          quantityParts: block.ruleType === 'fixed' ? block.quantityParts : null,
-          note: block.note,
-          sortOrder: block.sortOrder,
-        })));
+        await transaction.insert(operationsAnnualPlanBlock).values(snapshot.blocks.map(block => annualPlanBlockValues(plan.id, block)));
       }
       if (result.data.links.length) {
         await transaction.insert(operationsAnnualPlanLink).values(result.data.links.map((link) => ({
@@ -91,7 +84,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         planId: plan.id,
         versionNumber: 0,
         snapshot,
-        changeSummary: result.data.changeSummary,
+        changeSummary: result.data.changeSummary || '创建规划行',
         diffSummary: diffAnnualPlanSnapshots(null, snapshot),
         changedByLabel: locals.operationsUser ?? 'unknown',
       });

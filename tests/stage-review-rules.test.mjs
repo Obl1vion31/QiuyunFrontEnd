@@ -19,8 +19,8 @@ test('returns an explicit empty cohort', () => {
   assert.deepEqual(summarizeRates([]), { count: 0, mean: null, min: null, max: null, median: null });
 });
 
-test('excludes posts before July and unlocks checkpoints in order', () => {
-  assert.equal(nextReviewCheckpoint(new Date('2026-06-30T03:00:00.000Z'), [], '2026-08-30'), null);
+test('historical posts also unlock checkpoints in order', () => {
+  assert.equal(nextReviewCheckpoint(new Date('2026-06-30T03:00:00.000Z'), [], '2026-08-30')?.type, 'day_7');
   assert.equal(nextReviewCheckpoint(new Date('2026-07-01T03:00:00.000Z'), [], '2026-08-30')?.type, 'day_7');
   assert.equal(nextReviewCheckpoint(new Date('2026-07-01T03:00:00.000Z'), ['day_7'], '2026-08-30')?.type, 'day_15');
   assert.equal(nextReviewCheckpoint(new Date('2026-07-01T03:00:00.000Z'), ['day_7', 'day_15'], '2026-08-30'), null);

@@ -1,5 +1,7 @@
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
+import BusinessAccountMenu from './BusinessAccountMenu.astro';
+import BusinessScheduleNotifications from './BusinessScheduleNotifications.astro';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
@@ -29,13 +31,14 @@ const iconPaths = {
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1v.1H9.55V21a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.05 15a1.7 1.7 0 0 0-1.6-1H2.4V10h.05a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.5 4.2l.06.06A1.7 1.7 0 0 0 8.45 4a1.7 1.7 0 0 0 1.1-1.6v-.1h4.05v.1A1.7 1.7 0 0 0 14.7 4a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.1 8.4a1.7 1.7 0 0 0 1.6 1h.1v4.05h-.1a1.7 1.7 0 0 0-1.3 1.55Z"/>',
 };
 ---
-<ViewTransitions fallback="swap" />
-<aside class="business-sidebar" transition:persist="business-console-sidebar" data-business-console-sidebar>
+<ClientRouter fallback="swap" />
+<aside class="business-sidebar" transition:persist="business-console-sidebar" data-business-console-sidebar data-account-role={Astro.locals.user?.role}>
   <a class="business-sidebar__brand" href="/" data-astro-reload>
     <span>OPERATIONS</span>
     <strong>内容发布控制台</strong>
   </a>
 
+  <BusinessScheduleNotifications />
   <nav class="business-sidebar__nav" aria-label="内容发布控制台模块">
     {groups.map((group) => <section class="business-sidebar__group">
       <h2>{group.label}</h2>
@@ -60,10 +63,11 @@ const iconPaths = {
   </nav>
 
   <div class="business-sidebar__foot">
-    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href="/business/settings" data-module-id="settings" data-module-href="/business/settings" data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
+    <BusinessAccountMenu />
+    {Astro.locals.user?.role === 'admin' && <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href="/business/settings" data-module-id="settings" data-module-href="/business/settings" data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
       <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.settings} /></svg>
       <strong>系统设置</strong>
-    </a>
+    </a>}
     <a class="business-sidebar__hub" href="/" data-astro-reload><span aria-hidden="true">←</span> 返回总枢纽</a>
   </div>
 
@@ -182,5 +186,11 @@ const iconPaths = {
   @keyframes business-console-progress{0%{transform:translateX(-110%)}60%{transform:translateX(155%)}100%{transform:translateX(255%)}}
   @media(max-width:900px){.business-sidebar{position:fixed;inset:auto 0 0;width:100%;height:66px;display:block;padding:6px 8px;color:#17211c;background:#f7f8f5f2;border:0;border-top:1px solid #c9d1cc;backdrop-filter:blur(18px) saturate(135%)}.business-sidebar__brand,.business-sidebar__group h2,.business-sidebar__planned,.business-sidebar__hub{display:none}.business-sidebar__nav{height:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:2px}.business-sidebar__group{display:contents}.business-sidebar__group>div{display:contents}.business-sidebar__nav a,.business-sidebar__settings{min-height:0;height:54px;display:grid;grid-template-columns:1fr;place-items:center;align-content:center;gap:3px;padding:3px 2px;border-radius:9px;text-align:center}.business-sidebar__nav a:hover,.business-sidebar__settings:hover{background:transparent}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:scale(.96);background:#dce3de}.business-sidebar__nav a.active,.business-sidebar__settings.active{background:#dce5ff}.business-sidebar__nav strong,.business-sidebar__settings strong{max-width:100%;font-size:.58rem}.business-sidebar__icon{width:20px;height:20px}.business-sidebar__foot{position:absolute;right:8px;top:6px;width:calc((100vw - 16px)/6);display:block;margin:0;padding:0;border:0}.business-console-progress{left:0;top:61px}}
   @media(prefers-reduced-motion:reduce){.business-sidebar__nav a,.business-sidebar__settings,.business-console-progress{transition:none}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:none}.business-console-progress.is-visible i{animation:none;transform:none;width:100%}}
+  @media(max-width:900px){.business-sidebar[data-account-role="employee"] .business-sidebar__nav{grid-template-columns:repeat(5,1fr)}.business-sidebar[data-account-role="employee"] .business-sidebar__foot{display:none}}
   @media(prefers-reduced-transparency:reduce){.business-sidebar{backdrop-filter:none;background:#f7f8f5}}
+</style>
+
+<style is:global>
+.business-sidebar [data-mobile-overdue-count]{display:none}.business-sidebar [data-mobile-overdue-count][hidden]{display:none!important}
+@media(max-width:900px){.business-sidebar [data-mobile-overdue-count]{display:block;position:absolute;top:2px;right:6px;min-width:17px;padding:1px 4px;border-radius:8px;color:#fff;background:#a34e30;font:700 10px/14px ui-monospace,monospace}}
 </style>

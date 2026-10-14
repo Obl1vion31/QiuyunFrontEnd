@@ -1,6 +1,11 @@
 export const promotionReviewDecisions = {
-  testing: ['test_continue', 'test_discarded', 'start_scaling'],
-  scaling: ['scaling_continue', 'formal_discarded', 'ended'],
+  testing: ['test_continue', 'wait_continue', 'test_discarded', 'start_scaling'],
+  scaling: ['scaling_continue', 'wait_continue', 'formal_discarded', 'ended'],
+};
+
+export const waitingReviewDecisions = {
+  testing: ['wait_continue', 'test_continue', 'test_discarded', 'start_scaling'],
+  scaling: ['wait_continue', 'scaling_continue', 'formal_discarded', 'ended'],
 };
 
 export const shanghaiDateKey = (date) => new Intl.DateTimeFormat('en-CA', {
@@ -13,6 +18,12 @@ export const shanghaiDateKey = (date) => new Intl.DateTimeFormat('en-CA', {
 export const nextDateKey = (dateKey) => {
   const date = new Date(`${dateKey}T00:00:00+08:00`);
   date.setUTCDate(date.getUTCDate() + 1);
+  return shanghaiDateKey(date);
+};
+
+export const previousDateKey = (dateKey) => {
+  const date = new Date(`${dateKey}T00:00:00+08:00`);
+  date.setUTCDate(date.getUTCDate() - 1);
   return shanghaiDateKey(date);
 };
 
@@ -35,6 +46,7 @@ export const isDecisionAllowed = (stage, decision) =>
 
 export const nextPromotionState = (stage, decision) => {
   if (!isDecisionAllowed(stage, decision)) return null;
+  if (decision === 'wait_continue') return { status: 'waiting_action', stage, outcome: 'paused' };
   if (decision === 'test_continue') return { status: 'testing', stage: 'testing', outcome: 'continued' };
   if (decision === 'start_scaling') return { status: 'scaling', stage: 'scaling', outcome: 'start_scaling' };
   if (decision === 'test_discarded') return { status: 'test_discarded', stage: null, outcome: 'test_discarded' };
@@ -45,24 +57,85 @@ export const nextPromotionState = (stage, decision) => {
 
 export const replayPromotionHistory = (campaignStartedOn, metrics) => {
   if (metrics.length === 0) return null;
-  let currentStage = metrics[0].stageTypeSnapshot;
-  let currentStatus = currentStage;
-  let stageStartedOn = campaignStartedOn <= metrics[0].metricDate ? campaignStartedOn : metrics[0].metricDate;
+  let currentStage = 'testing';
+  let currentStatus = 'testing';
+  let stageStartedOn = campaignStartedOn;
   let endedOn = null;
   const stages = [];
+  const closeOpenStage = (end, outcome) => {
+    if (!stageStartedOn) return;
+    if (end >= stageStartedOn) stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: end, outcome });
+    stageStartedOn = null;
+  };
   for (const metric of metrics) {
-    if (!currentStage || metric.stageTypeSnapshot !== currentStage) return null;
+    if (!currentStage) return null;
+    const dailyStatus = metric.dailyStatus ?? 'active';
+    if (currentStatus !== 'waiting_action' && dailyStatus === 'waiting_action') {
+      // Compatibility for waiting facts written before the next-day transition model.
+      if (metric.stageTypeSnapshot !== currentStage || !['wait_continue', 'test_discarded', 'formal_discarded', 'ended'].includes(metric.reviewDecision)) return null;
+      closeOpenStage(previousDateKey(metric.metricDate), 'paused');
+      if (metric.reviewDecision === 'wait_continue') {
+        currentStatus = 'waiting_action';
+        continue;
+      }
+      const lastStage = stages.at(-1);
+      if (lastStage?.stageType === currentStage && lastStage.outcome === 'paused') lastStage.outcome = metric.reviewDecision;
+      currentStatus = metric.reviewDecision;
+      currentStage = null;
+      endedOn = metric.metricDate;
+      continue;
+    }
+    if (currentStatus === 'waiting_action') {
+      if (dailyStatus === 'active') {
+        // Compatibility for an old waiting record that resumed on the current day.
+        const canResume = metric.stageTypeSnapshot === currentStage
+          || (currentStage === 'testing' && metric.stageTypeSnapshot === 'scaling');
+        if (!canResume) return null;
+        if (metric.stageTypeSnapshot === 'scaling' && currentStage === 'testing') {
+          const lastStage = stages.at(-1);
+          if (lastStage?.stageType === 'testing') lastStage.outcome = 'start_scaling';
+          currentStage = 'scaling';
+        }
+        stageStartedOn = metric.metricDate;
+      } else {
+        if (dailyStatus !== 'waiting_action' || metric.stageTypeSnapshot !== currentStage || !waitingReviewDecisions[currentStage]?.includes(metric.reviewDecision)) return null;
+        if (metric.reviewDecision === 'wait_continue') continue;
+        if (metric.reviewDecision === 'test_discarded' || metric.reviewDecision === 'formal_discarded' || metric.reviewDecision === 'ended') {
+          const lastStage = stages.at(-1);
+          if (lastStage?.stageType === currentStage && lastStage.outcome === 'paused') lastStage.outcome = metric.reviewDecision;
+          currentStatus = metric.reviewDecision;
+          currentStage = null;
+          endedOn = metric.metricDate;
+          continue;
+        }
+        if (metric.reviewDecision === 'start_scaling') {
+          const lastStage = stages.at(-1);
+          if (lastStage?.stageType === 'testing') lastStage.outcome = 'start_scaling';
+          currentStage = 'scaling';
+        }
+        currentStatus = currentStage;
+        stageStartedOn = nextDateKey(metric.metricDate);
+        continue;
+      }
+    }
+    if (dailyStatus !== 'active') return null;
+    if (metric.stageTypeSnapshot !== currentStage) return null;
     const next = nextPromotionState(currentStage, metric.reviewDecision);
     if (!next) return null;
+    if (next.status === 'waiting_action') {
+      closeOpenStage(metric.metricDate, 'paused');
+      currentStatus = 'waiting_action';
+      continue;
+    }
     currentStatus = next.status;
     if (next.stage !== currentStage) {
-      stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: metric.metricDate, outcome: next.outcome });
+      closeOpenStage(metric.metricDate, next.outcome);
       currentStage = next.stage;
       if (currentStage) stageStartedOn = nextDateKey(metric.metricDate);
       else endedOn = metric.metricDate;
     }
   }
-  if (currentStage) stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: null, outcome: null });
+  if (currentStage && stageStartedOn) stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: null, outcome: null });
   return { stages, currentStage, currentStatus, endedOn };
 };
 

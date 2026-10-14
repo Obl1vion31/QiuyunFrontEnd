@@ -1,12 +1,15 @@
 import type { APIRoute } from 'astro';
 import { and, eq } from 'drizzle-orm';
+import { readCheckpointEvents } from '../../../db/non-promotion-workflow';
+import { lockSchedule, WorkflowError } from '../../../db/schedule-workflow';
+import { workflowErrorResponse } from '../../../db/workflow-api';
 import { getDb } from '../../../db/client';
 import { operationsReviewActionItem, operationsReviewActionProgress, operationsReviewMeeting, operationsReviewMeetingVersion, type WeeklyMeetingDraft } from '../../../db/schema';
 
 export const prerender = false;
 
 const validStatus = new Set(['pending', 'validating', 'resolved', 'paused']);
-const emptyDraft: WeeklyMeetingDraft = { schemaVersion: 1, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [] };
+const emptyDraft: WeeklyMeetingDraft = { schemaVersion: 2, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [], nonPromotionSelections: [] };
 
 export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
@@ -14,19 +17,29 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   let payload: { action?: string; draft?: WeeklyMeetingDraft; generated?: Record<string, unknown>; changeSummary?: string };
   try { payload = await request.json(); } catch { return Response.json({ message: '请求格式无效。' }, { status: 400 }); }
   const draft = payload.draft ?? emptyDraft;
-  if (draft.schemaVersion !== 1 || !Array.isArray(draft.issues) || typeof draft.promotionInputs !== 'object') return Response.json({ message: '会议草稿格式无效。' }, { status: 422 });
+  if (draft.schemaVersion !== 2 || !Array.isArray(draft.issues) || typeof draft.promotionInputs !== 'object' || !Array.isArray(draft.nonPromotionSelections)) return Response.json({ message: '会议草稿格式无效。' }, { status: 422 });
   if (draft.issues.some((item) => !item.problem.trim() || !validStatus.has(item.status))) return Response.json({ message: '请检查问题和状态。' }, { status: 422 });
+  const selectionKeys = new Set<string>();
+  for (const selection of draft.nonPromotionSelections) {
+    if (!/^[0-9a-f-]{36}$/i.test(selection.scheduleId) || !['day_7', 'day_15'].includes(selection.checkpointType)) return Response.json({ message: '非推广复盘勾选无效。' }, { status: 422 });
+    const key = `${selection.scheduleId}:${selection.checkpointType}`;
+    if (selectionKeys.has(key)) return Response.json({ message: '非推广复盘勾选重复。' }, { status: 422 });
+    selectionKeys.add(key);
+  }
   try {
     const result = await getDb().transaction(async (transaction) => {
       const [meeting] = await transaction.select().from(operationsReviewMeeting).where(eq(operationsReviewMeeting.id, params.id!)).limit(1);
       if (!meeting) return null;
+      for (const id of [...new Set(draft.nonPromotionSelections.map(item => item.scheduleId))].sort()) await lockSchedule(transaction, id);
+      const checkpointEvents = await readCheckpointEvents(transaction);
+      if (draft.nonPromotionSelections.some(item => checkpointEvents.get(`${item.scheduleId}:${item.checkpointType}`)?.action === 'skip')) throw new WorkflowError('勾选的节点已设置为不复盘，请刷新后重新选择。');
       if (payload.action === 'save') {
         await transaction.update(operationsReviewMeeting).set({ draftSnapshot: draft, updatedAt: new Date() }).where(eq(operationsReviewMeeting.id, meeting.id));
         return { versionNumber: meeting.currentVersionNumber };
       }
       if (payload.action !== 'finalize') throw new Error('unsupported-action');
       const versionNumber = meeting.status === 'completed' ? meeting.currentVersionNumber + 1 : 0;
-      const snapshot = { schemaVersion: 1, meeting: { name: meeting.name, periodStart: meeting.periodStart, periodEnd: meeting.periodEnd, meetingAt: meeting.meetingAt }, generated: payload.generated ?? {}, draft };
+      const snapshot = { schemaVersion: 2, meeting: { name: meeting.name, periodStart: meeting.periodStart, periodEnd: meeting.periodEnd, meetingAt: meeting.meetingAt }, generated: payload.generated ?? {}, draft };
       await transaction.insert(operationsReviewMeetingVersion).values({ meetingId: meeting.id, versionNumber, snapshot, changeSummary: payload.changeSummary?.trim() || (versionNumber ? '更正周度复盘' : '首次定稿'), finalizedByLabel: locals.operationsUser || 'unknown' });
       const persistedIssues: WeeklyMeetingDraft['issues'] = [];
       for (const issue of draft.issues) {
@@ -51,8 +64,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
     return Response.json({ ok: true, ...result });
   } catch (error) {
     if ((error as Error).message === 'unsupported-action') return Response.json({ message: '不支持的会议操作。' }, { status: 400 });
-    console.error('meeting review update failed', error);
-    return Response.json({ message: '数据库暂时不可用，请稍后重试。' }, { status: 503 });
+    return workflowErrorResponse(error);
   }
 };
 

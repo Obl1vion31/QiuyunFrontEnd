@@ -14,7 +14,8 @@ import {
   operationsSubject,
 } from '../../db/schema';
 import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
-import { delayThresholdMs } from '../../db/validation';
+import { teamScheduleNotifications } from '../../db/schedule-workflow';
+import { isDelayed, completionStatus } from '../../db/schedule-rules.mjs';
 
 export const prerender = false;
 
@@ -24,15 +25,16 @@ const promotionLabels = {
   awaiting_promotion: '待开始推广',
   testing: '推广测试中',
   scaling: '推广放量中',
+  waiting_action: '等待行动',
   ended: '推广周期已结束',
   test_discarded: '测试淘汰',
   formal_discarded: '放量淘汰',
 };
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
-const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' ? 'calendar' : 'ledger';
+const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' && !['overdue','approvals','reasons'].includes(Astro.url.searchParams.get('status') ?? '') ? 'calendar' : 'ledger';
 const requestedStatus = Astro.url.searchParams.get('status');
-const selectedStatus = ['pending', 'overdue', 'published'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
+const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
 const requestedPromotion = Astro.url.searchParams.get('promotion');
 const selectedPromotion = ['testing', 'scaling'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
@@ -53,7 +55,15 @@ const displayDateTime = (date: Date | null) => {
 };
 const currentMonth = monthKey(now);
 const requestedMonth = Astro.url.searchParams.get('month') ?? currentMonth;
-const selectedMonth = /^\d{4}-\d{2}$/.test(requestedMonth) ? requestedMonth : currentMonth;
+const requestedMonthMatch = /^(\d{4})-(\d{2})$/.exec(requestedMonth);
+const requestedMonthNumber = Number(requestedMonthMatch?.[2]);
+const selectedMonth = requestedMonthMatch
+  && Number(requestedMonthMatch[1]) >= 2000
+  && Number(requestedMonthMatch[1]) <= 2099
+  && requestedMonthNumber >= 1
+  && requestedMonthNumber <= 12
+  ? requestedMonth
+  : currentMonth;
 const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
 const previousMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber - 2, 1)).toISOString().slice(0, 7);
 const nextMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 1)).toISOString().slice(0, 7);
@@ -62,7 +72,19 @@ const hrefFor = (changes: Record<string, string>) => {
   Object.entries(changes).forEach(([key, value]) => value ? params.set(key, value) : params.delete(key));
   return `?${params.toString()}`;
 };
+const monthPickerParams = Array.from(Astro.url.searchParams.entries())
+  .filter(([name]) => name !== 'month')
+  .map(([name, value]) => ({ name, value }));
+const monthPicker = {
+  name: 'month',
+  value: selectedMonth,
+  label: '选择要查看的排期年月',
+  min: '2000-01',
+  max: '2099-12',
+  preservedParams: monthPickerParams,
+};
 
+let notifications: Awaited<ReturnType<typeof teamScheduleNotifications>> | undefined;
 let databaseError = '';
 let categoryPolicies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
 let rows: Array<{
@@ -70,12 +92,12 @@ let rows: Array<{
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
   revisionSummary: string | null; projectDocUrl: string | null;
   syncToMoments: boolean; isPromoted: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
-  completionStatus: string; delayReason: string | null;
+  completionStatus: string; delayReason: string | null; planRevision: number;
 }> = [];
 const databaseStartedAt = performance.now();
 try {
   const database = getDb();
-  [rows, categoryPolicies] = await Promise.all([database.select({
+  [rows, categoryPolicies, notifications] = await Promise.all([database.select({
     id: operationsContentSchedule.id,
     versionId: operationsContentVersion.id,
     contentId: operationsContentVersion.contentId,
@@ -93,6 +115,7 @@ try {
     isPromoted: operationsContentSchedule.isPromoted,
     promotionStatus: operationsContentSchedule.promotionStatus,
     plannedPublishAt: operationsContentSchedule.plannedPublishAt,
+    planRevision: operationsContentSchedule.planRevision,
     actualPublishAt: operationsContentSchedule.actualPublishAt,
     completionStatus: operationsContentSchedule.completionStatus,
     delayReason: operationsContentSchedule.delayReason,
@@ -103,19 +126,23 @@ try {
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt)),
   database.select().from(operationsCategoryPolicyVersion)
     .orderBy(asc(operationsCategoryPolicyVersion.categoryId), desc(operationsCategoryPolicyVersion.versionNumber)),
-  ]) as [typeof rows, typeof categoryPolicies];
+  teamScheduleNotifications(database),
+  ]) as [typeof rows, typeof categoryPolicies, Awaited<ReturnType<typeof teamScheduleNotifications>>];
 } catch (error) {
   console.error('operations schedule query failed', error);
   databaseError = '数据库暂时不可用。请检查开发库连接和最新迁移后重试。';
 }
 Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 
-const isOverdue = (row: typeof rows[number]) => !row.actualPublishAt && now.getTime() - row.plannedPublishAt.getTime() > delayThresholdMs;
+const isOverdue = (row: typeof rows[number]) => !row.actualPublishAt && isDelayed(row.plannedPublishAt, now);
 const monthRows = rows.filter((row) => monthKey(row.plannedPublishAt) === selectedMonth);
 const promotionRows = rows.filter((row) => ['testing', 'scaling'].includes(row.promotionStatus));
 const activeRows = selectedView === 'promotion'
   ? promotionRows.filter((row) => selectedPromotion === 'all' || row.promotionStatus === selectedPromotion)
-  : monthRows.filter((row) => {
+  : ['overdue','approvals','reasons'].includes(selectedStatus ?? '')
+    ? rows.filter(row => selectedStatus === 'overdue' ? isOverdue(row)
+      : selectedStatus === 'approvals' ? notifications?.approvalScheduleIds.includes(row.id) : notifications?.missingReasonIds.includes(row.id))
+    : monthRows.filter((row) => {
       if (selectedStatus === 'pending') return !row.actualPublishAt;
       if (selectedStatus === 'overdue') return isOverdue(row);
       if (selectedStatus === 'published') return Boolean(row.actualPublishAt);
@@ -124,7 +151,7 @@ const activeRows = selectedView === 'promotion'
 const summary = {
   total: monthRows.length,
   pending: monthRows.filter((row) => !row.actualPublishAt).length,
-  overdue: monthRows.filter(isOverdue).length,
+  overdue: rows.filter(isOverdue).length,
   published: monthRows.filter((row) => row.actualPublishAt).length,
   revisions: monthRows.filter((row) => row.workType === 'revision').length,
   testing: promotionRows.filter((row) => row.promotionStatus === 'testing').length,
@@ -149,7 +176,7 @@ const clientRows = rows.map((row) => {
     delayReason: row.delayReason ?? '',
     revisionSummary: row.revisionSummary ?? '',
     promotionLabel: promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus,
-    completionLabel: isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布',
+    completionLabel: isOverdue(row) ? '逾期未发' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)] ?? '待发布',
     plannedDisplay: displayDateTime(row.plannedPublishAt),
     actualDisplay: row.actualPublishAt ? displayDateTime(row.actualPublishAt) : '尚未实发',
     sourceScheduleId: row.id,
@@ -158,6 +185,10 @@ const clientRows = rows.map((row) => {
     sourceVersionNumber: source?.versionNumber ?? null,
   };
 });
+const actorRole = Astro.locals.user?.role;
+const requestedRow = Astro.url.searchParams.get('row') || Astro.url.hash.slice(1);
+const queueView = ['overdue','approvals','reasons'].includes(selectedStatus ?? '');
+const queueLabel = selectedStatus === 'overdue' ? '全部延期未发' : selectedStatus === 'approvals' ? '待审批排期' : '待补延期理由';
 const todayKey = dayKey(now);
 const currentPolicies = new Map<string, typeof categoryPolicies[number]>();
 for (const policy of categoryPolicies) {
@@ -187,8 +218,8 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
   </head>
   <body>
     <BusinessConsoleFrame active="schedule">
-        <BusinessConsoleToolbar title="排期管理" subtitle={selectedView === 'promotion' ? '推广中视角' : `${selectedMonth} 当月排期`}>
-          {selectedView === 'schedule' && <BusinessToolbarPeriodNav slot="center" previousHref={hrefFor({ month: previousMonth })} nextHref={hrefFor({ month: nextMonth })} label={`${selectedMonth.replace('-', ' 年 ')} 月`} todayHref={hrefFor({ month: currentMonth })} todayLabel="本月" />}
+        <BusinessConsoleToolbar title="排期管理" subtitle={selectedView === 'promotion' ? '推广中视角' : queueView ? queueLabel : `${selectedMonth} 当月排期`}>
+          {selectedView === 'schedule' && !queueView && <BusinessToolbarPeriodNav slot="center" previousHref={hrefFor({ month: previousMonth })} nextHref={hrefFor({ month: nextMonth })} label={`${selectedMonth.replace('-', ' 年 ')} 月`} todayHref={hrefFor({ month: currentMonth })} todayLabel="本月" monthPicker={monthPicker} />}
           <BusinessToolbarActions slot="end">
             <BusinessToolbarSegmented label="显示方式" items={[
               { label: '台账', href: hrefFor({ display: 'ledger' }), active: selectedDisplay === 'ledger' || selectedView === 'promotion' },
@@ -201,6 +232,10 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
 
         <main class="workspace-main">
           {databaseError && <p class="notice notice--error" role="alert">{databaseError}</p>}
+
+          {selectedView === 'schedule' && !queueView && <div class="mobile-period-nav">
+            <BusinessToolbarPeriodNav previousHref={hrefFor({ month: previousMonth })} nextHref={hrefFor({ month: nextMonth })} label={`${selectedMonth.replace('-', ' 年 ')} 月`} todayHref={hrefFor({ month: currentMonth })} todayLabel="本月" monthPicker={monthPicker} />
+          </div>}
 
           <nav class="status-strip" aria-label="排期状态视角">
             <a class:list={{ active: selectedView === 'schedule' && selectedStatus === 'all' }} href={hrefFor({ view: 'schedule', status: '', promotion: '', display: 'ledger' })}>
@@ -219,33 +254,37 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
               <span>放量中</span><strong>{summary.scaling}</strong>
             </a>
             <a class:list={['attention-summary', { active: selectedView === 'schedule' && selectedStatus === 'overdue' }]} href={hrefFor({ view: 'schedule', status: 'overdue', promotion: '', display: 'ledger' })}>
-              <span>逾期未发</span><strong>{summary.overdue}</strong>
+              <span>全部延期未发</span><strong>{summary.overdue}</strong>
             </a>
             <a class:list={{ active: selectedView === 'schedule' && selectedStatus === 'published' }} href={hrefFor({ view: 'schedule', status: 'published', promotion: '', display: 'ledger' })}>
               <span>已发布</span><strong>{summary.published}</strong>
             </a>
+          </nav>
+          <nav class="workflow-queue-nav" aria-label="排期待办队列">
+            <a href={hrefFor({view:'schedule',status:'reasons',display:'ledger'})}>待补延期理由 <b>{notifications?.missingReasons ?? '—'}</b></a>
+            <a href={hrefFor({view:'schedule',status:'approvals',display:'ledger'})}>{actorRole==='admin'?'待审批':'改期申请'} <b>{notifications?.pendingApprovals ?? '—'}</b></a>
+            {queueView&&<span>{queueLabel} · 跨月份显示</span>}
           </nav>
 
           <div class="content-layout">
             <section class="content-stage">
               {(selectedDisplay === 'ledger' || selectedView === 'promotion') && <div class="table-wrap">
           <table>
-            <thead><tr><th>应发时间</th><th>版本</th><th>内容</th><th>推广阶段</th><th>发布状态</th><th>文档</th><th><span class="sr-only">操作</span></th></tr></thead>
+            <thead><tr><th>应发时间</th><th>版本</th><th>内容</th><th>推广阶段</th><th>发布状态</th><th>文档</th></tr></thead>
             <tbody>
               {activeRows.map((row, index) => {
                 const newDay = index === 0 || dayKey(activeRows[index - 1].plannedPublishAt) !== dayKey(row.plannedPublishAt);
                 const child = rows.find((candidate) => candidate.sourceVersionId === row.versionId);
                 const source = row.sourceVersionId ? rows.find((candidate) => candidate.versionId === row.sourceVersionId) : undefined;
                 return <>
-                  {newDay && <tr class="day-divider"><th colspan="7"><span class="timeline-dot"></span><strong>{dayKey(row.plannedPublishAt)}</strong>{dayKey(row.plannedPublishAt) === dayKey(now) && <b>今天</b>}<small>{activeRows.filter((candidate) => dayKey(candidate.plannedPublishAt) === dayKey(row.plannedPublishAt)).length} 条</small></th></tr>}
+                  {newDay && <tr class="day-divider"><th colspan="6"><span class="timeline-dot"></span><strong>{dayKey(row.plannedPublishAt)}</strong>{dayKey(row.plannedPublishAt) === dayKey(now) && <b>今天</b>}<small>{activeRows.filter((candidate) => dayKey(candidate.plannedPublishAt) === dayKey(row.plannedPublishAt)).length} 条</small></th></tr>}
                   <tr class:list={['schedule-row', { overdue: isOverdue(row) }]} data-inspect-id={row.id} tabindex="0">
                     <td class="time-cell"><strong>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</strong><small>{row.actualPublishAt ? `实发 ${displayDateTime(row.actualPublishAt).split(' ')[1]}` : '尚未实发'}</small></td>
                     <td><span class="version-chip">V{row.versionNumber}</span><small>{row.workType === 'revision' ? '改帖' : '新做帖'}</small></td>
                     <td class="content-cell"><strong>{row.contentName}</strong><small>{row.subjectName}{row.categoryName ? ` / ${row.categoryName}` : ''}{row.syncToMoments ? ' · 同步朋友圈' : ''}{source ? ` · 来源 V${source.versionNumber}` : ''}{child ? ` · 已派生 V${child.versionNumber}` : ''}</small></td>
                     <td><span class={`tag promotion-${row.promotionStatus}`}>{promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus}</span></td>
-                    <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[row.completionStatus as keyof typeof completionLabels] ?? '待发布'}</span></td>
-                    <td>{row.projectDocUrl ? <a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a> : <span class="missing">待补</span>}</td>
-                    <td><details class="row-menu"><summary aria-label="更多操作">•••</summary><div><button type="button" data-edit-id={row.id}>编辑排期</button>{child ? <span>已有 V{child.versionNumber}</span> : <button type="button" data-revise-id={row.id}>创建改帖</button>}</div></details></td>
+                    <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)] ?? '待发布'}</span></td>
+                    <td>{row.projectDocUrl ? <a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a> : <span class="missing">待登记</span>}</td>
                   </tr>
                 </>;
               })}
@@ -269,7 +308,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       </section>}
             </section>
 
-            <aside class="inspector" data-inspector hidden aria-label="帖子详情">
+            <aside class="inspector" data-inspector hidden tabindex="-1" aria-label="帖子详情">
               <header><div><span data-inspector-version>V0</span><small data-inspector-kind>新做帖</small></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
               <div class="inspector-body">
                 <section class="inspector-title"><p data-inspector-category></p><h2 data-inspector-name></h2></section>
@@ -282,8 +321,10 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
                 <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
                 <section class="inspector-section"><span>项目文档</span><a data-inspector-doc target="_blank" rel="noreferrer">打开项目文档 ↗</a></section>
+                <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="延期与改期"><p>选中帖子后读取延期与审批记录。</p></section>
+                <section class="inspector-danger"><span>更多操作</span><button type="button" data-inspector-delete data-admin-only>删除这条排期</button><small role="alert" data-inspector-delete-error></small></section>
               </div>
-              <footer><button type="button" class="secondary-action" data-inspector-edit>编辑排期</button><button type="button" class="save-button" data-inspector-revise>创建改帖</button><span data-inspector-derived hidden></span></footer>
+              <footer class="inspector-actions"><button type="button" class="save-button publication-action" data-inspector-publication>实发登记</button><div><button type="button" class="secondary-action" data-inspector-edit>编辑排期</button><button type="button" class="secondary-action" data-inspector-revise>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </aside>
           </div>
         </main>
@@ -295,7 +336,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           <div><span id="dialog-context">新建内容</span><h2 id="dialog-title">新做帖</h2></div>
           <div class="dialog-head-actions"><span class="dialog-version">V0</span><button type="button" class="close-button" data-close aria-label="关闭">×</button></div>
         </header>
-        <input type="hidden" name="recordId" />
+        <input type="hidden" name="recordId" /><input type="hidden" name="expectedPlanRevision" />
         <input type="hidden" name="sourceScheduleId" />
         <section class="source-preview" data-source-preview hidden></section>
         <div class="form-grid">
@@ -324,18 +365,32 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           </fieldset>
 
           <div class="field"><label for="plannedPublishAt">应发时间 <b>*</b></label><input id="plannedPublishAt" name="plannedPublishAt" type="datetime-local" required /><small data-error="plannedPublishAt"></small></div>
-          <div class="field"><label for="actualPublishAt">实发时间</label><input id="actualPublishAt" name="actualPublishAt" type="datetime-local" /><small data-error="actualPublishAt"></small></div>
-          <div class="field"><label>完成情况</label><output class="status-preview" id="completion-preview">待发布</output></div>
+          <div class="field field-wide" data-plan-change-reason hidden><label for="planChangeReason">改期理由 <b>*</b></label><textarea id="planChangeReason" name="planChangeReason" rows="2" maxlength="500"></textarea><small data-error="planChangeReason"></small></div>
           <div class="field check-field"><label><input type="checkbox" name="syncToMoments" /> 同步朋友圈</label></div>
-          <div class="field field-wide"><label for="projectDocUrl">项目文档链接 <b>*</b></label><input id="projectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required /><small data-error="projectDocUrl"></small></div>
-          <div class="field field-wide delay-field" hidden><label for="delayReason">延期原因 <b>*</b></label><textarea id="delayReason" name="delayReason" rows="3" maxlength="500"></textarea><small data-error="delayReason"></small><em>实发严格超过应发 12 小时时必须填写。</em></div>
+          <div class="field field-wide"><label for="projectDocUrl">项目文档链接（选填）</label><input id="projectDocUrl" name="projectDocUrl" type="url" placeholder="可在实发登记时补充" /><small data-error="projectDocUrl"></small></div>
         </div>
         <p class="form-message" role="alert"></p>
         <footer class="dialog-actions"><button type="button" class="secondary-action" data-close>取消</button><button type="submit" class="save-button">保存新做帖 <span aria-hidden="true">→</span></button></footer>
       </form>
     </dialog>
 
-    <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories }}>
+    <dialog id="publication-dialog" aria-labelledby="publication-title">
+      <form id="publication-form" novalidate>
+        <header class="dialog-head"><div><span>PUBLICATION RECORD</span><h2 id="publication-title">实发登记</h2></div><button type="button" class="close-button" data-close-publication aria-label="关闭">×</button></header>
+        <input type="hidden" name="plannedPublishAt" />
+        <div class="publication-context"><strong data-publication-name></strong><span data-publication-planned></span></div>
+        <div class="form-grid">
+          <div class="field"><label for="publicationActualPublishAt">实发时间 <b>*</b></label><input id="publicationActualPublishAt" name="actualPublishAt" type="datetime-local" required /><small data-publication-error="actualPublishAt"></small></div>
+          <div class="field"><label>完成情况</label><output class="status-preview" data-publication-status>待登记</output></div>
+          <div class="field field-wide"><label for="publicationProjectDocUrl">项目文档链接 <b>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required /><small data-publication-error="projectDocUrl"></small></div>
+          <section class="field field-wide delay-field" data-publication-delay><strong>逐日延期理由</strong><p data-publication-delay-status role="status"></p><div data-publication-delay-days></div><input type="hidden" name="dailyReasons" value="[]"/><input type="hidden" name="expectedPlanRevision"/></section>
+        </div>
+        <p class="form-message" data-publication-message role="alert"></p>
+        <footer class="dialog-actions"><button type="button" class="secondary-action" data-close-publication>取消</button><button type="submit" class="save-button">保存实发登记 <span aria-hidden="true">→</span></button></footer>
+      </form>
+    </dialog>
+
+    <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow }}>
       const rows = clientRows;
       const categories = clientCategories;
       const dialog = document.querySelector('#schedule-dialog');
@@ -350,14 +405,17 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       const usageChangeField = document.querySelector('.usage-change-field');
       const categoryHelp = document.querySelector('[data-category-help]');
       const categoryRequired = document.querySelector('[data-category-required]');
-      const delayField = document.querySelector('.delay-field');
-      const completionPreview = document.querySelector('#completion-preview');
       const message = document.querySelector('.form-message');
       const submitButton = form.querySelector('button[type="submit"]');
       const inspector = document.querySelector('[data-inspector]');
       const inspectorEdit = document.querySelector('[data-inspector-edit]');
       const inspectorRevise = document.querySelector('[data-inspector-revise]');
       const inspectorDerived = document.querySelector('[data-inspector-derived]');
+      const inspectorPublication = document.querySelector('[data-inspector-publication]');
+      const inspectorDelete = document.querySelector('[data-inspector-delete]');
+      const inspectorDeleteError = document.querySelector('[data-inspector-delete-error]');
+      const publicationDialog = document.querySelector('#publication-dialog');
+      const publicationForm = document.querySelector('#publication-form');
       let dirty = false;
       let mode = 'new';
       let activeRecord;
@@ -370,6 +428,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       const openInspector = (record) => {
         if (!record) return;
         activeRecord = record;
+        inspector.dataset.selectedId = record.id;
         setInspectorText('[data-inspector-version]', `V${record.versionNumber}`);
         setInspectorText('[data-inspector-kind]', record.workType === 'revision' ? '改帖' : '新做帖');
         setInspectorText('[data-inspector-category]', record.categoryName ? `${record.subjectName} / ${record.categoryName}` : record.subjectName);
@@ -406,8 +465,11 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         inspectorRevise.hidden = record.childVersionNumber != null;
         inspectorDerived.hidden = record.childVersionNumber == null;
         inspectorDerived.textContent = record.childVersionNumber == null ? '' : `已派生 V${record.childVersionNumber}`;
+        inspectorPublication.textContent = record.actualPublishAt ? '查看／更正实发登记' : '实发登记';
+        inspectorDeleteError.textContent = '';
         inspector.hidden = false;
-        requestAnimationFrame(() => inspector.classList.add('is-open'));
+        document.dispatchEvent(new CustomEvent('business:schedule-selected', { detail: record }));
+        requestAnimationFrame(() => { inspector.classList.add('is-open'); inspector.focus({ preventScroll: true }); });
         document.querySelectorAll('[data-inspect-id]').forEach((node) => node.classList.toggle('selected', node.dataset.inspectId === record.id));
       };
       const closeInspector = () => {
@@ -415,34 +477,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         document.querySelectorAll('[data-inspect-id]').forEach((node) => node.classList.remove('selected'));
         window.setTimeout(() => { inspector.hidden = true; }, 180);
       };
-      const needsDelayReason = () => {
-        const planned = field('plannedPublishAt').value;
-        const actual = field('actualPublishAt').value;
-        if (!planned || !actual) return false;
-        return new Date(`${actual}:00+08:00`).getTime() - new Date(`${planned}:00+08:00`).getTime() > 12 * 60 * 60 * 1000;
-      };
-      const updateCompletionPreview = () => {
-        const planned = field('plannedPublishAt').value;
-        const actual = field('actualPublishAt').value;
-        if (!actual) {
-          const overdue = Boolean(planned) && Date.now() - new Date(`${planned}:00+08:00`).getTime() > 12 * 60 * 60 * 1000;
-          completionPreview.value = overdue ? '逾期未发' : '待发布';
-          completionPreview.className = `status-preview ${overdue ? 'completion-overdue' : ''}`;
-          return;
-        }
-        const delayed = needsDelayReason();
-        completionPreview.value = delayed ? '延期发布' : '按时发布';
-        completionPreview.className = `status-preview ${delayed ? 'completion-delayed' : ''}`;
-      };
-      const updateDelayField = () => {
-        const required = needsDelayReason();
-        delayField.hidden = !required;
-        field('delayReason').required = required;
-        updateCompletionPreview();
-      };
       const updatePromotionPreview = () => {
         const promoted = field('isPromoted').checked;
-        const actual = field('actualPublishAt').value;
+        const actual = mode === 'edit' ? activeRecord?.actualPublishAt : null;
         const changingToNonPromotion = mode === 'edit' && activeRecord?.isPromoted && !promoted;
         usageChangeField.hidden = !changingToNonPromotion;
         field('usageChangeReason').required = changingToNonPromotion;
@@ -544,8 +581,6 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           setRecordValues(record);
           field('sourceScheduleId').value = record.id;
           field('plannedPublishAt').value = '';
-          field('actualPublishAt').value = '';
-          field('delayReason').value = '';
           field('promotionStatus').value = 'pending';
           field('promotionStatus').disabled = true;
           promotionHelp.textContent = '改帖将以“待推广”开始。';
@@ -557,7 +592,11 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           sourceStatus.textContent = `保存后来源版本：${closing}`;
           sourcePreview.append(sourceTitle, sourceStatus);
         }
-        updateDelayField();
+        field('plannedPublishAt').readOnly = nextMode === 'edit' && actorRole === 'employee';
+        field('expectedPlanRevision').value = record?.planRevision ?? '';
+        const planReason = document.querySelector('[data-plan-change-reason]');
+        planReason.hidden = true; field('planChangeReason').required = false;
+        if (nextMode === 'edit' && actorRole === 'employee') promotionHelp.textContent = '修改应发时间请在帖子详情中提交改期申请。';
         updatePromotionPreview();
         dirty = false;
         dialog.showModal();
@@ -573,24 +612,89 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         const inspect = () => openInspector(rows.find((row) => row.id === node.dataset.inspectId));
         node.addEventListener('click', inspect);
         node.addEventListener('keydown', (event) => {
+          if (event.target !== node) return;
           if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(); }
         });
       });
-      document.querySelectorAll('.row-menu').forEach((menu) => {
-        menu.addEventListener('click', (event) => event.stopPropagation());
+      inspectorDelete?.addEventListener('click', async () => {
+        const record = activeRecord;
+        const error = inspectorDeleteError;
+        if (!record || !window.confirm(`确定删除“${record.contentName}”的排期吗？\n删除后无法恢复。`)) return;
+        if (error) error.textContent = '';
+        try {
+          const response = await fetch(`/api/operations-content/${record.id}`, {
+            method: 'DELETE',
+            headers: { Accept: 'application/json' },
+          });
+          const result = await response.json();
+          if (response.ok) { window.location.reload(); return; }
+          if (error) error.textContent = result.message ?? '删除失败，请重试。';
+        } catch {
+          if (error) error.textContent = '无法连接服务，请稍后重试。';
+        }
       });
-      document.querySelectorAll('[data-edit-id]').forEach((button) => button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        openForm('edit', rows.find((row) => row.id === button.dataset.editId));
-      }));
-      document.querySelectorAll('[data-revise-id]').forEach((button) => button.addEventListener('click', (event) => {
-        event.stopPropagation();
-        openForm('revision', rows.find((row) => row.id === button.dataset.reviseId));
-      }));
+      const publicationControl = (name) => publicationForm.elements.namedItem(name);
+      const publicationStatus = document.querySelector('[data-publication-status]');
+      const publicationMessage = document.querySelector('[data-publication-message]');
+      const updatePublicationStatus = () => {
+        const planned = publicationControl('plannedPublishAt').value;
+        const actual = publicationControl('actualPublishAt').value;
+        const delayed = Boolean(planned && actual) && new Date(`${actual}:00+08:00`).getTime() - new Date(`${planned}:00+08:00`).getTime() >= 8 * 60 * 60 * 1000;
+        publicationStatus.value = actual ? delayed ? '延期发布' : '按时发布' : '待登记';
+        publicationStatus.className = `status-preview ${delayed ? 'completion-delayed' : ''}`;
+      };
+      const openPublication = (record) => {
+        if (!record) return;
+        activeRecord = record;
+        publicationForm.reset();
+        publicationMessage.textContent = '';
+        document.querySelectorAll('[data-publication-error]').forEach((node) => node.textContent = '');
+        document.querySelector('#publication-title').textContent = record.actualPublishAt ? '查看／更正实发登记' : '实发登记';
+        document.querySelector('[data-publication-name]').textContent = record.contentName;
+        document.querySelector('[data-publication-planned]').textContent = `应发 ${record.plannedDisplay}`;
+        publicationControl('plannedPublishAt').value = record.plannedPublishAt;
+        publicationControl('actualPublishAt').value = record.actualPublishAt || '';
+        publicationControl('projectDocUrl').value = record.projectDocUrl || '';
+        updatePublicationStatus();
+        publicationDialog.showModal();
+        publicationControl('actualPublishAt').focus();
+        document.dispatchEvent(new CustomEvent('business:publication-opened', { detail: record }));
+      };
+      const closePublication = () => publicationDialog.close();
+      inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
+      document.querySelectorAll('[data-close-publication]').forEach((button) => button.addEventListener('click', closePublication));
+      publicationDialog.addEventListener('cancel', (event) => { event.preventDefault(); closePublication(); });
+      publicationForm.addEventListener('input', updatePublicationStatus);
+      publicationForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        publicationMessage.textContent = '正在保存实发登记…';
+        const submit = publicationForm.querySelector('button[type="submit"]');
+        submit.disabled = true;
+        const body = new FormData(publicationForm);
+        try {
+          let response = await fetch(`/api/operations-content/${activeRecord.id}/publication`, { method: 'PATCH', body, headers: { Accept: 'application/json' } });
+          let result = await response.json();
+          if (response.status === 409 && result.resetRequired) {
+            const impact = result.impact ?? {};
+            if (window.confirm(`更正实发时间会永久删除 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度事实，并从新日期重新进入待开始推广。确定继续吗？`)) {
+              body.set('confirmPromotionReset', '1');
+              response = await fetch(`/api/operations-content/${activeRecord.id}/publication`, { method: 'PATCH', body, headers: { Accept: 'application/json' } });
+              result = await response.json();
+            }
+          }
+          if (response.ok) { window.location.reload(); return; }
+          publicationMessage.textContent = result.message ?? '保存失败，请重试。';
+          for (const [name, errors] of Object.entries(result.fields ?? {})) {
+            const error = publicationForm.querySelector(`[data-publication-error="${name}"]`);
+            if (error) error.textContent = errors[0] ?? '';
+          }
+        } catch { publicationMessage.textContent = '无法连接服务，请稍后重试。'; }
+        finally { submit.disabled = false; }
+      });
       document.querySelector('[data-close-inspector]')?.addEventListener('click', closeInspector);
       if (window.__operationsScheduleKeydown) document.removeEventListener('keydown', window.__operationsScheduleKeydown);
       const handleScheduleKeydown = (event) => {
-        if (event.key === 'Escape' && !dialog.open && !inspector.hidden) closeInspector();
+        if (event.key === 'Escape' && !dialog.open && !publicationDialog.open && !inspector.hidden) closeInspector();
       };
       window.__operationsScheduleKeydown = handleScheduleKeydown;
       document.addEventListener('keydown', handleScheduleKeydown);
@@ -598,13 +702,16 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       inspectorRevise?.addEventListener('click', () => openForm('revision', activeRecord));
       document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeForm));
       dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeForm(); });
-      form.addEventListener('input', () => { dirty = true; document.documentElement.dataset.unsaved = 'true'; updateDelayField(); updatePromotionPreview(); });
+      form.addEventListener('input', () => {
+        dirty = true; document.documentElement.dataset.unsaved = 'true'; updatePromotionPreview();
+        const changed = mode === 'edit' && actorRole === 'admin' && field('plannedPublishAt').value !== activeRecord?.plannedPublishAt;
+        document.querySelector('[data-plan-change-reason]').hidden = !changed; field('planChangeReason').required = changed;
+      });
       field('subjectId').addEventListener('change', () => updateCategoryOptions());
       field('categoryId').addEventListener('change', applyCategoryPromotionDefault);
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         clearErrors();
-        updateDelayField();
         submitButton.disabled = true;
         const originalLabel = submitButton.innerHTML;
         submitButton.textContent = '正在保存…';
@@ -656,7 +763,10 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           submitButton.innerHTML = originalLabel;
         }
       });
+      const initialRecord = rows.find(row => row.id === (requestedRow || location.hash.slice(1)));
+      if (initialRecord) openInspector(initialRecord);
     </script>
+    <script>import '../../scripts/operations-workflow';</script>
   </body>
 </html>
 
@@ -709,6 +819,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
 
   main.workspace-main{width:auto;max-width:none;margin:0;padding:22px 24px 46px}
   .notice{margin:0 0 14px;border-radius:10px}
+  .mobile-period-nav{display:none}
   .status-strip{display:grid;grid-template-columns:repeat(7,minmax(104px,1fr));gap:8px;margin-bottom:18px;overflow-x:auto;scrollbar-width:thin}
   .status-strip>a{position:relative;min-width:104px;min-height:64px;display:grid;grid-template-columns:1fr auto;align-content:center;gap:2px 8px;padding:10px 12px;border:1px solid #d1d7d3;border-radius:12px;background:#f8faf7;text-decoration:none;transition:border-color 140ms ease,box-shadow 140ms ease,transform 140ms ease}
   .status-strip>a:hover{border-color:#aeb9b4;box-shadow:0 6px 20px #10243e0d}
@@ -746,23 +857,16 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
   .promotion-testing{color:var(--test-ink);background:var(--test-soft)}
   .promotion-scaling{color:var(--scale-ink);background:var(--scale-soft)}
   .promotion-pending{color:#685822;background:#f4edce}
-  .promotion-ended,.promotion-test_discarded,.promotion-formal_discarded{color:#606865;background:#e7e9e8}
+  .promotion-waiting_action{color:#73551d;background:#f3e6c8}.promotion-ended,.promotion-test_discarded,.promotion-formal_discarded{color:#606865;background:#e7e9e8}
   .completion-overdue,.completion-delayed{color:#9e3718;background:#ffe5dc}
   .doc-link{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;color:var(--blue);background:#e8edff;text-decoration:none;font-weight:850}
-  .missing{color:#a33a1f;font-size:.65rem;font-weight:750}
+  .missing{color:#7b8581;font-size:.65rem;font-weight:750}
   .day-divider th{position:relative;height:42px;padding:12px 12px 8px 29px;border:0;background:#f2f4ef;color:var(--ink);text-align:left;font:inherit}
   .day-divider th::after{content:"";position:absolute;left:17px;top:25px;bottom:-18px;width:1px;background:#c8d0cc}
   .day-divider .timeline-dot{position:absolute;left:13px;top:17px;width:9px;height:9px;margin:0;border:2px solid #f2f4ef;border-radius:50%;background:var(--blue);box-shadow:0 0 0 1px var(--blue)}
   .day-divider strong{display:inline;font:850 .7rem ui-monospace,monospace}
   .day-divider b{margin-left:8px;padding:2px 6px;border-radius:6px;color:#fff;background:var(--blue);font-size:.58rem}
   .day-divider small{display:inline;margin-left:8px;color:var(--muted);font-size:.6rem}
-  .row-menu{position:relative}
-  .row-menu summary{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;cursor:pointer;list-style:none;font-weight:900;letter-spacing:.1em}
-  .row-menu summary::-webkit-details-marker{display:none}
-  .row-menu summary:hover{background:#e7ebe8}
-  .row-menu>div{position:absolute;right:0;top:34px;z-index:8;min-width:130px;display:grid;padding:5px;border:1px solid #d0d6d2;border-radius:10px;background:#fff;box-shadow:0 16px 42px #10243e24}
-  .row-menu button,.row-menu span{border:0;padding:8px 9px;text-align:left;background:transparent;font-size:.7rem;font-weight:750}
-  .row-menu button{cursor:pointer}.row-menu button:hover{background:#f0f3f1}
   .empty{padding:60px 20px;text-align:center}.empty p{color:var(--muted)}
 
   .inspector{position:sticky;top:92px;width:0;max-height:calc(100vh - 116px);overflow:hidden;border:1px solid transparent;border-radius:15px;background:#f9faf8;opacity:0;transform:translateX(18px);transition:width 220ms cubic-bezier(.2,.8,.2,1),opacity 160ms ease,transform 220ms cubic-bezier(.2,.8,.2,1)}
@@ -781,11 +885,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
   .inspector-section{margin-top:20px}.inspector-section>span{display:block;margin-bottom:8px;color:var(--muted);font-size:.62rem;font-weight:800;letter-spacing:.05em}
   .inspector-section p{margin:6px 0;color:#4e5954;font-size:.7rem}.inspector-section strong{font-size:.68rem}
   .inspector-section a{color:var(--blue);font-size:.72rem;font-weight:800;text-decoration:none}
-  .inspector-section a[aria-disabled="true"]{color:#a33a1f}
+  .inspector-section a[aria-disabled="true"]{color:#7b8581}
   .version-path{display:flex;align-items:center;gap:7px;color:#7c8882;font-size:.68rem}
   .version-path span{padding:4px 7px;border-radius:7px;background:#e4e9e6;font:800 .65rem ui-monospace,monospace}.version-path span:last-child{color:#fff;background:var(--blue)}
-  .inspector>footer{position:sticky;bottom:0;display:flex;align-items:center;gap:7px;padding:13px 15px;border-top:1px solid #dce1de;background:#f9faf8ed;backdrop-filter:blur(16px)}
-  .inspector>footer button{flex:1;padding:9px 10px}.inspector>footer span{color:var(--muted);font-size:.68rem;font-weight:750}
+  .inspector-danger{display:grid;gap:7px;margin-top:26px;padding-top:14px;border-top:1px solid #e0e4e1}.inspector-danger>span{color:var(--muted);font-size:.58rem;font-weight:800}.inspector-danger button{justify-self:start;border:0;padding:3px 0;color:#8b625b;background:transparent;font-size:.62rem;font-weight:700;cursor:pointer}.inspector-danger button:hover,.inspector-danger button:focus-visible{color:#9a3e32;text-decoration:underline;text-underline-offset:3px}.inspector-danger small{color:#9a3e32;font-size:.58rem;line-height:1.4}
+  .inspector>footer{position:sticky;bottom:0;display:grid;gap:8px;padding:13px 15px;border-top:1px solid #dce1de;background:#f9faf8ed;backdrop-filter:blur(16px)}.inspector-actions>button{width:100%;padding:10px}.inspector-actions>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.inspector-actions>div button{padding:8px}.inspector>footer span{color:var(--muted);font-size:.68rem;font-weight:750;text-align:center}.publication-action{border-radius:9px}
+  .publication-context{display:flex;justify-content:space-between;gap:16px;padding:13px 24px;border-bottom:1px solid var(--line);background:#f7f9f6}.publication-context strong{font-size:.76rem}.publication-context span{color:var(--muted);font-size:.66rem}
 
   .calendar{overflow:hidden;border:1px solid #d0d6d2;border-radius:14px;background:#fafbf9}
   .weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}
@@ -807,6 +912,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     .status-strip{grid-template-columns:repeat(7,116px)}
     .inspector.is-open{position:fixed;inset:72px 0 0 auto;z-index:18;width:min(380px,100%);max-height:none;border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}
   }
+  @media(max-width:900px){
+    .mobile-period-nav{display:flex;justify-content:center;margin-bottom:14px}
+  }
   .revision-summary-field{margin-bottom:0}
   .revision-example{margin-top:4px;padding:12px 14px;border-left:3px solid var(--blue);color:#33486c;background:#fff;font-size:.72rem;line-height:1.65}
   .revision-example>strong{color:#183fa3}
@@ -818,12 +926,13 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     .workspace{padding-bottom:66px}
     .toolbar{min-height:62px;grid-template-columns:1fr auto;padding:8px 12px}.toolbar-title small{display:none}.filter-button,.display-switch{display:none}.toolbar-actions .primary-action{min-width:96px}
     main.workspace-main{padding:12px 10px 28px}
+    .mobile-period-nav{margin-bottom:11px}
     .status-strip{grid-template-columns:repeat(7,102px);margin-bottom:11px}
     .status-strip>a{min-height:58px;padding:8px 10px}
     .table-wrap{border-radius:12px}
     table{display:block;min-width:0}thead{display:none}tbody{display:block}
     .day-divider{display:block}.day-divider th{display:block;width:100%;height:38px;padding-top:10px}
-    .schedule-row{display:grid;grid-template-columns:54px 38px minmax(0,1fr) 34px;gap:4px;padding:9px 7px;border-bottom:1px solid #e0e4e1}
+    .schedule-row{display:grid;grid-template-columns:54px 38px minmax(0,1fr);gap:4px;padding:9px 7px;border-bottom:1px solid #e0e4e1}
     tbody td{height:auto;padding:2px 4px;border:0}
     .schedule-row .time-cell{grid-column:1;grid-row:1/3;padding-left:4px}
     .schedule-row td:nth-child(2){grid-column:2;grid-row:1/3}
@@ -831,7 +940,6 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     .schedule-row td:nth-child(4){grid-column:3;grid-row:2}
     .schedule-row td:nth-child(5){grid-column:3;grid-row:3}
     .schedule-row td:nth-child(6){display:none}
-    .schedule-row td:nth-child(7){grid-column:4;grid-row:1/3}
     .content-cell strong{white-space:normal}
     .inspector.is-open{inset:62px 0 66px 0;width:100%;border:0;border-radius:0}
     .weekdays{display:none}.calendar-grid{grid-template-columns:1fr}.calendar-day.outside{display:none}.calendar-day{min-height:auto}.calendar-item{display:grid}
@@ -841,4 +949,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     .toolbar,.inspector>header,.inspector>footer,.dialog-actions{backdrop-filter:none}
     .toolbar,.inspector>header,.inspector>footer,.dialog-actions{background:var(--paper)}
   }
+</style>
+
+<style is:global>
+.workflow-queue-nav{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:12px 0}.workflow-queue-nav a{padding:7px 10px;border:1px solid #c9d1cc;border-radius:7px;background:#f7f8f5;color:#53615a;font-size:12px;text-decoration:none}.workflow-queue-nav b{margin-left:5px;font-variant-numeric:tabular-nums}.workflow-queue-nav>span{color:var(--muted);font-size:12px}
+.schedule-workflow-panel{display:grid;gap:12px}.schedule-workflow-panel h3{margin:0;font-size:13px}.schedule-workflow-panel p{margin:0;font-size:12px;line-height:1.55;white-space:pre-wrap}.schedule-workflow-panel details>summary{cursor:pointer;font-size:12px;font-weight:750}.workflow-reason,.workflow-application,.workflow-plan-history{padding:10px 0;border-bottom:1px solid var(--line)}.workflow-reason h4{margin:0 0 6px;font-size:12px}.workflow-reason small,.workflow-application small{display:block;margin-top:5px;color:var(--muted);font-size:11px}.workflow-form{display:grid;gap:9px;margin-top:8px}.workflow-form label,.publication-reason-day label{display:grid;gap:4px;color:var(--muted);font-size:12px}.workflow-form input,.workflow-form select,.workflow-form textarea,.publication-reason-day select,.publication-reason-day textarea{width:100%;min-width:0;padding:8px;border:1px solid #abb5af;border-radius:7px;background:#fff;font:13px/1.5 system-ui}.workflow-form textarea,.publication-reason-day textarea{resize:vertical}.workflow-form button,.workflow-reason>button{justify-self:start;padding:7px 10px;border:1px solid #aeb8b2;border-radius:7px;background:#fff;font-size:12px;cursor:pointer}.workflow-form button[type=submit]{color:#fff;border-color:var(--blue);background:var(--blue)}.workflow-form output{color:#963f29;font-size:12px;line-height:1.5}.workflow-form[hidden]{display:none}.publication-reason-day{display:grid;gap:9px;padding:12px 0;border-bottom:1px solid var(--line)}.publication-reason-day strong{font-size:13px}.publication-reason-day p{font-size:12px;white-space:pre-wrap}.publication-reason-day small{color:var(--muted);font-size:11px}.workflow-warning{color:#963f29}.schedule-workflow-panel details[open]>summary{margin-bottom:8px}
 </style>

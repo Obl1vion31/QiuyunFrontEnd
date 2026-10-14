@@ -1,7 +1,10 @@
 import type { APIRoute } from 'astro';
+import { lockAnnualPlanWrites } from '../../../../db/annual-plan-storage';
 import { and, eq } from 'drizzle-orm';
+import { normalizeSnapshot } from '../../../../db/annual-plan-rules.mjs';
 import {
   buildAnnualPlanSnapshot,
+  annualPlanBlockValues,
   createAnnualPlanSchema,
   diffAnnualPlanSnapshots,
   restoreAnnualPlanSchema,
@@ -33,6 +36,7 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
 
   try {
     const restored = await getDb().transaction(async (transaction) => {
+      await lockAnnualPlanWrites(transaction);
       const [current] = await transaction.select({ version: operationsAnnualPlan.currentVersionNumber })
         .from(operationsAnnualPlan).where(eq(operationsAnnualPlan.id, params.id!)).limit(1);
       if (!current) return { kind: 'missing' as const };
@@ -51,26 +55,22 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
           eq(operationsAnnualPlanVersion.versionNumber, current.version),
         )).limit(1);
 
-      const usesLegacyInterviewGuide = source.snapshot.row.subjectId === 'interview'
-        && source.snapshot.row.categoryId === 'exam-guide';
+      const sourceSnapshot = normalizeSnapshot(source.snapshot);
+      const usesLegacyInterviewGuide = sourceSnapshot.row.subjectId === 'interview'
+        && sourceSnapshot.row.categoryId === 'exam-guide';
       const restoredCandidate = {
-        year: source.snapshot.row.year,
-        sectionKey: source.snapshot.row.sectionKey,
-        sectionLabel: source.snapshot.row.sectionLabel,
-        subjectId: source.snapshot.row.subjectId,
-        rowName: source.snapshot.row.rowName,
+        year: sourceSnapshot.row.year,
+        sectionKey: sourceSnapshot.row.sectionKey,
+        sectionLabel: sourceSnapshot.row.sectionLabel,
+        subjectId: sourceSnapshot.row.subjectId,
+        rowName: sourceSnapshot.row.rowName,
         categoryId: usesLegacyInterviewGuide
           ? 'interview-preparation-guide'
-          : source.snapshot.row.categoryId,
-        note: source.snapshot.row.note,
-        sortOrder: source.snapshot.row.sortOrder,
-        isActive: source.snapshot.row.isActive,
-        countsTowardPromotion: source.snapshot.row.countsTowardPromotion ?? false,
-        blocks: source.snapshot.blocks.map((block) => block.ruleType === 'flexible'
-          ? { ...block, ruleType: 'flexible' as const, monthlyFrequency: block.monthlyFrequency!, quantityParts: null }
-          : block.ruleType === 'fixed'
-            ? { ...block, ruleType: 'fixed' as const, monthlyFrequency: null, quantityParts: block.quantityParts! }
-            : { ...block, ruleType: null, monthlyFrequency: null, quantityParts: null }),
+          : sourceSnapshot.row.categoryId,
+        note: sourceSnapshot.row.note,
+        sortOrder: sourceSnapshot.row.sortOrder,
+        isActive: sourceSnapshot.row.isActive,
+        blocks: sourceSnapshot.blocks,
         links: source.snapshot.links,
         changeSummary: usesLegacyInterviewGuide
           ? `恢复自 V${parsed.data.versionNumber}（旧分类自动映射为面试准备须知）`
@@ -111,7 +111,7 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
         note: validated.data.note,
         sortOrder: validated.data.sortOrder,
         isActive: validated.data.isActive,
-        countsTowardPromotion: validated.data.countsTowardPromotion,
+        countsTowardPromotion: nextSnapshot.row.countsTowardPromotion,
         currentVersionNumber: nextVersion,
         updatedAt: new Date(),
       }).where(and(
@@ -123,17 +123,7 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
       await transaction.delete(operationsAnnualPlanBlock).where(eq(operationsAnnualPlanBlock.planId, params.id!));
       await transaction.delete(operationsAnnualPlanLink).where(eq(operationsAnnualPlanLink.planId, params.id!));
       if (validated.data.blocks.length) {
-        await transaction.insert(operationsAnnualPlanBlock).values(validated.data.blocks.map((block) => ({
-          planId: params.id!,
-          startMonth: block.startMonth,
-          endMonth: block.endMonth,
-          label: block.label,
-          ruleType: block.ruleType,
-          monthlyFrequency: block.ruleType === 'flexible' ? block.monthlyFrequency : null,
-          quantityParts: block.ruleType === 'fixed' ? block.quantityParts : null,
-          note: block.note,
-          sortOrder: block.sortOrder,
-        })));
+        await transaction.insert(operationsAnnualPlanBlock).values(nextSnapshot.blocks.map(block => annualPlanBlockValues(params.id!, block)));
       }
       if (validated.data.links.length) {
         await transaction.insert(operationsAnnualPlanLink).values(validated.data.links.map((link) => ({

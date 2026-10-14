@@ -1,94 +1,43 @@
-import { timingSafeEqual } from 'node:crypto';
+/** 业务页面与接口统一使用数据库会话；保留服务端性能观测。 */
 import { defineMiddleware } from 'astro:middleware';
-
-const protectedPaths = [
-  '/business/operations-schedule',
-  '/business/daily-promotion-review',
-  '/business/annual-plan',
-  '/business/stage-review',
-  '/business/non-promotion-review',
-  '/business/meeting-review',
-  '/business/settings',
-  '/api/operations-content',
-  '/api/operations-annual-plans',
-  '/api/promotion-daily',
-  '/api/promotion-awaiting',
-  '/api/stage-reviews',
-  '/api/non-promotion-reviews',
-  '/api/meeting-reviews',
-  '/api/business-settings',
-];
-
-interface BasicAuthCredential {
-  user: string;
-  password: string;
-}
-
-function sameValue(left: string, right: string) {
-  const a = Buffer.from(left);
-  const b = Buffer.from(right);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
-function configuredCredentials(): BasicAuthCredential[] {
-  const serialized = import.meta.env.OPERATIONS_BASIC_AUTH_USERS
-    || process.env.OPERATIONS_BASIC_AUTH_USERS;
-
-  if (serialized) {
-    try {
-      const parsed: unknown = JSON.parse(serialized);
-      if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') return [];
-      return Object.entries(parsed)
-        .filter((entry): entry is [string, string] => (
-          entry[0].trim().length > 0
-          && typeof entry[1] === 'string'
-          && entry[1].length > 0
-        ))
-        .map(([user, password]) => ({ user, password }));
-    } catch {
-      return [];
-    }
-  }
-
-  const user = import.meta.env.OPERATIONS_ADMIN_USER || process.env.OPERATIONS_ADMIN_USER;
-  const password = import.meta.env.OPERATIONS_ADMIN_PASSWORD || process.env.OPERATIONS_ADMIN_PASSWORD;
-  return user && password ? [{ user, password }] : [];
-}
+import { getAuth } from './auth/auth';
+import { deniedResponse, requiresAdmin } from './auth/permissions';
 
 export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
-  if (!protectedPaths.some((path) => url.pathname === path || url.pathname.startsWith(`${path}/`))) return next();
-  const requestStartedAt = performance.now();
-
-  const header = request.headers.get('authorization');
-  let user = '';
-  let password = '';
-
-  if (header?.startsWith('Basic ')) {
-    try {
-      [user, password] = Buffer.from(header.slice(6), 'base64').toString('utf8').split(/:(.*)/s, 2);
-    } catch { /* 无效凭据按未认证处理。 */ }
+  const protectedPath = url.pathname === '/business' || url.pathname.startsWith('/business/')
+    || (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/'));
+  if (!protectedPath && url.pathname !== '/login') return next();
+  const startedAt = performance.now();
+  let sessionResult;
+  try {
+    sessionResult = await getAuth().api.getSession({ headers: request.headers, returnHeaders: true });
+  } catch {
+    return Response.json({ message: '账号服务暂时不可用，请稍后重试。' }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
   }
-
-  const authenticated = configuredCredentials().some((credential) => (
-    sameValue(user, credential.user) && sameValue(password, credential.password)
-  ));
-  if (!authenticated) {
-    return new Response('需要排期台账访问凭据。', {
-      status: 401,
-      headers: { 'WWW-Authenticate': 'Basic realm="Operations Schedule", charset="UTF-8"' },
-    });
+  const identity = sessionResult.response;
+  const user = identity?.user;
+  locals.user = user?.username && (user.role === 'admin' || user.role === 'employee')
+    ? { id: user.id, username: user.username, role: user.role } : null;
+  locals.session = locals.user ? identity?.session ?? null : null;
+  locals.operationsUser = locals.user?.username;
+  if (protectedPath && !locals.user) {
+    const headers = { 'Cache-Control': 'private, no-store' };
+    if (url.pathname.startsWith('/api/')) return Response.json({ code: 'UNAUTHORIZED', message: '登录已过期，请在新标签页重新登录后重试。' }, { status: 401, headers });
+    return new Response(null, { status: 302, headers: { ...headers, Location: `/login?next=${encodeURIComponent(url.pathname + url.search)}` } });
   }
-  locals.operationsUser = user;
+  if (protectedPath && locals.user?.role !== 'admin' && requiresAdmin(url.pathname, request.method)) {
+    const response = url.pathname.startsWith('/api/') ? deniedResponse() : new Response(
+      '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>权限不足 · 内容工作台</title><style>body{margin:0;display:grid;place-items:center;min-height:100svh;background:#e9eff2;color:#17211c;font:16px/1.6 system-ui,sans-serif}main{max-width:420px;margin:24px;padding:32px;border-top:3px solid #5b8cff;background:#f5f7f4}h1{margin:0;font-size:26px}p{color:#68736d}a{color:#315fd6}</style></head><body><main><h1>需要管理员权限</h1><p>当前账号可以处理日常业务。此页面仅供管理员使用，如需修改，请联系管理员。</p><a href="/business/operations-schedule">返回工作台 →</a></main></body></html>',
+      { status: 403, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+    );
+    response.headers.set('Cache-Control', 'private, no-store'); return response;
+  }
   const response = await next();
-  const totalDuration = performance.now() - requestStartedAt;
+  for (const cookie of sessionResult.headers.getSetCookie()) response.headers.append('Set-Cookie', cookie);
+  response.headers.set('Cache-Control', 'private, no-store');
+  const totalDuration = performance.now() - startedAt;
   const existingTiming = response.headers.get('Server-Timing') ?? '';
   const databaseDuration = Number(existingTiming.match(/(?:^|,)\s*db;dur=([\d.]+)/)?.[1] ?? 0);
-  const renderDuration = Math.max(0, totalDuration - databaseDuration);
-  const timing = [
-    existingTiming,
-    `render;dur=${renderDuration.toFixed(1)}`,
-    `total;dur=${totalDuration.toFixed(1)}`,
-  ].filter(Boolean).join(', ');
-  response.headers.set('Server-Timing', timing);
+  response.headers.set('Server-Timing', [existingTiming, `render;dur=${Math.max(0, totalDuration - databaseDuration).toFixed(1)}`, `total;dur=${totalDuration.toFixed(1)}`].filter(Boolean).join(', '));
   return response;
 });

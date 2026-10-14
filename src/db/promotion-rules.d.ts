@@ -1,6 +1,8 @@
 export const promotionReviewDecisions: Record<'testing' | 'scaling', string[]>;
+export const waitingReviewDecisions: Record<'testing' | 'scaling', string[]>;
 export const shanghaiDateKey: (date: Date) => string;
 export const nextDateKey: (dateKey: string) => string;
+export const previousDateKey: (dateKey: string) => string;
 export const inclusivePromotionDays: (startedOn: string, endedOn: string) => number;
 export const promotionStageShares: (days: number[]) => number[];
 export const isDecisionAllowed: (stage: string, decision: string) => boolean;
@@ -10,7 +12,7 @@ export const nextPromotionState: (
 ) => { status: string; stage: string | null; outcome: string } | null;
 export const replayPromotionHistory: (
   campaignStartedOn: string,
-  metrics: Array<{ metricDate: string; stageTypeSnapshot: string; reviewDecision: string }>,
+  metrics: Array<{ metricDate: string; dailyStatus?: string; stageTypeSnapshot: string; reviewDecision: string }>,
 ) => {
   stages: Array<{ stageType: string; startedOn: string; endedOn: string | null; outcome: string | null }>;
   currentStage: string | null;

@@ -1,125 +1,145 @@
 ---
-import { and, desc, eq, gte, inArray, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
-import NonPromotionReviewCard from '../../components/NonPromotionReviewCard.astro';
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
 import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
+import MetricCell from '../../components/MetricCell.astro';
 import { getDb } from '../../db/client';
-import {
-  operationsCategory,
-  operationsContentPerformanceMetric,
-  operationsContentSchedule,
-  operationsContentVersion,
-  operationsNonPromotionReview,
-  operationsSubject,
-} from '../../db/schema';
-import { checkpointsForPublishDate, nextReviewCheckpoint, nonPromotionReviewStart, reviewCheckpoints, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
-
+import { operationsCategory, operationsCategoryPolicyVersion, operationsContent, operationsContentPerformanceMetric, operationsContentSchedule, operationsContentVersion, operationsNonPromotionReview, operationsNonPromotionCheckpointEvent, operationsSubject } from '../../db/schema';
+import { checkpointsForPublishDate, nextReviewCheckpoint, reviewCheckpoints, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
+import { readCheckpointEvents } from '../../db/non-promotion-workflow';
+import { subjects, postCategories, subjectCategoryMappings } from '../../db/taxonomy';
 export const prerender = false;
 const today = shanghaiDateKey(new Date());
+const names: Record<string,string> = { day_7: '首轮', day_15: '二轮' };
+const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 let loadError = '';
-let schedules: Array<{ id: string; actualPublishAt: Date; contentName: string; projectDocUrl: string | null; versionNumber: number; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null }> = [];
-let metrics: Array<typeof operationsContentPerformanceMetric.$inferSelect & { subjectId: string; categoryId: string | null }> = [];
+let schedules: Array<{ id:string; contentId:string; platformNoteId:string|null; actualPublishAt:Date; contentName:string; projectDocUrl:string|null; versionNumber:number; subjectId:string; subjectName:string; categoryId:string|null; categoryName:string|null }> = [];
+let metrics: Array<typeof operationsContentPerformanceMetric.$inferSelect & {subjectId:string;categoryId:string|null}> = [];
 let reviews: Array<typeof operationsNonPromotionReview.$inferSelect> = [];
-
+let checkpointEvents = new Map<string, typeof operationsNonPromotionCheckpointEvent.$inferSelect>();
+let policies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
 const databaseStartedAt = performance.now();
 try {
-  [schedules, metrics, reviews] = await Promise.all([
-    getDb().select({
-      id: operationsContentSchedule.id,
-      actualPublishAt: operationsContentSchedule.actualPublishAt,
-      contentName: operationsContentVersion.contentName,
-      projectDocUrl: operationsContentVersion.projectDocUrl,
-      versionNumber: operationsContentVersion.versionNumber,
-      subjectId: operationsContentVersion.subjectId,
-      subjectName: operationsSubject.name,
-      categoryId: operationsContentVersion.categoryId,
-      categoryName: operationsCategory.name,
-    }).from(operationsContentSchedule)
-      .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
-      .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
-      .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
-      .where(and(
-        eq(operationsContentSchedule.isPromoted, false),
-        isNotNull(operationsContentSchedule.actualPublishAt),
-        gte(operationsContentSchedule.actualPublishAt, new Date(`${nonPromotionReviewStart}T00:00:00+08:00`)),
-      )).orderBy(desc(operationsContentSchedule.actualPublishAt)) as Promise<typeof schedules>,
-    getDb().select({
-      id: operationsContentPerformanceMetric.id,
-      scheduleId: operationsContentPerformanceMetric.scheduleId,
-      checkpointType: operationsContentPerformanceMetric.checkpointType,
-      recordedThrough: operationsContentPerformanceMetric.recordedThrough,
-      clickRate: operationsContentPerformanceMetric.clickRate,
-      threeSecondReadRate: operationsContentPerformanceMetric.threeSecondReadRate,
-      createdAt: operationsContentPerformanceMetric.createdAt,
-      updatedAt: operationsContentPerformanceMetric.updatedAt,
-      subjectId: operationsContentVersion.subjectId,
-      categoryId: operationsContentVersion.categoryId,
-    }).from(operationsContentPerformanceMetric)
-      .innerJoin(operationsContentSchedule, eq(operationsContentPerformanceMetric.scheduleId, operationsContentSchedule.id))
-      .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
-      .where(inArray(operationsContentPerformanceMetric.checkpointType, ['day_7', 'day_15'])),
-    getDb().select().from(operationsNonPromotionReview)
-      .where(inArray(operationsNonPromotionReview.checkpointType, ['day_7', 'day_15']))
-      .orderBy(desc(operationsNonPromotionReview.reviewedAt)),
+  [schedules, metrics, reviews, policies, checkpointEvents] = await Promise.all([
+    getDb().select({ id:operationsContentSchedule.id, contentId:operationsContent.id, platformNoteId:operationsContent.platformNoteId, actualPublishAt:operationsContentSchedule.actualPublishAt, contentName:operationsContentVersion.contentName, projectDocUrl:operationsContentVersion.projectDocUrl, versionNumber:operationsContentVersion.versionNumber, subjectId:operationsContentVersion.subjectId, subjectName:operationsSubject.name, categoryId:operationsContentVersion.categoryId, categoryName:operationsCategory.name }).from(operationsContentSchedule).innerJoin(operationsContentVersion,eq(operationsContentSchedule.contentVersionId,operationsContentVersion.id)).innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).innerJoin(operationsSubject,eq(operationsContentVersion.subjectId,operationsSubject.id)).leftJoin(operationsCategory,eq(operationsContentVersion.categoryId,operationsCategory.id)).where(and(eq(operationsContentSchedule.isPromoted,false),isNotNull(operationsContentSchedule.actualPublishAt))).orderBy(desc(operationsContentSchedule.actualPublishAt)) as Promise<typeof schedules>,
+    getDb().select({ id:operationsContentPerformanceMetric.id,scheduleId:operationsContentPerformanceMetric.scheduleId,checkpointType:operationsContentPerformanceMetric.checkpointType,recordedThrough:operationsContentPerformanceMetric.recordedThrough,clickRate:operationsContentPerformanceMetric.clickRate,threeSecondReadRate:operationsContentPerformanceMetric.threeSecondReadRate,createdAt:operationsContentPerformanceMetric.createdAt,updatedAt:operationsContentPerformanceMetric.updatedAt,subjectId:operationsContentVersion.subjectId,categoryId:operationsContentVersion.categoryId }).from(operationsContentPerformanceMetric).innerJoin(operationsContentSchedule,eq(operationsContentPerformanceMetric.scheduleId,operationsContentSchedule.id)).innerJoin(operationsContentVersion,eq(operationsContentSchedule.contentVersionId,operationsContentVersion.id)).where(and(inArray(operationsContentPerformanceMetric.checkpointType,['day_7','day_15']),eq(operationsContentSchedule.isPromoted,false),isNotNull(operationsContentSchedule.actualPublishAt))),
+    getDb().select().from(operationsNonPromotionReview).where(inArray(operationsNonPromotionReview.checkpointType,['day_7','day_15'])).orderBy(desc(operationsNonPromotionReview.reviewedAt)),
+    getDb().select().from(operationsCategoryPolicyVersion).orderBy(desc(operationsCategoryPolicyVersion.versionNumber)),
+    readCheckpointEvents(getDb()),
   ]);
-} catch (error) {
-  console.error('non-promotion review query failed', error);
-  loadError = '非推广复盘数据暂时不可用。请检查数据库连接和最新迁移。';
-}
-Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
-
-const reviewMap = new Map(reviews.map((review) => [`${review.scheduleId}:${review.checkpointType}`, review]));
-const metricMap = new Map(metrics.map((metric) => [`${metric.scheduleId}:${metric.checkpointType}`, metric]));
-const rows = schedules.map((schedule) => {
-  const completed = reviewCheckpoints.filter((checkpoint) => reviewMap.has(`${schedule.id}:${checkpoint.type}`)).map((checkpoint) => checkpoint.type);
-  const next = nextReviewCheckpoint(schedule.actualPublishAt, completed, today);
-  const checkpoints = checkpointsForPublishDate(schedule.actualPublishAt);
-  return { ...schedule, completed, next, checkpoints };
+} catch(error){ console.error('non-promotion review query failed',error); loadError='非推广复盘数据暂时不可用。请检查数据库连接和最新迁移。'; }
+Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
+const reviewMap = new Map(reviews.map(row => [`${row.scheduleId}:${row.checkpointType}`, row]));
+const metricMap = new Map(metrics.map(row => [`${row.scheduleId}:${row.checkpointType}`, row]));
+const latestPolicy = new Map<string, typeof operationsCategoryPolicyVersion.$inferSelect>();
+for (const policy of policies) if (policy.effectiveOn <= today && !latestPolicy.has(policy.categoryId)) latestPolicy.set(policy.categoryId, policy);
+const selectedSubject = subjects.some(subject => subject.id === Astro.url.searchParams.get('subject')) ? Astro.url.searchParams.get('subject')! : '';
+const categoryOptions = selectedSubject ? postCategories.filter(category => subjectCategoryMappings.some(mapping => mapping.subjectId === selectedSubject && mapping.categoryId === category.id)) : [];
+const selectedCategory = categoryOptions.some(category => category.id === Astro.url.searchParams.get('category')) ? Astro.url.searchParams.get('category')! : '';
+const rows = schedules.filter(row => (!row.categoryId || latestPolicy.get(row.categoryId)?.requiresNonPromotionReview !== false)
+  && (!selectedSubject || row.subjectId === selectedSubject) && (!selectedCategory || row.categoryId === selectedCategory)).map(row => {
+  const completed = reviewCheckpoints.filter(checkpoint => reviewMap.has(`${row.id}:${checkpoint.type}`)).map(checkpoint => checkpoint.type);
+  const skipped = reviewCheckpoints.filter(checkpoint => checkpointEvents.get(`${row.id}:${checkpoint.type}`)?.action === 'skip').map(checkpoint => checkpoint.type);
+  return { ...row, completed, skipped, next: nextReviewCheckpoint(row.actualPublishAt, [...completed, ...skipped], today), checkpoints: checkpointsForPublishDate(row.actualPublishAt) };
 });
-const pending = rows.filter((row) => row.next);
-const completedRows = rows.filter((row) => row.completed.length === reviewCheckpoints.length);
-const activeView = Astro.url.searchParams.get('view') === 'history' ? 'history' : 'pending';
-const visibleRows = activeView === 'history' ? rows.filter((row) => row.completed.length > 0) : pending;
-const visibleCards = visibleRows.flatMap((row) => {
-  const checkpoint = activeView === 'pending' ? row.next : [...reviewCheckpoints].reverse().find((item) => row.completed.includes(item.type));
-  if (!checkpoint) return [];
-  const key = `${row.id}:${checkpoint.type}`;
-  const metric = metricMap.get(key);
-  const review = reviewMap.get(key);
-  const dueOn = row.checkpoints.find((item) => item.type === checkpoint.type)!.dueOn!;
-  const peerMetrics = metrics.filter((peer) => peer.checkpointType === checkpoint.type && peer.subjectId === row.subjectId && peer.categoryId === row.categoryId);
-  return [{ row, checkpoint, metric, review, dueOn, cohort: {
-    click: summarizeRates(peerMetrics.map((peer) => Number(peer.clickRate))),
-    read: summarizeRates(peerMetrics.map((peer) => Number(peer.threeSecondReadRate))),
-  } }];
+const pending = rows.filter(row => row.next);
+const activeView = ['history','skipped'].includes(Astro.url.searchParams.get('view') ?? '') ? Astro.url.searchParams.get('view')! : 'pending';
+const viewHref = (view: string, key?: string) => {
+  const query = new URLSearchParams({ view });
+  if (selectedSubject) query.set('subject', selectedSubject);
+  if (selectedCategory) query.set('category', selectedCategory);
+  if (key) query.set('row', key);
+  return `?${query}`;
+};
+const tableRows = rows.flatMap(row => {
+  const visible = activeView === 'pending' ? (row.next ? [row.next] : [])
+    : reviewCheckpoints.filter(checkpoint => (activeView === 'history' ? row.completed : row.skipped).includes(checkpoint.type));
+  return visible.map(checkpoint => {
+    const key = `${row.id}:${checkpoint.type}`;
+    const peers = metrics.filter(metric => metric.checkpointType === checkpoint.type && metric.subjectId === row.subjectId
+      && metric.categoryId === row.categoryId && checkpointEvents.get(`${metric.scheduleId}:${metric.checkpointType}`)?.action !== 'skip');
+    return { key, row, checkpoint, dueOn: row.checkpoints.find(item => item.type === checkpoint.type)!.dueOn!,
+      metric: metricMap.get(key), review: reviewMap.get(key), event: checkpointEvents.get(key),
+      click: summarizeRates(peers.map(metric => Number(metric.clickRate))), read: summarizeRates(peers.map(metric => Number(metric.threeSecondReadRate))) };
+  });
 });
+const selected = tableRows.find(row => row.key === Astro.url.searchParams.get('row'));
+const baseHref = viewHref(activeView);
 ---
-
-<!doctype html>
-<html lang="zh-CN">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>非推广阶段复盘 · 内容发布控制台</title></head>
-<body>
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>非推广复盘 · 内容发布控制台</title></head><body>
 <BusinessConsoleFrame active="non-promotion-review">
-    <BusinessConsoleToolbar title="非推广阶段复盘" subtitle="正式口径自 2026-07-01 起" mobilePriority="center">
-      <BusinessToolbarSegmented slot="center" label="非推广复盘视图" items={[{ label: '待复盘', href: '?view=pending', active: activeView === 'pending' }, { label: '已录历史', href: '?view=history', active: activeView === 'history' }]} />
-      <BusinessToolbarSummary slot="end" label="待处理" value={pending.length} detail={`完整双节点 ${completedRows.length}`} />
-    </BusinessConsoleToolbar>
-    <main>
-      {loadError && <div class="error-banner">{loadError}</div>}
-      <section class="review-list">
-        {visibleCards.length === 0 && <div class="empty"><strong>{activeView === 'pending' ? '当前没有待复盘节点' : '还没有复盘历史'}</strong><p>仅纳入 2026 年 7 月起已实发的非推广帖子。</p></div>}
-        {visibleCards.map((card) => <NonPromotionReviewCard card={card} today={today} />)}
-      </section>
-    </main>
+  <BusinessConsoleToolbar title="非推广复盘" subtitle="同学科、同分类、同节点比较" mobilePriority="center">
+    <BusinessToolbarSegmented slot="center" label="非推广复盘视图" items={[
+      {label:'待复盘',href:viewHref('pending'),active:activeView==='pending'},
+      {label:'已复盘',href:viewHref('history'),active:activeView==='history'},
+      {label:'不复盘',href:viewHref('skipped'),active:activeView==='skipped'},
+    ]}/>
+    <div slot="end" class="review-summary"><BusinessToolbarSummary label="待复盘" value={pending.length} compact/><BusinessToolbarSummary label="已复盘" value={rows.reduce((count,row)=>count+row.completed.length,0)} compact/></div>
+  </BusinessConsoleToolbar>
+  <main>
+    {loadError && <div class="error-banner" role="alert">{loadError}</div>}
+    <form class="review-filters" method="get" data-review-filters>
+      <input type="hidden" name="view" value={activeView}/>
+      <label>学科<select name="subject"><option value="">全部学科</option>{subjects.map(subject=><option value={subject.id} selected={subject.id===selectedSubject}>{subject.name}</option>)}</select></label>
+      <label>帖子分类<select name="category" disabled={!selectedSubject}><option value="">{selectedSubject?'全部分类':'请先选择学科'}</option>{categoryOptions.map(category=><option value={category.id} selected={category.id===selectedCategory}>{latestPolicy.get(category.id)?.displayName||category.name}</option>)}</select></label>
+      {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}`}>清除筛选</a>}
+    </form>
+    <section class:list={['review-workspace',{inspecting:selected}]}>
+      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table">
+        <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">分类</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click">点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read">3 秒阅读率 <i aria-hidden="true">↕</i></button></span></div>
+        {tableRows.map(item => {
+          const clickValue=item.metric?Number(item.metric.clickRate):null;const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
+          const click=metricPresentation(clickValue,item.click.mean);const read=metricPresentation(readValue,item.read.mean);
+          return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
+            <span role="cell" data-label="实验日期" class="date-cell">{shanghaiDateKey(item.row.actualPublishAt)}</span>
+            <span role="cell" data-label="帖子" class="post-cell" title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
+              {item.row.projectDocUrl?<a href={item.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{item.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{item.row.contentName}</strong>}
+              <small>{item.row.platformNoteId?`ID ${item.row.platformNoteId}`:'笔记 ID 待补'}{!item.row.projectDocUrl&&' · 项目文档待补'}</small>
+            </span>
+            <span role="cell" data-label="分类">{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
+            <span role="cell" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
+            <span role="cell" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
+            <span role="cell" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
+          </div>;
+        })}
+        {!tableRows.length&&<div class="empty"><strong>{activeView==='pending'?'当前没有待复盘节点':activeView==='skipped'?'当前没有跳过的节点':'还没有复盘历史'}</strong><p>可切换学科、分类或复盘视图。</p></div>}
+      </div></div></div>
+      {selected&&<aside class="inspector" aria-labelledby="inspector-title" data-inspector tabindex="-1">
+        <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 id="inspector-title">{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'} · V{selected.row.versionNumber}</p></div><a href={baseHref} aria-label="关闭详情">×</a></header>
+        <section class="identity-panel"><label>小红书笔记 ID</label>{selected.row.platformNoteId?<div class="full-id"><code>{selected.row.platformNoteId}</code><button type="button" data-copy-id={selected.row.platformNoteId}>复制</button></div>:<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}</section>
+        {selected.row.platformNoteId&&<details class="correction" data-admin-only><summary>更正笔记 ID</summary><form data-id-correction action={`/api/operations-content/${selected.row.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><label>旧值<input value={selected.row.platformNoteId} readonly/></label><label>新值<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" required/></label><p>确认后，该帖子的全部版本与复盘都会同步。</p><output></output><button type="submit">确认更正</button></form></details>}
+        {activeView!=='skipped'&&<form class="review-form" data-review-form data-success-href={viewHref('history')}>
+          <input type="hidden" name="scheduleId" value={selected.row.id}/><input type="hidden" name="checkpointType" value={selected.checkpoint.type}/>
+          {!selected.row.platformNoteId&&<label>小红书笔记 ID<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" autocomplete="off" required placeholder="24 位十六进制 ID"/></label>}
+          <label>数据截至<input type="date" name="recordedThrough" value={selected.metric?.recordedThrough||selected.dueOn} required/></label>
+          <label>点击率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="clickRate" value={selected.metric?.clickRate??''} required/><b>%</b></div></label>
+          <label>3 秒阅读率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="threeSecondReadRate" value={selected.metric?.threeSecondReadRate??''} required/><b>%</b></div></label>
+          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="alert"></output><button type="submit">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button>
+        </form>}
+        {!selected.review&&<details class="checkpoint-action" open={activeView==='skipped'}>
+          <summary>{activeView==='skipped'?'不复盘记录与恢复':'这次不复盘'}</summary>
+          {activeView==='skipped'&&<p>{selected.event?.reason}<small>{selected.event?.changedByLabel} · {selected.event?.createdAt.toLocaleDateString('zh-CN',{timeZone:'Asia/Shanghai'})}</small></p>}
+          <form data-checkpoint-form class="review-form" data-success-href={viewHref(activeView==='skipped'?'pending':'skipped')}>
+            <input type="hidden" name="scheduleId" value={selected.row.id}/><input type="hidden" name="checkpointType" value={selected.checkpoint.type}/><input type="hidden" name="action" value={activeView==='skipped'?'restore':'skip'}/><input type="hidden" name="expectedEventId" value={selected.event?.id||''}/>
+            <label>{activeView==='skipped'?'恢复说明':'不复盘原因'}<textarea name="reason" maxlength="500" required placeholder={activeView==='skipped'?'数据已恢复，可以补录':'例如：平台数据无法获取'}></textarea></label>
+            <output role="alert"></output><button type="submit">{activeView==='skipped'?'恢复为待复盘':'确认此节点不复盘'}</button>
+          </form>
+        </details>}
+      </aside>}
+    </section>
+  </main>
 </BusinessConsoleFrame>
-<script>
-document.querySelectorAll<HTMLFormElement>('[data-review-form]').forEach((form)=>form.addEventListener('submit',async(event)=>{event.preventDefault();const output=form.querySelector<HTMLOutputElement>('output');if(output)output.textContent='正在保存…';const response=await fetch('/api/non-promotion-reviews',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败。';return}window.location.reload()}));
-</script>
+<script is:inline data-astro-rerun src="/scripts/non-promotion-review.js"></script>
+<style is:global>
+:root{font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--console-ink);background:#e9ece8}*{box-sizing:border-box}body{margin:0}main{padding:18px clamp(14px,2.4vw,30px) 70px}.error-banner{margin-bottom:12px;padding:12px;border-radius:8px;color:#923c26;background:#ffe5dc;font-size:.68rem}.review-workspace{display:grid;min-height:calc(100vh - 110px);overflow:hidden;border:1px solid var(--console-line);border-radius:14px;background:var(--console-surface)}.review-workspace.inspecting{grid-template-columns:minmax(0,1fr) 370px}.table-pane{min-width:0}.table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}.review-table{min-width:1040px}.review-row{display:grid;grid-template-columns:92px 126px minmax(210px,1.4fr) minmax(145px,.9fr) 115px minmax(135px,.9fr) minmax(145px,.95fr);align-items:center;min-height:62px;border-bottom:1px solid #dde2df;color:inherit;background:#fff;font-size:.64rem;text-decoration:none}.review-row>span{min-width:0;padding:8px 10px}.table-head{position:sticky;top:0;z-index:2;min-height:38px;color:var(--console-muted);background:#edf1ee;font-size:.54rem;font-weight:850}.review-row:not(.table-head):hover,.review-row.selected{background:#f2f5f3}.review-row.selected{box-shadow:inset 3px 0 var(--console-blue)}.review-row:focus-visible{position:relative;z-index:1;outline:2px solid var(--console-blue);outline-offset:-2px}.date-cell,.note-id,.metric b{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}.note-id{overflow:hidden;color:#77827c;font-size:.56rem;text-overflow:ellipsis;white-space:nowrap}.note-id.missing{font-family:inherit}.post-cell{display:grid;gap:3px}.post-cell a,.post-cell strong{overflow:hidden;color:var(--console-ink);font-size:.68rem;font-weight:800;text-overflow:ellipsis;white-space:nowrap}.post-cell a{text-decoration:none}.post-cell a:hover{text-decoration:underline}.post-cell small{color:var(--console-muted);font-size:.54rem}.review-row mark{display:inline-block;padding:4px 7px;border-radius:999px;color:#56615c;background:#e8ecea;font-size:.55rem;font-weight:800;white-space:nowrap}.review-row mark.overdue{color:#8d4c31;background:#f5e4dc}.review-row mark.complete{color:#376555;background:#e3eee9}.metric{display:grid;gap:3px}.metric b{font-size:.68rem}.metric small{overflow:hidden;color:var(--console-muted);font-size:.52rem;text-overflow:ellipsis;white-space:nowrap}.empty{padding:70px 20px;text-align:center}.empty p{color:var(--console-muted);font-size:.65rem}.inspector{position:sticky;top:72px;align-self:start;height:calc(100vh - 72px);overflow:auto;border-left:1px solid var(--console-line);background:#fafbf9;outline:none}.inspector>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;padding:18px;border-bottom:1px solid var(--console-line);background:#fafbf9f2;backdrop-filter:blur(10px)}.inspector header span{color:var(--console-blue);font-size:.58rem;font-weight:850}.inspector h1{margin:3px 0;font-size:1rem}.inspector header p,.identity-panel p{margin:0;color:var(--console-muted);font-size:.59rem}.inspector header>a{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--console-ink);background:#e6eae7;font-size:1.1rem;text-decoration:none}.identity-panel,.correction{padding:15px 18px;border-bottom:1px solid var(--console-line)}.identity-panel>label,.correction summary{color:var(--console-muted);font-size:.58rem;font-weight:800}.full-id{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}.full-id code{font-size:.68rem}.full-id button,.correction button{border:1px solid #aeb8b2;border-radius:6px;padding:6px 9px;background:#fff;font-size:.58rem;font-weight:800;cursor:pointer}.correction summary{cursor:pointer}.correction form,.review-form{display:grid;gap:12px}.correction form{margin-top:12px}.correction p{margin:0;color:#795129;font-size:.58rem}.review-form{padding:18px}.review-form label,.correction label{display:grid;gap:5px;color:var(--console-muted);font-size:.6rem;font-weight:750}.review-form input,.review-form textarea,.correction input{width:100%;border:1px solid #abb5af;border-radius:7px;padding:9px;color:var(--console-ink);background:#fff;font:650 .68rem system-ui}.review-form textarea{min-height:110px;resize:vertical}.rate{display:grid;grid-template-columns:1fr 32px;align-items:center;border:1px solid #abb5af;border-radius:7px;background:#fff}.rate input{border:0}.rate b{text-align:center}.review-form output,.correction output{color:#963f29;font-size:.59rem}.review-form>button{height:40px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font-weight:850;cursor:pointer}.review-form>button:disabled{opacity:.55}@media(max-width:900px){main{padding:12px 10px 76px}.review-workspace.inspecting{display:block}.inspector{position:fixed;inset:0;z-index:50;width:100%;height:100%;border:0}.review-row:not(.table-head){min-height:58px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<style is:global>
+main{padding-top:14px}.review-summary{display:flex;align-items:center;gap:15px;color:#68736d;font-size:11px;white-space:nowrap}.review-summary span{display:flex;align-items:baseline;gap:5px}.review-summary b{color:#27342d;font:750 13px ui-monospace,SFMono-Regular,Consolas,monospace}.review-workspace{min-height:calc(100vh - 104px);border-radius:10px}.review-table{min-width:1060px}.review-row{grid-template-columns:108px minmax(280px,1.7fr) minmax(180px,1fr) 108px minmax(156px,.92fr) minmax(164px,.96fr);min-height:60px;font-size:13px;line-height:18px}.review-row>span{padding:8px 14px}.table-head{min-height:43px;font-size:11px;font-weight:700}.table-head>span:nth-last-child(-n+2){text-align:right}.table-head button{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head>span:nth-last-child(-n+2) button{float:right}.table-head i{opacity:.32;font-size:10px;font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}.review-row:not(.table-head):hover,.review-row.selected{background:#f5f7f5}.date-cell{color:#59645e;font-size:12px}.post-cell{gap:2px}.post-cell a{min-width:0;display:flex;align-items:center;gap:6px;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:#8b9690;font-size:11px;font-style:normal}.post-cell strong{font-size:13px;font-weight:650}.post-cell small{overflow:hidden;color:#909993;font-size:10px;line-height:13px;text-overflow:ellipsis;white-space:nowrap}.review-row mark{padding:3px 7px;border:1px solid #d9dfdb;border-radius:5px;color:#59645e;background:#f2f4f2;font-size:11px;font-weight:650;line-height:16px}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}.metric{display:block;text-align:right}@media(max-width:900px){.review-summary{display:none}}@media(min-width:1600px){.review-row{grid-template-columns:110px minmax(320px,1.7fr) minmax(200px,1fr) 116px 168px 176px}}
+</style>
 </body></html>
 
-<style>
-:root{--night:#0b1b2b;--ink:#1d2923;--muted:#68746e;--line:#cfd6d2;--paper:#fff;--blue:#496fda;--mint:#3f9272;--orange:#d97842;font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#e9ece8}*{box-sizing:border-box}body{margin:0}.workspace{min-width:0}.toolbar{position:sticky;top:0;z-index:14;min-height:72px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;padding:10px 24px;border-bottom:1px solid #bac2bf99;background:#f5f7f3e8;backdrop-filter:blur(22px) saturate(145%)}.toolbar-title{display:grid}.toolbar-title span{font-size:.94rem;font-weight:850}.toolbar-title small{color:var(--muted);font-size:.65rem}.view-switch{display:flex;padding:3px;border-radius:10px;background:#dfe4e2}.view-switch a{padding:7px 11px;border-radius:7px;color:#58645e;font-size:.62rem;font-weight:850;text-decoration:none}.view-switch a.active{color:#fff;background:var(--night)}.toolbar-summary{justify-self:end;display:grid;grid-template-columns:auto auto;align-items:baseline;gap:0 7px}.toolbar-summary span,.toolbar-summary small{color:var(--muted);font-size:.62rem}.toolbar-summary strong{font:900 1.3rem ui-monospace,monospace}.toolbar-summary small{grid-column:1/-1}main{padding:30px clamp(18px,3vw,38px) 80px}.overview-head span{color:var(--blue);font:800 .58rem ui-monospace,monospace;letter-spacing:.12em}.overview-head h1{margin:4px 0 3px;font-size:1.5rem}.overview-head p{margin:0;color:var(--muted);font-size:.68rem}.review-list{display:grid;gap:14px;margin-top:20px}.review-card,.empty{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff}.review-card>header{display:flex;justify-content:space-between;gap:18px;padding:18px 20px;border-bottom:1px solid var(--line)}.review-card header span,.review-card header small{color:var(--muted);font-size:.64rem}.review-card h2{margin:4px 0;font-size:1rem}.review-card mark{align-self:start;padding:6px 9px;border-radius:999px;color:#3856a6;background:#e6ebff;font-size:.62rem;font-weight:850}.review-card mark.overdue{color:#934021;background:#ffe2d6}.track{display:grid;grid-template-columns:repeat(3,1fr);padding:12px 20px}.track span{position:relative;display:flex;align-items:center;gap:6px;color:#8b9690;font:800 .62rem ui-monospace,monospace}.track span:after{content:"";position:absolute;left:12px;right:-50%;height:2px;background:#d8dfdb}.track span:last-child:after{display:none}.track i,.track b{position:relative;z-index:1}.track i{width:12px;height:12px;border:2px solid #a8b2ac;border-radius:50%;background:#fff}.track .complete i{border-color:var(--mint);background:var(--mint)}.track .current i{border-color:var(--blue);box-shadow:0 0 0 3px #e6ebff}.benchmarks{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f4f7f4}.benchmarks>div{padding:15px 20px}.benchmarks>div+div{border-left:1px solid var(--line)}.benchmarks small,.benchmarks strong{display:block}.benchmarks small{color:var(--muted);font-size:.6rem}.benchmarks strong{margin:3px 0;font:900 1.35rem ui-monospace,monospace}.benchmarks p{margin:0;color:var(--muted);font-size:.62rem}details summary{padding:11px 20px;font-size:.68rem;font-weight:850;cursor:pointer}form{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px 20px;border-top:1px solid var(--line)}label,fieldset{min-width:0;margin:0;color:var(--muted);font-size:.65rem;font-weight:750}input,textarea{width:100%;margin-top:4px;padding:9px;border:1px solid #aeb8b2;border-radius:7px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:70px;resize:vertical}fieldset{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:9px;border:1px solid var(--line);border-radius:9px}.wide{grid-column:1/-1}.actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}.actions output{margin-right:auto;color:#a33b22}.actions button{padding:10px 14px;border:0;border-radius:8px;color:#fff;background:var(--blue);font-weight:850;cursor:pointer}.empty{padding:55px;text-align:center}.empty p,.error-banner{color:var(--muted);font-size:.68rem}.error-banner{margin-top:18px;padding:12px;border-radius:9px;background:#ffe5dc}
-@media(max-width:900px){.workspace{padding-bottom:66px}.toolbar{grid-template-columns:1fr auto;padding:8px 12px}.toolbar-summary{display:none}main{padding:22px 12px 76px}}@media(max-width:620px){.toolbar-title{display:none}.toolbar{display:flex;justify-content:center}.review-card>header,form{grid-template-columns:1fr}.benchmarks{grid-template-columns:1fr}.benchmarks>div+div{border-left:0;border-top:1px solid var(--line)}.wide{grid-column:auto}}
+<style is:global>
+.review-filters{display:flex;align-items:end;gap:14px;margin-bottom:14px}.review-filters label{display:grid;gap:5px;font-size:12px;color:var(--console-muted)}.review-filters select{height:35px;min-width:170px;padding:5px 9px;border:1px solid #abb5af;border-radius:7px;background:#fff;color:var(--console-ink);font:13px system-ui}.review-filters a{padding:8px;color:var(--console-blue);font-size:12px}.checkpoint-action{margin:0 18px 18px;border-top:1px solid var(--console-line);padding-top:14px}.checkpoint-action summary{cursor:pointer;font-size:13px;font-weight:700}.checkpoint-action>p{font-size:13px;line-height:1.5;white-space:pre-wrap}.checkpoint-action small{display:block;color:var(--console-muted);font-size:11px}.checkpoint-action .review-form{padding:14px 0 0}@media(max-width:600px){.review-filters{flex-wrap:wrap;gap:10px}.review-filters label{flex:1}.review-filters select{width:100%;min-width:130px}}
 </style>

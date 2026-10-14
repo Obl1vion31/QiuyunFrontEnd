@@ -2,7 +2,8 @@
 import { reviewCheckpoints, shanghaiDateKey } from '../db/stage-review-rules.mjs';
 const { card, today } = Astro.props;
 const { row, checkpoint, metric, review, dueOn, cohort } = card;
-const names: Record<string, string> = { day_7: '7 天', day_15: '15 天' };
+const names: Record<string, string> = { day_7: '首轮复盘', day_15: '二轮复盘' };
+const shortNames: Record<string, string> = { day_7: '首轮 · 约 7 天', day_15: '二轮 · 约 15 天' };
 const formatRate = (value: number | null) => value == null ? '—' : `${value.toFixed(2)}%`;
 ---
 
@@ -15,14 +16,14 @@ const formatRate = (value: number | null) => value == null ? '—' : `${value.to
         : <h2>{row.contentName}<small>项目文档待补</small></h2>}
       <p><span>实发 {shanghaiDateKey(row.actualPublishAt)}</span><span>应复盘 {dueOn}</span></p>
     </div>
-    <mark class:list={{ overdue: dueOn < today }}>{names[checkpoint.type]}{dueOn < today && !review ? ' · 逾期' : ''}</mark>
+    <mark class:list={{ overdue: dueOn < today }}>{shortNames[checkpoint.type]}{dueOn < today && !review ? ' · 逾期' : ''}</mark>
   </header>
 
   <div class="checkpoint-track" aria-label="复盘节点进度">
     {reviewCheckpoints.map((item) => (
       <span class:list={{ complete: row.completed.includes(item.type), current: item.type === checkpoint.type }}>
         <i aria-hidden="true">{row.completed.includes(item.type) ? '✓' : item.type === checkpoint.type ? '•' : ''}</i>
-        <b>{item.days} 天</b>
+        <b>{item.type === 'day_7' ? '首轮' : '二轮'}</b>
       </span>
     ))}
   </div>
@@ -31,17 +32,17 @@ const formatRate = (value: number | null) => value == null ? '—' : `${value.to
     <section>
       <span>点击率</span>
       <strong>{metric ? formatRate(Number(metric.clickRate)) : '待录入'}</strong>
-      <small>同类 {cohort.click.count} 篇 · 均值 {formatRate(cohort.click.mean)} · {formatRate(cohort.click.min)}—{formatRate(cohort.click.max)}</small>
+      <small>同类 {cohort.click.count} 篇 · 均值 {formatRate(cohort.click.mean)} · 中位 {formatRate(cohort.click.median)} · {formatRate(cohort.click.min)}—{formatRate(cohort.click.max)}</small>
     </section>
     <section>
       <span>3 秒阅读率</span>
       <strong>{metric ? formatRate(Number(metric.threeSecondReadRate)) : '待录入'}</strong>
-      <small>同类 {cohort.read.count} 篇 · 均值 {formatRate(cohort.read.mean)} · {formatRate(cohort.read.min)}—{formatRate(cohort.read.max)}</small>
+      <small>同类 {cohort.read.count} 篇 · 均值 {formatRate(cohort.read.mean)} · 中位 {formatRate(cohort.read.median)} · {formatRate(cohort.read.min)}—{formatRate(cohort.read.max)}</small>
     </section>
   </div>
 
   <details open={!review}>
-    <summary>{review ? '编辑本节点复盘' : '填写本节点复盘'}</summary>
+    <summary>{review ? `编辑本阶段复盘 · V${review.currentVersionNumber}` : '填写本阶段复盘'}</summary>
     <form class="review-form" data-review-form>
       <input type="hidden" name="scheduleId" value={row.id}/>
       <input type="hidden" name="checkpointType" value={checkpoint.type}/>
@@ -62,13 +63,13 @@ const formatRate = (value: number | null) => value == null ? '—' : `${value.to
       </div>
 
       <label class="review-field review-field--conclusion">
-        <span>复盘结论</span>
-        <textarea name="conclusion" required>{review?.conclusion || ''}</textarea>
+        <span>复盘结论（选填）</span>
+        <textarea name="conclusion" placeholder="可以留空，后续补充时会生成新版本。">{review?.conclusion || ''}</textarea>
       </label>
 
       <div class="review-form__actions">
         <output></output>
-        <button type="submit">{review ? '保存修改' : `完成 ${names[checkpoint.type]}复盘`}</button>
+        <button type="submit">{review ? '保存修改' : `完成${names[checkpoint.type]}`}</button>
       </div>
     </form>
   </details>

@@ -12,5 +12,7 @@
 declare namespace App {
   interface Locals {
     operationsUser?: string;
+    user: import('./auth/permissions').OperationsUser | null;
+    session: import('better-auth').Session | null;
   }
 }

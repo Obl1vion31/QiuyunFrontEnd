@@ -11,7 +11,6 @@ import {
 import { shanghaiDateKey } from '../../../../../db/promotion-rules.mjs';
 import {
   issuesByField,
-  normalizeCompletionStatus,
   revisionInputFromForm,
   revisionSchema,
 } from '../../../../../db/validation';
@@ -64,22 +63,24 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       }
       const nextVersionNumber = (latest?.versionNumber ?? source.versionNumber) + 1;
 
+      const [activeCampaign] = await transaction.select({
+        id: operationsPromotionCampaign.id,
+        currentStage: operationsPromotionCampaign.currentStage,
+      }).from(operationsPromotionCampaign)
+        .where(eq(operationsPromotionCampaign.scheduleId, sourceSchedule.id))
+        .orderBy(desc(operationsPromotionCampaign.createdAt))
+        .limit(1);
       const sourceClosingStatus = sourceSchedule.promotionStatus === 'testing'
         ? 'test_discarded'
-        : sourceSchedule.promotionStatus === 'scaling'
+        : sourceSchedule.promotionStatus === 'scaling' || (sourceSchedule.promotionStatus === 'waiting_action' && activeCampaign?.currentStage === 'scaling')
           ? 'formal_discarded'
+          : sourceSchedule.promotionStatus === 'waiting_action'
+            ? 'test_discarded'
           : sourceSchedule.promotionStatus;
       if (sourceClosingStatus !== sourceSchedule.promotionStatus) {
         await transaction.update(operationsContentSchedule)
           .set({ promotionStatus: sourceClosingStatus, updatedAt: new Date() })
           .where(eq(operationsContentSchedule.id, sourceSchedule.id));
-        const [activeCampaign] = await transaction.select({
-          id: operationsPromotionCampaign.id,
-          currentStage: operationsPromotionCampaign.currentStage,
-        }).from(operationsPromotionCampaign)
-          .where(eq(operationsPromotionCampaign.scheduleId, sourceSchedule.id))
-          .orderBy(desc(operationsPromotionCampaign.createdAt))
-          .limit(1);
         if (activeCampaign?.currentStage) {
           const endedOn = shanghaiDateKey(new Date());
           await transaction.update(operationsPromotionStage).set({
@@ -112,19 +113,16 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         projectDocUrl: result.data.projectDocUrl,
       }).returning({ id: operationsContentVersion.id });
 
-      const completionStatus = normalizeCompletionStatus(result.data);
-      const promotionStatus = result.data.isPromoted
-        ? result.data.actualPublishAt ? 'awaiting_promotion' : 'pending'
-        : 'none';
+      const promotionStatus = result.data.isPromoted ? 'pending' : 'none';
       const [schedule] = await transaction.insert(operationsContentSchedule).values({
         contentVersionId: version.id,
         syncToMoments: result.data.syncToMoments,
         isPromoted: result.data.isPromoted,
         promotionStatus,
         plannedPublishAt: result.data.plannedPublishAt,
-        actualPublishAt: result.data.actualPublishAt,
-        completionStatus,
-        delayReason: completionStatus === 'delayed' ? result.data.delayReason : null,
+        actualPublishAt: null,
+        completionStatus: 'pending',
+        delayReason: null,
       }).returning({ id: operationsContentSchedule.id });
       await transaction.update(operationsContent).set({ updatedAt: new Date() })
         .where(eq(operationsContent.id, source.contentId));

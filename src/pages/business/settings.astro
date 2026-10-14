@@ -34,14 +34,14 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
       <form data-form>
         <label>稳定分类<select name="categoryId" required><option value="">请选择</option>{postCategories.map((category) => <option value={category.id}>{category.name}</option>)}</select></label>
         <label>新显示名称<input name="displayName" required/></label>
-        <div class="checks"><label><input type="checkbox" name="defaultIsPromoted"/> 新建时默认推广</label><label><input type="checkbox" name="isSelectable" checked/> 允许新建选择</label></div>
+        <div class="checks"><label><input type="checkbox" name="defaultIsPromoted"/> 新建时默认推广</label><label><input type="checkbox" name="isSelectable" checked/> 允许新建选择</label><label><input type="checkbox" name="requiresNonPromotionReview" checked/> 需要非推广首轮 / 二轮复盘</label></div>
         <label>生效日期<input type="date" name="effectiveOn" value={shanghaiDateKey(new Date())} required/></label>
         <label>变更说明<textarea name="changeSummary" required></textarea></label>
         <output></output><button>保存新规则版本</button>
       </form>
       <section class="history">
         <BusinessSectionHeader title="规则版本历史" description="按创建时间倒序保留全部规则事实。" contained><span slot="end">{policies.length} 个版本</span></BusinessSectionHeader>
-        {policies.length ? policies.map((policy) => <article><div><strong>{policy.displayName}</strong><small>{policy.categoryId} · V{policy.versionNumber}</small></div><p>{policy.effectiveOn} 生效 · {policy.defaultIsPromoted ? '默认推广' : '默认非推广'}{policy.isSelectable ? '' : ' · 停止新选'}</p><span>{policy.changeSummary}</span></article>) : <p class="empty">尚未建立分类规则版本，当前继续使用代码字典名称和手动推广选择。</p>}
+        {policies.length ? policies.map((policy) => <article><div><strong>{policy.displayName}</strong><small>{policy.categoryId} · V{policy.versionNumber}</small></div><p>{policy.effectiveOn} 生效 · {policy.defaultIsPromoted ? '默认推广' : '默认非推广'}{policy.isSelectable ? '' : ' · 停止新选'} · {policy.requiresNonPromotionReview ? '需非推广复盘' : '不进入非推广复盘'}</p><span>{policy.changeSummary}</span></article>) : <p class="empty">尚未建立分类规则版本，当前继续使用代码字典名称和手动推广选择。</p>}
       </section>
     </div>
   </main>

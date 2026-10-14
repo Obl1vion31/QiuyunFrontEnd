@@ -4,12 +4,14 @@ node_modules/
 dist/
 .astro/
 .tools/
+.vercel/
 .env
 .env.*
 !.env.example
 
 # 本地运营原始数据不得上传到公开仓库。
 public/excel/*.xlsx
+public/images/REVIEW/
 
 # Windows downloaded-file metadata
 *:Zone.Identifier

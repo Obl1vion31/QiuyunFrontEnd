@@ -85,7 +85,7 @@ Annual Plan 与具体帖子、排期没有直接外键。两者只通过 `subjec
 | `note` | text | NULL | 备注 |
 | `sort_order` | integer | NOT NULL, default 0 | 显示顺序 |
 | `is_active` | boolean | NOT NULL, default true | 是否启用 |
-| `counts_toward_promotion` | boolean | NOT NULL, default false | 是否计入推广周期汇总 |
+| `counts_toward_promotion` | boolean | NOT NULL, default false | 旧兼容标记；新写入按付费区间派生 |
 | `current_version_number` | integer | NOT NULL, default 0；≥0 | 当前版本号 |
 | `created_at` | timestamptz | NOT NULL, default now | 创建时间 |
 | `updated_at` | timestamptz | NOT NULL, default now | 更新时间 |
@@ -97,7 +97,7 @@ Annual Plan 与具体帖子、排期没有直接外键。两者只通过 `subjec
 - 有 `category_id` 时必须有 `subject_id`；
 - INDEX `(year, section_key, sort_order)`。
 
-总规划不保存为独立行，而是实时汇总：所有启用行形成发帖周期；其中 `counts_toward_promotion = true` 的启用行形成推广周期。
+总规划不保存为独立行，而是实时汇总：所有启用时间块形成内容流动周期，`promotion_ranges` 的并集形成付费推广周期。
 
 ### `operations_annual_plan_block`
 
@@ -105,8 +105,10 @@ Annual Plan 与具体帖子、排期没有直接外键。两者只通过 `subjec
 | --- | --- | --- | --- |
 | `id` | uuid | PK | 时间块 ID |
 | `plan_id` | uuid | FK → `operations_annual_plan.id`, CASCADE | 所属规划行 |
-| `start_month` | integer | NOT NULL；1–12 | 开始月 |
-| `end_month` | integer | NOT NULL；start–12 | 结束月 |
+| `start_slot` / `end_slot` | integer | 新格式必须成对填写；1–24，end ≥ start | 半月起止：奇数上半月，偶数下半月 |
+| `promotion_ranges` | jsonb | 新格式非 NULL；默认自然流用空数组 | 块内付费区间数组；范围不得越界或重叠 |
+| `start_month` | integer | NOT NULL；1–12 | 旧兼容开始月，由半月起止派生 |
+| `end_month` | integer | NOT NULL；start–12 | 旧兼容结束月 |
 | `label` | text | NOT NULL | 时间块名称 |
 | `rule_type` | text | NULL | `flexible`、`fixed` 或 NULL |
 | `monthly_frequency` | integer | NULL | 弹性月频次 |
@@ -114,13 +116,9 @@ Annual Plan 与具体帖子、排期没有直接外键。两者只通过 `subjec
 | `note` | text | NULL | 备注 |
 | `sort_order` | integer | NOT NULL, default 0 | 顺序 |
 
-数量规则只允许三种组合：
+新记录直接保存自由备注，旧数量字段全部写 NULL；旧结构与旧快照仅在兼容读取时转换成文字，原历史快照不修改。追加迁移允许三个新字段全为 NULL，保证过渡期间旧部署仍可写入；新 API 要求完整半月范围与付费区间。
 
-- 待确认：三项数量字段全部为 NULL，页面显示 `?`；
-- 弹性：`rule_type = flexible`、`monthly_frequency > 0`、`quantity_parts = NULL`；
-- 固定：`rule_type = fixed`、`monthly_frequency = NULL`、`quantity_parts` 为非空正整数数组。
-
-INDEX `(plan_id, sort_order)`。同一规划行最多 24 个时间块且月份不得重叠；不重叠由应用层校验。
+INDEX `(plan_id, sort_order)`。同一规划行最多 24 个时间块且半月范围不得重叠；应用层同时检查付费区间位于周期内部。v4 快照保存半月范围和付费区间；恢复旧版本时生成兼容转换后的新版本。
 
 ### `operations_annual_plan_link`
 
@@ -142,9 +140,9 @@ INDEX `(plan_id, sort_order)`；每行最多 30 个链接。
 | `plan_id` | uuid | FK → `operations_annual_plan.id`, RESTRICT | 规划行 |
 | `version_number` | integer | NOT NULL；≥0 | 版本号 |
 | `snapshot` | jsonb | NOT NULL | 规划行、时间块和链接的完整快照 |
-| `change_summary` | text | NOT NULL | 用户填写的调整说明 |
+| `change_summary` | text | NOT NULL | 用户选填的调整说明；未填时使用动作说明 |
 | `diff_summary` | jsonb | NOT NULL | 系统生成的变化摘要数组 |
-| `changed_by_label` | text | NOT NULL | Basic Auth 用户名标识 |
+| `changed_by_label` | text | NOT NULL | 已验证的登录用户名标识 |
 | `created_at` | timestamptz | NOT NULL, default now | 版本时间 |
 
 UNIQUE `(plan_id, version_number)`；INDEX `(plan_id, created_at)`。
@@ -158,8 +156,11 @@ UNIQUE `(plan_id, version_number)`；INDEX `(plan_id, created_at)`。
 | 字段 | 类型 | 约束 | 含义 |
 | --- | --- | --- | --- |
 | `id` | uuid | PK | 跨版本稳定的逻辑帖子 ID |
+| `platform_note_id` | text | NULL；UNIQUE；24 位小写十六进制 | 跨版本稳定的小红书笔记 ID |
 | `created_at` | timestamptz | NOT NULL, default now | 创建时间 |
 | `updated_at` | timestamptz | NOT NULL, default now | 更新时间 |
+
+`platform_note_id` 只保存在帖子主体，不复制到内容版本、排期、Campaign、日度事实、指标或复盘快照。应用层在写入前去除首尾空格并转小写，数据库同时约束格式与唯一性。非推广首次复盘和推广首次日度复盘会在同一事务中补齐缺失值；开始推广测试不要求笔记 ID。更正会影响同一 `content_id` 下全部版本与下游页面的读取结果。
 
 ### `operations_content_version`
 
@@ -175,7 +176,7 @@ UNIQUE `(plan_id, version_number)`；INDEX `(plan_id, created_at)`。
 | `category_id` | text | FK → `operations_category.id`, RESTRICT, NULL | 帖子分类 |
 | `revision_summary` | text | NULL | 改帖说明 |
 | `project_doc_name` | text | NULL | 历史项目文档名称，仅保留兼容，新数据不再要求填写 |
-| `project_doc_url` | text | NULL | HTTP/HTTPS 项目文档地址，新数据应用层必填 |
+| `project_doc_url` | text | NULL | HTTP/HTTPS 项目文档地址，排期阶段可空，实发登记时应用层必填 |
 | `created_at` | timestamptz | NOT NULL, default now | 创建时间 |
 | `updated_at` | timestamptz | NOT NULL, default now | 更新时间 |
 
@@ -201,7 +202,7 @@ UNIQUE `(plan_id, version_number)`；INDEX `(plan_id, created_at)`。
 | `planned_publish_at` | timestamptz | NOT NULL | 应发时间 |
 | `actual_publish_at` | timestamptz | NULL | 实发时间 |
 | `completion_status` | text | NOT NULL | `pending`、`on_time`、`delayed` |
-| `delay_reason` | text | NULL | 严格延期超过 12 小时的原因 |
+| `delay_reason` | text | NULL | 旧单条延期原因，保留作历史补齐来源 |
 | `source_key` | text | UNIQUE, NULL | 一次性历史导入幂等键 |
 | `created_at` | timestamptz | NOT NULL, default now | 创建时间 |
 | `updated_at` | timestamptz | NOT NULL, default now | 更新时间 |
@@ -366,3 +367,14 @@ Content
 - `operations_category_policy_version` 为稳定分类保存显示名称、默认推广身份、是否可选、生效日期和递增版本。
 - `operations_schedule_usage_event` 保存推广与非推广之间的用途变更。推广转非推广只结束开放 Campaign / Stage，不删除已有推广事实。
 - 正式非推广复盘起始日为 `2026-07-01`；此前内容不生成待办或 cohort 样本。
+
+## 排期审批与逐日延期
+
+排期的 `plan_revision` 从 0 开始，`plan_effective_at` 记录批准或直接改期生效时间。应发满 8 小时起算，后续每 24 小时增加一天；实发停止新增。
+
+- `operations_schedule_change_request`：原排期修订、新发送时间、申请理由、申请人及审批信息；同一排期最多一条 pending，状态包含 pending / approved / rejected / obsolete。
+- `operations_schedule_plan_history`：关闭的排期修订、原应发时间、生效与结束时间、新应发时间及操作者；批准改期不覆盖旧计时段。
+- `operations_schedule_delay_reason`：以排期、修订和天数唯一关联逐日理由，保存责任方、文字、人工／历史来源、操作者及更正历史；未来尚未到期的日期不提前落库。
+- `operations_non_promotion_checkpoint_event`：按排期与首轮／二轮追加 skip / restore 事件，以单调 sequence 确定当前状态；不创建指标或空复盘记录。
+
+历史空分类归入固定临时帖，新增临时学科只映射临时帖；关联仍使用稳定 ID。所有新增业务历史都通过 RESTRICT 保护排期删除。
