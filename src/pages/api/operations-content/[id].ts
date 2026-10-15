@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { lockPromotionWorkflow } from '../../../db/promotion-pauses';
 import { changeSchedulePlan, WorkflowError } from '../../../db/schedule-workflow';
 import { workflowErrorResponse } from '../../../db/workflow-api';
 import { requireAdmin } from '../../../auth/permissions';
@@ -125,6 +126,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
     const confirmPromotionReset = form.get('confirmPromotionReset') === '1';
     const usageChangeReason = String(form.get('usageChangeReason') ?? '').trim();
     const updated = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
       const [schedule] = await transaction.select({
         versionId: operationsContentSchedule.contentVersionId,
         isPromoted: operationsContentSchedule.isPromoted,

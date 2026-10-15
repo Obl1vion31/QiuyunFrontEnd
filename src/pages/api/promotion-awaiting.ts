@@ -8,6 +8,9 @@ import {
   operationsPromotionStage,
 } from '../../db/schema';
 import { shanghaiDateKey } from '../../db/promotion-rules.mjs';
+import { attachPromotionToActivePause, guardPromotionStart, lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
+import { dateInWindows, fullPauseRange } from '../../db/promotion-state.mjs';
+import { WorkflowError } from '../../db/schedule-workflow';
 
 export const prerender = false;
 
@@ -42,6 +45,12 @@ export const POST: APIRoute = async ({ request, url }) => {
 
   try {
     const result = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
+      const context = await readPromotionContext(transaction);
+      if (dateInWindows(parsed.data.reviewDate, context.pauses.flatMap(pause => { const range = fullPauseRange(pause); return range ? [range] : []; }))) {
+        throw new WorkflowError('这一天属于整日节假日暂停，无需填写复盘。');
+      }
+      if (parsed.data.action === 'start_testing') await guardPromotionStart(transaction, parsed.data.reviewDate);
       await transaction.execute(
         sql`select id from operations_content_schedule where id = ${parsed.data.scheduleId} for update`,
       );
@@ -77,6 +86,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         currentStage: 'testing',
         currentStatus: 'testing',
       }).returning({ id: operationsPromotionCampaign.id });
+      await attachPromotionToActivePause(transaction, campaign.id, 'testing');
       await transaction.insert(operationsPromotionStage).values({
         campaignId: campaign.id,
         stageType: 'testing',
@@ -102,6 +112,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
     return Response.json({ ok: true, status: result.kind }, { status: 201 });
   } catch (error) {
+    if (error instanceof WorkflowError) return Response.json({ message: error.message }, { status: error.status });
     console.error('promotion awaiting action failed', error);
     return Response.json({ message: '待推广状态保存失败，请稍后重试。' }, { status: 503 });
   }

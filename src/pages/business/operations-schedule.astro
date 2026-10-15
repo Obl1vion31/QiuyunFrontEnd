@@ -13,30 +13,22 @@ import {
   operationsContentVersion,
   operationsSubject,
 } from '../../db/schema';
+import { readPromotionContext } from '../../db/promotion-pauses';
+import { effectivePromotionStatus, promotionLabels, type PromotionContext } from '../../db/promotion-state.mjs';
+import { operationsPromotionCampaign } from '../../db/schema';
 import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
 import { teamScheduleNotifications } from '../../db/schedule-workflow';
 import { isDelayed, completionStatus } from '../../db/schedule-rules.mjs';
 
 export const prerender = false;
 
-const promotionLabels = {
-  none: '非推广',
-  pending: '待推广',
-  awaiting_promotion: '待开始推广',
-  testing: '推广测试中',
-  scaling: '推广放量中',
-  waiting_action: '等待行动',
-  ended: '推广周期已结束',
-  test_discarded: '测试淘汰',
-  formal_discarded: '放量淘汰',
-};
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
 const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' && !['overdue','approvals','reasons'].includes(Astro.url.searchParams.get('status') ?? '') ? 'calendar' : 'ledger';
 const requestedStatus = Astro.url.searchParams.get('status');
 const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
 const requestedPromotion = Astro.url.searchParams.get('promotion');
-const selectedPromotion = ['testing', 'scaling'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
+const selectedPromotion = ['testing', 'scaling', 'test_pending', 'promotion_paused', 'awaiting_promotion', 'ended', 'test_discarded', 'formal_discarded'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
 const dateParts = (date: Date) => Object.fromEntries(new Intl.DateTimeFormat('en', {
   timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
@@ -86,6 +78,12 @@ const monthPicker = {
 
 let notifications: Awaited<ReturnType<typeof teamScheduleNotifications>> | undefined;
 let databaseError = '';
+let promotionContext: PromotionContext = { pauses: [], targets: [], holds: [] };
+let campaignRows: Array<typeof operationsPromotionCampaign.$inferSelect> = [];
+const rowStatus = (row: { id: string; promotionStatus: string }) => {
+  const campaign = campaignRows.find(c => c.scheduleId === row.id);
+  return effectivePromotionStatus(row.promotionStatus, campaign?.currentStage ?? null, campaign?.id ?? null, promotionContext);
+};
 let categoryPolicies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
 let rows: Array<{
   id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
@@ -97,7 +95,7 @@ let rows: Array<{
 const databaseStartedAt = performance.now();
 try {
   const database = getDb();
-  [rows, categoryPolicies, notifications] = await Promise.all([database.select({
+  [rows, categoryPolicies, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
     id: operationsContentSchedule.id,
     versionId: operationsContentVersion.id,
     contentId: operationsContentVersion.contentId,
@@ -127,7 +125,9 @@ try {
   database.select().from(operationsCategoryPolicyVersion)
     .orderBy(asc(operationsCategoryPolicyVersion.categoryId), desc(operationsCategoryPolicyVersion.versionNumber)),
   teamScheduleNotifications(database),
-  ]) as [typeof rows, typeof categoryPolicies, Awaited<ReturnType<typeof teamScheduleNotifications>>];
+  database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),
+  readPromotionContext(database),
+  ]) as [typeof rows, typeof categoryPolicies, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext];
 } catch (error) {
   console.error('operations schedule query failed', error);
   databaseError = '数据库暂时不可用。请检查开发库连接和最新迁移后重试。';
@@ -136,9 +136,9 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
 
 const isOverdue = (row: typeof rows[number]) => !row.actualPublishAt && isDelayed(row.plannedPublishAt, now);
 const monthRows = rows.filter((row) => monthKey(row.plannedPublishAt) === selectedMonth);
-const promotionRows = rows.filter((row) => ['testing', 'scaling'].includes(row.promotionStatus));
+const promotionRows = rows.filter((row) => ['testing', 'scaling'].includes(rowStatus(row)));
 const activeRows = selectedView === 'promotion'
-  ? promotionRows.filter((row) => selectedPromotion === 'all' || row.promotionStatus === selectedPromotion)
+  ? (selectedPromotion === 'all' ? promotionRows : rows.filter(row => row.isPromoted && rowStatus(row) === selectedPromotion))
   : ['overdue','approvals','reasons'].includes(selectedStatus ?? '')
     ? rows.filter(row => selectedStatus === 'overdue' ? isOverdue(row)
       : selectedStatus === 'approvals' ? notifications?.approvalScheduleIds.includes(row.id) : notifications?.missingReasonIds.includes(row.id))
@@ -154,8 +154,8 @@ const summary = {
   overdue: rows.filter(isOverdue).length,
   published: monthRows.filter((row) => row.actualPublishAt).length,
   revisions: monthRows.filter((row) => row.workType === 'revision').length,
-  testing: promotionRows.filter((row) => row.promotionStatus === 'testing').length,
-  scaling: promotionRows.filter((row) => row.promotionStatus === 'scaling').length,
+  testing: promotionRows.filter((row) => rowStatus(row) === 'testing').length,
+  scaling: promotionRows.filter((row) => rowStatus(row) === 'scaling').length,
 };
 const daysInMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 0)).getUTCDate();
 const firstWeekday = new Date(Date.UTC(selectedYear, selectedMonthNumber - 1, 1)).getUTCDay();
@@ -175,7 +175,7 @@ const clientRows = rows.map((row) => {
     projectDocUrl: row.projectDocUrl ?? '',
     delayReason: row.delayReason ?? '',
     revisionSummary: row.revisionSummary ?? '',
-    promotionLabel: promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus,
+    promotionLabel: promotionLabels[rowStatus(row)] ?? row.promotionStatus,
     completionLabel: isOverdue(row) ? '逾期未发' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)] ?? '待发布',
     plannedDisplay: displayDateTime(row.plannedPublishAt),
     actualDisplay: row.actualPublishAt ? displayDateTime(row.actualPublishAt) : '尚未实发',
@@ -245,7 +245,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
               <span>待发布</span><strong>{summary.pending}</strong>
             </a>
             <a class:list={['promotion-summary', { active: selectedView === 'promotion' && selectedPromotion === 'all' }]} href={hrefFor({ view: 'promotion', status: '', promotion: '', display: 'ledger' })}>
-              <span>推广中</span><strong>{promotionRows.length}</strong><small>测试 {summary.testing} · 放量 {summary.scaling}</small>
+              <span>推广进行中</span><strong>{promotionRows.length}</strong><small>测试 {summary.testing} · 放量 {summary.scaling}</small>
             </a>
             <a class:list={['testing-summary', { active: selectedView === 'promotion' && selectedPromotion === 'testing' }]} href={hrefFor({ view: 'promotion', status: '', promotion: 'testing', display: 'ledger' })}>
               <span>测试中</span><strong>{summary.testing}</strong>
@@ -282,7 +282,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                     <td class="time-cell"><strong>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</strong><small>{row.actualPublishAt ? `实发 ${displayDateTime(row.actualPublishAt).split(' ')[1]}` : '尚未实发'}</small></td>
                     <td><span class="version-chip">V{row.versionNumber}</span><small>{row.workType === 'revision' ? '改帖' : '新做帖'}</small></td>
                     <td class="content-cell"><strong>{row.contentName}</strong><small>{row.subjectName}{row.categoryName ? ` / ${row.categoryName}` : ''}{row.syncToMoments ? ' · 同步朋友圈' : ''}{source ? ` · 来源 V${source.versionNumber}` : ''}{child ? ` · 已派生 V${child.versionNumber}` : ''}</small></td>
-                    <td><span class={`tag promotion-${row.promotionStatus}`}>{promotionLabels[row.promotionStatus as keyof typeof promotionLabels] ?? row.promotionStatus}</span></td>
+                    <td><span class={`tag promotion-${rowStatus(row)}`}>{promotionLabels[rowStatus(row)] ?? row.promotionStatus}</span></td>
                     <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)] ?? '待发布'}</span></td>
                     <td>{row.projectDocUrl ? <a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a> : <span class="missing">待登记</span>}</td>
                   </tr>
@@ -299,7 +299,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         <div class="calendar-grid">
           {calendarCells.map((cell) => <div class:list={['calendar-day', { outside: !cell.valid, today: cell.key === dayKey(now) }]}>
             {cell.valid && <><strong class="day-number">{cell.day}</strong><div class="calendar-items">
-              {cell.rows.map((row) => <button type="button" data-inspect-id={row.id} class:list={['calendar-item', `promotion-${row.promotionStatus}`, { overdue: isOverdue(row) }]}>
+              {cell.rows.map((row) => <button type="button" data-inspect-id={row.id} class:list={['calendar-item', `promotion-${rowStatus(row)}`, { overdue: isOverdue(row) }]}>
                 <time>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</time><span><b>V{row.versionNumber}</b> {row.contentName}</span>
               </button>)}
             </div></>}

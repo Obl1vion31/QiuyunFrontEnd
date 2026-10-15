@@ -13,11 +13,13 @@ import {
 } from '../../db/schema';
 import {
   calculateActualPromotionCosts,
-  nextPendingPromotionDate,
   replayPromotionHistory,
   shanghaiDateKey,
 } from '../../db/promotion-rules.mjs';
 import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/promotion-validation';
+import { attachPromotionToActivePause, guardPromotionStart, lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
+import { campaignPauseWindows, effectivePromotionStatus, nextReviewDate, promotionReplayOptions } from '../../db/promotion-state.mjs';
+import { WorkflowError } from '../../db/schedule-workflow';
 
 export const prerender = false;
 
@@ -37,6 +39,7 @@ const requestedDate = (url: URL) => {
 export const GET: APIRoute = async ({ url }) => {
   const metricDate = requestedDate(url);
   try {
+    const context = await readPromotionContext(getDb());
     const rows = await getDb().select({
       campaignId: operationsPromotionCampaign.id,
       scheduleId: operationsContentSchedule.id,
@@ -81,7 +84,7 @@ export const GET: APIRoute = async ({ url }) => {
           actualOpenCount: row.actualOpenCount ?? 0,
           actualLeadCount: row.actualLeadCount ?? 0,
         });
-        return { ...row, costs, completed: row.reviewDecision != null };
+        return { ...row, effectiveStatus: effectivePromotionStatus(row.currentStatus, row.currentStage, row.campaignId, context), costs, completed: row.reviewDecision != null };
       }),
     });
   } catch (error) {
@@ -118,6 +121,7 @@ export const POST: APIRoute = async ({ request, url }) => {
 
   try {
     const saved = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
       await transaction.execute(
         // Serialize reviews for the same campaign so two dates cannot be finalized out of order.
         sql`select id from operations_promotion_campaign where id = ${result.data.campaignId} for update`,
@@ -126,6 +130,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         id: operationsPromotionCampaign.id,
         scheduleId: operationsPromotionCampaign.scheduleId,
         startedOn: operationsPromotionCampaign.startedOn,
+        initialStage: operationsPromotionCampaign.initialStage,
         currentStage: operationsPromotionCampaign.currentStage,
         currentStatus: operationsPromotionCampaign.currentStatus,
         contentId: operationsContent.id,
@@ -149,7 +154,9 @@ export const POST: APIRoute = async ({ request, url }) => {
         .where(eq(operationsPromotionDailyMetric.campaignId, campaign.id))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
       const latest = allMetrics.at(-1);
-      const expectedDate = nextPendingPromotionDate(latest?.metricDate, campaign.startedOn);
+      const context = await readPromotionContext(transaction);
+      const windows = [...campaignPauseWindows(campaign, context), ...context.holds.filter(hold => hold.campaignId === campaign.id)];
+      const expectedDate = nextReviewDate(latest?.metricDate, campaign.startedOn, windows);
       if (result.data.metricDate !== expectedDate) {
         return { kind: 'out-of-order' as const, expectedDate };
       }
@@ -157,8 +164,13 @@ export const POST: APIRoute = async ({ request, url }) => {
       if (result.data.dailyStatus !== expectedDailyStatus || result.data.stageTypeSnapshot !== campaign.currentStage) {
         return { kind: 'invalid-decision' as const };
       }
-      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data]);
+      if (expectedDailyStatus === 'waiting_action' && ['test_continue','start_scaling','scaling_continue'].includes(result.data.reviewDecision)) {
+        const nextDay = new Date(`${result.data.metricDate}T00:00:00+08:00`); nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+        await guardPromotionStart(transaction, shanghaiDateKey(nextDay));
+      }
+      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data], promotionReplayOptions(campaign, context));
       if (!replayed) return { kind: 'invalid-decision' as const };
+      if (['testing','scaling'].includes(replayed.currentStatus) && replayed.currentStage) await attachPromotionToActivePause(transaction, campaign.id, replayed.currentStage);
 
       const [metric] = await transaction.insert(operationsPromotionDailyMetric).values({
         campaignId: campaign.id,
@@ -206,6 +218,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
     return Response.json({ ok: true, id: saved.id, nextStatus: saved.nextStatus }, { status: 201 });
   } catch (error) {
+    if (error instanceof WorkflowError) return Response.json({ message: error.message }, { status: error.status });
     const postgresError = error as { code?: string };
     if (postgresError.code === '23505') {
       return Response.json({ message: '这一天已经完成复盘，或笔记 ID 已属于另一篇帖子，请刷新并核对。' }, { status: 409 });

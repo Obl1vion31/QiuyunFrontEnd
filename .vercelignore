@@ -18,6 +18,7 @@ coverage/
 *.xls
 *.csv
 public/excel/
+/data/
 public/images/THE-PLAN/
 public/images/Daily/
 public/images/REVIEW/

@@ -25,8 +25,8 @@ export function requiresAdmin(path: string, method: string) {
   if (/^\/api\/operations-content\/[^/]+\/platform-note-id$/.test(normalized)) return true;
   // 新增业务写入接口默认由管理员使用，明确列入日常操作后才向员工开放。
   const dailyWrites: Record<string, RegExp> = {
-    POST: /^\/api\/(?:operations-content|promotion-daily|promotion-awaiting|non-promotion-reviews|non-promotion-checkpoints|meeting-reviews|stage-reviews)$|^\/api\/operations-content\/versions\/[^/]+\/revisions$|^\/api\/operations-content\/[^/]+\/(?:change-requests|delay-reasons)$/,
-    PATCH: /^\/api\/(?:operations-content|promotion-daily|meeting-reviews|stage-reviews)\/[^/]+$|^\/api\/operations-content\/[^/]+\/publication$/,
+    POST: /^\/api\/(?:operations-content|promotion-daily|promotion-awaiting|promotion-pauses|non-promotion-reviews|non-promotion-checkpoints|meeting-reviews|stage-reviews)$|^\/api\/operations-content\/versions\/[^/]+\/revisions$|^\/api\/operations-content\/[^/]+\/(?:change-requests|delay-reasons)$/,
+    PATCH: /^\/api\/(?:operations-content|promotion-daily|promotion-pauses|meeting-reviews|stage-reviews)\/[^/]+$|^\/api\/operations-content\/[^/]+\/publication$/,
   };
   return !dailyWrites[method]?.test(normalized);
 }

@@ -7,8 +7,11 @@ import {
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
   operationsPromotionStage,
+  operationsPromotionHold,
 } from '../../../db/schema';
 import { replayPromotionHistory } from '../../../db/promotion-rules.mjs';
+import { lockPromotionWorkflow, readPromotionContext } from '../../../db/promotion-pauses';
+import { promotionReplayOptions } from '../../../db/promotion-state.mjs';
 import {
   promotionDailyUpdateInputFromForm,
   promotionDailyUpdateSchema,
@@ -38,6 +41,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
 
   try {
     const result = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
       const [reference] = await transaction.select({ campaignId: operationsPromotionDailyMetric.campaignId }).from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.id, params.id!)).limit(1);
       if (!reference) return { kind: 'missing' as const };
@@ -73,12 +77,15 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
           stageTypeSnapshot: parsed.data.stageTypeSnapshot,
           reviewDecision: parsed.data.reviewDecision,
         } : metric);
-      const replayed = lifecycleChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate) : null;
+      const context = await readPromotionContext(transaction);
+      if (lifecycleChanged) context.holds = context.holds.filter(hold => hold.campaignId !== campaign.id || hold.endedOn <= existing.metricDate);
+      const replayed = lifecycleChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate, promotionReplayOptions(campaign, context)) : null;
       if (lifecycleChanged && !replayed) return { kind: 'invalid-decision' as const };
 
       if (lifecycleChanged && later.length > 0) {
         await transaction.delete(operationsPromotionDailyMetric).where(sql`${operationsPromotionDailyMetric.campaignId} = ${existing.campaignId} and ${operationsPromotionDailyMetric.metricDate} > ${existing.metricDate}`);
       }
+      if (lifecycleChanged) await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
       await transaction.update(operationsPromotionDailyMetric).set({
         dailyStatus: parsed.data.dailyStatus,
         stageTypeSnapshot: parsed.data.stageTypeSnapshot,

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { getDb } from '../../../../../db/client';
+import { lockPromotionWorkflow } from '../../../../../db/promotion-pauses';
 import {
   operationsContent,
   operationsContentSchedule,
@@ -35,6 +36,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
 
   try {
     const created = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
       const [source] = await transaction.select({
         id: operationsContentVersion.id,
         contentId: operationsContentVersion.contentId,

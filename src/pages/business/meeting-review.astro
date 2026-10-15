@@ -7,6 +7,8 @@ import BusinessToolbarContext from '../../components/BusinessToolbarContext.astr
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
 import { readCheckpointEvents } from '../../db/non-promotion-workflow';
 import { getDb } from '../../db/client';
+import { readPromotionContext } from '../../db/promotion-pauses';
+import { effectivePromotionStatus, waitingPromotionDays, type PromotionContext } from '../../db/promotion-state.mjs';
 import { addDays, automaticMeetingName, classifySchedule, shanghaiKey, sumPromotionMetrics } from '../../db/meeting-review-rules.mjs';
 import {
   operationsCategory, operationsContentSchedule, operationsContentVersion, operationsNonPromotionReview,
@@ -26,6 +28,7 @@ const money = (value: number | null) => value == null ? '—' : `¥${value.toFix
 
 let checkpointEvents: Awaited<ReturnType<typeof readCheckpointEvents>> = new Map();
 let loadError = '';
+let promotionContext: PromotionContext = { pauses: [], targets: [], holds: [] };
 let meetings: Array<typeof operationsReviewMeeting.$inferSelect> = [];
 let versions: Array<typeof operationsReviewMeetingVersion.$inferSelect> = [];
 let schedules: Array<any> = [];
@@ -37,7 +40,7 @@ let categoryPolicies: Array<typeof operationsCategoryPolicyVersion.$inferSelect>
 const startedAt = performance.now();
 try {
   const db = getDb();
-  [meetings, versions, schedules, campaigns, dailyMetrics, nonPromotionReviews, openIssues, categoryPolicies, checkpointEvents] = await Promise.all([
+  [meetings, versions, schedules, campaigns, dailyMetrics, nonPromotionReviews, openIssues, categoryPolicies, checkpointEvents, promotionContext] = await Promise.all([
     db.select().from(operationsReviewMeeting).orderBy(desc(operationsReviewMeeting.meetingAt)),
     db.select().from(operationsReviewMeetingVersion).orderBy(desc(operationsReviewMeetingVersion.versionNumber)),
     db.select({
@@ -59,6 +62,7 @@ try {
     db.select().from(operationsReviewActionItem).where(ne(operationsReviewActionItem.status, 'resolved')).orderBy(desc(operationsReviewActionItem.updatedAt)),
     db.select().from(operationsCategoryPolicyVersion).orderBy(desc(operationsCategoryPolicyVersion.versionNumber)),
     readCheckpointEvents(db),
+    readPromotionContext(db),
   ]);
 } catch (error) {
   console.error('meeting review query failed', error);
@@ -80,17 +84,17 @@ const alignmentCounts = { published: planRows.filter((row) => row.alignmentStatu
 
 const promotionRows = selected ? campaigns.flatMap((campaign) => {
   const metrics = dailyMetrics.filter((metric) => metric.campaignId === campaign.id && metric.metricDate >= rangeStart && metric.metricDate <= rangeEnd);
-  if (!metrics.length) return [];
+  const waitingDays = waitingPromotionDays(campaign, promotionContext, metrics.filter(metric => metric.dailyStatus === 'waiting_action').map(metric => metric.metricDate), rangeStart, rangeEnd);
+  if (!metrics.length && !waitingDays) return [];
   const schedule = schedules.find((row) => row.id === campaign.scheduleId);
   if (!schedule) return [];
   const testing = metrics.filter((metric) => metric.dailyStatus === 'active' && metric.stageTypeSnapshot === 'testing');
   const scaling = metrics.filter((metric) => metric.dailyStatus === 'active' && metric.stageTypeSnapshot === 'scaling');
-  const waiting = metrics.filter((metric) => metric.dailyStatus === 'waiting_action');
   const input = selected.draftSnapshot?.promotionInputs?.[campaign.id] ?? { clickRate: null, recordedThrough: rangeEnd, currentSituation: '', activeAction: '' };
   const previousSnapshot = previous ? versions.find((version) => version.meetingId === previous.id && version.versionNumber === previous.currentVersionNumber)?.snapshot as any : null;
   const baselineRow = previousSnapshot?.generated?.promotions?.find((row: any) => row.contentId === schedule.contentId) ?? null;
   const baseline = baselineRow ? { ...baselineRow, input: previousSnapshot?.draft?.promotionInputs?.[baselineRow.campaignId] } : null;
-  return [{ campaign, schedule, metrics, total: sumPromotionMetrics(metrics), testing: sumPromotionMetrics(testing), scaling: sumPromotionMetrics(scaling), waitingDays: waiting.length, testingDates: testing.map((metric) => metric.metricDate), scalingDates: scaling.map((metric) => metric.metricDate), input, baseline }];
+  return [{ campaign, schedule, metrics, effectiveStatus: effectivePromotionStatus(campaign.currentStatus, campaign.currentStage, campaign.id, promotionContext), total: sumPromotionMetrics(metrics), testing: sumPromotionMetrics(testing), scaling: sumPromotionMetrics(scaling), waitingDays, testingDates: testing.map((metric) => metric.metricDate), scalingDates: scaling.map((metric) => metric.metricDate), input, baseline }];
 }) : [];
 
 const reviewByScheduleCheckpoint = new Map(nonPromotionReviews.map((review) => [`${review.scheduleId}:${review.checkpointType}`, review]));

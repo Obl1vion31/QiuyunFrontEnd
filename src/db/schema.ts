@@ -406,6 +406,7 @@ export const operationsPromotionCampaign = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'cascade' }),
     startedOn: date('started_on').notNull(),
+    initialStage: text('initial_stage').notNull().default('testing'),
     endedOn: date('ended_on'),
     currentStage: text('current_stage'),
     currentStatus: text('current_status').notNull(),
@@ -415,6 +416,7 @@ export const operationsPromotionCampaign = pgTable(
   (table) => [
     index('operations_promotion_campaign_schedule_idx').on(table.scheduleId),
     index('operations_promotion_campaign_status_idx').on(table.currentStatus),
+    check('operations_promotion_initial_stage_check', sql`${table.initialStage} IN ('testing', 'scaling')`),
     check(
       'operations_promotion_campaign_status_check',
       sql`${table.currentStatus} IN ('testing', 'scaling', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded')`,
@@ -525,6 +527,50 @@ export const operationsPromotionDailyMetric = pgTable(
     ),
   ],
 );
+
+/** 明确的历史等待区间，不用虚构零指标表达未投放。 */
+export const operationsPromotionHold = pgTable('operations_promotion_hold', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'restrict' }),
+  startedOn: date('started_on').notNull(),
+  endedOn: date('ended_on').notNull(),
+  stageType: text('stage_type').notNull(),
+  resumeStage: text('resume_stage').notNull(),
+  reason: text('reason').notNull(),
+  sourceKey: text('source_key').unique(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('operations_promotion_hold_campaign_start_idx').on(table.campaignId, table.startedOn),
+  check('operations_promotion_hold_dates_check', sql`${table.endedOn} >= ${table.startedOn}`),
+  check('operations_promotion_hold_stages_check', sql`${table.stageType} IN ('testing','scaling') AND ${table.resumeStage} IN ('testing','scaling')`),
+]);
+
+/** 团队共用节假日暂停；实际生效状态按服务端时间计算，不依赖定时任务。 */
+export const operationsPromotionPause = pgTable('operations_promotion_pause', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  requestKey: uuid('request_key').notNull().unique(),
+  startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+  endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+  resumedAt: timestamp('resumed_at', { withTimezone: true }),
+  reason: text('reason').notNull(),
+  revision: integer('revision').notNull().default(0),
+  createdById: text('created_by_id').notNull(),
+  createdByLabel: text('created_by_label').notNull(),
+  updatedById: text('updated_by_id').notNull(),
+  updatedByLabel: text('updated_by_label').notNull(),
+  history: jsonb('history').$type<Array<{ at: string; actor: string; action: string; endsAt: string }>>().notNull().default([]),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [check('operations_promotion_pause_dates_check', sql`${table.endsAt} > ${table.startsAt} AND (${table.resumedAt} IS NULL OR ${table.resumedAt} >= ${table.startsAt})`)]);
+
+export const operationsPromotionPauseTarget = pgTable('operations_promotion_pause_target', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  pauseId: uuid('pause_id').notNull().references(() => operationsPromotionPause.id, { onDelete: 'restrict' }),
+  campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'restrict' }),
+  stageType: text('stage_type').notNull(),
+}, table => [
+  uniqueIndex('operations_promotion_pause_target_unique').on(table.pauseId, table.campaignId),
+  check('operations_promotion_pause_target_stage_check', sql`${table.stageType} IN ('testing','scaling')`),
+]);
 
 export interface WeeklyMeetingDraft {
   schemaVersion: 2;

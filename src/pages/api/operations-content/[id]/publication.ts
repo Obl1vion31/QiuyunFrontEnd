@@ -8,11 +8,13 @@ import { z } from 'zod';
 import { lockSchedule, readScheduleWorkflow, reasonSchema, saveDelayReason, WorkflowError } from '../../../../db/schedule-workflow';
 import { workflowErrorResponse } from '../../../../db/workflow-api';
 import { getDb } from '../../../../db/client';
+import { lockPromotionWorkflow } from '../../../../db/promotion-pauses';
 import {
   operationsContentSchedule,
   operationsContentVersion,
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
+  operationsPromotionHold,
   operationsScheduleChangeRequest,
 } from '../../../../db/schema';
 import {
@@ -38,6 +40,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
 
   try {
     const result = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
       const schedule = await lockSchedule(transaction, params.id!);
       if (form.get('expectedPlanRevision') !== null && Number(form.get('expectedPlanRevision')) !== schedule.planRevision) throw new WorkflowError('排期已更新，请刷新后重新登记实发。');
 
@@ -57,6 +60,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         throw new WorkflowError('请为每一天延期选择责任方并填写原因，再保存实发登记。', 422);
       }
       if (actualChanged && campaigns.length) {
+        await transaction.delete(operationsPromotionHold).where(inArray(operationsPromotionHold.campaignId, campaigns.map(campaign => campaign.id)));
         await transaction.delete(operationsPromotionCampaign).where(eq(operationsPromotionCampaign.scheduleId, params.id!));
       }
 

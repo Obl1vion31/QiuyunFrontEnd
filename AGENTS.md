@@ -4,7 +4,7 @@
 
 ## 1. 开始工作
 
-- 先阅读 `README.md`，了解技术栈、命令和当前状态。
+- 先阅读 `README.md` 与 `handoff.md`，了解技术栈、命令、最新交接与接手顺序。
 - 涉及已确认范围、技术或页面边界时，阅读 `docs/DECISIONS.md`。
 - 涉及视觉、交互或中文阅读体验时，阅读 `docs/DESIGN.md`。
 - 涉及优先级、阶段安排或未来能力时，阅读 `docs/ROADMAP.md`。
@@ -12,8 +12,12 @@
 
 ## 2. 文档职责
 
-- 各主要内容目录的 `README.md`：说明目录用途、文件职责、修改入口和安全边界；`src/pages/` 的说明写在 `src/README.md`，避免 Astro 生成额外路由。
+- 各主要内容目录的 `README.md`：说明目录用途、文件职责、修改入口和安全边界；`src/pages/` 的目录说明写在 `src/README.md`，详细页面讲解进入专题文档，避免 Astro 生成额外路由。
 - `docs/README.md`：核心文档导航和文档保存原则。
+- `handoff.md`：滚动维护最新交接、已验证交付与真实待办，不重复维护完整产品规则。
+- `docs/code-study.md`、`docs/database-guide.md`、`docs/deployment.md`：源码定位、数据库维护和部署操作入口；详细首页教学见 `docs/home-code-study.md`。
+- `docs/archive/`：用户要求保留的历史计划与交付记录，明确标为归档，不作为当前状态依据。
+- `data/imports/` 与 `data/references/`：私有原始表格和核对素材，除说明文件外不提交、不部署；现有备份仍位于 `.tools/backups/`。
 - `docs/DECISIONS.md`：已经确认的产品、结构和技术结论。
 - `docs/DESIGN.md`：已经确认的长期视觉与交互规则。
 - `docs/ROADMAP.md`：当前、下一步和暂缓事项。

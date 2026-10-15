@@ -6,6 +6,8 @@
 - `schedule-rules.mjs`：满 8 小时起算、逐日边界与发布状态的共享纯规则。
 - `schedule-workflow.ts`：改期申请、审批、历史计时段、逐日理由、历史补齐与团队提醒；所有写入共用排期事务锁。
 - `non-promotion-workflow.ts`：节点跳过／恢复事件及并发检查，复用真实复盘顺序，不生成指标占位。
+- `promotion-state.mjs`：排期、日度、历史共用的业务状态、整日暂停窗口、复盘日期与阶段天数。
+- `promotion-pauses.ts`：团队暂停批次、关联活动、员工／管理员操作、幂等及全局事务锁；当前状态按服务端时间推导。
 - `annual-plan.ts`：年度分区规划行、时间块、行级链接、快照和差异校验。
 - `annual-plan-storage.ts`：年度写入事务锁与批量跨年复制，保护已有目标配置。
 - `annual-plan-rules.mjs`：半月范围、旧快照兼容、深浅分段和自动总规划汇总，可由 Node 测试直接复用。

@@ -1,6 +1,6 @@
 # 数据模型与业务逻辑
 
-本文记录当前数据库的长期结构、关系和状态规则。数据库定义以 `src/db/schema.ts` 与 `drizzle/` 迁移为最终依据；Neon 操作、查询和恢复方法见 [`database-basics/README.md`](../database-basics/README.md)。
+本文记录当前数据库的长期结构、关系和状态规则。数据库定义以 `src/db/schema.ts` 与 `drizzle/` 迁移为最终依据；Neon 操作、查询和恢复方法见 [`database-basics/README.md`](../database-guide.md)。
 
 ## 1. 模型总览
 
@@ -378,3 +378,22 @@ Content
 - `operations_non_promotion_checkpoint_event`：按排期与首轮／二轮追加 skip / restore 事件，以单调 sequence 确定当前状态；不创建指标或空复盘记录。
 
 历史空分类归入固定临时帖，新增临时学科只映射临时帖；关联仍使用稳定 ID。所有新增业务历史都通过 RESTRICT 保护排期删除。
+
+
+## 11. 团队节假日暂停与历史等待
+
+`operations_promotion_campaign.initial_stage` 保存最早已知阶段，默认测试。已知历史从放量开始时直接保存放量基线，不补造早期测试事实。回放接口接受基线和明确等待区间。
+
+| 表 | 关键字段与职责 |
+| --- | --- |
+| `operations_promotion_hold` | `campaign_id`、`started_on`、`ended_on`、`stage_type`、`resume_stage`、`reason`、唯一来源键；保存已确认历史等待，不生成零指标 |
+| `operations_promotion_pause` | 幂等 `request_key`、起止时间、提前恢复时间、并发版本、原因、已验证操作者与变更历史 |
+| `operations_promotion_pause_target` | 暂停批次与当时实际运行 Campaign 的唯一关联，保留原测试／放量阶段；原本等待的活动不加入目标 |
+
+两种角色都能创建、调整和提前恢复。全局事务锁先于活动锁，重复请求只产生一个批次，并发调整检查版本。
+
+排期与日度页面共用有效状态函数：原始 `waiting_action + testing` 展示测试待定，`waiting_action + scaling` 展示推广暂停；节假日目标处于暂停窗口时展示推广暂停，截止日后的上海时间零点恢复原阶段。已经结束或淘汰的活动不因暂停到期而重新激活。
+
+完整暂停日从复盘队列和阶段天数排除，开始／恢复当日有实际投放的仍填真实数据。已存在等待活动的状态不变，完整假期内免逐日确认。暂停不写入虚构指标；已确认的投放零量是有效 `active` 日度事实，五项数值为 0，分母为 0 的成本为空。
+
+放量回到测试必须派生新版本、排期及 Campaign；版本共享原逻辑帖子笔记 ID，旧事实留在原版本。受控导入校正现有非推广指标时追加复盘版本，原有定稿周会快照不改写。

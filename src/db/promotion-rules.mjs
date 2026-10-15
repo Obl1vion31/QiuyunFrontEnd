@@ -55,10 +55,10 @@ export const nextPromotionState = (stage, decision) => {
   return { status: 'ended', stage: null, outcome: 'ended' };
 };
 
-export const replayPromotionHistory = (campaignStartedOn, metrics) => {
+export const replayPromotionHistory = (campaignStartedOn, metrics, options = {}) => {
   if (metrics.length === 0) return null;
-  let currentStage = 'testing';
-  let currentStatus = 'testing';
+  let currentStage = options.initialStage ?? 'testing';
+  let currentStatus = currentStage;
   let stageStartedOn = campaignStartedOn;
   let endedOn = null;
   const stages = [];
@@ -67,7 +67,28 @@ export const replayPromotionHistory = (campaignStartedOn, metrics) => {
     if (end >= stageStartedOn) stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: end, outcome });
     stageStartedOn = null;
   };
+  const holds = [...(options.holds ?? [])].sort((a, b) => a.startedOn.localeCompare(b.startedOn));
+  let holdIndex = 0;
   for (const metric of metrics) {
+    // 等待区间是状态事实，不插入伪造的零消耗日度数据。
+    while (holds[holdIndex]?.startedOn <= metric.metricDate) {
+      const hold = holds[holdIndex++];
+      if (!currentStage || hold.endedOn >= metric.metricDate) return null;
+      const wasWaiting = currentStatus === 'waiting_action';
+      closeOpenStage(previousDateKey(hold.startedOn), 'paused');
+      if (hold.preserveWaiting && wasWaiting) {
+        currentStatus = 'waiting_action';
+        continue;
+      }
+      const resumedStage = hold.resumeStage ?? currentStage;
+      if (resumedStage !== currentStage) {
+        const lastStage = stages.at(-1);
+        if (lastStage?.outcome === 'paused') lastStage.outcome = 'start_scaling';
+      }
+      currentStage = resumedStage;
+      currentStatus = currentStage;
+      stageStartedOn = nextDateKey(hold.endedOn);
+    }
     if (!currentStage) return null;
     const dailyStatus = metric.dailyStatus ?? 'active';
     if (currentStatus !== 'waiting_action' && dailyStatus === 'waiting_action') {

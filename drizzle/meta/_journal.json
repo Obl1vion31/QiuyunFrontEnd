@@ -204,6 +204,13 @@
       "when": 1791997987959,
       "tag": "0028_schedule_review_workflows",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792037152408,
+      "tag": "0029_promotion_pauses",
+      "breakpoints": true
     }
   ]
 }

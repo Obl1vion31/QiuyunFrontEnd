@@ -1,5 +1,7 @@
 # 验证
 
+`pnpm test:pauses` 在构建后验收员工创建／调整／恢复团队暂停、同源与登录保护、重复提交、并发版本，以及桌面／390／320px 布局。`promotion-pauses.test.ts` 和迁移测试覆盖服务端时间边界、整日略过、原有等待保留、历史回放与旧应用兼容。
+
 `pnpm test` 运行现有业务规则检查与 `auth.test.ts` 的独立内存 PostgreSQL 认证测试，覆盖哈希、初始化幂等、会话撤销、角色来源、CSRF 和多实例限流。
 
 先执行 `pnpm build`，再执行 `pnpm test:browser` 和 `pnpm test:annual-plan`。浏览器验收使用 `auth.fixture.ts` 自带的 PGlite 数据库、虚构账号与独立端口，覆盖真实 HTTP 权限、业务写入和桌面／手机登录体验，不连接 `.env` 中的共享 Neon 数据库。
