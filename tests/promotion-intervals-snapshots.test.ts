@@ -113,6 +113,7 @@ test('已结束活动与后续真实淘汰优先于未来预排，不能复活�
  const context={pauses:[],targets:[],holds:[],campaigns:[campaign],metrics:[{campaignId:'c',metricDate:'2026-10-01',dailyStatus:'active',stageTypeSnapshot:'testing',reviewDecision:'test_discarded'}],waitRanges:[{campaignId:'c',startedOn:'2026-10-03',endedOn:'2026-10-05',stageType:'testing',nextDecision:null,nextEffectiveOn:null}]};
  assert.equal(promotionStateOn(campaign,context,'2026-10-06')?.currentStatus,'test_discarded');
  assert.deepEqual(campaignWaitWindows(campaign,context),[]);
+ assert.equal(effectivePromotionStatus('none',null,campaign.id,context,new Date('2026-10-06T12:00:00+08:00')),'none','改用途后的非推广身份优先于旧活动');
  const manuallyClosed={...campaign,currentStatus:'ended'};
  const raw={...context,metrics:[{...context.metrics[0],reviewDecision:'test_continue'}],waitRanges:[]};
  const state=promotionStateOn(manuallyClosed,raw,'2026-10-06');assert.equal(state?.currentStatus,'ended');assert.equal(state?.stages[0].endedOn,'2026-10-02');

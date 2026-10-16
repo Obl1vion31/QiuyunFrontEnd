@@ -17,6 +17,7 @@ export function fullPauseRange(pause) {
   return startedOn <= endedOn ? { startedOn, endedOn } : null;
 }
 export function effectivePromotionStatus(status, stage, campaignId, context, now = new Date()) {
+  if (['none','pending','awaiting_promotion'].includes(status)) return status;
   const campaign = context.campaigns?.find(c => c.id === campaignId);
   if (campaign && context.waitRanges?.some(range => range.campaignId === campaignId)) {
     const state = promotionStateOn(campaign, context, shanghaiDateKey(now));
