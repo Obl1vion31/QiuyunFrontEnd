@@ -15,6 +15,7 @@ import {
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
   operationsPromotionHold,
+  operationsPromotionWaitRange,
   operationsScheduleChangeRequest,
 } from '../../../../db/schema';
 import {
@@ -60,6 +61,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         throw new WorkflowError('请为每一天延期选择责任方并填写原因，再保存实发登记。', 422);
       }
       if (actualChanged && campaigns.length) {
+        await transaction.delete(operationsPromotionWaitRange).where(inArray(operationsPromotionWaitRange.campaignId, campaigns.map(campaign => campaign.id)));
         await transaction.delete(operationsPromotionHold).where(inArray(operationsPromotionHold.campaignId, campaigns.map(campaign => campaign.id)));
         await transaction.delete(operationsPromotionCampaign).where(eq(operationsPromotionCampaign.scheduleId, params.id!));
       }
@@ -86,7 +88,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       return { kind: 'saved' as const };
     });
     if (result.kind === 'reset-required') return Response.json({
-      message: '更正实发时间会重置这条排期的推广活动和日度事实。',
+      message: '更正实发时间会重置这条排期的推广活动、日度事实及待定区间。',
       resetRequired: true,
       impact: { campaigns: result.campaigns, dailyMetrics: result.dailyMetrics },
     }, { status: 409 });

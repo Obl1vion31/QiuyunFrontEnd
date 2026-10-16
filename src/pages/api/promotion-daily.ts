@@ -18,7 +18,7 @@ import {
 } from '../../db/promotion-rules.mjs';
 import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/promotion-validation';
 import { attachPromotionToActivePause, guardPromotionStart, lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
-import { campaignPauseWindows, effectivePromotionStatus, nextReviewDate, promotionReplayOptions } from '../../db/promotion-state.mjs';
+import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, effectivePromotionStatus, nextReviewDate, promotionReplayOptions } from '../../db/promotion-state.mjs';
 import { WorkflowError } from '../../db/schedule-workflow';
 
 export const prerender = false;
@@ -142,7 +142,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         .where(eq(operationsPromotionCampaign.id, result.data.campaignId))
         .limit(1);
       if (!campaign) return { kind: 'missing' as const };
-      if (!campaign.currentStage) return { kind: 'closed' as const };
+
       if (!campaign.platformNoteId && !result.data.platformNoteId) return { kind: 'note-id-required' as const };
       if (!campaign.platformNoteId && result.data.platformNoteId) {
         await transaction.update(operationsContent).set({
@@ -155,20 +155,22 @@ export const POST: APIRoute = async ({ request, url }) => {
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
       const latest = allMetrics.at(-1);
       const context = await readPromotionContext(transaction);
-      const windows = [...campaignPauseWindows(campaign, context), ...context.holds.filter(hold => hold.campaignId === campaign.id)];
+      const windows = [...campaignPauseWindows(campaign, context), ...campaignWaitWindows(campaign, context), ...context.holds.filter(hold => hold.campaignId === campaign.id)];
       const expectedDate = nextReviewDate(latest?.metricDate, campaign.startedOn, windows);
       if (result.data.metricDate !== expectedDate) {
         return { kind: 'out-of-order' as const, expectedDate };
       }
-      const expectedDailyStatus = campaign.currentStatus === 'waiting_action' ? 'waiting_action' : 'active';
-      if (result.data.dailyStatus !== expectedDailyStatus || result.data.stageTypeSnapshot !== campaign.currentStage) {
+      const dailyState = promotionStateOn(campaign, context, result.data.metricDate);
+      if (!dailyState?.currentStage) return { kind: 'closed' as const };
+      const expectedDailyStatus = dailyState.currentStatus === 'waiting_action' ? 'waiting_action' : 'active';
+      if (result.data.dailyStatus !== expectedDailyStatus || result.data.stageTypeSnapshot !== dailyState.currentStage) {
         return { kind: 'invalid-decision' as const };
       }
       if (expectedDailyStatus === 'waiting_action' && ['test_continue','start_scaling','scaling_continue'].includes(result.data.reviewDecision)) {
         const nextDay = new Date(`${result.data.metricDate}T00:00:00+08:00`); nextDay.setUTCDate(nextDay.getUTCDate() + 1);
         await guardPromotionStart(transaction, shanghaiDateKey(nextDay));
       }
-      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data], promotionReplayOptions(campaign, context));
+      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data], { ...promotionReplayOptions(campaign, context), asOf: today });
       if (!replayed) return { kind: 'invalid-decision' as const };
       if (['testing','scaling'].includes(replayed.currentStatus) && replayed.currentStage) await attachPromotionToActivePause(transaction, campaign.id, replayed.currentStage);
 

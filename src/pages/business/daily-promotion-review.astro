@@ -1,14 +1,16 @@
 ---
+import BusinessPromotionNav from '../../components/BusinessPromotionNav.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
+import BusinessPromotionWaitRanges from '../../components/BusinessPromotionWaitRanges.astro';
 import BusinessPromotionPause from '../../components/BusinessPromotionPause.astro';
 import { readPromotionContext } from '../../db/promotion-pauses';
-import { campaignPauseWindows, countPromotionDays, dateInWindows, effectivePromotionStatus, fullPauseRange, nextReviewDate, promotionLabels, waitingPromotionDays, pauseIsActive } from '../../db/promotion-state.mjs';
+import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, countPromotionDays, dateInWindows, effectivePromotionStatus, fullPauseRange, nextReviewDate, promotionLabels, waitingPromotionDays, pauseIsActive } from '../../db/promotion-state.mjs';
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
 import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
-import { and, asc, between, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
+import { and, asc, between, eq, gte, isNull, lte, or } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
@@ -70,7 +72,7 @@ const decisionLabels: Record<string, string> = {
 };
 
 let databaseError = '';
-let promotionContext: Awaited<ReturnType<typeof readPromotionContext>> = { pauses: [], targets: [], holds: [] };
+let promotionContext: Awaited<ReturnType<typeof readPromotionContext>> = { pauses: [], targets: [], holds: [], waitRanges: [], campaigns: [], metrics: [] };
 let pauseInfo: { active: typeof promotionContext.pauses[number] | null; testing: number; scaling: number; affected: number } = { active: null, testing: 0, scaling: 0, affected: 0 };
 const visibleStatus = (campaign: { id: string; currentStatus: string; currentStage: string | null }) => effectivePromotionStatus(campaign.currentStatus, campaign.currentStage, campaign.id, promotionContext);
 let campaigns: Array<{
@@ -126,9 +128,8 @@ let metrics: Array<{
 const databaseStartedAt = performance.now();
 try {
   const database = getDb();
-  const activeStatuses = ['testing', 'scaling', 'waiting_action'];
   const campaignScope = activeView === 'daily'
-    ? inArray(operationsPromotionCampaign.currentStatus, activeStatuses)
+    ? undefined
     : and(
         lte(operationsPromotionCampaign.startedOn, historyTo),
         or(isNull(operationsPromotionCampaign.endedOn), gte(operationsPromotionCampaign.endedOn, historyFrom)),
@@ -206,8 +207,15 @@ try {
     .orderBy(asc(operationsContentSchedule.actualPublishAt), asc(operationsContentVersion.contentName)) : Promise.resolve([]),
   readPromotionContext(database),
   ]) as [typeof campaigns, typeof stages, typeof metrics, typeof awaitingSchedules, typeof promotionContext];
+  campaigns = campaigns.map(campaign => {
+    if (!promotionContext.waitRanges.some(range => range.campaignId === campaign.id)) return campaign;
+    const state = promotionStateOn(campaign, promotionContext, today);
+    if (!state) return campaign;
+    stages = [...stages.filter(stage => stage.campaignId !== campaign.id), ...state.stages.map(stage => ({ ...stage, campaignId: campaign.id, id: `${campaign.id}:${stage.stageType}:${stage.startedOn}` }))];
+    return { ...campaign, currentStage: state.currentStage, currentStatus: state.currentStatus, endedOn: state.endedOn };
+  });
   const active = promotionContext.pauses.find(pause => pauseIsActive(pause)) ?? null;
-  const running = campaigns.filter(campaign => ['testing','scaling'].includes(campaign.currentStatus));
+  const running = campaigns.filter(campaign => ['testing','scaling'].includes(visibleStatus(campaign)));
   pauseInfo = { active, testing: running.filter(campaign => campaign.currentStage === 'testing').length, scaling: running.filter(campaign => campaign.currentStage === 'scaling').length, affected: active ? promotionContext.targets.filter(target => target.pauseId === active.id).length : running.length };
 } catch (error) {
   console.error('daily promotion review query failed', error);
@@ -233,18 +241,18 @@ const awaitingRows = awaitingSchedules.filter((schedule) =>
   && shanghaiDateKey(schedule.actualPublishAt) <= yesterday
   && (!schedule.promotionDeferredThrough || schedule.promotionDeferredThrough < yesterday));
 const pendingRows = campaigns.flatMap((campaign) => {
-  if (!campaign.currentStage || campaign.startedOn > yesterday) return [];
+  if (campaign.startedOn > yesterday) return [];
   const campaignMetrics = metrics.filter((metric) => metric.campaignId === campaign.id);
   const latestMetric = campaignMetrics.at(-1);
-  const windows = [...campaignPauseWindows(campaign, promotionContext), ...promotionContext.holds.filter(hold => hold.campaignId === campaign.id)];
+  const windows = [...campaignPauseWindows(campaign, promotionContext), ...campaignWaitWindows(campaign, promotionContext), ...promotionContext.holds.filter(hold => hold.campaignId === campaign.id)];
   const expectedDate = nextReviewDate(latestMetric?.metricDate, campaign.startedOn, windows);
   if (expectedDate > yesterday) return [];
-  return dateRange(expectedDate, yesterday).filter(date => !dateInWindows(date, windows)).map((metricDate, index) => ({
+  return dateRange(expectedDate, yesterday).filter(date => !dateInWindows(date, windows) && promotionStateOn(campaign, promotionContext, date)?.currentStage).map((metricDate, index) => ({
     campaign,
     metricDate,
     unlocked: index === 0,
-    stageType: index === 0 ? campaign.currentStage : null,
-    campaignStatus: campaign.currentStatus,
+    stageType: index === 0 ? promotionStateOn(campaign, promotionContext, metricDate)?.currentStage : null,
+    campaignStatus: promotionStateOn(campaign, promotionContext, metricDate)?.currentStatus,
     blockedBy: expectedDate,
   }));
 }).sort((left, right) =>
@@ -350,7 +358,7 @@ const historyHref = (overrides: Record<string, string>) => {
   </head>
   <body>
     <BusinessConsoleFrame active="daily-promotion">
-        <BusinessConsoleToolbar title="日度推广复盘" subtitle={activeView === 'daily' ? `只处理尚未完成项 · 数据截至 ${latestFilledDate ? formatDate(latestFilledDate) : '尚未填写'}` : `推广历史总览 · ${formatDate(historyFrom)}—${formatDate(historyTo)}`} mobilePriority="center">
+        <BusinessConsoleToolbar title="推广帖复盘" subtitle={activeView === 'daily' ? `只处理尚未完成项 · 数据截至 ${latestFilledDate ? formatDate(latestFilledDate) : '尚未填写'}` : `推广历史总览 · ${formatDate(historyFrom)}—${formatDate(historyTo)}`} mobilePriority="center">
           <BusinessToolbarSegmented slot="center" label="推广复盘视图" items={[
             { label: '每日复盘', href: '?view=daily', active: activeView === 'daily' },
             { label: '历史总览', href: '?view=history', active: activeView === 'history' },
@@ -358,7 +366,7 @@ const historyHref = (overrides: Record<string, string>) => {
           <BusinessToolbarSummary slot="end" label={activeView === 'daily' ? '待完成' : '推广活动'} value={activeView === 'daily' ? pendingRows.length + awaitingRows.length : historyRows.length} detail={activeView === 'daily' ? `${pendingRows.filter((row) => row.unlocked).length + awaitingRows.length} 项可立即处理` : '点击活动查看逐日明细'} />
         </BusinessConsoleToolbar>
 
-        <main>
+        <main><BusinessPromotionNav active="daily"/>
           {databaseError && <p class="notice" role="alert">{databaseError}</p>}
 
           {activeView === 'daily' && <>
@@ -399,7 +407,7 @@ const historyHref = (overrides: Record<string, string>) => {
                       </header>
                       <div class="stage-summaries">
                         {stageDetails.map((stage) => <p class={stage.stageType}>
-                          <b>{stage.stageType === 'testing' ? '测试' : '放量'} {stage.days} 天{stage.open ? (visibleStatus(campaign) === 'promotion_paused' ? ' · 已暂停' : ' · 进行中') : ''}</b>
+                          <b>{stage.stageType === 'testing' ? '测试' : '放量'} {stage.days} 天{stage.open ? (['promotion_paused','test_pending'].includes(visibleStatus(campaign)) ? ' · 已暂停' : ' · 进行中') : ''}</b>
                           <span>（{formatFullDate(stage.startedOn)}－{formatFullDate(stage.visibleEnd)}）</span>
                         </p>)}
                         {waitingDays > 0 && <p class="waiting_action"><b>待定／暂停 {waitingDays} 天{campaign.currentStatus === 'waiting_action' ? ' · 进行中' : ''}</b><span>不计入测试或放量天数</span></p>}
@@ -416,6 +424,7 @@ const historyHref = (overrides: Record<string, string>) => {
                 </div>}
           </section>
 
+          <BusinessPromotionWaitRanges campaigns={campaigns} ranges={promotionContext.waitRanges} context={promotionContext}/>
           <div class="daily-pause-layout">
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
             <BusinessSectionHeader title="待完成复盘" headingId="daily-title" description="按日期顺序完成；已填数据请到历史总览查看。" contained />
@@ -595,6 +604,7 @@ const historyHref = (overrides: Record<string, string>) => {
                   <div><dt>状态</dt><dd>{statusLabels[visibleStatus(selectedHistoryRow.campaign)]}</dd></div>
                 </dl>
                 {selectedHistoryRow.campaign.platformNoteId && <details class="note-id-correction" data-admin-only><summary>更正笔记 ID</summary><form data-note-id-correction action={`/api/operations-content/${selectedHistoryRow.campaign.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><input type="hidden" data-old-note-id value={selectedHistoryRow.campaign.platformNoteId}/><input name="platformNoteId" aria-label="新笔记 ID" pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="新的 24 位笔记 ID"/><button>确认更正</button><output></output></form><p>该帖子的全部版本与复盘都会同步。</p></details>}
+                <BusinessPromotionWaitRanges campaigns={[selectedHistoryRow.campaign]} ranges={promotionContext.waitRanges} context={promotionContext} historical={true}/>
                 {promotionContext.holds.filter(hold => hold.campaignId === selectedHistoryRow.campaign.id).map(hold => <p class="history-hold">{hold.stageType === 'testing' ? '测试待定' : '推广暂停'} · {formatRange(hold.startedOn, hold.endedOn)}</p>)}
                 <div class="stage-history">
                   {selectedHistoryRow.stages.map((stage) => <p class={stage.stageType}>

@@ -12,6 +12,7 @@
     "check": "ASTRO_TELEMETRY_DISABLED=1 astro check",
     "test": "node --import tsx --test --test-reporter=spec tests/*.test.mjs tests/*.test.ts",
     "test:browser": "node --import tsx tests/auth.browser.ts",
+    "test:reviews": "node --import tsx tests/review-intervals.browser.ts",
     "test:pauses": "node --import tsx tests/promotion-pauses.browser.ts",
     "test:workflows": "node --import tsx tests/schedule-workflow.browser.ts",
     "test:annual-plan": "node --import tsx tests/annual-plan.browser.ts",

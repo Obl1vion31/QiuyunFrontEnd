@@ -1,14 +1,16 @@
 import type { APIRoute } from 'astro';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { getDb } from '../../../../../db/client';
-import { lockPromotionWorkflow } from '../../../../../db/promotion-pauses';
+import { lockPromotionWorkflow, readPromotionContext } from '../../../../../db/promotion-pauses';
 import {
   operationsContent,
   operationsContentSchedule,
   operationsContentVersion,
   operationsPromotionCampaign,
   operationsPromotionStage,
+  operationsPromotionWaitRange,
 } from '../../../../../db/schema';
+import { promotionStateOn } from '../../../../../db/promotion-state.mjs';
 import { shanghaiDateKey } from '../../../../../db/promotion-rules.mjs';
 import {
   issuesByField,
@@ -68,23 +70,36 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       const [activeCampaign] = await transaction.select({
         id: operationsPromotionCampaign.id,
         currentStage: operationsPromotionCampaign.currentStage,
+        currentStatus: operationsPromotionCampaign.currentStatus,
+        startedOn: operationsPromotionCampaign.startedOn,
+        initialStage: operationsPromotionCampaign.initialStage,
+        endedOn: operationsPromotionCampaign.endedOn,
       }).from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.scheduleId, sourceSchedule.id))
         .orderBy(desc(operationsPromotionCampaign.createdAt))
         .limit(1);
-      const sourceClosingStatus = sourceSchedule.promotionStatus === 'testing'
+      let plannedEnd: { currentStatus: string; endedOn: string | null } | null = null;
+      if (activeCampaign) {
+        const ranges = await transaction.select().from(operationsPromotionWaitRange).where(eq(operationsPromotionWaitRange.campaignId, activeCampaign.id));
+        if (ranges.length) {
+          const state = promotionStateOn(activeCampaign, await readPromotionContext(transaction));
+          if (state?.currentStage) return { kind: 'waiting-plan' as const };
+          if (state) plannedEnd = state;
+        }
+      }
+      const sourceClosingStatus = plannedEnd?.currentStatus ?? (sourceSchedule.promotionStatus === 'testing'
         ? 'test_discarded'
         : sourceSchedule.promotionStatus === 'scaling' || (sourceSchedule.promotionStatus === 'waiting_action' && activeCampaign?.currentStage === 'scaling')
           ? 'formal_discarded'
           : sourceSchedule.promotionStatus === 'waiting_action'
             ? 'test_discarded'
-          : sourceSchedule.promotionStatus;
+          : sourceSchedule.promotionStatus);
       if (sourceClosingStatus !== sourceSchedule.promotionStatus) {
         await transaction.update(operationsContentSchedule)
           .set({ promotionStatus: sourceClosingStatus, updatedAt: new Date() })
           .where(eq(operationsContentSchedule.id, sourceSchedule.id));
         if (activeCampaign?.currentStage) {
-          const endedOn = shanghaiDateKey(new Date());
+          const endedOn = plannedEnd?.endedOn ?? shanghaiDateKey(new Date());
           await transaction.update(operationsPromotionStage).set({
             endedOn,
             outcome: sourceClosingStatus,
@@ -131,6 +146,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       return { kind: 'created' as const, scheduleId: schedule.id, versionNumber: nextVersionNumber };
     });
 
+    if (created.kind === 'waiting-plan') return Response.json({ message: '该版本仍有待定安排，请先在历史总览明确结束或淘汰原版本，再创建改帖。' }, { status: 409 });
     if (created.kind === 'missing') return Response.json({ message: '没有找到来源版本。' }, { status: 404 });
     if (created.kind === 'missing-schedule') return Response.json({ message: '来源排期与版本不匹配。' }, { status: 409 });
     if (created.kind === 'outdated-source') {

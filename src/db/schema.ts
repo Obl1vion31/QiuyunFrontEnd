@@ -573,7 +573,13 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 ]);
 
 export interface WeeklyMeetingDraft {
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
+  situation?: string;
+  strategy?: string;
+  promotionSnapshotIds?: string[];
+  temporaryNotes?: string;
+  temporaryLinks?: Array<{ label: string; url: string }>;
+  attachmentIds?: string[];
   coreConclusion: string;
   nextAction: string;
   promotionInputs: Record<string, { clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
@@ -755,3 +761,56 @@ export const operationsCategoryPolicyVersion = pgTable(
 
 export type OperationsScheduleRow = typeof operationsContentSchedule.$inferSelect;
 export type OperationsContentVersionRow = typeof operationsContentVersion.$inferSelect;
+
+/** 待定截止日只触发下一步提醒；明确决定后才恢复，不生成日度指标。 */
+export const operationsPromotionWaitRange = pgTable('operations_promotion_wait_range', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'restrict' }),
+  requestKey: uuid('request_key').notNull().unique(),
+  startedOn: date('started_on').notNull(),
+  endedOn: date('ended_on').notNull(),
+  stageType: text('stage_type').notNull(),
+  reason: text('reason').notNull(),
+  nextDecision: text('next_decision'),
+  nextEffectiveOn: date('next_effective_on'),
+  revision: integer('revision').notNull().default(0),
+  history: jsonb('history').$type<Array<Record<string, unknown>>>().notNull().default([]),
+  updatedByLabel: text('updated_by_label').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('operations_promotion_wait_start_idx').on(table.campaignId, table.startedOn),
+  check('operations_promotion_wait_dates_check', sql`${table.endedOn} >= ${table.startedOn} AND (${table.nextEffectiveOn} IS NULL OR ${table.nextEffectiveOn} > ${table.endedOn})`),
+  check('operations_promotion_wait_stage_check', sql`${table.stageType} IN ('testing','scaling')`),
+  check('operations_promotion_wait_decision_check', sql`(${table.nextDecision} IS NULL AND ${table.nextEffectiveOn} IS NULL) OR (${table.nextDecision} IS NOT NULL AND ${table.nextEffectiveOn} IS NOT NULL AND ((${table.stageType} = 'testing' AND ${table.nextDecision} IN ('test_continue','start_scaling','test_discarded')) OR (${table.stageType} = 'scaling' AND ${table.nextDecision} IN ('scaling_continue','formal_discarded','ended'))))`),
+]);
+
+export const operationsPromotionStageReview = pgTable('operations_promotion_stage_review', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  requestKey: uuid('request_key').notNull().unique(),
+  name: text('name').notNull(),
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  createdByLabel: text('created_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [check('operations_promotion_stage_review_dates_check', sql`${table.periodEnd} >= ${table.periodStart}`)]);
+
+export const operationsPromotionStageReviewVersion = pgTable('operations_promotion_stage_review_version', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  reviewId: uuid('review_id').notNull().references(() => operationsPromotionStageReview.id, { onDelete: 'restrict' }),
+  versionNumber: integer('version_number').notNull(),
+  snapshot: jsonb('snapshot').$type<Record<string, unknown>>().notNull(),
+  createdByLabel: text('created_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [uniqueIndex('operations_promotion_stage_review_version_idx').on(table.reviewId, table.versionNumber), check('operations_promotion_stage_review_version_number_check', sql`${table.versionNumber} >= 0`)]);
+
+/** 图片私有存储，仅经登录保护接口读取；不将二进制加载进例会列表。 */
+export const operationsMeetingAttachment = pgTable('operations_meeting_attachment', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  meetingId: uuid('meeting_id').notNull().references(() => operationsReviewMeeting.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  mimeType: text('mime_type').notNull(),
+  byteLength: integer('byte_length').notNull(),
+  base64: text('base64').notNull(),
+  createdByLabel: text('created_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [check('operations_meeting_attachment_size_check', sql`${table.byteLength} > 0 AND ${table.byteLength} <= 3145728`), check('operations_meeting_attachment_type_check', sql`${table.mimeType} IN ('image/png','image/jpeg','image/webp')`)]);

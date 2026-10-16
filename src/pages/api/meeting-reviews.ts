@@ -1,3 +1,5 @@
+import { readMeetingMaterial } from '../../db/meeting-snapshots';
+import { eq } from 'drizzle-orm';
 import type { APIRoute } from 'astro';
 import { inArray } from 'drizzle-orm';
 import { getDb } from '../../db/client';
@@ -19,9 +21,13 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
   if (!result.success) return Response.json({ message: '请检查会议信息。', fields: issuesByField(result.error.issues) }, { status: 422 });
   const name = result.data.name || `${shortDate(result.data.periodStart, true)}—${shortDate(result.data.periodEnd)} 周度业务复盘`;
   try {
-    const [meeting] = await getDb().insert(operationsReviewMeeting).values({
-      ...result.data, name, meetingType: 'weekly', createdByLabel: locals.operationsUser || 'unknown',
-    }).returning({ id: operationsReviewMeeting.id });
+    const meeting = await getDb().transaction(async tx => { const [created] = await tx.insert(operationsReviewMeeting).values({
+      ...result.data, name, meetingType: 'weekly', draftSnapshot: { schemaVersion: 3, coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: [], nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',
+    }).returning();
+      const material = await readMeetingMaterial(tx, created);
+      await tx.update(operationsReviewMeeting).set({ draftSnapshot: { ...created.draftSnapshot, nonPromotionSelections: material.candidates.filter(c => c.recommended).map(c => ({ scheduleId: c.scheduleId, checkpointType: c.checkpointType })) } }).where(eq(operationsReviewMeeting.id, created.id));
+      return created;
+    });
     return Response.json({ ok: true, id: meeting.id }, { status: 201 });
   } catch (error) {
     console.error('meeting review create failed', error);

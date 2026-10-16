@@ -2,7 +2,7 @@
 import { ClientRouter } from 'astro:transitions';
 import BusinessAccountMenu from './BusinessAccountMenu.astro';
 import BusinessScheduleNotifications from './BusinessScheduleNotifications.astro';
-type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'promotion-stage' | 'non-promotion-review' | 'meeting-review' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
 const groups = [
@@ -16,7 +16,8 @@ const groups = [
   {
     label: '复盘与沉淀',
     modules: [
-      { id: 'daily-promotion', href: '/business/daily-promotion-review', label: '日度推广复盘', icon: 'daily' },
+      { id: 'daily-promotion', href: '/business/daily-promotion-review', label: '推广帖复盘', icon: 'daily' },
+      { id: 'promotion-stage', href: '/business/promotion-stage-review', label: '推广帖测试放量复盘', icon: 'review' },
       { id: 'non-promotion-review', href: '/business/non-promotion-review', label: '非推广复盘', icon: 'review' },
       { id: 'meeting-review', href: '/business/meeting-review', label: '例会总复盘', icon: 'meeting' },
     ],
@@ -43,8 +44,8 @@ const iconPaths = {
     {groups.map((group) => <section class="business-sidebar__group">
       <h2>{group.label}</h2>
       <div>
-        {group.modules.map((module) => <a
-          class:list={{ active: active === module.id }}
+        {group.modules.map((module) => <Fragment>{module.id === 'daily-promotion' && <h3 class="business-sidebar__promotion-label">推广复盘</h3>}<a
+          class:list={{ active: active === module.id, "business-sidebar__stage-link": module.id === "promotion-stage", "business-sidebar__daily-link": module.id === "daily-promotion" }}
           href={module.href}
           data-module-id={module.id}
           data-module-href={module.href}
@@ -52,8 +53,8 @@ const iconPaths = {
           aria-current={active === module.id ? 'page' : undefined}
         >
           <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths[module.icon]} /></svg>
-          <strong>{module.label}</strong>
-        </a>)}
+          <strong>{module.label}</strong>{module.id === 'daily-promotion' && <span class="business-sidebar__mobile-promotion">推广复盘</span>}
+        </a></Fragment>)}
       </div>
     </section>)}
     <span class="business-sidebar__planned" aria-disabled="true">
@@ -102,6 +103,7 @@ const iconPaths = {
     });
     const selectPath = (pathname: string) => links.forEach((link) => {
       const selected = new URL(link.dataset.moduleHref!, location.origin).pathname === pathname;
+      link.classList.toggle('promotion-group-active', link.dataset.moduleId === 'daily-promotion' && pathname === '/business/promotion-stage-review');
       link.classList.toggle('active', selected);
       if (selected) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
@@ -172,6 +174,8 @@ const iconPaths = {
 </style>
 
 <style>
+  .business-sidebar__promotion-label{margin:5px 10px 0;font-size:.67rem;color:#68736d;font-weight:600}.business-sidebar__mobile-promotion{display:none}
+  @media(max-width:900px){.business-sidebar__promotion-label,.business-sidebar__nav .business-sidebar__stage-link,.business-sidebar__daily-link strong{display:none}.business-sidebar__mobile-promotion{display:block;font-size:.58rem;white-space:nowrap}.business-sidebar__daily-link.promotion-group-active{color:#244fbf;background:#dce5ff}}
   .business-sidebar,.business-sidebar *{box-sizing:border-box}
   .business-sidebar{position:sticky;top:0;width:232px;height:100vh;z-index:20;display:flex;flex-direction:column;padding:18px 12px 14px;color:#17211c;background:#e7ece8;border-right:1px solid #c9d1cc;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2}
   .business-sidebar__brand{display:grid;gap:3px;padding:8px 10px 22px;color:inherit;text-decoration:none}.business-sidebar__brand span{color:#4e6b5b;font:750 .62rem/1.2 ui-monospace,monospace;letter-spacing:.14em}.business-sidebar__brand strong{font-size:1rem;line-height:1.2;letter-spacing:-.02em}

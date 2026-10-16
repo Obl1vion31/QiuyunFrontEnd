@@ -38,9 +38,11 @@ test('周会非推广推荐榜保存节点勾选并允许重复复盘', async ()
   const api = await readFile(new URL('../src/pages/api/meeting-reviews/[id].ts', import.meta.url), 'utf8');
   assert.match(schema, /schemaVersion: 2/);
   assert.match(schema, /nonPromotionSelections/);
-  assert.match(page, /非推广推荐榜/);
-  assert.match(page, /已复盘 \{item\.priorCount\} 次/);
+  assert.match(page, /非推广复盘快照/);
+  assert.match(page, /已复盘 \{row\.priorReviewCount\} 次/);
   assert.match(page, /data-non-promotion-selection/);
-  assert.match(page, /dueOn > rangeEnd/);
-  assert.match(api, /非推广复盘勾选重复/);
+  const material = await readFile(new URL('../src/db/meeting-snapshots.ts', import.meta.url), 'utf8');
+  assert.match(material, /dueOn > meeting\.periodEnd/);
+  assert.match(api, /meetingDraftSchema\.safeParse/);
+  assert.match(material, /引用或勾选重复/);
 });

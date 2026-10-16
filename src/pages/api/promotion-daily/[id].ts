@@ -8,6 +8,7 @@ import {
   operationsPromotionDailyMetric,
   operationsPromotionStage,
   operationsPromotionHold,
+  operationsPromotionWaitRange,
 } from '../../../db/schema';
 import { replayPromotionHistory } from '../../../db/promotion-rules.mjs';
 import { lockPromotionWorkflow, readPromotionContext } from '../../../db/promotion-pauses';
@@ -62,11 +63,13 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
       const later = lifecycleChanged ? allMetrics.filter((metric) => metric.metricDate > existing.metricDate) : [];
-      if (later.length > 0 && !parsed.data.confirmCascade) {
+      const context = await readPromotionContext(transaction);
+      const affectedRanges = lifecycleChanged ? context.waitRanges.filter(r => r.campaignId === campaign.id && (!r.nextEffectiveOn || r.nextEffectiveOn > existing.metricDate)) : [];
+      if ((later.length > 0 || affectedRanges.length > 0) && !parsed.data.confirmCascade) {
         const laterStages = await transaction.select({ id: operationsPromotionStage.id })
           .from(operationsPromotionStage)
           .where(sql`${operationsPromotionStage.campaignId} = ${existing.campaignId} and ${operationsPromotionStage.startedOn} > ${existing.metricDate}`);
-        return { kind: 'confirmation' as const, dailyMetrics: later.length, stages: laterStages.length };
+        return { kind: 'confirmation' as const, dailyMetrics: later.length, stages: laterStages.length, waitRanges: affectedRanges.length };
       }
 
       const retainedCandidate = allMetrics
@@ -77,7 +80,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
           stageTypeSnapshot: parsed.data.stageTypeSnapshot,
           reviewDecision: parsed.data.reviewDecision,
         } : metric);
-      const context = await readPromotionContext(transaction);
+      if (lifecycleChanged) context.waitRanges = context.waitRanges.filter(r => !affectedRanges.some(a => a.id === r.id));
       if (lifecycleChanged) context.holds = context.holds.filter(hold => hold.campaignId !== campaign.id || hold.endedOn <= existing.metricDate);
       const replayed = lifecycleChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate, promotionReplayOptions(campaign, context)) : null;
       if (lifecycleChanged && !replayed) return { kind: 'invalid-decision' as const };
@@ -85,6 +88,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       if (lifecycleChanged && later.length > 0) {
         await transaction.delete(operationsPromotionDailyMetric).where(sql`${operationsPromotionDailyMetric.campaignId} = ${existing.campaignId} and ${operationsPromotionDailyMetric.metricDate} > ${existing.metricDate}`);
       }
+      for (const range of affectedRanges) await transaction.delete(operationsPromotionWaitRange).where(eq(operationsPromotionWaitRange.id, range.id));
       if (lifecycleChanged) await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
       await transaction.update(operationsPromotionDailyMetric).set({
         dailyStatus: parsed.data.dailyStatus,
@@ -123,9 +127,9 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
     if (result.kind === 'invalid-decision') return Response.json({ message: '下一步与该日阶段不匹配。' }, { status: 409 });
     if (result.kind === 'confirmation') {
       return Response.json({
-        message: `修改下一步会删除后续 ${result.dailyMetrics} 条日度记录，并重建生命周期。`,
+        message: `修改下一步会删除后续 ${result.dailyMetrics} 条日度记录及 ${result.waitRanges} 个待定区间，并重建生命周期。`,
         correctionRequired: true,
-        impact: { dailyMetrics: result.dailyMetrics, stages: result.stages },
+        impact: { dailyMetrics: result.dailyMetrics, stages: result.stages, waitRanges: result.waitRanges },
       }, { status: 409 });
     }
     return Response.json({ ok: true, deleted: result.deleted });

@@ -1,6 +1,6 @@
 # 前端团队管理系统
 
-面向内容运营的团队工作台：年度总周期规划、帖子版本与排期、推广日度复盘、非推广首轮／二轮复盘，以及周度例会。
+面向内容运营的团队工作台：年度总周期规划、帖子版本与排期、推广日度复盘、非推广首轮／二轮复盘、推广阶段快照与例会。
 
 - [公网工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)
 - [最新交接](handoff.md)：最近交付、验证范围和接手顺序。
@@ -49,9 +49,10 @@ pnpm build
 
 - 年度规划：`/business/annual-plan`，总规划由学科细致规划自动汇总。
 - 帖子排期：`/business/operations-schedule`，新做帖建立 V0，修改内容建立 V1+，实发单独登记。
-- 推广日度：`/business/daily-promotion-review`，T+1 指标、测试／放量、历史更正和团队节假日暂停。
+- 推广日度：`/business/daily-promotion-review`，T+1 指标、测试／放量、待定区间与次日计划、历史更正和团队节假日暂停。
+- 推广阶段：`/business/promotion-stage-review`，自选日期汇总测试／放量，保存 V0/V1+ 快照供例会引用。
 - 非推广复盘：`/business/non-promotion-review`，首轮／二轮指标、学科分类筛选及不复盘／恢复。
-- 例会：`/business/meeting-review`；全局规则：`/business/settings`。
+- 例会：`/business/meeting-review`，五部分报告、指定版本快照、私有图片和结论事项；全局规则：`/business/settings`。
 
 账号分为管理员和员工；两种角色均可处理日常复盘和团队暂停。已有应发时间的员工改期需要管理员审批。完整权限及业务口径见[已确认决定](docs/DECISIONS.md)。
 

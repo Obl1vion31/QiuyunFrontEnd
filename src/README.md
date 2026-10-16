@@ -18,3 +18,5 @@
 `src/pages/` 及其子目录不放置 README，避免 Astro 将 Markdown 生成为公开页面；这些目录的说明统一保留在本页与代码索引中。
 
 修改共享导航、字体或布局进入共享组件，不在页面复制壳层。客户端不得导入数据库连接和认证密钥。业务写入使用服务端校验与事务，角色从已验证会话读取。新增入口同步检查[已确认边界](../docs/DECISIONS.md)和对应目录说明。
+
+推广复盘分为 `pages/business/daily-promotion-review.astro` 的每日／历史，以及 `pages/business/promotion-stage-review.astro` 的自选时间段与不可变快照。例会五部分位于 `meeting-review.astro`，草稿和定稿的事实装配在 `db/meeting-snapshots.ts`；图片只走受认证的 `api/meeting-attachments`，不放入公开资源。

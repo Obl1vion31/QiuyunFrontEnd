@@ -7,7 +7,7 @@
 - `ContentTunnel.tsx`：首页 React Island，负责滚动进度、封面循环、流程状态和首屏结构。
 - `ContentTunnel.module.css`：负责 Hero 的封面纵深、统一遮罩、信息排版、流程轨道和响应式样式。
 - `BusinessConsoleSidebar.astro`：业务控制台共享导航，负责 Quiet Operations 视觉、持久化跨页切换、即时选择反馈、受控预取和加载状态。
-- `BusinessConsoleFrame.astro`：六个业务页面的共享应用壳层，集中装配 Sidebar、Workspace 与控制台视觉变量。
+- `BusinessConsoleFrame.astro`：业务页面的共享应用壳层，集中装配 Sidebar、Workspace 与控制台视觉变量。
 - `BusinessConsoleToolbar.astro`：业务页统一工具栏，通过中部和右侧插槽承载日期、视角、汇总与主要动作。
 - `BusinessToolbarPeriodNav.astro`：Toolbar 统一年月切换控件。
 - `BusinessToolbarSegmented.astro`：Toolbar 统一视角与显示方式切换控件。
@@ -52,3 +52,8 @@ ContentTunnel.module.css
 `BusinessAccountMenu.astro` 在桌面侧栏和手机工具栏显示账号与退出，原生 popover 避免层级裁切。Frame 统一维护并发请求、延迟反馈及登录失效提示；管理员动作使用 `data-admin-only`，服务端权限另由 middleware 和业务事务检查。
 
 `BusinessScheduleNotifications.astro` 在共享侧栏提供团队排期待办，手机通过排期导航角标显示延期数量；刷新逻辑位于 `src/scripts/schedule-notifications.ts`。
+
+- `BusinessPromotionWaitRanges.astro`：每日与历史共用的待定区间和下一步编辑器。
+- `BusinessPromotionNav.astro`：推广日度／阶段的页内子导航，适配手机聚合入口。
+- `BusinessPromotionSnapshot.astro`：可供截图和例会引用的阶段汇总及来源明细。
+- `BusinessMeetingSnapshot.astro`：五部分定稿的冻结内容及旧格式兼容展示。

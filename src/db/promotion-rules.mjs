@@ -56,7 +56,7 @@ export const nextPromotionState = (stage, decision) => {
 };
 
 export const replayPromotionHistory = (campaignStartedOn, metrics, options = {}) => {
-  if (metrics.length === 0) return null;
+  if (metrics.length === 0 && !options.asOf) return null;
   let currentStage = options.initialStage ?? 'testing';
   let currentStatus = currentStage;
   let stageStartedOn = campaignStartedOn;
@@ -67,28 +67,68 @@ export const replayPromotionHistory = (campaignStartedOn, metrics, options = {})
     if (end >= stageStartedOn) stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: end, outcome });
     stageStartedOn = null;
   };
-  const holds = [...(options.holds ?? [])].sort((a, b) => a.startedOn.localeCompare(b.startedOn));
-  let holdIndex = 0;
-  for (const metric of metrics) {
-    // 等待区间是状态事实，不插入伪造的零消耗日度数据。
-    while (holds[holdIndex]?.startedOn <= metric.metricDate) {
-      const hold = holds[holdIndex++];
-      if (!currentStage || hold.endedOn >= metric.metricDate) return null;
-      const wasWaiting = currentStatus === 'waiting_action';
-      closeOpenStage(previousDateKey(hold.startedOn), 'paused');
-      if (hold.preserveWaiting && wasWaiting) {
-        currentStatus = 'waiting_action';
+  const events = [
+    ...(options.waitRanges ?? []).flatMap(range => [
+      { date: range.startedOn, kind: 'wait', priority: 2, range },
+      ...(range.nextDecision && range.nextEffectiveOn ? [{ date: range.nextEffectiveOn, kind: 'next', priority: 1, range }] : []),
+    ]),
+    ...(options.holds ?? []).flatMap((hold, index) => [
+      { date: hold.startedOn, kind: 'holdStart', priority: 3, hold, index },
+      { date: nextDateKey(hold.endedOn), kind: 'holdEnd', priority: 0, hold, index },
+    ]),
+  ].sort((a, b) => a.date.localeCompare(b.date) || a.priority - b.priority);
+  let eventIndex = 0;
+  let rangeWaiting = false;
+  const supersededRanges = new Set();
+  const openHolds = new Set();
+  const applyEvents = through => {
+    while (events[eventIndex]?.date <= through) {
+      const event = events[eventIndex++];
+      if (event.kind === 'holdStart') {
+        if (!currentStage) continue;
+        closeOpenStage(previousDateKey(event.date), 'paused');
+        openHolds.add(event.index);
         continue;
       }
-      const resumedStage = hold.resumeStage ?? currentStage;
-      if (resumedStage !== currentStage) {
-        const lastStage = stages.at(-1);
-        if (lastStage?.outcome === 'paused') lastStage.outcome = 'start_scaling';
+      if (event.kind === 'holdEnd') {
+        if (!openHolds.delete(event.index) || !currentStage) continue;
+        if (!event.hold.preserveWaiting && !rangeWaiting) {
+          const resumedStage = event.hold.resumeStage ?? currentStage;
+          if (resumedStage !== currentStage) {
+            const lastStage = stages.at(-1);
+            if (lastStage?.outcome === 'paused') lastStage.outcome = 'start_scaling';
+          }
+          currentStage = resumedStage;
+          currentStatus = currentStage;
+        }
+        if (!openHolds.size && !rangeWaiting && currentStatus !== 'waiting_action') stageStartedOn = event.date;
+        continue;
       }
-      currentStage = resumedStage;
-      currentStatus = currentStage;
-      stageStartedOn = nextDateKey(hold.endedOn);
+      if (supersededRanges.has(event.range)) continue;
+      // 之后真实的淘汰／结束决定优先于此前预排的未来待定，不允许复活活动。
+      if (!currentStage && event.kind === 'wait') { supersededRanges.add(event.range); continue; }
+      if (!currentStage || event.range.stageType !== currentStage) return false;
+      if (event.kind === 'wait') {
+        closeOpenStage(previousDateKey(event.date), 'paused');
+        currentStatus = 'waiting_action';
+        rangeWaiting = true;
+      } else {
+        if (!rangeWaiting || currentStatus !== 'waiting_action') return false;
+        const next = nextPromotionState(currentStage, event.range.nextDecision);
+        if (!next || next.status === 'waiting_action') return false;
+        const lastStage = stages.at(-1);
+        if (lastStage?.outcome === 'paused' && next.outcome !== 'continued' && next.outcome !== 'scaling_continued') lastStage.outcome = next.outcome;
+        currentStatus = next.status;
+        currentStage = next.stage;
+        stageStartedOn = currentStage && !openHolds.size ? event.date : null;
+        endedOn = currentStage ? null : previousDateKey(event.date);
+        rangeWaiting = false;
+      }
     }
+    return true;
+  };
+  for (const metric of metrics) {
+    if (!applyEvents(metric.metricDate) || rangeWaiting || openHolds.size) return null;
     if (!currentStage) return null;
     const dailyStatus = metric.dailyStatus ?? 'active';
     if (currentStatus !== 'waiting_action' && dailyStatus === 'waiting_action') {
@@ -156,6 +196,7 @@ export const replayPromotionHistory = (campaignStartedOn, metrics, options = {})
       else endedOn = metric.metricDate;
     }
   }
+  if (!applyEvents(options.asOf ?? nextDateKey(metrics.at(-1).metricDate))) return null;
   if (currentStage && stageStartedOn) stages.push({ stageType: currentStage, startedOn: stageStartedOn, endedOn: null, outcome: null });
   return { stages, currentStage, currentStatus, endedOn };
 };

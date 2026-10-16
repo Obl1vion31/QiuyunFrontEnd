@@ -51,3 +51,9 @@ flowchart LR
 - [维护工具](../scripts/README.md)
 - [验证](../tests/README.md)
 - [部署](deployment.md)
+
+## 推广阶段与例会入口
+
+- `/business/promotion-stage-review`：自选日期、预览及 V0/V1+ 快照；聚合与存储在 `src/db/promotion-stage-reviews.ts`，接口为 `/api/promotion-stage-reviews`。旧 `/api/stage-reviews` 继续作为例会兼容入口。
+- `src/db/promotion-wait-ranges.ts` 与 `/api/promotion-wait-ranges`：逐帖区间、次日动作和历史保护；`BusinessPromotionWaitRanges` 同时用于每日和历史。共用时序推导在 `promotion-rules.mjs` 与 `promotion-state.mjs`。
+- `src/db/meeting-snapshots.ts`：例会草稿校验和服务端生成的引用事实；`BusinessMeetingSnapshot` 展示冻结版本。`/api/meeting-attachments` 负责登录保护的图片上传和读取。
