@@ -72,6 +72,30 @@ try {
     assert.equal(await page.locator('.review-post-group').count(),2,'同一逻辑帖的 V0 / V1 按排期独立分组');
     assert.equal(await page.locator('[data-group-toggle]').isChecked(),true);
     assert.equal(await page.locator('[data-sort=click]').isDisabled(),true);
+    assert.equal(await page.locator('.sort-hint,.post-group-title').count(),0);
+    const groupingGeometry=()=>page.evaluate(()=>{
+      const rects=[document.querySelector('[data-review-filters]')!,document.querySelector('.table-head')!,...document.querySelectorAll('.table-head>[role=columnheader]')].map(node=>{const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height]});
+      return {filters:rects[0],header:rects[1],columns:rects.slice(2)};
+    });
+    await page.evaluate(()=>{(window as any).__groupTable=document.querySelector('.review-table');(window as any).__groupHead=document.querySelector('.table-head');(window as any).__groupRows=[...document.querySelectorAll('[data-inspector-key]')];});
+    const tableScroll=await page.locator('.table-scroll').evaluate((node:HTMLElement)=>{node.scrollLeft=43;return node.scrollLeft;});
+    const groupGeometry=await groupingGeometry();assert.equal(groupGeometry.columns.length,6);
+    let groupDocuments=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')groupDocuments++;});
+    await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});
+    await page.locator('[data-group-toggle]').uncheck();await page.waitForURL(/group=0/);
+    assert.deepEqual(await groupingGeometry(),groupGeometry,'分组切换保留筛选、表头和六列坐标');
+    assert.equal(await page.locator('.table-scroll').evaluate((node:HTMLElement)=>node.scrollLeft),tableScroll,'分组切换保留表格横向位置');
+    assert.equal(await page.evaluate(()=>(window as any).__groupTable===document.querySelector('.review-table')&&(window as any).__groupHead===document.querySelector('.table-head')&&(window as any).__groupRows.every((node:Element)=>node.isConnected)),true,'只移动现有行，保留公共节点');
+    assert.equal(groupDocuments,0,'分组切换不请求新文档');
+    await page.screenshot({path:`.tools/test-artifacts/review-ungrouped-${width}.png`,fullPage:true});
+    await page.locator('[data-sort=click]').click();
+    await page.locator('[data-group-toggle]').check();await page.waitForURL(/group=1/);
+    assert.equal(await page.locator('[data-sort=click]').isDisabled(),true);
+    assert.equal(await page.locator('[data-sort=date]').locator('..').getAttribute('aria-sort'),'descending','跨轮分组恢复日期倒序');
+    await page.goBack();await page.waitForURL(/group=0/);assert.equal(await page.locator('[data-group-toggle]').isChecked(),false);
+    await page.goForward();await page.waitForURL(/group=1/);assert.equal(await page.locator('[data-group-toggle]').isChecked(),true);
+    assert.equal(groupDocuments,0,'分组前后退同样原位完成');
+    const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
     assert.match(await first.innerText(),/首轮均值 8.99%/);assert.match(await first.innerText(),/-3.47pp/);
     assert.match(await second.innerText(),/二轮均值 8.59%/);assert.match(await second.innerText(),/-3.64pp/);
@@ -84,6 +108,14 @@ try {
     assert.equal(documents,0,'详情点击不请求新文档');
     const inspector=page.locator('[data-inspector]');
     await inspector.locator('[name=conclusion]').fill('尚未保存');
+    if(width===1440){
+      await inspector.locator('[name=conclusion]').evaluate((node:Element)=>{(window as any).__dirtyEditor=node;});
+      await page.locator('[data-group-toggle]').uncheck();await page.locator('[data-group-toggle]').check();
+      assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
+      assert.equal(await inspector.locator('[name=conclusion]').evaluate((node:Element)=>node===(window as any).__dirtyEditor),true,'局部分组保留编辑节点和输入');
+      await page.goBack();await page.waitForURL(/group=0/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
+      await page.goBack();await page.waitForURL(/group=1/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
+    }
     page.once('dialog',(dialog:any)=>dialog.dismiss());await page.getByRole('link',{name:'待复盘',exact:true}).click();assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
     page.once('dialog',(dialog:any)=>dialog.dismiss());await page.goBack();await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[1]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[1]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     page.once('dialog',(dialog:any)=>dialog.dismiss());await inspector.locator('[data-close-inspector]').click();assert.equal(await inspector.isVisible(),true,'未保存取消关闭');

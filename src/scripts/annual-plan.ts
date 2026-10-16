@@ -7,6 +7,7 @@ type Data = { rows: Row[]; selectedYear: number; categories: Array<{ subjectId: 
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
 const q = <T extends Element = HTMLElement>(selector: string, parent: ParentNode = document) => parent.querySelector<T>(selector)!;
 const all = <T extends Element = HTMLElement>(selector: string, parent: ParentNode = document) => [...parent.querySelectorAll<T>(selector)];
+const historyTime = (value:string) => new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
 const slotOptions = (end: boolean, selected: number) => Array.from({ length: 24 }, (_, index) => {
   const slot = index + 1; const suffix = end ? (slot % 2 ? '中旬' : '末') : (slot % 2 ? '初' : '中旬');
   return `<option value="${slot}" ${slot === selected ? 'selected' : ''}>${Math.ceil(slot / 2)}月${suffix}</option>`;
@@ -159,7 +160,7 @@ function initializeAnnualPlan() {
       if (activeRow?.id !== row.id || generation !== inspectorController.generation) return;
       if (!response.ok) { target.textContent = result.message; return; } target.replaceChildren();
       for (const version of result.versions) {
-        const article = document.createElement('article'); article.innerHTML = `<div><strong>V${version.versionNumber}</strong><span>${new Date(version.createdAt).toLocaleString('zh-CN')}</span></div><p>${escapeHtml(version.changeSummary)}</p><small>${escapeHtml(version.changedByLabel)} · ${escapeHtml(version.diffSummary.join('；'))}</small>`;
+        const article = document.createElement('article'); article.innerHTML = `<div class="annual-version-meta"><strong>V${version.versionNumber}</strong><time datetime="${escapeHtml(version.createdAt)}">${historyTime(version.createdAt)}</time></div><p>${escapeHtml(version.changeSummary)}</p><small>${escapeHtml(version.changedByLabel)} · ${escapeHtml(version.diffSummary.join('；'))}</small>`;
         const view = document.createElement('button'); view.type = 'button'; view.textContent = '查看版本内容';
         view.addEventListener('click', async () => {
           const existing = q('.snapshot-view', article); if (existing) { existing.remove(); return; } view.disabled = true;

@@ -33,12 +33,11 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
       {activeView === 'history' && <><label>复盘轮次<select name="checkpoint"><option value="">全部轮次</option><option value="day_7" selected={selectedRound==='day_7'}>首轮</option><option value="day_15" selected={selectedRound==='day_15'}>二轮</option></select></label><input type="hidden" name="group" value={grouped?'1':'0'}/><label class="group-toggle"><input type="checkbox" data-group-toggle checked={grouped}/>按帖子分组</label></>}
       {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}`}>清除筛选</a>}
     </form>
-    {grouped && !selectedRound && <p class="sort-hint">按帖子展示首轮、二轮；选择单个轮次后可按指标排序。</p>}
     <section class="review-workspace" data-inspector-host>
       <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)}>
-        {grouped ? <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 / 节点 <i aria-hidden="true">↓</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={!selectedRound}>3 秒阅读率 <i aria-hidden="true">↕</i></button></span></div> : <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">分类</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={grouped&&!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={grouped&&!selectedRound}>3 秒阅读率 <i aria-hidden="true">↕</i></button></span></div>}
-        {(grouped ? rows.filter(row=>tableRows.some(item=>item.row.id===row.id)).map(row=>({id:row.id, row, items:tableRows.filter(item=>item.row.id===row.id)})) : [{id:'all',row:null,items:tableRows}]).map(group => <div class:list={{'review-post-group':grouped}} data-review-group={group.id} data-date={group.row?shanghaiDateKey(group.row.actualPublishAt):undefined}>
-          {grouped && group.row && <div class="post-group-title"><div>{group.row.projectDocUrl?<a href={group.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{group.row.contentName}</strong> ↗</a>:<strong>{group.row.contentName}</strong>}<span>V{group.row.versionNumber} · {shanghaiDateKey(group.row.actualPublishAt)} · {group.row.subjectName} / {group.row.categoryName||'临时帖'}</span></div><small title={group.row.platformNoteId||undefined}>{group.row.platformNoteId?`ID ${group.row.platformNoteId}`:'笔记 ID 待补'}</small></div>}
+        <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">分类</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={grouped&&!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={grouped&&!selectedRound}>3 秒阅读率 <i aria-hidden="true">↕</i></button></span></div>
+        <div data-review-body>
+        {rows.filter(row=>tableRows.some(item=>item.row.id===row.id)).map(row=>({id:row.id, row, items:tableRows.filter(item=>item.row.id===row.id)})).map(group => <div class:list={{'review-post-group':grouped}} role="rowgroup" data-review-group={group.id}>
         {group.items.map(item => {
           const clickValue=item.metric?Number(item.metric.clickRate):null;const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
           const click=metricPresentation(clickValue,item.click.mean);const read=metricPresentation(readValue,item.read.mean);
@@ -54,8 +53,11 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
             <span role="cell" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
           </div>;
         })}
-          {grouped && !selectedRound && ['day_15'].filter(type=>!group.items.some(item=>item.checkpoint.type===type)).map(type=><div class="missing-round"><mark>{names[type]}</mark><span>暂无已复盘数据</span></div>)}
+          {activeView==='history' && !selectedRound && ['day_7','day_15'].filter(type=>!group.items.some(item=>item.checkpoint.type===type)).map(type=><div class="review-row missing-round" role="row" data-review-placeholder data-checkpoint={type} hidden={!grouped}>
+            <span role="cell" class="date-cell">{shanghaiDateKey(group.row.actualPublishAt)}</span><span role="cell" class="post-cell"><strong>{group.row.contentName}</strong><small>V{group.row.versionNumber}</small></span><span role="cell">{group.row.subjectName} / {group.row.categoryName||'临时帖'}</span><span role="cell"><mark>{names[type]}</mark></span><span role="cell" class="metric">暂无已复盘数据</span><span role="cell" class="metric">—</span>
+          </div>)}
         </div>)}
+        </div>
         {!tableRows.length&&<div class="empty"><strong>{activeView==='pending'?'当前没有待复盘节点':activeView==='skipped'?'当前没有跳过的节点':'还没有复盘历史'}</strong><p>可切换学科、分类或复盘视图。</p></div>}
       </div></div></div>
       <BusinessInspector class="inspector" parameter="row" templates />
@@ -97,10 +99,16 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-filters{display:flex;align-items:end;gap:14px;margin-bottom:14px}.review-filters label{display:grid;gap:5px;font-size:12px;color:var(--console-muted)}.review-filters select{height:35px;min-width:170px;padding:5px 9px;border:1px solid #abb5af;border-radius:7px;background:#fff;color:var(--console-ink);font:13px system-ui}.review-filters a{padding:8px;color:var(--console-blue);font-size:12px}.checkpoint-action{margin:0 18px 18px;border-top:1px solid var(--console-line);padding-top:14px}.checkpoint-action summary{cursor:pointer;font-size:13px;font-weight:700}.checkpoint-action>p{font-size:13px;line-height:1.5;white-space:pre-wrap}.checkpoint-action small{display:block;color:var(--console-muted);font-size:11px}.checkpoint-action .review-form{padding:14px 0 0}@media(max-width:600px){.review-filters{flex-wrap:wrap;gap:10px}.review-filters label{flex:1}.review-filters select{width:100%;min-width:130px}}
 </style>
 
-<style>
-.review-post-group{border-bottom:1px solid var(--console-line)}.post-group-title{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding:12px 10px;background:#f7f8f5}.post-group-title strong{font-size:12px}.post-group-title span,.sort-hint{font-size:11px;color:var(--console-muted)}.missing-round{display:flex;align-items:center;gap:16px;min-height:44px;padding:8px 10px;color:var(--console-muted);font-size:11px}.missing-round mark{background:#edf1ee;color:inherit;padding:4px 7px;border-radius:6px}.group-toggle{display:flex!important;align-items:center;gap:7px}.group-toggle input{width:auto!important;height:auto!important}button:disabled{cursor:default;opacity:.5}
-</style>
-
 <style is:global>
-.review-table[data-grouped="true"]{min-width:360px}.review-table[data-grouped="true"] .review-row{grid-template-columns:minmax(72px,.7fr) minmax(136px,1fr) minmax(146px,1fr);min-height:64px}.review-table[data-grouped="true"] .review-row:not(.table-head)>span:nth-child(-n+3){display:none}.review-table[data-grouped="true"] .review-row>span{padding:10px}.review-table[data-grouped="true"] .table-head{min-height:42px}.post-group-title{min-width:0;display:flex;align-items:baseline;justify-content:space-between;gap:6px 12px}.post-group-title>div{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 12px;min-width:0}.post-group-title a{color:inherit;text-decoration:none}.post-group-title a:hover{text-decoration:underline}.post-group-title small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#909993;font:10px ui-monospace,monospace}
+.review-table .review-row{font-family:var(--console-font);font-size:var(--console-text);line-height:var(--console-text-leading);min-height:76px}
+.review-table .table-head{min-height:43px;font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.review-table .date-cell{font-family:var(--console-font);font-size:var(--console-text);font-variant-numeric:tabular-nums}
+.review-table .post-cell strong{font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:650}
+.review-table .post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.review-table .review-row mark{font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.review-table .review-row[hidden]{display:none}
+.review-post-group{border-bottom:1px solid var(--console-line)}
+.review-table .missing-round{color:var(--console-muted);font-size:var(--console-caption)}
+.group-toggle{display:flex!important;align-items:center;gap:7px}.group-toggle input{width:auto!important;height:auto!important}
+.review-table button:disabled{cursor:default;opacity:.5}
 </style>

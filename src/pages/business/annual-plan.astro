@@ -207,7 +207,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
         </BusinessConsoleToolbar>
 
         <main class="business-console-content">
-          <BusinessPageHeader eyebrow="ANNUAL PLAN" title={`${selectedYear} 年度总览`} description={yearInfo?.instructions || '直接查看周期与备注，按月初、月中和月末调整；深色为付费推广，浅色为自然流或观察。'}>
+          <BusinessPageHeader eyebrow="ANNUAL PLAN" title={`${selectedYear} 年度总览`} description={yearInfo?.instructions || undefined}>
             <div class="updated" slot="meta"><span>最近更新</span><strong>{latestDisplay}</strong></div>
           </BusinessPageHeader>
 
@@ -291,7 +291,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
                       ><strong>{block.note}</strong></button>)}
                     </div>
                   </div>)}
-                  {sectionRows.length === 0 && <div class="section-empty">
+                  {sectionRows.length === 0 && <div class="section-empty annual-section-empty">
                     <span>这个分区还没有规划行</span>
                     <button type="button" data-new-section={section.key} data-admin-only>在此新建</button>
                   </div>}
@@ -336,7 +336,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
           <header><strong>规划备注</strong></header>
           <p data-note></p>
         </section>
-        <section class="inspector-section history-section">
+        <section class="inspector-section history-section annual-version-history">
           <header><strong>版本历史</strong></header>
           <button class="history-button" type="button" data-load-history>查看全部版本</button>
           <div class="history-list" data-history-list></div>
@@ -441,4 +441,20 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
   @media(max-width:900px){.block-row{grid-template-columns:1fr;padding-right:46px}.block-stage,.block-note,.promotion-editor{grid-column:1}.summary-title{align-items:flex-start}.summary-title p{max-width:55%;text-align:right}}
   @media(max-width:620px){#row-dialog{position:fixed;inset:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0}.form-grid{grid-template-columns:1fr}.summary-title p{display:none}.copy-label-full{display:none}.copy-label-mobile{display:inline}.plan-legend small{width:100%}.block-row{padding:12px 40px 12px 10px}.block-primary{gap:6px}.block-name b{white-space:normal}.block-primary>strong{white-space:normal;max-width:112px}}
 
+</style>
+
+<style is:global>
+div.annual-section-empty{font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+div.annual-section-empty button{font:600 var(--console-text)/var(--console-text-leading) var(--console-font);color:var(--console-ink)}
+section.annual-version-history{font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+section.annual-version-history .annual-version-meta{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px}
+section.annual-version-history .annual-version-meta strong{font-size:var(--console-emphasis);font-weight:700}
+section.annual-version-history time,section.annual-version-history small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading);font-variant-numeric:tabular-nums}
+section.annual-version-history p{margin:8px 0;font-size:var(--console-text);line-height:var(--console-text-leading)}
+section.annual-version-history button{min-height:32px;border:1px solid var(--console-line);border-radius:6px;padding:5px 9px;color:var(--console-ink);background:var(--console-surface);font:600 var(--console-text)/var(--console-text-leading) var(--console-font);cursor:pointer}
+section.annual-version-history button:hover{background:var(--console-surface-subtle)}
+section.annual-version-history button:focus-visible,div.annual-section-empty button:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+section.annual-version-history .snapshot-view{display:block;overflow-wrap:anywhere}
+section.annual-version-history .snapshot-view strong{font-size:var(--console-emphasis);line-height:var(--console-text-leading)}
+section.annual-version-history .snapshot-view p,section.annual-version-history .snapshot-view ul,section.annual-version-history .snapshot-view a{font-size:var(--console-text);line-height:var(--console-text-leading)}
 </style>

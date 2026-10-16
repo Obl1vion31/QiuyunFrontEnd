@@ -498,7 +498,7 @@ const historyHref = (overrides: Record<string, string>) => {
 
           {activeView === 'history' && <section class="history-workspace" aria-labelledby="history-title">
             <div class="history-head"><a class="history-back" href="?view=daily">← 返回每日复盘</a>
-              <BusinessPageHeader eyebrow="PROMOTION ARCHIVE" title="推广历史总览" headingId="history-title" description={historyMode === 'post' ? '进行中的活动优先，已结束活动按需展开。' : '按日期对账，每篇帖子保留一行事实。'} />
+              <BusinessPageHeader eyebrow="PROMOTION ARCHIVE" title="推广历史总览" headingId="history-title" />
               <form class="history-filters" method="get">
                 <input type="hidden" name="view" value="history" />
                 <input type="hidden" name="mode" value={historyMode} />
@@ -543,7 +543,7 @@ const historyHref = (overrides: Record<string, string>) => {
                       </a>;
                     })}
                 {endedHistoryRows.length > 0 && <details class="ended-campaigns" open={forceOpenEnded}>
-                  <summary><span>已结束推广</span><b>{endedHistoryRows.length} 个活动</b></summary>
+                  <summary><span>已结束推广 <small class="ended-expand">点击展开</small><small class="ended-collapse">点击收起</small></span><b>{endedHistoryRows.length} 个活动</b></summary>
                   {endedHistoryRows.map((row) => {
                     const completion = row.expectedDays > 0
                       ? Math.min(100, Math.round((row.reviewedDays / row.expectedDays) * 100)) : 0;
@@ -844,4 +844,9 @@ const historyHref = (overrides: Record<string, string>) => {
 
 <style>
 .pending-heading small{color:var(--muted);font:600 12px ui-monospace,monospace}.pending-heading a,.history-back{color:var(--blue);font-size:11px;text-decoration:none}.history-back{color:var(--blue);font-size:11px;text-decoration:none}.history-back{display:inline-block;margin-bottom:12px}.history-list,.day-history{min-width:0;overflow:auto}.history-layout{border-top:1px solid var(--line)}
+</style>
+
+<style>
+.ended-campaigns summary small{margin-left:8px;color:var(--console-muted);font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
+.ended-campaigns:not([open]) .ended-collapse,.ended-campaigns[open] .ended-expand{display:none}
 </style>

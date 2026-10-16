@@ -57,6 +57,20 @@ try {
   const errors: string[] = []; const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.addCookies(cookie.split('; ').map(pair => ({ name: pair.slice(0, pair.indexOf('=')), value: pair.slice(pair.indexOf('=') + 1), url: baseURL })));
   const page = await context.newPage(); page.on('pageerror', (error: Error) => errors.push(error.message));
+  const checkHistory=async(page:any,width:number)=>{
+    await page.locator('[data-load-history]').click();await page.locator('[data-history-list] time').first().waitFor();
+    assert.match(await page.locator('[data-history-list] time').first().innerText(),/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+    const timeStyle=await page.locator('[data-history-list] time').first().evaluate((node:HTMLElement)=>({size:getComputedStyle(node).fontSize,family:getComputedStyle(node).fontFamily}));assert.equal(timeStyle.size,'12px');assert.match(timeStyle.family,/system-ui/);
+    const view=page.locator('[data-history-list] button').filter({hasText:'查看版本内容'}).first();
+    assert.equal(await view.evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(23, 33, 28)');
+    await view.click();await page.locator('.snapshot-view').first().waitFor();
+    assert.equal(await page.locator('.snapshot-view strong').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'14px');
+    await page.screenshot({path:`.tools/test-artifacts/annual-history-consistency-${width}.png`});
+  };
+  await page.goto(baseURL+'/business/annual-plan?year=2031');
+  assert.equal(await page.locator('.annual-section-empty').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'13px');
+  assert.equal(await page.locator('.annual-section-empty button').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'13px');
+  assert.equal(await page.getByText(/直接查看周期与备注/).count(),0);
   await page.goto(baseURL + '/business/annual-plan?year=2026');
   await page.locator('#annual-data[data-bound=true]').waitFor({ state: 'attached' }); assert.equal(await page.locator('[data-injected]').count(), 0); assert.equal(await page.locator('.time-block').first().innerText(), classInput.blocks[0].note);
   assert.equal(await page.locator('[data-row-name]').count(), 1); assert.equal(await page.locator('.time-block').first().evaluate((node: HTMLElement) => getComputedStyle(node).gridColumn), '5 / 18');
@@ -65,6 +79,7 @@ try {
   await page.screenshot({ path: '.tools/test-artifacts/annual-1280.png', fullPage: true });
   await page.locator('.time-block').first().click(); await page.locator('[data-inspector].is-open').waitFor(); assert.match(await page.locator('[data-block-list]').innerText(), /9 月中旬/);
   await page.screenshot({path:'.tools/test-artifacts/annual-inspector-ui.png'});
+  await checkHistory(page,1280);
   assert.ok(await page.locator('[data-inspector]').evaluate((node:HTMLElement)=>node.getBoundingClientRect().bottom<=innerHeight),'详情及底部操作限制在视口内');
   await page.locator('[data-edit-row]').click(); await page.locator('#row-dialog[open]').waitFor(); assert.equal(await page.locator('#row-form [data-note]').first().inputValue(), classInput.blocks[0].note);
   assert.equal(await page.locator('[data-rule]').count(), 0); await page.locator('[data-close-row]').last().click();
@@ -81,6 +96,7 @@ try {
     await mobile.addCookies(cookie.split('; ').map(pair => ({ name: pair.slice(0, pair.indexOf('=')), value: pair.slice(pair.indexOf('=') + 1), url: baseURL })));
     const phone = await mobile.newPage(); phone.on('dialog', (dialog: any) => dialog.accept()); phone.on('pageerror', (error: Error) => errors.push(error.message)); await phone.goto(baseURL + '/business/annual-plan?year=2026');
     assert.ok(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}px 页面不横向溢出`);
+    await phone.locator('.item-cell').first().click();await phone.locator('[data-inspector].is-open').waitFor();await checkHistory(phone,width);await phone.locator('[data-close-inspector]').click();await phone.locator('[data-inspector]').waitFor({state:'hidden'});
     await phone.locator('[data-open-new]').click(); const editorBox = await phone.locator('#row-dialog').boundingBox(); assert.equal(editorBox!.x, 0); assert.equal(editorBox!.width, width); await phone.locator('[data-start]').first().selectOption('20'); await phone.locator('[data-end]').first().selectOption('23');
     await phone.screenshot({ path: `.tools/test-artifacts/annual-editor-${width}.png` }); await phone.locator('[data-close-row]').last().click();
     await phone.locator('[data-copy-year]').click(); await phone.locator('#copy-dialog[open]').waitFor(); await mobile.close();

@@ -9,29 +9,56 @@ function initialize() {
   table.dataset.reviewReady = 'true';
   document.dispatchEvent(new Event('business:inspector-refresh'));
   const controller = getInspector(inspector);
+  const body = table.querySelector<HTMLElement>('[data-review-body]')!;
+  const groups = [...body.querySelectorAll<HTMLElement>('[data-review-group]')];
+  const records = [...body.querySelectorAll<HTMLElement>('[data-row-href]')];
+  const groupRows = new Map(groups.map(group => [group, ([...group.children] as HTMLElement[]).sort((left,right)=>Number(left.dataset.checkpoint!=='day_7')-Number(right.dataset.checkpoint!=='day_7'))]));
+  const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
+  const toggle = filters?.querySelector<HTMLInputElement>('[data-group-toggle]');
+  const singleRound = Boolean(filters?.querySelector<HTMLSelectElement>('[name="checkpoint"]')?.value);
   let sortState = { key: 'date', direction: 'descending' };
+  const arrange = () => {
+    const grouped = table.dataset.grouped === 'true';
+    const {key,direction} = sortState;
+    const compare = (l:HTMLElement,r:HTMLElement) => {
+      if (key !== 'date' && (l.dataset[key] === '') !== (r.dataset[key] === '')) return l.dataset[key] === '' ? 1 : -1;
+      const comparison = key === 'date' ? l.dataset.date!.localeCompare(r.dataset.date!) : Number(l.dataset[key]) - Number(r.dataset[key]);
+      return direction === 'ascending' ? comparison : -comparison;
+    };
+    const pane = table.closest<HTMLElement>('.table-scroll')!;
+    const position = {x:scrollX,y:scrollY,left:pane.scrollLeft,top:pane.scrollTop};
+    if(grouped){
+      for(const group of groups){group.classList.add('review-post-group');group.replaceChildren(...groupRows.get(group)!);for(const node of group.querySelectorAll<HTMLElement>('[data-review-placeholder]'))node.hidden=false;}
+      body.replaceChildren(...[...groups].sort((left,right)=>compare(left.querySelector('[data-row-href]')!,right.querySelector('[data-row-href]')!)));
+    }else{
+      groups.forEach(group=>group.classList.remove('review-post-group'));
+      body.replaceChildren(...[...records].sort(compare));
+    }
+    document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(item => {
+      item.disabled = item.dataset.sort!=='date' && grouped && !singleRound;
+      const active = item.dataset.sort===key;
+      item.closest('[role="columnheader"]')?.setAttribute('aria-sort', active ? direction : 'none');
+      item.querySelector('i')!.textContent = active ? (direction === 'ascending' ? '↑' : '↓') : '↕';
+    });
+    pane.scrollLeft=position.left;pane.scrollTop=position.top;window.scrollTo(position.x,position.y);
+  };
   document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(button => button.addEventListener('click', () => {
     const key = button.dataset.sort!;
     sortState = { key, direction: sortState.key === key && sortState.direction === 'descending' ? 'ascending' : 'descending' };
-    const grouped = table.dataset.grouped === 'true';
-    const nodes = [...table.querySelectorAll<HTMLElement>(grouped ? ':scope > [data-review-group]' : '[data-row-href]')];
-    nodes.sort((left, right) => {
-      const l = grouped ? left.querySelector<HTMLElement>('[data-row-href]')! : left;
-      const r = grouped ? right.querySelector<HTMLElement>('[data-row-href]')! : right;
-      if (key !== 'date' && (l.dataset[key] === '') !== (r.dataset[key] === '')) return l.dataset[key] === '' ? 1 : -1;
-      const comparison = key === 'date' ? l.dataset.date!.localeCompare(r.dataset.date!) : Number(l.dataset[key]) - Number(r.dataset[key]);
-      return sortState.direction === 'ascending' ? comparison : -comparison;
-    }).forEach(node => (grouped ? table : table.querySelector('[data-review-group]')!).append(node));
-    document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(item => {
-      item.closest('[role="columnheader"]')?.setAttribute('aria-sort', item === button ? sortState.direction : 'none');
-      item.querySelector('i')!.textContent = item === button ? (sortState.direction === 'ascending' ? '↑' : '↓') : '↕';
-    });
+    arrange();
   }));
-  const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
+  if(toggle)controller.configure({localParameters:['group'],onContextChange:url=>{
+    const grouped=url.searchParams.get('group')!=='0';toggle.checked=grouped;table.dataset.grouped=String(grouped);
+    (filters!.elements.namedItem('group') as HTMLInputElement).value=grouped?'1':'0';
+    if(grouped&&!singleRound&&sortState.key!=='date')sortState={key:'date',direction:'descending'};
+    for(const row of records){const href=new URL(row.dataset.rowHref!,location.href);href.searchParams.set('group',grouped?'1':'0');row.dataset.rowHref=href.pathname+href.search;}
+    arrange();
+  }});
+  arrange();
   filters?.addEventListener('change', event => {
     const field = event.target as HTMLInputElement;
     if (field.name === 'subject') { const category = filters.elements.namedItem('category') as HTMLSelectElement; category.value = ''; category.disabled = true; }
-    if (field.matches('[data-group-toggle]')) (filters.elements.namedItem('group') as HTMLInputElement).value = field.checked ? '1' : '0';
+    if (field.matches('[data-group-toggle]')) {controller.setLocalParameter('group',field.checked?'1':'0');return;}
     filters.requestSubmit();
   });
   const refresh = async () => {
@@ -59,6 +86,7 @@ function initialize() {
         if (input) { input.value = String(value ?? ''); input.defaultValue = input.value; }
       }
     }
+    arrange();
   };
   inspector.addEventListener('click', async event => {
     const copy = (event.target as Element).closest<HTMLButtonElement>('[data-copy-id]');

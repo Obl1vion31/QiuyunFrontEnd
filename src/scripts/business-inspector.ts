@@ -4,6 +4,8 @@ export interface InspectorOptions {
   parameter?: string;
   render?: (id: string) => void;
   select?: (id: string | null) => void;
+  localParameters?: string[];
+  onContextChange?: (url: URL) => void;
 }
 const controllers = new WeakMap<HTMLElement, ReturnType<typeof createInspector>>();
 export function getInspector(element: HTMLElement, options: InspectorOptions = {}) {
@@ -24,8 +26,9 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   let closeTimer = 0;
   let generation = 0;
   let currentUrl = new URL(location.href);
-  const baseUrl = (url:URL) => { const base = new URL(url); if(parameter)base.searchParams.delete(parameter); base.hash=''; return base.href; };
-  element.dataset.inspectorHistoryBase = baseUrl(currentUrl);
+  const baseUrl = (url:URL) => { const base = new URL(url); if(parameter)base.searchParams.delete(parameter); for(const name of options.localParameters??[])base.searchParams.delete(name); base.hash=''; return base.href; };
+  const syncContext = () => { element.dataset.inspectorHistoryBase = baseUrl(currentUrl); element.dataset.inspectorLocalParameters = (options.localParameters??[]).join(','); };
+  syncContext();
   const dirty = () => element.dataset.dirty === 'true';
   const mayLeave = () => !dirty() || window.confirm('有尚未保存的修改，确定放弃吗？');
   const setClean = () => { element.dataset.dirty = 'false'; document.documentElement.dataset.unsaved = 'false'; };
@@ -102,6 +105,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     // 本地选择的历史由本控制器处理，避免 Astro 把 query 变化当成整页导航。
     event.stopImmediatePropagation();
     currentUrl = destination;
+    options.onContextChange?.(destination);
     const id = destination.searchParams.get(parameter);
     if (id === selected) return;
     const accepted = id ? open(id, null, false) : close(false);
@@ -122,7 +126,15 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   document.addEventListener('click', guardNavigation, {signal,capture:true});
   document.addEventListener('submit', guardNavigation, {signal,capture:true});
   document.addEventListener('astro:before-swap', () => { clearTimeout(closeTimer); lifecycle.abort(); }, { once: true, signal });
-  return { open, close, setClean, configure:(next:InspectorOptions)=>Object.assign(options,next), get selected() { return selected; }, get generation() { return generation; } };
+  return { open, close, setClean,
+    configure:(next:InspectorOptions)=>{Object.assign(options,next);syncContext();},
+    setLocalParameter:(name:string,value:string)=>{
+      if(!options.localParameters?.includes(name))throw new Error('未注册的局部视图参数');
+      const url=new URL(location.href);url.searchParams.set(name,value);
+      if(url.href!==location.href)history.pushState({...history.state,businessInspector:true},'',url);
+      currentUrl=url;syncContext();options.onContextChange?.(url);
+    },
+    get selected() { return selected; }, get generation() { return generation; } };
 }
 
 function initialize() {
