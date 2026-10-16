@@ -19,6 +19,7 @@ import {
   operationsScheduleChangeRequest,
   operationsScheduleDelayReason,
   operationsNonPromotionCheckpointEvent,
+  operationsPublicationReservation,operationsPublicationEvent,
 } from '../../../db/schema';
 import {
   editScheduleInputFromForm,
@@ -53,7 +54,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         .for('update');
       if (!version) return { kind: 'missing' as const };
 
-      const [versionCountRow, campaignCountRow, metricCountRow, reviewCountRow, usageCountRow, planCountRow, requestCountRow, reasonCountRow, checkpointCountRow] = await Promise.all([
+      const [versionCountRow, campaignCountRow, metricCountRow, reviewCountRow, usageCountRow, planCountRow, requestCountRow, reasonCountRow, checkpointCountRow, reservationCountRow, publicationCountRow] = await Promise.all([
         transaction.select({ value: count() }).from(operationsContentVersion)
           .where(eq(operationsContentVersion.contentId, version.contentId)),
         transaction.select({ value: count() }).from(operationsPromotionCampaign)
@@ -68,8 +69,11 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         transaction.select({ value: count() }).from(operationsScheduleChangeRequest).where(eq(operationsScheduleChangeRequest.scheduleId, schedule.id)),
         transaction.select({ value: count() }).from(operationsScheduleDelayReason).where(eq(operationsScheduleDelayReason.scheduleId, schedule.id)),
         transaction.select({ value: count() }).from(operationsNonPromotionCheckpointEvent).where(eq(operationsNonPromotionCheckpointEvent.scheduleId, schedule.id)),
+        transaction.select({value:count()}).from(operationsPublicationReservation).where(eq(operationsPublicationReservation.scheduleId,schedule.id)),
+        transaction.select({value:count()}).from(operationsPublicationEvent).where(eq(operationsPublicationEvent.scheduleId,schedule.id)),
       ]);
       const blockers = {
+        reservations:Number(reservationCountRow[0]?.value??0),publicationEvents:Number(publicationCountRow[0]?.value??0),
         versions: Number(versionCountRow?.[0]?.value ?? 0) > 1,
         campaigns: Number(campaignCountRow?.[0]?.value ?? 0),
         performanceMetrics: Number(metricCountRow?.[0]?.value ?? 0),
@@ -78,7 +82,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         planHistory: Number(planCountRow?.[0]?.value ?? 0), changeRequests: Number(requestCountRow?.[0]?.value ?? 0),
         delayReasons: Number(reasonCountRow?.[0]?.value ?? 0), checkpointEvents: Number(checkpointCountRow?.[0]?.value ?? 0),
       };
-      if (blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents) {
+      if (blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents || blockers.reservations || blockers.publicationEvents) {
         return { kind: 'blocked' as const, blockers };
       }
 
@@ -91,7 +95,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
     if (result.kind === 'missing') return Response.json({ message: '没有找到这条排期。' }, { status: 404 });
     if (result.kind === 'blocked') {
       return Response.json({
-        message: '这条排期已有改帖、推广、复盘、改期或延期记录，为保护历史记录不能删除。',
+        message: '这条排期已有改帖、推广、复盘、改期、延期、预约或实发记录，为保护历史记录不能删除。',
         blockers: result.blockers,
       }, { status: 409 });
     }

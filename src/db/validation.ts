@@ -23,7 +23,6 @@ const subjectIds = subjects.map((subject) => subject.id) as [string, ...string[]
 const categoryIds = postCategories.map((category) => category.id) as [string, ...string[]];
 
 const emptyToNull = (value: unknown) => typeof value === 'string' && value.trim() === '' ? null : value;
-const optionalText = z.preprocess(emptyToNull, z.string().trim().max(500).nullable());
 export const shanghaiDateTime = z.string().trim().min(1, '请选择时间').transform((value, context) => {
   const date = new Date(`${value}:00+08:00`);
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value) || Number.isNaN(date.getTime()) || new Date(date.getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16) !== value) {
@@ -36,8 +35,14 @@ const optionalHttpUrl = z.preprocess(
   emptyToNull,
   z.url('请输入有效的 HTTP/HTTPS 链接').refine((url) => /^https?:\/\//.test(url), '仅支持 HTTP/HTTPS 链接').nullable(),
 );
-const requiredHttpUrl = z.url('请输入有效的 HTTP/HTTPS 链接')
-  .refine((url) => /^https?:\/\//.test(url), '仅支持 HTTP/HTTPS 链接');
+export const publicationUrlSchema = z.string().trim().min(1,'请粘贴对应的小红书帖子链接').max(4000).superRefine((value,context) => {
+  try {
+    const url=new URL(value);
+    const long=['xiaohongshu.com','www.xiaohongshu.com'].includes(url.hostname) && /^\/(?:explore|discovery\/item)\/[0-9a-fA-F]{24}\/?$/.test(url.pathname);
+    const short=['xhslink.com','www.xhslink.com'].includes(url.hostname) && /^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*\/?$/.test(url.pathname);
+    if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.port||(!long&&!short))throw new Error();
+  } catch { context.addIssue({code:'custom',message:'请填写有效的小红书帖子长链接或 xhslink.com 分享链接'}); }
+});
 
 const versionFields = {
   contentName: z.string().trim().min(1, '请填写内容名称').max(200),
@@ -75,10 +80,13 @@ export const revisionSchema = withBusinessRules({
   revisionSummary: z.string().trim().min(1, '请填写具体改动说明').max(1000),
 });
 
-export const publicationSchema = withBusinessRules({
-  actualPublishAt: shanghaiDateTime,
-  projectDocUrl: requiredHttpUrl,
-  delayReason: optionalText.optional(),
+export const publicationSchema = z.object({
+  actualPublishAt: z.preprocess(emptyToNull,shanghaiDateTime.nullable().optional()),
+  projectDocUrl: optionalHttpUrl.optional(),
+  publicationUrl: publicationUrlSchema,
+  expectedPlanRevision:z.coerce.number().int().min(0),
+  expectedPublicationRevision:z.coerce.number().int().min(0),
+  correctionReason:z.string().trim().max(500).optional(),
 });
 
 export const normalizeCompletionStatus = (
@@ -107,10 +115,12 @@ export const revisionInputFromForm = (form: FormData) => ({
 });
 
 export const publicationInputFromForm = (form: FormData) => ({
-  plannedPublishAt: form.get('plannedPublishAt'),
-  actualPublishAt: form.get('actualPublishAt'),
-  projectDocUrl: form.get('projectDocUrl'),
-  delayReason: form.get('delayReason'),
+  actualPublishAt: form.get('actualPublishAt') ?? undefined,
+  projectDocUrl: form.get('projectDocUrl') ?? undefined,
+  publicationUrl: form.get('publicationUrl'),
+  expectedPlanRevision:form.get('expectedPlanRevision') ?? undefined,
+  expectedPublicationRevision:form.get('expectedPublicationRevision') ?? undefined,
+  correctionReason:form.get('correctionReason') ?? undefined,
 });
 
 export const issuesByField = (issues: z.core.$ZodIssue[]) => {

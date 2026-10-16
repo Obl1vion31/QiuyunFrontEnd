@@ -18,6 +18,8 @@ import { readPromotionContext } from '../../db/promotion-pauses';
 import { effectivePromotionStatus, promotionLabels, type PromotionContext } from '../../db/promotion-state.mjs';
 import { operationsPromotionCampaign } from '../../db/schema';
 import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
+import { readReservations } from '../../db/publication-workflow';
+import { publicationLabels,publicationState } from '../../db/publication-rules.mjs';
 import { teamScheduleNotifications } from '../../db/schedule-workflow';
 import { isDelayed, completionStatus } from '../../db/schedule-rules.mjs';
 
@@ -25,9 +27,9 @@ export const prerender = false;
 
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
-const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' && !['overdue','approvals','reasons'].includes(Astro.url.searchParams.get('status') ?? '') ? 'calendar' : 'ledger';
+const selectedDisplay = Astro.url.searchParams.get('display') === 'calendar' && !['overdue','approvals','reasons','reservation_approvals','publication_due'].includes(Astro.url.searchParams.get('status') ?? '') ? 'calendar' : 'ledger';
 const requestedStatus = Astro.url.searchParams.get('status');
-const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
+const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons','reservation_approvals','publication_due'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
 const requestedPromotion = Astro.url.searchParams.get('promotion');
 const selectedPromotion = ['testing', 'scaling', 'test_pending', 'promotion_paused', 'awaiting_promotion', 'ended', 'test_discarded', 'formal_discarded'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
@@ -85,18 +87,21 @@ const rowStatus = (row: { id: string; promotionStatus: string }) => {
   const campaign = campaignRows.find(c => c.scheduleId === row.id);
   return effectivePromotionStatus(row.promotionStatus, campaign?.currentStage ?? null, campaign?.id ?? null, promotionContext);
 };
+let bookings:Awaited<ReturnType<typeof readReservations>>=[];
+const bookingFor=(id:string)=>bookings.find(row=>row.scheduleId===id);
+const publishingState=(row:typeof rows[number])=>publicationState(row,bookingFor(row.id),now);
 let categoryPolicies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
 let rows: Array<{
   id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
   revisionSummary: string | null; projectDocUrl: string | null;
   syncToMoments: boolean; isPromoted: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
-  completionStatus: string; delayReason: string | null; planRevision: number;
+  completionStatus: string; delayReason: string | null; planRevision: number; publicationUrl:string|null;publicationRevision:number;
 }> = [];
 const databaseStartedAt = performance.now();
 try {
   const database = getDb();
-  [rows, categoryPolicies, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
+  [rows, categoryPolicies, notifications, campaignRows, promotionContext,bookings] = await Promise.all([database.select({
     id: operationsContentSchedule.id,
     versionId: operationsContentVersion.id,
     contentId: operationsContentVersion.contentId,
@@ -116,6 +121,7 @@ try {
     plannedPublishAt: operationsContentSchedule.plannedPublishAt,
     planRevision: operationsContentSchedule.planRevision,
     actualPublishAt: operationsContentSchedule.actualPublishAt,
+    publicationUrl:operationsContentSchedule.publicationUrl,publicationRevision:operationsContentSchedule.publicationRevision,
     completionStatus: operationsContentSchedule.completionStatus,
     delayReason: operationsContentSchedule.delayReason,
   }).from(operationsContentSchedule)
@@ -128,7 +134,8 @@ try {
   teamScheduleNotifications(database),
   database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),
   readPromotionContext(database),
-  ]) as [typeof rows, typeof categoryPolicies, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext];
+  readReservations(database),
+  ]) as [typeof rows, typeof categoryPolicies, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext,typeof bookings];
 } catch (error) {
   console.error('operations schedule query failed', error);
   databaseError = '数据库暂时不可用。请检查开发库连接和最新迁移后重试。';
@@ -140,9 +147,11 @@ const monthRows = rows.filter((row) => monthKey(row.plannedPublishAt) === select
 const promotionRows = rows.filter((row) => ['testing', 'scaling'].includes(rowStatus(row)));
 const activeRows = selectedView === 'promotion'
   ? (selectedPromotion === 'all' ? promotionRows : rows.filter(row => row.isPromoted && rowStatus(row) === selectedPromotion))
-  : ['overdue','approvals','reasons'].includes(selectedStatus ?? '')
+  : ['overdue','approvals','reasons','reservation_approvals','publication_due'].includes(selectedStatus ?? '')
     ? rows.filter(row => selectedStatus === 'overdue' ? isOverdue(row)
-      : selectedStatus === 'approvals' ? notifications?.approvalScheduleIds.includes(row.id) : notifications?.missingReasonIds.includes(row.id))
+      : selectedStatus === 'approvals' ? notifications?.approvalScheduleIds.includes(row.id)
+      : selectedStatus==='reservation_approvals'?notifications?.reservationApprovalIds.includes(row.id)
+      : selectedStatus==='publication_due'?notifications?.publicationDueIds.includes(row.id): notifications?.missingReasonIds.includes(row.id))
     : monthRows.filter((row) => {
       if (selectedStatus === 'pending') return !row.actualPublishAt;
       if (selectedStatus === 'overdue') return isOverdue(row);
@@ -171,6 +180,7 @@ const clientRows = rows.map((row) => {
   const source = row.sourceVersionId ? rows.find((candidate) => candidate.versionId === row.sourceVersionId) : undefined;
   return {
     ...row,
+    publicationState:publishingState(row),publicationLabel:publicationLabels[publishingState(row)],reservationAt:inputDateTime(bookingFor(row.id)?.scheduledPublishAt??null),
     plannedPublishAt: inputDateTime(row.plannedPublishAt),
     actualPublishAt: inputDateTime(row.actualPublishAt),
     projectDocUrl: row.projectDocUrl ?? '',
@@ -188,8 +198,8 @@ const clientRows = rows.map((row) => {
 });
 const actorRole = Astro.locals.user?.role;
 const requestedRow = Astro.url.searchParams.get('row') || Astro.url.hash.slice(1);
-const queueView = ['overdue','approvals','reasons'].includes(selectedStatus ?? '');
-const queueLabel = selectedStatus === 'overdue' ? '全部延期未发' : selectedStatus === 'approvals' ? '待审批排期' : '待补延期理由';
+const queueView = ['overdue','approvals','reasons','reservation_approvals','publication_due'].includes(selectedStatus ?? '');
+const queueLabel = selectedStatus==='reservation_approvals'?'预约发送待审核':selectedStatus==='publication_due'?'预约到点待确认':selectedStatus === 'overdue' ? '全部延期未发' : selectedStatus === 'approvals' ? '待审批排期' : '待补延期理由';
 const todayKey = dayKey(now);
 const currentPolicies = new Map<string, typeof categoryPolicies[number]>();
 for (const policy of categoryPolicies) {
@@ -264,6 +274,8 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           <nav class="workflow-queue-nav" aria-label="排期待办队列">
             <a href={hrefFor({view:'schedule',status:'reasons',display:'ledger'})}>待补延期理由 <b>{notifications?.missingReasons ?? '—'}</b></a>
             <a href={hrefFor({view:'schedule',status:'approvals',display:'ledger'})}>{actorRole==='admin'?'待审批':'改期申请'} <b>{notifications?.pendingApprovals ?? '—'}</b></a>
+            <a href={hrefFor({view:'schedule',status:'reservation_approvals',display:'ledger'})}>预约待审 <b>{notifications?.reservationApprovals??'—'}</b></a>
+            <a href={hrefFor({view:'schedule',status:'publication_due',display:'ledger'})}>到点待确认 <b>{notifications?.publicationDue??'—'}</b></a>
             {queueView&&<span>{queueLabel} · 跨月份显示</span>}
           </nav>
 
@@ -284,7 +296,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                     <td><span class="version-chip">V{row.versionNumber}</span><small>{row.workType === 'revision' ? '改帖' : '新做帖'}</small></td>
                     <td class="content-cell"><strong>{row.contentName}</strong><small>{row.subjectName}{row.categoryName ? ` / ${row.categoryName}` : ''}{row.syncToMoments ? ' · 同步朋友圈' : ''}{source ? ` · 来源 V${source.versionNumber}` : ''}{child ? ` · 已派生 V${child.versionNumber}` : ''}</small></td>
                     <td><span class={`tag promotion-${rowStatus(row)}`}>{promotionLabels[rowStatus(row)] ?? row.promotionStatus}</span></td>
-                    <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)] ?? '待发布'}</span></td>
+                    <td><span class={`completion completion-${isOverdue(row) ? 'overdue' : row.completionStatus}`}>{isOverdue(row) ? '逾期未发' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)] ?? '待发布'}</span>{publishingState(row)!=='unpublished'&&<small class="publication-state-label" data-publication-row-state={row.id}>{publicationLabels[publishingState(row)]}</small>}</td>
                     <td>{row.projectDocUrl ? <a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a> : <span class="missing">待登记</span>}</td>
                   </tr>
                 </>;
@@ -317,15 +329,17 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                   <div><dt>推广状态</dt><dd data-inspector-promotion></dd></div>
                   <div><dt>应发时间</dt><dd data-inspector-planned></dd></div>
                   <div><dt>实发时间</dt><dd data-inspector-actual></dd></div>
+                  <div><dt>发布登记</dt><dd data-inspector-publication-state></dd></div>
                   <div><dt>发布状态</dt><dd data-inspector-completion></dd></div>
                 </dl>
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
                 <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
                 <section class="inspector-section"><span>项目文档</span><a data-inspector-doc target="_blank" rel="noreferrer">打开项目文档 ↗</a></section>
+                <section class="inspector-section"><span>小红书帖子</span><a data-inspector-post target="_blank" rel="noreferrer">尚未补充帖子链接</a></section>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="延期与改期"><p>选中帖子后读取延期与审批记录。</p></section>
                 <section class="inspector-danger"><span>更多操作</span><button type="button" data-inspector-delete data-admin-only>删除这条排期</button><small role="alert" data-inspector-delete-error></small></section>
               </div>
-              <footer class="inspector-actions"><button type="button" class="save-button publication-action" data-inspector-publication>实发登记</button><div><button type="button" class="secondary-action" data-inspector-edit>编辑排期</button><button type="button" class="secondary-action" data-inspector-revise>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
+              <footer class="inspector-actions"><button type="button" class="save-button publication-action" data-inspector-publication>发布登记</button><div><button type="button" class="secondary-action" data-inspector-edit>编辑排期</button><button type="button" class="secondary-action" data-inspector-revise>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </BusinessInspector>
           </div>
         </main>
@@ -381,9 +395,14 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         <input type="hidden" name="plannedPublishAt" />
         <div class="publication-context"><strong data-publication-name></strong><span data-publication-planned></span></div>
         <div class="form-grid">
-          <div class="field"><label for="publicationActualPublishAt">实发时间 <b>*</b></label><input id="publicationActualPublishAt" name="actualPublishAt" type="datetime-local" required /><small data-publication-error="actualPublishAt"></small></div>
-          <div class="field"><label>完成情况</label><output class="status-preview" data-publication-status>待登记</output></div>
-          <div class="field field-wide"><label for="publicationProjectDocUrl">项目文档链接 <b>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required /><small data-publication-error="projectDocUrl"></small></div>
+          <input type="hidden" name="expectedPublicationRevision"/><input type="hidden" name="requestKey"/>
+          <div class="field field-wide"><label for="publicationMode">发布方式</label><select id="publicationMode" name="publicationMode"><option value="sent">已发送</option><option value="scheduled">预约发送（定时发布）</option></select></div>
+          <div class="field field-wide" data-reservation-fields hidden><label for="scheduledPublishAt">预约发送时间 <b>*</b></label><input id="scheduledPublishAt" name="scheduledPublishAt" type="datetime-local" disabled/><small data-publication-error="scheduledPublishAt"></small><p class="publication-hint">提交后由管理员审核。到点后请补充帖子链接并确认实际发送时间。</p></div>
+          <div class="field" data-sent-fields><label for="publicationActualPublishAt">实发时间 <b>*</b></label><input id="publicationActualPublishAt" name="actualPublishAt" type="datetime-local" required/><small data-publication-error="actualPublishAt"></small><label class="time-correction-toggle" data-correction-toggle hidden><input type="checkbox" name="correctTime"/>更正已有实发时间</label></div>
+          <div class="field" data-sent-fields><label>完成情况</label><output class="status-preview" data-publication-status>待登记</output></div>
+          <div class="field field-wide" data-sent-fields><label for="publicationUrl">小红书帖子链接 <b>*</b></label><input id="publicationUrl" name="publicationUrl" type="url" required placeholder="小红书帖子长链接或分享短链接"/><small data-publication-error="publicationUrl"></small></div>
+          <div class="field field-wide" data-sent-fields><label for="publicationProjectDocUrl">项目文档链接 <b>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required/></div>
+          <div class="field field-wide" data-time-correction hidden><label for="publicationCorrectionReason">实发时间更正原因 <b>*</b></label><textarea id="publicationCorrectionReason" name="correctionReason" maxlength="500" disabled></textarea><small data-publication-error="correctionReason"></small></div>
           <section class="field field-wide delay-field" data-publication-delay><strong>逐日延期理由</strong><p data-publication-delay-status role="status"></p><div data-publication-delay-days></div><input type="hidden" name="dailyReasons" value="[]"/><input type="hidden" name="expectedPlanRevision"/></section>
         </div>
         <p class="form-message" data-publication-message role="alert"></p>
@@ -466,7 +485,10 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         inspectorRevise.hidden = record.childVersionNumber != null;
         inspectorDerived.hidden = record.childVersionNumber == null;
         inspectorDerived.textContent = record.childVersionNumber == null ? '' : `已派生 V${record.childVersionNumber}`;
-        inspectorPublication.textContent = record.actualPublishAt ? '查看／更正实发登记' : '实发登记';
+        inspectorPublication.textContent = record.actualPublishAt ? '查看／补充发布登记' : record.publicationState==='needs_confirmation'?'确认实发并补链':'发布登记';
+        setInspectorText('[data-inspector-publication-state]',record.publicationLabel);
+        const post=inspector.querySelector('[data-inspector-post]');
+        if(record.publicationUrl){post.href=record.publicationUrl;post.textContent='打开小红书帖子 ↗';}else{post.removeAttribute('href');post.textContent='尚未补充帖子链接';}
         inspectorDeleteError.textContent = '';
         document.dispatchEvent(new CustomEvent('business:schedule-selected', { detail: record }));
       };
@@ -636,6 +658,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       const publicationControl = (name) => publicationForm.elements.namedItem(name);
       const publicationStatus = document.querySelector('[data-publication-status]');
       const publicationMessage = document.querySelector('[data-publication-message]');
+      let publicationDirty=false;
       const updatePublicationStatus = () => {
         const planned = publicationControl('plannedPublishAt').value;
         const actual = publicationControl('actualPublishAt').value;
@@ -643,36 +666,54 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         publicationStatus.value = actual ? delayed ? '延期发布' : '按时发布' : '待登记';
         publicationStatus.className = `status-preview ${delayed ? 'completion-delayed' : ''}`;
       };
+      const updatePublicationMode = () => {
+        const scheduled=publicationControl('publicationMode').value==='scheduled';
+        const correcting=Boolean(activeRecord?.actualPublishAt)&&actorRole==='admin'&&publicationControl('correctTime').checked;
+        document.querySelector('[data-reservation-fields]').hidden=!scheduled;
+        publicationControl('scheduledPublishAt').disabled=!scheduled;publicationControl('scheduledPublishAt').required=scheduled;
+        document.querySelectorAll('[data-sent-fields]').forEach(node=>node.hidden=scheduled);
+        const actual=publicationControl('actualPublishAt');actual.disabled=scheduled||Boolean(activeRecord?.actualPublishAt)&&!correcting;actual.required=!actual.disabled;
+        for(const name of ['publicationUrl','projectDocUrl']){publicationControl(name).disabled=scheduled;publicationControl(name).required=!scheduled&&(name==='publicationUrl'||!activeRecord?.actualPublishAt);}
+        document.querySelector('[data-time-correction]').hidden=scheduled||!correcting;
+        publicationControl('correctionReason').disabled=scheduled||!correcting;publicationControl('correctionReason').required=!scheduled&&correcting;
+        document.querySelector('[data-correction-toggle]').hidden=scheduled||!activeRecord?.actualPublishAt||actorRole!=='admin';
+        document.querySelector('[data-publication-delay]').hidden=scheduled;
+        publicationForm.querySelector('button[type=submit]').textContent=scheduled?(actorRole==='admin'?'确认预约':'提交预约审核'):'保存已发送登记';
+        updatePublicationStatus();
+      };
       const openPublication = (record) => {
         if (!record) return;
-        activeRecord = record;
-        publicationForm.reset();
-        publicationMessage.textContent = '';
-        document.querySelectorAll('[data-publication-error]').forEach((node) => node.textContent = '');
-        document.querySelector('#publication-title').textContent = record.actualPublishAt ? '查看／更正实发登记' : '实发登记';
-        document.querySelector('[data-publication-name]').textContent = record.contentName;
-        document.querySelector('[data-publication-planned]').textContent = `应发 ${record.plannedDisplay}`;
-        publicationControl('plannedPublishAt').value = record.plannedPublishAt;
-        publicationControl('actualPublishAt').value = record.actualPublishAt || '';
-        publicationControl('projectDocUrl').value = record.projectDocUrl || '';
-        updatePublicationStatus();
-        publicationDialog.showModal();
-        publicationControl('actualPublishAt').focus();
-        document.dispatchEvent(new CustomEvent('business:publication-opened', { detail: record }));
+        activeRecord=record;publicationForm.reset();publicationDirty=false;
+        publicationMessage.textContent='';document.querySelectorAll('[data-publication-error]').forEach(node=>node.textContent='');
+        document.querySelector('#publication-title').textContent=record.actualPublishAt?'查看／补充发布登记':'发布登记';
+        document.querySelector('[data-publication-name]').textContent=record.contentName;
+        document.querySelector('[data-publication-planned]').textContent=`应发 ${record.plannedDisplay}`;
+        publicationControl('plannedPublishAt').value=record.plannedPublishAt;
+        publicationControl('actualPublishAt').value=record.actualPublishAt||'';
+        publicationControl('projectDocUrl').value=record.projectDocUrl||'';publicationControl('publicationUrl').value=record.publicationUrl||'';
+        publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;
+        publicationControl('requestKey').value=crypto.randomUUID();publicationControl('scheduledPublishAt').value=record.reservationAt||'';
+        publicationControl('publicationMode').querySelector('[value=scheduled]').disabled=Boolean(record.actualPublishAt);
+        publicationControl('publicationMode').value=!record.actualPublishAt&&['scheduled','awaiting_approval'].includes(record.publicationState)?'scheduled':'sent';
+        updatePublicationMode();publicationDialog.showModal();
+        publicationControl(publicationControl('publicationMode').value==='scheduled'?'scheduledPublishAt':'publicationUrl').focus();
+        document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));
       };
-      const closePublication = () => publicationDialog.close();
+      const closePublication=()=>{if(publicationDirty&&!confirm('有尚未保存的发布登记，确定放弃吗？'))return;publicationDirty=false;document.documentElement.dataset.unsaved='false';publicationDialog.close();};
       inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
       document.querySelectorAll('[data-close-publication]').forEach((button) => button.addEventListener('click', closePublication));
       publicationDialog.addEventListener('cancel', (event) => { event.preventDefault(); closePublication(); });
-      publicationForm.addEventListener('input', updatePublicationStatus);
+      publicationForm.addEventListener('input',()=>{publicationDirty=true;document.documentElement.dataset.unsaved='true';updatePublicationStatus();});
+      publicationControl('publicationMode').addEventListener('change',updatePublicationMode);publicationControl('correctTime').addEventListener('change',updatePublicationMode);
       publicationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        publicationMessage.textContent = '正在保存实发登记…';
+        const scheduled=publicationControl('publicationMode').value==='scheduled';
+        publicationMessage.textContent=scheduled?'正在提交预约…':'正在保存实发登记…';
         const submit = publicationForm.querySelector('button[type="submit"]');
         submit.disabled = true;
         const body = new FormData(publicationForm);
         try {
-          let response = await fetch(`/api/operations-content/${activeRecord.id}/publication`, { method: 'PATCH', body, headers: { Accept: 'application/json' } });
+          let response = await fetch(`/api/operations-content/${activeRecord.id}/${scheduled?'publication-reservations':'publication'}`, { method: scheduled?'POST':'PATCH', body, headers: { Accept: 'application/json' } });
           let result = await response.json();
           if (response.status === 409 && result.resetRequired) {
             const impact = result.impact ?? {};
@@ -682,7 +723,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
               result = await response.json();
             }
           }
-          if (response.ok) { window.location.reload(); return; }
+          if (response.ok) { publicationDirty=false;document.documentElement.dataset.unsaved='false';window.location.reload(); return; }
           publicationMessage.textContent = result.message ?? '保存失败，请重试。';
           for (const [name, errors] of Object.entries(result.fields ?? {})) {
             const error = publicationForm.querySelector(`[data-publication-error="${name}"]`);
@@ -755,6 +796,15 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           submitButton.disabled = false;
           submitButton.innerHTML = originalLabel;
         }
+      });
+      document.addEventListener('business:publication-context',event=>{
+        const data=event.detail,record=rows.find(row=>row.id===data.schedule.id);if(!record||publicationDialog.open)return;
+        const asInput=value=>value?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value)).replace(' ','T'):'';
+        record.publicationRevision=data.schedule.publicationRevision;record.publicationUrl=data.schedule.publicationUrl;
+        record.publicationState=data.publicationState;record.publicationLabel=data.publicationLabel;
+        record.actualPublishAt=asInput(data.schedule.actualPublishAt);record.reservationAt=asInput(data.publicationReservations[0]?.scheduledPublishAt);
+        record.actualDisplay=data.schedule.actualPublishAt?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(data.schedule.actualPublishAt)):'尚未实发';
+        if(activeRecord?.id===record.id){setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／补充发布登记':record.publicationState==='needs_confirmation'?'确认实发并补链':'发布登记';}
       });
       const initialRecord = rows.find(row => row.id === (requestedRow || location.hash.slice(1)));
       if (initialRecord) openInspector(initialRecord);
@@ -947,4 +997,8 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
 <style is:global>
 .workflow-queue-nav{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:12px 0}.workflow-queue-nav a{padding:7px 10px;border:1px solid #c9d1cc;border-radius:7px;background:#f7f8f5;color:#53615a;font-size:12px;text-decoration:none}.workflow-queue-nav b{margin-left:5px;font-variant-numeric:tabular-nums}.workflow-queue-nav>span{color:var(--muted);font-size:12px}
 .schedule-workflow-panel{display:grid;gap:12px}.schedule-workflow-panel h3{margin:0;font-size:13px}.schedule-workflow-panel p{margin:0;font-size:12px;line-height:1.55;white-space:pre-wrap}.schedule-workflow-panel details>summary{cursor:pointer;font-size:12px;font-weight:750}.workflow-reason,.workflow-application,.workflow-plan-history{padding:10px 0;border-bottom:1px solid var(--line)}.workflow-reason h4{margin:0 0 6px;font-size:12px}.workflow-reason small,.workflow-application small{display:block;margin-top:5px;color:var(--muted);font-size:11px}.workflow-form{display:grid;gap:9px;margin-top:8px}.workflow-form label,.publication-reason-day label{display:grid;gap:4px;color:var(--muted);font-size:12px}.workflow-form input,.workflow-form select,.workflow-form textarea,.publication-reason-day select,.publication-reason-day textarea{width:100%;min-width:0;padding:8px;border:1px solid #abb5af;border-radius:7px;background:#fff;font:13px/1.5 system-ui}.workflow-form textarea,.publication-reason-day textarea{resize:vertical}.workflow-form button,.workflow-reason>button{justify-self:start;padding:7px 10px;border:1px solid #aeb8b2;border-radius:7px;background:#fff;font-size:12px;cursor:pointer}.workflow-form button[type=submit]{color:#fff;border-color:var(--blue);background:var(--blue)}.workflow-form output{color:#963f29;font-size:12px;line-height:1.5}.workflow-form[hidden]{display:none}.publication-reason-day{display:grid;gap:9px;padding:12px 0;border-bottom:1px solid var(--line)}.publication-reason-day strong{font-size:13px}.publication-reason-day p{font-size:12px;white-space:pre-wrap}.publication-reason-day small{color:var(--muted);font-size:11px}.workflow-warning{color:#963f29}.schedule-workflow-panel details[open]>summary{margin-bottom:8px}
+</style>
+
+<style>
+#publication-form [hidden]{display:none!important}.publication-state-label{display:block;margin-top:5px;color:#526a81;font-size:11px;white-space:normal}.publication-hint{color:var(--muted);font-size:12px;line-height:1.6}.time-correction-toggle{display:flex!important;align-items:center;gap:6px;font-size:11px}.time-correction-toggle input{width:auto!important}.publication-context{flex-wrap:wrap}.workflow-queue-nav{flex-wrap:wrap}
 </style>

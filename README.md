@@ -52,12 +52,12 @@ pnpm build
 ## 日常使用与发布
 
 - 年度规划：`/business/annual-plan`，总规划由学科细致规划自动汇总。
-- 帖子排期：`/business/operations-schedule`，新做帖建立 V0，修改内容建立 V1+，实发单独登记。
+- 帖子排期：`/business/operations-schedule`，新做帖建立 V0，修改内容建立 V1+，发布登记区分已发送与预约；员工预约需审核，到点补链接确认实发。
 - 推广日度：`/business/daily-promotion-review`，T+1 指标、测试／放量、待定区间与次日计划、历史更正和团队节假日暂停。
 - 推广阶段：`/business/daily-promotion-review?view=stage`，自选日期汇总测试／放量，保存 V0/V1+ 快照供例会引用。
 - 非推广复盘：`/business/non-promotion-review`，首轮／二轮指标、学科分类筛选及不复盘／恢复。
 - 例会：`/business/meeting-review`，五部分报告、指定版本快照、私有图片和结论事项；全局规则：`/business/settings`。
 
-账号分为管理员和员工；两种角色均可处理日常复盘和团队暂停。已有应发时间的员工改期需要管理员审批。完整权限及业务口径见[已确认决定](docs/DECISIONS.md)。
+账号分为管理员和员工；两种角色均可处理日常复盘和团队暂停。已有应发时间的员工改期和预约发送需要管理员审批；已有实发时间更正仅管理员处理。完整权限及业务口径见[已确认决定](docs/DECISIONS.md)。
 
 开发与修正先推送工作分支供验收，用户确认后再合入 `main`。公网通过 Vercel CLI 手动发布，Git 推送不自动部署。发布、临时隧道和回滚入口见[部署指南](docs/deployment.md)。

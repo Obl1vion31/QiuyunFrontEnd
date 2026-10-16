@@ -19,3 +19,5 @@
 - `promotion-wait-ranges.ts`：逐帖待定区间、次日生效计划、并发版本与历史级联保护。
 - `promotion-stage-reviews.ts`：自选区间测试／放量聚合、缺口和来源事实、不可变 V0/V1+ 快照。
 - `meeting-snapshots.ts`：五部分例会草稿校验、非推广候选及服务端事实组装，引用绑定具体快照版本。
+
+- `publication-workflow.ts`：预约提交／审核／取消、实发证据和管理员时间更正事务；`publication-rules.mjs` 推导站内发布进度。预约审核与实发事件独立留痕，历史迁移不补造事实。

@@ -20,6 +20,7 @@ flowchart LR
 | 年度规划 | `src/pages/business/annual-plan.astro` | `src/db/annual-plan*`、`api/operations-annual-plans*` |
 | 排期与版本 | `src/pages/business/operations-schedule.astro` | `src/db/validation.ts`、`api/operations-content*` |
 | 延期与改期审批 | 排期 Inspector | `schedule-rules.mjs`、`schedule-workflow.ts`、改期与逐日理由接口 |
+| 发布登记与预约审核 | 排期发布 Sheet 与 Inspector | `publication-workflow.ts`、`publication-rules.mjs`、`publication` 与 `publication-reservations` 接口 |
 | 推广日度与历史 | `src/pages/business/daily-promotion-review.astro` | `promotion-rules.mjs`、`promotion-state.mjs`、`api/promotion-daily*` |
 | 团队节假日暂停 | 日度待办标题栏右端 | `promotion-pauses.ts`、`BusinessPromotionPause.astro`、`api/promotion-pauses*` |
 | 非推广复盘 | `src/pages/business/non-promotion-review.astro` | `stage-review-*`、`non-promotion-workflow.ts`、复盘与节点接口 |
@@ -38,7 +39,7 @@ flowchart LR
 ## 关键数据流
 
 1. 新做帖建立帖子身份、V0 和排期；改帖派生 V1+，共用逻辑帖子笔记 ID。
-2. 实发登记保存项目链接、实发时间和逐日延期理由；员工已有应发时间的变更进入管理员审批。
+2. 已发送登记原子保存项目文档、帖子链接、真实实发和逐日理由；预约只保存未来时间与审核历史，到点待确认，不产生实发。已有应发改期需审批，已有实发时间更正仅管理员并填写原因。
 3. 推广按日度事实与明确等待区间回放。排期、历史和待办共用有效状态推导；节假日暂停叠加在原测试／放量阶段上，到期恢复不依赖定时任务。
 4. 非推广复盘保存真实数据截止日、两项指标与修订版本；跳过单独保存事件，不生成指标。
 5. 周会引用业务事实并保存不可变定稿快照，修订追加版本；历史导入不覆盖旧定稿。
@@ -75,3 +76,5 @@ flowchart LR
 模板中的业务表单由页面适配器代理事件；`business:inspector-render` 只初始化新挂载内容，不导航、不重建列表。需要异步补充时立即显示本地内容，在请求后比较选择和请求代次，失败在面板内提供重试；排期的 [operations-workflow](../src/scripts/operations-workflow.ts) 是完整实例。
 
 新增或变更共享模式时同时修改此表及行为验收，避免示例与运行代码分离。服务端读模型只允许 SSR/API 使用；浏览器中的 `import type` 仅提供类型，不能导入连接或执行数据库查询。
+
+发布流程的写入集中在 `src/db/publication-workflow.ts`：预约提交、审核与实发分别执行，复用排期行锁与发布修订号。`operations-workflow.ts` 只为已发送读取延期核对，预约分支不会传未来时间给实发接口。预约和实发历史通过既有 workflow GET 读取；站内提醒复用 `business-notifications`，不依赖后台定时任务。

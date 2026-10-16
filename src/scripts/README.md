@@ -9,3 +9,5 @@
 `schedule-notifications.ts` 为持久化侧栏刷新延期、待补理由及审批计数；`operations-workflow.ts` 管理排期 Inspector 的申请与逐日理由，以及实发时的理由核对与原子提交。客户端只请求受权限保护的接口，不导入数据库连接。
 
 `business-inspector.ts` 统一详情开关、焦点、深链接与未保存保护；`non-promotion-review.ts` 只处理筛选、排序、业务保存和 GET 刷新。接入方式见[共享界面实例](../../docs/code-study.md#共享界面接入)。
+
+排期的 `operations-workflow.ts` 同时处理预约审核与发布历史；预约和实发共用发布 Sheet，但只有已发送分支核对逐日理由。提醒由 `schedule-notifications.ts` 按服务器时间更新，到点不自动写入实发。

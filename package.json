@@ -24,7 +24,8 @@
     "db:check": "drizzle-kit check",
     "db:migrate": "node --import tsx scripts/migrate.ts",
     "db:backup": "node --import tsx scripts/backup-database.ts",
-    "test:ui": "node --import tsx tests/business-ui.browser.ts"
+    "test:ui": "node --import tsx tests/business-ui.browser.ts",
+    "test:publication": "node --import tsx tests/publication.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

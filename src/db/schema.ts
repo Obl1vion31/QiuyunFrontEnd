@@ -302,6 +302,8 @@ export const operationsContentSchedule = pgTable(
     planRevision: integer('plan_revision').notNull().default(0),
     planEffectiveAt: timestamp('plan_effective_at', { withTimezone: true }),
     actualPublishAt: timestamp('actual_publish_at', { withTimezone: true }),
+    publicationUrl: text('publication_url'),
+    publicationRevision: integer('publication_revision').notNull().default(0),
     completionStatus: text('completion_status').notNull(),
     delayReason: text('delay_reason'),
     sourceKey: text('source_key'),
@@ -327,6 +329,42 @@ export const operationsContentSchedule = pgTable(
     ),
   ],
 );
+
+// 预约与实发分别留痕；预约时间永远不充当 actual_publish_at。
+export const operationsPublicationReservation = pgTable('operations_publication_reservation', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  planRevision: integer('plan_revision').notNull(),
+  scheduledPublishAt: timestamp('scheduled_publish_at', { withTimezone: true }).notNull(),
+  requestKey: uuid('request_key').notNull().unique(),
+  history:jsonb('history').$type<Array<{status:string;actorId:string;actorLabel:string;at:string;reason:string|null}>>().notNull().default([]),
+  status: text('status').$type<'pending'|'approved'|'rejected'|'cancelled'|'obsolete'|'fulfilled'>().notNull(),
+  requestedById: text('requested_by_id').notNull(),
+  requestedByLabel: text('requested_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  decidedById: text('decided_by_id'),
+  decidedByLabel: text('decided_by_label'),
+  decisionReason: text('decision_reason'),
+  decidedAt: timestamp('decided_at', { withTimezone: true }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('operations_reservation_active_idx').on(table.scheduleId).where(sql`${table.status} IN ('pending','approved')`),
+  index('operations_reservation_schedule_idx').on(table.scheduleId,table.createdAt),
+  index('operations_reservation_due_idx').on(table.status,table.scheduledPublishAt),
+  check('operations_reservation_status_check',sql`${table.status} IN ('pending','approved','rejected','cancelled','obsolete','fulfilled')`),
+]);
+
+export const operationsPublicationEvent = pgTable('operations_publication_event', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  revision: integer('revision').notNull(),
+  before: jsonb('before').$type<{actualPublishAt:string|null;publicationUrl:string|null;projectDocUrl:string|null}>().notNull(),
+  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string;projectDocUrl:string|null}>().notNull(),
+  reason: text('reason'),
+  changedById: text('changed_by_id').notNull(),
+  changedByLabel: text('changed_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [uniqueIndex('operations_publication_event_revision_idx').on(table.scheduleId,table.revision)]);
 
 // 改期关闭旧排期计时段；逐日理由依然归属当时的排期修订，不随新日期覆盖。
 export const operationsSchedulePlanHistory = pgTable('operations_schedule_plan_history', {

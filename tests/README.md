@@ -31,6 +31,7 @@ pnpm test
 pnpm db:check
 pnpm build
 pnpm test:ui
+pnpm test:publication
 pnpm test:browser
 pnpm test:workflows
 pnpm test:pauses
@@ -39,3 +40,5 @@ pnpm test:annual-plan
 ```
 
 新增复用模式时更新[真实接入例子](../docs/code-study.md#共享界面接入)及行为测试。截图只放 `.tools/test-artifacts/`；公网检查使用匿名只读请求，业务写入全部在隔离库验证。
+
+`pnpm test:publication` 在构建后验证员工预约、管理员审核与并发冲突、预约到点不实发、链接与时间校验、管理员时间更正，以及三种屏宽的模式切换、未保存保护和失败保留。`publication-workflow.test.ts` 用固定北京时间验证 17:00 登记 20:00、晚审、幂等、取消／改期失效、历史补链与更正留痕；`publication-migration.test.ts` 从上一结构验证兼容迁移，不使用共享库写入虚构数据。

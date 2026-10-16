@@ -1,10 +1,12 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import type { OperationsUser } from '../auth/permissions';
 import { requireAdmin } from '../auth/permissions';
 import { completionStatus, delayDayCount, delayDays, isDelayed } from './schedule-rules.mjs';
 import { shanghaiDateTime } from './validation';
+import { publicationState } from './publication-rules.mjs';
+import { operationsPublicationReservation as reservations,operationsPublicationEvent as publicationEvents } from './schema';
 import { operationsContentSchedule as schedules, operationsSchedulePlanHistory as plans,
   operationsScheduleChangeRequest as requests, operationsScheduleDelayReason as reasons } from './schema';
 
@@ -59,13 +61,15 @@ export function scheduleDelayItems(schedule: Schedule, history: Plan[], saved: R
 export async function readScheduleWorkflow(database: Reader, id: string, actualOverride?: Date, now = new Date()) {
   const [schedule] = await database.select().from(schedules).where(eq(schedules.id, id)).limit(1);
   if (!schedule) throw new WorkflowError('没有找到这条排期。', 404);
-  const [history, saved, applications] = await Promise.all([
+  const [history, saved, applications, publicationReservations, publicationHistory] = await Promise.all([
     database.select().from(plans).where(eq(plans.scheduleId, id)).orderBy(asc(plans.revision)),
     database.select().from(reasons).where(eq(reasons.scheduleId, id)),
     database.select().from(requests).where(eq(requests.scheduleId, id)).orderBy(asc(requests.createdAt)),
+    database.select().from(reservations).where(eq(reservations.scheduleId,id)).orderBy(desc(reservations.createdAt)),
+    database.select().from(publicationEvents).where(eq(publicationEvents.scheduleId,id)).orderBy(desc(publicationEvents.revision)),
   ]);
   const through = actualOverride ?? schedule.actualPublishAt ?? now;
-  return { schedule, history, applications,
+  return { schedule, history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule,publicationReservations[0],now),
     days: scheduleDelayItems(schedule, history, saved, through),
     overdueDays: !schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now, schedule.planEffectiveAt) : 0,
   };
@@ -114,8 +118,9 @@ export async function changeSchedulePlan(transaction: Transaction, schedule: Sch
     endedAt: schedule.actualPublishAt ?? now, newPlannedPublishAt: plannedAt,
     reason, changedById: actor.id, changedByLabel: actor.username });
   await transaction.update(schedules).set({ plannedPublishAt: plannedAt, planRevision: schedule.planRevision + 1,
-    planEffectiveAt: now, completionStatus: completionStatus(plannedAt, schedule.actualPublishAt), updatedAt: now,
+    planEffectiveAt: now, completionStatus: completionStatus(plannedAt, schedule.actualPublishAt), publicationRevision:schedule.publicationRevision+1, updatedAt: now,
   }).where(eq(schedules.id, schedule.id));
+  await transaction.update(reservations).set({status:'obsolete',history:sql`${reservations.history} || ${JSON.stringify([{status:'obsolete',actorId:actor.id,actorLabel:actor.username,at:now.toISOString(),reason:'应发时间已变更，请重新登记预约'}])}::jsonb`,decisionReason:'应发时间已变更，请重新登记预约',updatedAt:now}).where(and(eq(reservations.scheduleId,schedule.id),inArray(reservations.status,['pending','approved'])));
   await transaction.update(requests).set({ status: 'obsolete', decidedAt: now, decisionReason: '排期已发生变化' })
     .where(and(eq(requests.scheduleId, schedule.id), eq(requests.status, 'pending')));
 }
@@ -162,13 +167,17 @@ export async function decideChangeRequest(database: Database, scheduleId: string
 }
 
 export async function teamScheduleNotifications(database: Database, now = new Date()) {
-  const [rows, history, saved, applications] = await Promise.all([
+  const [rows, history, saved, applications, bookings] = await Promise.all([
     database.select().from(schedules), database.select().from(plans), database.select().from(reasons),
     database.select().from(requests).where(eq(requests.status, 'pending')),
+    database.select().from(reservations).where(inArray(reservations.status,['pending','approved'])),
   ]);
   const overdueIds = rows.filter(row => !row.actualPublishAt && isDelayed(row.plannedPublishAt, now)).map(row => row.id);
   const missingReasonIds = rows.filter(row => scheduleDelayItems(row, history.filter(item => item.scheduleId === row.id),
     saved.filter(item => item.scheduleId === row.id), row.actualPublishAt ?? now).some(day => !day.saved && !day.archived)).map(row => row.id);
-  return { overdue: overdueIds.length, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
+  const active=bookings.filter(booking=>rows.some(row=>row.id===booking.scheduleId&&!row.actualPublishAt&&row.planRevision===booking.planRevision));
+  const reservationApprovalIds=active.filter(row=>row.status==='pending').map(row=>row.scheduleId);
+  const publicationDueIds=active.filter(row=>row.scheduledPublishAt<=now).map(row=>row.scheduleId);
+  return { reservationApprovals:reservationApprovalIds.length,publicationDue:publicationDueIds.length,reservationApprovalIds,publicationDueIds,overdue: overdueIds.length, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
     overdueIds, missingReasonIds, approvalScheduleIds: applications.map(item => item.scheduleId), serverTime: now.toISOString() };
 }

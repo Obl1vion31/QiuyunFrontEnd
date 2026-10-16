@@ -15,6 +15,7 @@ async function login(account: typeof admin | typeof employee) {
   assert.equal(response.status,200); return response.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ');
 }
 async function request(path:string,method:string,cookie:string,fields?:Record<string,string>,expected=200) {
+  if(path.endsWith('/publication')&&fields){const meta=await (await fetch(baseURL+path.replace('/publication','/workflow'),{headers:{Cookie:cookie}})).json();fields={expectedPlanRevision:String(meta.schedule.planRevision),expectedPublicationRevision:String(meta.schedule.publicationRevision),publicationUrl:'https://www.xiaohongshu.com/explore/'+'a'.repeat(24),...fields};}
   const response=await fetch(baseURL+path,{method,headers:{Origin:baseURL,Cookie:cookie,Accept:'application/json'},body:fields?form(fields):undefined});
   const body=await response.json();assert.equal(response.status,expected,`${path}: ${JSON.stringify(body)}`);return body;
 }
@@ -118,7 +119,7 @@ try {
   const browserPublication=await create({contentName:'虚构浏览器实发帖'});
   await page.goto(`${baseURL}/business/operations-schedule?status=overdue&row=${browserPublication.id}`);await page.locator('[data-schedule-workflow] .workflow-form').first().waitFor();
   await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();
-  await page.locator('#publicationActualPublishAt').fill(actual);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/browser-publication');
+  await page.locator('#publicationActualPublishAt').fill(actual);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/browser-publication');await page.locator('#publicationUrl').fill('https://www.xiaohongshu.com/explore/'+'b'.repeat(24));
   await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
   assert.equal(await page.locator('[data-delay-day]').count(),2);
   for(const index of [0,1]){const day=page.locator('[data-delay-day]').nth(index);await day.locator('select').selectOption(index?'requester':'self');await day.locator('textarea').fill(`浏览器第${index+1}天原因`);}
