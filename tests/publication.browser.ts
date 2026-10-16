@@ -1,62 +1,86 @@
-/** 预约／实发的真实 HTTP、权限、并发与共享 UI；仅写隔离数据库。 */
+/** 发布登记、历史空值与月历交互；业务写入仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
-import {randomUUID} from 'node:crypto';
 import {eq} from 'drizzle-orm';
 import {startFixture,admin,employee} from './auth.fixture';
 import * as schema from '../src/db/schema';
 const fixture=await startFixture(),{db,baseURL}=fixture;let browser:any;
 const time=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date).replace(' ','T');
-const now=new Date(Math.floor(Date.now()/60000)*60000),past=time(new Date(now.getTime()-3600000)),future=time(new Date(now.getTime()+3*3600000));
-const link='https://www.xiaohongshu.com/explore/'+'c'.repeat(24);
+const now=new Date(Math.floor(Date.now()/60000)*60000),future=time(new Date(now.getTime()+3*3600000)),month=time(now).slice(0,7);
+const link='https://xhslink.cn/o/4KuczULK8Ja',share=`2026TMUA超完整超全解析来啦！！🤩 所有时区的考试全... ${link} 快戳【小红书】瞧瞧这篇笔记！`;
 const form=(input:Record<string,string>)=>{const data=new FormData();for(const [key,value]of Object.entries(input))data.set(key,value);return data;};
 async function login(account:typeof admin|typeof employee){const r=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(account)});assert.equal(r.status,200);return r.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ')}
 async function call(path:string,method:string,cookie:string,input?:Record<string,string>,expected=200){const r=await fetch(baseURL+path,{method,headers:{Origin:baseURL,Cookie:cookie,Accept:'application/json'},body:input?form(input):undefined});const data=await r.json();assert.equal(r.status,expected,`${path}: ${JSON.stringify(data)}`);return data;}
 try{
  const staff=await login(employee),boss=await login(admin);
- async function create(name:string){const result=await call('/api/operations-content','POST',staff,{contentName:name,subjectId:'tmua',categoryId:'temporary',plannedPublishAt:future,projectDocUrl:'',promotionStatus:'none'},201);return result.id as string;}
- const id=await create('虚构预约与审核帖');const endpoint=`/api/operations-content/${id}`;
- const booking={scheduledPublishAt:future,requestKey:randomUUID(),expectedPlanRevision:'0',expectedPublicationRevision:'0'};
- const reservation=await call(endpoint+'/publication-reservations','POST',staff,booking,201);
- assert.equal(reservation.status,'pending');assert.equal((await call(endpoint+'/publication-reservations','POST',staff,booking,201)).id,reservation.id);
- await call(endpoint+'/publication-reservations/'+reservation.id,'PATCH',staff,{action:'approve',expectedPlanRevision:'0',expectedPublicationRevision:'1'},403);
- const approvals=await Promise.all([0,1].map(()=>fetch(baseURL+endpoint+'/publication-reservations/'+reservation.id,{method:'PATCH',headers:{Origin:baseURL,Cookie:boss},body:form({action:'approve',expectedPlanRevision:'0',expectedPublicationRevision:'1'})})));
- assert.deepEqual(approvals.map(r=>r.status).sort(),[200,409]);
- await db.update(schema.operationsPublicationReservation).set({scheduledPublishAt:new Date(now.getTime()-60000)}).where(eq(schema.operationsPublicationReservation.id,reservation.id));
- let w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationState,'needs_confirmation');assert.equal(w.schedule.actualPublishAt,null);
- const notices=await call('/api/business-notifications','GET',staff);assert.ok(notices.publicationDueIds.includes(id));
- assert.equal((await db.select().from(schema.operationsPromotionCampaign)).length,0);
- const sent={actualPublishAt:past,projectDocUrl:'https://fictional.example.test/project',publicationUrl:link,expectedPlanRevision:'0',expectedPublicationRevision:'2'};
+ async function create(name:string){return (await call('/api/operations-content','POST',staff,{contentName:name,subjectId:'tmua',categoryId:'temporary',plannedPublishAt:future,projectDocUrl:'',promotionStatus:'none'},201)).id as string;}
+ const cases:Array<{id:string;state:string;promoted:boolean}>=[];
+ for(const promoted of [false,true])for(const state of ['on_time','delayed','pending']){
+  const planned=new Date(`${month}-${String(5+cases.length).padStart(2,'0')}T10:00:00+08:00`);
+  const [content]=await db.insert(schema.operationsContent).values({}).returning();
+  const [version]=await db.insert(schema.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:`虚构月历 ${promoted?'推广':'非推广'} ${state}`,subjectId:'tmua',categoryId:'temporary',projectDocUrl:'https://fictional.example.test/doc'}).returning();
+  const [schedule]=await db.insert(schema.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:planned,actualPublishAt:state==='pending'?null:new Date(planned.getTime()+(state==='delayed'?9:1)*3600000),completionStatus:state,isPromoted:promoted,promotionStatus:promoted?(state==='pending'?'pending':'awaiting_promotion'):'none'}).returning();
+  cases.push({id:schedule.id,state,promoted});
+ }
+ const id=await create('虚构未来发布'),endpoint=`/api/operations-content/${id}`;
+ const sent={actualPublishAt:future,publicationUrl:share,projectDocUrl:'https://fictional.example.test/project',expectedPlanRevision:'0',expectedPublicationRevision:'0'};
  await call(endpoint+'/publication','PATCH',staff,{...sent,publicationUrl:''},422);
- await call(endpoint+'/publication','PATCH',staff,{...sent,actualPublishAt:future},422);
- const anonymous=await fetch(baseURL+endpoint+'/publication-reservations');assert.equal(anonymous.status,401);
- const csrf=await fetch(baseURL+endpoint+'/publication-reservations',{method:'POST',headers:{Cookie:staff,Origin:'https://foreign.example.test'},body:form(booking)});assert.equal(csrf.status,403);
+ await call(endpoint+'/publication','PATCH',staff,{...sent,publicationUrl:'https://xhslink.cn.evil.test/o/abc'},422);
+ await call(endpoint+'/workflow?actual='+encodeURIComponent(future),'GET',staff);
+ await call(endpoint+'/publication','PATCH',staff,sent);
+ let w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationState,'published');assert.equal(w.schedule.publicationUrl,link);assert.equal(w.schedule.actualPublishAt,new Date(future+':00+08:00').toISOString());assert.equal(w.publicationReservations.length,0);
+ await call(endpoint+'/publication','PATCH',staff,{...sent,expectedPublicationRevision:'1',actualPublishAt:time(new Date(now.getTime()+7200000)),correctionReason:'员工回改'},403);
+ const races=await Promise.all(['abc','def'].map(key=>fetch(baseURL+endpoint+'/publication',{method:'PATCH',headers:{Origin:baseURL,Cookie:staff},body:form({...sent,expectedPublicationRevision:'1',publicationUrl:'https://xhslink.com/o/'+key})})));
+ assert.deepEqual(races.map(r=>r.status).sort(),[200,409]);
+ for(const cookie of [staff,boss]){
+  await call(endpoint+'/publication-reservations','POST',cookie,{},410);
+  await call(endpoint+'/publication-reservations/00000000-0000-0000-0000-000000000000','PATCH',cookie,{action:'approve'},410);
+ }
+ const notices=await call('/api/business-notifications','GET',staff);assert.equal(notices.reservationApprovals,0);assert.equal(notices.publicationDue,0);
+ assert.equal((await fetch(baseURL+endpoint+'/publication',{method:'PATCH',headers:{Origin:baseURL}})).status,401);
+ assert.equal((await fetch(baseURL+endpoint+'/publication',{method:'PATCH',headers:{Cookie:staff,Origin:'https://foreign.example.test'}})).status,403);
  const playwright=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await playwright.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});
  const errors:string[]=[];
- async function pageFor(cookie:string,width:number){const context=await browser.newContext({viewport:{width,height:900},locale:'zh-CN',reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));return {context,page};}
- const {context,page}=await pageFor(staff,1440);
- await page.goto(baseURL+`/business/operations-schedule?status=publication_due&row=${id}`);await page.locator('[data-schedule-workflow]').getByText('预约时间已到，请补充小红书帖子链接并确认实际发送时间。').waitFor();
- await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationMode').inputValue(),'sent');
- await page.locator('#publicationActualPublishAt').fill(past);await page.locator('#publicationUrl').fill(link);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/project');
- await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
- const response=page.waitForResponse((r:any)=>r.url().endsWith(endpoint+'/publication')&&r.request().method()==='PATCH');await page.locator('#publication-form button[type=submit]').click();assert.equal((await response).status(),200);await page.waitForLoadState('networkidle');
- w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationReservations[0].status,'fulfilled');assert.equal(w.schedule.publicationUrl,link);assert.equal(w.schedule.actualPublishAt,new Date(past+':00+08:00').toISOString());
- await call(endpoint+'/publication','PATCH',staff,{...sent,expectedPublicationRevision:'3',actualPublishAt:time(new Date(now.getTime()-1800000)),correctionReason:'员工尝试回改时间'},403);
- await page.goto(baseURL+`/business/operations-schedule?row=${id}`);await page.locator('[data-schedule-workflow] summary').first().waitFor();await page.locator('[data-inspector-publication]').click();assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);assert.equal(await page.locator('[data-correction-toggle]').isVisible(),false);
- await page.screenshot({path:'.tools/test-artifacts/publication-sent-employee.png'});await page.locator('[data-close-publication]').first().click();await context.close();
- // 预约只填写时间即可提交；两种模式切换不丢输入，提交失败也保留时间。
+ async function pageFor(cookie:string,width:number){const context=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));return {context,page};}
  for(const width of [1440,390,320]){
-  const {context,page}=await pageFor(staff,width),newId=await create(`虚构预约界面 ${width}`);await page.goto(baseURL+`/business/operations-schedule?row=${newId}`);await page.locator('[data-inspector-publication]').click();await page.locator('#publicationMode').selectOption('scheduled');await page.locator('#scheduledPublishAt').fill(future);
-  assert.equal(await page.locator('#publicationUrl').isVisible(),false);assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
-  await page.locator('#publicationMode').selectOption('sent');await page.locator('#publicationMode').selectOption('scheduled');assert.equal(await page.locator('#scheduledPublishAt').inputValue(),future);
-  page.once('dialog',(dialog:any)=>dialog.dismiss());await page.locator('[data-close-publication]').first().click();assert.equal(await page.locator('#publication-dialog').evaluate((node:HTMLDialogElement)=>node.open),true);
-  await page.route('**/publication-reservations',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构连接失败'})}));await page.locator('#publication-form button[type=submit]').click();await page.locator('[data-publication-message]').getByText('虚构连接失败').waitFor();assert.equal(await page.locator('#scheduledPublishAt').inputValue(),future);await page.unroute('**/publication-reservations');
-  await page.screenshot({path:`.tools/test-artifacts/publication-reservation-${width}.png`});const saved=page.waitForResponse((r:any)=>r.url().endsWith(`/api/operations-content/${newId}/publication-reservations`)&&r.request().method()==='POST');await page.locator('#publication-form button[type=submit]').click();assert.equal((await saved).status(),201);await page.waitForLoadState('networkidle');
-  const workflow=await call(`/api/operations-content/${newId}/workflow`,'GET',staff);assert.equal(workflow.publicationState,'awaiting_approval');assert.equal(workflow.schedule.actualPublishAt,null);
-  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await context.close();
+  const {context,page}=await pageFor(staff,width);
+  await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);assert.equal(await page.locator('#publicationMode').count(),0);
+  assert.equal(await page.getByText('预约待审',{exact:true}).count(),0);assert.equal(await page.getByText('到点待确认',{exact:true}).count(),0);
+  for(const item of cases){const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+item.state));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');}
+  const colors=await page.locator('.calendar-item').evaluateAll((rows:HTMLElement[])=>Object.fromEntries(['on_time','delayed','pending'].map(key=>[key,getComputedStyle(rows.find(row=>row.classList.contains('publish-'+key))!).backgroundColor])));
+  assert.equal(new Set(Object.values(colors)).size,3);await page.screenshot({path:`.tools/test-artifacts/unified-calendar-${width}.png`,fullPage:true});
+  if(width===1440){await page.locator(`[data-calendar-new="${month}-19"]`).focus();await page.keyboard.press('Enter');await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-19');await page.locator('[data-close]').first().click();}
+  const blank=page.locator(`[data-calendar-day="${month}-01"]`);await blank.click({position:{x:6,y:6}});await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-01');await page.locator('[data-close]').first().click();
+  await page.locator('[data-calendar-new]').filter({hasText:'20'}).click();await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-20');assert.equal(await page.locator('#plannedPublishTime').inputValue(),'');
+  await page.locator('#contentName').fill(`虚构日历新建 ${width}`);await page.locator('#subjectId').selectOption('tmua');await page.locator('#categoryId').selectOption('temporary');await page.locator('#plannedPublishTime').fill('12:00');
+  const reloaded=page.waitForEvent('framenavigated',(frame:any)=>frame===page.mainFrame());
+  const created=page.waitForResponse((r:any)=>r.url().endsWith('/api/operations-content')&&r.request().method()==='POST');await page.locator('#schedule-form button[type=submit]').click();assert.equal((await created).status(),201);await reloaded;await page.waitForLoadState('networkidle');
+  const [createdRow]=await db.select({id:schema.operationsContentSchedule.id}).from(schema.operationsContentSchedule).innerJoin(schema.operationsContentVersion,eq(schema.operationsContentVersion.id,schema.operationsContentSchedule.contentVersionId)).where(eq(schema.operationsContentVersion.contentName,`虚构日历新建 ${width}`));const createdId=createdRow.id;
+  const fresh=await call(`/api/operations-content/${createdId}/workflow`,'GET',staff);assert.equal(fresh.schedule.plannedPublishAt,new Date(month+'-20T12:00:00+08:00').toISOString());
+  // 点击已有条目只打开详情；旧帖子链接区域和表单留空。
+  assert.equal(await page.locator('#schedule-dialog').evaluate((node:HTMLDialogElement)=>node.open),false,'新建保存后对话框已关闭');
+  await page.locator(`[data-inspect-id="${cases[0].id}"]`).click();await page.locator('[data-inspector].is-open').waitFor();assert.equal(await page.locator('#schedule-dialog').evaluate((node:HTMLDialogElement)=>node.open),false);
+  assert.equal(await page.locator('[data-inspector-post]').innerText(),'');assert.equal(await page.locator('[data-inspector-post]').getAttribute('href'),null);
+  await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),'');assert.equal(await page.locator('#publicationUrl').getAttribute('required'),null);assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
+  assert.doesNotMatch(await page.locator('#publication-dialog').innerText(),/初始化|豁免|补链|缺少链接/);await page.locator('[data-close-publication]').first().click();await page.keyboard.press('Escape');
+  // 月历筛选保持月历并真正筛选；台账和月份切换仍可用。
+  await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'已发布'}).click();await page.waitForURL(/status=published/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-pending'));assert.equal(await page.locator('.calendar').count(),1);assert.equal(await page.locator('.calendar-item.publish-pending').count(),0);
+  await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'待发布'}).click();await page.waitForURL(/status=pending/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-on_time,.calendar-item.publish-delayed'));assert.equal(await page.locator('.calendar-item.publish-on_time,.calendar-item.publish-delayed').count(),0);
+  await page.goto(baseURL+'/business/operations-schedule?display=ledger');assert.equal(await page.locator('table').count(),1);
+  const newId=await create(`虚构分享登记 ${width}`);await page.goto(baseURL+`/business/operations-schedule?row=${newId}`);await page.locator('[data-inspector-publication]').click();await page.locator('#publicationActualPublishAt').fill(future);await page.locator('#publicationUrl').fill(share);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/project');await page.locator('[data-publication-link-preview]').getByText('已识别：'+link).waitFor();
+  await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
+  page.once('dialog',(dialog:any)=>dialog.dismiss());await page.keyboard.press('Escape');assert.equal(await page.locator('#publication-dialog').evaluate((node:HTMLDialogElement)=>node.open),true);
+  await page.route(`**/api/operations-content/${newId}/publication`,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构连接失败'})}));await page.locator('#publication-form button[type=submit]').click();await page.locator('[data-publication-message]').getByText('虚构连接失败').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),share);assert.equal(await page.locator('#publicationActualPublishAt').inputValue(),future);await page.unroute(`**/api/operations-content/${newId}/publication`);
+  await page.screenshot({path:`.tools/test-artifacts/unified-publication-${width}.png`});
+  const saved=page.waitForResponse((r:any)=>r.url().endsWith(`/api/operations-content/${newId}/publication`)&&r.request().method()==='PATCH');await page.locator('#publication-form button[type=submit]').click();assert.equal((await saved).status(),200);await page.waitForLoadState('networkidle');
+  w=await call(`/api/operations-content/${newId}/workflow`,'GET',staff);assert.equal(w.schedule.publicationUrl,link);assert.equal(w.publicationState,'published');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await context.close();
  }
- const {context:adminContext,page:adminPage}=await pageFor(boss,1440);await adminPage.goto(baseURL+`/business/operations-schedule?row=${id}`);await adminPage.locator('[data-inspector-publication]').click();await adminPage.locator('[name=correctTime]').check();await adminPage.locator('#publicationActualPublishAt').fill(time(new Date(now.getTime()-1800000)));await adminPage.locator('#publicationCorrectionReason').fill('核对帖子后由管理员更正');await adminPage.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
- const corrected=adminPage.waitForResponse((r:any)=>r.url().endsWith(endpoint+'/publication')&&r.request().method()==='PATCH');await adminPage.locator('#publication-form button[type=submit]').click();assert.equal((await corrected).status(),200);await adminPage.waitForLoadState('networkidle');
- w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationHistory.length,2);assert.equal(w.publicationHistory[0].reason,'核对帖子后由管理员更正');await adminContext.close();
- assert.deepEqual(errors,[]);console.log('通过：员工预约／审核、并发与权限、到点待确认、实发证据、管理员更正及 1440／390／320px 共享发布面板。');
-}catch(error){console.error(fixture.logs().slice(-5000));throw error}finally{await browser?.close();await fixture.stop()}
+ const {context:adminContext,page:adminPage}=await pageFor(boss,1440);
+ await adminPage.goto(baseURL+`/business/operations-schedule?row=${id}`);await adminPage.locator('[data-inspector-publication]').click();assert.equal(await adminPage.locator('#publicationActualPublishAt').isDisabled(),true);
+ await adminPage.locator('[name=correctTime]').check();assert.equal(await adminPage.locator('#publicationActualPublishAt').isDisabled(),false);await adminPage.locator('#publicationActualPublishAt').fill(time(new Date(now.getTime()+7200000)));await adminPage.locator('#publicationCorrectionReason').fill('核对平台后更正发布时间');
+ await adminPage.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
+ const corrected=adminPage.waitForResponse((r:any)=>r.url().endsWith(endpoint+'/publication')&&r.request().method()==='PATCH');await adminPage.locator('#publication-form button[type=submit]').click();assert.equal((await corrected).status(),200);
+ w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationHistory[0].reason,'核对平台后更正发布时间');await adminContext.close();
+ assert.deepEqual(errors,[]);console.log('通过：统一未来发布、完整分享文案、旧链接留空、旧预约停用、权限及并发与管理员更正；1440／390／320px 默认月历、双色状态、筛选、日期新建、未保存与失败保护。');
+}catch(error){console.error(fixture.logs().slice(-4000));throw error}finally{await browser?.close();await fixture.stop()}

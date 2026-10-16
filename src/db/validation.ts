@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { extractPublicationLink } from './publication-link.mjs';
 import {
   categoryBelongsToSubject,
   postCategories,
@@ -35,13 +36,10 @@ const optionalHttpUrl = z.preprocess(
   emptyToNull,
   z.url('请输入有效的 HTTP/HTTPS 链接').refine((url) => /^https?:\/\//.test(url), '仅支持 HTTP/HTTPS 链接').nullable(),
 );
-export const publicationUrlSchema = z.string().trim().min(1,'请粘贴对应的小红书帖子链接').max(4000).superRefine((value,context) => {
-  try {
-    const url=new URL(value);
-    const long=['xiaohongshu.com','www.xiaohongshu.com'].includes(url.hostname) && /^\/(?:explore|discovery\/item)\/[0-9a-fA-F]{24}\/?$/.test(url.pathname);
-    const short=['xhslink.com','www.xhslink.com'].includes(url.hostname) && /^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*\/?$/.test(url.pathname);
-    if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.port||(!long&&!short))throw new Error();
-  } catch { context.addIssue({code:'custom',message:'请填写有效的小红书帖子长链接或 xhslink.com 分享链接'}); }
+export const publicationUrlSchema = z.string().trim().min(1,'请粘贴对应的小红书帖子链接').max(4000).transform((value,context) => {
+  const result = extractPublicationLink(value);
+  if (result.error) { context.addIssue({ code: 'custom', message: result.error }); return z.NEVER; }
+  return result.url;
 });
 
 const versionFields = {
@@ -83,7 +81,7 @@ export const revisionSchema = withBusinessRules({
 export const publicationSchema = z.object({
   actualPublishAt: z.preprocess(emptyToNull,shanghaiDateTime.nullable().optional()),
   projectDocUrl: optionalHttpUrl.optional(),
-  publicationUrl: publicationUrlSchema,
+  publicationUrl: z.preprocess(emptyToNull, publicationUrlSchema.nullable().optional()),
   expectedPlanRevision:z.coerce.number().int().min(0),
   expectedPublicationRevision:z.coerce.number().int().min(0),
   correctionReason:z.string().trim().max(500).optional(),

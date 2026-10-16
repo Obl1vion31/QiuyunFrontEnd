@@ -359,7 +359,7 @@ export const operationsPublicationEvent = pgTable('operations_publication_event'
   scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
   revision: integer('revision').notNull(),
   before: jsonb('before').$type<{actualPublishAt:string|null;publicationUrl:string|null;projectDocUrl:string|null}>().notNull(),
-  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string;projectDocUrl:string|null}>().notNull(),
+  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string|null;projectDocUrl:string|null}>().notNull(),
   reason: text('reason'),
   changedById: text('changed_by_id').notNull(),
   changedByLabel: text('changed_by_label').notNull(),

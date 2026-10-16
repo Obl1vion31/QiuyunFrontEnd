@@ -5,7 +5,7 @@ import type { OperationsUser } from '../auth/permissions';
 import { requireAdmin } from '../auth/permissions';
 import { completionStatus, delayDayCount, delayDays, isDelayed } from './schedule-rules.mjs';
 import { shanghaiDateTime } from './validation';
-import { publicationState } from './publication-rules.mjs';
+import { publicationState, mayKeepEmptyPublicationLink } from './publication-rules.mjs';
 import { operationsPublicationReservation as reservations,operationsPublicationEvent as publicationEvents } from './schema';
 import { operationsContentSchedule as schedules, operationsSchedulePlanHistory as plans,
   operationsScheduleChangeRequest as requests, operationsScheduleDelayReason as reasons } from './schema';
@@ -40,9 +40,9 @@ export async function lockSchedule(transaction: Transaction, id: string) {
   return schedule;
 }
 
-export function scheduleDelayItems(schedule: Schedule, history: Plan[], saved: Reason[], through: Date) {
+export function scheduleDelayItems(schedule: Schedule, history: Plan[], saved: Reason[], through: Date, now = through) {
   const periods = [
-    ...history.map(plan => ({ revision: plan.revision, plannedAt: plan.plannedPublishAt, effectiveAt: plan.effectiveAt, end: plan.endedAt })),
+    ...history.map(plan => ({ revision: plan.revision, plannedAt: plan.plannedPublishAt, effectiveAt: plan.effectiveAt, end: new Date(Math.min(plan.endedAt.getTime(), now.getTime())) })),
     { revision: schedule.planRevision, plannedAt: schedule.plannedPublishAt, effectiveAt: schedule.planEffectiveAt, end: through },
   ];
   const savedMap = new Map(saved.map(item => [`${item.planRevision}:${item.dayNumber}`, item]));
@@ -68,9 +68,9 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
     database.select().from(reservations).where(eq(reservations.scheduleId,id)).orderBy(desc(reservations.createdAt)),
     database.select().from(publicationEvents).where(eq(publicationEvents.scheduleId,id)).orderBy(desc(publicationEvents.revision)),
   ]);
-  const through = actualOverride ?? schedule.actualPublishAt ?? now;
-  return { schedule, history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule,publicationReservations[0],now),
-    days: scheduleDelayItems(schedule, history, saved, through),
+  const through = new Date(Math.min((actualOverride ?? schedule.actualPublishAt ?? now).getTime(), now.getTime()));
+  return { schedule, history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
+    days: scheduleDelayItems(schedule, history, saved, through, now),
     overdueDays: !schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now, schedule.planEffectiveAt) : 0,
   };
 }
@@ -167,17 +167,13 @@ export async function decideChangeRequest(database: Database, scheduleId: string
 }
 
 export async function teamScheduleNotifications(database: Database, now = new Date()) {
-  const [rows, history, saved, applications, bookings] = await Promise.all([
+  const [rows, history, saved, applications] = await Promise.all([
     database.select().from(schedules), database.select().from(plans), database.select().from(reasons),
     database.select().from(requests).where(eq(requests.status, 'pending')),
-    database.select().from(reservations).where(inArray(reservations.status,['pending','approved'])),
   ]);
   const overdueIds = rows.filter(row => !row.actualPublishAt && isDelayed(row.plannedPublishAt, now)).map(row => row.id);
   const missingReasonIds = rows.filter(row => scheduleDelayItems(row, history.filter(item => item.scheduleId === row.id),
-    saved.filter(item => item.scheduleId === row.id), row.actualPublishAt ?? now).some(day => !day.saved && !day.archived)).map(row => row.id);
-  const active=bookings.filter(booking=>rows.some(row=>row.id===booking.scheduleId&&!row.actualPublishAt&&row.planRevision===booking.planRevision));
-  const reservationApprovalIds=active.filter(row=>row.status==='pending').map(row=>row.scheduleId);
-  const publicationDueIds=active.filter(row=>row.scheduledPublishAt<=now).map(row=>row.scheduleId);
-  return { reservationApprovals:reservationApprovalIds.length,publicationDue:publicationDueIds.length,reservationApprovalIds,publicationDueIds,overdue: overdueIds.length, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
+    saved.filter(item => item.scheduleId === row.id), new Date(Math.min(row.actualPublishAt?.getTime() ?? now.getTime(), now.getTime())), now).some(day => !day.saved && !day.archived)).map(row => row.id);
+  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
     overdueIds, missingReasonIds, approvalScheduleIds: applications.map(item => item.scheduleId), serverTime: now.toISOString() };
 }

@@ -10,4 +10,4 @@
 
 `business-inspector.ts` 统一详情开关、焦点、深链接与未保存保护；`non-promotion-review.ts` 只处理筛选、排序、业务保存和 GET 刷新。接入方式见[共享界面实例](../../docs/code-study.md#共享界面接入)。
 
-排期的 `operations-workflow.ts` 同时处理预约审核与发布历史；预约和实发共用发布 Sheet，但只有已发送分支核对逐日理由。提醒由 `schedule-notifications.ts` 按服务器时间更新，到点不自动写入实发。
+排期的 `operations-workflow.ts` 处理统一发布的到期理由、分享文案预览及更正历史，旧预约只读展示。新建、编辑、改帖共用日期与时分控件，日历点击只提供预填日期。提醒由 `schedule-notifications.ts` 刷新，不再提供预约审核或到点确认。

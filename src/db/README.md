@@ -20,4 +20,6 @@
 - `promotion-stage-reviews.ts`：自选区间测试／放量聚合、缺口和来源事实、不可变 V0/V1+ 快照。
 - `meeting-snapshots.ts`：五部分例会草稿校验、非推广候选及服务端事实组装，引用绑定具体快照版本。
 
-- `publication-workflow.ts`：预约提交／审核／取消、实发证据和管理员时间更正事务；`publication-rules.mjs` 推导站内发布进度。预约审核与实发事件独立留痕，历史迁移不补造事实。
+- `publication-workflow.ts`：统一发布登记、帖子链接和管理员时间更正事务；`publication-rules.mjs` 维护发布状态及历史空链接边界，旧预约只保留历史。
+
+`publication-link.mjs` 在前后端共用分享文案识别，不请求小红书；旧预约表保留只读历史，写入接口已停用。

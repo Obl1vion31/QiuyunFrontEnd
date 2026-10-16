@@ -9,7 +9,7 @@ export const GET: APIRoute = async ({ params, url }) => {
     let actual: Date | undefined;
     if (url.searchParams.has('actual')) {
       const parsed = shanghaiDateTime.safeParse(url.searchParams.get('actual'));
-      if (!parsed.success || parsed.data > new Date()) throw new WorkflowError('请选择有效的实发时间，不能晚于当前时间。', 422);
+      if (!parsed.success) throw new WorkflowError('请选择有效的发布时间。', 422);
       actual = parsed.data;
     }
     return Response.json(await readScheduleWorkflow(getDb(), params.id!, actual), { headers: { 'Cache-Control': 'no-store' } });

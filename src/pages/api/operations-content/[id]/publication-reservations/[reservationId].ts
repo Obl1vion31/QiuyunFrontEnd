@@ -1,9 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '../../../../../db/client';
-import { decideReservation,reservationDecisionSchema } from '../../../../../db/publication-workflow';
-import { workflowForm,workflowErrorResponse } from '../../../../../db/workflow-api';
-export const prerender=false;
-export const PATCH: APIRoute = async({params,request,url,locals})=>{
-  try{const parsed=await workflowForm(request,url,reservationDecisionSchema);if(parsed.error)return parsed.error;return Response.json(await decideReservation(getDb(),params.id!,params.reservationId!,parsed.data,locals.user!))}
-  catch(error){return workflowErrorResponse(error)}
+export const prerender = false;
+export const PATCH: APIRoute = async ({request,url}) => {
+  if(request.headers.get('origin')!==url.origin)return Response.json({message:'拒绝跨站写入。'},{status:403});
+  return Response.json({message:'发布登记已更新，请刷新页面后直接填写发布时间与帖子链接。'},{status:410});
 };

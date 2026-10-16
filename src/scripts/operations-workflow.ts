@@ -1,11 +1,12 @@
 import { getInspector } from './business-inspector';
+import { extractPublicationLink } from '../db/publication-link.mjs';
 import { publicationLabels } from '../db/publication-rules.mjs';
 import { isDelayed } from '../db/schedule-rules.mjs';
 type SavedReason = { reason: string; responsibility: 'self' | 'requester' | 'unknown'; source: string; updatedAt: string; changedByLabel: string; history: Array<unknown> };
 type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved: SavedReason | null; archived: boolean };
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
-type Workflow = {publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type Workflow = {allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -86,22 +87,13 @@ function initialize() {
       document.dispatchEvent(new CustomEvent('business:publication-context',{detail:{...workflow,publicationLabel:stateLabel}}));
       const stateNode=document.querySelector<HTMLElement>('[data-inspector-publication-state]');if(stateNode)stateNode.textContent=stateLabel;
       const rowState=document.querySelector<HTMLElement>(`[data-publication-row-state="${CSS.escape(id)}"]`);if(rowState)rowState.textContent=stateLabel;
-      if(workflow.publicationState==='needs_confirmation')panel!.append(element('p','预约时间已到，请补充小红书帖子链接并确认实际发送时间。'));
       if(workflow.publicationReservations.length){
-        const details=element('details');details.open=workflow.publicationReservations.some(row=>row.status==='pending')||workflow.publicationState==='needs_confirmation';
-        details.append(element('summary',`预约发送与审核 ${workflow.publicationReservations.length} 条`));
+        const details=element('details');details.open=false;
+        details.append(element('summary',`历史预约记录 ${workflow.publicationReservations.length} 条`));
         const labels:Record<string,string>={pending:'预约待审',approved:'已审核预约',rejected:'已驳回',cancelled:'已取消',obsolete:'已失效',fulfilled:'已完成实发'};
         for(const booking of workflow.publicationReservations){
           const row=element('section');row.className='workflow-application';row.append(element('p',`${labels[booking.status]} · ${booking.requestedByLabel}\n预约 ${timeLabel(booking.scheduledPublishAt)}`));
           if(booking.decisionReason||booking.decidedByLabel)row.append(element('small',`${booking.decidedByLabel||'系统'}：${booking.decisionReason||'审核通过'}`));
-          const actions=booking.status==='pending'?(isAdmin?['approve','reject','cancel']:['cancel']):booking.status==='approved'?['cancel']:[];
-          for(const action of actions){
-            const form=element('form');form.className='workflow-form';form.dataset.reservationAction=action;
-            hidden(form,'action',action);hidden(form,'expectedPlanRevision',String(workflow.schedule.planRevision));hidden(form,'expectedPublicationRevision',String(workflow.schedule.publicationRevision));
-            if(action==='reject')textField(form,'reason','驳回原因');
-            submitButton(form,action==='approve'?'通过预约':action==='reject'?'驳回预约':'取消预约');
-            bindForm(form,`/api/operations-content/${id}/publication-reservations/${booking.id}`,reload,'PATCH');row.append(form);
-          }
           if(booking.history.length){const history=element('details');history.append(element('summary','预约操作历史'));for(const entry of booking.history)history.append(element('p',`${labels[entry.status]} · ${entry.actorLabel} · ${timeLabel(entry.at)}${entry.reason?'\n'+entry.reason:''}`));row.append(history);}
           details.append(row);
         }
@@ -112,7 +104,7 @@ function initialize() {
         for(const entry of workflow.publicationHistory){const row=element('section');row.className='workflow-plan-history';row.append(element('p',`R${entry.revision} · ${entry.changedByLabel} · ${timeLabel(entry.createdAt)}\n实发：${entry.before.actualPublishAt?timeLabel(entry.before.actualPublishAt):'未登记'} → ${timeLabel(entry.after.actualPublishAt)}`));
           if(entry.reason)row.append(element('p',entry.reason));
           if(entry.before.publicationUrl) {const old=element('a','查看原帖子链接 ↗');old.href=entry.before.publicationUrl;old.target='_blank';old.rel='noreferrer';row.append(old);}
-          const link=element('a','查看登记的帖子链接 ↗');link.href=entry.after.publicationUrl;link.target='_blank';link.rel='noreferrer';row.append(link);details.append(row);
+          if(entry.after.publicationUrl){const link=element('a','查看登记的帖子链接 ↗');link.href=entry.after.publicationUrl;link.target='_blank';link.rel='noreferrer';row.append(link);}details.append(row);
         }panel!.append(details);
       }
       const pending = workflow.days.filter(day => !day.saved && !day.archived);
@@ -181,6 +173,17 @@ function initialize() {
       const button = element('button', '重新读取'); button.addEventListener('click', () => showPanel(id)); panel!.append(button);
     }
   }
+  const linkControl=publication.elements.namedItem('publicationUrl') as HTMLTextAreaElement;
+  const preview=publication.querySelector<HTMLOutputElement>('[data-publication-link-preview]')!;
+  const validateLink=()=>{
+    const value=linkControl.value.trim();
+    const result=extractPublicationLink(value);
+    linkControl.setCustomValidity(value?result.error:'');
+    preview.textContent=value?(result.error||`已识别：${result.url}`):'';
+    preview.dataset.invalid=String(Boolean(value&&result.error));
+  };
+  linkControl.addEventListener('input',validateLink,{signal});
+  document.addEventListener('business:publication-opened',validateLink,{signal});
   const host = publication.querySelector<HTMLElement>('[data-publication-delay-days]')!;
   const status = publication.querySelector<HTMLElement>('[data-publication-delay-status]')!;
   const collectInput = () => [...host.querySelectorAll<HTMLElement>('[data-delay-day]')].map(row => ({
@@ -190,7 +193,6 @@ function initialize() {
   async function showPublication() {
     if (!publicationId) return;
     const token = ++publicationToken;
-    if((publication!.elements.namedItem('publicationMode') as HTMLSelectElement).value==='scheduled'){host.dataset.ready='true';publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden=true;return;}
     host.dataset.ready = 'false'; status.textContent = '正在核对逐日理由…';
     const retained = new Map(collectInput().map(input => [`${input.planRevision}:${input.dayNumber}`,input]));
     const control=publication!.elements.namedItem('actualPublishAt') as HTMLInputElement;
@@ -228,11 +230,11 @@ function initialize() {
     publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden = false; showPublication();
   }, { signal });
   publication.querySelector('[name=actualPublishAt]')!.addEventListener('input', () => {
-    host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
+    publicationToken++; host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
   }, { signal });
-  publication.addEventListener('change',event=>{if((event.target as HTMLInputElement).name==='publicationMode'||(event.target as HTMLInputElement).name==='correctTime'){clearTimeout(pendingTimer);showPublication();}},{signal});
+  publication.addEventListener('change',event=>{if((event.target as HTMLInputElement).name==='correctTime'){clearTimeout(pendingTimer);showPublication();}},{signal});
   publication.addEventListener('submit', event => {
-    if((publication!.elements.namedItem('publicationMode') as HTMLSelectElement).value==='scheduled'){if(!publication!.reportValidity()){event.preventDefault();event.stopImmediatePropagation();}return;}
+    validateLink();
     if (host.dataset.ready !== 'true') { event.preventDefault(); event.stopImmediatePropagation(); status.textContent = '正在核对理由，请稍后保存；读取失败时请重新选择实发时间。'; return; }
     if (!publication!.reportValidity()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     (publication!.elements.namedItem('dailyReasons') as HTMLInputElement).value = JSON.stringify(collectInput());
