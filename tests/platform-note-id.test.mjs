@@ -20,7 +20,7 @@ test('非推广表格使用实验日期、文档链接及共享同类指标单�
   assert.match(page, /<MetricCell/);
   assert.match(cell, /同类均值/);
   assert.match(cell, /pp vs 同类/);
-  assert.match(page, /position:fixed;inset:0;z-index:50/);
+  assert.match(page, /<BusinessInspector/);
   assert.match(page, /focus-visible/);
 });
 

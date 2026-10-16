@@ -17,3 +17,25 @@
 `pnpm test:workflows` 在构建后验收延期逐日理由、实发原子提交、改期权限与并发审批、临时分类、非推广筛选、跳过／恢复及同类基准，并检查桌面与手机交互。`schedule-workflow.test.ts` 验证纯规则和事务，迁移测试从上一结构快照验证历史补齐与快照保留。
 
 `pnpm test:reviews` 在构建后使用隔离账号验收待定区间、次日计划、阶段快照版本、服务端例会引用、私有图片和桌面／390／320px 跨页布局。`promotion-intervals-snapshots.test.ts` 覆盖时间边界、手动恢复、历史影响确认、节假日交叠、任意时间段聚合、成本、缺失与快照不变；`review-intervals-migration.test.ts` 从上一结构验证追加迁移与旧会议保留。
+
+## 界面一致性验收
+
+先 `pnpm build`，再运行 `pnpm test:ui`；使用同一隔离库和虚构账号。测试覆盖 1440、390、320px，检查六个业务页的工具栏坐标／尺寸、标题起点和正文留白；公共误差不超过 1 CSS px。推广每日、阶段和历史连续切换时同时比较顶栏、按钮的 DOM 身份与坐标，不能只检查页面截图或高度。
+
+Inspector 验收检查左侧列表节点持续存在、无文档请求、滚动和筛选保留，以及快速选择、未保存取消、Esc、焦点返回、浏览器前进后退、移动端与减少动态效果。非推广检查同名排期独立分组、首轮／二轮基准隔离、分组和单轮排序、保存刷新及网络失败保留输入。异步详情还需通过排期工作流和年度规划回归检查旧响应不会覆盖新选择。
+
+本轮公共界面修改的完整回归命令为：
+
+```bash
+pnpm test
+pnpm db:check
+pnpm build
+pnpm test:ui
+pnpm test:browser
+pnpm test:workflows
+pnpm test:pauses
+pnpm test:reviews
+pnpm test:annual-plan
+```
+
+新增复用模式时更新[真实接入例子](../docs/code-study.md#共享界面接入)及行为测试。截图只放 `.tools/test-artifacts/`；公网检查使用匿名只读请求，业务写入全部在隔离库验证。

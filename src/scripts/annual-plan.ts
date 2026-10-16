@@ -1,3 +1,4 @@
+import { getInspector } from './business-inspector';
 import { blockBackground, blockPromotionLabel, formatSlotRange, normalizeSnapshot, splitBlockSegments, type PlanBlock } from '../db/annual-plan-rules.mjs';
 import type { AnnualPlanSnapshot } from '../db/schema';
 
@@ -19,7 +20,7 @@ function initializeAnnualPlan() {
   const rowDialog = q<HTMLDialogElement>('#row-dialog'); const rowForm = q<HTMLFormElement>('#row-form');
   const yearDialog = q<HTMLDialogElement>('#year-dialog'); const copyDialog = q<HTMLDialogElement>('#copy-dialog');
   const inspector = q<HTMLElement>('[data-inspector]'); const blockRows = q('[data-block-rows]', rowForm); const linkRows = q('[data-link-rows]', rowForm);
-  let activeRow: Row | null = null; let editingRow: Row | null = null; let inspectorTrigger: HTMLElement | null = null; let dirty = false;
+  let activeRow: Row | null = null; let editingRow: Row | null = null; let dirty = false;
   const field = (name: string) => rowForm.elements.namedItem(name) as HTMLInputElement;
   const applySection = (key: string, selectedCategory = '') => {
     const section = sections.find(section => section.key === key) ?? sections[0];
@@ -119,8 +120,8 @@ function initializeAnnualPlan() {
     all('[data-row-id]').forEach(node => node.classList.toggle('selected', node.dataset.rowId === id));
     all('[data-inspect-id]').forEach(node => node.setAttribute('aria-expanded', String(node.dataset.inspectId === id)));
   }
-  function openInspector(row: Row, trigger: HTMLElement) {
-    activeRow = row; inspectorTrigger = trigger; inspector.hidden = false; inspector.classList.add('open'); setSelected(row.id);
+  function fillInspector(row: Row) {
+    activeRow = row;
     inspector.dataset.tone = String(sections.find(section => section.key === row.sectionKey)?.tone ?? 4);
     const setText = (selector: string, value: string) => { q(selector, inspector).textContent = value; };
     setText('[data-section-label]', row.sectionLabel); setText('[data-row-name]', row.rowName); setText('[data-relation]', [row.subjectName, row.categoryName].filter(Boolean).join(' / '));
@@ -138,13 +139,13 @@ function initializeAnnualPlan() {
     const linkList = q('[data-link-list]', inspector); linkList.replaceChildren();
     for (const link of row.links) { const anchor = document.createElement('a'); anchor.href = link.url; anchor.target = '_blank'; anchor.rel = 'noreferrer'; anchor.textContent = `${link.label} ↗`; linkList.append(anchor); }
     if (!row.links.length) linkList.innerHTML = '<p class="inspector-empty">尚未添加 SOP 或帖集链接。</p>';
-    q('[data-history-list]', inspector).replaceChildren(); q<HTMLButtonElement>('[data-close-inspector]').focus();
+    q('[data-history-list]', inspector).replaceChildren();
   }
-  const closeInspector = () => { inspector.classList.remove('open'); inspector.hidden = true; setSelected(null); inspectorTrigger?.focus(); };
-  all('[data-inspect-id]').forEach(button => button.addEventListener('click', () => { const row = rows.find(row => row.id === button.dataset.inspectId); if (row) openInspector(row, button); }));
-  q('[data-close-inspector]').addEventListener('click', closeInspector);
+  const inspectorController = getInspector(inspector, { parameter:'row', select:setSelected, render:id => { const row=rows.find(row=>row.id===id); if(row)fillInspector(row); } });
+  all('[data-inspect-id]').forEach(button => button.addEventListener('click', () => inspectorController.open(button.dataset.inspectId!,button)));
+  const requestedRow = new URL(location.href).searchParams.get('row');
+  if (requestedRow && rows.some(row=>row.id===requestedRow)) inspectorController.open(requestedRow,null,false);
   q('[data-edit-row]').addEventListener('click', () => { if (activeRow) openRow(activeRow); });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !rowDialog.open && !yearDialog.open && !copyDialog.open && !inspector.hidden) closeInspector(); }, { signal: (() => { const controller = new AbortController(); document.addEventListener('astro:before-swap', () => controller.abort(), { once: true }); return controller.signal; })() });
   let activeSection = 'all'; let showInactive = false;
   const visibility = () => { all('[data-section]').forEach(node => { node.hidden = activeSection !== 'all' && node.dataset.section !== activeSection; }); all('[data-inactive=true]').forEach(node => { node.hidden = !showInactive; }); };
   all('[data-filter]').forEach(button => button.addEventListener('click', () => { activeSection = button.dataset.filter!; all('[data-filter]').forEach(node => node.classList.toggle('active', node === button)); visibility(); }));
@@ -152,10 +153,10 @@ function initializeAnnualPlan() {
   const scrolls = all<HTMLElement>('.matrix-shell,.summary-scroll'); for (const scroll of scrolls) scroll.addEventListener('scroll', () => { for (const other of scrolls) if (other !== scroll && Math.abs(other.scrollLeft - scroll.scrollLeft) > 1) other.scrollLeft = scroll.scrollLeft; });
 
   q('[data-load-history]').addEventListener('click', async () => {
-    if (!activeRow) return; const row = activeRow; const target = q('[data-history-list]', inspector); target.textContent = '正在读取…';
+    if (!activeRow) return; const row = activeRow; const generation = inspectorController.generation; const target = q('[data-history-list]', inspector); target.textContent = '正在读取…';
     try {
       const response = await fetch(`/api/operations-annual-plans/${row.id}/versions`); const result = await response.json();
-      if (activeRow?.id !== row.id) return;
+      if (activeRow?.id !== row.id || generation !== inspectorController.generation) return;
       if (!response.ok) { target.textContent = result.message; return; } target.replaceChildren();
       for (const version of result.versions) {
         const article = document.createElement('article'); article.innerHTML = `<div><strong>V${version.versionNumber}</strong><span>${new Date(version.createdAt).toLocaleString('zh-CN')}</span></div><p>${escapeHtml(version.changeSummary)}</p><small>${escapeHtml(version.changedByLabel)} · ${escapeHtml(version.diffSummary.join('；'))}</small>`;

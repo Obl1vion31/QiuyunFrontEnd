@@ -63,7 +63,9 @@ try {
   assert.ok(await page.locator('.matrix-shell').evaluate((node: HTMLElement) => node.scrollWidth <= node.clientWidth), '1280px 能看完整年度');
   const timeline = await page.locator('.timeline').first().boundingBox(); const summary = await page.locator('.summary-timeline').first().boundingBox(); assert.equal(timeline!.x, summary!.x);
   await page.screenshot({ path: '.tools/test-artifacts/annual-1280.png', fullPage: true });
-  await page.locator('.time-block').first().click(); await page.locator('[data-inspector].open').waitFor(); assert.match(await page.locator('[data-block-list]').innerText(), /9 月中旬/);
+  await page.locator('.time-block').first().click(); await page.locator('[data-inspector].is-open').waitFor(); assert.match(await page.locator('[data-block-list]').innerText(), /9 月中旬/);
+  await page.screenshot({path:'.tools/test-artifacts/annual-inspector-ui.png'});
+  assert.ok(await page.locator('[data-inspector]').evaluate((node:HTMLElement)=>node.getBoundingClientRect().bottom<=innerHeight),'详情及底部操作限制在视口内');
   await page.locator('[data-edit-row]').click(); await page.locator('#row-dialog[open]').waitFor(); assert.equal(await page.locator('#row-form [data-note]').first().inputValue(), classInput.blocks[0].note);
   assert.equal(await page.locator('[data-rule]').count(), 0); await page.locator('[data-close-row]').last().click();
   await page.locator('[data-close-inspector]').click();
@@ -84,7 +86,7 @@ try {
     await phone.locator('[data-copy-year]').click(); await phone.locator('#copy-dialog[open]').waitFor(); await mobile.close();
   }
   const reader = await browser.newContext(); await reader.addCookies(employeeCookie.split('; ').map(pair => ({ name: pair.slice(0, pair.indexOf('=')), value: pair.slice(pair.indexOf('=') + 1), url: baseURL })));
-  const readPage = await reader.newPage(); await readPage.goto(baseURL + '/business/annual-plan?year=2026'); assert.equal(await readPage.locator('[data-copy-year]').isVisible(), false); assert.equal(await readPage.locator('[data-open-new]').isVisible(), false); await reader.close();
+  const readPage = await reader.newPage(); await readPage.goto(baseURL + '/business/annual-plan?year=2026'); assert.equal(await readPage.locator('[data-copy-year]').isVisible(), false); assert.equal(await readPage.locator('[data-open-new]').isVisible(), false); await readPage.locator('.item-cell').first().click();await readPage.locator('[data-inspector].is-open').waitFor();assert.equal(await readPage.locator('[data-edit-row]').isVisible(),false,'员工详情沿用只读边界'); await reader.close();
   assert.deepEqual(errors, []); console.log('通过：1280px 全年对齐、备注、详情与编辑、跨页初始化、新建与复制，以及 390／320px 编辑和员工只读。');
 } catch (error) { console.error(fixture.logs().slice(-3500)); throw error; }
 finally { await browser?.close(); await fixture.stop(); }

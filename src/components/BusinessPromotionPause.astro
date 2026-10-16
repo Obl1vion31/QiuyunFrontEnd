@@ -7,34 +7,15 @@ const active = summary.active;
 const today = shanghaiDateKey(new Date());
 const endsOn = active ? previousDateKey(shanghaiDateKey(active.endsAt)) : today;
 ---
-<aside class="promotion-pause-panel" aria-labelledby="pause-title" data-promotion-pause data-pause-state={`${active?.id ?? ''}:${active?.revision ?? ''}`}>
-  <header><span class:list={['pause-indicator', { active: Boolean(active) }]}></span><h2 id="pause-title">节假日暂停</h2></header>
-  {active ? <>
-    <p class="pause-state">本次暂停 <strong>{summary.affected}</strong> 篇</p>
-    <p>暂停至 <b>{endsOn}</b>，次日自动恢复原阶段。</p>
-    <form data-pause-form data-pause-id={active.id}>
-      <input type="hidden" name="expectedRevision" value={active.revision} />
-      <label>暂停至<input type="date" name="endsOn" value={endsOn} min={today} max="2099-12-31" required /></label>
-      <button type="submit" name="action" value="extend">调整截止日</button>
-      <button class="resume" type="submit" name="action" value="resume">提前恢复</button>
-      <output role="status" aria-live="polite"></output>
-    </form>
-    <small>{active.updatedByLabel} · {active.reason}</small>
-  </> : <>
-    <p class="pause-state">测试 <strong>{summary.testing}</strong> 篇 · 推广 <strong>{summary.scaling}</strong> 篇</p>
-    <form data-pause-form>
-      <label>暂停至<input type="date" name="endsOn" value={endsOn} min={today} max="2099-12-31" required /></label>
-      <button type="submit">一键暂停 {summary.affected} 篇</button>
-      <output role="status" aria-live="polite"></output>
-    </form>
-  </>}
-  <p class="pause-help">原本待定或暂停的内容保持原状。完整暂停日无需复盘；广告平台请同步停投。</p>
-</aside>
+<div class="promotion-pause-inline" data-promotion-pause data-pause-state={`${active?.id ?? ''}:${active?.revision ?? ''}`}>
+  <form data-pause-form data-pause-id={active?.id} aria-label="节假日暂停">
+    {active && <><input type="hidden" name="expectedRevision" value={active.revision}/><span>已暂停 {summary.affected} 篇</span></>}
+    <label>暂停至<input type="date" name="endsOn" value={endsOn} min={today} max="2099-12-31" required/></label>
+    {active ? <><button type="submit" name="action" value="extend">调整截止日</button><button class="resume" type="submit" name="action" value="resume">提前恢复</button></> : <button type="submit" title={`测试 ${summary.testing} 篇，推广 ${summary.scaling} 篇`}>一键暂停 {summary.affected} 篇</button>}
+    <output role="status" aria-live="polite"></output>
+  </form>
+</div>
 <script src="../scripts/promotion-pauses.ts"></script>
 <style>
-  .promotion-pause-panel{align-self:start;position:sticky;top:96px;min-width:0;padding:17px;border:1px solid #bac5c9;border-top:3px solid #5b8cff;border-radius:10px;background:#f5f7f4;color:#17211c;font:12px/1.6 system-ui,sans-serif}
-  header{display:flex;align-items:center;gap:8px}h2{margin:0;font-size:14px;line-height:1.4}.pause-indicator{width:7px;height:7px;border-radius:50%;background:#9aa8af}.pause-indicator.active{background:#b57a18;box-shadow:0 0 0 4px #f3e6c8}
-  p{margin:10px 0;color:#596a70}.pause-state{color:#17211c;font-size:12px}.pause-state strong{font:800 17px ui-monospace,monospace}form,label{display:grid;gap:7px}form{margin:13px 0}label{color:#526168;font-size:11px}input{box-sizing:border-box;width:100%;min-width:0;height:37px;border:1px solid #a7b6bf;border-radius:6px;padding:5px 8px;background:#fff;color:#17211c;font:12px system-ui,sans-serif}button{min-height:37px;border:0;border-radius:6px;padding:8px;color:#fff;background:#315fd6;font:750 12px system-ui,sans-serif;cursor:pointer}button.resume{border:1px solid #a7b6bf;color:#31516a;background:transparent}button:disabled{opacity:.6;cursor:wait}button:focus-visible,input:focus-visible{outline:2px solid #315fd6;outline-offset:3px}output{color:#9a3f36;font-size:11px}output:empty{display:none}.pause-help,small{display:block;color:#68797e;font-size:10px;line-height:1.7}.pause-help{margin-bottom:0;padding-top:10px;border-top:1px solid #d5dddf}
-  @media(max-width:1050px){.promotion-pause-panel{position:static}form{grid-template-columns:minmax(145px,1fr) auto;align-items:end}button{min-width:110px}.resume,output{grid-column:1/-1}}
-  @media(max-width:400px){form{grid-template-columns:minmax(0,1fr)}button{width:100%}}
+.promotion-pause-inline{margin-left:auto;min-width:0;color:#17211c;font:11px/1.4 system-ui,sans-serif}form,label{display:flex;align-items:center;flex-wrap:wrap;gap:8px}form{justify-content:flex-end}label{color:#68736d}input{box-sizing:border-box;min-width:0;width:132px;height:32px;padding:4px 7px;border:1px solid #b9c3bd;border-radius:6px;color:#17211c;background:#fff;font:11px system-ui}button{height:32px;border:0;border-radius:6px;padding:0 10px;background:#315fd6;color:#fff;font:700 11px system-ui;cursor:pointer}.resume{background:#e3e8e5;color:#42534a}output{flex-basis:100%;color:#9a3f36}output:empty{display:none}button:focus-visible,input:focus-visible{outline:2px solid #315fd6;outline-offset:2px}@media(max-width:900px){.promotion-pause-inline{margin-left:0;width:100%}form{justify-content:flex-start}}
 </style>

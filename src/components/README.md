@@ -54,6 +54,8 @@ ContentTunnel.module.css
 `BusinessScheduleNotifications.astro` 在共享侧栏提供团队排期待办，手机通过排期导航角标显示延期数量；刷新逻辑位于 `src/scripts/schedule-notifications.ts`。
 
 - `BusinessPromotionWaitRanges.astro`：每日与历史共用的待定区间和下一步编辑器。
-- `BusinessPromotionNav.astro`：推广日度／阶段的页内子导航，适配手机聚合入口。
+- `BusinessPromotionToolbar.astro`：每日／阶段／历史共同持久化的工具栏；阶段正文由 `BusinessPromotionStageView.astro` 提供。
 - `BusinessPromotionSnapshot.astro`：可供截图和例会引用的阶段汇总及来源明细。
 - `BusinessMeetingSnapshot.astro`：五部分定稿的冻结内容及旧格式兼容展示。
+
+`BusinessInspector.astro` 与 `src/scripts/business-inspector.ts` 是所有业务详情的共同入口。使用前先读[设计规则](../../docs/DESIGN.md#共享正文与-inspector)与[接入实例](../../docs/code-study.md#共享界面接入)；几何和开关流程不能在页面复制。

@@ -8,6 +8,7 @@
 | 已确认的产品、业务、权限和技术边界 | [DECISIONS](DECISIONS.md) |
 | 页面视觉、中文阅读与交互规则 | [DESIGN](DESIGN.md) |
 | 当前、下一步与暂缓事项 | [ROADMAP](ROADMAP.md) |
+| 共享容器、相邻视图、Inspector 的真实接入与验收 | [共享界面接入](code-study.md#共享界面接入)、[测试标准](../tests/README.md#界面一致性验收) |
 | 系统如何协作、修改功能从哪里开始 | [代码索引](code-study.md) |
 | 首页 Astro／React／CSS 详细教学 | [首页代码学习](home-code-study.md) |
 | 数据库接入、查询、迁移、备份和账号 | [数据库指南](database-guide.md) |

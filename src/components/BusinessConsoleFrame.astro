@@ -1,10 +1,27 @@
 ---
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
-type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'promotion-stage' | 'non-promotion-review' | 'meeting-review' | 'settings';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
 ---
 
+<!-- 在 ClientRouter 模块启动前接管仅改变详情选择的历史，保留同一个列表 DOM。 -->
+<script is:inline>
+(() => {
+  if (window.__businessInspectorHistoryReady) return;
+  window.__businessInspectorHistoryReady = true;
+  window.addEventListener('popstate', event => {
+    const pane = document.querySelector('[data-inspector-ready="true"]');
+    const parameter = pane?.dataset.inspectorParameter;
+    if (!parameter || !pane.dataset.inspectorHistoryBase) return;
+    const destination = new URL(location.href);
+    destination.searchParams.delete(parameter); destination.hash = '';
+    if (destination.href !== pane.dataset.inspectorHistoryBase && pane.dataset.dirty !== 'true') return;
+    event.stopImmediatePropagation();
+    pane.dispatchEvent(new CustomEvent('business:inspector-popstate'));
+  }, true);
+})();
+</script>
 <div class="app-shell business-console-frame" data-user-role={Astro.locals.user?.role}>
   <BusinessConsoleSidebar active={active} />
   <section class="workspace business-console-workspace"><slot /></section>
@@ -99,6 +116,9 @@ const { active } = Astro.props;
 
 <style is:global>
   :root{
+    --console-content-x:24px;
+    --console-content-top:22px;
+    --console-toolbar-height:72px;
     --console-canvas:#e9ece8;
     --console-paper:#f7f8f5;
     --console-surface:#fff;
@@ -113,6 +133,8 @@ const { active } = Astro.props;
   body{margin:0;overflow-x:hidden}
   .business-console-frame{width:100%;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.2}
   .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
+  .business-console-content{box-sizing:border-box;width:auto;max-width:none;margin:0;padding:var(--console-content-top) var(--console-content-x) 46px;min-width:0}
+  @media(max-width:900px){:root{--console-content-x:10px;--console-content-top:12px;--console-toolbar-height:62px}.business-console-content{padding-bottom:28px}}
   .business-console-frame[data-user-role="employee"] [data-admin-only]{display:none!important}
   .business-operation-feedback{position:fixed;z-index:1200;right:20px;bottom:20px;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 14px;border:1px solid rgba(23,33,28,.14);border-radius:10px;background:rgba(247,248,245,.96);box-shadow:0 10px 28px rgba(23,33,28,.14);color:var(--console-ink);font-size:13px;font-weight:700;opacity:1;transform:translateY(0);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
   .business-operation-feedback[aria-hidden="true"]{opacity:0;transform:translateY(6px)}

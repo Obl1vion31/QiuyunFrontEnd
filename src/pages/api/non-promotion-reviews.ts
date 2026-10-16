@@ -1,3 +1,4 @@
+import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import type { APIRoute } from 'astro';
 import { and, desc, eq, isNull, lte } from 'drizzle-orm';
 import { lockSchedule } from '../../db/schedule-workflow';
@@ -175,4 +176,10 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
     if (code === '23505') return Response.json({ message: '笔记 ID 或复盘记录已存在，请刷新核对后重试。', fields: { platformNoteId: ['请核对已有笔记 ID'] } }, { status: 409 });
     return workflowErrorResponse(error);
   }
+};
+
+export const GET: APIRoute = async ({ url }) => {
+  const model = await readNonPromotionReview(url);
+  if (model.loadError) return new Response(JSON.stringify({message:model.loadError}), {status:503,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+  return new Response(JSON.stringify({tableRows:model.tableRows,pendingCount:model.pending.length,completedCount:model.rows.reduce((sum,row)=>sum+row.completed.length,0)}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 };

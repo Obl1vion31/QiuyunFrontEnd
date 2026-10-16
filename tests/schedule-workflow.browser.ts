@@ -108,7 +108,7 @@ try {
   await page.keyboard.press('Escape');await page.waitForURL((url:URL)=>!url.searchParams.has('row'));assert.equal(new URL(page.url()).searchParams.get('subject'),'tmua');
   await page.locator('[data-module-href="/business/operations-schedule"]').click();await page.waitForURL('**/operations-schedule*');
   await page.locator('[data-module-href="/business/non-promotion-review"]').click();await page.waitForURL('**/non-promotion-review*');
-  await page.locator('[name=subject]').selectOption('step');await page.waitForURL('**subject=step');assert.equal(await page.locator('[name=category]').inputValue(),'');
+  await page.locator('[name=subject]').selectOption('step');await page.waitForURL((url:URL)=>url.searchParams.get('subject')==='step');assert.equal(await page.locator('[name=category]').inputValue(),'');
   await page.goto(`${baseURL}/business/non-promotion-review?view=pending&subject=tmua&category=innovation&row=${skipped.id}:day_15`);
   await page.locator('[data-inspector]').waitFor();assert.match(await page.locator('[data-inspector]>header').innerText(),/二轮/);
   await page.locator('.checkpoint-action summary').click();await page.locator('[data-checkpoint-form] textarea').fill('二轮数据也无法获取');await page.locator('[data-checkpoint-form] button').click();await page.waitForURL('**view=skipped**');

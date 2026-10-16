@@ -43,8 +43,9 @@ try {
     assert.ok((await page.locator('[data-promotion-pause]').textContent()).includes('3'));
     assert.ok(await page.locator('[data-pause-form] button[value=resume]').isVisible());
     assert.ok(await page.locator('[data-metric-form]').count()>0,'包含真实待填表单验收密度');
-    const panel=await page.locator('[data-promotion-pause]').boundingBox();const table=await page.locator('#daily-table').boundingBox();
-    assert.ok(width>1050?panel.x>=table.x+table.width:panel.y<table.y);
+    const panel=await page.locator('[data-promotion-pause]').boundingBox();const table=await page.locator('.pending-heading').boundingBox();
+    assert.ok(panel.x>=table.x && panel.y>=table.y && panel.y+panel.height<=table.y+table.height+1,'暂停控件完整放在待完成栏内');
+    if(width===1440){const title=await page.locator('#daily-title').boundingBox();assert.ok(panel.x>title.x+title.width && Math.abs(panel.y-title.y)<10,'桌面同一行最右侧');}
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
     await page.evaluate(()=>window.scrollTo(0,0));
     await page.screenshot({path:`.tools/test-artifacts/promotion-pause-${width}.png`,fullPage:true});

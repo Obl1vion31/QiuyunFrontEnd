@@ -1,6 +1,0 @@
----
-interface Props { active: 'daily' | 'stage' }
-const { active } = Astro.props;
----
-<nav class="promotion-nav" aria-label="推广复盘模块"><a href="/business/daily-promotion-review" aria-current={active === 'daily' ? 'page' : undefined}>推广帖复盘</a><a href="/business/promotion-stage-review" aria-current={active === 'stage' ? 'page' : undefined}>推广帖测试放量复盘</a></nav>
-<style>.promotion-nav{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}.promotion-nav a{padding:8px 10px;border-radius:7px;color:#68736d;font-size:.7rem;text-decoration:none;background:#f7f8f5}.promotion-nav a[aria-current]{color:#244fbf;background:#dce5ff;font-weight:700}.promotion-nav a:focus-visible{outline:2px solid #315fd6;outline-offset:2px}</style>

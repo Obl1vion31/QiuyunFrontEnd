@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
@@ -21,7 +23,8 @@
     "db:generate": "drizzle-kit generate",
     "db:check": "drizzle-kit check",
     "db:migrate": "node --import tsx scripts/migrate.ts",
-    "db:backup": "node --import tsx scripts/backup-database.ts"
+    "db:backup": "node --import tsx scripts/backup-database.ts",
+    "test:ui": "node --import tsx tests/business-ui.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

@@ -15,7 +15,7 @@ test('所有业务页面使用同一个控制台壳层与工具栏', async () =>
   for (const page of pages) {
     const source = await readFile(new URL(`../src/pages/business/${page}.astro`, import.meta.url), 'utf8');
     assert.match(source, /<BusinessConsoleFrame\b/, `${page} 未使用共享控制台壳层`);
-    assert.match(source, /<BusinessConsoleToolbar\b/, `${page} 未使用共享工具栏`);
+    assert.match(source, /<Business(?:ConsoleToolbar|PromotionToolbar)\b/, `${page} 未使用共享工具栏`);
     assert.doesNotMatch(source, /<BusinessConsoleSidebar\b/, `${page} 不应绕过共享壳层直接装配侧栏`);
     assert.doesNotMatch(source, /<aside\s+class=["']sidebar["']/, `${page} 仍包含独立侧栏结构`);
     assert.doesNotMatch(source, /business-sidebar__|\.business-sidebar\b/, `${page} 不得声明共享侧栏样式`);
@@ -69,7 +69,7 @@ test('六个页面只通过共享组件表达工具栏控件', async () => {
   const expected = new Map([
     ['annual-plan', ['BusinessToolbarPeriodNav', 'BusinessToolbarActions']],
     ['operations-schedule', ['BusinessToolbarPeriodNav', 'BusinessToolbarSegmented', 'BusinessToolbarActions']],
-    ['daily-promotion-review', ['BusinessToolbarSegmented', 'BusinessToolbarSummary']],
+    ['daily-promotion-review', ['BusinessPromotionToolbar']],
     ['non-promotion-review', ['BusinessToolbarSegmented', 'BusinessToolbarSummary']],
     ['meeting-review', ['BusinessToolbarContext', 'BusinessToolbarActions']],
     ['settings', []],
@@ -82,11 +82,12 @@ test('六个页面只通过共享组件表达工具栏控件', async () => {
   }
 });
 
-test('日度复盘将数据截止时间并入统一副标题', async () => {
-  const source = await readFile(new URL('../src/pages/business/daily-promotion-review.astro', import.meta.url), 'utf8');
-  assert.match(source, /只处理尚未完成项 · 数据截至/);
-  assert.match(source, /mobilePriority="center"/);
-  assert.doesNotMatch(source, /class="latest-cutoff"/);
+test('推广相邻视图复用一个工具栏并保留公共节点', async () => {
+  const source = await readFile(new URL('../src/components/BusinessPromotionToolbar.astro', import.meta.url), 'utf8');
+  assert.match(source, /transition:persist="promotion-toolbar"/);
+  assert.match(source, /每日复盘/);
+  assert.match(source, /阶段复盘/);
+  assert.doesNotMatch(source, /历史总览/);
 });
 
 test('生命周期图例与共享标题说明使用同一字体基线', async () => {
@@ -98,27 +99,12 @@ test('生命周期图例与共享标题说明使用同一字体基线', async ()
   assert.match(daily, /\.lifecycle-meta\{display:flex;align-items:center/);
 });
 
-test('推广历史 Inspector 隔离左表溢出并使用独立视口滚动', async () => {
-  const daily = await readFile(new URL('../src/pages/business/daily-promotion-review.astro', import.meta.url), 'utf8');
-  assert.match(daily, /\.history-layout\.inspecting \.history-list\{min-width:0;overflow:hidden\}/);
-  assert.match(daily, /\.history-inspector\{z-index:3;height:calc\(100vh - 82px\);max-height:none;overflow:auto/);
-  assert.doesNotMatch(daily, /data-day-mode/);
-  assert.match(daily, /\['test_continue','wait_continue','test_discarded','start_scaling'\]/);
-  assert.match(daily, /readonly=\{defaultWaiting\}/);
-});
-
-test('非推广复盘使用项目文档链接与精细的三列录入行', async () => {
-  const page = await readFile(new URL('../src/pages/business/non-promotion-review.astro', import.meta.url), 'utf8');
-  const card = await readFile(new URL('../src/components/NonPromotionReviewCard.astro', import.meta.url), 'utf8');
-  assert.match(page, /projectDocUrl:\s*operationsContentVersion\.projectDocUrl/);
-  assert.match(card, /href=\{row\.projectDocUrl\}/);
-  assert.match(card, /target="_blank"/);
-  assert.match(card, /grid-template-columns:minmax\(150px,\.8fr\) repeat\(2,minmax\(150px,1fr\)\)/);
-  assert.match(card, /class="review-field review-field--date"/);
-  assert.match(card, /<span>数据截至<\/span>/);
-  assert.match(card, /<span>3 秒阅读率<\/span>/);
-  assert.match(card, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.doesNotMatch(card, /day_30|30 天/);
+test('四个业务详情共用 Inspector，不另行声明面板几何', async () => {
+  for (const page of ['operations-schedule','annual-plan','daily-promotion-review','non-promotion-review']) {
+    const source = await readFile(new URL(`../src/pages/business/${page}.astro`, import.meta.url), 'utf8');
+    assert.match(source, /<BusinessInspector\b/);
+    assert.doesNotMatch(source, /\.(?:history-)?inspector(?:\.is-open|\.open)?\{[^}]*position:/);
+  }
 });
 
 test('非推广复盘仅接受 7 天和 15 天节点', async () => {
@@ -190,7 +176,6 @@ test('带 Inspector 的业务页在客户端切换后重新初始化交互', asy
     } else assert.match(source, /<script is:inline data-astro-rerun define:vars=/, `${page} 的交互脚本不会在 View Transition 后重跑`);
   }
   const schedule = await readFile(new URL('../src/pages/business/operations-schedule.astro', import.meta.url), 'utf8');
-  assert.match(schedule, /window\.__operationsScheduleKeydown/);
   assert.match(schedule, /document\.querySelectorAll\('\[data-inspect-id\]'\)/);
   assert.match(schedule, /node\.addEventListener\('click', inspect\)/);
 });

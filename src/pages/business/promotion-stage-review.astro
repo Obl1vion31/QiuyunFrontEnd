@@ -1,49 +1,10 @@
 ---
-import BusinessPromotionNav from '../../components/BusinessPromotionNav.astro';
-import { desc, eq } from 'drizzle-orm';
-import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
-import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
-import BusinessPromotionSnapshot from '../../components/BusinessPromotionSnapshot.astro';
-import { getDb } from '../../db/client';
-import { operationsPromotionStageReview as reviews, operationsPromotionStageReviewVersion as snapshots } from '../../db/schema';
-import { generateStageSnapshot, stageSnapshotSchema, type StageSnapshot } from '../../db/promotion-stage-reviews';
-import { previousDateKey, shanghaiDateKey } from '../../db/promotion-rules.mjs';
 export const prerender = false;
-const yesterday = previousDateKey(shanghaiDateKey(new Date()));
-const selectedId = Astro.url.searchParams.get('review');
-const versionId = Astro.url.searchParams.get('snapshot');
-let list: Array<typeof reviews.$inferSelect> = [], versions: Array<typeof snapshots.$inferSelect> = [];
-let snapshot: StageSnapshot | null = null;
-let error = '';
-let periodStart = Astro.url.searchParams.get('from') || yesterday;
-let periodEnd = Astro.url.searchParams.get('to') || yesterday;
-let selected: typeof reviews.$inferSelect | undefined;
-let selectedVersion: typeof snapshots.$inferSelect | undefined;
-try {
-  const db = getDb(); list = await db.select().from(reviews).orderBy(desc(reviews.createdAt));
-  selected = list.find(r => r.id === selectedId);
-  if (selected) {
-    versions = await db.select().from(snapshots).where(eq(snapshots.reviewId, selected.id)).orderBy(desc(snapshots.versionNumber));
-    selectedVersion = versions.find(v => v.id === versionId) ?? versions[0];
-    snapshot = selectedVersion?.snapshot as unknown as StageSnapshot;
-    periodStart = selected.periodStart; periodEnd = selected.periodEnd;
-  } else {
-    const parsed = stageSnapshotSchema.safeParse({ periodStart, periodEnd, requestKey: crypto.randomUUID() });
-    if (!parsed.success) error = parsed.error.issues[0].message;
-    else snapshot = await generateStageSnapshot(db, periodStart, periodEnd);
-  }
-} catch (e) { console.error('stage review read failed', e); error = '阶段复盘暂时不可用，请稍后重试。'; }
+const target = new URL('/business/daily-promotion-review', Astro.url);
+target.searchParams.set('view','stage');
+for (const key of ['from','to','review','snapshot']) {
+  const value = Astro.url.searchParams.get(key);
+  if (value) target.searchParams.set(key,value);
+}
+return Astro.redirect(target.pathname + target.search, 302);
 ---
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>推广帖测试放量复盘 · 内容发布控制台</title></head><body>
-<BusinessConsoleFrame active="promotion-stage"><BusinessConsoleToolbar title="推广帖测试放量复盘" subtitle="自选时间段 · 保存快照供例会引用"/>
-<main><BusinessPromotionNav active="stage"/><form class="range-form" method="get"><label>开始日期<input type="date" name="from" value={periodStart} required/></label><label>结束日期<input type="date" name="to" value={periodEnd} max={yesterday} required/></label><button>查看阶段复盘</button></form>
-<div class="saved"><h2>已保存的阶段复盘</h2><nav aria-label="阶段复盘快照">{list.map(r => <a class:list={{ active: r.id === selectedId }} href={`?review=${r.id}`}>{r.name}</a>)}{!list.length && <p>先选择时间段，再保存第一份快照。</p>}</nav></div>
-{error && <p role="alert">{error}</p>}
-{snapshot && <><div class="snapshot-actions">{selected ? <><span>版本：</span>{versions.map(v => <a aria-current={v.id === selectedVersion?.id ? 'page' : undefined} href={`?review=${selected!.id}&snapshot=${v.id}`}>V{v.versionNumber}</a>)}<button type="button" data-save-snapshot>按最新数据另存 V{(versions[0]?.versionNumber ?? -1) + 1}</button></> : <><label>快照名称<input data-snapshot-name placeholder={snapshot.name} maxlength="120"/></label><button type="button" data-save-snapshot>保存为 V0 快照</button></>}<output role="status" data-snapshot-output></output></div><BusinessPromotionSnapshot snapshot={snapshot} versionNumber={selectedVersion?.versionNumber}/></>}
-</main></BusinessConsoleFrame>
-<script is:inline define:vars={{ selectedId: selected?.id ?? null, expectedVersion: versions[0]?.versionNumber ?? null, requestKey: selected?.requestKey ?? crypto.randomUUID(), periodStart, periodEnd }}>
-document.querySelector('[data-save-snapshot]')?.addEventListener('click',async()=>{const out=document.querySelector('[data-snapshot-output]');try{out.textContent='正在生成快照…';const response=await fetch(`/api/promotion-stage-reviews${selectedId?`/${selectedId}`:''}`,{method:selectedId?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestKey,periodStart,periodEnd,expectedVersion,name:document.querySelector('[data-snapshot-name]')?.value||''})});const result=await response.json();if(!response.ok){out.textContent=result.message||'保存失败';return}location.assign(`?review=${result.id}&snapshot=${result.snapshotId||''}`)}catch{out.textContent='连接失败，请重试。'}});
-</script></body></html>
-<style>
-*{box-sizing:border-box}main{padding:26px clamp(16px,3vw,38px) 90px;color:#17211c}.range-form{display:flex;flex-wrap:wrap;align-items:end;gap:12px;margin-bottom:20px}label{display:grid;gap:6px;font-size:.7rem;color:#68736d}input{min-width:0;padding:9px;border:1px solid #b9c3bd;border-radius:7px;color:#17211c;background:#fff;font:inherit}button{border:0;border-radius:8px;padding:10px 13px;background:#315fd6;color:#fff;font:700 .72rem system-ui;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #315fd6;outline-offset:3px}.saved{margin-bottom:22px}.saved h2{font-size:.8rem}.saved nav{display:flex;gap:8px;overflow:auto}.saved a,.snapshot-actions a{padding:9px;border:1px solid #c9d1cc;border-radius:7px;white-space:nowrap;color:#47534c;font-size:.7rem;text-decoration:none;background:#f7f8f5}.saved a.active,.snapshot-actions a[aria-current]{background:#dce5ff;color:#244fbf}.saved p{font-size:.7rem;color:#68736d}.snapshot-actions{display:flex;flex-wrap:wrap;align-items:end;gap:9px;margin-bottom:12px;font-size:.7rem}.snapshot-actions label{flex:1;max-width:340px}.snapshot-actions output{font-size:.7rem;color:#924b2a}@media(max-width:900px){main{padding:18px 12px 90px}}
-</style>

@@ -1,3 +1,4 @@
+import { getInspector } from './business-inspector';
 import { isDelayed } from '../db/schedule-rules.mjs';
 type SavedReason = { reason: string; responsibility: 'self' | 'requester' | 'unknown'; source: string; updatedAt: string; changedByLabel: string; history: Array<unknown> };
 type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved: SavedReason | null; archived: boolean };
@@ -47,7 +48,8 @@ function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, 
         }
         output.textContent = messages.join('；') || result.message || '保存失败。'; return;
       }
-      document.documentElement.dataset.unsaved = 'false';
+      const pane=form.closest<HTMLElement>('[data-inspector]');
+      if(pane)getInspector(pane).setClean(); else document.documentElement.dataset.unsaved = 'false';
       document.dispatchEvent(new Event('business:workflow-updated')); onSaved();
     } catch { output.textContent = '连接失败，当前输入已保留，请重试。'; }
     finally { button.disabled = false; }
