@@ -310,10 +310,11 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         <div class="calendar-grid">
           {calendarCells.map((cell) => <div data-calendar-day={cell.valid?cell.key:undefined} class:list={['calendar-day', { outside: !cell.valid, today: cell.key === dayKey(now) }]}>
             {cell.valid && <><button type="button" class="day-number calendar-new" data-calendar-new={cell.key} aria-label={`${cell.key} 新建帖子`}><strong>{cell.day}</strong><span aria-hidden="true">＋</span></button><div class="calendar-items">
-              {cell.rows.map((row) => <button type="button" data-inspect-id={row.id} class:list={['calendar-item', `publish-${completionStatus(row.plannedPublishAt,row.actualPublishAt)}`]}>
+              {cell.rows.map((row) => <button type="button" data-inspect-id={row.id} class:list={['calendar-item', `publish-${completionStatus(row.plannedPublishAt,row.actualPublishAt)}`]}
+                title={`V${row.versionNumber} ${row.contentName} · ${row.isPromoted?'推广':'非推广'} · 应发 ${displayDateTime(row.plannedPublishAt)} · ${isOverdue(row)?'逾期未发':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)]}`}
+                aria-label={`V${row.versionNumber} ${row.contentName}，${row.isPromoted?'推广':'非推广'}，应发 ${displayDateTime(row.plannedPublishAt)}，${isOverdue(row)?'逾期未发':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)]}`}>
                 <span class="calendar-item-meta"><span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span><time>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</time></span>
                 <span class="calendar-item-name"><b>V{row.versionNumber}</b> {row.contentName}</span>
-                <small>{isOverdue(row)?'逾期未发':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt)]}</small>
               </button>)}
             </div></>}
           </div>)}
@@ -944,13 +945,14 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
   .calendar{overflow:hidden;border:1px solid #d0d6d2;border-radius:14px;background:#fafbf9}
   .weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}
   .weekdays span{padding:9px 10px;border-bottom:1px solid #d8ddda;color:var(--muted);font-size:.62rem;font-weight:800}
-  .calendar-grid{border:0}.calendar-day{min-height:136px;padding:9px;border:0;border-right:1px solid #e0e4e1;border-bottom:1px solid #e0e4e1;background:#fff}.calendar-day.outside{background:#f0f2ef}.calendar-day.today{box-shadow:inset 0 3px var(--blue)}
+  .calendar-grid{border:0}.calendar-day{min-height:104px;padding:9px;border:0;border-right:1px solid #e0e4e1;border-bottom:1px solid #e0e4e1;background:#fff}.calendar-day.outside{background:#f0f2ef}.calendar-day.today{box-shadow:inset 0 3px var(--blue)}
   .calendar-item{border-radius:7px}.calendar-item.selected{box-shadow:inset 0 0 0 2px var(--blue)}
   .calendar-legend{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:11px}
   .calendar-legend>span{padding:3px 8px;border-radius:6px}
   .calendar-day[data-calendar-day]{cursor:pointer}.calendar-new{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:transparent;color:var(--ink);cursor:pointer;text-align:left;padding:0 2px 7px;margin:0}.calendar-new>span{font-size:16px;color:#71847a}.calendar-new:hover>span{color:var(--blue)}
-  .calendar-item{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;padding:9px;border-left:3px solid currentColor;line-height:1.4;width:100%;min-width:0;text-align:left}
-  .calendar-item .calendar-item-meta{display:flex;align-items:center;justify-content:space-between;gap:5px;white-space:normal;overflow:visible}.calendar-item .calendar-item-name{white-space:normal;overflow-wrap:anywhere;font-size:11px;line-height:1.5}.calendar-item small{font-size:10px;text-align:left}.calendar-item time{white-space:nowrap;font-size:10px}
+  .calendar-items{gap:4px}
+  .calendar-item{display:grid;grid-template-columns:minmax(0,1fr);gap:3px;padding:6px;border-left:3px solid currentColor;line-height:1.4;width:100%;min-width:0;text-align:left}
+  .calendar-item .calendar-item-meta{display:flex;align-items:center;justify-content:space-between;gap:5px;white-space:normal;overflow:visible}.calendar-item .calendar-item-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;line-height:1.5}.calendar-item time{white-space:nowrap;font-size:10px}
   .publish-on_time{color:#205d48;background:#ddf2e8}.publish-delayed{color:#913c35;background:#f9e3df}.publish-pending{color:#73551d;background:#fff1bf}
   .promotion-identity{display:inline-block;padding:2px 5px;border-radius:4px;color:#56635d;background:#edf0ed;font:700 10px/1.4 system-ui,sans-serif;white-space:nowrap}.promotion-identity.promoted{color:#244b9a;background:#e0e9ff}
   [data-publication-link-preview]{display:block;margin-top:5px;color:#426489;font-size:11px;overflow-wrap:anywhere}[data-publication-link-preview][data-invalid="true"]{color:#a23c25}

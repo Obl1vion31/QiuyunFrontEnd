@@ -14,13 +14,14 @@ async function call(path:string,method:string,cookie:string,input?:Record<string
 try{
  const staff=await login(employee),boss=await login(admin);
  async function create(name:string){return (await call('/api/operations-content','POST',staff,{contentName:name,subjectId:'tmua',categoryId:'temporary',plannedPublishAt:future,projectDocUrl:'',promotionStatus:'none'},201)).id as string;}
- const cases:Array<{id:string;state:string;promoted:boolean}>=[];
+ const cases:Array<{id:string;state:string;promoted:boolean;name:string}>=[];
  for(const promoted of [false,true])for(const state of ['on_time','delayed','pending']){
-  const planned=new Date(`${month}-${String(5+cases.length).padStart(2,'0')}T10:00:00+08:00`);
+  const planned=new Date(`${month}-${String(cases.length<3?5:5+cases.length).padStart(2,'0')}T10:00:00+08:00`);
+  const name=cases.length===0?'虚构短标题':`虚构月历 ${promoted?'推广':'非推广'} ${state} `+'用于检查长名称单行省略和详情全文保留'.repeat(4);
   const [content]=await db.insert(schema.operationsContent).values({}).returning();
-  const [version]=await db.insert(schema.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:`虚构月历 ${promoted?'推广':'非推广'} ${state}`,subjectId:'tmua',categoryId:'temporary',projectDocUrl:'https://fictional.example.test/doc'}).returning();
+  const [version]=await db.insert(schema.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:name,subjectId:'tmua',categoryId:'temporary',projectDocUrl:'https://fictional.example.test/doc'}).returning();
   const [schedule]=await db.insert(schema.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:planned,actualPublishAt:state==='pending'?null:new Date(planned.getTime()+(state==='delayed'?9:1)*3600000),completionStatus:state,isPromoted:promoted,promotionStatus:promoted?(state==='pending'?'pending':'awaiting_promotion'):'none'}).returning();
-  cases.push({id:schedule.id,state,promoted});
+  cases.push({id:schedule.id,state,promoted,name});
  }
  const id=await create('虚构未来发布'),endpoint=`/api/operations-content/${id}`;
  const sent={actualPublishAt:future,publicationUrl:share,projectDocUrl:'https://fictional.example.test/project',expectedPlanRevision:'0',expectedPublicationRevision:'0'};
@@ -46,9 +47,17 @@ try{
   const {context,page}=await pageFor(staff,width);
   await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);assert.equal(await page.locator('#publicationMode').count(),0);
   assert.equal(await page.getByText('预约待审',{exact:true}).count(),0);assert.equal(await page.getByText('到点待确认',{exact:true}).count(),0);
-  for(const item of cases){const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+item.state));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');}
+  for(const item of cases){
+   const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+item.state));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');
+   assert.ok((await row.getAttribute('aria-label')).includes(item.name));assert.ok((await row.getAttribute('title')).includes(item.name));
+   assert.equal(await row.locator('small').count(),0);assert.equal(await row.locator(':scope > span').count(),2);
+   const box=await row.locator('.calendar-item-name').evaluate((node:HTMLElement)=>({height:node.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(node).lineHeight),clipped:node.scrollWidth>node.clientWidth,ellipsis:getComputedStyle(node).textOverflow}));
+   assert.ok(box.height<=box.lineHeight+1,'标题保持单行');if(item.name.length>30){assert.equal(box.clipped,true);assert.equal(box.ellipsis,'ellipsis');}
+   assert.ok((await row.boundingBox()).height<=60,'两行卡片保持紧凑');
+  }
+  assert.equal(await page.locator(`[data-calendar-day="${month}-05"] .calendar-item`).count(),3);
   const colors=await page.locator('.calendar-item').evaluateAll((rows:HTMLElement[])=>Object.fromEntries(['on_time','delayed','pending'].map(key=>[key,getComputedStyle(rows.find(row=>row.classList.contains('publish-'+key))!).backgroundColor])));
-  assert.equal(new Set(Object.values(colors)).size,3);await page.screenshot({path:`.tools/test-artifacts/unified-calendar-${width}.png`,fullPage:true});
+  assert.equal(new Set(Object.values(colors)).size,3);await page.screenshot({path:`.tools/test-artifacts/compact-calendar-${width}.png`,fullPage:true});
   if(width===1440){await page.locator(`[data-calendar-new="${month}-19"]`).focus();await page.keyboard.press('Enter');await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-19');await page.locator('[data-close]').first().click();}
   const blank=page.locator(`[data-calendar-day="${month}-01"]`);await blank.click({position:{x:6,y:6}});await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-01');await page.locator('[data-close]').first().click();
   await page.locator('[data-calendar-new]').filter({hasText:'20'}).click();await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-20');assert.equal(await page.locator('#plannedPublishTime').inputValue(),'');
@@ -60,6 +69,8 @@ try{
   // 点击已有条目只打开详情；旧帖子链接区域和表单留空。
   assert.equal(await page.locator('#schedule-dialog').evaluate((node:HTMLDialogElement)=>node.open),false,'新建保存后对话框已关闭');
   await page.locator(`[data-inspect-id="${cases[0].id}"]`).click();await page.locator('[data-inspector].is-open').waitFor();assert.equal(await page.locator('#schedule-dialog').evaluate((node:HTMLDialogElement)=>node.open),false);
+  assert.equal(await page.locator('[data-inspector-name]').innerText(),cases[0].name);
+  assert.equal(await page.locator('.calendar-item-name').evaluateAll((nodes:HTMLElement[])=>nodes.every(node=>node.getBoundingClientRect().height<=parseFloat(getComputedStyle(node).lineHeight)+1)),true,'详情打开后标题仍单行');
   assert.equal(await page.locator('[data-inspector-post]').innerText(),'');assert.equal(await page.locator('[data-inspector-post]').getAttribute('href'),null);
   await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),'');assert.equal(await page.locator('#publicationUrl').getAttribute('required'),null);assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
   assert.doesNotMatch(await page.locator('#publication-dialog').innerText(),/初始化|豁免|补链|缺少链接/);await page.locator('[data-close-publication]').first().click();await page.keyboard.press('Escape');

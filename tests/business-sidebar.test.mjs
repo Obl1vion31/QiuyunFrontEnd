@@ -177,5 +177,5 @@ test('带 Inspector 的业务页在客户端切换后重新初始化交互', asy
   }
   const schedule = await readFile(new URL('../src/pages/business/operations-schedule.astro', import.meta.url), 'utf8');
   assert.match(schedule, /document\.querySelectorAll\('\[data-inspect-id\]'\)/);
-  assert.match(schedule, /node\.addEventListener\('click', inspect\)/);
+  assert.match(schedule, /node\.addEventListener\('click',/);
 });
