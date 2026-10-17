@@ -81,6 +81,10 @@ function initialize(){
   document.querySelectorAll<HTMLDialogElement>('dialog.business-form-sheet,dialog.business-form-dialog').forEach(dialog=>{
     if(natives.has(dialog))return;
     natives.set(dialog,dialog.close.bind(dialog));dialog.close=(value?:string)=>{void closeBusinessDialog(dialog,value);};
+    dialog.addEventListener('cancel',event=>{
+      if(dialog.hasAttribute('data-dialog-cancel-managed')||dialog.hasAttribute('data-business-confirm')||event.defaultPrevented)return;
+      event.preventDefault();void closeBusinessDialog(dialog);
+    });
   });
 }
 initialize();document.addEventListener('astro:page-load',initialize);

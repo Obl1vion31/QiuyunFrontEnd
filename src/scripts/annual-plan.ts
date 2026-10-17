@@ -23,6 +23,7 @@ function initializeAnnualPlan() {
   const { rows, categories, sections, selectedYear } = JSON.parse(dataNode.textContent!) as Data;
   const rowDialog = q<HTMLDialogElement>('#row-dialog'); const rowForm = q<HTMLFormElement>('#row-form');
   const yearDialog = q<HTMLDialogElement>('#year-dialog'); const copyDialog = q<HTMLDialogElement>('#copy-dialog');
+  rowDialog.setAttribute('data-dialog-cancel-managed','');yearDialog.setAttribute('data-dialog-cancel-managed','');
   const inspector = q<HTMLElement>('[data-inspector]'); const blockRows = q('[data-block-rows]', rowForm); const linkRows = q('[data-link-rows]', rowForm);
   let activeRow: Row | null = null; let editingRow: Row | null = null; let dirty = false;
   const markDirty=()=>{dirty=true;document.documentElement.dataset.unsaved='true';};

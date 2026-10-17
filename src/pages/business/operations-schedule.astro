@@ -449,6 +449,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       const inspectorDelete = document.querySelector('[data-inspector-delete]');
       const inspectorDeleteError = document.querySelector('[data-inspector-delete-error]');
       const publicationDialog = document.querySelector('#publication-dialog');
+      dialog.setAttribute('data-dialog-cancel-managed','');publicationDialog.setAttribute('data-dialog-cancel-managed','');
       const publicationForm = document.querySelector('#publication-form');
       let dirty = false;
       let mode = 'new';
