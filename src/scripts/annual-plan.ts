@@ -1,3 +1,4 @@
+import { businessDateTime } from './business-date';
 import { getInspector } from './business-inspector';
 import { blockBackground, blockPromotionLabel, formatSlotRange, normalizeSnapshot, splitBlockSegments, type PlanBlock } from '../db/annual-plan-rules.mjs';
 import type { AnnualPlanSnapshot } from '../db/schema';
@@ -7,7 +8,7 @@ type Data = { rows: Row[]; selectedYear: number; categories: Array<{ subjectId: 
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
 const q = <T extends Element = HTMLElement>(selector: string, parent: ParentNode = document) => parent.querySelector<T>(selector)!;
 const all = <T extends Element = HTMLElement>(selector: string, parent: ParentNode = document) => [...parent.querySelectorAll<T>(selector)];
-const historyTime = (value:string) => new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
+const historyTime = businessDateTime;
 const slotOptions = (end: boolean, selected: number) => Array.from({ length: 24 }, (_, index) => {
   const slot = index + 1; const suffix = end ? (slot % 2 ? '中旬' : '末') : (slot % 2 ? '初' : '中旬');
   return `<option value="${slot}" ${slot === selected ? 'selected' : ''}>${Math.ceil(slot / 2)}月${suffix}</option>`;

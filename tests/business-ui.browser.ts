@@ -54,6 +54,29 @@ try {
         assert.ok(Math.abs(current.title.x-geometry.title.x)<=1,`${path} 标题起点`);assert.deepEqual(current.padding,geometry.padding,`${path} 正文留白`);
       } else geometry=current;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${path} ${width} 页面无横向溢出`);
+      assert.equal(await page.locator('.business-page-header__copy>span').count(),0,'页面标题没有装饰性英文眉题');
+      if(path==='settings') {
+        const controls=await page.locator('.business-form input:not([type=checkbox]),.business-form select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
+        const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'系统设置接入公共表单规格');
+        await page.screenshot({path:`.tools/test-artifacts/settings-ui-${width}.png`,fullPage:true});
+      }
+      if(path==='meeting-review') {
+        await page.locator('[data-open-create]').click();const dialog=page.locator('[data-create]');await dialog.waitFor();
+        const controls=await dialog.locator('input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
+        assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'例会创建与其他表单使用相同控件');
+        assert.equal(await dialog.getAttribute('aria-labelledby'),'create-meeting-title');
+        assert.equal(await dialog.evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth),true,'窄屏对话框无横向溢出');
+        await page.screenshot({path:`.tools/test-artifacts/meeting-create-ui-${width}.png`});await dialog.locator('[data-close]').click();
+      }
+      if(path==='annual-plan') {
+        await page.locator('[data-open-new]').click();const dialog=page.locator('#row-dialog');await dialog.waitFor();
+        const before=await dialog.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]}));
+        await dialog.locator('[name=note]').evaluate((node:HTMLElement)=>node.style.height='1400px');
+        await dialog.locator('.form-dialog-body').evaluate((node:HTMLElement)=>node.scrollTop=node.scrollHeight);
+        assert.deepEqual(await dialog.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),before,'年度长表单只滚动正文，头尾位置稳定');
+        await page.screenshot({path:`.tools/test-artifacts/annual-dialog-ui-${width}.png`});await dialog.locator('[data-close-row]').first().click();
+      }
+
     }
     await page.goto(baseURL+'/business/daily-promotion-review');
     await page.evaluate(()=>{(window as any).__toolbar=document.querySelector('[data-promotion-toolbar]');(window as any).__tabs=document.querySelector('.toolbar-segmented');(window as any).__document=document;});
@@ -63,6 +86,19 @@ try {
       await page.waitForURL(new RegExp(`view=${view}`));await page.waitForLoadState('networkidle');
       assert.equal(await page.evaluate(()=>(window as any).__document===document&&(window as any).__toolbar===document.querySelector('[data-promotion-toolbar]')&&(window as any).__tabs===document.querySelector('.toolbar-segmented')),true,'相邻视图保留同一工具栏和切换节点');
       if(view==='daily'||view==='stage')await page.screenshot({path:`.tools/test-artifacts/promotion-${view}-ui-${width}.png`,fullPage:true});
+      if(view==='stage') {
+        const heights=await page.locator('.range-form input[type=date],.range-form button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));
+        assert.ok(heights.every((height:number)=>height===36),'阶段筛选使用紧凑控件规格');
+      }
+      if(view==='daily') {
+        const heights=await page.locator('[data-pause-form] input[type=date],[data-pause-form] button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));
+        assert.ok(heights.every((height:number)=>height===36),'节假日操作同组控件对齐');
+        if(width===1440)assert.equal((await page.locator('[data-pause-form]').boundingBox())!.height,36,'桌面节假日暂停保持单行');
+        await page.getByText('＋ 安排待定时间段',{exact:true}).click();
+        const waitControls=await page.locator('[data-wait-range-form] input:not([type=hidden]),[data-wait-range-form] select').evaluateAll((nodes:HTMLElement[])=>nodes.filter(node=>node.getBoundingClientRect().height>0).map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.ok(waitControls.length>0);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'待定区间共用表单规格');
+        await page.getByText('＋ 安排待定时间段',{exact:true}).click();
+      }
+
       const box=await page.locator('.toolbar-segmented').boundingBox();for(const key of ['x','y','width','height']) assert.ok(Math.abs(box[key]-original[key])<=1,`${width} ${view} tabs ${key}`);
     }
     const redirected=await fetch(baseURL+`/business/promotion-stage-review?from=${start}&to=${start}&review=example&snapshot=version`,{redirect:'manual',headers:{Cookie:cookie}});assert.equal(redirected.status,302);assert.match(redirected.headers.get('location')!,/view=stage&from=.*review=example&snapshot=version/);
@@ -111,6 +147,11 @@ try {
     assert.equal(await page.evaluate(()=>(window as any).__document===document&&(window as any).__table===document.querySelector('.review-table')),true);
     assert.equal(documents,0,'详情点击不请求新文档');
     const inspector=page.locator('[data-inspector]');
+    await inspector.locator('.correction summary').click();
+    const readonly=await inspector.locator('.correction input[readonly]').evaluate((node:HTMLElement)=>({border:getComputedStyle(node).borderTopStyle,fill:getComputedStyle(node).backgroundColor}));
+    assert.deepEqual(readonly,{border:'dashed',fill:'rgb(242, 245, 242)'},'只读信息与可编辑字段明确区分');
+    await inspector.locator('.correction summary').click();
+    assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
     await inspector.locator('[name=conclusion]').fill('尚未保存');
     if(width===1440){
       await inspector.locator('[name=conclusion]').evaluate((node:Element)=>{(window as any).__dirtyEditor=node;});
@@ -155,7 +196,17 @@ try {
       await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow]').getByText('当前没有延期或改期记录。').waitFor();
       await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     }
-    await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator(`[data-inspector-key="${campaign.id}"]`).click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();await page.locator('dialog[open] [data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
+    await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator(`[data-inspector-key="${campaign.id}"]`).click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();
+    const editor=page.locator('dialog[open]');
+    const editControls=await editor.locator('input:not([type=hidden]),select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
+    assert.ok(editControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),`推广历史更正共用常规表单规格 ${JSON.stringify(editControls)}`);
+    assert.equal(await editor.locator('header').evaluate((node:HTMLElement)=>getComputedStyle(node).backgroundColor),'rgb(16, 36, 62)','保留深蓝标题栏');
+    assert.equal(await editor.locator('h3').evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'18px','详情区样式不泄漏到编辑标题');
+    assert.equal(await editor.locator('.dialog-head p').evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(216, 226, 239)','深蓝标题栏辅助信息清晰可读');
+    const editorGeometry=await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]}));
+    await editor.locator('textarea').evaluate((node:HTMLElement)=>node.style.height='1100px');await editor.locator('.form-dialog-body').evaluate((node:HTMLElement)=>node.scrollTop=node.scrollHeight);
+    assert.deepEqual(await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),editorGeometry,`推广历史长表单头尾固定 ${JSON.stringify(await editor.evaluate((node:HTMLElement)=>({html:node.outerHTML.slice(0,600),dialogHeight:getComputedStyle(node).height,formHeight:getComputedStyle(node.querySelector('form')!).height,formDisplay:getComputedStyle(node.querySelector('form')!).display,bodyHeight:getComputedStyle(node.querySelector('.form-dialog-body')!).height})))}`);
+    await page.screenshot({path:`.tools/test-artifacts/promotion-edit-ui-${width}.png`});await editor.locator('[data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     await context.close();
     await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'4.95'}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[1]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
   }

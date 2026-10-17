@@ -10,11 +10,14 @@ const { class: className = '', label = '帖子详情', parameter, templates = fa
 .business-inspector[data-inspector].is-open{width:338px;overflow:auto;border-color:#d0d6d2;opacity:1;transform:none;box-shadow:0 14px 42px #10243e13}
 .business-inspector[data-inspector]>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:start;gap:12px;margin:0;padding:16px 17px;border-bottom:1px solid #dce1de;background:#f9faf8}
 .business-inspector[data-inspector]>header h1,.business-inspector[data-inspector]>header h2{margin:5px 0;font-size:18px;line-height:1.4}
-.business-inspector[data-inspector]>header p{margin:5px 0;color:#68736d;font-size:11px;line-height:1.5}
+.business-inspector[data-inspector]>header p{margin:5px 0;color:#68736d;font-size:var(--console-caption);line-height:var(--console-caption-leading)}
 .business-inspector[data-inspector]>header [data-close-inspector]{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:8px;color:#53615a;background:#e4e9e6;font:22px/1 system-ui;text-decoration:none;cursor:pointer}
 [data-inspector-host][data-inspector-host]{display:flex;align-items:start;gap:16px;min-width:0}[data-inspector-host]>:first-child{flex:1;min-width:0}
 [data-inspector-host]:not(.inspecting){gap:0}
 .business-inspector [data-inspector-error]{padding:12px;color:#9a3e32;font-size:12px}
+.business-inspector[data-inspector] :is(p,small,summary){font-family:var(--console-font);font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.business-inspector[data-inspector] :is(.identity-panel>label,.correction summary,.full-id button,.note-id-correction summary){font-family:var(--console-font);font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.business-inspector[data-inspector] .business-form label{font-size:var(--console-text);line-height:var(--console-text-leading)}
 .business-inspector[data-inspector][data-inspector-overlay].is-open{position:fixed;inset:calc(var(--console-toolbar-height) + 20px) 24px 20px auto;width:338px;height:calc(100dvh - var(--console-toolbar-height) - 40px);max-height:calc(100dvh - var(--console-toolbar-height) - 40px)}
 @media(max-width:1240px){.business-inspector[data-inspector].is-open,.business-inspector[data-inspector][data-inspector-overlay].is-open{position:fixed;inset:var(--console-toolbar-height) 0 0 auto;width:min(380px,100%);max-height:none;height:calc(100dvh - var(--console-toolbar-height));max-height:calc(100dvh - var(--console-toolbar-height));border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}}
 @media(max-width:900px){.business-inspector[data-inspector].is-open,.business-inspector[data-inspector][data-inspector-overlay].is-open{inset:var(--console-toolbar-height) 0 66px;width:100%;height:calc(100dvh - var(--console-toolbar-height) - 66px);max-height:calc(100dvh - var(--console-toolbar-height) - 66px);border:0;border-radius:0}}

@@ -1,3 +1,4 @@
+import { businessDateTime } from './business-date';
 import { getInspector } from './business-inspector';
 import { extractPublicationLink } from '../db/publication-link.mjs';
 import { publicationLabels } from '../db/publication-rules.mjs';
@@ -10,7 +11,7 @@ type Workflow = {allowEmptyPublicationLink:boolean;publicationState:keyof typeof
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
-const timeLabel = (value: string) => new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(value));
+const timeLabel = businessDateTime;
 const inputTime = (value: string) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(value)).replace(' ', 'T');
 const hidden = (form: HTMLElement, name: string, value: string) => {
   const input = element('input'); input.type = 'hidden'; input.name = name; input.value = value; form.append(input);
@@ -60,7 +61,7 @@ function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, 
 }
 function submitButton(form: HTMLElement, text: string) { const button = element('button', text); button.type = 'submit'; form.append(button); }
 function reasonForm(day: DelayDay, scheduleId: string, onSaved: () => void) {
-  const form = element('form'); form.className = 'workflow-form';
+  const form = element('form'); form.className = 'workflow-form business-form';
   hidden(form, 'planRevision', String(day.planRevision)); hidden(form, 'dayNumber', String(day.dayNumber)); hidden(form, 'expectedUpdatedAt', day.saved?.updatedAt || '');
   if (day.saved) hidden(form, 'expectedHistoryLength', String(day.saved.history.length));
   responsibilityField(form, day.saved?.responsibility === 'unknown' ? '' : day.saved?.responsibility);
@@ -132,7 +133,7 @@ function initialize() {
       const pendingRequest = workflow.applications.find(application => application.status === 'pending');
       if (!workflow.schedule.actualPublishAt && !isAdmin && !pendingRequest) {
         const details = element('details'); details.append(element('summary', '申请调整排期'));
-        const form = element('form'); form.className = 'workflow-form';
+        const form = element('form'); form.className = 'workflow-form business-form';
         hidden(form, 'expectedPlanRevision', String(workflow.schedule.planRevision));
         const date = textField(form, 'plannedPublishAt', '申请的新发送时间', false) as HTMLInputElement;
         date.type = 'datetime-local'; date.value = inputTime(workflow.schedule.plannedPublishAt);
@@ -148,7 +149,7 @@ function initialize() {
           if (application.decisionReason) row.append(element('small', `${application.decidedByLabel || '系统'}：${application.decisionReason}`));
           if (isAdmin && application.status === 'pending') {
             for (const action of ['approve','reject']) {
-              const form = element('form'); form.className = 'workflow-form'; hidden(form,'action',action);
+              const form = element('form'); form.className = 'workflow-form business-form'; hidden(form,'action',action);
               if (action === 'reject') textField(form, 'reason', '驳回说明');
               submitButton(form, action === 'approve' ? '同意调整排期' : '驳回申请');
               bindForm(form, `/api/operations-content/${id}/change-requests/${application.id}`, reload, 'PATCH'); row.append(form);

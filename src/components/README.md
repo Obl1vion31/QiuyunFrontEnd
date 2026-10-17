@@ -14,12 +14,15 @@
 - `BusinessToolbarSummary.astro`：Toolbar 统一“标签 + 数值 + 补充信息”汇总结构。
 - `BusinessToolbarActions.astro`：Toolbar 统一主要与次要操作按钮的几何和交互状态。
 - `BusinessToolbarContext.astro`：Toolbar 中部的单行上下文信息。
-- `BusinessPageHeader.astro`：统一“英文眉题 + 中文主标题 + 必要说明”的页面标题结构。
+- `BusinessPageHeader.astro`：统一“中文主标题 + 必要说明”的页面标题结构，元信息缺省时不生成空区域。
 - `BusinessSectionHeader.astro`：统一内容区块的标题、说明和右侧元信息。
 - `NonPromotionReviewCard.astro`：旧版非推广阶段复盘卡，当前主页面不再使用。
 - `MetricCell.astro`：数据表复用指标单元格，统一百分比、同类 pp 差值、样本 tooltip 与正向/中性/负向状态。
 - `BusinessViewSwitch.astro`：互斥展示方式的原生单选分段控件，统一紧凑高度、键盘、选中及焦点样式，业务适配器负责原位状态变化。
 - `BusinessFormSheet.astro`：编辑表单共用抽屉容器及字段规格，统一深蓝标题栏、滚动内容、固定操作区和窄屏布局；业务表单以插槽接入，沿用既有字段与提交控制器。
+
+- `BusinessFormDialog.astro`：居中任务的共享容器，按内容指定宽度，头部／操作区固定、正文滚动；保留原有中性或深蓝标题栏。
+- `../styles/business-forms.css`：由 Frame 引入的显式表单与筛选规范，集中维护字号、标签、40／36px 控件、只读、焦点、选项分组与反馈；不使用裸元素全站重置。
 
 ## 文件关系
 

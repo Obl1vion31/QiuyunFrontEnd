@@ -348,7 +348,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     </BusinessConsoleFrame>
 
     <BusinessFormSheet id="schedule-dialog" labelledby="dialog-title">
-      <form id="schedule-form" action="/api/operations-content" method="post" novalidate>
+      <form class="business-form" id="schedule-form" action="/api/operations-content" method="post" novalidate>
         <header class="dialog-head">
           <div><span id="dialog-context" hidden>新建内容</span><h2 id="dialog-title">新做帖</h2></div>
           <div class="dialog-head-actions"><span class="dialog-version">V0</span><button type="button" class="close-button" data-close aria-label="关闭">×</button></div>
@@ -393,7 +393,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     </BusinessFormSheet>
 
     <BusinessFormSheet id="publication-dialog" labelledby="publication-title">
-      <form id="publication-form" novalidate>
+      <form class="business-form" id="publication-form" novalidate>
         <header class="dialog-head"><div><h2 id="publication-title">发布登记</h2></div><button type="button" class="close-button" data-close-publication aria-label="关闭">×</button></header>
         <input type="hidden" name="plannedPublishAt" />
         <div class="sheet-body">

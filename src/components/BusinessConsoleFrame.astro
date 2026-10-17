@@ -1,5 +1,6 @@
 ---
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
+import '../styles/business-forms.css';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;

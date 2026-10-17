@@ -93,7 +93,7 @@ test('推广相邻视图复用一个工具栏并保留公共节点', async () =>
 test('生命周期图例与共享标题说明使用同一字体基线', async () => {
   const header = await readFile(new URL('../src/components/BusinessPageHeader.astro', import.meta.url), 'utf8');
   const daily = await readFile(new URL('../src/pages/business/daily-promotion-review.astro', import.meta.url), 'utf8');
-  assert.match(header, /business-page-header__meta :global\(p\).*font:500 \.68rem\/1\.55 system-ui/);
+  assert.match(header, /business-page-header__meta :global\(p\).*font:500 var\(--console-caption\)\/var\(--console-caption-leading\) var\(--console-font\)/);
   assert.match(daily, /class="lifecycle-meta"/);
   assert.match(daily, /class="lifecycle-cutoff"/);
   assert.match(daily, /\.lifecycle-meta\{display:flex;align-items:center/);

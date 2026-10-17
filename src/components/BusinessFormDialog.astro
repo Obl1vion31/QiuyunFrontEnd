@@ -1,0 +1,5 @@
+---
+interface Props { id?: string; labelledby: string; width?: number; darkHeader?: boolean; class?: string; [key: string]: unknown }
+const { id, labelledby, width = 680, darkHeader = false, class: className, ...attributes } = Astro.props;
+---
+<dialog {...attributes} id={id} class:list={['business-form-dialog',className]} aria-labelledby={labelledby} style={`--form-dialog-width:${width}px`} data-header-tone={darkHeader ? 'dark' : 'neutral'}><slot/></dialog>

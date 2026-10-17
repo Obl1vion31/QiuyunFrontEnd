@@ -9,7 +9,8 @@
 | `pages/business/` | 年度规划、排期、推广、非推广、例会和设置页面 |
 | `pages/api/` | 同源、登录与权限校验后的 HTTP 入口 |
 | `components/` | 共享控制台、工具栏、Inspector、指标与暂停控件 |
-| `scripts/` | 打包后的浏览器交互 |
+| `scripts/` | 打包后的浏览器交互与共享时间格式 |
+| `styles/` | 显式接入的共享表单、筛选和对话框规范 |
 | `data/` | 首页文案与公开封面配置 |
 | `db/` | schema、数据库连接、业务事务和共享纯规则 |
 | `auth/` | Better Auth、内部账号和权限 |
