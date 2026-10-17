@@ -1,0 +1,20 @@
+---
+/**
+ * 文件：MetricCell.astro
+ * 【实现需求】统一展示百分比、相对基准差值与未来绩效状态。
+ * 【组件职责】展示主指标和 pp 差值，并通过 tooltip 保留同类均值与样本量。
+ * 【安全边界】颜色只辅助表达状态；主数值始终保持深色并使用等宽数字。
+ */
+interface Props { value:number|null; benchmark:number|null; delta:number|null; sampleSize:number; state:'positive'|'neutral'|'negative'; round?:string }
+const { value, benchmark, delta, sampleSize, state, round } = Astro.props;
+const formatRate=(number:number|null)=>number==null?'—':`${number.toFixed(2)}%`;
+const formatDelta=(number:number|null)=>number==null?'暂无同类基准':`${number>0?'+':''}${number.toFixed(2)}pp`;
+const title=`${round??''}${benchmark==null?`同类样本 n=${sampleSize} 篇，暂无法计算均值`:`同类均值 ${formatRate(benchmark)} · n=${sampleSize} 篇`}`;
+---
+<span class:list={['metric-cell',state]} title={title}>
+  <span class="metric-primary"><strong>{value==null?'待录入':formatRate(value)}</strong><small>{formatDelta(delta)}</small></span>
+  {round && <em>同类均值 {formatRate(benchmark)} · n={sampleSize}</em>}
+</span>
+<style>
+.metric-cell,.metric-cell *{box-sizing:border-box}.metric-cell{min-width:0;display:grid;justify-items:end;gap:3px;font-family:var(--console-font);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}.metric-primary{display:flex;align-items:baseline;justify-content:flex-end;gap:10px}.metric-cell strong{color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:600}.metric-cell em{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading);font-style:normal;font-weight:400}.metric-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading);font-weight:600}.metric-cell.positive small{color:#4f7d68}.metric-cell.negative small{color:#a35f59}
+</style>

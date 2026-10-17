@@ -63,7 +63,7 @@ export const homeContent = {
   meta: {
     title: '前端内容总控台',
     description: '贯穿策划、内容、视觉、发布、用户触点与复盘的前端工作流总枢纽。',
-    updatedAt: '2026/07/14',
+    updatedAt: '2026/07/25',
   },
 
   // 2.2 Hero
@@ -125,8 +125,9 @@ export const homeContent = {
         eyebrow: '01 / WORK',
         title: '业务系统',
         summary: '计划、内容、任务、用户触点与复盘。',
-        cta: '建设中',
-        status: 'placeholder',
+        cta: '进入工作台',
+        status: 'external',
+        href: '/business/operations-schedule',
       },
       {
         id: 'people',

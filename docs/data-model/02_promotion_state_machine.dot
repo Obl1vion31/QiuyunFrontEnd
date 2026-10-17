@@ -1,0 +1,148 @@
+
+digraph STATE {
+  graph [
+    rankdir=TB,
+    splines=spline,
+    nodesep=0.6,
+    ranksep=0.75,
+    pad=0.25,
+    bgcolor="white",
+    fontname="Noto Sans CJK SC",
+    labelloc="t",
+    label="推广生命周期状态机图（State Machine Diagram）",
+    fontsize=20,
+    dpi=180
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#F7F9FC",
+    color="#7B8798",
+    fontname="Noto Sans CJK SC",
+    fontsize=11,
+    margin="0.16,0.10"
+  ];
+
+  edge [
+    fontname="Noto Sans CJK SC",
+    fontsize=9,
+    color="#4A5568",
+    arrowsize=0.75
+  ];
+
+  start [
+    shape=circle,
+    label="",
+    width=0.18,
+    fixedsize=true,
+    fillcolor="#4A5568",
+    color="#4A5568"
+  ];
+
+  none [label="非推广\n（none）"];
+  pending [label="推广待发布\n（pending）"];
+  awaiting [label="已发布待推广\n（awaiting_promotion）"];
+
+  testing [
+    label="测试中\n（testing）\n开放状态",
+    penwidth=2.0,
+    color="#2F5D8A"
+  ];
+
+  scaling [
+    label="放量中\n（scaling）\n开放状态",
+    penwidth=2.0,
+    color="#2F5D8A"
+  ];
+
+  ended [
+    label="正常结束\n（ended）\n终止状态",
+    penwidth=1.6
+  ];
+
+  test_discarded [
+    label="测试淘汰\n（test_discarded）\n终止状态",
+    penwidth=1.6
+  ];
+
+  formal_discarded [
+    label="正式投放淘汰\n（formal_discarded）\n终止状态",
+    penwidth=1.6
+  ];
+
+  awaiting_note [
+    shape=note,
+    style="filled",
+    fillcolor="#F2F5F9",
+    fontsize=10,
+    label="awaiting_promotion 状态内循环\n“当日未推广”只更新\npromotion_deferred_through\n不创建 Campaign、Stage、Daily Metric"
+  ];
+
+  sync_note [
+    shape=note,
+    style="filled",
+    fillcolor="#F2F5F9",
+    fontsize=10,
+    label="开放阶段同步规则\nCampaign.current_status\n与 Schedule.promotion_status\n必须在同一事务中同步"
+  ];
+
+  terminal_note [
+    shape=note,
+    style="filled",
+    fillcolor="#F2F5F9",
+    fontsize=10,
+    label="终止状态统一规则\nCampaign.current_stage = null\nCampaign.current_status 保留最终结果"
+  ];
+
+  start -> none [label="新建非推广排期"];
+  start -> pending [label="新建推广排期\n尚未实发"];
+
+  none -> pending [label="标记为推广帖\n尚未发布"];
+  none -> awaiting [label="标记为推广帖\n且已发布"];
+
+  pending -> awaiting [label="填写实发时间"];
+  pending -> none [label="取消推广身份", style=dashed];
+  awaiting -> none [label="取消推广身份", style=dashed];
+
+  awaiting -> awaiting [
+    label="当日未推广",
+    color="#6B7280"
+  ];
+
+  awaiting -> testing [
+    label="开始测试\n创建 Campaign + Testing Stage",
+    penwidth=2.0,
+    color="#2F5D8A"
+  ];
+
+  testing -> testing [label="test_continue\n继续测试"];
+  testing -> scaling [
+    label="start_scaling\n关闭 Testing Stage\n下一日开始 Scaling",
+    penwidth=2.0,
+    color="#2F5D8A"
+  ];
+  testing -> test_discarded [label="test_discarded"];
+
+  scaling -> scaling [label="scaling_continue\n继续放量"];
+  scaling -> ended [label="ended"];
+  scaling -> formal_discarded [label="formal_discarded"];
+
+  awaiting -> awaiting_note [style=dotted, arrowhead=none, constraint=false];
+  testing -> sync_note [style=dotted, arrowhead=none, constraint=false];
+  scaling -> sync_note [style=dotted, arrowhead=none, constraint=false];
+
+  ended -> terminal_note [style=dotted, arrowhead=none, constraint=false];
+  test_discarded -> terminal_note [style=dotted, arrowhead=none, constraint=false];
+  formal_discarded -> terminal_note [style=dotted, arrowhead=none, constraint=false];
+
+  { rank=same; none; pending; awaiting; awaiting_note; }
+  { rank=same; testing; scaling; sync_note; }
+  { rank=same; test_discarded; ended; formal_discarded; terminal_note; }
+
+  none -> pending [style=invis, weight=3];
+  pending -> awaiting [style=invis, weight=3];
+  testing -> scaling [style=invis, weight=3];
+  test_discarded -> ended [style=invis, weight=3];
+  ended -> formal_discarded [style=invis, weight=3];
+}

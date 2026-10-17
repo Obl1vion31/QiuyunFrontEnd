@@ -1,0 +1,46 @@
+---
+interface PreservedParam { name: string; value: string }
+interface MonthPicker {
+  name: string;
+  value: string;
+  label: string;
+  min?: string;
+  max?: string;
+  preservedParams?: PreservedParam[];
+}
+interface Props {
+  previousHref: string;
+  nextHref: string;
+  label: string;
+  todayHref?: string;
+  todayLabel?: string;
+  monthPicker?: MonthPicker;
+}
+const { previousHref, nextHref, label, todayHref, todayLabel = '当前', monthPicker } = Astro.props;
+---
+
+<nav class="toolbar-period" aria-label={`${label}切换`}>
+  <a href={previousHref} aria-label={`上一${label.includes('月') ? '月' : '年'}`}>‹</a>
+  {monthPicker
+    ? <form class="toolbar-period__picker" method="get" data-loading-label="正在切换排期月份…">
+        {monthPicker.preservedParams?.map((param) => <input type="hidden" name={param.name} value={param.value} />)}
+        <input
+          type="month"
+          name={monthPicker.name}
+          value={monthPicker.value}
+          min={monthPicker.min}
+          max={monthPicker.max}
+          aria-label={monthPicker.label}
+          title={monthPicker.label}
+          onchange="this.form.requestSubmit()"
+        />
+        <button type="submit" class="toolbar-period__submit">查看</button>
+      </form>
+    : <strong>{label}</strong>}
+  <a href={nextHref} aria-label={`下一${label.includes('月') ? '月' : '年'}`}>›</a>
+  {todayHref && <a class="toolbar-period__today" href={todayHref}>{todayLabel}</a>}
+</nav>
+
+<style>
+  .toolbar-period,.toolbar-period *{box-sizing:border-box}.toolbar-period{height:34px;display:flex;align-items:center;padding:3px;border-radius:10px;background:#dfe4e2;font-family:var(--console-font);white-space:nowrap}.toolbar-period a{height:28px;min-width:28px;display:grid;place-items:center;border:0;border-radius:7px;padding:0;color:#17211c;background:transparent;font-size:14px;font-weight:600;text-decoration:none}.toolbar-period a:hover{background:#fff}.toolbar-period a:active{transform:scale(.96)}.toolbar-period a:focus-visible,.toolbar-period__picker input:focus-visible{outline:2px solid #315fd6;outline-offset:1px}.toolbar-period strong{padding:0 9px;color:#17211c;font:600 12px/1.2 var(--console-font);font-variant-numeric:tabular-nums}.toolbar-period__picker{height:28px;margin:0}.toolbar-period__picker input[type="month"]{width:132px;height:28px;border:0;border-radius:7px;padding:0 5px 0 9px;color:#17211c;background:transparent;font:600 12px/1.2 var(--console-font);cursor:pointer;font-variant-numeric:tabular-nums}.toolbar-period__picker input[type="month"]:hover{background:#fff}.toolbar-period__picker input[type="month"]::-webkit-calendar-picker-indicator{cursor:pointer}.toolbar-period__submit{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}.toolbar-period .toolbar-period__today{min-width:auto;padding:0 8px;color:#315fd6;font-size:var(--console-caption)}
+</style>

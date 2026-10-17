@@ -1,115 +1,71 @@
 # 前端团队管理系统
 
-这是一个面向前端业务工作的轻量网站。当前已实现总枢纽首页，用于说明前端内容工作台的定位、完整工作流和后续系统入口；它不是完整业务系统。
+面向内容运营的团队工作台：年度总周期规划、帖子版本与排期、推广每日与阶段复盘、非推广首轮／二轮复盘、推广阶段快照与例会。
 
-首页以部门工作流为叙事核心，呈现策划、内容、视觉、发布、用户触点和复盘如何持续衔接。首屏采用“内容穿越总控台”视觉：3:4 内容封面随页面滚动穿过工作台，底部轨道同步显示当前流程环节。
+- [公网工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)
+- [最新交接](handoff.md)：最近交付、验证范围和接手顺序。
+- [文档导航](docs/README.md)：业务规则、代码、数据库和发布说明。
 
-## 技术栈
+## 本地启动
 
-- Astro `4.16.18`
-- React `18.3.1`
-- TypeScript
-- pnpm `9.15.9`
-
-当前依赖版本兼容本地 Node `18.19.1`。
-
-## 本地运行
+使用 `.nvmrc` 指定的 Node 22 和 pnpm 9.15.9：
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-常用检查：
+按 `.env.example` 配置数据库、独立认证密钥和本机认证 URL；配置值不提交。需要接入现有库或创建账号时，先读[数据库指南](docs/database-guide.md)。
+
+**本地和公网共用已选定的 Neon 分支，网页写入会同时影响两端。** 测试使用隔离数据库。历史迁移包含特定导入校验，不能在空库中直接重放为初始化。
+
+## 技术与命令
+
+Astro 5、React 18、TypeScript、Neon PostgreSQL、Drizzle ORM、Better Auth。首页静态生成，业务页面和 API 动态运行；本机采用 Node adapter，公网采用 Vercel adapter。
 
 ```bash
 pnpm check
+pnpm test
+pnpm db:check
 pnpm build
-pnpm preview
 ```
 
-`pnpm build` 会先执行 Astro 类型检查，再生成静态站点到 `dist/`。
+浏览器验收及本机工具配置见[测试说明](tests/README.md)。数据库结构通过追加迁移更新；网页业务数据保存后立即生效，不需要重新构建或迁移。
 
-## 项目结构
+## 前端开发与验收
 
-```text
-.
-├── AGENTS.md
-├── README.md
-├── docs/
-│   ├── README.md
-│   ├── DECISIONS.md
-│   ├── DESIGN.md
-│   └── ROADMAP.md
-├── public/
-│   ├── README.md
-│   └── images/home/        # 首页真实封面素材及目录说明
-├── src/
-│   ├── README.md
-│   ├── components/
-│   │   ├── ContentTunnel.tsx
-│   │   └── ContentTunnel.module.css
-│   ├── data/home.ts        # 首页文案、封面和入口配置
-│   └── pages/index.astro   # 页面结构与后半段样式
-├── astro.config.mjs
-├── package.json
-├── pnpm-lock.yaml
-└── tsconfig.json
-```
+每次页面改动先读 [AGENTS](AGENTS.md)、[设计规范](docs/DESIGN.md) 和[共享界面接入实例](docs/code-study.md#共享界面接入)，检查现有组件及控制器，再开始修改。跨页容器、相邻视图的公共节点和 Inspector 都按[浏览器验收标准](tests/README.md#界面一致性验收)核对；`pnpm test:ui` 提供可重复的隔离验证。
 
-## 内容与素材维护
+整个工作台使用同一套视觉和交互基准；局部操作只改变必要内容，空态、历史版本和异步内容同样遵守字体与组件规范。每次交付检查布局稳定、同类反馈、文案必要性和任务范围，突破既有基准须先说明并取得确认。
 
-- 首页正文、六阶段工作流和系统入口统一修改 `src/data/home.ts`。
-- 首页图片放在 `public/images/home/`，推荐 3:4 的 WebP 或 AVIF。
-- 图片在配置中使用 `/images/home/文件名.webp`；未配置 `image` 时显示代码生成的备用封面。
-- 系统入口有真实地址后，增加 `href`，并把 `status` 改为 `external`。
-- `src/components/ContentTunnel.tsx` 负责滚动进度、封面循环和当前流程状态。
-- `src/components/ContentTunnel.module.css` 负责 Hero 的层级、遮罩、3D 纵深和响应式排版。
+公共模式优化默认检查并同步全部适用页面，用户指定局部时遵从其范围；先判断信息与操作语义，再组织视觉，不强制所有业务页面采用相同结构。
 
-## 首页交互说明
+完整日期时间统一复用 `BusinessDateTimeFields` 的日期／时间拆分选择；原字段、时间含义与必填规则保留，仅日期不增加时间。控件一致性同时验收实际操作模式与计算字体，公共规范变更同步适用位置。
 
-- 页面使用正常滚动，不锁定滚轮，也不强制翻页。
-- 初始画面通过两层顺时针排列和渐进尺寸形成静态螺旋感；开始滚动后回归原有向前展开轨迹。
-- 流程状态从 01 推进到 06；到达 06 后，封面在 Hero 离场期间仍继续循环。
-- Hero 完全离开视口后，进入六阶段详细工作流和系统入口。
-- `prefers-reduced-motion` 模式下封面保持静态纵深，不随滚动持续推进。
+展示方式复用 `BusinessViewSwitch`，编辑表单抽屉复用 `BusinessFormSheet`，居中任务使用 `BusinessFormDialog`，常规表单与筛选显式接入共享样式；筛选、表单和操作区按功能分组并使用共享控件规格，接入入口见上述实例。
 
-## 文档
+## 目录入口
 
-- 主要内容目录均有对应的 `README.md` 说明用途、修改入口和安全边界；`src/pages/` 的说明位于 `src/README.md`，避免 Astro 自动生成额外页面。
-- `docs/README.md`：核心文档导航和文档保存原则。
-- `docs/DECISIONS.md`：已经确认的产品、结构和技术结论。
-- `docs/DESIGN.md`：已经确认的长期视觉与交互规则。
-- `docs/ROADMAP.md`：当前、下一步和暂缓事项。
-- `AGENTS.md`：agent 在本仓库中的长期协作规则。
+| 位置 | 职责 |
+| --- | --- |
+| `src/` | 页面、API、共享组件、认证与业务规则 |
+| `drizzle/` | 已版本化数据库迁移 |
+| `scripts/` | 账号、备份和迁移等受控维护工具 |
+| `tests/` | 规则、数据库与隔离浏览器验收 |
+| `public/` | 网站实际使用的公开图片与脚本 |
+| `data/` | 本机私有原始表格和核对素材 |
+| `docs/` | 当前有效的规则、专题说明与历史归档 |
+| `.tools/` | 被忽略的本机工具、测试产物和私有备份 |
 
-## 当前状态
+## 日常使用与发布
 
-已经完成：
+- 年度规划：`/business/annual-plan`，总规划由学科细致规划自动汇总。
+- 帖子排期：`/business/operations-schedule`，新做帖建立 V0，修改内容建立 V1+，默认按月历查看；满应发 2 小时未登记提醒“尚未登记”，按真实发布时间判延期；发布统一登记时间与帖子链接，支持完整分享文案和未来时间。
+- 推广日度：`/business/daily-promotion-review`，T+1 指标、测试／放量、待定区间与次日计划、历史更正和团队节假日暂停。
+- 推广阶段：`/business/daily-promotion-review?view=stage`，自选日期汇总测试／放量，保存 V0/V1+ 快照供例会引用。
+- 非推广复盘：`/business/non-promotion-review`，首轮／二轮指标、学科分类筛选及不复盘／恢复。
+- 例会：`/business/meeting-review`，五部分报告、指定版本快照、私有图片和结论事项；全局规则：`/business/settings`。
 
-- Astro + React + TypeScript 技术基线；
-- 前端团队总枢纽首页；
-- 首页内容配置；
-- 八张真实 3:4 内容封面已接入首页内容流；
-- 本地构建与预览脚本。
+账号分为管理员和员工；两种角色均可处理日常复盘和团队暂停。员工仅在满应发 2 小时仍未登记时改期需要管理员审批；已有实发时间更正仅管理员处理。完整权限及业务口径见[已确认决定](docs/DECISIONS.md)。
 
-当前进行：
-
-- 审核“内容穿越总控台”新版首页；
-- 根据真实封面的色彩与文字密度检查遮罩和可读性；
-- 检查桌面端、移动端和减少动态效果模式的滚动观感。
-
-尚未建设：
-
-- 数据库和后台；
-- 登录和权限；
-- 真实业务模块；
-- 自动采集和报告生成；
-- 生产部署流程。
-
-## 当前边界
-
-- 当前没有数据库、后台、登录、权限或自动采集。
-- 首页不展示实时数据、项目明细或个人绩效薪资。
-- 业务系统、组织与人员、绩效与报酬目前只保留入口概念。
-- 当前只做本地验收，不包含生产部署配置。
+开发与修正先推送工作分支供验收，用户确认后再合入 `main`。公网通过 Vercel CLI 手动发布，Git 推送不自动部署。发布、临时隧道和回滚入口见[部署指南](docs/deployment.md)。

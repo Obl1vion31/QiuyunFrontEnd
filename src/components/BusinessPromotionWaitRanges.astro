@@ -1,0 +1,68 @@
+---
+import { nextDateKey, shanghaiDateKey } from '../db/promotion-rules.mjs';
+import { promotionStateOn, type PromotionContext } from '../db/promotion-state.mjs';
+import type { operationsPromotionWaitRange } from '../db/schema';
+interface Props {
+  campaigns: Array<{ id: string; contentName: string; versionNumber: number; currentStage: string | null; currentStatus: string; startedOn: string; initialStage?: string }>;
+  ranges: Array<typeof operationsPromotionWaitRange.$inferSelect>;
+  context: PromotionContext;
+  historical?: boolean;
+}
+const { campaigns, ranges, context, historical = false } = Astro.props;
+const today = shanghaiDateKey(new Date());
+const options = (stage: string) => stage === 'testing' ? [['test_continue','恢复测试'],['start_scaling','开始放量'],['test_discarded','测试淘汰']] : [['scaling_continue','恢复推广'],['formal_discarded','放量淘汰'],['ended','推广结束']];
+const candidates = campaigns.filter(c => historical || promotionStateOn(c, context, today)?.currentStage);
+const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaignId));
+---
+<section class="wait-ranges" aria-label="待定区间与次日计划">
+  <header><div><h2>待定区间与次日计划</h2><p>区间结束后人工安排下一步，未安排则继续待定。</p></div></header>
+  {visibleRanges.map(range => {
+    const campaign = campaigns.find(c => c.id === range.campaignId)!;
+    const state = promotionStateOn(campaign, context, today);
+    const superseded = Boolean(state?.endedOn && state.endedOn < range.startedOn);
+    const pending = !superseded && !range.nextDecision && today >= range.endedOn;
+    return <details class:list={{ 'needs-plan': pending }} open={pending}>
+      <summary>{campaign.contentName} · V{campaign.versionNumber}<span>{range.stageType === 'testing' ? '测试待定' : '推广暂停'} · {range.startedOn}—{range.endedOn}{superseded ? ' · 活动已结束，此安排失效' : pending ? ' · 待安排下一步' : range.nextDecision ? ` · ${range.nextEffectiveOn} ${options(range.stageType).find(o => o[0] === range.nextDecision)?.[1]}` : ' · 到期人工安排'}</span></summary>
+      {!superseded && <form class="business-form" data-wait-range-form data-range-id={range.id} data-campaign-id={range.campaignId} data-request-key={range.requestKey} data-revision={range.revision}>
+        <input name="stageType" type="hidden" value={range.stageType}/>
+        <div class="wait-dates"><label>开始日期<input name="startedOn" type="date" value={range.startedOn} required/></label><label>待定至（含当天）<input name="endedOn" type="date" value={range.endedOn} required/></label></div>
+        <label>原因<textarea name="reason" maxlength="2000" rows="2" required>{range.reason}</textarea></label>
+        <div class="wait-dates"><label>下一步（所选日期生效）<select name="nextDecision"><option value="">继续待定／延长区间</option>{options(range.stageType).map(([key,label]) => <option value={key} selected={range.nextDecision === key}>{label}</option>)}</select></label><label>生效日期<input type="date" name="nextEffectiveOn" value={range.nextEffectiveOn ?? nextDateKey(range.endedOn >= today ? range.endedOn : today)} min={nextDateKey(range.endedOn)}/></label></div>
+        <button>保存区间与计划</button><output role="status"></output>
+      </form>}
+    </details>;
+  })}
+  {candidates.length > 0 && <details><summary>＋ 安排待定时间段</summary><form class="business-form" data-wait-range-form>
+    <label>帖子<select name="campaignId" required>{candidates.map(c => <option value={c.id}>{c.contentName} · V{c.versionNumber}</option>)}</select></label>
+    <div class="wait-dates"><label>阶段<select name="stageType"><option value="testing">测试待定</option><option value="scaling">推广暂停</option></select></label><label>开始日期<input name="startedOn" type="date" value={today} required/></label><label>待定至（含当天）<input name="endedOn" type="date" value={today} required/></label></div>
+    <label>原因<textarea name="reason" maxlength="2000" rows="2" placeholder="例如：等待素材修改后再决定" required></textarea></label><button>保存待定时间段</button><output role="status"></output>
+  </form></details>}
+</section>
+<script>
+  import { getInspector } from '../scripts/business-inspector';
+  const setup = () => document.querySelectorAll<HTMLFormElement>('[data-wait-range-form]:not([data-ready])').forEach(form => {
+    form.dataset.ready = 'true';
+    const requestKey = form.dataset.requestKey ?? crypto.randomUUID();
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const out = form.querySelector('output')!;
+      const values = Object.fromEntries(new FormData(form));
+      const payload = { ...values, campaignId: form.dataset.campaignId ?? values.campaignId, requestKey, expectedRevision: form.dataset.revision ? Number(form.dataset.revision) : undefined, nextDecision: values.nextDecision || null, nextEffectiveOn: values.nextDecision ? values.nextEffectiveOn : null, confirmCascade: false };
+      const send = () => fetch(`/api/promotion-wait-ranges${form.dataset.rangeId ? `/${form.dataset.rangeId}` : ''}`, { method: form.dataset.rangeId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      try {
+        out.textContent = '正在保存…';
+        let response = await send(); let result = await response.json();
+        if (result.confirmationRequired && confirm(`更改区间会删除 ${result.impact.from} 至 ${result.impact.through} 的 ${result.impact.dailyMetrics} 条日度事实，并重新开放待办。确认继续吗？`)) {
+          payload.confirmCascade = true; response = await send(); result = await response.json();
+        }
+        if (!response.ok) { out.textContent = result.message ?? '请确认影响后再保存。'; return; }
+        const pane=form.closest<HTMLElement>('[data-inspector]'); if(pane)getInspector(pane).setClean();
+        document.documentElement.dataset.unsaved = 'false'; location.reload();
+      } catch { out.textContent = '连接失败，输入已保留。'; }
+    });
+  });
+  setup(); document.addEventListener('astro:page-load', setup); document.addEventListener('business:inspector-render', setup);
+</script>
+<style>
+.wait-ranges{margin:18px 0;padding:18px;border:1px solid #c9d1cc;border-radius:12px;background:#f7f8f5;color:#17211c}.wait-ranges h2{margin:0;font-size:.85rem}.wait-ranges p{color:#68736d;font-size:var(--console-caption);line-height:1.6}.wait-ranges details{margin-top:10px;border-top:1px solid #d5dcd7;padding-top:10px}.wait-ranges summary{font-size:.75rem;line-height:1.5;cursor:pointer}.wait-ranges summary span{display:block;margin-left:14px;color:#73551d;font-size:var(--console-caption)}.needs-plan summary{font-weight:600}.wait-ranges form{display:grid;gap:10px;padding:12px 0}.wait-dates{display:flex;flex-wrap:wrap;gap:10px}.wait-dates label{flex:1;min-width:125px}.wait-ranges button{justify-self:start;padding:9px 12px;border:0;border-radius:7px;background:#315fd6;color:white;font-weight:600;cursor:pointer}.wait-ranges output{font-size:var(--console-caption);color:#924b2a}.wait-ranges :focus-visible{outline:2px solid #315fd6;outline-offset:2px}
+</style>

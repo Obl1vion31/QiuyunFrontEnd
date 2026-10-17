@@ -1,0 +1,75 @@
+/* 工作台表单基准。显式接入，避免影响日历、年度矩阵和行内指标。 */
+.business-form.business-form,
+.business-filter.business-filter {
+  --form-control-height: var(--console-control-height);
+  color: var(--console-ink);
+  font: 400 var(--console-text)/var(--console-text-leading) var(--console-font);
+}
+.business-filter.business-filter { --form-control-height: var(--console-control-compact); }
+:is(.business-form.business-form,.business-filter.business-filter) label {
+  min-width: 0;
+  color: var(--console-ink);
+  font: 600 var(--console-text)/var(--console-text-leading) var(--console-font);
+}
+:is(.business-form.business-form,.business-filter.business-filter) label:where(:not(:has(input[type=checkbox])):has(input,select,textarea)) { display:grid; gap:6px; }
+:is(.business-form.business-form,.business-filter.business-filter) :is(input:where(:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file])),select,textarea) {
+  box-sizing:border-box; min-width:0; width:var(--form-control-width,100%); margin:0;
+  border:1px solid #abb5af; border-radius:var(--console-control-radius);
+  padding:9px 10px; color:var(--console-ink); background:var(--console-surface);
+  font:400 var(--console-text)/var(--console-text-leading) var(--console-font);
+}
+:is(.business-form.business-form,.business-filter.business-filter) :is(input:where(:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file])),select) { height:var(--form-control-height); }
+.business-form.business-form textarea { min-height:80px; resize:vertical; }
+:is(.business-form.business-form,.business-filter.business-filter) :is(input,select,textarea):disabled,
+.business-form.business-form :is(input,textarea)[readonly] { color:#53615a; background:var(--console-surface-subtle); border-style:dashed; opacity:1; }
+.business-form.business-form label:has(>input[type=checkbox]) { display:flex; align-items:center; gap:8px; font-weight:500; }
+.business-form.business-form input[type=checkbox] { flex:none; width:18px; height:18px; min-height:0; margin:0; accent-color:var(--console-blue); }
+:is(.business-form.business-form,.business-filter.business-filter) button:not([aria-label]):not(.remove-row) {
+  box-sizing:border-box; min-height:var(--form-control-height); border-radius:var(--console-control-radius);
+  padding:8px 12px; font:600 var(--console-text)/var(--console-text-leading) var(--console-font); cursor:pointer;
+}
+:is(.business-form.business-form,.business-filter.business-filter) :is(input,select,textarea,button):focus-visible { outline:2px solid var(--console-blue); outline-offset:2px; }
+:is(.business-form.business-form,.business-filter.business-filter) button:disabled { opacity:.6; cursor:default; }
+:is(.business-form.business-form,.business-filter.business-filter) :is(output,[role=alert]) { font:400 var(--console-text)/var(--console-text-leading) var(--console-font); }
+:is(.business-form.business-form,.business-filter.business-filter) :is(output,[role=alert]):empty { display:none; }
+.business-form.business-form :is(small,.hint) { font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font); }
+.business-form.business-form .business-options { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; }
+.business-form.business-form .business-field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.business-form.business-form .business-field-wide { grid-column:1/-1; }
+.business-form.business-form .rate input { height:calc(var(--form-control-height) - 2px); border:0; border-radius:0; background:transparent; }
+.business-form.business-form .rate { overflow:hidden; border-radius:var(--console-control-radius); }
+.business-form.business-form [hidden],.business-filter.business-filter [hidden] { display:none!important; }
+.business-datetime-fields[data-datetime-field] { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; min-width:0; }
+.business-datetime-fields[data-datetime-field] .field { min-width:0; margin:0; }
+.business-datetime-fields[data-datetime-field] .field>label { display:block; margin:0 0 6px; color:var(--console-ink); font:600 var(--console-text)/var(--console-text-leading) var(--console-font); }
+.business-datetime-fields[data-datetime-field] input { box-sizing:border-box; width:100%; min-width:0; height:var(--console-control-height); }
+
+.business-datetime-fields[data-datetime-field]>:is(small,.datetime-followup) { grid-column:1/-1; }
+.business-datetime-fields[data-datetime-field]>small { color:#a13b28; font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font); }
+.business-datetime-fields[data-datetime-field]>small:empty { display:none; }
+
+/* 保留居中轻量任务与侧边编辑的区别，共用三段容器和稳定操作区。 */
+dialog.business-form-dialog { box-sizing:border-box; width:min(var(--form-dialog-width,680px),calc(100% - 24px)); max-width:calc(100% - 24px); max-height:calc(100dvh - 32px); padding:0; overflow:hidden; border:1px solid var(--console-line); border-radius:16px; background:var(--console-paper); color:var(--console-ink); font:400 var(--console-text)/var(--console-text-leading) var(--console-font); }
+dialog.business-form-dialog::backdrop { background:#07111d73; backdrop-filter:blur(4px); }
+dialog.business-form-dialog>form { display:flex; flex-direction:column; min-height:0; max-height:calc(100dvh - 34px); margin:0; gap:0; }
+dialog.business-form-dialog[data-form-editor] { height:min(860px,calc(100dvh - 32px)); }
+dialog.business-form-dialog[data-form-editor]>form { height:100%; }
+.business-form-dialog .dialog-head { flex:none; display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:72px; margin:0; padding:16px 20px; border-bottom:1px solid var(--console-line); background:var(--console-paper); color:var(--console-ink); }
+.business-form-dialog[data-header-tone=dark] .dialog-head { background:#10243e; color:#fff; border-color:transparent; }
+.business-form-dialog .dialog-head :is(h2,h3) { margin:0; font:700 18px/24px var(--console-font); }
+.business-form-dialog[data-header-tone=dark] .dialog-head p { color:#d8e2ef; }
+.business-form-dialog .dialog-head p { margin:4px 0 0; font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font); }
+.business-form-dialog .dialog-head>button { flex:none; width:32px; height:32px; padding:0; border:0; background:transparent; color:inherit; font:28px/1 var(--console-font); cursor:pointer; }
+.business-form-dialog .form-dialog-body { flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; padding:20px; }
+.business-form-dialog .dialog-actions { position:relative; flex:none; display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:10px; min-height:72px; margin:0; padding:12px 20px max(12px,env(safe-area-inset-bottom)); border-top:1px solid var(--console-line); background:var(--console-paper); }
+.business-form-dialog .dialog-actions button { min-width:80px; border:1px solid #abb5af; color:var(--console-ink); background:var(--console-surface); }
+.business-form-dialog .dialog-actions button[type=submit],.business-form-dialog .dialog-actions button.primary { border-color:var(--console-blue); color:#fff; background:var(--console-blue); }
+.business-form-dialog .dialog-actions output { flex:1; }
+@media(max-width:620px) {
+  .business-form-dialog .form-dialog-body { padding:16px; }
+  .business-form-dialog .dialog-head,.business-form-dialog .dialog-actions { padding-left:16px; padding-right:16px; }
+  .business-form.business-form .business-field-grid { gap:16px 12px; }
+  .business-datetime-fields[data-datetime-field] { gap:12px; }
+  #row-dialog.business-form-dialog>form { height:100%; max-height:100%; }
+}
+@media(prefers-reduced-transparency:reduce) { dialog.business-form-dialog::backdrop { backdrop-filter:none; } }

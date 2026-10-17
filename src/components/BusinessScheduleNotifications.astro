@@ -1,0 +1,20 @@
+<div class="schedule-notifications" aria-label="排期待办提醒" data-schedule-notifications>
+  <a href="/business/operations-schedule?status=overdue&amp;display=ledger"><span>尚未登记</span><b data-schedule-count="overdue">—</b></a>
+  <a href="/business/operations-schedule?status=reasons&amp;display=ledger"><span>待补理由</span><b data-schedule-count="missingReasons">—</b></a>
+  <a href="/business/operations-schedule?status=approvals&amp;display=ledger" data-admin-only><span>改期待审</span><b data-schedule-count="pendingApprovals">—</b></a>
+  <small data-schedule-notification-status role="status" aria-live="polite">正在读取提醒…</small>
+</div>
+<script>
+  import '../scripts/schedule-notifications';
+</script>
+<style>
+  .schedule-notifications{display:grid;gap:2px;margin:-8px 0 16px;padding:8px 10px;border:1px solid #c9d1cc;border-radius:9px;background:#f7f8f5}
+  .schedule-notifications a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0;color:#53615a;font-size:12px;text-decoration:none}
+  .schedule-notifications a:hover span{text-decoration:underline}
+  .schedule-notifications a:focus-visible{outline:2px solid #315fd6;outline-offset:2px}
+  .schedule-notifications b{min-width:22px;padding:2px 5px;border-radius:5px;color:#8d4c31;background:#f5e4dc;text-align:center;font:600 12px var(--console-font);font-variant-numeric:tabular-nums}
+  .schedule-notifications [data-schedule-count=overdue]{color:#73551d;background:#fff1bf}
+  .schedule-notifications small:empty{display:none}
+  .schedule-notifications small{color:#68736d;font-size:var(--console-caption);line-height:1.4}
+  @media(max-width:900px){.schedule-notifications{display:none}}
+</style>

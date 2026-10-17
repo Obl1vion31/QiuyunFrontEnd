@@ -1,0 +1,11 @@
+export const delayThresholdMs: number;
+export const delayDayMs: number;
+export function isDelayed(plannedAt: Date, at: Date, thresholdHours?: number): boolean;
+export function delayStartsAt(plannedAt: Date, effectiveAt?: Date | null, thresholdHours?: number): Date;
+export function delayDayCount(plannedAt: Date, through: Date, effectiveAt?: Date | null, thresholdHours?: number): number;
+export function delayDays(plannedAt: Date, through: Date, effectiveAt?: Date | null, thresholdHours?: number): Array<{ dayNumber: number; dueAt: Date }>;
+export function completionStatus(plannedAt: Date, actualAt: Date | null, thresholdHours?: number): 'pending' | 'delayed' | 'on_time';
+type RegistrationSchedule = {plannedPublishAt: Date; actualPublishAt: Date | null};
+export function needsRegistration(schedule: RegistrationSchedule, now: Date): boolean;
+export function registrationState(schedule: RegistrationSchedule, now: Date): 'pending' | 'missing' | 'registered';
+export function requiresPlanApproval(schedule: RegistrationSchedule, now: Date): boolean;

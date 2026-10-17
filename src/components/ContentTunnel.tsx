@@ -24,7 +24,7 @@
  * 【安全边界】
  * 保持正常页面滚动、prefers-reduced-motion、事件清理和每张真实封面单实例。
  */
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { CoverItem, WorkflowStage } from '../data/home';
 import styles from './ContentTunnel.module.css';
 
@@ -79,6 +79,7 @@ const referenceCanvas = {
   motionWidth: 1280,
 };
 const mobileBreakpoint = 820;
+const stageGlows = ['#5B8CFF', '#716DFF', '#A07DFF', '#FF8A68', '#9ED8C4', '#6F9FE8'];
 
 export default function ContentTunnel({
   covers,
@@ -175,13 +176,13 @@ export default function ContentTunnel({
         // 【需求】循环首尾平滑淡入淡出；近景稍亮，避免深色遮罩下显得过重。
         const fadeIn = Math.min(1, travel * 4);
         const fadeOut = Math.min(1, (1 - travel) * 4);
-        const opacity = Math.max(0, Math.min(fadeIn, fadeOut)) * 0.88;
-        const blur = Math.max(0, (0.55 - travel) * 8);
-        const brightness = 1 + Math.max(0, travel - 0.4) * 0.3;
+        const opacity = Math.max(0, Math.min(fadeIn, fadeOut)) * 0.94;
+        const blur = Math.max(0, (0.55 - travel) * 6);
+        const brightness = 1 + Math.max(0, travel - 0.4) * 0.2;
         const initialScale = initialCompositionScales[index % initialCompositionScales.length];
         const compositionScale = 1 + (initialScale - 1) * initialCompositionBlend;
 
-        card.style.transform = `translate3d(${x}px, ${y}px, ${depth}px) rotate(${rotation + travel * 4}deg) scale(${compositionScale})`;
+        card.style.transform = `translate3d(${x}px, ${y}px, ${depth}px) rotate(${rotation + travel * 2}deg) scale(${compositionScale})`;
         card.style.opacity = opacity.toFixed(3);
         card.style.filter = `blur(${blur.toFixed(2)}px) brightness(${brightness.toFixed(3)})`;
       });
@@ -213,7 +214,11 @@ export default function ContentTunnel({
     <section className={styles.scene} ref={sectionRef} aria-labelledby="page-title">
       <div className={styles.sticky}>
         {/* 背景层：氛围底色、循环封面、全屏统一遮罩。 */}
-        <div className={styles.atmosphere} aria-hidden="true" />
+        <div
+          className={styles.atmosphere}
+          style={{ '--stage-glow': stageGlows[activeStage] } as CSSProperties}
+          aria-hidden="true"
+        />
         <div className={styles.stage} aria-hidden="true">
           {stream.map((cover, index) => (
             <article
