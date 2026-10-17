@@ -201,6 +201,7 @@ UNIQUE `(plan_id, version_number)`；INDEX `(plan_id, created_at)`。
 | `promotion_deferred_through` | date | NULL | “当日未推广”已确认至该日 |
 | `planned_publish_at` | timestamptz | NOT NULL | 应发时间 |
 | `actual_publish_at` | timestamptz | NULL | 实发时间 |
+| `delay_threshold_hours` | integer | NOT NULL, 默认 2 | 该排期适用的延期门槛；已登记历史保留 8 |
 | `completion_status` | text | NOT NULL | `pending`、`on_time`、`delayed` |
 | `delay_reason` | text | NULL | 旧单条延期原因，保留作历史补齐来源 |
 | `source_key` | text | UNIQUE, NULL | 一次性历史导入幂等键 |
@@ -370,10 +371,10 @@ Content
 
 ## 排期审批与逐日延期
 
-排期的 `plan_revision` 从 0 开始，`plan_effective_at` 记录批准或直接改期生效时间。应发满 8 小时起算，后续每 24 小时增加一天；实发停止新增。
+排期的 `plan_revision` 从 0 开始，`plan_effective_at` 记录批准或直接改期生效时间。满应发 2 小时未登记只催办“尚未登记”；实际发布是否延期按排期的 `delay_threshold_hours` 判定，后续每满 24 小时增加一条原因。已登记历史保留 8 小时，旧排期修订保存当时门槛；历史原因日期及事实不覆盖。
 
 - `operations_schedule_change_request`：原排期修订、新发送时间、申请理由、申请人及审批信息；同一排期最多一条 pending，状态包含 pending / approved / rejected / obsolete。
-- `operations_schedule_plan_history`：关闭的排期修订、原应发时间、生效与结束时间、新应发时间及操作者；批准改期不覆盖旧计时段。
+- `operations_schedule_plan_history`：关闭的排期修订、原应发时间、延期门槛、生效与结束时间、新应发时间及操作者；批准改期不覆盖旧计时段。
 - `operations_schedule_delay_reason`：以排期、修订和天数唯一关联逐日理由，保存责任方、文字、人工／历史来源、操作者及更正历史；未来尚未到期的日期不提前落库。
 - `operations_non_promotion_checkpoint_event`：按排期与首轮／二轮追加 skip / restore 事件，以单调 sequence 确定当前状态；不创建指标或空复盘记录。
 

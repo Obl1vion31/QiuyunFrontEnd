@@ -23,14 +23,14 @@ async function seed(plannedAt: Date, actualAt: Date | null = null, reason: strin
   const [schedule] = await db.insert(schema.operationsContentSchedule).values({ contentVersionId:version.id,plannedPublishAt:plannedAt,actualPublishAt:actualAt,delayReason:reason,completionStatus:actualAt?'delayed':'pending' }).returning();
   return schedule;
 }
-test('满8小时开始第1天，此后每24小时增加一天，跨月跨年不变', () => {
+test('满2小时开始第1天，此后每24小时增加一天，跨月跨年不变', () => {
   const planned = new Date('2026-12-31T08:00:00+08:00');
-  assert.equal(isDelayed(planned,new Date('2026-12-31T15:59:59+08:00')),false);
-  assert.equal(delayDayCount(planned,new Date('2026-12-31T16:00:00+08:00')),1);
-  assert.equal(delayDayCount(planned,new Date('2027-01-01T15:59:59+08:00')),1);
-  assert.equal(delayDayCount(planned,new Date('2027-01-01T16:00:00+08:00')),2);
-  assert.equal(delayDayCount(planned,new Date('2027-01-09T16:00:00+08:00')),10);
-  assert.equal(delayDays(planned,new Date('2027-01-01T16:00:00+08:00'))[1].dueAt.toISOString(),'2027-01-01T08:00:00.000Z');
+  assert.equal(isDelayed(planned,new Date('2026-12-31T09:59:59+08:00')),false);
+  assert.equal(delayDayCount(planned,new Date('2026-12-31T10:00:00+08:00')),1);
+  assert.equal(delayDayCount(planned,new Date('2027-01-01T09:59:59+08:00')),1);
+  assert.equal(delayDayCount(planned,new Date('2027-01-01T10:00:00+08:00')),2);
+  assert.equal(delayDayCount(planned,new Date('2027-01-09T10:00:00+08:00')),10);
+  assert.equal(delayDays(planned,new Date('2027-01-01T10:00:00+08:00'))[1].dueAt.toISOString(),'2027-01-01T02:00:00.000Z');
   assert.equal(shanghaiDateTime.safeParse('2026-02-30T08:00').success,false);
 });
 test('历史原因逐日复制，空原因填未知，重复补齐保留人工更正', async () => {
@@ -67,7 +67,7 @@ test('员工不能直接改期，管理员改期使旧申请失效', async () =>
   const schedule=await seed(new Date('2026-10-14T08:00:00+08:00'));
   const input={plannedPublishAt:new Date('2026-10-18T08:00:00+08:00'),expectedPlanRevision:0,reason:'虚构申请'};
   const request=await createChangeRequest(db,schedule.id,input,employee,now);
-  await assert.rejects(db.transaction(tx=>changeSchedulePlan(tx,schedule,input.plannedPublishAt,'虚构直接修改',employee,now)),/管理员/);
+  await assert.rejects(db.transaction(tx=>changeSchedulePlan(tx,schedule,input.plannedPublishAt,'虚构直接修改',employee,now)),/管理员审批/);
   await db.transaction(tx=>changeSchedulePlan(tx,schedule,new Date('2026-10-19T08:00:00+08:00'),'管理员改期',admin,now));
   assert.equal((await readScheduleWorkflow(db,schedule.id,undefined,now)).applications[0].status,'obsolete');
   await assert.rejects(decideChangeRequest(db,schedule.id,request.id,{action:'approve',reason:''},admin,now),/申请已处理/);

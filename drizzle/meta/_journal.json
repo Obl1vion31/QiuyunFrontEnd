@@ -225,6 +225,13 @@
       "when": 1792162925441,
       "tag": "0031_publication_reservations",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792243802190,
+      "tag": "0032_schedule_registration_deadline",
+      "breakpoints": true
     }
   ]
 }

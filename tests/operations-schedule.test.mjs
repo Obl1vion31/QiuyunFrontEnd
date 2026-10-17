@@ -32,7 +32,7 @@ test('排期月份参数只接受有效年月', async () => {
 test('删除移入 Inspector，实发登记保持唯一主动作', async () => {
   const page = await readFile(pageUrl, 'utf8');
   assert.doesNotMatch(page, /<th>操作<\/th>/);
-  assert.match(page, /data-inspector-delete data-admin-only>删除这条排期/);
+  assert.match(page, /<details class="inspector-danger" data-admin-only>[\s\S]*data-inspector-delete>删除这条排期/);
   assert.match(page, /data-inspector-publication>发布登记/);
   assert.match(page, /class="business-action-primary"/);
   assert.doesNotMatch(page, /class="row-menu"/);

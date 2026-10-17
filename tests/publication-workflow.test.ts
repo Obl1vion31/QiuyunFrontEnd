@@ -36,7 +36,7 @@ test('完整分享文案提取 cn／com 短链及长链，保留签名，拒绝�
 test('17 点直接登记 20 点，立即已发送，不创建预约或提前开放复盘',async()=>{
  const s=await seed();await registerPublication(db,s.id,{...sent(s),actualPublishAt:later},[],false,employee,now);
  const w=await read(s.id);assert.equal(w.publicationState,'published');assert.equal(w.schedule.actualPublishAt?.getTime(),later.getTime());assert.equal(w.schedule.publicationUrl,link);
- assert.equal(w.publicationReservations.length,0);assert.equal(w.schedule.completionStatus,'on_time');
+ assert.equal(w.publicationReservations.length,0);assert.equal(w.schedule.completionStatus,'delayed');
  assert.equal(nextReviewCheckpoint(later,[],'2026-10-17'),null);
  assert.equal((await db.select().from(schema.operationsPromotionCampaign)).length,0);
 });

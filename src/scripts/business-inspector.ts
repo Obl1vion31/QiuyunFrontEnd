@@ -1,4 +1,19 @@
 import { navigate } from 'astro:transitions/client';
+
+/** 静态详情与惰性模板都使用同一条正文滚动轨道。 */
+function organizeInspector(element: HTMLElement) {
+  let body = element.querySelector<HTMLElement>(':scope > [data-inspector-body], :scope > .inspector-body');
+  if (!body) { body = document.createElement('div'); element.append(body); }
+  body.dataset.inspectorBody = '';
+  const title=element.querySelector<HTMLElement>(':scope>header h1,:scope>header h2');
+  if(title)title.title=title.textContent??'';
+  for (const node of [...element.childNodes]) {
+    if (node === body || node instanceof HTMLElement && (node.tagName === 'HEADER' || node.tagName === 'FOOTER')) continue;
+    body.append(node);
+  }
+  const footer = element.querySelector(':scope > footer');
+  element.insertBefore(body, footer);
+}
 /** 公共详情交互；业务适配器只负责填充内容与保存。示例见 docs/code-study.md。 */
 export interface InspectorOptions {
   parameter?: string;
@@ -26,6 +41,21 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   let closeTimer = 0;
   let generation = 0;
   let currentUrl = new URL(location.href);
+  let viewportFrame = 0;
+  const fitViewport = () => {
+    if (element.hidden || !selected) return;
+    const top = element.getBoundingClientRect().top;
+    element.style.setProperty('--inspector-height', `${Math.max(120, window.innerHeight - top - 20)}px`);
+  };
+  const queueViewport = () => {
+    cancelAnimationFrame(viewportFrame);
+    viewportFrame = requestAnimationFrame(fitViewport);
+  };
+  window.addEventListener('scroll',queueViewport,{passive:true,signal});
+  window.addEventListener('resize',queueViewport,{passive:true,signal});
+  const viewportObserver = new ResizeObserver(queueViewport);
+  if(host)viewportObserver.observe(host);
+  signal.addEventListener('abort',()=>{viewportObserver.disconnect();cancelAnimationFrame(viewportFrame);},{once:true});
   const baseUrl = (url:URL) => { const base = new URL(url); if(parameter)base.searchParams.delete(parameter); for(const name of options.localParameters??[])base.searchParams.delete(name); base.hash=''; return base.href; };
   const syncContext = () => { element.dataset.inspectorHistoryBase = baseUrl(currentUrl); element.dataset.inspectorLocalParameters = (options.localParameters??[]).join(','); };
   syncContext();
@@ -57,12 +87,15 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if (source) trigger = source;
     else if (!trigger?.isConnected) trigger = document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(id)}"],[data-inspect-id="${CSS.escape(id)}"]`);
     if (selected !== id) { setClean(); if (options.render) options.render(id); else element.dispatchEvent(new CustomEvent('business:inspector-render-record',{detail:{id}})); }
+    organizeInspector(element);
+    const body = element.querySelector<HTMLElement>('[data-inspector-body]')!;
+    if (selected !== id) body.scrollTop = 0;
     select(id);
     element.hidden = false;
     element.setAttribute('role', matchMedia('(max-width:900px)').matches ? 'dialog' : 'complementary');
     element.setAttribute('aria-modal', String(matchMedia('(max-width:900px)').matches));
     const token = generation;
-    requestAnimationFrame(() => { if (token !== generation) return; element.classList.add('is-open'); element.focus({ preventScroll: true }); });
+    requestAnimationFrame(() => { if (token !== generation) return; element.classList.add('is-open'); fitViewport(); element.focus({ preventScroll: true }); });
     if (writeHistory) updateUrl(id);
     return true;
   };

@@ -13,7 +13,7 @@ export async function workflowForm<T extends z.ZodType>(request: Request, url: U
 export function workflowErrorResponse(error: unknown) {
   const denied = permissionErrorResponse(error);
   if (denied) return denied;
-  if (error instanceof WorkflowError) return Response.json({ message: error.message }, { status: error.status });
+  if (error instanceof WorkflowError) return Response.json({ message: error.message, ...(error.approvalRequired ? {approvalRequired: true} : {}) }, { status: error.status });
   const code = (error as { code?: string; cause?: { code?: string } }).code ?? (error as { cause?: { code?: string } }).cause?.code;
   if (code === '23505') return Response.json({ message: '这条记录已被更新，请刷新后重试。' }, { status: 409 });
   if (code === '23503' || code === '23001') return Response.json({ message: '这条记录已有业务历史，不能删除或覆盖。' }, { status: 409 });

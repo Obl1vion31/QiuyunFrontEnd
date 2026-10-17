@@ -26,7 +26,7 @@ try {
   async function create(overrides:Record<string,string>={}) { const fields={...defaults,...overrides}; const created=await request('/api/operations-content','POST',employeeCookie,fields,201);return {id:created.id as string,fields}; }
   const delayed=await create();
   const notifications=await request('/api/business-notifications','GET',employeeCookie);assert.equal(notifications.overdue,1);
-  await request(`/api/operations-content/${delayed.id}`,'PATCH',employeeCookie,{...delayed.fields,plannedPublishAt:inputTime(hours(24)),role:'admin'},403);
+  await request(`/api/operations-content/${delayed.id}`,'PATCH',employeeCookie,{...delayed.fields,plannedPublishAt:inputTime(hours(24)),role:'admin'},409);
   const actual=inputTime(hours(-2));
   await request(`/api/operations-content/${delayed.id}/publication`,'PATCH',employeeCookie,{plannedPublishAt:actual,actualPublishAt:actual,projectDocUrl:'https://fictional.example.test/delayed'},422);
   const before=(await db.select().from(schema.operationsContentSchedule).where(eq(schema.operationsContentSchedule.id,delayed.id)))[0];assert.equal(before.actualPublishAt,null);
@@ -96,7 +96,7 @@ try {
   await page.locator('[data-schedule-workflow] .workflow-form').first().waitFor();
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1');
   const reasonForm=page.locator('[data-schedule-workflow] .workflow-reason form').first();await reasonForm.locator('select').selectOption('self');await reasonForm.locator('textarea').fill('浏览器填写今日正在修改中');await reasonForm.locator('button[type=submit]').click();
-  await page.locator('[data-schedule-workflow]').getByText('自身原因：浏览器填写今日正在修改中').waitFor({state:'attached'});
+  await page.locator('[data-schedule-workflow-history]').getByText('自身原因：浏览器填写今日正在修改中').waitFor({state:'attached'});
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1','填完理由仍保留延期提示');
   await page.locator('[data-schedule-workflow] summary').filter({hasText:'申请调整排期'}).click();
   const applicationForm=page.locator('[data-schedule-workflow] form').filter({has:page.locator('[name=plannedPublishAt]')});

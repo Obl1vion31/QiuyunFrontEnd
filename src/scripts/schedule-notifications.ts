@@ -9,12 +9,13 @@ async function refresh() {
     const data = await response.json();
     document.querySelectorAll<HTMLElement>('[data-schedule-count]').forEach(node => { node.textContent = String(data[node.dataset.scheduleCount!] ?? 0); });
     const status = document.querySelector('[data-schedule-notification-status]');
-    if(status)status.textContent=data.overdue?`${data.overdue} 条排期延期未发`:'当前没有延期未发';
+    if(status)status.textContent='';
+    document.querySelector('[data-schedule-count=overdue]')?.closest('a')?.setAttribute('aria-label', `尚未登记 ${data.overdue ?? 0} 篇`);
     const link = document.querySelector<HTMLElement>('[data-module-id="schedule"]');
     if (link) {
       let badge = link.querySelector<HTMLElement>('[data-mobile-overdue-count]');
       if (!badge) { badge = document.createElement('b'); badge.dataset.mobileOverdueCount = ''; link.append(badge); }
-      badge.hidden = !data.overdue; badge.textContent = String(data.overdue ?? 0); badge.setAttribute('aria-label', `${data.overdue ?? 0} 条延期未发`);
+      badge.hidden = !data.overdue; badge.textContent = String(data.overdue ?? 0); badge.setAttribute('aria-label', `${data.overdue ?? 0} 篇尚未登记`);
     }
     document.dispatchEvent(new CustomEvent('business:notifications-updated', { detail: data }));
   } catch {

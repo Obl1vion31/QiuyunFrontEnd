@@ -74,7 +74,8 @@ try {
         if(width===1440){
           await dialog.locator('[name=periodStart]').fill(start);await dialog.locator('[name=periodEnd]').fill(previousDateKey(today));await dialog.locator('[name=name]').fill('虚构拆分时间例会');
           const created=page.waitForResponse((response:any)=>response.url().endsWith('/api/meeting-reviews')&&response.request().method()==='POST');await dialog.locator('button[type=submit],button.primary').click();const response=await created;assert.equal(response.status(),201);await page.waitForURL((url:URL)=>Boolean(url.searchParams.get('meeting')));const result={id:new URL(page.url()).searchParams.get('meeting')!};
-          const [meeting]=await db.select().from(schema.operationsReviewMeeting).where(eq(schema.operationsReviewMeeting.id,result.id));assert.equal(meeting.meetingAt.toISOString(),new Date(`${today}T00:00`).toISOString(),'拆分输入保持原有会议时间解析');await page.waitForLoadState('networkidle');
+          await page.waitForLoadState('networkidle');
+          const [meeting]=await db.select().from(schema.operationsReviewMeeting).where(eq(schema.operationsReviewMeeting.id,result.id));assert.equal(meeting.meetingAt.toISOString(),new Date(`${today}T00:00`).toISOString(),'拆分输入保持原有会议时间解析');
         }else await dialog.locator('[data-close]').click();
       }
       if(path==='annual-plan') {
@@ -202,7 +203,7 @@ try {
       await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await page.waitForLoadState('networkidle');
       assert.equal(await page.locator('[data-inspector]').getAttribute('data-selected-id'),ids[1]);
       assert.equal(await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').count(),1,'晚到的旧请求不覆盖新选择');
-      await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow]').getByText('当前没有延期或改期记录。').waitFor();
+      await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});
       await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     }
     await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator(`[data-inspector-key="${campaign.id}"]`).click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();

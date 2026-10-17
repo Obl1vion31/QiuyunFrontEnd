@@ -53,7 +53,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     await tx.update(versions).set({projectDocUrl,updatedAt:now}).where(eq(versions.id,version.id));
     const promotionStatus=!schedule.isPromoted?'none':actualChanged||!campaignRows.length?'awaiting_promotion':schedule.promotionStatus;
     await tx.update(schedules).set({actualPublishAt:actual,publicationUrl,publicationRevision:schedule.publicationRevision+1,
-      completionStatus:normalizeCompletionStatus({plannedPublishAt:schedule.plannedPublishAt,actualPublishAt:actual}),promotionStatus,
+      completionStatus:normalizeCompletionStatus({plannedPublishAt:schedule.plannedPublishAt,actualPublishAt:actual,delayThresholdHours:schedule.delayThresholdHours}),promotionStatus,
       promotionDeferredThrough:promotionStatus==='awaiting_promotion'&&actualChanged?null:undefined,updatedAt:now}).where(eq(schedules.id,id));
     await tx.insert(events).values({scheduleId:id,revision:schedule.publicationRevision+1,before,after,reason:input.correctionReason||null,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
     await tx.update(reservations).set({status:'fulfilled',history:sql`${reservations.history} || ${JSON.stringify(historyEntry('fulfilled',actor,now,'已登记实发'))}::jsonb`,decisionReason:'已登记实发，预约流程结束',updatedAt:now}).where(and(eq(reservations.scheduleId,id),inArray(reservations.status,['pending','approved'])));

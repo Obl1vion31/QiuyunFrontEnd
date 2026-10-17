@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { Database } from './client';
 import type { OperationsUser } from '../auth/permissions';
 import { requireAdmin } from '../auth/permissions';
-import { completionStatus, delayDayCount, delayDays, isDelayed } from './schedule-rules.mjs';
+import { completionStatus, delayDayCount, delayDays, needsRegistration, registrationState, requiresPlanApproval } from './schedule-rules.mjs';
 import { shanghaiDateTime } from './validation';
 import { publicationState, mayKeepEmptyPublicationLink } from './publication-rules.mjs';
 import { operationsPublicationReservation as reservations,operationsPublicationEvent as publicationEvents } from './schema';
@@ -16,7 +16,7 @@ type Schedule = typeof schedules.$inferSelect;
 type Plan = typeof plans.$inferSelect;
 type Reason = typeof reasons.$inferSelect;
 export class WorkflowError extends Error {
-  constructor(message: string, public status = 409) { super(message); }
+  constructor(message: string, public status = 409, public approvalRequired = false) { super(message); }
 }
 export const reasonSchema = z.object({
   planRevision: z.coerce.number().int().min(0), dayNumber: z.coerce.number().int().min(1),
@@ -42,12 +42,12 @@ export async function lockSchedule(transaction: Transaction, id: string) {
 
 export function scheduleDelayItems(schedule: Schedule, history: Plan[], saved: Reason[], through: Date, now = through) {
   const periods = [
-    ...history.map(plan => ({ revision: plan.revision, plannedAt: plan.plannedPublishAt, effectiveAt: plan.effectiveAt, end: new Date(Math.min(plan.endedAt.getTime(), now.getTime())) })),
-    { revision: schedule.planRevision, plannedAt: schedule.plannedPublishAt, effectiveAt: schedule.planEffectiveAt, end: through },
+    ...history.map(plan => ({ revision: plan.revision, plannedAt: plan.plannedPublishAt, effectiveAt: plan.effectiveAt, thresholdHours: plan.delayThresholdHours, end: new Date(Math.min(plan.endedAt.getTime(), through.getTime(), now.getTime())) })),
+    { revision: schedule.planRevision, plannedAt: schedule.plannedPublishAt, effectiveAt: schedule.planEffectiveAt, thresholdHours: schedule.delayThresholdHours, end: through },
   ];
   const savedMap = new Map(saved.map(item => [`${item.planRevision}:${item.dayNumber}`, item]));
-  const items = periods.flatMap(period => delayDays(period.plannedAt, period.end, period.effectiveAt).map(day => ({
-    planRevision: period.revision, ...day, saved: savedMap.get(`${period.revision}:${day.dayNumber}`) ?? null,
+  const items = periods.flatMap(period => delayDays(period.plannedAt, period.end, period.effectiveAt, period.thresholdHours).map(day => ({
+    planRevision: period.revision, ...day, dueAt: savedMap.get(`${period.revision}:${day.dayNumber}`)?.dueAt ?? day.dueAt, saved: savedMap.get(`${period.revision}:${day.dayNumber}`) ?? null,
     archived: false,
   })));
   const keys = new Set(items.map(item => `${item.planRevision}:${item.dayNumber}`));
@@ -70,8 +70,9 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
   ]);
   const through = new Date(Math.min((actualOverride ?? schedule.actualPublishAt ?? now).getTime(), now.getTime()));
   return { schedule, history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
+    registrationState: registrationState(schedule, now), requiresPlanApproval: requiresPlanApproval(schedule, now),
     days: scheduleDelayItems(schedule, history, saved, through, now),
-    overdueDays: !schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now, schedule.planEffectiveAt) : 0,
+    overdueDays: !schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now, schedule.planEffectiveAt, schedule.delayThresholdHours) : 0,
   };
 }
 
@@ -100,7 +101,7 @@ export async function saveDelayReason(transaction: Transaction, schedule: Schedu
 /** 给受控历史导入复用；只补不存在的日期，不覆盖人工填写，不建立改期申请。 */
 export async function backfillHistoricalDelayReasons(transaction: Transaction, scheduleId: string, cutoff = new Date()) {
   const schedule = await lockSchedule(transaction, scheduleId);
-  const days = delayDays(schedule.plannedPublishAt, schedule.actualPublishAt ?? cutoff, schedule.planEffectiveAt);
+  const days = delayDays(schedule.plannedPublishAt, schedule.actualPublishAt ?? cutoff, schedule.planEffectiveAt, schedule.delayThresholdHours);
   if (!days.length) return;
   await transaction.insert(reasons).values(days.map(day => ({ scheduleId, planRevision: schedule.planRevision,
     ...day, responsibility: 'unknown' as const, reason: schedule.delayReason?.trim() || '未知',
@@ -109,16 +110,16 @@ export async function backfillHistoricalDelayReasons(transaction: Transaction, s
 }
 
 export async function changeSchedulePlan(transaction: Transaction, schedule: Schedule, plannedAt: Date, reason: string, actor: OperationsUser, now = new Date()) {
-  requireAdmin(actor);
+  if (actor.role !== 'admin' && requiresPlanApproval(schedule, now)) throw new WorkflowError('已超过登记时限，修改应发时间需提交管理员审批。', 409, true);
   if (plannedAt.getTime() === schedule.plannedPublishAt.getTime()) return;
   if (!reason.trim()) throw new WorkflowError('请填写改期理由。', 422);
   if (!schedule.actualPublishAt && plannedAt <= now) throw new WorkflowError('尚未实发的排期，请选择未来的发送时间。', 422);
   await transaction.insert(plans).values({ scheduleId: schedule.id, revision: schedule.planRevision,
-    plannedPublishAt: schedule.plannedPublishAt, effectiveAt: schedule.planEffectiveAt,
+    plannedPublishAt: schedule.plannedPublishAt, effectiveAt: schedule.planEffectiveAt, delayThresholdHours: schedule.delayThresholdHours,
     endedAt: schedule.actualPublishAt ?? now, newPlannedPublishAt: plannedAt,
     reason, changedById: actor.id, changedByLabel: actor.username });
   await transaction.update(schedules).set({ plannedPublishAt: plannedAt, planRevision: schedule.planRevision + 1,
-    planEffectiveAt: now, completionStatus: completionStatus(plannedAt, schedule.actualPublishAt), publicationRevision:schedule.publicationRevision+1, updatedAt: now,
+    planEffectiveAt: now, completionStatus: completionStatus(plannedAt, schedule.actualPublishAt, schedule.delayThresholdHours), publicationRevision:schedule.publicationRevision+1, updatedAt: now,
   }).where(eq(schedules.id, schedule.id));
   await transaction.update(reservations).set({status:'obsolete',history:sql`${reservations.history} || ${JSON.stringify([{status:'obsolete',actorId:actor.id,actorLabel:actor.username,at:now.toISOString(),reason:'应发时间已变更，请重新登记预约'}])}::jsonb`,decisionReason:'应发时间已变更，请重新登记预约',updatedAt:now}).where(and(eq(reservations.scheduleId,schedule.id),inArray(reservations.status,['pending','approved'])));
   await transaction.update(requests).set({ status: 'obsolete', decidedAt: now, decisionReason: '排期已发生变化' })
@@ -128,7 +129,7 @@ export async function changeSchedulePlan(transaction: Transaction, schedule: Sch
 export async function createChangeRequest(database: Database, scheduleId: string, input: z.infer<typeof changeRequestSchema>, actor: OperationsUser, now = new Date()) {
   return database.transaction(async transaction => {
     const schedule = await lockSchedule(transaction, scheduleId);
-    if (schedule.actualPublishAt) throw new WorkflowError('已实发的排期不能申请改期。');
+    if (!requiresPlanApproval(schedule, now)) throw new WorkflowError('当前改期无需审批，请直接编辑排期。');
     if (schedule.planRevision !== input.expectedPlanRevision) throw new WorkflowError('排期已更新，请刷新后重新申请。');
     if (input.plannedPublishAt <= now) throw new WorkflowError('请选择未来的发送时间。', 422);
     if (input.plannedPublishAt.getTime() === schedule.plannedPublishAt.getTime()) throw new WorkflowError('新的应发时间与当前时间相同。', 422);
@@ -171,9 +172,9 @@ export async function teamScheduleNotifications(database: Database, now = new Da
     database.select().from(schedules), database.select().from(plans), database.select().from(reasons),
     database.select().from(requests).where(eq(requests.status, 'pending')),
   ]);
-  const overdueIds = rows.filter(row => !row.actualPublishAt && isDelayed(row.plannedPublishAt, now)).map(row => row.id);
-  const missingReasonIds = rows.filter(row => scheduleDelayItems(row, history.filter(item => item.scheduleId === row.id),
+  const overdueIds = rows.filter(row => needsRegistration(row, now)).map(row => row.id);
+  const missingReasonIds = rows.filter(row => row.actualPublishAt && scheduleDelayItems(row, history.filter(item => item.scheduleId === row.id),
     saved.filter(item => item.scheduleId === row.id), new Date(Math.min(row.actualPublishAt?.getTime() ?? now.getTime(), now.getTime())), now).some(day => !day.saved && !day.archived)).map(row => row.id);
-  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
+  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, missingRegistration: overdueIds.length, missingRegistrationIds: overdueIds, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
     overdueIds, missingReasonIds, approvalScheduleIds: applications.map(item => item.scheduleId), serverTime: now.toISOString() };
 }

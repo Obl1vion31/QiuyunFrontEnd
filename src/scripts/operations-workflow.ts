@@ -8,7 +8,7 @@ type SavedReason = { reason: string; responsibility: 'self' | 'requester' | 'unk
 type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved: SavedReason | null; archived: boolean };
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
-type Workflow = {allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type Workflow = {registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -37,7 +37,7 @@ async function getWorkflow(id: string, actual?: string) {
 }
 function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, method = 'POST') {
   const output = element('output'); output.setAttribute('role', 'alert'); form.append(output);
-  form.addEventListener('input', () => { document.documentElement.dataset.unsaved = 'true'; });
+  form.addEventListener('input', () => { form.dataset.dirty = 'true'; document.documentElement.dataset.unsaved = 'true'; });
   form.addEventListener('submit', async event => {
     event.preventDefault(); if (!form.reportValidity()) return;
     const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!; button.disabled = true; output.textContent = '正在保存…';
@@ -53,6 +53,7 @@ function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, 
         }
         output.textContent = messages.join('；') || result.message || '保存失败。'; return;
       }
+      form.dataset.dirty = 'false';
       const pane=form.closest<HTMLElement>('[data-inspector]');
       if(pane)getInspector(pane).setClean(); else document.documentElement.dataset.unsaved = 'false';
       document.dispatchEvent(new Event('business:workflow-updated')); onSaved();
@@ -60,7 +61,7 @@ function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, 
     finally { button.disabled = false; }
   });
 }
-function submitButton(form: HTMLElement, text: string) { const button = element('button', text); button.type = 'submit'; form.append(button); }
+function submitButton(form: HTMLElement, text: string) { const button = element('button', text); button.type = 'submit'; button.className = 'business-action-primary'; form.append(button); }
 function reasonForm(day: DelayDay, scheduleId: string, onSaved: () => void) {
   const form = element('form'); form.className = 'workflow-form business-form';
   hidden(form, 'planRevision', String(day.planRevision)); hidden(form, 'dayNumber', String(day.dayNumber)); hidden(form, 'expectedUpdatedAt', day.saved?.updatedAt || '');
@@ -79,101 +80,118 @@ function initialize() {
   let pendingTimer: ReturnType<typeof setTimeout>; let publicationDays: DelayDay[] = [];
   const isAdmin = document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole === 'admin';
   const reload = () => { document.documentElement.dataset.unsaved = 'false'; location.reload(); };
-  async function showPanel(id: string) {
+  type ReasonDraft = {responsibility:string; reason:string; open:boolean};
+  async function showPanel(id: string, priorDrafts?:Map<string,ReasonDraft>) {
     const token = ++panelToken;
-    panel!.replaceChildren(element('p', '正在读取延期与审批记录…'));
+    const historyHost = document.querySelector<HTMLElement>('[data-schedule-workflow-history]')!;
+    const switched = panel!.dataset.loadedScheduleId !== id;
+    const retained = priorDrafts ?? new Map<string,ReasonDraft>();
+    if (panel!.dataset.scheduleId === id) for (const form of [...panel!.querySelectorAll<HTMLFormElement>('form[data-dirty=true]'),...historyHost.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')]) {
+      const data = new FormData(form);
+      if (data.has('dayNumber')) retained.set(`${data.get('planRevision')}:${data.get('dayNumber')}`, {responsibility:String(data.get('responsibility')),reason:String(data.get('reason')),open:form.closest('details')?.open ?? true});
+    }
+    panel!.dataset.scheduleId = id; panel!.dataset.ready = 'false'; panel!.hidden = false;
+    historyHost.replaceChildren(); historyHost.hidden = true;
+    panel!.replaceChildren(element('p', '正在读取待处理事项…'));
+    if(retained.size)panel!.dispatchEvent(new Event('input',{bubbles:true}));
     try {
       const workflow = await getWorkflow(id); if (signal.aborted || token !== panelToken) return;
       panel!.replaceChildren();
-      const stateLabel=publicationLabels[workflow.publicationState];
-      document.dispatchEvent(new CustomEvent('business:publication-context',{detail:{...workflow,publicationLabel:stateLabel}}));
-      const stateNode=document.querySelector<HTMLElement>('[data-inspector-publication-state]');if(stateNode)stateNode.textContent=stateLabel;
-      const rowState=document.querySelector<HTMLElement>(`[data-publication-row-state="${CSS.escape(id)}"]`);if(rowState)rowState.textContent=stateLabel;
+      const resultLabel = workflow.schedule.actualPublishAt
+        ? isDelayed(new Date(workflow.schedule.plannedPublishAt),new Date(workflow.schedule.actualPublishAt),workflow.schedule.delayThresholdHours) ? '延期发布' : '按时发布'
+        : workflow.registrationState === 'missing' ? '尚未登记' : '待发布';
+      document.dispatchEvent(new CustomEvent('business:publication-context',{detail:{...workflow,publicationLabel:publicationLabels[workflow.publicationState],completionLabel:resultLabel}}));
+      const stateNode=document.querySelector<HTMLElement>('[data-inspector-completion]'); if(stateNode)stateNode.textContent=resultLabel;
+      const completionRow=document.querySelector<HTMLElement>('[data-inspector-completion-row]');if(completionRow)completionRow.hidden=workflow.registrationState==='missing';
+      const history = (title:string) => { const details=element('details');details.append(element('summary',title));historyHost.append(details);return details; };
+      const pending = workflow.days.filter(day => !day.saved && !day.archived);
+      const saved = workflow.days.filter(day => day.saved);
+      if(switched){const reference=document.querySelector<HTMLDetailsElement>('.inspector-reference');if(reference)reference.open=workflow.registrationState!=='missing'&&!pending.length;}
+      const pendingRequest = workflow.applications.find(application => application.status === 'pending');
+      if (workflow.registrationState === 'missing') {
+        const warning=element('p','尚未登记');warning.className='workflow-registration-warning';warning.setAttribute('role','status');panel!.append(warning);
+      }
+      if (pending.length) {
+        const section=element('section');section.className='workflow-pending-reasons';
+        section.append(element('h4',workflow.schedule.actualPublishAt?`延期原因 · 待填 ${pending.length} 天`:`尚未发布时填写原因 · ${pending.length} 天`));
+        for (const [index,day] of pending.entries()) {
+          const row=element('details');row.className='workflow-reason';row.dataset.delayKey=`${day.planRevision}:${day.dayNumber}`;row.open=index===0;
+          row.append(element('summary',`${timeLabel(day.dueAt)} · 第 ${day.dayNumber} 天`));
+          const form=reasonForm(day,id,()=>showPanel(id));const prior=retained.get(row.dataset.delayKey);
+          if(prior){form.querySelector('select')!.value=prior.responsibility;form.querySelector('textarea')!.value=prior.reason;form.dataset.dirty='true';row.open=prior.open;}
+          row.append(form);section.append(row);
+        }
+        panel!.append(section);
+      }
+      if (saved.length) {
+        const details=history(`已填延期原因 ${saved.length} 条`);
+        for(const day of saved){
+          const row=element('section');row.className='workflow-reason';
+          row.append(element('h4',`排期 R${day.planRevision} · 第 ${day.dayNumber} 天 · ${timeLabel(day.dueAt)}`));
+          const labels={self:'自身原因',requester:'需求端原因',unknown:'历史未确认'};
+          row.append(element('p',`${labels[day.saved!.responsibility]}：${day.saved!.reason}`),element('small',`${day.saved!.changedByLabel}${day.archived?' · 实发更正前的记录':''}`));
+          if(!day.archived){
+            const button=element('button','更正理由');button.type='button';button.className='business-action-secondary';
+            const form=reasonForm(day,id,()=>showPanel(id));form.hidden=true;
+            const draft=retained.get(`${day.planRevision}:${day.dayNumber}`);if(draft){form.hidden=false;form.querySelector('select')!.value=draft.responsibility;form.querySelector('textarea')!.value=draft.reason;form.dataset.dirty='true';details.open=draft.open;}
+            button.addEventListener('click',()=>{form.hidden=!form.hidden;if(!form.hidden)form.querySelector('select')?.focus();});row.append(button,form);
+          }
+          details.append(row);
+        }
+      }
+      if (!isAdmin && workflow.requiresPlanApproval && !pendingRequest) {
+        const details=element('details');details.append(element('summary','申请调整排期'));
+        const form=element('form');form.className='workflow-form business-form';hidden(form,'expectedPlanRevision',String(workflow.schedule.planRevision));
+        const dateTime=document.querySelector<HTMLTemplateElement>('[data-change-request-datetime]')!.content.cloneNode(true) as DocumentFragment;
+        configureDateTimeField(dateTime.querySelector<HTMLElement>('[data-datetime-field]')!,{value:inputTime(workflow.schedule.plannedPublishAt)});form.append(dateTime);
+        textField(form,'reason','改期申请理由');submitButton(form,'提交管理员审批');bindForm(form,`/api/operations-content/${id}/change-requests`,reload);details.append(form);panel!.append(details);
+      }
+      const applicationLabels:Record<string,string>={pending:'待审批',approved:'已同意',rejected:'已驳回',obsolete:'已失效'};
+      for(const application of [...workflow.applications].reverse()){
+        const row=element('section');row.className='workflow-application';
+        row.append(element('p',`${applicationLabels[application.status]} · ${application.requestedByLabel}\n${timeLabel(application.originalPlannedPublishAt)} → ${timeLabel(application.requestedPublishAt)}\n${application.reason}`));
+        if(application.decisionReason)row.append(element('small',`${application.decidedByLabel||'系统'}：${application.decisionReason}`));
+        if(application.status==='pending'){
+          if(isAdmin)for(const action of ['approve','reject']){
+            const form=element('form');form.className='workflow-form business-form';hidden(form,'action',action);
+            if(action==='reject')textField(form,'reason','驳回说明');submitButton(form,action==='approve'?'同意调整排期':'驳回申请');
+            if(action==='reject')form.querySelector('button')!.className='business-action-secondary';
+            bindForm(form,`/api/operations-content/${id}/change-requests/${application.id}`,reload,'PATCH');row.append(form);
+          }
+          panel!.append(row);
+        }else{
+          let details=historyHost.querySelector<HTMLDetailsElement>('[data-application-history]');
+          if(!details){details=history(`改期申请历史 ${workflow.applications.filter(item=>item.status!=='pending').length} 条`);details.dataset.applicationHistory='';}details.append(row);
+        }
+      }
+      if(workflow.history.length){
+        const details=history(`排期变更历史 ${workflow.history.length} 条`);
+        for(const plan of workflow.history){const row=element('p',`R${plan.revision} → R${plan.revision+1} · ${timeLabel(plan.plannedPublishAt)} → ${timeLabel(plan.newPlannedPublishAt)}\n${plan.changedByLabel}：${plan.reason}`);row.className='workflow-plan-history';details.append(row);}
+      }
+      if(workflow.publicationHistory.length){
+        const details=history(`发布登记与更正历史 ${workflow.publicationHistory.length} 条`);
+        for(const entry of workflow.publicationHistory){const row=element('section');row.className='workflow-plan-history';row.append(element('p',`R${entry.revision} · ${entry.changedByLabel} · ${timeLabel(entry.createdAt)}\n实发：${entry.before.actualPublishAt?timeLabel(entry.before.actualPublishAt):'未登记'} → ${timeLabel(entry.after.actualPublishAt)}`));
+          if(entry.reason)row.append(element('p',entry.reason));
+          for(const [label,url] of [['查看原帖子链接 ↗',entry.before.publicationUrl],['查看登记的帖子链接 ↗',entry.after.publicationUrl]])if(url){const link=element('a',label!);link.href=url;link.target='_blank';link.rel='noreferrer';row.append(link);}details.append(row);
+        }
+      }
       if(workflow.publicationReservations.length){
-        const details=element('details');details.open=false;
-        details.append(element('summary',`历史预约记录 ${workflow.publicationReservations.length} 条`));
+        const details=history(`历史预约记录 ${workflow.publicationReservations.length} 条`);
         const labels:Record<string,string>={pending:'预约待审',approved:'已审核预约',rejected:'已驳回',cancelled:'已取消',obsolete:'已失效',fulfilled:'已完成实发'};
         for(const booking of workflow.publicationReservations){
           const row=element('section');row.className='workflow-application';row.append(element('p',`${labels[booking.status]} · ${booking.requestedByLabel}\n预约 ${timeLabel(booking.scheduledPublishAt)}`));
           if(booking.decisionReason||booking.decidedByLabel)row.append(element('small',`${booking.decidedByLabel||'系统'}：${booking.decisionReason||'审核通过'}`));
-          if(booking.history.length){const history=element('details');history.append(element('summary','预约操作历史'));for(const entry of booking.history)history.append(element('p',`${labels[entry.status]} · ${entry.actorLabel} · ${timeLabel(entry.at)}${entry.reason?'\n'+entry.reason:''}`));row.append(history);}
-          details.append(row);
+          if(booking.history.length){const past=element('details');past.append(element('summary','预约操作历史'));for(const entry of booking.history)past.append(element('p',`${labels[entry.status]} · ${entry.actorLabel} · ${timeLabel(entry.at)}${entry.reason?'\n'+entry.reason:''}`));row.append(past);}details.append(row);
         }
-        panel!.append(details);
       }
-      if(workflow.publicationHistory.length){
-        const details=element('details');details.append(element('summary',`发布登记与更正历史 ${workflow.publicationHistory.length} 条`));
-        for(const entry of workflow.publicationHistory){const row=element('section');row.className='workflow-plan-history';row.append(element('p',`R${entry.revision} · ${entry.changedByLabel} · ${timeLabel(entry.createdAt)}\n实发：${entry.before.actualPublishAt?timeLabel(entry.before.actualPublishAt):'未登记'} → ${timeLabel(entry.after.actualPublishAt)}`));
-          if(entry.reason)row.append(element('p',entry.reason));
-          if(entry.before.publicationUrl) {const old=element('a','查看原帖子链接 ↗');old.href=entry.before.publicationUrl;old.target='_blank';old.rel='noreferrer';row.append(old);}
-          if(entry.after.publicationUrl){const link=element('a','查看登记的帖子链接 ↗');link.href=entry.after.publicationUrl;link.target='_blank';link.rel='noreferrer';row.append(link);}details.append(row);
-        }panel!.append(details);
-      }
-      const pending = workflow.days.filter(day => !day.saved && !day.archived);
-      if (workflow.overdueDays) { const warning = element('p', `延期第 ${workflow.overdueDays} 天${pending.length ? `，请填写 ${pending.length} 天的原因` : '，原因已填写，等待发布'}`); warning.className = 'workflow-warning'; panel!.append(warning); }
-      if (workflow.days.length) {
-        const details = element('details'); details.open = pending.length > 0;
-        details.append(element('summary', `逐日延期记录 ${workflow.days.length} 条${pending.length ? ` · 待补 ${pending.length} 条` : ''}`));
-        for (const day of workflow.days) {
-          const row = element('section'); row.className = 'workflow-reason';
-          row.append(element('h4', `排期 R${day.planRevision} · 第 ${day.dayNumber} 天 · ${timeLabel(day.dueAt)}`));
-          if (day.saved) {
-            const labels = { self: '自身原因', requester: '需求端原因', unknown: '历史未确认' };
-            row.append(element('p', `${labels[day.saved.responsibility]}：${day.saved.reason}`));
-            row.append(element('small', `${day.saved.source === 'historical' ? '历史补齐' : day.saved.changedByLabel}${day.archived ? ' · 实发更正前的记录' : ''}`));
-            if (!day.archived) {
-              const button = element('button', '更正理由'); button.type = 'button';
-              const form = reasonForm(day, id, () => showPanel(id)); form.hidden = true;
-              button.addEventListener('click', () => { form.hidden = !form.hidden; if (!form.hidden) form.querySelector('select')?.focus(); }); row.append(button, form);
-            }
-          } else if (!day.archived) row.append(reasonForm(day, id, () => showPanel(id)));
-          details.append(row);
-        }
-        panel!.append(details);
-      }
-      const pendingRequest = workflow.applications.find(application => application.status === 'pending');
-      if (!workflow.schedule.actualPublishAt && !isAdmin && !pendingRequest) {
-        const details = element('details'); details.append(element('summary', '申请调整排期'));
-        const form = element('form'); form.className = 'workflow-form business-form';
-        hidden(form, 'expectedPlanRevision', String(workflow.schedule.planRevision));
-        const dateTime=document.querySelector<HTMLTemplateElement>('[data-change-request-datetime]')!.content.cloneNode(true) as DocumentFragment;
-        configureDateTimeField(dateTime.querySelector<HTMLElement>('[data-datetime-field]')!,{value:inputTime(workflow.schedule.plannedPublishAt)});
-        form.append(dateTime);
-        textField(form, 'reason', '改期申请理由'); form.append(element('p', '批准前原排期继续生效，逐日理由仍需填写。'));
-        submitButton(form, '提交管理员审批'); bindForm(form, `/api/operations-content/${id}/change-requests`, reload); details.append(form); panel!.append(details);
-      }
-      if (workflow.applications.length) {
-        const details = element('details'); details.open = Boolean(pendingRequest); details.append(element('summary', `改期申请 ${workflow.applications.length} 条`));
-        const labels: Record<string,string> = { pending:'待审批',approved:'已同意',rejected:'已驳回',obsolete:'已失效' };
-        for (const application of [...workflow.applications].reverse()) {
-          const row = element('section'); row.className = 'workflow-application';
-          row.append(element('p', `${labels[application.status]} · ${application.requestedByLabel}\n${timeLabel(application.originalPlannedPublishAt)} → ${timeLabel(application.requestedPublishAt)}\n${application.reason}`));
-          if (application.decisionReason) row.append(element('small', `${application.decidedByLabel || '系统'}：${application.decisionReason}`));
-          if (isAdmin && application.status === 'pending') {
-            for (const action of ['approve','reject']) {
-              const form = element('form'); form.className = 'workflow-form business-form'; hidden(form,'action',action);
-              if (action === 'reject') textField(form, 'reason', '驳回说明');
-              submitButton(form, action === 'approve' ? '同意调整排期' : '驳回申请');
-              bindForm(form, `/api/operations-content/${id}/change-requests/${application.id}`, reload, 'PATCH'); row.append(form);
-            }
-          }
-          details.append(row);
-        }
-        panel!.append(details);
-      }
-      if (workflow.history.length) {
-        const details = element('details'); details.append(element('summary', `排期变更历史 ${workflow.history.length} 条`));
-        for (const plan of workflow.history) {
-          const row = element('p', `R${plan.revision} → R${plan.revision+1} · ${timeLabel(plan.plannedPublishAt)} → ${timeLabel(plan.newPlannedPublishAt)}\n${plan.changedByLabel}：${plan.reason}`);
-          row.className = 'workflow-plan-history'; details.append(row);
-        }
-        panel!.append(details);
-      }
-      if (!panel!.childElementCount) panel!.append(element('p', '当前没有延期或改期记录。'));
-    } catch (error) {
-      if (signal.aborted || token !== panelToken) return;
-      panel!.replaceChildren(element('p', error instanceof Error ? error.message : '读取失败。'));
-      const button = element('button', '重新读取'); button.addEventListener('click', () => showPanel(id)); panel!.append(button);
+      if(panel!.childElementCount)panel!.prepend(element('h3','待处理'));else panel!.hidden=true;
+      if(historyHost.childElementCount){historyHost.prepend(element('h3','历史记录'));historyHost.hidden=false;}
+      panel!.dataset.loadedScheduleId=id;panel!.dataset.ready='true';
+      if(retained.size)(panel!.querySelector('form[data-dirty=true]')??historyHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
+    } catch(error){
+      if(signal.aborted||token!==panelToken)return;
+      panel!.replaceChildren(element('p',error instanceof Error?error.message:'读取失败。'));
+      const button=element('button','重新读取');button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));panel!.append(button);
     }
   }
   const linkControl=publication.elements.namedItem('publicationUrl') as HTMLTextAreaElement;
@@ -205,7 +223,7 @@ function initialize() {
       (publication!.elements.namedItem('expectedPlanRevision') as HTMLInputElement).value = String(workflow.schedule.planRevision);
       (publication!.elements.namedItem('plannedPublishAt') as HTMLInputElement).value = inputTime(workflow.schedule.plannedPublishAt);
       const statusOutput = publication!.querySelector<HTMLOutputElement>('[data-publication-status]')!;
-      if (actual) statusOutput.value = isDelayed(new Date(workflow.schedule.plannedPublishAt),new Date(`${actual}:00+08:00`)) ? '延期发布' : '按时发布';
+      if (actual) statusOutput.value = isDelayed(new Date(workflow.schedule.plannedPublishAt),new Date(`${actual}:00+08:00`),workflow.schedule.delayThresholdHours) ? '延期发布' : '按时发布';
       publicationDays = workflow.days; host.replaceChildren();
       const pending = publicationDays.filter(day => !day.saved && !day.archived);
       status.textContent = pending.length ? `请逐日填写 ${pending.length} 条理由，保存时与实发事实一起提交。` : '逐日理由已齐全。';

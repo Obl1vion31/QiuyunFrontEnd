@@ -1,18 +1,21 @@
-/** 延期按北京时间显示，以应发满 8 小时为第 1 天，此后每 24 小时增加一天。 */
-export const delayThresholdMs = 8 * 60 * 60 * 1000;
+/** 新排期满 2 小时开始逐日计时；历史记录读取保存的门槛。 */
+export const delayThresholdMs = 2 * 60 * 60 * 1000;
 export const delayDayMs = 24 * 60 * 60 * 1000;
-export const isDelayed = (plannedAt, at) => at.getTime() - plannedAt.getTime() >= delayThresholdMs;
-export const delayStartsAt = (plannedAt, effectiveAt = null) => new Date(Math.max(
-  plannedAt.getTime() + delayThresholdMs, effectiveAt?.getTime() ?? Number.NEGATIVE_INFINITY,
+export const isDelayed = (plannedAt, at, thresholdHours = 2) => at.getTime() - plannedAt.getTime() >= thresholdHours * 3600000;
+export const delayStartsAt = (plannedAt, effectiveAt = null, thresholdHours = 2) => new Date(Math.max(
+  plannedAt.getTime() + thresholdHours * 3600000, effectiveAt?.getTime() ?? Number.NEGATIVE_INFINITY,
 ));
-export const delayDayCount = (plannedAt, through, effectiveAt = null) => Math.max(0,
-  Math.floor((through.getTime() - delayStartsAt(plannedAt, effectiveAt).getTime()) / delayDayMs) + 1,
+export const delayDayCount = (plannedAt, through, effectiveAt = null, thresholdHours = 2) => Math.max(0,
+  Math.floor((through.getTime() - delayStartsAt(plannedAt, effectiveAt, thresholdHours).getTime()) / delayDayMs) + 1,
 );
-export const delayDays = (plannedAt, through, effectiveAt = null) => {
-  const start = delayStartsAt(plannedAt, effectiveAt).getTime();
-  return Array.from({ length: delayDayCount(plannedAt, through, effectiveAt) }, (_, index) => ({
+export const delayDays = (plannedAt, through, effectiveAt = null, thresholdHours = 2) => {
+  const start = delayStartsAt(plannedAt, effectiveAt, thresholdHours).getTime();
+  return Array.from({ length: delayDayCount(plannedAt, through, effectiveAt, thresholdHours) }, (_, index) => ({
     dayNumber: index + 1, dueAt: new Date(start + index * delayDayMs),
   }));
 };
-export const completionStatus = (plannedAt, actualAt) => !actualAt ? 'pending'
-  : isDelayed(plannedAt, actualAt) ? 'delayed' : 'on_time';
+export const completionStatus = (plannedAt, actualAt, thresholdHours = 2) => !actualAt ? 'pending'
+  : isDelayed(plannedAt, actualAt, thresholdHours) ? 'delayed' : 'on_time';
+export const needsRegistration = (schedule, now) => !schedule.actualPublishAt && isDelayed(schedule.plannedPublishAt, now, 2);
+export const registrationState = (schedule, now) => schedule.actualPublishAt ? 'registered' : needsRegistration(schedule, now) ? 'missing' : 'pending';
+export const requiresPlanApproval = (schedule, now) => needsRegistration(schedule, now);

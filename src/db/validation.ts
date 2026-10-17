@@ -88,9 +88,9 @@ export const publicationSchema = z.object({
 });
 
 export const normalizeCompletionStatus = (
-  data: { plannedPublishAt: Date; actualPublishAt: Date | null },
+  data: { plannedPublishAt: Date; actualPublishAt: Date | null; delayThresholdHours?: number },
 ) => {
-  return completionStatus(data.plannedPublishAt, data.actualPublishAt);
+  return completionStatus(data.plannedPublishAt, data.actualPublishAt, data.delayThresholdHours);
 };
 
 const commonInputFromForm = (form: FormData) => ({

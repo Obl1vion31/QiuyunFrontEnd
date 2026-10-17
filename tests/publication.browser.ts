@@ -24,6 +24,7 @@ try{
   const [schedule]=await db.insert(schema.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:planned,actualPublishAt:state==='pending'?null:new Date(planned.getTime()+(state==='delayed'?9:1)*3600000),completionStatus:state,isPromoted:promoted,promotionStatus:promoted?(state==='pending'?'pending':'awaiting_promotion'):'none'}).returning();
   cases.push({id:schedule.id,state,promoted,name});
  }
+ await create('虚构正常待发');
  const id=await create('虚构未来发布'),endpoint=`/api/operations-content/${id}`;
  const sent={actualPublishAt:future,publicationUrl:share,projectDocUrl:'https://fictional.example.test/project',expectedPlanRevision:'0',expectedPublicationRevision:'0'};
  await call(endpoint+'/publication','PATCH',staff,{...sent,publicationUrl:''},422);
@@ -49,7 +50,7 @@ try{
   await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);const stats=await page.locator('.status-strip strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({font:getComputedStyle(node).fontFamily,size:parseFloat(getComputedStyle(node).fontSize),weight:getComputedStyle(node).fontWeight,figures:getComputedStyle(node).fontVariantNumeric})));assert.ok(stats.length>0);assert.ok(stats.every((item:any)=>item.font.includes('system-ui')&&!item.font.includes('monospace')&&item.size>=20&&item.size<=24&&item.weight==='600'&&item.figures.includes('tabular-nums')),'核心统计使用共享字体和等宽数字');assert.equal(await page.locator('#publicationMode').count(),0);
   assert.equal(await page.getByText('预约待审',{exact:true}).count(),0);assert.equal(await page.getByText('到点待确认',{exact:true}).count(),0);
   for(const item of cases){
-   const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+item.state));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');
+   const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+(item.state==='pending'?'missing':item.state)));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');
    assert.ok((await row.getAttribute('aria-label')).includes(item.name));assert.ok((await row.getAttribute('title')).includes(item.name));
    assert.equal(await row.locator('small').count(),0);assert.equal(await row.locator(':scope > span').count(),2);
    const box=await row.locator('.calendar-item-name').evaluate((node:HTMLElement)=>({height:node.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(node).lineHeight),clipped:node.scrollWidth>node.clientWidth,ellipsis:getComputedStyle(node).textOverflow}));
@@ -57,8 +58,8 @@ try{
    assert.ok((await row.boundingBox()).height<=60,'两行卡片保持紧凑');
   }
   assert.equal(await page.locator(`[data-calendar-day="${month}-05"] .calendar-item`).count(),3);
-  const colors=await page.locator('.calendar-item').evaluateAll((rows:HTMLElement[])=>Object.fromEntries(['on_time','delayed','pending'].map(key=>[key,getComputedStyle(rows.find(row=>row.classList.contains('publish-'+key))!).backgroundColor])));
-  assert.equal(new Set(Object.values(colors)).size,3);await page.screenshot({path:`.tools/test-artifacts/compact-calendar-${width}.png`,fullPage:true});
+  const colors=await page.locator('.calendar-item').evaluateAll((rows:HTMLElement[])=>Object.fromEntries(['on_time','delayed','pending','missing'].map(key=>[key,getComputedStyle(rows.find(row=>row.classList.contains('publish-'+key))!).backgroundColor])));
+  assert.equal(new Set(Object.values(colors)).size,4);await page.screenshot({path:`.tools/test-artifacts/compact-calendar-${width}.png`,fullPage:true});
   if(width===1440){await page.locator(`[data-calendar-new="${month}-19"]`).focus();await page.keyboard.press('Enter');await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-19');await page.locator('[data-close]').first().click();}
   const blank=page.locator(`[data-calendar-day="${month}-01"]`);await blank.click({position:{x:6,y:6}});await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-01');await page.locator('[data-close]').first().click();
   await page.locator('[data-calendar-new]').filter({hasText:'20'}).click();await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-20');assert.equal(await page.locator('#plannedPublishTime').inputValue(),'');

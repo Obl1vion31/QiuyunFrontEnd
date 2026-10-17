@@ -42,11 +42,14 @@ pnpm test:ui
 pnpm test:publication
 pnpm test:browser
 pnpm test:workflows
+pnpm test:registration
 pnpm test:pauses
 pnpm test:reviews
 pnpm test:annual-plan
 ```
 
-新增复用模式时更新[真实接入例子](../docs/code-study.md#共享界面接入)及行为测试。截图只放 `.tools/test-artifacts/`；公网检查使用匿名只读请求，业务写入全部在隔离库验证。
+新增复用模式时更新[真实接入例子](../docs/code-study.md#共享界面接入)及行为测试。截图只放 `.tools/test-artifacts/`；公网检查使用匿名只读请求，业务写入全部在隔离库验证。浏览器触发导航后先等待请求完成，再直接核对隔离库，避免与 PGlite socket 的会话查询交叉。
 
 `pnpm test:publication` 在构建后验证统一未来时间登记、完整分享文案、历史空链接、旧预约接口停用、权限和并发，以及 1440／390／320px 默认月历、发布状态与推广身份、同日多帖、两行卡片和长标题单行省略、详情打开后的布局、筛选、点击日期新建、未保存保护和失败保留。`publication-workflow.test.ts` 用固定北京时间验证 17:00 登记 20:00、历史边界、到期理由推进及更正留痕；原迁移兼容测试继续保留。业务写入仅使用隔离库。
+
+`pnpm test:registration` 验证 2 小时尚未登记、改期的实时审批边界、旧 8 小时快照，以及 1440／390／320px 待办／资料／历史分层、逐日草稿保留、单一正文滚动与固定头尾、手机背景锁定和编辑表单转审批。`registration-deadline.test.ts` 使用固定时间验证临界点、按真实发布时间结算、逐日原因、迁移及旧口径保留。

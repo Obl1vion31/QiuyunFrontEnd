@@ -32,7 +32,7 @@ export const sumPromotionMetrics = (metrics) => {
   };
 };
 
-export const classifySchedule = (plannedAt, actualAt) => {
+export const classifySchedule = (plannedAt, actualAt, thresholdHours = 2) => {
   if (!actualAt) return 'unpublished';
-  return isDelayed(plannedAt, actualAt) ? 'delayed' : 'published';
+  return isDelayed(plannedAt, actualAt, thresholdHours) ? 'delayed' : 'published';
 };
