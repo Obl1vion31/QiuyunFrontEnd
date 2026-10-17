@@ -14,7 +14,7 @@ function initialize() {
   const records = [...body.querySelectorAll<HTMLElement>('[data-row-href]')];
   const groupRows = new Map(groups.map(group => [group, ([...group.children] as HTMLElement[]).sort((left,right)=>Number(left.dataset.checkpoint!=='day_7')-Number(right.dataset.checkpoint!=='day_7'))]));
   const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
-  const toggle = filters?.querySelector<HTMLInputElement>('[data-group-toggle]');
+  const displaySwitch = document.querySelector<HTMLElement>('[data-review-display]');
   const singleRound = Boolean(filters?.querySelector<HTMLSelectElement>('[name="checkpoint"]')?.value);
   let sortState = { key: 'date', direction: 'descending' };
   const arrange = () => {
@@ -47,18 +47,21 @@ function initialize() {
     sortState = { key, direction: sortState.key === key && sortState.direction === 'descending' ? 'ascending' : 'descending' };
     arrange();
   }));
-  if(toggle)controller.configure({localParameters:['group'],onContextChange:url=>{
-    const grouped=url.searchParams.get('group')!=='0';toggle.checked=grouped;table.dataset.grouped=String(grouped);
+  if(displaySwitch)controller.configure({localParameters:['group'],onContextChange:url=>{
+    const grouped=url.searchParams.get('group')!=='0';table.dataset.grouped=String(grouped);
+    displaySwitch.querySelectorAll<HTMLInputElement>('input').forEach(input=>input.checked=input.value===(grouped?'1':'0'));
     (filters!.elements.namedItem('group') as HTMLInputElement).value=grouped?'1':'0';
     if(grouped&&!singleRound&&sortState.key!=='date')sortState={key:'date',direction:'descending'};
     for(const row of records){const href=new URL(row.dataset.rowHref!,location.href);href.searchParams.set('group',grouped?'1':'0');row.dataset.rowHref=href.pathname+href.search;}
     arrange();
   }});
+  displaySwitch?.addEventListener('change',event=>{
+    const input=event.target as HTMLInputElement;if(input.checked)controller.setLocalParameter('group',input.value);
+  });
   arrange();
   filters?.addEventListener('change', event => {
     const field = event.target as HTMLInputElement;
     if (field.name === 'subject') { const category = filters.elements.namedItem('category') as HTMLSelectElement; category.value = ''; category.disabled = true; }
-    if (field.matches('[data-group-toggle]')) {controller.setLocalParameter('group',field.checked?'1':'0');return;}
     filters.requestSubmit();
   });
   const refresh = async () => {
@@ -75,10 +78,10 @@ function initialize() {
         const delta = value == null || cohort.mean == null ? null : value - cohort.mean;
         cell.classList.remove('positive','negative','neutral');
         cell.classList.add(delta == null || Math.abs(delta)<.01 ? 'neutral' : delta>0 ? 'positive' : 'negative');
-        cell.title = `同类均值 ${cohort.mean?.toFixed(2) ?? '—'}% · n=${cohort.count} 篇`;
+        cell.title = `${item.checkpoint.type==='day_7'?'首轮':'二轮'}同类均值 ${cohort.mean?.toFixed(2) ?? '—'}% · n=${cohort.count} 篇`;
         cell.querySelector('strong')!.textContent = value == null ? '待录入' : `${value.toFixed(2)}%`;
-        const em = cell.querySelector('em'); if (em) em.textContent = `${item.checkpoint.type==='day_7'?'首轮':'二轮'}均值 ${cohort.mean?.toFixed(2)??'—'}% · n=${cohort.count}`;
-        cell.querySelector('small')!.textContent = delta == null ? '暂无同类基准' : `${delta>0?'+':''}${delta.toFixed(2)}pp vs 同类`;
+        const em = cell.querySelector('em'); if (em) em.textContent = `同类均值 ${cohort.mean?.toFixed(2)??'—'}% · n=${cohort.count}`;
+        cell.querySelector('small')!.textContent = delta == null ? '暂无同类基准' : `${delta>0?'+':''}${delta.toFixed(2)}pp`;
       }
       const template = [...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node => node.dataset.inspectorTemplate === item.key);
       if (template) for (const [field, value] of Object.entries({ recordedThrough:item.metric?.recordedThrough,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion })) {

@@ -70,7 +70,9 @@ try {
     assert.equal(await page.locator('.missing-round').count(),1);assert.match(await page.locator('.missing-round').innerText(),/二轮.*暂无已复盘数据/s);assert.equal(await page.locator('.missing-round [data-inspector-key]').count(),0);
     await page.goto(baseURL+'/business/non-promotion-review?view=history&subject=tmua&category=innovation');
     assert.equal(await page.locator('.review-post-group').count(),2,'同一逻辑帖的 V0 / V1 按排期独立分组');
-    assert.equal(await page.locator('[data-group-toggle]').isChecked(),true);
+    assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),true);
+    assert.equal(await page.locator('[data-review-filters] [type=radio],[data-group-toggle]').count(),0,'筛选与展示方式独立分组');
+    const controlHeights=await page.locator('[data-review-filters] select,[data-review-display]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));assert.ok(controlHeights.every((height:number)=>height===36),'筛选与展示控件统一紧凑规格');
     assert.equal(await page.locator('[data-sort=click]').isDisabled(),true);
     assert.equal(await page.locator('.sort-hint,.post-group-title').count(),0);
     const groupingGeometry=()=>page.evaluate(()=>{
@@ -82,23 +84,25 @@ try {
     const groupGeometry=await groupingGeometry();assert.equal(groupGeometry.columns.length,6);
     let groupDocuments=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')groupDocuments++;});
     await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});
-    await page.locator('[data-group-toggle]').uncheck();await page.waitForURL(/group=0/);
+    await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.waitForURL(/group=0/);
     assert.deepEqual(await groupingGeometry(),groupGeometry,'分组切换保留筛选、表头和六列坐标');
     assert.equal(await page.locator('.table-scroll').evaluate((node:HTMLElement)=>node.scrollLeft),tableScroll,'分组切换保留表格横向位置');
     assert.equal(await page.evaluate(()=>(window as any).__groupTable===document.querySelector('.review-table')&&(window as any).__groupHead===document.querySelector('.table-head')&&(window as any).__groupRows.every((node:Element)=>node.isConnected)),true,'只移动现有行，保留公共节点');
     assert.equal(groupDocuments,0,'分组切换不请求新文档');
     await page.screenshot({path:`.tools/test-artifacts/review-ungrouped-${width}.png`,fullPage:true});
     await page.locator('[data-sort=click]').click();
-    await page.locator('[data-group-toggle]').check();await page.waitForURL(/group=1/);
+    await page.getByRole('radio',{name:'按帖子分组',exact:true}).check();await page.waitForURL(/group=1/);
     assert.equal(await page.locator('[data-sort=click]').isDisabled(),true);
     assert.equal(await page.locator('[data-sort=date]').locator('..').getAttribute('aria-sort'),'descending','跨轮分组恢复日期倒序');
-    await page.goBack();await page.waitForURL(/group=0/);assert.equal(await page.locator('[data-group-toggle]').isChecked(),false);
-    await page.goForward();await page.waitForURL(/group=1/);assert.equal(await page.locator('[data-group-toggle]').isChecked(),true);
+    await page.goBack();await page.waitForURL(/group=0/);assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),false);
+    await page.goForward();await page.waitForURL(/group=1/);assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),true);
     assert.equal(groupDocuments,0,'分组前后退同样原位完成');
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
-    assert.match(await first.innerText(),/首轮均值 8.99%/);assert.match(await first.innerText(),/-3.47pp/);
-    assert.match(await second.innerText(),/二轮均值 8.59%/);assert.match(await second.innerText(),/-3.64pp/);
+    assert.match(await first.innerText(),/同类均值 8.99%/);assert.match(await first.innerText(),/-3.47pp/);
+    assert.match(await second.innerText(),/同类均值 8.59%/);assert.match(await second.innerText(),/-3.64pp/);
+    assert.equal(await first.locator('[data-label=节点]').innerText(),'首轮');assert.equal(await second.locator('[data-label=节点]').innerText(),'二轮');
+    assert.equal(await first.locator('.post-cell').innerText().then((value:string)=>value.includes('ID ')),false,'完整 ID 留在悬停和详情，不重复占行');
     await page.evaluate(()=>{(window as any).__table=document.querySelector('.review-table');(window as any).__document=document;});
     let documents=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')documents++;});
     await first.click();await page.locator('[data-inspector].is-open').waitFor();
@@ -110,7 +114,7 @@ try {
     await inspector.locator('[name=conclusion]').fill('尚未保存');
     if(width===1440){
       await inspector.locator('[name=conclusion]').evaluate((node:Element)=>{(window as any).__dirtyEditor=node;});
-      await page.locator('[data-group-toggle]').uncheck();await page.locator('[data-group-toggle]').check();
+      await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.getByRole('radio',{name:'按帖子分组',exact:true}).check();
       assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
       assert.equal(await inspector.locator('[name=conclusion]').evaluate((node:Element)=>node===(window as any).__dirtyEditor),true,'局部分组保留编辑节点和输入');
       await page.goBack();await page.waitForURL(/group=0/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
@@ -131,12 +135,12 @@ try {
       await page.route('**/api/non-promotion-reviews?**',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:'{}'}));
       await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText(/保存已成功，列表刷新失败/).waitFor();assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'虚构本地保存');
       await page.unroute('**/api/non-promotion-reviews?**');
-      await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/二轮均值 9.59%/);
+      await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值 9.59%/);
       await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
     }
     await page.locator('[name=checkpoint]').selectOption('day_7');await page.waitForURL(/checkpoint=day_7/);assert.equal(await page.locator('[data-sort=click]').isDisabled(),false);assert.equal(await page.locator('[data-checkpoint=day_15]').count(),0);
     await page.locator('[data-sort=click]').click();await page.locator('[data-sort=click]').click();assert.equal(await page.locator('.review-post-group').first().getAttribute('data-review-group'),ids[1],'单轮指标排序按整个帖子组移动');
-    await page.locator('[data-group-toggle]').uncheck();await page.waitForURL(/group=0/);assert.equal(await page.locator('.review-post-group').count(),0);
+    await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.waitForURL(/group=0/);assert.equal(await page.locator('.review-post-group').count(),0);
     await page.screenshot({path:`.tools/test-artifacts/business-ui-${width}.png`,fullPage:true});
     if(width===1440) {
       await page.goto(baseURL+`/business/operations-schedule?month=${published.slice(0,7)}`);

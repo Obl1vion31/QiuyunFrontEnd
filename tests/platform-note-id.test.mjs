@@ -19,7 +19,7 @@ test('非推广表格使用实验日期、文档链接及共享同类指标单�
   const cell = await read('src/components/MetricCell.astro');
   assert.match(page, /<MetricCell/);
   assert.match(cell, /同类均值/);
-  assert.match(cell, /pp vs 同类/);
+  assert.match(cell, /font-variant-numeric:tabular-nums/);
   assert.match(page, /<BusinessInspector/);
   assert.match(page, /focus-visible/);
 });

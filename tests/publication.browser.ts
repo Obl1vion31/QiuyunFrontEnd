@@ -72,7 +72,29 @@ try{
   assert.equal(await page.locator('[data-inspector-name]').innerText(),cases[0].name);
   assert.equal(await page.locator('.calendar-item-name').evaluateAll((nodes:HTMLElement[])=>nodes.every(node=>node.getBoundingClientRect().height<=parseFloat(getComputedStyle(node).lineHeight)+1)),true,'详情打开后标题仍单行');
   assert.equal(await page.locator('[data-inspector-post]').innerText(),'');assert.equal(await page.locator('[data-inspector-post]').getAttribute('href'),null);
+  const sheetGeometry=(selector:string)=>page.locator(selector).evaluate((node:HTMLElement)=>{
+   const header=node.querySelector('.dialog-head')!,body=node.querySelector('.sheet-body')!,footer=node.querySelector('.dialog-actions')!;
+   const rects=[node,header,footer].map(element=>{const rect=element.getBoundingClientRect();return [rect.x,rect.y,rect.width,rect.height]});
+   return {rects,color:getComputedStyle(header).backgroundColor,scrolling:getComputedStyle(body).overflowY};
+  });
+  await page.locator('[data-inspector-edit]').click();await page.locator('#schedule-dialog[open]').waitFor();
+  const editGeometry=await sheetGeometry('#schedule-dialog');assert.equal(editGeometry.scrolling,'auto');assert.equal(editGeometry.color,'rgba(16, 36, 62, 0.94)');
+  const fieldBoxes=await page.locator('#schedule-dialog').evaluate((node:HTMLElement)=>Object.fromEntries(['contentName','subjectId','categoryId','plannedPublishDate','plannedPublishTime','projectDocUrl'].map(id=>{const input=node.querySelector('#'+id)!;const rect=input.getBoundingClientRect();return [id,{x:rect.x,y:rect.y,width:rect.width,height:rect.height}]})));
+  assert.equal(fieldBoxes.contentName.width,fieldBoxes.projectDocUrl.width);
+  assert.equal(fieldBoxes.subjectId.y,fieldBoxes.categoryId.y);assert.equal(fieldBoxes.subjectId.width,fieldBoxes.categoryId.width);
+  assert.equal(fieldBoxes.plannedPublishDate.y,fieldBoxes.plannedPublishTime.y);assert.equal(fieldBoxes.plannedPublishDate.width,fieldBoxes.plannedPublishTime.width);
+  assert.ok(fieldBoxes.plannedPublishDate.y>fieldBoxes.subjectId.y);assert.ok(fieldBoxes.projectDocUrl.y>fieldBoxes.plannedPublishDate.y);
+  assert.ok(Object.values(fieldBoxes).every((box:any)=>box.height===40),'表单输入规格一致 '+JSON.stringify(fieldBoxes));
+  assert.equal(await page.locator('#schedule-dialog [role=group] input[type=checkbox]').count(),2);
+  await page.locator('#schedule-dialog .sheet-body').evaluate((node:HTMLElement)=>{node.scrollTop=node.scrollHeight;});
+  assert.deepEqual((await sheetGeometry('#schedule-dialog')).rects,editGeometry.rects,'编辑表单滚动不移动头部或操作区');
+  await page.screenshot({path:`.tools/test-artifacts/control-sheet-edit-${width}.png`});
+  await page.locator('[data-close]').first().click();
   await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),'');assert.equal(await page.locator('#publicationUrl').getAttribute('required'),null);assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
+  assert.deepEqual(await sheetGeometry('#publication-dialog'),editGeometry,'编辑排期与发布登记共用抽屉、头部和底部几何');
+  await page.locator('#publicationUrl').evaluate((node:HTMLElement)=>{node.style.minHeight='1100px';});await page.locator('#publication-dialog .sheet-body').evaluate((node:HTMLElement)=>{node.scrollTop=node.scrollHeight;});
+  assert.deepEqual(await sheetGeometry('#publication-dialog'),editGeometry,'长表单操作区始终固定在底部');await page.locator('#publicationUrl').evaluate((node:HTMLElement)=>node.style.minHeight='');
+  await page.screenshot({path:`.tools/test-artifacts/control-sheet-publication-${width}.png`});
   assert.doesNotMatch(await page.locator('#publication-dialog').innerText(),/初始化|豁免|补链|缺少链接/);await page.locator('[data-close-publication]').first().click();await page.keyboard.press('Escape');
   // 月历筛选保持月历并真正筛选；台账和月份切换仍可用。
   await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'已发布'}).click();await page.waitForURL(/status=published/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-pending'));assert.equal(await page.locator('.calendar').count(),1);assert.equal(await page.locator('.calendar-item.publish-pending').count(),0);
@@ -85,6 +107,9 @@ try{
   await page.screenshot({path:`.tools/test-artifacts/unified-publication-${width}.png`});
   const saved=page.waitForResponse((r:any)=>r.url().endsWith(`/api/operations-content/${newId}/publication`)&&r.request().method()==='PATCH');await page.locator('#publication-form button[type=submit]').click();assert.equal((await saved).status(),200);await page.waitForLoadState('networkidle');
   w=await call(`/api/operations-content/${newId}/workflow`,'GET',staff);assert.equal(w.schedule.publicationUrl,link);assert.equal(w.publicationState,'published');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.goto(baseURL+`/business/operations-schedule?row=${cases[3].id}`);await page.locator('[data-inspector-edit]').click();await page.locator('#schedule-dialog[open]').waitFor();
+  assert.equal(await page.locator('#schedule-form [name=isPromoted]').isChecked(),true);assert.equal(await page.locator('[data-promotion-preview]').isVisible(),true,'独立的当前推广阶段仍然可见');
+  await page.locator('[data-close]').first().click();
   await context.close();
  }
  const {context:adminContext,page:adminPage}=await pageFor(boss,1440);

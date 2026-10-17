@@ -1,0 +1,25 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  value: string;
+  items: Array<{ label: string; value: string }>;
+  [key: string]: unknown;
+}
+const { label, name, value, items, ...attributes } = Astro.props;
+---
+<fieldset {...attributes} class="business-view-switch">
+  <legend>{label}</legend>
+  {items.map(item => <label><input type="radio" name={name} value={item.value} checked={item.value===value}/><span>{item.label}</span></label>)}
+</fieldset>
+<style>
+.business-view-switch,.business-view-switch *{box-sizing:border-box}
+.business-view-switch{display:flex;align-items:stretch;gap:2px;width:max-content;max-width:100%;height:var(--console-control-compact);min-width:0;margin:0;padding:3px;border:0;border-radius:var(--console-control-radius);background:#dfe4e2;font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.business-view-switch legend{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.business-view-switch label{position:relative;display:flex;min-width:0;margin:0}
+.business-view-switch input{position:absolute;inset:0;z-index:1;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.business-view-switch span{display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:5px;color:#35423b;white-space:nowrap}
+.business-view-switch input:hover+span{background:#eef1ef}
+.business-view-switch input:checked+span{color:#fff;background:#17211c}
+.business-view-switch input:focus-visible+span{outline:2px solid var(--console-blue);outline-offset:1px}
+</style>

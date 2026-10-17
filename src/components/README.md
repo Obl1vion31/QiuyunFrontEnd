@@ -18,6 +18,8 @@
 - `BusinessSectionHeader.astro`：统一内容区块的标题、说明和右侧元信息。
 - `NonPromotionReviewCard.astro`：旧版非推广阶段复盘卡，当前主页面不再使用。
 - `MetricCell.astro`：数据表复用指标单元格，统一百分比、同类 pp 差值、样本 tooltip 与正向/中性/负向状态。
+- `BusinessViewSwitch.astro`：互斥展示方式的原生单选分段控件，统一紧凑高度、键盘、选中及焦点样式，业务适配器负责原位状态变化。
+- `BusinessFormSheet.astro`：编辑表单共用抽屉容器及字段规格，统一深蓝标题栏、滚动内容、固定操作区和窄屏布局；业务表单以插槽接入，沿用既有字段与提交控制器。
 
 ## 文件关系
 
