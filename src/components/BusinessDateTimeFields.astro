@@ -1,0 +1,24 @@
+---
+interface Props {
+  name: string;
+  id?: string;
+  dateName: string;
+  timeName: string;
+  dateLabel: string;
+  timeLabel: string;
+  label?: string;
+  value?: string;
+  required?: boolean;
+  disabled?: boolean;
+  readOnly?: boolean;
+}
+const { name, id = name, dateName, timeName, dateLabel, timeLabel, label = `${dateLabel}与${timeLabel}`, value = '', required = false, disabled = false, readOnly = false } = Astro.props;
+const [date = '', time = ''] = value.split('T');
+---
+<div class="business-datetime-fields" data-datetime-field data-datetime-name={name} role="group" aria-label={label}>
+  <div class="field"><label for={dateName}>{dateLabel}{required && <b aria-hidden="true"> *</b>}</label><input id={dateName} name={dateName} type="date" value={date} required={required} disabled={disabled} readonly={readOnly} data-datetime-date/></div>
+  <div class="field"><label for={timeName}>{timeLabel}{required && <b aria-hidden="true"> *</b>}</label><input id={timeName} name={timeName} type="time" step="60" value={time.slice(0,5)} required={required} disabled={disabled} readonly={readOnly} data-datetime-time/></div>
+  <slot/>
+  <input id={id} name={name} type="hidden" value={value} disabled={disabled} data-datetime-value/>
+</div>
+<script>import '../scripts/business-datetime';</script>

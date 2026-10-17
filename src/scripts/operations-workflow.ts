@@ -1,3 +1,4 @@
+import { configureDateTimeField } from './business-datetime';
 import { businessDateTime } from './business-date';
 import { getInspector } from './business-inspector';
 import { extractPublicationLink } from '../db/publication-link.mjs';
@@ -135,8 +136,9 @@ function initialize() {
         const details = element('details'); details.append(element('summary', '申请调整排期'));
         const form = element('form'); form.className = 'workflow-form business-form';
         hidden(form, 'expectedPlanRevision', String(workflow.schedule.planRevision));
-        const date = textField(form, 'plannedPublishAt', '申请的新发送时间', false) as HTMLInputElement;
-        date.type = 'datetime-local'; date.value = inputTime(workflow.schedule.plannedPublishAt);
+        const dateTime=document.querySelector<HTMLTemplateElement>('[data-change-request-datetime]')!.content.cloneNode(true) as DocumentFragment;
+        configureDateTimeField(dateTime.querySelector<HTMLElement>('[data-datetime-field]')!,{value:inputTime(workflow.schedule.plannedPublishAt)});
+        form.append(dateTime);
         textField(form, 'reason', '改期申请理由'); form.append(element('p', '批准前原排期继续生效，逐日理由仍需填写。'));
         submitButton(form, '提交管理员审批'); bindForm(form, `/api/operations-content/${id}/change-requests`, reload); details.append(form); panel!.append(details);
       }
@@ -230,7 +232,8 @@ function initialize() {
     publicationId = (event as CustomEvent).detail.id; host.replaceChildren(); publicationDays = [];
     publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden = false; showPublication();
   }, { signal });
-  publication.querySelector('[name=actualPublishAt]')!.addEventListener('input', () => {
+  publication.addEventListener('input', event => {
+    if(!(event.target instanceof Element)||!event.target.closest('[data-datetime-name="actualPublishAt"]'))return;
     publicationToken++; host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
   }, { signal });
   publication.addEventListener('change',event=>{if((event.target as HTMLInputElement).name==='correctTime'){clearTimeout(pendingTimer);showPublication();}},{signal});

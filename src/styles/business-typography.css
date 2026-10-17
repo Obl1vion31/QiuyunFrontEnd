@@ -1,0 +1,15 @@
+/* 工作台与正文外的原生弹层都继承相同字体；组件仅按语义选择层级。 */
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) {
+  font-family:var(--console-font);
+  font-size:var(--console-text);
+  line-height:var(--console-text-leading);
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(button,input,select,textarea) {
+  font:400 var(--console-text)/var(--console-text-leading) var(--console-font);
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) button {
+  font-weight:600;
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(h1,h2,h3,h4,strong,b) {
+  font-weight:600;
+}

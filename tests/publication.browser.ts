@@ -1,3 +1,4 @@
+import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 发布登记、历史空值与月历交互；业务写入仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -45,7 +46,7 @@ try{
  async function pageFor(cookie:string,width:number){const context=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));return {context,page};}
  for(const width of [1440,390,320]){
   const {context,page}=await pageFor(staff,width);
-  await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);assert.equal(await page.locator('#publicationMode').count(),0);
+  await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);const stats=await page.locator('.status-strip strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({font:getComputedStyle(node).fontFamily,size:parseFloat(getComputedStyle(node).fontSize),weight:getComputedStyle(node).fontWeight,figures:getComputedStyle(node).fontVariantNumeric})));assert.ok(stats.length>0);assert.ok(stats.every((item:any)=>item.font.includes('system-ui')&&!item.font.includes('monospace')&&item.size>=20&&item.size<=24&&item.weight==='600'&&item.figures.includes('tabular-nums')),'核心统计使用共享字体和等宽数字');assert.equal(await page.locator('#publicationMode').count(),0);
   assert.equal(await page.getByText('预约待审',{exact:true}).count(),0);assert.equal(await page.getByText('到点待确认',{exact:true}).count(),0);
   for(const item of cases){
    const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+item.state));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');
@@ -82,7 +83,7 @@ try{
   const fieldBoxes=await page.locator('#schedule-dialog').evaluate((node:HTMLElement)=>Object.fromEntries(['contentName','subjectId','categoryId','plannedPublishDate','plannedPublishTime','projectDocUrl'].map(id=>{const input=node.querySelector('#'+id)!;const rect=input.getBoundingClientRect();return [id,{x:rect.x,y:rect.y,width:rect.width,height:rect.height}]})));
   assert.equal(fieldBoxes.contentName.width,fieldBoxes.projectDocUrl.width);
   assert.equal(fieldBoxes.subjectId.y,fieldBoxes.categoryId.y);assert.equal(fieldBoxes.subjectId.width,fieldBoxes.categoryId.width);
-  assert.equal(fieldBoxes.plannedPublishDate.y,fieldBoxes.plannedPublishTime.y);assert.equal(fieldBoxes.plannedPublishDate.width,fieldBoxes.plannedPublishTime.width);
+  await checkBusinessDateTime(page.locator('#schedule-form [data-datetime-field]'));assert.equal(fieldBoxes.plannedPublishDate.y,fieldBoxes.plannedPublishTime.y);assert.equal(fieldBoxes.plannedPublishDate.width,fieldBoxes.plannedPublishTime.width);
   assert.ok(fieldBoxes.plannedPublishDate.y>fieldBoxes.subjectId.y);assert.ok(fieldBoxes.projectDocUrl.y>fieldBoxes.plannedPublishDate.y);
   assert.ok(Object.values(fieldBoxes).every((box:any)=>box.height===40),'表单输入规格一致 '+JSON.stringify(fieldBoxes));
   assert.equal(await page.locator('#schedule-dialog [role=group] input[type=checkbox]').count(),2);
@@ -92,6 +93,7 @@ try{
   await page.locator('[data-close]').first().click();
   await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),'');assert.equal(await page.locator('#publicationUrl').getAttribute('required'),null);assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
   assert.deepEqual(await sheetGeometry('#publication-dialog'),editGeometry,'编辑排期与发布登记共用抽屉、头部和底部几何');
+  await checkBusinessDateTime(page.locator('#publication-form [data-datetime-field]'));const requiredMark=await page.locator('#publicationUrl').locator('..').locator('label').evaluate((node:HTMLElement)=>({labelY:node.getBoundingClientRect().y,markY:node.querySelector('b')!.getBoundingClientRect().y}));if(await page.locator('[data-publication-link-required]').isVisible())assert.ok(Math.abs(requiredMark.labelY-requiredMark.markY)<=5,'必填标记与标签同行');assert.equal(await page.locator('#actualPublishDate').isDisabled(),true);assert.equal(await page.locator('#actualPublishTime').isDisabled(),true);
   await page.locator('#publicationUrl').evaluate((node:HTMLElement)=>{node.style.minHeight='1100px';});await page.locator('#publication-dialog .sheet-body').evaluate((node:HTMLElement)=>{node.scrollTop=node.scrollHeight;});
   assert.deepEqual(await sheetGeometry('#publication-dialog'),editGeometry,'长表单操作区始终固定在底部');await page.locator('#publicationUrl').evaluate((node:HTMLElement)=>node.style.minHeight='');
   await page.screenshot({path:`.tools/test-artifacts/control-sheet-publication-${width}.png`});
@@ -100,7 +102,14 @@ try{
   await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'已发布'}).click();await page.waitForURL(/status=published/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-pending'));assert.equal(await page.locator('.calendar').count(),1);assert.equal(await page.locator('.calendar-item.publish-pending').count(),0);
   await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'待发布'}).click();await page.waitForURL(/status=pending/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-on_time,.calendar-item.publish-delayed'));assert.equal(await page.locator('.calendar-item.publish-on_time,.calendar-item.publish-delayed').count(),0);
   await page.goto(baseURL+'/business/operations-schedule?display=ledger');assert.equal(await page.locator('table').count(),1);
-  const newId=await create(`虚构分享登记 ${width}`);await page.goto(baseURL+`/business/operations-schedule?row=${newId}`);await page.locator('[data-inspector-publication]').click();await page.locator('#publicationActualPublishAt').fill(future);await page.locator('#publicationUrl').fill(share);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/project');await page.locator('[data-publication-link-preview]').getByText('已识别：'+link).waitFor();
+  const newId=await create(`虚构分享登记 ${width}`);await page.goto(baseURL+`/business/operations-schedule?row=${newId}`);
+  assert.equal(await page.locator('[data-inspector-publication]').isEnabled(),true);const actionTypes=await page.locator('.business-inspector-actions button').evaluateAll((nodes:HTMLElement[])=>nodes.filter(node=>node.getBoundingClientRect().height>0).map(node=>({height:node.getBoundingClientRect().height,font:getComputedStyle(node).fontFamily,size:getComputedStyle(node).fontSize,weight:getComputedStyle(node).fontWeight,background:getComputedStyle(node).backgroundColor})));assert.ok(actionTypes.every((item:any)=>item.height===40&&item.size==='13px'&&item.weight==='600'&&item.font.includes('system-ui')));assert.equal(actionTypes[0].background,'rgb(49, 95, 214)');
+await page.locator('[data-inspector-publication]').click();await checkBusinessDateTime(page.locator('#publication-form [data-datetime-field]'));
+  const newRequiredMark=await page.locator('label[for=publicationUrl]').evaluate((node:HTMLElement)=>({y:node.getBoundingClientRect().y,mark:node.querySelector('b')!.getBoundingClientRect().y}));assert.ok(Math.abs(newRequiredMark.y-newRequiredMark.mark)<=5,'必填标记与字段标签同行');
+  await page.locator('#actualPublishDate').fill(future.slice(0,10));assert.equal(await page.locator('#actualPublishTime').evaluate((node:HTMLInputElement)=>node.validity.valueMissing),true,'缺少时间不能提交完整日期时间');assert.equal(await page.locator('#publicationActualPublishAt').inputValue(),'');
+  await page.locator('#actualPublishTime').evaluate((node:HTMLInputElement)=>{node.value='00:00';node.dispatchEvent(new Event('change',{bubbles:true}));});assert.equal(await page.locator('#publicationActualPublishAt').inputValue(),future.slice(0,10)+'T00:00','原生选择器仅 change 也同步午夜');
+  assert.equal(await page.evaluate(()=>document.documentElement.dataset.unsaved),'true','选择器 change 同步未保存保护');
+  await fillBusinessDateTime(page,'actualPublishAt',future);await page.locator('#publicationUrl').fill(share);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/project');await page.locator('[data-publication-link-preview]').getByText('已识别：'+link).waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
   page.once('dialog',(dialog:any)=>dialog.dismiss());await page.keyboard.press('Escape');assert.equal(await page.locator('#publication-dialog').evaluate((node:HTMLDialogElement)=>node.open),true);
   await page.route(`**/api/operations-content/${newId}/publication`,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构连接失败'})}));await page.locator('#publication-form button[type=submit]').click();await page.locator('[data-publication-message]').getByText('虚构连接失败').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),share);assert.equal(await page.locator('#publicationActualPublishAt').inputValue(),future);await page.unroute(`**/api/operations-content/${newId}/publication`);
@@ -114,7 +123,7 @@ try{
  }
  const {context:adminContext,page:adminPage}=await pageFor(boss,1440);
  await adminPage.goto(baseURL+`/business/operations-schedule?row=${id}`);await adminPage.locator('[data-inspector-publication]').click();assert.equal(await adminPage.locator('#publicationActualPublishAt').isDisabled(),true);
- await adminPage.locator('[name=correctTime]').check();assert.equal(await adminPage.locator('#publicationActualPublishAt').isDisabled(),false);await adminPage.locator('#publicationActualPublishAt').fill(time(new Date(now.getTime()+7200000)));await adminPage.locator('#publicationCorrectionReason').fill('核对平台后更正发布时间');
+ await adminPage.locator('[name=correctTime]').check();assert.equal(await adminPage.locator('#publicationActualPublishAt').isDisabled(),false);await fillBusinessDateTime(adminPage,'actualPublishAt',time(new Date(now.getTime()+7200000)));await adminPage.locator('#publicationCorrectionReason').fill('核对平台后更正发布时间');
  await adminPage.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
  const corrected=adminPage.waitForResponse((r:any)=>r.url().endsWith(endpoint+'/publication')&&r.request().method()==='PATCH');await adminPage.locator('#publication-form button[type=submit]').click();assert.equal((await corrected).status(),200);
  w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationHistory[0].reason,'核对平台后更正发布时间');await adminContext.close();

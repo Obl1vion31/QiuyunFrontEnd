@@ -28,7 +28,7 @@ test('控制台壳层集中装配侧栏并提供统一视觉变量', async () =>
   assert.match(source, /class="app-shell business-console-frame"/);
   assert.match(source, /--console-canvas:/);
   assert.match(source, /--console-blue:/);
-  assert.match(source, /\.business-console-frame\{width:100%;font-family:system-ui/);
+  assert.match(source, /\.business-console-frame\{width:100%;font-family:var\(--console-font\)/);
   assert.match(source, /\.business-console-workspace\{width:100%;min-width:0/);
 });
 
@@ -57,11 +57,11 @@ test('共享工具栏锁定跨页几何、字体与颜色', async () => {
   for (const declaration of [
     'width:100%;height:72px;min-height:72px;max-height:72px',
     'height:62px;min-height:62px;max-height:62px',
-    'font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif',
+    'font-family:var(--console-font)',
     'color:#17211c',
     'background:color-mix(in srgb,#f7f8f5 92%,transparent)',
-    'font-size:15px;line-height:18px;font-weight:800',
-    'font-size:11px;line-height:14px;font-weight:500',
+    'font-size:15px;line-height:18px;font-weight:600',
+    'font-size:var(--console-caption);line-height:14px;font-weight:500',
   ]) assert.ok(source.includes(declaration), `缺少工具栏基准：${declaration}`);
 });
 
@@ -134,7 +134,7 @@ test('共享侧栏提供稳定的 Quiet Operations 几何与视觉基准', async
   for (const declaration of [
     'grid-template-columns:232px minmax(0,1fr)!important',
     '.business-sidebar,.business-sidebar *{box-sizing:border-box}',
-    'font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif',
+    'font-family:var(--console-font)',
     'font-size:16px;line-height:1.2',
     'width:232px',
     'height:100vh',
@@ -178,4 +178,16 @@ test('带 Inspector 的业务页在客户端切换后重新初始化交互', asy
   const schedule = await readFile(new URL('../src/pages/business/operations-schedule.astro', import.meta.url), 'utf8');
   assert.match(schedule, /document\.querySelectorAll\('\[data-inspect-id\]'\)/);
   assert.match(schedule, /node\.addEventListener\('click',/);
+});
+
+
+test('完整日期时间统一使用共享拆分输入，保留仅日期控件', async () => {
+  for (const path of ['src/pages/business/operations-schedule.astro','src/pages/business/meeting-review.astro','src/scripts/operations-workflow.ts']) {
+    const source=await readFile(new URL('../'+path,import.meta.url),'utf8');
+    assert.doesNotMatch(source,/datetime-local/);
+    assert.match(source,/BusinessDateTimeFields|configureDateTimeField/);
+  }
+  const component=await readFile(new URL('../src/components/BusinessDateTimeFields.astro',import.meta.url),'utf8');
+  assert.match(component,/type="date"/);assert.match(component,/type="time" step="60"/);
+  const stage=await readFile(new URL('../src/components/BusinessPromotionStageView.astro',import.meta.url),'utf8');assert.doesNotMatch(stage,/type="time"/);
 });

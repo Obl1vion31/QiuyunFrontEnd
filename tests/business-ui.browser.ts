@@ -1,3 +1,4 @@
+import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
 import { and, eq } from 'drizzle-orm';
@@ -55,6 +56,7 @@ try {
       } else geometry=current;
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${path} ${width} 页面无横向溢出`);
       assert.equal(await page.locator('.business-page-header__copy>span').count(),0,'页面标题没有装饰性英文眉题');
+      const controlFonts=await page.locator('button:visible,input:visible,select:visible,textarea:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({label:node.getAttribute('aria-label')||node.textContent?.slice(0,18),family:getComputedStyle(node).fontFamily})));assert.ok(controlFonts.every((item:any)=>item.family.includes('system-ui')&&!item.family.includes('monospace')),`${path} 控件字体统一 ${JSON.stringify(controlFonts.filter((item:any)=>!item.family.includes('system-ui')||item.family.includes('monospace')))}`);
       if(path==='settings') {
         const controls=await page.locator('.business-form input:not([type=checkbox]),.business-form select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
         const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'系统设置接入公共表单规格');
@@ -62,11 +64,18 @@ try {
       }
       if(path==='meeting-review') {
         await page.locator('[data-open-create]').click();const dialog=page.locator('[data-create]');await dialog.waitFor();
-        const controls=await dialog.locator('input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
+        const controls=await dialog.locator('input:not([type=hidden])').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
         assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'例会创建与其他表单使用相同控件');
         assert.equal(await dialog.getAttribute('aria-labelledby'),'create-meeting-title');
+        await checkBusinessDateTime(dialog.locator('[data-datetime-field]'));await fillBusinessDateTime(page,'meetingAt',`${today}T00:00`);
+        assert.equal(await dialog.locator('[name=meetingAt]').inputValue(),`${today}T00:00`);
         assert.equal(await dialog.evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth),true,'窄屏对话框无横向溢出');
-        await page.screenshot({path:`.tools/test-artifacts/meeting-create-ui-${width}.png`});await dialog.locator('[data-close]').click();
+        await page.screenshot({path:`.tools/test-artifacts/meeting-create-ui-${width}.png`});
+        if(width===1440){
+          await dialog.locator('[name=periodStart]').fill(start);await dialog.locator('[name=periodEnd]').fill(previousDateKey(today));await dialog.locator('[name=name]').fill('虚构拆分时间例会');
+          const created=page.waitForResponse((response:any)=>response.url().endsWith('/api/meeting-reviews')&&response.request().method()==='POST');await dialog.locator('button[type=submit],button.primary').click();const response=await created;assert.equal(response.status(),201);await page.waitForURL((url:URL)=>Boolean(url.searchParams.get('meeting')));const result={id:new URL(page.url()).searchParams.get('meeting')!};
+          const [meeting]=await db.select().from(schema.operationsReviewMeeting).where(eq(schema.operationsReviewMeeting.id,result.id));assert.equal(meeting.meetingAt.toISOString(),new Date(`${today}T00:00`).toISOString(),'拆分输入保持原有会议时间解析');await page.waitForLoadState('networkidle');
+        }else await dialog.locator('[data-close]').click();
       }
       if(path==='annual-plan') {
         await page.locator('[data-open-new]').click();const dialog=page.locator('#row-dialog');await dialog.waitFor();

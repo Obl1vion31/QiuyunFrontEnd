@@ -1,3 +1,4 @@
+import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 隔离 HTTP 与浏览器验收；只连接 auth.fixture 的内存 PostgreSQL。 */
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
@@ -99,7 +100,7 @@ try {
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1','填完理由仍保留延期提示');
   await page.locator('[data-schedule-workflow] summary').filter({hasText:'申请调整排期'}).click();
   const applicationForm=page.locator('[data-schedule-workflow] form').filter({has:page.locator('[name=plannedPublishAt]')});
-  await applicationForm.locator('[name=plannedPublishAt]').fill(inputTime(hours(36)));await applicationForm.locator('textarea').fill('浏览器改期申请');await applicationForm.locator('button[type=submit]').click();
+  await checkBusinessDateTime(applicationForm.locator('[data-datetime-field]'));await fillBusinessDateTime(page,'plannedPublishAt',inputTime(hours(36)));await applicationForm.locator('textarea').fill('浏览器改期申请');await applicationForm.locator('button[type=submit]').click();
   await page.waitForLoadState('networkidle');await page.locator('[data-schedule-workflow]').getByText(/待审批/).waitFor();
   await page.screenshot({path:'.tools/test-artifacts/schedule-workflow-desktop.png',fullPage:true});
   await page.goto(`${baseURL}/business/non-promotion-review?view=history&subject=tmua&category=innovation`);
@@ -119,7 +120,7 @@ try {
   const browserPublication=await create({contentName:'虚构浏览器实发帖'});
   await page.goto(`${baseURL}/business/operations-schedule?status=overdue&row=${browserPublication.id}`);await page.locator('[data-schedule-workflow] .workflow-form').first().waitFor();
   await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();
-  await page.locator('#publicationActualPublishAt').fill(actual);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/browser-publication');await page.locator('#publicationUrl').fill('https://www.xiaohongshu.com/explore/'+'b'.repeat(24));
+  await fillBusinessDateTime(page,'actualPublishAt',actual);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/browser-publication');await page.locator('#publicationUrl').fill('https://www.xiaohongshu.com/explore/'+'b'.repeat(24));
   await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
   assert.equal(await page.locator('[data-delay-day]').count(),2);
   for(const index of [0,1]){const day=page.locator('[data-delay-day]').nth(index);await day.locator('select').selectOption(index?'requester':'self');await day.locator('textarea').fill(`浏览器第${index+1}天原因`);}
