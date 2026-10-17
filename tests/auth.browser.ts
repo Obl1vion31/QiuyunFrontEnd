@@ -24,7 +24,7 @@ try {
   await status(await request('/api/auth/sign-up/email', 'POST', form({})), 404);
   await status(await request('/api/auth/update-user', 'POST', form({ role: 'admin' })), 404);
   const adminCookie = await login(admin); const employeeCookie = await login(employee);
-  for (const path of ['/api/business-settings/category-policies', '/api/stage-reviews/category-policies', '/api/operations-annual-plans', '/api/operations-content/fictional/platform-note-id']) await status(await request(path, 'POST', form({ role: 'admin' }), employeeCookie), 403);
+  for (const path of ['/api/business-settings/category-policies', '/api/stage-reviews/category-policies', '/api/operations-annual-plans', '/api/operations-annual-plans/', '/api/operations-content/fictional/platform-note-id']) await status(await request(path, 'POST', form({ role: 'admin' }), employeeCookie), 403);
   for (const path of ['/api/meeting-reviews/fictional', '/api/stage-reviews/fictional']) await status(await request(path, 'DELETE', undefined, employeeCookie), 403);
   await status(await request('/business/settings', 'GET', undefined, employeeCookie), 403);
   await status(await request('/business/settings', 'GET', undefined, adminCookie), 200);

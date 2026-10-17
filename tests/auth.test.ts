@@ -1,3 +1,4 @@
+import {isConfigurableBusinessWrite} from '../src/auth/business-capabilities';
 import assert from 'node:assert/strict';
 import { before, after, test } from 'node:test';
 import { PGlite } from '@electric-sql/pglite';
@@ -80,9 +81,16 @@ test('多个实例共享原子限流，重建实例不能重置', async () => {
   assert.equal((await attempt(createAuth(db, config))).status, 429);
 });
 test('请求权限覆盖旧入口、删除及未知写入，返回地址不能跳到外站', () => {
-  for (const [path, method] of [['/business/settings','GET'], ['/api/stage-reviews/category-policies','POST'], ['/api/operations-annual-plans','POST'], ['/api/meeting-reviews/test','DELETE'], ['/api/stage-reviews/test','DELETE'], ['/api/operations-content/test/platform-note-id','POST'], ['/api/future-write','POST']]) assert.equal(requiresAdmin(path, method), true);
-  for (const [path, method] of [['/api/operations-content','POST'], ['/api/operations-content/test/publication','PATCH'], ['/api/promotion-daily/test','PATCH'], ['/api/operations-annual-plans/test/versions','GET'], ['/api/stage-reviews/test','PATCH']]) assert.equal(requiresAdmin(path, method), false);
+  for (const [path, method] of [['/business/settings','GET'], ['/api/stage-reviews/category-policies','POST'], ['/api/meeting-reviews/test','DELETE'], ['/api/stage-reviews/test','DELETE'], ['/api/operations-content/test/platform-note-id','POST'], ['/api/future-write','POST'], ['/api/operations-annual-plans/future/write','POST'], ['/api/operations-content/future/write','POST']]) assert.equal(requiresAdmin(path, method), true);
+  for (const [path, method] of [['/api/operations-annual-plans','POST'],['/api/operations-content','POST'], ['/api/operations-content/test/publication','PATCH'], ['/api/promotion-daily/test','PATCH'], ['/api/operations-annual-plans/test/versions','GET'], ['/api/stage-reviews/test','PATCH']]) assert.equal(requiresAdmin(path, method), false);
   assert.throws(() => requireAdmin({ id: 'fictional', username: employee.username, role: 'employee' }));
   for (const target of ['https://evil.example/business/a', '//evil.example/business/a', '/login', '/business/../login']) assert.equal(safeReturnTo(target, config.baseURL), '/business/operations-schedule');
   assert.equal(safeReturnTo('/business/annual-plan?year=2027', config.baseURL), '/business/annual-plan?year=2027');
+});
+
+test('可配置写入的角色门禁与事务入口共用路径规则，尾斜杠不能绕过授权',()=>{
+ for(const [path,method] of [['/api/operations-content','POST'],['/api/operations-content/example','PATCH'],['/api/operations-content/example','DELETE'],['/api/operations-content/example/publication','PATCH'],['/api/operations-content/example/delay-reasons','POST'],['/api/operations-content/example/change-requests','POST'],['/api/operations-content/versions/example/revisions','POST'],['/api/operations-annual-plans','POST'],['/api/operations-annual-plans/example','PATCH'],['/api/operations-annual-plans/example/restore','POST'],['/api/operations-annual-plans/year/2027','PATCH'],['/api/operations-annual-plans/year/2027/copy','POST']]){
+  for(const suffix of ['', '/']){assert.equal(isConfigurableBusinessWrite(path+suffix,method),true);assert.equal(requiresAdmin(path+suffix,method),false);}
+ }
+ assert.equal(isConfigurableBusinessWrite('/api/operations-annual-plans/future/write','POST'),false);
 });

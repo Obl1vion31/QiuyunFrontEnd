@@ -14,5 +14,6 @@ declare namespace App {
     operationsUser?: string;
     user: import('./auth/permissions').OperationsUser | null;
     session: import('better-auth').Session | null;
+    businessPermissions?: import('./auth/business-capabilities').BusinessPermissions;
   }
 }

@@ -1,10 +1,14 @@
 ---
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import { getDb } from '../../db/client';
+import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
+import {effectiveBusinessPermissions} from '../../auth/business-permissions';
+import {businessOperations,permissionModes} from '../../auth/business-capabilities';
+import {authUser,operationsScheduleChangeRequest} from '../../db/schema';
 import { operationsCategoryPolicyVersion } from '../../db/schema';
 import { postCategories } from '../../db/taxonomy';
 import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
@@ -12,6 +16,10 @@ import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 export const prerender = false;
 let policies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
 let loadError = '';
+const view=Astro.url.searchParams.get('view')??'rules';
+const accounts=await getDb().select({id:authUser.id,username:authUser.username,role:authUser.role}).from(authUser).orderBy(authUser.username);
+const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
+const legacyRequests=view==='approvals'?await getDb().select().from(operationsScheduleChangeRequest).where(eq(operationsScheduleChangeRequest.status,'pending')):[];
 const databaseStartedAt = performance.now();
 try {
   policies = await getDb().select().from(operationsCategoryPolicyVersion).orderBy(desc(operationsCategoryPolicyVersion.createdAt));
@@ -28,9 +36,10 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
 <BusinessConsoleFrame active="settings">
   <BusinessConsoleToolbar title="系统设置" subtitle="影响新建内容的全局业务规则" />
   <main class="business-console-content">
-    <BusinessPageHeader title="分类与默认用途" description="新规则从生效日应用，历史内容与复盘快照保留原规则。" />
+    <nav class="settings-tabs" aria-label="设置视角">{[['rules','业务规则'],['permissions','账号权限'],['approvals','待审核']].map(([key,label])=><a href={`?view=${key}`} aria-current={view===key?'page':undefined}>{label}</a>)}</nav>
+    <BusinessPageHeader title={view==='permissions'?'账号权限':view==='approvals'?'待审核变更':'分类与默认用途'} description={view==='rules'?'新规则从生效日应用，历史内容与复盘快照保留原规则。':undefined} />
     {loadError && <p class="error">{loadError}</p>}
-    <div class="settings-layout">
+    {view==='rules'&&<div class="settings-layout">
       <form data-form class="business-form">
         <label>稳定分类<select name="categoryId" required><option value="">请选择</option>{postCategories.map((category) => <option value={category.id}>{category.name}</option>)}</select></label>
         <label>新显示名称<input name="displayName" required/></label>
@@ -43,14 +52,54 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
         <BusinessSectionHeader title="规则版本历史" contained><span slot="end">{policies.length} 个版本</span></BusinessSectionHeader>
         {policies.length ? policies.map((policy) => <article><div><strong>{policy.displayName}</strong><small>{policy.categoryId} · V{policy.versionNumber}</small></div><p>{policy.effectiveOn} 生效 · {policy.defaultIsPromoted ? '默认推广' : '默认非推广'}{policy.isSelectable ? '' : ' · 停止新选'} · {policy.requiresNonPromotionReview ? '需非推广复盘' : '不进入非推广复盘'}</p><span>{policy.changeSummary}</span></article>) : <p class="empty">尚未建立分类规则版本。</p>}
       </section>
-    </div>
+    </div>}
+    {view==='permissions'&&<section class="account-permissions business-form">
+      <label>账号<select data-permission-account>{grants.map(user=><option value={user.id}>{user.username} · {user.role==='admin'?'管理员':'员工'}</option>)}</select></label>
+      {grants.map(user=><form data-account-permissions={user.id} data-permissions={JSON.stringify(user.permissions)} hidden={user.id!==grants[0]?.id}>
+        <p>账号性质：{user.role==='admin'?'管理员':'员工'}</p>
+        {(['annual','schedule'] as const).map(module=><section><header><h2>{module==='annual'?'总周期规划':'排期管理'}</h2>{user.role==='employee'&&<button type="button" class="business-action-secondary" data-readonly-module={module}>设为仅查看</button>}</header><p>查看内容及历史：开放</p><div class="permissions-table"><table><thead><tr><th>操作</th><th>权限</th></tr></thead><tbody>{businessOperations.filter(([,group])=>group===module).map(([key,,label])=><tr><th><label for={`${user.id}-${key}`}>{label}</label></th><td><select id={`${user.id}-${key}`} name={key} disabled={user.role==='admin'}>{Object.entries(permissionModes).map(([mode,text])=><option value={mode} selected={user.permissions[key]===mode}>{text}</option>)}</select></td></tr>)}</tbody></table></div></section>)}
+        {user.role==='employee'&&<div class="permission-actions"><output role="alert"/><button type="submit" class="business-action-primary">保存账号权限</button></div>}
+      </form>)}
+    </section>}
+    {view==='approvals'&&<>
+      <BusinessPendingChanges module="annual" all/><BusinessPendingChanges module="schedule" all/>
+      {legacyRequests.map(row=><section class="business-pending-changes"><h2>改期申请 · {row.requestedByLabel}</h2><p>{row.reason}</p><form class="business-form" data-legacy-request={`/api/operations-content/${row.scheduleId}/change-requests/${row.id}`}><label>审核说明<textarea name="reason" maxlength="500"/></label><div class="business-action-group"><button class="business-action-primary" name="action" value="approve">同意改期</button><button class="business-action-secondary" name="action" value="reject">驳回</button></div><output role="alert"/></form></section>)}
+    </>}
   </main>
 </BusinessConsoleFrame>
 <script>
+function initializeSettings(){
+const tabs=document.querySelector<HTMLElement>('.settings-tabs');if(!tabs||tabs.dataset.bound)return;tabs.dataset.bound='true';
 document.querySelector<HTMLFormElement>('[data-form]')?.addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement;const output=form.querySelector('output');const response=await fetch('/api/business-settings/category-policies',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败';return}location.reload()});
+document.querySelector('[data-permission-account]')?.addEventListener('change',async event=>{
+ const select=event.target as HTMLSelectElement;const previous=document.querySelector<HTMLFormElement>('[data-account-permissions]:not([hidden])');
+ if(previous?.dataset.dirty==='true'&&!await window.businessConfirm('有尚未保存的权限修改，是否放弃？')){select.value=previous.dataset.accountPermissions!;return;}
+ if(previous?.dataset.dirty==='true'){for(const [key,value] of Object.entries(JSON.parse(previous.dataset.permissions!)))(previous.elements.namedItem(key) as HTMLSelectElement).value=String(value);delete previous.dataset.dirty;}
+ document.documentElement.dataset.unsaved='false';document.querySelectorAll<HTMLElement>('[data-account-permissions]').forEach(form=>form.hidden=form.dataset.accountPermissions!==select.value);
+});
+document.querySelectorAll<HTMLFormElement>('[data-account-permissions]').forEach(form=>{
+ const dirty=()=>{form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';};form.addEventListener('input',dirty);
+ form.querySelectorAll<HTMLButtonElement>('[data-readonly-module]').forEach(button=>button.addEventListener('click',()=>{form.querySelectorAll<HTMLSelectElement>(`select[name^="${button.dataset.readonlyModule}."]`).forEach(select=>select.value='disabled');dirty();}));
+ form.addEventListener('submit',async event=>{event.preventDefault();const output=form.querySelector('output')!;output.textContent='正在保存…';
+ try{const permissions=Object.fromEntries(new FormData(form));const response=await fetch('/api/business-settings/account-permissions',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:form.dataset.accountPermissions,permissions,expected:JSON.parse(form.dataset.permissions!)})});const result=await response.json();output.textContent=response.ok?'已保存':result.message;
+ if(response.ok){form.dataset.permissions=JSON.stringify(permissions);delete form.dataset.dirty;document.documentElement.dataset.unsaved='false';}}
+ catch{output.textContent='连接失败，当前选择已保留。';}});
+});
+document.querySelectorAll<HTMLFormElement>('[data-decide-proposal],[data-legacy-request]').forEach(form=>form.addEventListener('submit',async event=>{
+ event.preventDefault();const action=(event.submitter as HTMLButtonElement).value;const reason=String(new FormData(form).get('reason')??'').trim();const output=form.querySelector('output')!;
+ if(action==='reject'&&!reason){output.textContent='请填写驳回说明。';return;}
+ const endpoint=form.dataset.legacyRequest??`/api/business-change-proposals/${form.dataset.decideProposal}`;
+ try{const response=await fetch(endpoint,{method:'PATCH',headers:form.dataset.legacyRequest?{}:{'Content-Type':'application/json'},body:form.dataset.legacyRequest?new URLSearchParams({action,reason}):JSON.stringify({action,reason})});const result=await response.json();if(response.ok){location.reload();return;}output.textContent=result.message??'审核失败。';}catch{output.textContent='连接失败，请重试。';}
+}));
+}
+initializeSettings();document.addEventListener('astro:page-load',initializeSettings);
 </script>
 </body></html>
 
 <style>
   *{box-sizing:border-box}.settings-layout{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-top:22px}form,.history{border:1px solid var(--console-line);border-radius:14px;background:var(--console-surface)}.history{align-self:start}form{align-self:start;display:grid;gap:13px;padding:20px}label{color:var(--console-muted);font-size:var(--console-caption);font-weight:600}input,select,textarea{width:100%;margin-top:4px;padding:9px;border:1px solid #aeb8b2;border-radius:7px;background:#fff}textarea{min-height:80px}.checks{display:grid;gap:8px}.checks label{display:flex;align-items:center;gap:7px}form button{padding:10px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font-weight:600}.history :global(.business-section-header){padding:16px 18px;border-bottom:1px solid var(--console-line)}.history article{display:grid;grid-template-columns:1fr auto;gap:4px 18px;padding:14px 18px;border-bottom:1px solid #e1e5e2}.history article div{display:grid}.history article strong{font-size:var(--console-emphasis)}.history article p{margin:0;font-size:var(--console-caption)}.history article>span,.history small{color:var(--console-muted);font-size:var(--console-caption)}.history article>span{grid-column:1/-1}.empty,.error{padding:18px;color:var(--console-muted);font-size:var(--console-caption)}.error{background:#ffe5dc}@media(max-width:900px){.settings-layout{grid-template-columns:1fr}}
+</style>
+
+<style>
+.settings-tabs{display:flex;gap:8px;margin-bottom:18px}.settings-tabs a{padding:8px 14px;border:1px solid var(--console-line);border-radius:8px;color:var(--console-ink);text-decoration:none;background:var(--console-surface)}.settings-tabs [aria-current=page]{background:var(--console-blue);border-color:var(--console-blue);color:#fff}.account-permissions{max-width:920px;margin-top:20px}.account-permissions>label{display:grid;gap:6px;max-width:360px}.account-permissions>form{margin-top:16px;padding:20px}.account-permissions [hidden]{display:none!important}.account-permissions section{margin:12px 0}.account-permissions header{display:flex;align-items:center;justify-content:space-between;gap:12px}.account-permissions h2{font-size:14px;margin:0}.permissions-table{overflow:auto}.permissions-table table{width:100%;border-collapse:collapse;text-align:left}.permissions-table th,.permissions-table td{padding:8px;border-bottom:1px solid var(--console-line)}.permissions-table th{width:60%}.permissions-table select{min-width:130px;margin:0}.permission-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}.permission-actions output{flex:1}
 </style>

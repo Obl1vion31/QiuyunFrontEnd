@@ -3,12 +3,14 @@ import { z } from 'zod';
 import type { Database } from './client';
 import type { OperationsUser } from '../auth/permissions';
 import { requireAdmin } from '../auth/permissions';
+import {effectiveBusinessPermissions,hasBusinessExecution,requireBusinessOperation} from '../auth/business-permissions';
 import { completionStatus, delayDayCount, delayDays, needsRegistration, registrationState, requiresPlanApproval } from './schedule-rules.mjs';
 import { shanghaiDateTime } from './validation';
 import { publicationState, mayKeepEmptyPublicationLink } from './publication-rules.mjs';
 import { operationsPublicationReservation as reservations,operationsPublicationEvent as publicationEvents } from './schema';
 import { operationsContentSchedule as schedules, operationsSchedulePlanHistory as plans,
   operationsScheduleChangeRequest as requests, operationsScheduleDelayReason as reasons } from './schema';
+import {operationsChangeProposal as proposals} from './schema';
 
 export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 type Reader = Database | Transaction;
@@ -20,7 +22,7 @@ export class WorkflowError extends Error {
 }
 export const reasonSchema = z.object({
   planRevision: z.coerce.number().int().min(0), dayNumber: z.coerce.number().int().min(1),
-  responsibility: z.enum(['self', 'requester']), reason: z.string().trim().min(1, '请填写文字原因').max(500),
+  responsibility: z.enum(['self', 'external', 'requester']), reason: z.string().trim().min(1, '请填写文字原因').max(500),
   expectedUpdatedAt: z.preprocess(value => value === '' ? null : value, z.string().nullable().optional()),
   expectedHistoryLength: z.coerce.number().int().min(0).optional(),
 });
@@ -110,7 +112,9 @@ export async function backfillHistoricalDelayReasons(transaction: Transaction, s
 }
 
 export async function changeSchedulePlan(transaction: Transaction, schedule: Schedule, plannedAt: Date, reason: string, actor: OperationsUser, now = new Date()) {
-  if (actor.role !== 'admin' && requiresPlanApproval(schedule, now)) throw new WorkflowError('已超过登记时限，修改应发时间需提交管理员审批。', 409, true);
+  const operation=requiresPlanApproval(schedule,now)?'schedule.overdueReschedule':'schedule.reschedule';
+  if((await effectiveBusinessPermissions(transaction,actor))[operation]==='review'&&!hasBusinessExecution(actor,operation))throw new WorkflowError('修改应发时间需提交管理员审核。',409,true);
+  await requireBusinessOperation(transaction,actor,operation);
   if (plannedAt.getTime() === schedule.plannedPublishAt.getTime()) return;
   if (!reason.trim()) throw new WorkflowError('请填写改期理由。', 422);
   if (!schedule.actualPublishAt && plannedAt <= now) throw new WorkflowError('尚未实发的排期，请选择未来的发送时间。', 422);
@@ -129,6 +133,12 @@ export async function changeSchedulePlan(transaction: Transaction, schedule: Sch
 export async function createChangeRequest(database: Database, scheduleId: string, input: z.infer<typeof changeRequestSchema>, actor: OperationsUser, now = new Date()) {
   return database.transaction(async transaction => {
     const schedule = await lockSchedule(transaction, scheduleId);
+    const operation=requiresPlanApproval(schedule,now)?'schedule.overdueReschedule':'schedule.reschedule';
+    if(hasBusinessExecution(actor,operation)){
+      if(schedule.planRevision!==input.expectedPlanRevision)throw new WorkflowError('排期已更新，请刷新后重新申请。');
+      await changeSchedulePlan(transaction,schedule,input.plannedPublishAt,input.reason,actor,now);
+      return {id:schedule.id,applied:true};
+    }
     if (!requiresPlanApproval(schedule, now)) throw new WorkflowError('当前改期无需审批，请直接编辑排期。');
     if (schedule.planRevision !== input.expectedPlanRevision) throw new WorkflowError('排期已更新，请刷新后重新申请。');
     if (input.plannedPublishAt <= now) throw new WorkflowError('请选择未来的发送时间。', 422);
@@ -168,13 +178,14 @@ export async function decideChangeRequest(database: Database, scheduleId: string
 }
 
 export async function teamScheduleNotifications(database: Database, now = new Date()) {
-  const [rows, history, saved, applications] = await Promise.all([
+  const [rows, history, saved, applications, pendingProposals] = await Promise.all([
     database.select().from(schedules), database.select().from(plans), database.select().from(reasons),
     database.select().from(requests).where(eq(requests.status, 'pending')),
+    database.select({target:proposals.target}).from(proposals).where(and(eq(proposals.status,'pending'),eq(proposals.module,'schedule'))),
   ]);
   const overdueIds = rows.filter(row => needsRegistration(row, now)).map(row => row.id);
   const missingReasonIds = rows.filter(row => row.actualPublishAt && scheduleDelayItems(row, history.filter(item => item.scheduleId === row.id),
     saved.filter(item => item.scheduleId === row.id), new Date(Math.min(row.actualPublishAt?.getTime() ?? now.getTime(), now.getTime())), now).some(day => !day.saved && !day.archived)).map(row => row.id);
-  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, missingRegistration: overdueIds.length, missingRegistrationIds: overdueIds, pendingApprovals: applications.length, missingReasons: missingReasonIds.length,
-    overdueIds, missingReasonIds, approvalScheduleIds: applications.map(item => item.scheduleId), serverTime: now.toISOString() };
+  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, missingRegistration: overdueIds.length, missingRegistrationIds: overdueIds, pendingApprovals: applications.length+pendingProposals.length, missingReasons: missingReasonIds.length,
+    overdueIds, missingReasonIds, approvalScheduleIds: [...new Set([...applications.map(item => item.scheduleId),...pendingProposals.filter(item=>item.target.startsWith('schedule:')).map(item=>item.target.slice(9))])], serverTime: now.toISOString() };
 }

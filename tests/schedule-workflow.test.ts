@@ -67,7 +67,7 @@ test('员工不能直接改期，管理员改期使旧申请失效', async () =>
   const schedule=await seed(new Date('2026-10-14T08:00:00+08:00'));
   const input={plannedPublishAt:new Date('2026-10-18T08:00:00+08:00'),expectedPlanRevision:0,reason:'虚构申请'};
   const request=await createChangeRequest(db,schedule.id,input,employee,now);
-  await assert.rejects(db.transaction(tx=>changeSchedulePlan(tx,schedule,input.plannedPublishAt,'虚构直接修改',employee,now)),/管理员审批/);
+  await assert.rejects(db.transaction(tx=>changeSchedulePlan(tx,schedule,input.plannedPublishAt,'虚构直接修改',employee,now)),/管理员审核/);
   await db.transaction(tx=>changeSchedulePlan(tx,schedule,new Date('2026-10-19T08:00:00+08:00'),'管理员改期',admin,now));
   assert.equal((await readScheduleWorkflow(db,schedule.id,undefined,now)).applications[0].status,'obsolete');
   await assert.rejects(decideChangeRequest(db,schedule.id,request.id,{action:'approve',reason:''},admin,now),/申请已处理/);

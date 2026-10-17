@@ -2,6 +2,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getAuth } from './auth/auth';
 import { deniedResponse, requiresAdmin } from './auth/permissions';
+import {isBusinessWrite,runBusinessWrite} from './db/business-approvals';
 
 export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
   const protectedPath = url.pathname === '/business' || url.pathname.startsWith('/business/')
@@ -32,7 +33,8 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
     );
     response.headers.set('Cache-Control', 'private, no-store'); return response;
   }
-  const response = await next();
+  const response = isBusinessWrite(url.pathname,request.method)
+    ? await runBusinessWrite({request,url,locals},next) : await next();
   for (const cookie of sessionResult.headers.getSetCookie()) response.headers.append('Set-Cookie', cookie);
   response.headers.set('Cache-Control', 'private, no-store');
   const totalDuration = performance.now() - startedAt;

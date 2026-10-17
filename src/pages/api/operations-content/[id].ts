@@ -2,8 +2,7 @@ import type { APIRoute } from 'astro';
 import { lockPromotionWorkflow } from '../../../db/promotion-pauses';
 import { changeSchedulePlan, WorkflowError } from '../../../db/schedule-workflow';
 import { workflowErrorResponse } from '../../../db/workflow-api';
-import { requiresPlanApproval } from '../../../db/schedule-rules.mjs';
-import { requireAdmin } from '../../../auth/permissions';
+import {requireBusinessOperation} from '../../../auth/business-permissions';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
@@ -146,7 +145,6 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if (!schedule) return null;
       const planChanged = schedule.plannedPublishAt.getTime() !== result.data.plannedPublishAt.getTime();
       if (planChanged) {
-        if (locals.user?.role !== 'admin' && requiresPlanApproval(schedule, new Date())) throw new WorkflowError('已超过登记时限，修改应发时间需提交管理员审批。', 409, true);
         if (form.get('expectedPlanRevision') === null || Number(form.get('expectedPlanRevision')) !== schedule.planRevision) throw new WorkflowError('排期已更新，请刷新后重试。');
         if (!String(form.get('planChangeReason') ?? '').trim()) throw new WorkflowError('请填写改期理由。', 422);
       }
@@ -156,7 +154,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         .where(eq(operationsPromotionCampaign.scheduleId, params.id!));
       const campaignCount = Number(campaignCountRow?.value ?? 0);
       const endCampaigns = campaignCount > 0 && schedule.isPromoted && !result.data.isPromoted;
-      if (endCampaigns) requireAdmin(locals.user);
+      if (endCampaigns) await requireBusinessOperation(transaction,locals.user!,'schedule.endPromotion');
 
       if (endCampaigns && !confirmPromotionReset) {
         const campaigns = await transaction.select({ id: operationsPromotionCampaign.id })

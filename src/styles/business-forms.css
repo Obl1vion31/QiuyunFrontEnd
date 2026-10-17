@@ -51,6 +51,16 @@
 /* 保留居中轻量任务与侧边编辑的区别，共用三段容器和稳定操作区。 */
 dialog.business-form-dialog { box-sizing:border-box; width:min(var(--form-dialog-width,680px),calc(100% - 24px)); max-width:calc(100% - 24px); max-height:calc(100dvh - 32px); padding:0; overflow:hidden; border:1px solid var(--console-line); border-radius:16px; background:var(--console-paper); color:var(--console-ink); font:400 var(--console-text)/var(--console-text-leading) var(--console-font); }
 dialog.business-form-dialog::backdrop { background:#07111d73; backdrop-filter:blur(4px); }
+dialog.business-form-dialog[open]{animation:business-dialog-in 220ms cubic-bezier(.2,.8,.2,1)}
+.business-confirm{--form-dialog-width:420px}.business-confirm [data-confirm-message]{margin:0;white-space:pre-wrap}.business-confirm .dialog-actions{min-height:64px}
+@keyframes business-dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){dialog.business-form-dialog[open]{animation:none}}
+.business-reason-fields{display:grid;grid-template-columns:minmax(100px,.7fr) minmax(0,1.3fr);gap:12px;align-items:start}
+.business-reason-fields fieldset{margin:0;padding:0;border:0;min-width:0}.business-reason-fields legend{padding:0;margin-bottom:6px;font-weight:600}
+.business-reason-fields .responsibility-options{display:flex;flex-wrap:wrap;gap:12px;min-height:40px;align-items:center}
+.business-reason-fields .responsibility-options label{display:flex!important;align-items:center;gap:6px;margin:0!important}
+.business-reason-fields input[type=radio]{width:16px!important;height:16px!important;min-height:0!important;margin:0!important;padding:0!important;accent-color:var(--console-blue)}
+@media(max-width:480px){.business-reason-fields{grid-template-columns:1fr}}
 dialog.business-form-dialog>form { display:flex; flex-direction:column; min-height:0; max-height:calc(100dvh - 34px); margin:0; gap:0; }
 dialog.business-form-dialog[data-form-editor] { height:min(860px,calc(100dvh - 32px)); }
 dialog.business-form-dialog[data-form-editor]>form { height:100%; }
@@ -73,3 +83,7 @@ dialog.business-form-dialog[data-form-editor]>form { height:100%; }
   #row-dialog.business-form-dialog>form { height:100%; max-height:100%; }
 }
 @media(prefers-reduced-transparency:reduce) { dialog.business-form-dialog::backdrop { backdrop-filter:none; } }
+
+.business-form.business-form .business-action-primary{border:1px solid var(--console-blue);color:#fff;background:var(--console-blue)}
+.business-form.business-form .business-action-secondary{border:1px solid var(--console-line);color:var(--console-ink);background:var(--console-surface)}
+.business-action-group{display:flex;align-items:center;flex-wrap:wrap;gap:8px}

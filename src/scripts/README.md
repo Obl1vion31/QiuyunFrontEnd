@@ -15,3 +15,6 @@
 `business-datetime.ts` 管理共享日期／时间拆分控件，捕获输入与提交时拼合原字段；SSR 与动态表单共用相同配置方法，同步只读／禁用，不转换业务时区。
 
 `business-date.ts` 统一工作台完整时间的上海时区显示；SSR 与浏览器共用，不转换业务日期键或替代原生日期选择控件。
+
+- `business-dialog.ts`：站内未保存确认与 Sheet／Dialog 的成对进出生命周期。
+- `business-permissions.ts`：读取服务端下发的操作权限、同步入口显示；服务端始终独立复核。

@@ -23,7 +23,7 @@ async function seed(status:string,stage='scaling') {
 test('员工拥有暂停、调整与恢复权限，其他管理入口保持原权限',()=>{
   assert.equal(requiresAdmin('/api/promotion-pauses','POST'),false);
   assert.equal(requiresAdmin('/api/promotion-pauses/id','PATCH'),false);
-  assert.equal(requiresAdmin('/api/operations-annual-plans','POST'),true);
+  assert.equal(requiresAdmin('/api/operations-annual-plans','POST'),false);
   assert.equal(pauseCreateSchema.safeParse({endsOn:'2026-02-30',requestKey:randomUUID()}).success,false);
 });
 test('完整暂停日包含截止日，立即暂停当天仍需真实数据，提前恢复日不整日略过',()=>{

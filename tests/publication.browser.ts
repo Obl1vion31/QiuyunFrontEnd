@@ -1,3 +1,4 @@
+import {respondToBusinessConfirm} from './business-confirm.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 发布登记、历史空值与月历交互；业务写入仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
@@ -112,7 +113,7 @@ await page.locator('[data-inspector-publication]').click();await checkBusinessDa
   assert.equal(await page.evaluate(()=>document.documentElement.dataset.unsaved),'true','选择器 change 同步未保存保护');
   await fillBusinessDateTime(page,'actualPublishAt',future);await page.locator('#publicationUrl').fill(share);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/project');await page.locator('[data-publication-link-preview]').getByText('已识别：'+link).waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
-  page.once('dialog',(dialog:any)=>dialog.dismiss());await page.keyboard.press('Escape');assert.equal(await page.locator('#publication-dialog').evaluate((node:HTMLDialogElement)=>node.open),true);
+  {const answered=respondToBusinessConfirm(page);await page.keyboard.press('Escape');await answered;}assert.equal(await page.locator('#publication-dialog').evaluate((node:HTMLDialogElement)=>node.open),true);
   await page.route(`**/api/operations-content/${newId}/publication`,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构连接失败'})}));await page.locator('#publication-form button[type=submit]').click();await page.locator('[data-publication-message]').getByText('虚构连接失败').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),share);assert.equal(await page.locator('#publicationActualPublishAt').inputValue(),future);await page.unroute(`**/api/operations-content/${newId}/publication`);
   await page.screenshot({path:`.tools/test-artifacts/unified-publication-${width}.png`});
   const saved=page.waitForResponse((r:any)=>r.url().endsWith(`/api/operations-content/${newId}/publication`)&&r.request().method()==='PATCH');await page.locator('#publication-form button[type=submit]').click();assert.equal((await saved).status(),200);await page.waitForLoadState('networkidle');

@@ -1,3 +1,4 @@
+import {respondToBusinessConfirm} from './business-confirm.helper';
 /** 登记催办、审批边界与长详情滚动；所有写入仅使用隔离 PGlite。 */
 import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
@@ -24,9 +25,9 @@ try{
  const race=await seed('虚构门槛后改期',-1);
  assert.equal((await (await call(`/api/operations-content/${race.id}/workflow`)).json()).requiresPlanApproval,false);
  await db.update(schema.operationsContentSchedule).set({plannedPublishAt:at(-3)}).where(eq(schema.operationsContentSchedule.id,race.id));
- const response=await call(`/api/operations-content/${race.id}`,'PATCH',edit);assert.equal(response.status,409);assert.equal((await response.json()).approvalRequired,true);
- const history=await seed('虚构历史四小时仍按时',-40,true,8);
- const hw=await (await call(`/api/operations-content/${history.id}/workflow`)).json();assert.equal(hw.days.length,0);assert.equal(hw.schedule.completionStatus,'on_time');
+ const response=await call(`/api/operations-content/${race.id}`,'PATCH',edit);assert.equal(response.status,202);assert.equal((await response.json()).status,'pending_approval');
+ const history=await seed('虚构历史四小时按新口径延期',-40,true,8);
+ const hw=await (await call(`/api/operations-content/${history.id}/workflow`)).json();assert.equal(hw.days.length,1);
  const notes=await (await call('/api/business-notifications')).json();assert.ok(notes.missingRegistrationIds.includes(race.id));assert.ok(!notes.missingReasonIds.includes(race.id));
  const playwright=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);
  browser=await playwright.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});const errors:string[]=[];
@@ -46,8 +47,8 @@ try{
   await page.screenshot({path:`.tools/test-artifacts/registration-overview-${width}.png`});
   assert.match(await inspector.locator(':scope>header').innerText(),new RegExp(`虚构长详情 ${width}`),'滚动时保留当前帖子的身份');
   assert.equal(((await inspector.innerText()).match(/尚未登记/g)??[]).length,1,'面板不重复堆叠登记状态');
-  const first=pending.first(),last=pending.last();await first.locator('select').selectOption('self');await first.locator('textarea').fill('第一条实际原因');
-  await last.locator('summary').click();await last.locator('select').selectOption('requester');await last.locator('textarea').fill('另一日未保存输入');
+  const first=pending.first(),last=pending.last();await first.locator('input[type=radio][value=self]').check();await first.locator('textarea').fill('第一条实际原因');
+  await last.locator('summary').click();await last.locator('input[type=radio][value=external]').check();await last.locator('textarea').fill('另一日未保存输入');
   const key=await last.getAttribute('data-delay-key');await first.locator('button[type=submit]').click();
   await page.locator('[data-schedule-workflow-history]').getByText('自身原因：第一条实际原因',{exact:true}).waitFor({state:'attached'});
   assert.equal(await page.locator(`[data-delay-key="${key}"] textarea`).inputValue(),'另一日未保存输入','保存另一日不会丢失其他草稿');
@@ -60,18 +61,18 @@ try{
   if(width<900)assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden');
   const controls=await inspector.locator('.business-inspector-actions button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({size:getComputedStyle(node).fontSize,height:node.getBoundingClientRect().height,font:getComputedStyle(node).fontFamily})));assert.ok(controls.every((item:any)=>item.size==='13px'&&item.height===40&&item.font.includes('system-ui')));
   await page.screenshot({path:`.tools/test-artifacts/registration-inspector-${width}.png`});
-  page.once('dialog',(dialog:any)=>dialog.dismiss());await page.keyboard.press('Escape');assert.equal(await inspector.isVisible(),true,'未保存关闭保护保留');
-  page.once('dialog',(dialog:any)=>dialog.accept());await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>window.scrollY),scrollY);
+  {const answered=respondToBusinessConfirm(page);await page.keyboard.press('Escape');await answered;}assert.equal(await inspector.isVisible(),true,'未保存关闭保护保留');
+  {const answered=respondToBusinessConfirm(page,true);await page.keyboard.press('Escape');await answered;}await inspector.waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>window.scrollY),scrollY);
   assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'visible');
   await context.close();
  }
- // 在编辑 Sheet 跨门槛时保留输入，明确提交改期申请后再保存其他字段。
+ // 超时改期与名称修改必须整笔待审核，原记录保持不变。
+ const sheetRace=await seed('虚构门槛后改期',-3);
  const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));
- const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));await page.goto(baseURL+`/business/operations-schedule?row=${race.id}`);await page.locator('[data-inspector-edit]').click();
+ const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));await page.goto(baseURL+`/business/operations-schedule?row=${sheetRace.id}`);await page.locator('[data-inspector-edit]').click();
  await fillBusinessDateTime(page,'plannedPublishAt',inputTime(at(36)));await page.locator('[name=planChangeReason]').fill('超时后需求调整');await page.locator('#contentName').fill('虚构改期同时更新名称');
- await page.locator('#schedule-form button[type=submit]').click();await page.locator('#schedule-form button[type=submit]').getByText('提交改期申请',{exact:true}).waitFor();assert.equal(await page.locator('#contentName').inputValue(),'虚构改期同时更新名称');
- const applied=page.waitForResponse((response:any)=>response.url().endsWith(`/api/operations-content/${race.id}/change-requests`)&&response.request().method()==='POST');await page.locator('#schedule-form button[type=submit]').click();assert.equal((await applied).status(),201);await page.waitForLoadState('networkidle');
- const w=await (await call(`/api/operations-content/${race.id}/workflow`)).json();assert.equal(w.schedule.plannedPublishAt,at(-3).toISOString());assert.equal(w.applications.filter((item:any)=>item.status==='pending').length,1);
- const version=(await db.select().from(schema.operationsContentVersion).where(eq(schema.operationsContentVersion.id,race.contentVersionId)))[0];assert.equal(version.contentName,'虚构改期同时更新名称');await context.close();
+ const applied=page.waitForResponse((response:any)=>response.url().endsWith(`/api/operations-content/${sheetRace.id}`)&&response.request().method()==='PATCH');await page.locator('#schedule-form button[type=submit]').click();assert.equal((await applied).status(),202);await page.waitForLoadState('networkidle');
+ const w=await (await call(`/api/operations-content/${sheetRace.id}/workflow`)).json();assert.equal(w.schedule.plannedPublishAt,at(-3).toISOString());
+ const version=(await db.select().from(schema.operationsContentVersion).where(eq(schema.operationsContentVersion.id,sheetRace.contentVersionId)))[0];assert.equal(version.contentName,'虚构门槛后改期');await context.close();
  assert.deepEqual(errors,[]);console.log('通过：2小时催登记与审批边界、历史口径、待办/历史分层、长详情单滚动、头尾稳定、草稿保护及桌面/手机。');
 }catch(error){console.error(fixture.logs());throw error;}finally{await browser?.close();await fixture.stop();}

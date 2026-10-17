@@ -1,3 +1,4 @@
+import {respondToBusinessConfirm} from './business-confirm.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
@@ -171,10 +172,10 @@ try {
       await page.goBack();await page.waitForURL(/group=0/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
       await page.goBack();await page.waitForURL(/group=1/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     }
-    page.once('dialog',(dialog:any)=>dialog.dismiss());await page.getByRole('link',{name:'待复盘',exact:true}).click();assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
-    page.once('dialog',(dialog:any)=>dialog.dismiss());await page.goBack();await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[1]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[1]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
-    page.once('dialog',(dialog:any)=>dialog.dismiss());await inspector.locator('[data-close-inspector]').click();assert.equal(await inspector.isVisible(),true,'未保存取消关闭');
-    page.once('dialog',(dialog:any)=>dialog.accept());await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
+    {const answered=respondToBusinessConfirm(page);await page.getByRole('link',{name:'待复盘',exact:true}).click();await answered;}assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
+    {const answered=respondToBusinessConfirm(page);await page.goBack();await answered;}await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[1]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[1]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
+    {const answered=respondToBusinessConfirm(page);await inspector.locator('[data-close-inspector]').click();await answered;}assert.equal(await inspector.isVisible(),true,'未保存取消关闭');
+    {const answered=respondToBusinessConfirm(page,true);await page.keyboard.press('Escape');await answered;}await inspector.waitFor({state:'hidden'});
     assert.deepEqual(await page.evaluate(()=>({scroll:scrollY,tableScroll:document.querySelector('.table-scroll')!.scrollLeft})),before,'关闭保留列表滚动位置');
     await page.goBack();await inspector.waitFor();assert.equal(await page.evaluate(()=>(window as any).__table===document.querySelector('.review-table')),true,'后退保留列表节点');await page.goForward();await inspector.waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>(window as any).__table===document.querySelector('.review-table')),true,'前进保留列表节点');
     await first.focus();await page.keyboard.press('Enter');await inspector.waitFor();await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});assert.equal(await first.evaluate((node:HTMLElement)=>node===document.activeElement),true,JSON.stringify(await page.evaluate(()=>({active:document.activeElement?.outerHTML?.slice(0,500),selected:document.querySelector('[data-inspector]')?.getAttribute('data-selected-id'),sameTable:(window as any).__table===document.querySelector('.review-table')}))));

@@ -1,11 +1,12 @@
 /** 服务端权限来源与业务危险操作边界；浏览器只使用可显示的角色。 */
+import {isConfigurableBusinessWrite} from './business-capabilities';
 export type Role = 'admin' | 'employee';
 export interface OperationsUser { id: string; username: string; role: Role }
 
 export const isAdmin = (user: OperationsUser | null | undefined) => user?.role === 'admin';
 
 export class AccessDenied extends Error {
-  constructor() { super('这项操作需要管理员权限。'); }
+  constructor(message='这项操作需要管理员权限。') { super(message); }
 }
 
 export function requireAdmin(user: OperationsUser | null | undefined) {
@@ -13,13 +14,15 @@ export function requireAdmin(user: OperationsUser | null | undefined) {
 }
 
 export const deniedResponse = () => Response.json({ code: 'FORBIDDEN', message: '这项操作需要管理员权限。' }, { status: 403 });
-export const permissionErrorResponse = (error: unknown) => error instanceof AccessDenied ? deniedResponse() : null;
+export const permissionErrorResponse = (error: unknown) => error instanceof AccessDenied ? Response.json({code:'FORBIDDEN',message:error.message},{status:403}) : null;
 
 export function requiresAdmin(path: string, method: string) {
   const normalized = path.replace(/\/+$/, '');
   if (normalized === '/business/settings') return true;
   if (normalized.startsWith('/api/business-settings') || normalized === '/api/stage-reviews/category-policies') return true;
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) return false;
+  // 年度与排期写入由逐账号操作权限在事务内检查；其他危险操作沿用原管理员边界。
+  if(isConfigurableBusinessWrite(normalized,method))return false;
   if (method === 'DELETE') return true;
   if (normalized === '/api/operations-annual-plans' || normalized.startsWith('/api/operations-annual-plans/')) return true;
   if (/^\/api\/operations-content\/[^/]+\/platform-note-id$/.test(normalized)) return true;

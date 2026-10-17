@@ -1,3 +1,4 @@
+import {respondToBusinessConfirm} from './business-confirm.helper';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { and, eq } from 'drizzle-orm';
@@ -98,7 +99,7 @@ try {
     assert.ok(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}px 页面不横向溢出`);
     await phone.locator('.item-cell').first().click();await phone.locator('[data-inspector].is-open').waitFor();await checkHistory(phone,width);await phone.locator('[data-close-inspector]').click();await phone.locator('[data-inspector]').waitFor({state:'hidden'});
     await phone.locator('[data-open-new]').click(); const editorBox = await phone.locator('#row-dialog').boundingBox(); assert.equal(editorBox!.x, 0); assert.equal(editorBox!.width, width); await phone.locator('[data-start]').first().selectOption('20'); await phone.locator('[data-end]').first().selectOption('23');
-    await phone.screenshot({ path: `.tools/test-artifacts/annual-editor-${width}.png` }); await phone.locator('[data-close-row]').last().click();
+    await phone.screenshot({ path: `.tools/test-artifacts/annual-editor-${width}.png` }); {const answered=respondToBusinessConfirm(phone,true);await phone.locator('[data-close-row]').last().click();await answered;}
     await phone.locator('[data-copy-year]').click(); await phone.locator('#copy-dialog[open]').waitFor(); await mobile.close();
   }
   const reader = await browser.newContext(); await reader.addCookies(employeeCookie.split('; ').map(pair => ({ name: pair.slice(0, pair.indexOf('=')), value: pair.slice(pair.indexOf('=') + 1), url: baseURL })));

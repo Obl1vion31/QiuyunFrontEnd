@@ -1,4 +1,5 @@
 import { navigate } from 'astro:transitions/client';
+import { businessConfirm } from './business-dialog';
 
 /** 静态详情与惰性模板都使用同一条正文滚动轨道。 */
 function organizeInspector(element: HTMLElement) {
@@ -60,7 +61,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   const syncContext = () => { element.dataset.inspectorHistoryBase = baseUrl(currentUrl); element.dataset.inspectorLocalParameters = (options.localParameters??[]).join(','); };
   syncContext();
   const dirty = () => element.dataset.dirty === 'true';
-  const mayLeave = () => !dirty() || window.confirm('有尚未保存的修改，确定放弃吗？');
+  const mayLeave = async () => !dirty() || await businessConfirm('有尚未保存的修改，是否放弃？');
   const setClean = () => { element.dataset.dirty = 'false'; document.documentElement.dataset.unsaved = 'false'; };
   const updateUrl = (id: string | null, replace = false) => {
     if (!parameter) return;
@@ -71,6 +72,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   };
   const select = (id: string | null) => {
     selected = id;
+    document.dispatchEvent(new CustomEvent('business:inspector-selection',{detail:{id}}));
     element.dataset.selectedId = id ?? '';
     host?.classList.toggle('inspecting', !!id);
     options.select?.(id);
@@ -82,7 +84,11 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     });
   };
   const open = (id: string, source?: HTMLElement | null, writeHistory = true) => {
-    if (selected !== id && !mayLeave()) return false;
+    if (selected !== id && dirty()) {
+      const token=generation;
+      void mayLeave().then(accepted=>{if(accepted&&token===generation&&!signal.aborted){setClean();open(id,source,writeHistory);}});
+      return false;
+    }
     clearTimeout(closeTimer); generation++;
     if (source) trigger = source;
     else if (!trigger?.isConnected) trigger = document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(id)}"],[data-inspect-id="${CSS.escape(id)}"]`);
@@ -100,7 +106,11 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     return true;
   };
   const close = (writeHistory = true) => {
-    if (!mayLeave()) return false;
+    if(dirty()){
+      const token=generation;
+      void mayLeave().then(accepted=>{if(accepted&&token===generation&&!signal.aborted){setClean();close(writeHistory);}});
+      return false;
+    }
     generation++; setClean(); select(null); element.classList.remove('is-open', 'open');
     closeTimer = window.setTimeout(() => { element.hidden = true; }, matchMedia('(prefers-reduced-motion:reduce)').matches ? 0 : 220);
     trigger?.focus({ preventScroll: true });
@@ -131,18 +141,17 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if (!parameter) return;
     const destination = new URL(location.href);
     if (baseUrl(destination) !== baseUrl(currentUrl)) {
-      if (!mayLeave()) { event.stopImmediatePropagation(); history.pushState({...history.state},'',currentUrl); }
-      else { setClean(); void navigate(destination.href,{history:'replace'}); }
+      event.stopImmediatePropagation();
+      const previous=new URL(currentUrl);history.pushState({...history.state},'',previous);
+      void mayLeave().then(accepted=>{if(accepted){setClean();void navigate(destination.href,{history:'replace'});}});
       return;
     }
     // 本地选择的历史由本控制器处理，避免 Astro 把 query 变化当成整页导航。
     event.stopImmediatePropagation();
-    currentUrl = destination;
-    options.onContextChange?.(destination);
     const id = destination.searchParams.get(parameter);
-    if (id === selected) return;
-    const accepted = id ? open(id, null, false) : close(false);
-    if (!accepted) updateUrl(selected, true);
+    const apply=()=>{currentUrl=destination;history.replaceState({...history.state},'',destination);options.onContextChange?.(destination);if(id!==selected){setClean();id?open(id,null,false):close(false);}};
+    if(dirty()&&id!==selected){history.pushState({...history.state},'',currentUrl);void mayLeave().then(accepted=>{if(accepted)apply();});}
+    else apply();
   }, { signal });
   window.addEventListener('beforeunload', event => { if (dirty()) event.preventDefault(); }, { signal });
   const guardNavigation = (event:Event) => {
@@ -152,9 +161,13 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if (target.closest('[data-inspector]')) return;
     const link = target.closest<HTMLAnchorElement>('a[href]');
     if (event.type === 'click' && (!link || link.target === '_blank' || link.hasAttribute('download') || link.closest('[data-inspector]') || link.hasAttribute('data-inspector-key'))) return;
-    if (event.type === 'submit' && !(target instanceof HTMLFormElement && target.method.toLowerCase() === 'get')) return;
-    if (!mayLeave()) { event.preventDefault(); event.stopImmediatePropagation(); }
-    else setClean();
+    if (event.type === 'submit' && !(target instanceof HTMLFormElement && target.getAttribute('method')?.toLowerCase() === 'get')) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    void mayLeave().then(accepted=>{
+      if(!accepted)return;setClean();
+      if(link)void navigate(link.href);
+      else if(target instanceof HTMLFormElement)target.requestSubmit();
+    });
   };
   document.addEventListener('click', guardNavigation, {signal,capture:true});
   document.addEventListener('submit', guardNavigation, {signal,capture:true});

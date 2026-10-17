@@ -1,4 +1,6 @@
 ---
+import {effectiveBusinessPermissions} from '../../auth/business-permissions';
+import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
@@ -22,9 +24,11 @@ import { operationsPromotionCampaign } from '../../db/schema';
 import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
 import { publicationLabels,publicationState,mayKeepEmptyPublicationLink } from '../../db/publication-rules.mjs';
 import { teamScheduleNotifications } from '../../db/schedule-workflow';
-import { completionStatus, needsRegistration, requiresPlanApproval } from '../../db/schedule-rules.mjs';
+import { businessDateTime } from '../../scripts/business-date';
+import { completionStatus, needsRegistration, requiresPlanApproval, delayThresholdMs } from '../../db/schedule-rules.mjs';
 
 export const prerender = false;
+const permissions=Astro.locals.businessPermissions=await effectiveBusinessPermissions(getDb(),Astro.locals.user!);
 
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
@@ -50,8 +54,7 @@ const inputDateTime = (date: Date | null) => {
 };
 const displayDateTime = (date: Date | null) => {
   if (!date) return '尚未登记';
-  const part = dateParts(date);
-  return `${part.month}月${part.day}日 ${part.hour}:${part.minute}`;
+  return businessDateTime(date);
 };
 const currentMonth = monthKey(now);
 const requestedMonth = Astro.url.searchParams.get('month') ?? currentMonth;
@@ -239,11 +242,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
               { label: '月历', href: hrefFor({ view: 'schedule', display: 'calendar', status: '', promotion: '' }), active: selectedDisplay === 'calendar' && selectedView === 'schedule' },
             ]} />
             <button class="filter-button toolbar-action-secondary" type="button" disabled title="更多筛选将在数据维度确认后开放">筛选</button>
-            <button class="primary-action" type="button" data-open-new><span>新做帖</span><b aria-hidden="true">＋</b></button>
+            <button class="primary-action" type="button" data-open-new data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
           </BusinessToolbarActions>
         </BusinessConsoleToolbar>
 
         <main class="workspace-main business-console-content">
+<BusinessPendingChanges module="schedule"/>
           {databaseError && <p class="notice notice--error" role="alert">{databaseError}</p>}
 
           {selectedView === 'schedule' && !queueView && <div class="mobile-period-nav">
@@ -343,9 +347,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                 <section class="inspector-section"><span>小红书帖子</span><a data-inspector-post target="_blank" rel="noreferrer"></a></section>
                 </details>
                 <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录"></section>
-                <details class="inspector-danger" data-admin-only><summary>更多操作</summary><button type="button" data-inspector-delete>删除这条排期</button><small role="alert" data-inspector-delete-error></small></details>
+                <details class="inspector-danger" data-business-operation="schedule.delete" hidden={permissions['schedule.delete']==='disabled'}><summary>更多操作</summary><button type="button" data-inspector-delete>删除这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
-              <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
+              <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </BusinessInspector>
           </div>
         </main>
@@ -418,7 +422,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
 
     <template data-change-request-datetime><BusinessDateTimeFields name="plannedPublishAt" id="changeRequestPlannedPublishAt" dateName="requestedPublishDate" timeName="requestedPublishTime" dateLabel="申请的新发送日期" timeLabel="申请的新发送时间" label="申请的新发送时间" required/></template>
 
-    <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow }}>
+    <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow, delayThresholdMs }}>
+      const permissions=JSON.parse(document.querySelector('#business-permissions')?.textContent||'{}');
+      const mayOperate=key=>['direct','review'].includes(permissions[key]);
       const rows = clientRows;
       const categories = clientCategories;
       const dialog = document.querySelector('#schedule-dialog');
@@ -493,10 +499,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           doc.textContent = '项目文档待补';
           doc.setAttribute('aria-disabled', 'true');
         }
-        inspectorRevise.hidden = record.childVersionNumber != null;
+        inspectorRevise.hidden = record.childVersionNumber != null||!mayOperate('schedule.revise');
         inspectorDerived.hidden = record.childVersionNumber == null;
         inspectorDerived.textContent = record.childVersionNumber == null ? '' : `已派生 V${record.childVersionNumber}`;
         inspectorPublication.textContent = record.actualPublishAt ? '查看／编辑发布登记' : '发布登记';
+        inspectorPublication.dataset.businessOperation=record.actualPublishAt?'schedule.publish schedule.correctPublication':'schedule.publish';
+        inspectorPublication.hidden=!mayOperate('schedule.publish')&&!(record.actualPublishAt&&mayOperate('schedule.correctPublication'));
         const post=inspector.querySelector('[data-inspector-post]');
         if(record.publicationUrl){post.href=record.publicationUrl;post.textContent='打开小红书帖子 ↗';}else{post.removeAttribute('href');post.textContent='';}
         inspectorDeleteError.textContent = '';
@@ -582,6 +590,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         }
       };
       const openForm = (nextMode, record, selectedDate = '') => {
+        if(nextMode==='new'&&!mayOperate('schedule.create')||nextMode==='revision'&&!mayOperate('schedule.revise'))return;
+        form.querySelectorAll('[data-permission-preserved]').forEach(node=>node.remove());
+        form.querySelectorAll('input,select,textarea').forEach(control=>{control.disabled=false;control.readOnly=false;});
         form.reset();
         clearErrors();
         mode = nextMode; applyPlanChange=false;
@@ -631,20 +642,30 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         const planReason = document.querySelector('[data-plan-change-reason]');
         planReason.hidden = true; field('planChangeReason').required = false;
         updatePromotionPreview();
+        if(nextMode==='edit'){
+          const overdue=!record.actualPublishAt&&Date.now()-new Date(`${record.plannedPublishAt}:00+08:00`).getTime()>=delayThresholdMs;
+          configureDateTime(field('plannedPublishAt'),{readOnly:!mayOperate(overdue?'schedule.overdueReschedule':'schedule.reschedule')});
+          if(!mayOperate('schedule.edit'))for(const name of ['contentName','subjectId','categoryId','projectDocUrl','isPromoted','syncToMoments']){
+            const control=field(name);
+            if(control.tagName==='SELECT'||control.type==='checkbox'){
+              control.disabled=true;if(control.type!=='checkbox'||control.checked){const preserved=document.createElement('input');preserved.type='hidden';preserved.name=name;preserved.value=control.type==='checkbox'?'on':control.value;preserved.dataset.permissionPreserved='';form.append(preserved);}
+            }else control.readOnly=true;
+          }
+        }
         dirty = false;
         dialog.showModal();
         field('contentName').focus();
       };
-      const closeForm = () => {
-        if (dirty && !window.confirm('有尚未保存的修改，确定关闭吗？')) return;
-        dirty = false;
+      const closeForm = async () => {
+        if (dirty && !await window.businessConfirm('有尚未保存的修改，是否放弃？')) return;
+        dirty = false;document.documentElement.dataset.unsaved='false';
         dialog.close();
       };
       document.querySelector('[data-open-new]')?.addEventListener('click', () => openForm('new'));
       document.querySelectorAll('[data-calendar-new]').forEach(button=>button.addEventListener('click',()=>openForm('new',undefined,button.dataset.calendarNew)));
       document.querySelectorAll('[data-calendar-day]').forEach(cell=>cell.addEventListener('click',event=>{
         if(event.composedPath().some(node=>node instanceof Element&&node.matches('button,a,[data-inspect-id]')))return;
-        openForm('new',undefined,cell.dataset.calendarDay);
+        if(mayOperate('schedule.create'))openForm('new',undefined,cell.dataset.calendarDay);
       }));
       document.querySelectorAll('[data-inspect-id]').forEach((node) => {
         const inspect = () => openInspector(rows.find((row) => row.id === node.dataset.inspectId));
@@ -665,7 +686,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
             headers: { Accept: 'application/json' },
           });
           const result = await response.json();
-          if (response.ok) { window.location.reload(); return; }
+          if (response.ok) {document.documentElement.dataset.unsaved='false'; window.location.reload(); return; }
           if (error) error.textContent = result.message ?? '删除失败，请重试。';
         } catch {
           if (error) error.textContent = '无法连接服务，请稍后重试。';
@@ -678,12 +699,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       const updatePublicationStatus = () => {
         const planned = publicationControl('plannedPublishAt').value;
         const actual = publicationControl('actualPublishAt').value;
-        const delayed = Boolean(planned && actual) && new Date(`${actual}:00+08:00`).getTime() - new Date(`${planned}:00+08:00`).getTime() >= (activeRecord?.delayThresholdHours ?? 2) * 60 * 60 * 1000;
+        const delayed = Boolean(planned && actual) && new Date(`${actual}:00+08:00`).getTime() - new Date(`${planned}:00+08:00`).getTime() >= delayThresholdMs;
         publicationStatus.value = actual ? delayed ? '延期发布' : '按时发布' : '待登记';
         publicationStatus.className = `status-preview ${delayed ? 'completion-delayed' : ''}`;
       };
       const updatePublicationFields = () => {
-        const correcting=Boolean(activeRecord?.actualPublishAt)&&actorRole==='admin'&&publicationControl('correctTime').checked;
+        const correcting=Boolean(activeRecord?.actualPublishAt)&&mayOperate('schedule.correctPublication')&&publicationControl('correctTime').checked;
         const actual=publicationControl('actualPublishAt');configureDateTime(actual,{disabled:Boolean(activeRecord?.actualPublishAt)&&!correcting,required:!activeRecord?.actualPublishAt||correcting});
         const keepEmpty=Boolean(activeRecord?.allowEmptyPublicationLink)&&actual.value<'2026-10-17T00:00';
         publicationControl('publicationUrl').required=!keepEmpty;
@@ -692,7 +713,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         document.querySelector('[data-publication-doc-required]').hidden=Boolean(activeRecord?.actualPublishAt);
         document.querySelector('[data-time-correction]').hidden=!correcting;
         publicationControl('correctionReason').disabled=!correcting;publicationControl('correctionReason').required=correcting;
-        document.querySelector('[data-correction-toggle]').hidden=!activeRecord?.actualPublishAt||actorRole!=='admin';
+        document.querySelector('[data-correction-toggle]').hidden=!activeRecord?.actualPublishAt||!mayOperate('schedule.correctPublication');
         updatePublicationStatus();
       };
       const openPublication = (record) => {
@@ -712,7 +733,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         publicationControl(record.actualPublishAt?'publicationUrl':'actualPublishDate').focus();
         document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));
       };
-      const closePublication=()=>{if(publicationDirty&&!confirm('有尚未保存的发布登记，确定放弃吗？'))return;publicationDirty=false;document.documentElement.dataset.unsaved='false';publicationDialog.close();};
+      const closePublication=async()=>{if(publicationDirty&&!await window.businessConfirm('有尚未保存的发布登记，是否放弃？'))return;publicationDirty=false;document.documentElement.dataset.unsaved='false';publicationDialog.close();};
       inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
       document.querySelectorAll('[data-close-publication]').forEach((button) => button.addEventListener('click', closePublication));
       publicationDialog.addEventListener('cancel', (event) => { event.preventDefault(); closePublication(); });
@@ -799,6 +820,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
               result = await response.json();
             }
           }
+          if(response.status===202){dirty=false;document.documentElement.dataset.unsaved='false';window.location.reload();return;}
           if (result.approvalRequired) { applyPlanChange=true;message.textContent=result.message;return; }
           if (response.ok && applicationSubmission) {
             applyPlanChange=false;
@@ -828,11 +850,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         const data=event.detail,record=rows.find(row=>row.id===data.schedule.id);if(!record||publicationDialog.open)return;
         const asInput=value=>value?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value)).replace(' ','T'):'';
         record.publicationRevision=data.schedule.publicationRevision;record.publicationUrl=data.schedule.publicationUrl;
+        record.planRevision=data.schedule.planRevision;record.plannedPublishAt=asInput(data.schedule.plannedPublishAt);record.plannedDisplay=window.businessDateTime(data.schedule.plannedPublishAt);
         record.publicationState=data.publicationState;record.publicationLabel=data.publicationLabel;
         record.requiresPlanApproval=data.requiresPlanApproval;record.delayThresholdHours=data.schedule.delayThresholdHours;record.completionLabel=data.completionLabel;
         record.actualPublishAt=asInput(data.schedule.actualPublishAt);record.allowEmptyPublicationLink=data.allowEmptyPublicationLink;
-        record.actualDisplay=data.schedule.actualPublishAt?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(data.schedule.actualPublishAt)):'—';
-        if(activeRecord?.id===record.id){setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';}
+        record.actualDisplay=data.schedule.actualPublishAt?window.businessDateTime(data.schedule.actualPublishAt):'—';
+        if(activeRecord?.id===record.id){setInspectorText('[data-inspector-planned]',record.plannedDisplay);setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';}
       });
       const initialRecord = rows.find(row => row.id === (requestedRow || location.hash.slice(1)));
       if (initialRecord) openInspector(initialRecord);

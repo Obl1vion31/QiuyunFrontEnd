@@ -58,6 +58,41 @@ export const authRateLimit = pgTable('auth_rate_limit', {
   lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
 }, table => [index('auth_rate_limit_last_request_idx').on(table.lastRequest)]);
 
+// 业务权限只作用于现有账号，不授予角色或账号管理权限。
+export const operationsAccountPermission = pgTable('operations_account_permission', {
+  userId: text('user_id').notNull().references(() => authUser.id, { onDelete: 'cascade' }),
+  operation: text('operation').notNull(),
+  mode: text('mode').$type<'disabled' | 'direct' | 'review'>().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [primaryKey({ columns: [table.userId, table.operation] }), check('operations_permission_mode_check', sql`${table.mode} IN ('disabled','direct','review')`)]);
+
+export const operationsPermissionAudit = pgTable('operations_permission_audit', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id').notNull().references(() => authUser.id, { onDelete: 'restrict' }),
+  before: jsonb('before').$type<Record<string,string>>().notNull(),
+  after: jsonb('after').$type<Record<string,string>>().notNull(),
+  changedById: text('changed_by_id').notNull(), changedByLabel: text('changed_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const operationsChangeProposal = pgTable('operations_change_proposal', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  requestedById: text('requested_by_id').notNull().references(() => authUser.id, { onDelete: 'restrict' }),
+  requestedByLabel: text('requested_by_label').notNull(),
+  module: text('module').$type<'annual' | 'schedule'>().notNull(), target: text('target').notNull(),
+  operations: jsonb('operations').$type<string[]>().notNull(),
+  path: text('path').notNull(), method: text('method').notNull(), contentType: text('content_type').notNull(), body: text('body').notNull(),
+  fingerprint: text('fingerprint').notNull(), requestKey: text('request_key').notNull().unique(),
+  before: jsonb('before').$type<Record<string,unknown>>().notNull(),
+  after: jsonb('after').$type<Record<string,unknown>>().notNull(),
+  status: text('status').$type<'pending' | 'approved' | 'rejected' | 'obsolete'>().notNull().default('pending'),
+  result: jsonb('result').$type<Record<string,unknown>>(),
+  decisionReason: text('decision_reason'), decidedById: text('decided_by_id'), decidedByLabel: text('decided_by_label'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  decidedAt: timestamp('decided_at', { withTimezone: true }),
+}, table => [index('operations_proposal_status_idx').on(table.status), index('operations_proposal_owner_idx').on(table.requestedById),
+  check('operations_proposal_status_check', sql`${table.status} IN ('pending','approved','rejected','obsolete')`)]);
+
 export interface LegacyAnnualPlanSnapshot {
   schemaVersion: 2 | 3;
   row: {
@@ -409,7 +444,7 @@ export const operationsScheduleDelayReason = pgTable('operations_schedule_delay_
   planRevision: integer('plan_revision').notNull(),
   dayNumber: integer('day_number').notNull(),
   dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
-  responsibility: text('responsibility').$type<'self' | 'requester' | 'unknown'>().notNull(),
+  responsibility: text('responsibility').$type<'self' | 'external' | 'requester' | 'unknown'>().notNull(),
   reason: text('reason').notNull(),
   source: text('source').$type<'manual' | 'historical'>().notNull().default('manual'),
   changedById: text('changed_by_id'),
@@ -419,7 +454,7 @@ export const operationsScheduleDelayReason = pgTable('operations_schedule_delay_
 }, table => [
   uniqueIndex('operations_delay_reason_day_idx').on(table.scheduleId, table.planRevision, table.dayNumber),
   check('operations_delay_reason_day_check', sql`${table.dayNumber} > 0`),
-  check('operations_delay_reason_responsibility_check', sql`${table.responsibility} IN ('self','requester','unknown')`),
+  check('operations_delay_reason_responsibility_check', sql`${table.responsibility} IN ('self','external','requester','unknown')`),
   check('operations_delay_reason_source_check', sql`${table.source} IN ('manual','historical')`),
   check('operations_delay_reason_text_check', sql`length(trim(${table.reason})) > 0`),
 ]);

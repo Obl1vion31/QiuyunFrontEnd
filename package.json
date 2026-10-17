@@ -26,7 +26,8 @@
     "db:backup": "node --import tsx scripts/backup-database.ts",
     "test:ui": "node --import tsx tests/business-ui.browser.ts",
     "test:publication": "node --import tsx tests/publication.browser.ts",
-    "test:registration": "node --import tsx tests/registration-deadline.browser.ts"
+    "test:registration": "node --import tsx tests/registration-deadline.browser.ts",
+    "test:interaction": "node --import tsx tests/interaction-consistency.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

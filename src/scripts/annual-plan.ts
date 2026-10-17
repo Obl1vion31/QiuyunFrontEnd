@@ -1,3 +1,5 @@
+import {mayOperate} from './business-permissions';
+import {businessConfirm} from './business-dialog';
 import { businessDateTime } from './business-date';
 import { getInspector } from './business-inspector';
 import { blockBackground, blockPromotionLabel, formatSlotRange, normalizeSnapshot, splitBlockSegments, type PlanBlock } from '../db/annual-plan-rules.mjs';
@@ -23,6 +25,7 @@ function initializeAnnualPlan() {
   const yearDialog = q<HTMLDialogElement>('#year-dialog'); const copyDialog = q<HTMLDialogElement>('#copy-dialog');
   const inspector = q<HTMLElement>('[data-inspector]'); const blockRows = q('[data-block-rows]', rowForm); const linkRows = q('[data-link-rows]', rowForm);
   let activeRow: Row | null = null; let editingRow: Row | null = null; let dirty = false;
+  const markDirty=()=>{dirty=true;document.documentElement.dataset.unsaved='true';};
   const field = (name: string) => rowForm.elements.namedItem(name) as HTMLInputElement;
   const applySection = (key: string, selectedCategory = '') => {
     const section = sections.find(section => section.key === key) ?? sections[0];
@@ -64,23 +67,23 @@ function initializeAnnualPlan() {
     const addPaidRange = (range = { startSlot: Number(q<HTMLSelectElement>('[data-start]', node).value), endSlot: Number(q<HTMLSelectElement>('[data-end]', node).value) }) => {
       const entry = document.createElement('div'); entry.className = 'promotion-range'; entry.dataset.paidRange = '';
       entry.innerHTML = `<select data-paid-start aria-label="付费推广开始时间">${slotOptions(false, range.startSlot)}</select><span>至</span><select data-paid-end aria-label="付费推广结束时间">${slotOptions(true, range.endSlot)}</select><button type="button" aria-label="删除付费区间">×</button>`;
-      q('button', entry).addEventListener('click', () => { entry.remove(); dirty = true; preview(); }); q('[data-paid-ranges]', node).append(entry);
+      q('button', entry).addEventListener('click', () => { entry.remove(); markDirty(); preview(); }); q('[data-paid-ranges]', node).append(entry);
     };
     for (const range of block.promotionRanges ?? []) addPaidRange(range);
-    q('[data-add-paid]', node).addEventListener('click', () => { addPaidRange(); dirty = true; preview(); });
+    q('[data-add-paid]', node).addEventListener('click', () => { addPaidRange(); markDirty(); preview(); });
     q<HTMLSelectElement>('[data-promotion-mode]', node).addEventListener('change', event => {
       if ((event.target as HTMLSelectElement).value === 'custom' && !q('[data-paid-range]', node)) addPaidRange(); preview();
     });
     node.addEventListener('input', preview); node.addEventListener('change', preview);
-    q('.remove-row', node).addEventListener('click', () => { node.remove(); dirty = true; }); blockRows.append(node); preview();
+    q('.remove-row', node).addEventListener('click', () => { node.remove(); markDirty(); }); blockRows.append(node); preview();
   }
   function addLink(link: Partial<Row['links'][number]> = {}) {
     const node = document.createElement('div'); node.className = 'link-row'; node.dataset.linkLabel = link.label || 'SOP';
     node.innerHTML = `<input data-link-url type="url" aria-label="SOP 链接" placeholder="https://…" value="${escapeHtml(link.url)}"><button type="button" aria-label="删除链接">×</button>`;
-    q('button', node).addEventListener('click', () => { node.remove(); dirty = true; }); linkRows.append(node);
+    q('button', node).addEventListener('click', () => { node.remove(); markDirty(); }); linkRows.append(node);
   }
   function openRow(row: Row | null = null, sectionKey?: string) {
-    editingRow = row; rowForm.reset(); blockRows.replaceChildren(); linkRows.replaceChildren();
+    editingRow = row; rowForm.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea').forEach(control=>{control.disabled=false;if(!(control instanceof HTMLSelectElement))control.readOnly=false;});rowForm.reset(); blockRows.replaceChildren(); linkRows.replaceChildren();
     const key = row?.sectionKey ?? sectionKey ?? sections[0]?.key; if (!key) return;
     field('sectionChoice').value = key; applySection(key, row?.categoryId ?? '');
     field('planId').value = row?.id ?? ''; field('expectedVersionNumber').value = String(row?.currentVersionNumber ?? 0);
@@ -88,23 +91,27 @@ function initializeAnnualPlan() {
     q('[data-dialog-title]', rowForm).textContent = row ? `编辑 ${row.rowName} · V${row.currentVersionNumber}` : '新建规划行';
     (row?.blocks ?? []).forEach(addBlock); (row?.links ?? []).forEach(addLink);
     if (!row) { addBlock(); addLink(); }
+    rowForm.querySelectorAll<HTMLButtonElement>('[data-add-block],[data-add-link],.remove-row,[data-add-paid],.link-row button,.promotion-range button').forEach(button=>button.disabled=Boolean(row)&&!mayOperate('annual.edit'));
+    if(row){field('isActive').disabled=!mayOperate('annual.toggle');rowForm.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea').forEach(control=>{if(control.name==='isActive')return;if(!mayOperate('annual.edit')){if(control instanceof HTMLSelectElement)control.disabled=true;else control.readOnly=true;}});}
     q('.form-message', rowForm).textContent = ''; dirty = false; rowDialog.showModal(); field('rowName').focus();
   }
-  function closeRow() { if (dirty && !window.confirm('有尚未保存的修改，确定关闭吗？')) return; dirty = false; rowDialog.close(); }
+  const clearUnsaved=()=>{dirty=false;document.documentElement.dataset.unsaved='false';};
+  async function closeRow() { if (dirty && !await businessConfirm('有尚未保存的修改，是否放弃？')) return; clearUnsaved();rowDialog.close(); }
   all('[data-open-new]').forEach(button => button.addEventListener('click', () => openRow()));
   all('[data-new-section]').forEach(button => button.addEventListener('click', () => openRow(null, button.dataset.newSection)));
   all('[data-close-row]').forEach(button => button.addEventListener('click', closeRow));
   rowDialog.addEventListener('cancel', event => { event.preventDefault(); closeRow(); });
-  rowForm.addEventListener('input', () => { dirty = true; }); rowForm.addEventListener('change', () => { dirty = true; });
+  rowForm.addEventListener('input', () => {markDirty();document.documentElement.dataset.unsaved='true';}); rowForm.addEventListener('change', () => {markDirty();document.documentElement.dataset.unsaved='true';});
   field('sectionChoice').addEventListener('change', () => applySection(field('sectionChoice').value));
-  q('[data-add-block]').addEventListener('click', () => { addBlock(); dirty = true; }); q('[data-add-link]').addEventListener('click', () => { addLink(); dirty = true; });
+  q('[data-add-block]').addEventListener('click', () => { addBlock(); markDirty(); }); q('[data-add-link]').addEventListener('click', () => { addLink(); markDirty(); });
 
   async function submit(form: HTMLFormElement, path: string, method: string, body: unknown, success: (result: any) => void) {
     if (form.dataset.saving) return;
     form.dataset.saving = 'true'; const message = q<HTMLElement>('.form-message, [role=alert]', form); message.textContent = '';
     try {
       const response = await fetch(path, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const result = await response.json();
-      if (response.ok) success(result); else message.textContent = result.fields ? Object.values(result.fields).flat().join('；') : result.message ?? '保存失败，请重试。';
+      if(response.status===202){clearUnsaved();window.location.reload();return;}
+      if (response.ok){clearUnsaved();success(result);} else message.textContent = result.fields ? Object.values(result.fields).flat().join('；') : result.message ?? '保存失败，请重试。';
     } catch { message.textContent = '网络暂时不可用，填写内容已保留，请重试。'; }
     finally { delete form.dataset.saving; }
   }
@@ -176,11 +183,11 @@ function initializeAnnualPlan() {
           } catch { window.alert('历史版本读取失败，请重试。'); } finally { view.disabled = false; }
         }); article.append(view);
         if (version.versionNumber !== row.currentVersionNumber) {
-          const restore = document.createElement('button'); restore.type = 'button'; restore.dataset.adminOnly = ''; restore.textContent = '恢复此版本';
+          const restore = document.createElement('button'); restore.type = 'button'; restore.hidden=!mayOperate('annual.restore'); restore.textContent = '恢复此版本';
           restore.addEventListener('click', async () => {
             if (!window.confirm(`将 V${version.versionNumber} 的内容恢复为新版本，当前及历史版本都会保留。确定恢复吗？`)) return;
             restore.disabled = true;
-            try { const response = await fetch(`/api/operations-annual-plans/${row.id}/restore`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ versionNumber: version.versionNumber, expectedVersionNumber: row.currentVersionNumber }) }); const result = await response.json(); if (response.ok) window.location.reload(); else window.alert(result.message); }
+            try { const response = await fetch(`/api/operations-annual-plans/${row.id}/restore`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ versionNumber: version.versionNumber, expectedVersionNumber: row.currentVersionNumber }) }); const result = await response.json(); if (response.ok) {clearUnsaved();window.location.reload();} else window.alert(result.message); }
             catch { window.alert('恢复失败，请重试。'); } finally { restore.disabled = false; }
           }); article.append(restore);
         } target.append(article);
@@ -188,7 +195,7 @@ function initializeAnnualPlan() {
     } catch { if (activeRow?.id === row.id) target.textContent = '版本历史读取失败，请重试。'; }
   });
   const yearForm = q<HTMLFormElement>('#year-form'); q('[data-edit-year]').addEventListener('click', () => { q<HTMLElement>('[role=alert]', yearForm).textContent = ''; yearDialog.showModal(); });
-  all('[data-close-year]').forEach(button => button.addEventListener('click', () => yearDialog.close()));
+  let yearDirty=false;yearForm.addEventListener('input',()=>{yearDirty=true;document.documentElement.dataset.unsaved='true';});const closeYear=async()=>{if(yearDirty&&!await businessConfirm('有尚未保存的修改，是否放弃？'))return;yearDirty=false;clearUnsaved();yearDialog.close();};all('[data-close-year]').forEach(button=>button.addEventListener('click',closeYear));yearDialog.addEventListener('cancel',event=>{event.preventDefault();void closeYear();});
   yearForm.addEventListener('submit', event => { event.preventDefault(); void submit(yearForm, `/api/operations-annual-plans/year/${selectedYear}`, 'PATCH', { instructions: (yearForm.elements.namedItem('instructions') as HTMLTextAreaElement).value.trim() || null }, () => window.location.reload()); });
   const copyForm = q<HTMLFormElement>('#copy-form'); q('[data-copy-year]').addEventListener('click', () => { q('.form-message', copyForm).textContent = ''; copyDialog.showModal(); });
   all('[data-close-copy]').forEach(button => button.addEventListener('click', () => copyDialog.close()));

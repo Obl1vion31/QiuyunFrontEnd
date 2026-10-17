@@ -2,9 +2,14 @@
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
 import '../styles/business-forms.css';
 import '../styles/business-typography.css';
+import {getDb} from '../db/client';
+import {effectiveBusinessPermissions} from '../auth/business-permissions';
+import {defaultBusinessPermissions} from '../auth/business-capabilities';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
+let permissions=defaultBusinessPermissions();
+try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await effectiveBusinessPermissions(getDb(),Astro.locals.user);}catch{for(const key of Object.keys(permissions))permissions[key as keyof typeof permissions]='disabled';}
 ---
 
 <!-- 在 ClientRouter 模块启动前接管仅改变详情选择的历史，保留同一个列表 DOM。 -->
@@ -13,6 +18,7 @@ const { active } = Astro.props;
   if (window.__businessInspectorHistoryReady) return;
   window.__businessInspectorHistoryReady = true;
   window.addEventListener('popstate', event => {
+    if(window.__businessHistoryPop?.(event))return;
     const pane = document.querySelector('[data-inspector-ready="true"]');
     const parameter = pane?.dataset.inspectorParameter;
     if (!parameter || !pane.dataset.inspectorHistoryBase) return;
@@ -26,6 +32,7 @@ const { active } = Astro.props;
 })();
 </script>
 <div class="app-shell business-console-frame" data-user-role={Astro.locals.user?.role}>
+  <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
   <BusinessConsoleSidebar active={active} />
   <section class="workspace business-console-workspace"><slot /></section>
   <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
@@ -33,7 +40,13 @@ const { active } = Astro.props;
     <span data-operation-label>正在处理…</span>
   </div>
   <div class="business-session-notice" data-session-notice role="alert" hidden><span data-session-message></span><a href="/login" target="_blank" rel="noopener" data-session-login hidden>重新登录 ↗</a><button type="button" data-session-dismiss aria-label="关闭提示">×</button></div>
+  <dialog class="business-form-dialog business-confirm" data-business-confirm aria-labelledby="business-confirm-title" aria-describedby="business-confirm-message">
+    <header class="dialog-head"><h2 id="business-confirm-title" data-confirm-title>未保存的修改</h2></header>
+    <p id="business-confirm-message" class="form-dialog-body" data-confirm-message></p>
+    <footer class="dialog-actions"><button type="button" data-confirm-cancel autofocus>继续编辑</button><button type="button" class="primary" data-confirm-accept>放弃修改</button></footer>
+  </dialog>
 </div>
+<script>import '../scripts/business-dialog';import '../scripts/business-permissions';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
 
 <script is:inline>
   (() => {
@@ -77,20 +90,20 @@ const { active } = Astro.props;
       const target = new URL(input instanceof Request ? input.url : String(input), location.href);
       if (target.origin !== location.origin || !target.pathname.startsWith('/api/')) return nativeFetch(...args);
       const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
-      const trigger = performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
-      const shouldReport = Boolean(trigger) || !['GET', 'HEAD'].includes(method);
-      if (!shouldReport) return nativeFetch(...args);
+      const write = !['GET', 'HEAD'].includes(method);
+      // 读取由具体容器提供延迟反馈，永不改写最近点击的卡片或链接。
+      const trigger = write && performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
       recentTrigger = null; recentTriggerAt = 0;
       const id = Symbol('business-operation');
       const label = trigger?.dataset?.loadingLabel || trigger?.closest?.('form')?.dataset?.loadingLabel || defaultLabel(method);
-      tasks.set(id, label);
+      if(write)tasks.set(id, label);
       if (trigger && !trigger.matches('a')) {
         const state = triggers.get(trigger) || { count: 0, wasDisabled: trigger.disabled, markup: trigger.innerHTML, changedLabel: !trigger.textContent.includes('正在') };
         state.count += 1; triggers.set(trigger, state);
         trigger.disabled = true; trigger.setAttribute('aria-busy', 'true');
         if (state.changedLabel && trigger.matches('button')) trigger.textContent = label;
       }
-      update();
+      if(write)update();
       try {
         const response = await nativeFetch(...args);
         if (response.status === 401 || response.status === 403) {
@@ -99,7 +112,7 @@ const { active } = Astro.props;
         }
         return response;
       } catch (error) {
-        showError('连接失败，请检查网络后重试。当前输入已保留。');
+        if(write)showError('连接失败，请检查网络后重试。当前输入已保留。');
         throw error;
       } finally {
         tasks.delete(id);
@@ -111,7 +124,7 @@ const { active } = Astro.props;
             triggers.delete(trigger);
           }
         }
-        update();
+        if(write)update();
       }
     };
   })();
@@ -148,6 +161,7 @@ const { active } = Astro.props;
   .business-console-content{box-sizing:border-box;width:auto;max-width:none;margin:0;padding:var(--console-content-top) var(--console-content-x) 46px;min-width:0}
   @media(max-width:900px){:root{--console-content-x:10px;--console-content-top:12px;--console-toolbar-height:62px}.business-console-content{padding-bottom:28px}}
   .business-console-frame[data-user-role="employee"] [data-admin-only]{display:none!important}
+  .business-console-frame [data-business-operation][hidden]{display:none!important}
   .business-operation-feedback{position:fixed;z-index:1200;right:20px;bottom:20px;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 14px;border:1px solid rgba(23,33,28,.14);border-radius:10px;background:rgba(247,248,245,.96);box-shadow:0 10px 28px rgba(23,33,28,.14);color:var(--console-ink);font-size:13px;font-weight:600;opacity:1;transform:translateY(0);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
   .business-operation-feedback[aria-hidden="true"]{opacity:0;transform:translateY(6px)}
   .business-operation-feedback__spinner{width:15px;height:15px;border:2px solid var(--console-blue-soft);border-top-color:var(--console-blue);border-radius:50%;animation:business-operation-spin .72s linear infinite}

@@ -40,11 +40,11 @@ try {
   await request(`/api/operations-content/${delayed.id}`,'DELETE',adminCookie,undefined,409);
 
   const approval=await create({contentName:'虚构审批验收帖',plannedPublishAt:inputTime(hours(-60))});
-  const application=await request(`/api/operations-content/${approval.id}/change-requests`,'POST',employeeCookie,{expectedPlanRevision:'0',plannedPublishAt:inputTime(hours(48)),reason:'需求端延期'},201);
+  const application=await request(`/api/operations-content/${approval.id}/change-requests`,'POST',employeeCookie,{expectedPlanRevision:'0',plannedPublishAt:inputTime(hours(48)),reason:'需求端延期'},202);
   await request(`/api/operations-content/${approval.id}/change-requests`,'POST',employeeCookie,{expectedPlanRevision:'0',plannedPublishAt:inputTime(hours(72)),reason:'重复申请'},409);
-  await request(`/api/operations-content/${approval.id}/change-requests/${application.id}`,'PATCH',employeeCookie,{action:'approve'},403);
-  const decisions=await Promise.all([0,1].map(()=>fetch(`${baseURL}/api/operations-content/${approval.id}/change-requests/${application.id}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:adminCookie},body:form({action:'approve'})})));
-  assert.deepEqual(decisions.map(response=>response.status).sort(),[200,409]);
+  await request(`/api/business-change-proposals/${application.requestId}`,'PATCH',employeeCookie,{action:'approve'},403);
+  const decisions=await Promise.all([0,1].map(()=>fetch(`${baseURL}/api/business-change-proposals/${application.requestId}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:adminCookie,'Content-Type':'application/json'},body:JSON.stringify({action:'approve'})})));
+  assert.deepEqual(decisions.map(response=>response.status).sort(),[200,200]);
   const approved=await request(`/api/operations-content/${approval.id}/workflow`,'GET',employeeCookie);assert.equal(approved.overdueDays,0);assert.equal(approved.history.length,1);assert.ok(approved.days.some((day:any)=>!day.saved));
   const temporary=await create({subjectId:'temporary',categoryId:'temporary',contentName:'临时学科临时帖',plannedPublishAt:inputTime(hours(24))});
   assert.ok(temporary.id);
@@ -95,13 +95,13 @@ try {
   await page.goto(`${baseURL}/business/operations-schedule?status=overdue&row=${pending.id}`);
   await page.locator('[data-schedule-workflow] .workflow-form').first().waitFor();
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1');
-  const reasonForm=page.locator('[data-schedule-workflow] .workflow-reason form').first();await reasonForm.locator('select').selectOption('self');await reasonForm.locator('textarea').fill('浏览器填写今日正在修改中');await reasonForm.locator('button[type=submit]').click();
+  const reasonForm=page.locator('[data-schedule-workflow] .workflow-reason form').first();await reasonForm.locator('input[type=radio][value=self]').check();await reasonForm.locator('textarea').fill('浏览器填写今日正在修改中');await reasonForm.locator('button[type=submit]').click();
   await page.locator('[data-schedule-workflow-history]').getByText('自身原因：浏览器填写今日正在修改中').waitFor({state:'attached'});
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1','填完理由仍保留延期提示');
   await page.locator('[data-schedule-workflow] summary').filter({hasText:'申请调整排期'}).click();
   const applicationForm=page.locator('[data-schedule-workflow] form').filter({has:page.locator('[name=plannedPublishAt]')});
   await checkBusinessDateTime(applicationForm.locator('[data-datetime-field]'));await fillBusinessDateTime(page,'plannedPublishAt',inputTime(hours(36)));await applicationForm.locator('textarea').fill('浏览器改期申请');await applicationForm.locator('button[type=submit]').click();
-  await page.waitForLoadState('networkidle');await page.locator('[data-schedule-workflow]').getByText(/待审批/).waitFor();
+  await page.waitForLoadState('networkidle');await page.locator('.business-pending-changes>summary').getByText('待审核',{exact:true}).waitFor();
   await page.screenshot({path:'.tools/test-artifacts/schedule-workflow-desktop.png',fullPage:true});
   await page.goto(`${baseURL}/business/non-promotion-review?view=history&subject=tmua&category=innovation`);
   assert.equal(await page.locator('.review-row[data-row-href]').count(),2);
@@ -123,7 +123,7 @@ try {
   await fillBusinessDateTime(page,'actualPublishAt',actual);await page.locator('#publicationProjectDocUrl').fill('https://fictional.example.test/browser-publication');await page.locator('#publicationUrl').fill('https://www.xiaohongshu.com/explore/'+'b'.repeat(24));
   await page.waitForFunction(()=>document.querySelector('[data-publication-delay-days]')?.getAttribute('data-ready')==='true');
   assert.equal(await page.locator('[data-delay-day]').count(),2);
-  for(const index of [0,1]){const day=page.locator('[data-delay-day]').nth(index);await day.locator('select').selectOption(index?'requester':'self');await day.locator('textarea').fill(`浏览器第${index+1}天原因`);}
+  for(const index of [0,1]){const day=page.locator('[data-delay-day]').nth(index);await day.locator(`input[type=radio][value=${index?'external':'self'}]`).check();await day.locator('textarea').fill(`浏览器第${index+1}天原因`);}
   await page.screenshot({path:'.tools/test-artifacts/publication-workflow-desktop.png',fullPage:true});
   const publicationResponse=page.waitForResponse((response:any)=>response.url().endsWith(`/api/operations-content/${browserPublication.id}/publication`)&&response.request().method()==='PATCH');
   await page.locator('#publication-form button[type=submit]').click();assert.equal((await publicationResponse).status(),200);
@@ -138,8 +138,8 @@ try {
     await phone.goto(`${baseURL}/business/operations-schedule?status=reasons&row=${approval.id}`);await phone.locator('[data-schedule-workflow] .workflow-reason').first().waitFor();
     await phone.screenshot({path:`.tools/test-artifacts/schedule-workflow-${width}.png`,fullPage:true});await mobile.close();
   }
-  const {context:adminContext,page:adminPage}=await contextFor(adminCookie);await adminPage.goto(`${baseURL}/business/operations-schedule?status=approvals&row=${pending.id}`);
-  await adminPage.locator('[data-schedule-workflow]').getByRole('button',{name:'同意调整排期'}).waitFor();await adminPage.locator('[data-schedule-workflow]').getByRole('button',{name:'同意调整排期'}).click();await adminPage.waitForLoadState('networkidle');
+  const {context:adminContext,page:adminPage}=await contextFor(adminCookie);await adminPage.goto(`${baseURL}/business/settings?view=approvals`);
+  await adminPage.locator('.business-pending-changes details').first().locator('summary').click();await adminPage.locator('[data-decide-proposal]').getByRole('button',{name:'同意修改'}).waitFor();await adminPage.locator('[data-decide-proposal]').getByRole('button',{name:'同意修改'}).click();await adminPage.waitForLoadState('networkidle');
   assert.equal((await request('/api/business-notifications','GET',adminCookie)).pendingApprovals,0);await adminContext.close();
   assert.deepEqual(errors,[]);console.log('通过：桌面与手机的逐日理由、申请审批、跨页初始化、分类筛选、节点跳过与恢复。');
 } catch(error) { console.error(fixture.logs());throw error; }

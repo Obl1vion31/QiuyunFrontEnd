@@ -232,6 +232,13 @@
       "when": 1792243802190,
       "tag": "0032_schedule_registration_deadline",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792247354814,
+      "tag": "0033_account_permissions_two_hour_delay",
+      "breakpoints": true
     }
   ]
 }

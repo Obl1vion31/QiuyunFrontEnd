@@ -1,9 +1,9 @@
-/** 新排期满 2 小时开始逐日计时；历史记录读取保存的门槛。 */
+/** 新旧排期统一满 2 小时计为延期；保留旧调用参数兼容已归档入口。 */
 export const delayThresholdMs = 2 * 60 * 60 * 1000;
 export const delayDayMs = 24 * 60 * 60 * 1000;
-export const isDelayed = (plannedAt, at, thresholdHours = 2) => at.getTime() - plannedAt.getTime() >= thresholdHours * 3600000;
+export const isDelayed = (plannedAt, at, thresholdHours = 2) => at.getTime() - plannedAt.getTime() >= delayThresholdMs;
 export const delayStartsAt = (plannedAt, effectiveAt = null, thresholdHours = 2) => new Date(Math.max(
-  plannedAt.getTime() + thresholdHours * 3600000, effectiveAt?.getTime() ?? Number.NEGATIVE_INFINITY,
+  plannedAt.getTime() + delayThresholdMs, effectiveAt?.getTime() ?? Number.NEGATIVE_INFINITY,
 ));
 export const delayDayCount = (plannedAt, through, effectiveAt = null, thresholdHours = 2) => Math.max(0,
   Math.floor((through.getTime() - delayStartsAt(plannedAt, effectiveAt, thresholdHours).getTime()) / delayDayMs) + 1,

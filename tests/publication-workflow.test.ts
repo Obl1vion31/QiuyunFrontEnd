@@ -60,7 +60,7 @@ test('截止前现存已发允许留空且保持秒数，截止日与已有链�
 });
 test('已有实发时间仅管理员凭原因更正，旧修订不得覆盖，更正旧记录至截止后须链接',async()=>{
  const s=await seed(new Date('2026-10-16T12:00:00+08:00'),now);
- await assert.rejects(registerPublication(db,s.id,{...sent(s),actualPublishAt:later,correctionReason:'核对平台时间'},[],false,employee,now),/管理员/);
+ await assert.rejects(registerPublication(db,s.id,{...sent(s),actualPublishAt:later,correctionReason:'核对平台时间'},[],false,employee,now),/未开放/);
  await assert.rejects(registerPublication(db,s.id,{...sent(s),actualPublishAt:later},[],false,admin,now),/填写原因/);
  await assert.rejects(registerPublication(db,s.id,{...sent(s),actualPublishAt:later,publicationUrl:null,correctionReason:'核对平台时间'},[],false,admin,now),/帖子链接/);
  await registerPublication(db,s.id,{...sent(s),actualPublishAt:later,correctionReason:'核对平台时间'},[],false,admin,now);

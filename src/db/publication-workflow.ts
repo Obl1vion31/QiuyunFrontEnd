@@ -1,7 +1,8 @@
 import { and, eq, inArray,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
-import { requireAdmin, type OperationsUser } from '../auth/permissions';
+import { type OperationsUser } from '../auth/permissions';
+import {requireBusinessOperation} from '../auth/business-permissions';
 import { lockSchedule, reasonSchema, readScheduleWorkflow, saveDelayReason, WorkflowError } from './schedule-workflow';
 import { lockPromotionWorkflow } from './promotion-pauses';
 import { publicationSchema, normalizeCompletionStatus } from './validation';
@@ -27,14 +28,14 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     if(!publicationUrl&&!mayKeepEmptyPublicationLink(schedule,actual))throw new WorkflowError('请粘贴对应的小红书帖子链接或完整分享文案。',422);
     const actualChanged=schedule.actualPublishAt?.getTime()!==actual.getTime();
     if(schedule.actualPublishAt&&actualChanged) {
-      requireAdmin(actor);
+      await requireBusinessOperation(tx,actor,'schedule.correctPublication');
       if(!input.correctionReason?.trim())throw new WorkflowError('更正已有实发时间必须填写原因。',422);
     }
     const [version]=await tx.select().from(versions).where(eq(versions.id,schedule.contentVersionId));
     const projectDocUrl=input.projectDocUrl||version.projectDocUrl;
     if(!schedule.actualPublishAt&&!projectDocUrl)throw new WorkflowError('首次实发登记请补充项目文档链接。',422);
     const campaignRows=await tx.select({id:campaigns.id}).from(campaigns).where(eq(campaigns.scheduleId,id));
-    if(actualChanged&&campaignRows.length)requireAdmin(actor);
+    if(actualChanged&&campaignRows.length)await requireBusinessOperation(tx,actor,'schedule.correctPublication');
     if(actualChanged&&campaignRows.length&&!confirmReset) {
       const [metricCount]=await tx.select({value:count()}).from(metrics).where(inArray(metrics.campaignId,campaignRows.map(row=>row.id)));
       return {kind:'reset-required' as const,campaigns:campaignRows.length,dailyMetrics:Number(metricCount.value)};

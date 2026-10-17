@@ -43,6 +43,7 @@ pnpm test:publication
 pnpm test:browser
 pnpm test:workflows
 pnpm test:registration
+pnpm test:interaction
 pnpm test:pauses
 pnpm test:reviews
 pnpm test:annual-plan
@@ -52,4 +53,6 @@ pnpm test:annual-plan
 
 `pnpm test:publication` 在构建后验证统一未来时间登记、完整分享文案、历史空链接、旧预约接口停用、权限和并发，以及 1440／390／320px 默认月历、发布状态与推广身份、同日多帖、两行卡片和长标题单行省略、详情打开后的布局、筛选、点击日期新建、未保存保护和失败保留。`publication-workflow.test.ts` 用固定北京时间验证 17:00 登记 20:00、历史边界、到期理由推进及更正留痕；原迁移兼容测试继续保留。业务写入仅使用隔离库。
 
-`pnpm test:registration` 验证 2 小时尚未登记、改期的实时审批边界、旧 8 小时快照，以及 1440／390／320px 待办／资料／历史分层、逐日草稿保留、单一正文滚动与固定头尾、手机背景锁定和编辑表单转审批。`registration-deadline.test.ts` 使用固定时间验证临界点、按真实发布时间结算、逐日原因、迁移及旧口径保留。
+`pnpm test:registration` 验证 2 小时尚未登记、改期的实时审批边界、新旧统一 2 小时，以及 1440／390／320px 待办／资料／历史分层、逐日草稿保留、单一正文滚动与固定头尾、手机背景锁定和编辑表单转审批。`registration-deadline.test.ts` 使用固定时间验证临界点、按真实发布时间结算、逐日原因、追加迁移、历史状态修正及人工原因保留。
+
+权限验收通过 `business-permissions.test.ts` 和 `pnpm test:interaction` 的真实设置入口检查：默认矩阵、逐账号直接／审核／关闭、复合修改整体审核、新建不提前落库、重复提交与审核、授权撤销、过期申请和删除阻断。日期核对 SSR 与异步回显一致；详情读取在 100／450ms 内无加载闪烁，慢请求只出现目标面板一处加载；来源卡片保持原样。关闭动画中原生 dialog 仍打开，结束后关闭；减少动态效果无额外等待。站内未保存保护操作真实应用确认框，取消保留输入、选择、滚动与焦点，浏览器刷新另验原生保护。

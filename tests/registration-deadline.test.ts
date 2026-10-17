@@ -54,9 +54,9 @@ test('员工门槛前直接改期留痕，旧时间超时后不可用新时间�
   const registered=await seed(afterHours(1),8);await db.transaction(tx=>changeSchedulePlan(tx,registered,afterHours(-1),'更正应发时间',employee,afterHours(30)));
   assert.equal((await readScheduleWorkflow(db,registered.id,undefined,afterHours(30))).schedule.delayThresholdHours,8);
 });
-test('历史 8 小时口径和已保存原因原日期保留',async()=>{
+test('历史也按两小时判延期，已保存原因原日期保留',async()=>{
   const old=await seed(afterHours(4),8);const w=await readScheduleWorkflow(db,old.id,undefined,afterHours(30));
-  assert.equal(w.schedule.completionStatus,'on_time');assert.equal(w.days.length,0);
+  assert.equal(w.schedule.completionStatus,'delayed');assert.equal(w.days.length,1);
   const pending=await seed();const dueAt=afterHours(8);
   await db.insert(schema.operationsScheduleDelayReason).values({scheduleId:pending.id,planRevision:0,dayNumber:1,dueAt,responsibility:'self',reason:'原记录',changedByLabel:'虚构员工'});
   const read=await readScheduleWorkflow(db,pending.id,undefined,afterHours(30));assert.equal(read.days[0].dueAt.getTime(),dueAt.getTime());assert.equal(read.days.length,2);
@@ -83,4 +83,33 @@ test('追加迁移只设置门槛快照，不改已登记事实、原因与旧�
     assert.deepEqual((await isolated.query<{delay_threshold_hours:number}>('SELECT delay_threshold_hours FROM operations_content_schedule ORDER BY id')).rows.map(row=>row.delay_threshold_hours),[8,2]);
     assert.equal((await isolated.query<{delay_threshold_hours:number}>('SELECT delay_threshold_hours FROM operations_schedule_plan_history')).rows[0].delay_threshold_hours,8);
   }finally{await isolated.close();}
+});
+test('统一两小时追加迁移修正旧状态、补齐各修订未知原因，保留人工原因与快照',async()=>{
+ const isolated=new PGlite();
+ try{
+  const snapshot=JSON.parse(await readFile('drizzle/meta/0032_snapshot.json','utf8'));
+  for(const statement of await generateMigration(generateDrizzleJson({}),snapshot))await isolated.exec(statement);
+  await isolated.exec(`INSERT INTO operations_subject(id,name,sort_order) VALUES ('tmua','虚构学科',0);
+   INSERT INTO operations_category(id,name,sort_order) VALUES ('temporary','临时帖',0);
+   INSERT INTO operations_subject_category(subject_id,category_id) VALUES ('tmua','temporary');
+   INSERT INTO operations_content(id) VALUES ('10000000-0000-4000-8000-000000000001');
+   INSERT INTO operations_content_version(id,content_id,version_number,work_type,content_name,subject_id,category_id) VALUES ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001',0,'new','虚构历史帖','tmua','temporary');
+   INSERT INTO operations_content_schedule(id,content_version_id,planned_publish_at,actual_publish_at,completion_status,delay_threshold_hours,plan_revision,plan_effective_at) VALUES ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','2020-10-17T12:00:00+08:00','2020-10-17T16:00:00+08:00','on_time',8,1,'2020-10-16T16:00:00+08:00');
+   INSERT INTO operations_schedule_plan_history(schedule_id,revision,planned_publish_at,ended_at,new_planned_publish_at,reason,changed_by_id,changed_by_label,delay_threshold_hours) VALUES ('30000000-0000-4000-8000-000000000001',0,'2020-10-15T12:00:00+08:00','2020-10-16T16:00:00+08:00','2020-10-17T12:00:00+08:00','原改期理由','fixture','虚构员工',8);
+   INSERT INTO operations_schedule_delay_reason(schedule_id,plan_revision,day_number,due_at,responsibility,reason,source,changed_by_label,history) VALUES ('30000000-0000-4000-8000-000000000001',0,1,'2020-10-15T20:00:00+08:00','requester','原人工原因','manual','虚构员工','[{"reason":"原修订"}]');
+   INSERT INTO operations_review_meeting(id,name,period_start,period_end,meeting_at,created_by_label) VALUES ('40000000-0000-4000-8000-000000000001','虚构旧会议','2020-10-01','2020-10-17','2020-10-18','虚构账号');
+   INSERT INTO operations_review_meeting_version(meeting_id,version_number,snapshot,change_summary,finalized_by_label) VALUES ('40000000-0000-4000-8000-000000000001',0,'{"schemaVersion":2,"draft":{"coreConclusion":"冻结旧结论"}}','虚构快照','虚构账号');`);
+  const frozen=(await isolated.query('SELECT * FROM operations_review_meeting_version')).rows;
+  const saved=(await isolated.query('SELECT * FROM operations_schedule_delay_reason')).rows[0];
+  const fact=(await isolated.query('SELECT planned_publish_at,actual_publish_at FROM operations_content_schedule')).rows[0];
+  await isolated.exec(await readFile('drizzle/0033_account_permissions_two_hour_delay.sql','utf8'));
+  const row=(await isolated.query<{delay_threshold_hours:number;completion_status:string}>('SELECT delay_threshold_hours,completion_status FROM operations_content_schedule')).rows[0];
+  assert.deepEqual(row,{delay_threshold_hours:2,completion_status:'delayed'});
+  assert.deepEqual((await isolated.query('SELECT planned_publish_at,actual_publish_at FROM operations_content_schedule')).rows[0],fact);
+  assert.deepEqual((await isolated.query('SELECT * FROM operations_schedule_delay_reason WHERE source=\'manual\'')).rows[0],saved);
+  const unknown=(await isolated.query<{reason:string;responsibility:string;plan_revision:number}>('SELECT reason,responsibility,plan_revision FROM operations_schedule_delay_reason WHERE source=\'historical\' ORDER BY plan_revision')).rows;
+  assert.deepEqual(unknown,[{reason:'未知',responsibility:'unknown',plan_revision:0},{reason:'未知',responsibility:'unknown',plan_revision:1}]);
+  assert.deepEqual((await isolated.query('SELECT * FROM operations_review_meeting_version')).rows,frozen);
+  assert.equal((await isolated.query<{delay_threshold_hours:number}>('SELECT delay_threshold_hours FROM operations_schedule_plan_history')).rows[0].delay_threshold_hours,2);
+ }finally{await isolated.close();}
 });

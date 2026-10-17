@@ -3,8 +3,9 @@ import { getDb } from '../../../../db/client';
 import { readScheduleWorkflow, WorkflowError } from '../../../../db/schedule-workflow';
 import { shanghaiDateTime } from '../../../../db/validation';
 import { workflowErrorResponse } from '../../../../db/workflow-api';
+import {effectiveBusinessPermissions} from '../../../../auth/business-permissions';
 export const prerender = false;
-export const GET: APIRoute = async ({ params, url }) => {
+export const GET: APIRoute = async ({ params, url,locals }) => {
   try {
     let actual: Date | undefined;
     if (url.searchParams.has('actual')) {
@@ -12,6 +13,8 @@ export const GET: APIRoute = async ({ params, url }) => {
       if (!parsed.success) throw new WorkflowError('请选择有效的发布时间。', 422);
       actual = parsed.data;
     }
-    return Response.json(await readScheduleWorkflow(getDb(), params.id!, actual), { headers: { 'Cache-Control': 'no-store' } });
+    const workflow=await readScheduleWorkflow(getDb(), params.id!, actual);
+    const permissions=await effectiveBusinessPermissions(getDb(),locals.user!);
+    return Response.json({...workflow,permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return workflowErrorResponse(error); }
 };

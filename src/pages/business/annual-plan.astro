@@ -1,4 +1,6 @@
 ---
+import {effectiveBusinessPermissions} from '../../auth/business-permissions';
+import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import BusinessFormDialog from '../../components/BusinessFormDialog.astro';
 import { businessDateTime } from '../../scripts/business-date';
 import BusinessInspector from '../../components/BusinessInspector.astro';
@@ -21,6 +23,7 @@ import {
 } from '../../db/schema';
 
 export const prerender = false;
+const permissions=Astro.locals.businessPermissions=await effectiveBusinessPermissions(getDb(),Astro.locals.user!);
 
 const now = new Date();
 const requestedYear = Number(Astro.url.searchParams.get('year') ?? now.getFullYear());
@@ -202,13 +205,14 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
         <BusinessConsoleToolbar title="总周期规划" subtitle={`${selectedYear} 年度规划`}>
           <BusinessToolbarPeriodNav slot="center" previousHref={hrefForYear(selectedYear - 1)} nextHref={hrefForYear(selectedYear + 1)} label={`${selectedYear}`} />
           <BusinessToolbarActions slot="end">
-            <button class="quiet-button" type="button" data-copy-year data-admin-only><span class="copy-label-full">复制年度</span><span class="copy-label-mobile">复制</span></button>
-            <button class="quiet-button toolbar-action-secondary" type="button" data-edit-year data-admin-only>年度说明</button>
-            <button class="primary-action" type="button" data-open-new data-admin-only>新建规划行 <b>＋</b></button>
+            <button class="quiet-button" type="button" data-copy-year data-business-operation="annual.copy" hidden={permissions['annual.copy']==='disabled'}><span class="copy-label-full">复制年度</span><span class="copy-label-mobile">复制</span></button>
+            <button class="quiet-button toolbar-action-secondary" type="button" data-edit-year data-business-operation="annual.instructions" hidden={permissions['annual.instructions']==='disabled'}>年度说明</button>
+            <button class="primary-action" type="button" data-open-new data-business-operation="annual.create" hidden={permissions['annual.create']==='disabled'}>新建规划行 <b>＋</b></button>
           </BusinessToolbarActions>
         </BusinessConsoleToolbar>
 
         <main class="business-console-content">
+<BusinessPendingChanges module="annual"/>
           <BusinessPageHeader title={`${selectedYear} 年度总览`} description={yearInfo?.instructions || undefined}>
             <div class="updated" slot="meta"><span>最近更新</span><strong>{latestDisplay}</strong></div>
           </BusinessPageHeader>
@@ -295,7 +299,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
                   </div>)}
                   {sectionRows.length === 0 && <div class="section-empty annual-section-empty">
                     <span>这个分区还没有规划行</span>
-                    <button type="button" data-new-section={section.key} data-admin-only>在此新建</button>
+                    <button type="button" data-new-section={section.key} data-business-operation="annual.create" hidden={permissions['annual.create']==='disabled'}>在此新建</button>
                   </div>}
                 </div>;
               })}
@@ -343,7 +347,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
           <div class="history-list" data-history-list></div>
         </section>
       </div>
-      <footer class="business-inspector-actions"><button class="business-action-primary inspector-edit" type="button" data-edit-row data-admin-only>编辑规划行 →</button></footer>
+      <footer class="business-inspector-actions"><button class="business-action-primary inspector-edit" type="button" data-edit-row data-business-operation="annual.edit annual.toggle" data-business-any hidden={permissions['annual.edit']==='disabled'&&permissions['annual.toggle']==='disabled'}>编辑规划行 →</button></footer>
     </BusinessInspector>
     </BusinessConsoleFrame>
 
