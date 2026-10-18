@@ -105,9 +105,9 @@ try {
         const heights=await page.locator('[data-pause-form] input[type=date],[data-pause-form] button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));
         assert.ok(heights.every((height:number)=>height===36),'节假日操作同组控件对齐');
         if(width===1440)assert.equal((await page.locator('[data-pause-form]').boundingBox())!.height,36,'桌面节假日暂停保持单行');
-        await page.getByText('＋ 安排待定时间段',{exact:true}).click();
-        const waitControls=await page.locator('[data-wait-range-form] input:not([type=hidden]),[data-wait-range-form] select').evaluateAll((nodes:HTMLElement[])=>nodes.filter(node=>node.getBoundingClientRect().height>0).map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.ok(waitControls.length>0);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'待定区间共用表单规格');
-        await page.getByText('＋ 安排待定时间段',{exact:true}).click();
+        const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[name=dayAction]').selectOption('pause');
+        const waitControls=await dailyForm.locator('[data-pause-reason] input,[data-pause-through] input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(waitControls.length,2);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===36&&c.size==='13px'),'行内暂停共用紧凑控件规格');
+        assert.equal(await dailyForm.locator('[name=spend]').isDisabled(),true);await dailyForm.locator('[name=dayAction]').selectOption('active');{const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
       }
 
       const box=await page.locator('.toolbar-segmented').boundingBox();for(const key of ['x','y','width','height']) assert.ok(Math.abs(box[key]-original[key])<=1,`${width} ${view} tabs ${key}`);
@@ -198,10 +198,11 @@ try {
       await page.goto(baseURL+`/business/operations-schedule?month=${published.slice(0,7)}`);
       await page.route(`**/api/operations-content/${ids[0]}/workflow`,async(route:any)=>{const response=await route.fetch();await new Promise(resolve=>setTimeout(resolve,400));await route.fulfill({response});});
       await page.route(`**/api/operations-content/${ids[1]}/workflow`,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构读取失败'})}));
+      const staleResponse=page.waitForResponse((response:any)=>response.url().includes(`/api/operations-content/${ids[0]}/workflow`));
       await page.locator(`[data-inspect-id="${ids[0]}"]`).first().click();
       await page.locator('[data-inspector].is-open').waitFor();
       await page.locator(`[data-inspect-id="${ids[1]}"]`).first().click();
-      await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await page.waitForLoadState('networkidle');
+      await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await staleResponse;await page.waitForTimeout(50);
       assert.equal(await page.locator('[data-inspector]').getAttribute('data-selected-id'),ids[1]);
       assert.equal(await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').count(),1,'晚到的旧请求不覆盖新选择');
       await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});

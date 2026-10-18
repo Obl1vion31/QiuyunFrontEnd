@@ -101,3 +101,15 @@ test('缺失指标不能被转换成零', () => {
   assert.equal(stageReviewItemSchema.safeParse(input).success,false);
   assert.equal(stageReviewItemSchema.safeParse({...input,clickRate:'0',threeSecondReadRate:'0'}).success,true);
 });
+test('整篇不复盘覆盖未到期轮次，恢复有并发保护并保留原始指标',async()=>{
+ const schedule=await seed(now,now);
+ const input={scheduleId:schedule.id,checkpointType:'day_7' as const,scope:'schedule' as const,action:'skip' as const,reason:'该篇不复盘',expectedEventId:null,expectedEvents:{day_7:null,day_15:null}};
+ await changeCheckpointState(db,input,employee,now);
+ let states=await readCheckpointEvents(db,schedule.id);assert.equal(states.size,2);assert.ok([...states.values()].every(row=>row.action==='skip'));
+ await assert.rejects(changeCheckpointState(db,{...input,action:'restore'},employee,now),/已更新/);
+ await changeCheckpointState(db,{...input,action:'restore',expectedEventId:states.get(`${schedule.id}:day_7`)!.id,expectedEvents:Object.fromEntries([...states.values()].map(row=>[row.checkpointType,row.id]))},employee,now);
+ states=await readCheckpointEvents(db,schedule.id);assert.ok([...states.values()].every(row=>row.action==='restore'));
+ await db.insert(schema.operationsContentPerformanceMetric).values({scheduleId:schedule.id,checkpointType:'day_7',recordedThrough:'2026-10-15',clickRate:'10',threeSecondReadRate:'20'});
+ await changeCheckpointState(db,{...input,expectedEventId:states.get(`${schedule.id}:day_7`)!.id,expectedEvents:Object.fromEntries([...states.values()].map(row=>[row.checkpointType,row.id]))},employee,now);
+ states=await readCheckpointEvents(db,schedule.id);assert.equal(states.get(`${schedule.id}:day_7`)!.action,'restore');assert.equal(states.get(`${schedule.id}:day_15`)!.action,'skip');
+});

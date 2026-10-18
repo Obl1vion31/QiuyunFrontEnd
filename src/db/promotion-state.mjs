@@ -59,6 +59,13 @@ export function nextReviewDate(latestDate, startedOn, windows = []) {
   }
   return date;
 }
+/** 历史开始日提前后，最新指标之前也可能存在缺口。 */
+export function firstMissingPromotionDate(metrics, startedOn, windows = []) {
+  const saved = new Set(metrics.map(metric => metric.metricDate));
+  let date = nextReviewDate(null, startedOn, windows);
+  while (saved.has(date)) date = nextReviewDate(date, startedOn, windows);
+  return date;
+}
 export function countPromotionDays(startedOn, endedOn, windows = []) {
   let count = 0;
   for (let date = startedOn; date <= endedOn; date = nextDateKey(date)) if (!dateInWindows(date, windows)) count++;
@@ -76,7 +83,7 @@ export function waitingPromotionDays(campaign, context, waitingDates, from, to) 
   return dates.size;
 }
 export function promotionReplayOptions(campaign, context) {
-  return { initialStage: campaign.initialStage ?? 'testing', waitRanges: (context.waitRanges ?? []).filter(r => r.campaignId === campaign.id), holds: [
+  return { initialStage: campaign.initialStage ?? 'testing', stateChanges: (context.stateChanges ?? []).filter(change => change.campaignId === campaign.id), waitRanges: (context.waitRanges ?? []).filter(r => r.campaignId === campaign.id), holds: [
     ...context.holds.filter(hold => hold.campaignId === campaign.id),
     ...context.pauses.filter(pause => context.targets.some(target => target.pauseId === pause.id && target.campaignId === campaign.id)
       || (context.waitRanges ?? []).some(r => r.campaignId === campaign.id && r.nextEffectiveOn && r.nextEffectiveOn >= shanghaiDateKey(new Date(pause.startsAt)) && new Date(`${r.nextEffectiveOn}T00:00:00+08:00`) < pauseEnd(pause)))

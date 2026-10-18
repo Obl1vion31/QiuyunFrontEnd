@@ -13,7 +13,7 @@ export const nextPromotionState: (
 export const replayPromotionHistory: (
   campaignStartedOn: string,
   metrics: Array<{ metricDate: string; dailyStatus?: string; stageTypeSnapshot: string; reviewDecision: string }>,
-  options?: { initialStage?: string; asOf?: string; waitRanges?: Array<{ startedOn: string; stageType: string; nextDecision?: string | null; nextEffectiveOn?: string | null }>; holds?: Array<{ startedOn: string; endedOn: string; resumeStage?: string | null; preserveWaiting?: boolean }> },
+  options?: { initialStage?: string; asOf?: string; stateChanges?: Array<{businessDate:string;stageType:string}>; waitRanges?: Array<{ startedOn: string; stageType: string; nextDecision?: string | null; nextEffectiveOn?: string | null }>; holds?: Array<{ startedOn: string; endedOn: string; resumeStage?: string | null; preserveWaiting?: boolean }> },
 ) => {
   stages: Array<{ stageType: string; startedOn: string; endedOn: string | null; outcome: string | null }>;
   currentStage: string | null;

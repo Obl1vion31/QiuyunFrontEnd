@@ -541,6 +541,38 @@ export const operationsPromotionStage = pgTable(
   ],
 );
 
+// 首次推广安排归属排期；尚未开始时不虚建 Campaign 或零指标。
+export const operationsPromotionStartPlan = pgTable('operations_promotion_start_plan', {
+  scheduleId: uuid('schedule_id').primaryKey().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  waitingThrough: date('waiting_through'),
+  plannedOn: date('planned_on'),
+  plannedStage: text('planned_stage').$type<'testing' | 'scaling'>(),
+  revision: integer('revision').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [check('operations_promotion_start_plan_pair_check', sql`(${table.plannedOn} IS NULL) = (${table.plannedStage} IS NULL) AND (${table.plannedStage} IS NULL OR ${table.plannedStage} IN ('testing','scaling')) AND (${table.plannedOn} IS NULL OR ${table.waitingThrough} IS NULL OR ${table.plannedOn} > ${table.waitingThrough})`)]);
+
+export const operationsPromotionDayDecision = pgTable('operations_promotion_day_decision', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'restrict' }),
+  businessDate: date('business_date').notNull(),
+  stageType: text('stage_type').$type<'testing' | 'scaling'>().notNull(),
+}, table => [uniqueIndex('operations_promotion_day_decision_date_idx').on(table.campaignId, table.businessDate), check('operations_promotion_day_decision_stage_check', sql`${table.stageType} IN ('testing','scaling')`)]);
+
+// 更正前的事实及被归档的冲突记录保留于私有审计，不覆盖冻结快照。
+export const operationsPromotionTimelineAudit = pgTable('operations_promotion_timeline_audit', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
+  requestKey: uuid('request_key').notNull().unique(),
+  businessDate: date('business_date').notNull(),
+  action: text('action').notNull(),
+  reason: text('reason').notNull(),
+  before: jsonb('before').$type<Record<string, unknown>>().notNull(),
+  after: jsonb('after').$type<Record<string, unknown>>().notNull(),
+  changedById: text('changed_by_id').notNull(),
+  changedByLabel: text('changed_by_label').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [index('operations_promotion_timeline_schedule_idx').on(table.scheduleId, table.createdAt)]);
+
 export const operationsPromotionDailyMetric = pgTable(
   'operations_promotion_daily_metric',
   {

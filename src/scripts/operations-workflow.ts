@@ -1,3 +1,5 @@
+import './promotion-timeline';
+import './schedule-approvals';
 import {mayOperate} from './business-permissions';
 import { configureDateTimeField } from './business-datetime';
 import { businessDateTime, delayDayLabel } from './business-date';
@@ -9,7 +11,8 @@ type SavedReason = { reason: string; responsibility: 'self' | 'external' | 'requ
 type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved: SavedReason | null; archived: boolean };
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
-type Workflow = {registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type ChangeProposal={key:string;name:string;title:string;requestedBy:string;reason:string;endpoint:string;scheduleId:string|null;diff:Array<{label:string;before:string;after:string}>};
+type Workflow = {changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -96,6 +99,7 @@ function initialize() {
   const isAdmin = document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole === 'admin';
   const reload = () => { document.documentElement.dataset.unsaved = 'false'; location.reload(); };
   type ReasonDraft = {responsibility:string; reason:string; open:boolean};
+  document.addEventListener('business:schedule-approval-decided',event=>{const id=(event as CustomEvent).detail?.id;if(id&&panel?.dataset.scheduleId===id)void showPanel(id);},{signal});
   async function showPanel(id: string, priorDrafts?:Map<string,ReasonDraft>) {
     const token = ++panelToken;
     const historyHost = document.querySelector<HTMLElement>('[data-schedule-workflow-history]')!;
@@ -115,7 +119,10 @@ function initialize() {
     const cleanup=()=>{clearTimeout(loadingTimer);loading.remove();pane.removeAttribute('aria-busy');};stopLoading=cleanup;
     if(retained.size)panel!.dispatchEvent(new Event('input',{bubbles:true}));
     try {
-      const workflow = await getWorkflow(id); if (signal.aborted || token !== panelToken) return;
+      const [workflow,timelineResponse] = await Promise.all([getWorkflow(id),fetch(`/api/operations-content/${id}/promotion-timeline`,{cache:'no-store'})]);
+      const timelineHtml=timelineResponse.ok?await timelineResponse.text():'';
+      if (signal.aborted || token !== panelToken) return;
+      const timelineHost=document.querySelector<HTMLElement>('[data-promotion-state-history]');if(timelineHost){timelineHost.innerHTML=timelineHtml;timelineHost.hidden=!timelineHost.querySelector('.promotion-timeline');document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}
       panel!.replaceChildren();
       const resultLabel = workflow.schedule.actualPublishAt
         ? isDelayed(new Date(workflow.schedule.plannedPublishAt),new Date(workflow.schedule.actualPublishAt),workflow.schedule.delayThresholdHours) ? '延期发布' : '按时发布'
@@ -165,6 +172,16 @@ function initialize() {
         const dateTime=document.querySelector<HTMLTemplateElement>('[data-change-request-datetime]')!.content.cloneNode(true) as DocumentFragment;
         configureDateTimeField(dateTime.querySelector<HTMLElement>('[data-datetime-field]')!,{value:inputTime(workflow.schedule.plannedPublishAt)});form.append(dateTime);
         textField(form,'reason','改期申请理由');submitButton(form,'提交管理员审批');bindForm(form,`/api/operations-content/${id}/change-requests`,reload);details.append(form);panel!.append(details);
+      }
+      for(const request of workflow.changeProposals??[]){
+        if(!request.key.startsWith('proposal:'))continue;
+        const section=element('section');section.className='workflow-application';section.append(element('h4','待审核修改'),element('p',`${request.title} · ${request.requestedBy}`));
+        if(request.reason)section.append(element('p',request.reason));
+        for(const change of request.diff)section.append(element('p',`${change.label}：${change.before} → ${change.after}`));
+        if(isAdmin){const form=element('form');form.className='workflow-form business-form';form.dataset.scheduleApproval=request.endpoint;form.dataset.scheduleId=id;form.dataset.approvalKey=request.key;
+          const label=element('label','审核说明');const reason=element('textarea');reason.name='reason';reason.maxLength=500;label.append(reason);form.append(label);const actions=element('div');actions.className='business-action-group';
+          for(const [value,text] of [['approve','通过'],['reject','驳回']]){const button=element('button',text);button.type='submit';button.name='action';button.value=value;button.className=value==='approve'?'business-action-primary':'business-action-secondary';actions.append(button);}const output=element('output');output.setAttribute('role','alert');form.append(actions,output);section.append(form);
+        }panel!.append(section);
       }
       const applicationLabels:Record<string,string>={pending:'待审批',approved:'已同意',rejected:'已驳回',obsolete:'已失效'};
       for(const application of [...workflow.applications].reverse()){

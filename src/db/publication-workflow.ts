@@ -1,3 +1,6 @@
+import {randomUUID} from 'node:crypto';
+import {promotionSnapshot} from './promotion-timeline';
+import {shanghaiDateKey} from './promotion-rules.mjs';
 import { and, eq, inArray,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
@@ -9,7 +12,7 @@ import { publicationSchema, normalizeCompletionStatus } from './validation';
 import { operationsContentSchedule as schedules, operationsContentVersion as versions,
   operationsPublicationReservation as reservations, operationsPublicationEvent as events,
   operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics,
-  operationsPromotionWaitRange as ranges, operationsPromotionHold as holds, operationsScheduleChangeRequest as changes } from './schema';
+  operationsPromotionWaitRange as ranges, operationsPromotionHold as holds, operationsScheduleChangeRequest as changes, operationsPromotionStartPlan as startPlans, operationsPromotionDayDecision as decisions, operationsPromotionTimelineAudit as audits } from './schema';
 import { count } from 'drizzle-orm';
 import { mayKeepEmptyPublicationLink } from './publication-rules.mjs';
 
@@ -35,6 +38,8 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     const projectDocUrl=input.projectDocUrl||version.projectDocUrl;
     if(!schedule.actualPublishAt&&!projectDocUrl)throw new WorkflowError('首次实发登记请补充项目文档链接。',422);
     const campaignRows=await tx.select({id:campaigns.id}).from(campaigns).where(eq(campaigns.scheduleId,id));
+    const oldTimeline=actualChanged?await promotionSnapshot(tx,id):null;
+    if(actualChanged&&oldTimeline?.plan&&schedule.actualPublishAt&&!confirmReset)return {kind:'reset-required' as const,campaigns:campaignRows.length,dailyMetrics:oldTimeline.metrics.length,startPlans:1};
     if(actualChanged&&campaignRows.length)await requireBusinessOperation(tx,actor,'schedule.correctPublication');
     if(actualChanged&&campaignRows.length&&!confirmReset) {
       const [metricCount]=await tx.select({value:count()}).from(metrics).where(inArray(metrics.campaignId,campaignRows.map(row=>row.id)));
@@ -45,9 +50,11 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     if(workflow.days.some(day=>!day.saved&&!day.archived))throw new WorkflowError('请为每一天延期选择责任方并填写原因，再保存实发登记。',422);
     if(actualChanged&&campaignRows.length) {
       const ids=campaignRows.map(row=>row.id);
+      await tx.delete(decisions).where(inArray(decisions.campaignId,ids));
       await tx.delete(ranges).where(inArray(ranges.campaignId,ids));await tx.delete(holds).where(inArray(holds.campaignId,ids));
       await tx.delete(campaigns).where(eq(campaigns.scheduleId,id));
     }
+    if(actualChanged&&oldTimeline?.plan)await tx.delete(startPlans).where(eq(startPlans.scheduleId,id));
     const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl};
     const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl};
     if(JSON.stringify(before)===JSON.stringify(after))return {kind:'saved' as const,unchanged:true};
@@ -59,6 +66,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     await tx.insert(events).values({scheduleId:id,revision:schedule.publicationRevision+1,before,after,reason:input.correctionReason||null,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
     await tx.update(reservations).set({status:'fulfilled',history:sql`${reservations.history} || ${JSON.stringify(historyEntry('fulfilled',actor,now,'已登记实发'))}::jsonb`,decisionReason:'已登记实发，预约流程结束',updatedAt:now}).where(and(eq(reservations.scheduleId,id),inArray(reservations.status,['pending','approved'])));
     await tx.update(changes).set({status:'obsolete',decidedAt:now,decisionReason:'帖子已经实发'}).where(and(eq(changes.scheduleId,id),eq(changes.status,'pending')));
+    if(oldTimeline&&(oldTimeline.plan||oldTimeline.campaigns.length))await tx.insert(audits).values({scheduleId:id,requestKey:randomUUID(),businessDate:shanghaiDateKey(actual),action:'publication_reset',reason:input.correctionReason||'发布时间更正',before:oldTimeline,after:await promotionSnapshot(tx,id),changedById:actor.id,changedByLabel:actor.username,createdAt:now});
     return {kind:'saved' as const,unchanged:false};
   });
 }

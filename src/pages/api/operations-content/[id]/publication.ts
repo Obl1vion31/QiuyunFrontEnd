@@ -15,7 +15,7 @@ export const PATCH: APIRoute = async({params,request,url,locals})=>{
   let reasons;try{reasons=z.array(reasonSchema).parse(JSON.parse(String(form.get('dailyReasons')||'[]')))}catch{return Response.json({message:'请检查逐日延期理由。'},{status:422})}
   try {
     const result=await registerPublication(getDb(),params.id!,parsed.data,reasons,form.get('confirmPromotionReset')==='1',locals.user!);
-    if(result.kind==='reset-required')return Response.json({message:'更正实发时间会重置这条排期的推广活动、日度事实及待定区间。',resetRequired:true,impact:{campaigns:result.campaigns,dailyMetrics:result.dailyMetrics}},{status:409});
+    if(result.kind==='reset-required')return Response.json({message:'更正实发时间会归档原推广记录并重置待定安排。',resetRequired:true,impact:{campaigns:result.campaigns,dailyMetrics:result.dailyMetrics,startPlans:'startPlans' in result?result.startPlans:0}},{status:409});
     return Response.json({ok:true});
   }catch(error){return workflowErrorResponse(error)}
 };

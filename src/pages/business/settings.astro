@@ -1,5 +1,5 @@
 ---
-import { desc, eq } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
@@ -8,7 +8,7 @@ import { getDb } from '../../db/client';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import {businessOperations,permissionModes} from '../../auth/business-capabilities';
-import {authUser,operationsScheduleChangeRequest} from '../../db/schema';
+import {authUser} from '../../db/schema';
 import { operationsCategoryPolicyVersion } from '../../db/schema';
 import { postCategories } from '../../db/taxonomy';
 import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
@@ -19,7 +19,7 @@ let loadError = '';
 const view=Astro.url.searchParams.get('view')??'rules';
 const accounts=await getDb().select({id:authUser.id,username:authUser.username,role:authUser.role}).from(authUser).orderBy(authUser.username);
 const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
-const legacyRequests=view==='approvals'?await getDb().select().from(operationsScheduleChangeRequest).where(eq(operationsScheduleChangeRequest.status,'pending')):[];
+
 const databaseStartedAt = performance.now();
 try {
   policies = await getDb().select().from(operationsCategoryPolicyVersion).orderBy(desc(operationsCategoryPolicyVersion.createdAt));
@@ -62,15 +62,27 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
       </form>)}
     </section>}
     {view==='approvals'&&<>
-      <BusinessPendingChanges module="annual" all/><BusinessPendingChanges module="schedule" all/>
-      {legacyRequests.map(row=><section class="business-pending-changes"><h2>改期申请 · {row.requestedByLabel}</h2><p>{row.reason}</p><form class="business-form" data-legacy-request={`/api/operations-content/${row.scheduleId}/change-requests/${row.id}`}><label>审核说明<textarea name="reason" maxlength="500"/></label><div class="business-action-group"><button class="business-action-primary" name="action" value="approve">同意改期</button><button class="business-action-secondary" name="action" value="reject">驳回</button></div><output role="alert"/></form></section>)}
+      <BusinessPendingChanges module="annual" all/>
+      <p><a href="/business/operations-schedule?status=approvals&amp;display=ledger">进入排期管理审核排期变更 →</a></p>
     </>}
+  <script is:inline type="application/json" id="category-policy-values" set:html={JSON.stringify({policies,categories:postCategories,today:shanghaiDateKey(new Date())}).replaceAll('<','\\u003c')}/>
   </main>
 </BusinessConsoleFrame>
 <script>
 function initializeSettings(){
 const tabs=document.querySelector<HTMLElement>('.settings-tabs');if(!tabs||tabs.dataset.bound)return;tabs.dataset.bound='true';
-document.querySelector<HTMLFormElement>('[data-form]')?.addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement;const output=form.querySelector('output');const response=await fetch('/api/business-settings/category-policies',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败';return}location.reload()});
+const categoryForm=document.querySelector<HTMLFormElement>('[data-form]');
+if(categoryForm){const state=JSON.parse(document.querySelector('#category-policy-values')!.textContent!);const select=categoryForm.elements.namedItem('categoryId') as HTMLSelectElement;
+ categoryForm.addEventListener('input',event=>{if(event.target!==select){categoryForm.dataset.dirty='true';document.documentElement.dataset.unsaved='true';}});
+ select.addEventListener('change',async()=>{const previous=select.dataset.previous??'';
+  if(categoryForm.dataset.dirty==='true'&&!await window.businessConfirm('有尚未保存的规则修改，是否放弃？')){select.value=previous;return;}
+  const current=state.policies.filter((row:{categoryId:string;effectiveOn:string})=>row.categoryId===select.value&&row.effectiveOn<=state.today).sort((a:{versionNumber:number},b:{versionNumber:number})=>b.versionNumber-a.versionNumber)[0];
+  (categoryForm.elements.namedItem('displayName') as HTMLInputElement).value=current?.displayName??state.categories.find((row:{id:string})=>row.id===select.value)?.name??'';
+  for(const name of ['defaultIsPromoted','isSelectable','requiresNonPromotionReview'])(categoryForm.elements.namedItem(name) as HTMLInputElement).checked=current?.[name]??(name!=='defaultIsPromoted');
+  select.dataset.previous=select.value;delete categoryForm.dataset.dirty;document.documentElement.dataset.unsaved='false';
+ });
+}
+document.querySelector<HTMLFormElement>('[data-form]')?.addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement;const output=form.querySelector('output');const response=await fetch('/api/business-settings/category-policies',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败';return}document.documentElement.dataset.unsaved='false';location.reload()});
 document.querySelector('[data-permission-account]')?.addEventListener('change',async event=>{
  const select=event.target as HTMLSelectElement;const previous=document.querySelector<HTMLFormElement>('[data-account-permissions]:not([hidden])');
  if(previous?.dataset.dirty==='true'&&!await window.businessConfirm('有尚未保存的权限修改，是否放弃？')){select.value=previous.dataset.accountPermissions!;return;}

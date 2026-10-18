@@ -68,6 +68,7 @@ export const replayPromotionHistory = (campaignStartedOn, metrics, options = {})
     stageStartedOn = null;
   };
   const events = [
+    ...(options.stateChanges ?? []).map(change => ({ date: change.businessDate, kind: 'actual', priority: 1.5, change })),
     ...(options.waitRanges ?? []).flatMap(range => [
       { date: range.startedOn, kind: 'wait', priority: 2, range },
       ...(range.nextDecision && range.nextEffectiveOn ? [{ date: range.nextEffectiveOn, kind: 'next', priority: 1, range }] : []),
@@ -84,6 +85,16 @@ export const replayPromotionHistory = (campaignStartedOn, metrics, options = {})
   const applyEvents = through => {
     while (events[eventIndex]?.date <= through) {
       const event = events[eventIndex++];
+      if (event.kind === 'actual') {
+        if (!currentStage) return false;
+        if (currentStage === 'scaling' && event.change.stageType === 'testing') return false;
+        closeOpenStage(previousDateKey(event.date), event.change.stageType !== currentStage ? 'start_scaling' : 'continued');
+        currentStage = event.change.stageType;
+        currentStatus = currentStage;
+        stageStartedOn = openHolds.size ? null : event.date;
+        rangeWaiting = false;
+        continue;
+      }
       if (event.kind === 'holdStart') {
         if (!currentStage) continue;
         closeOpenStage(previousDateKey(event.date), 'paused');

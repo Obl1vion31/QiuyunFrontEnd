@@ -4,6 +4,7 @@ import { readScheduleWorkflow, WorkflowError } from '../../../../db/schedule-wor
 import { shanghaiDateTime } from '../../../../db/validation';
 import { workflowErrorResponse } from '../../../../db/workflow-api';
 import {effectiveBusinessPermissions} from '../../../../auth/business-permissions';
+import {readScheduleApprovals} from '../../../../db/schedule-approvals';
 export const prerender = false;
 export const GET: APIRoute = async ({ params, url,locals }) => {
   try {
@@ -15,6 +16,6 @@ export const GET: APIRoute = async ({ params, url,locals }) => {
     }
     const workflow=await readScheduleWorkflow(getDb(), params.id!, actual);
     const permissions=await effectiveBusinessPermissions(getDb(),locals.user!);
-    return Response.json({...workflow,permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
+    return Response.json({...workflow,changeProposals:await readScheduleApprovals(getDb(),locals.user!,params.id!),permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return workflowErrorResponse(error); }
 };

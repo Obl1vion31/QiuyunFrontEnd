@@ -239,6 +239,13 @@
       "when": 1792247354814,
       "tag": "0033_account_permissions_two_hour_delay",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792351270708,
+      "tag": "0034_promotion_business_timeline",
+      "breakpoints": true
     }
   ]
 }

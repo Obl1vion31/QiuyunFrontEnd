@@ -25,3 +25,5 @@
 `publication-link.mjs` 在前后端共用分享文案识别，不请求小红书；旧预约表保留只读历史，写入接口已停用。
 
 - `business-approvals.ts`：逐操作授权、待审变更、原入口事务预检与原子审核；`proposal-diff.ts` 输出业务字段差异，不公开账号凭据。
+
+- `promotion-timeline.ts`：首次待定、首次测试／直接放量、实际当日暂停和历史开始日／阶段更正；以业务日期回放，指纹、幂等与事务锁保护，冲突指标归档在前后快照中。`schedule-approvals.ts` 统一排期待审的新旧申请读模型。

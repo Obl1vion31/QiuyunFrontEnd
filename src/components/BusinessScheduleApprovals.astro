@@ -1,0 +1,27 @@
+---
+import BusinessInspector from './BusinessInspector.astro';
+import {getDb} from '../db/client';
+import {readScheduleApprovals} from '../db/schedule-approvals';
+import {businessDateTime} from '../scripts/business-date';
+const rows=await readScheduleApprovals(getDb(),Astro.locals.user!);
+const admin=Astro.locals.user?.role==='admin';
+---
+<section class="schedule-approval-layout" data-inspector-host data-schedule-approval-queue>
+ <div class="schedule-approval-list"><h2>待审核申请 <span data-approval-queue-count>{rows.length}</span></h2>
+ {rows.length?rows.map(row=><div role="button" tabindex="0" class="schedule-approval-item" data-inspector-key={row.key} data-approval-item={row.key}><strong>{row.name} · V{row.version}</strong><span data-approval-item-status>待审核 · {row.statusLabel}</span>{row.diff.filter(change=>change.label==='应发时间').map(change=><span>{change.before} → {change.after}</span>)}<small>{row.requestedBy} · {businessDateTime(row.createdAt)}</small></div>):<p>当前没有待审核申请。</p>}
+ </div>
+ <BusinessInspector parameter="request" templates label="排期申请详情" data-schedule-approval-inspector/>
+ {rows.map(row=><template data-inspector-template={row.key}>
+  <header><div><h2>{row.name} · V{row.version}</h2><p>待审核 · {row.statusLabel}</p></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
+  <section class="schedule-approval-detail"><h3>{row.title}</h3><p>{row.requestedBy} · {businessDateTime(row.createdAt)}</p>{row.reason&&<p>{row.reason}</p>}<div class="approval-diff"><table><thead><tr><th>字段</th><th>原内容</th><th>申请修改为</th></tr></thead><tbody>{row.diff.map(change=><tr><th>{change.label}</th><td>{change.before}</td><td>{change.after}</td></tr>)}</tbody></table></div>
+  </section>
+  {admin&&<footer class="business-inspector-actions"><form class="business-form" data-schedule-approval={row.endpoint} data-approval-key={row.key} data-schedule-id={row.scheduleId}><label>审核说明<textarea name="reason" maxlength="500" rows="2"/></label><div class="business-action-group"><button type="submit" class="business-action-primary" name="action" value="approve">通过</button><button type="submit" class="business-action-secondary" name="action" value="reject">驳回</button></div><output role="alert"/></form></footer>}
+ </template>)}
+</section>
+<script>import '../scripts/schedule-approvals';</script>
+<style is:global>
+.schedule-approval-layout{margin-top:16px}.schedule-approval-list{min-width:0;border:1px solid var(--console-line);border-radius:12px;background:var(--console-surface)}.schedule-approval-list h2{padding:16px;margin:0;font-size:16px}.schedule-approval-list>p{padding:16px}.schedule-approval-item{box-sizing:border-box;width:100%;display:grid;gap:6px;padding:16px;text-align:left;border:0;border-top:1px solid var(--console-line);background:transparent;color:var(--console-ink);font:400 13px/20px var(--console-font);cursor:pointer}.schedule-approval-item.selected{background:#e8eefa}.schedule-approval-item small{color:var(--console-muted);font-size:12px}.schedule-approval-item:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}.schedule-approval-detail{padding:18px}.schedule-approval-detail h3{font-size:14px}.approval-diff{overflow:auto}.approval-diff table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}.approval-diff td,.approval-diff th{padding:10px 8px;border-bottom:1px solid var(--console-line);overflow-wrap:anywhere;min-width:85px}.schedule-approval-layout .business-inspector-actions form{display:grid;gap:12px;margin:0}
+</style>
+<style is:global>
+.schedule-approval-detail .approval-diff thead{display:table-header-group}
+</style>

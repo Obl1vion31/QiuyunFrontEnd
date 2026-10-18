@@ -18,7 +18,7 @@ import {
 } from '../../db/promotion-rules.mjs';
 import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/promotion-validation';
 import { attachPromotionToActivePause, guardPromotionStart, lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
-import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, effectivePromotionStatus, nextReviewDate, promotionReplayOptions } from '../../db/promotion-state.mjs';
+import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, effectivePromotionStatus, firstMissingPromotionDate, promotionReplayOptions } from '../../db/promotion-state.mjs';
 import { WorkflowError } from '../../db/schedule-workflow';
 
 export const prerender = false;
@@ -153,10 +153,9 @@ export const POST: APIRoute = async ({ request, url }) => {
       const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.campaignId, campaign.id))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
-      const latest = allMetrics.at(-1);
       const context = await readPromotionContext(transaction);
       const windows = [...campaignPauseWindows(campaign, context), ...campaignWaitWindows(campaign, context), ...context.holds.filter(hold => hold.campaignId === campaign.id)];
-      const expectedDate = nextReviewDate(latest?.metricDate, campaign.startedOn, windows);
+      const expectedDate = firstMissingPromotionDate(allMetrics, campaign.startedOn, windows);
       if (result.data.metricDate !== expectedDate) {
         return { kind: 'out-of-order' as const, expectedDate };
       }
@@ -170,7 +169,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         const nextDay = new Date(`${result.data.metricDate}T00:00:00+08:00`); nextDay.setUTCDate(nextDay.getUTCDate() + 1);
         await guardPromotionStart(transaction, shanghaiDateKey(nextDay));
       }
-      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data], { ...promotionReplayOptions(campaign, context), asOf: today });
+      const replayed = replayPromotionHistory(campaign.startedOn, [...allMetrics, result.data].sort((a,b)=>a.metricDate.localeCompare(b.metricDate)), { ...promotionReplayOptions(campaign, context), asOf: today });
       if (!replayed) return { kind: 'invalid-decision' as const };
       if (['testing','scaling'].includes(replayed.currentStatus) && replayed.currentStage) await attachPromotionToActivePause(transaction, campaign.id, replayed.currentStage);
 

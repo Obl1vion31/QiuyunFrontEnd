@@ -66,5 +66,5 @@ const tableRows = rows.flatMap(row => {
 const selected = tableRows.find(row => row.key === url.searchParams.get('row'));
 const baseHref = viewHref(activeView);
 
-return { today, names, loadError, schedules, metrics, reviews, policies, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref };
+return { checkpointEvents, today, names, loadError, schedules, metrics, reviews, policies, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref };
 }

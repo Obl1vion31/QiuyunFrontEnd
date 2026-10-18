@@ -78,6 +78,7 @@ try {
   await request('/api/non-promotion-reviews','POST',employeeCookie,{scheduleId:peerA.id,checkpointType:'day_7',recordedThrough:inputTime(hours(-24*16)).slice(0,10),clickRate:'10',threeSecondReadRate:'40',conclusion:'更正时无需再填ID'},201);
   const [review]=await db.select().from(schema.operationsNonPromotionReview).where(eq(schema.operationsNonPromotionReview.scheduleId,peerA.id));assert.equal((review.cohortSnapshot.clickRate as any).mean,20);assert.equal((review.cohortSnapshot.clickRate as any).count,2);
   const promotionDate=inputTime(hours(-24)).slice(0,10);
+  await request('/api/promotion-awaiting','POST',employeeCookie,{scheduleId:promotedPeer.id,reviewDate:inputTime(hours(-24*23)).slice(0,10),action:'defer',waitingThrough:inputTime(hours(-48)).slice(0,10)},201);
   await request('/api/promotion-awaiting','POST',employeeCookie,{scheduleId:promotedPeer.id,reviewDate:promotionDate,action:'start_testing'},201);
   const [campaign]=await db.select().from(schema.operationsPromotionCampaign).where(eq(schema.operationsPromotionCampaign.scheduleId,promotedPeer.id));
   await request('/api/promotion-daily','POST',employeeCookie,{campaignId:campaign.id,metricDate:promotionDate,dailyStatus:'active',stageTypeSnapshot:'testing',spend:'20',platformOpenCount:'2',actualOpenCount:'1',platformLeadCount:'1',actualLeadCount:'1',reviewDecision:'test_continue'},201);
@@ -89,7 +90,7 @@ try {
   async function contextFor(cookie:string,width=1440) {
     const context=await launched.newContext({viewport:{width,height:900},...(width<900?{isMobile:true,hasTouch:true}:{})});
     await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));
-    const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));page.on('dialog',(dialog:any)=>dialog.accept());return {context,page};
+    const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.stack??error.message));page.on('dialog',(dialog:any)=>dialog.accept());return {context,page};
   }
   const {context,page}=await contextFor(employeeCookie);
   await page.goto(`${baseURL}/business/operations-schedule?status=overdue&row=${pending.id}`);
@@ -138,8 +139,8 @@ try {
     await phone.goto(`${baseURL}/business/operations-schedule?status=reasons&row=${approval.id}`);await phone.locator('[data-schedule-workflow] .workflow-reason').first().waitFor();
     await phone.screenshot({path:`.tools/test-artifacts/schedule-workflow-${width}.png`,fullPage:true});await mobile.close();
   }
-  const {context:adminContext,page:adminPage}=await contextFor(adminCookie);await adminPage.goto(`${baseURL}/business/settings?view=approvals`);
-  await adminPage.locator('.business-pending-changes details').first().locator('summary').click();await adminPage.locator('[data-decide-proposal]').getByRole('button',{name:'同意修改'}).waitFor();await adminPage.locator('[data-decide-proposal]').getByRole('button',{name:'同意修改'}).click();await adminPage.waitForLoadState('networkidle');
+  const {context:adminContext,page:adminPage}=await contextFor(adminCookie);await adminPage.goto(`${baseURL}/business/operations-schedule?status=approvals`);
+  await adminPage.locator('[data-schedule-approval-inspector].is-open').waitFor();await adminPage.locator('[data-schedule-approval] button[value=approve]').click();await adminPage.locator('[data-schedule-approval] output').getByText('已通过',{exact:true}).waitFor();
   assert.equal((await request('/api/business-notifications','GET',adminCookie)).pendingApprovals,0);await adminContext.close();
   assert.deepEqual(errors,[]);console.log('通过：桌面与手机的逐日理由、申请审批、跨页初始化、分类筛选、节点跳过与恢复。');
 } catch(error) { console.error(fixture.logs());throw error; }

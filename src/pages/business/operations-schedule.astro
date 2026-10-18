@@ -1,6 +1,7 @@
 ---
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
+import BusinessScheduleApprovals from '../../components/BusinessScheduleApprovals.astro';
 import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
@@ -242,12 +243,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
               { label: '月历', href: hrefFor({ view: 'schedule', display: 'calendar', status: '', promotion: '' }), active: selectedDisplay === 'calendar' && selectedView === 'schedule' },
             ]} />
             <button class="filter-button toolbar-action-secondary" type="button" disabled title="更多筛选将在数据维度确认后开放">筛选</button>
-            <button class="primary-action" type="button" data-open-new data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
+            {selectedStatus!=='approvals'&&<button class="primary-action" type="button" data-open-new data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>}
           </BusinessToolbarActions>
         </BusinessConsoleToolbar>
 
         <main class="workspace-main business-console-content">
-<BusinessPendingChanges module="schedule"/>
+{selectedStatus!=='approvals'&&<BusinessPendingChanges module="schedule"/>}
           {databaseError && <p class="notice notice--error" role="alert">{databaseError}</p>}
 
           {selectedView === 'schedule' && !queueView && <div class="mobile-period-nav">
@@ -279,11 +280,11 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           </nav>
           <nav class="workflow-queue-nav" aria-label="排期待办队列">
             <a href={hrefFor({view:'schedule',status:'reasons',display:'ledger'})}>待补延期理由 <b>{notifications?.missingReasons ?? '—'}</b></a>
-            <a href={hrefFor({view:'schedule',status:'approvals',display:'ledger'})}>{actorRole==='admin'?'待审批':'改期申请'} <b>{notifications?.pendingApprovals ?? '—'}</b></a>
+            <a href={hrefFor({view:'schedule',status:'approvals',display:'ledger'})}>{actorRole==='admin'?'排期待审':'我的申请'} <b>{notifications?.pendingApprovals ?? '—'}</b></a>
             {queueView&&<span>{queueLabel} · 跨月份显示</span>}
           </nav>
 
-          <div class="content-layout">
+          {selectedStatus==='approvals'?<BusinessScheduleApprovals/>:<div class="content-layout">
             <section class="content-stage">
               {(selectedDisplay === 'ledger' || selectedView === 'promotion') && <div class="table-wrap">
           <table>
@@ -347,11 +348,12 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                 <section class="inspector-section"><span>小红书帖子</span><a data-inspector-post target="_blank" rel="noreferrer"></a></section>
                 </details>
                 <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录"></section>
+                <section class="inspector-section" data-promotion-state-history></section>
                 <details class="inspector-danger" data-business-operation="schedule.delete" hidden={permissions['schedule.delete']==='disabled'}><summary>更多操作</summary><button type="button" data-inspector-delete>删除这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
               <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </BusinessInspector>
-          </div>
+          </div>}
         </main>
     </BusinessConsoleFrame>
 
@@ -423,6 +425,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
     <template data-change-request-datetime><BusinessDateTimeFields name="plannedPublishAt" id="changeRequestPlannedPublishAt" dateName="requestedPublishDate" timeName="requestedPublishTime" dateLabel="申请的新发送日期" timeLabel="申请的新发送时间" label="申请的新发送时间" required/></template>
 
     <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow, delayThresholdMs }}>
+      if(document.querySelector('[data-inspector-name]')){
       const permissions=JSON.parse(document.querySelector('#business-permissions')?.textContent||'{}');
       const mayOperate=key=>['direct','review'].includes(permissions[key]);
       const rows = clientRows;
@@ -442,6 +445,11 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       const message = document.querySelector('.form-message');
       const submitButton = form.querySelector('button[type="submit"]');
       const inspector = document.querySelector('[data-inspector]');
+      inspector.addEventListener('business:promotion-state-updated',event=>{
+        const {id,label,status}=event.detail;const record=rows.find(row=>row.id===id);if(record){record.promotionLabel=label;record.promotionStatus=status;}
+        if(inspector.dataset.selectedId===id)inspector.querySelector('[data-inspector-promotion]').textContent=label;
+        for(const node of document.querySelectorAll(`.schedule-row[data-inspect-id="${id}"] td:nth-child(4)>small`))node.textContent=label;
+      });
       const inspectorEdit = document.querySelector('[data-inspector-edit]');
       const inspectorRevise = document.querySelector('[data-inspector-revise]');
       const inspectorDerived = document.querySelector('[data-inspector-derived]');
@@ -751,7 +759,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           let result = await response.json();
           if (response.status === 409 && result.resetRequired) {
             const impact = result.impact ?? {};
-            if (window.confirm(`更正实发时间会永久删除 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度事实，并从新日期重新进入待开始推广。确定继续吗？`)) {
+            if (await window.businessConfirm(`更正实发时间会重置 ${impact.startPlans ?? 0} 个首次待定安排、${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度指标。原记录归档保留，相关日期将重新开放补录。`,{title:'确认历史影响',confirmLabel:'确认更正'})) {
               body.set('confirmPromotionReset', '1');
               response = await fetch(`/api/operations-content/${activeRecord.id}/publication`, { method: 'PATCH', body, headers: { Accept: 'application/json' } });
               result = await response.json();
@@ -806,10 +814,11 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           let result = await response.json();
           if (response.status === 409 && result.resetRequired) {
             const impact = result.impact ?? {};
-            const confirmed = window.confirm(
+            const confirmed = await window.businessConfirm(
               result.preserveHistory
                 ? `改为非推广会结束仍开放的推广阶段。${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据都会保留，未来进入非推广 7 / 15 天复盘。确定继续吗？`
-                : `修改实发日期会永久删除 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并从新日期重新进入待开始推广。确定继续吗？`,
+                : `修改实发日期会归档 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并重置 ${impact.startPlans ?? 0} 个首次待定安排。确定继续吗？`,
+              {title:'确认历史影响',confirmLabel:'确认更正'},
             );
             if (confirmed) {
               body.set('confirmPromotionReset', '1');
@@ -860,6 +869,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       });
       const initialRecord = rows.find(row => row.id === (requestedRow || location.hash.slice(1)));
       if (initialRecord) openInspector(initialRecord);
+    }
     </script>
     <script>import '../../scripts/operations-workflow';</script>
   </body>

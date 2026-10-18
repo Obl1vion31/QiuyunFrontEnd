@@ -96,7 +96,10 @@ async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>
   const versions=await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentId,version.contentId));
   const campaigns=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.scheduleId,id));
   const campaignIds=campaigns.map(row=>row.id);
+  const startPlans=await db.select().from(s.operationsPromotionStartPlan).where(eq(s.operationsPromotionStartPlan.scheduleId,id));
+  const dayDecisions=campaignIds.length?await db.select().from(s.operationsPromotionDayDecision).where(inArray(s.operationsPromotionDayDecision.campaignId,campaignIds)):[];
   return {schedule,versions,campaigns,
+    ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
     reasons:await db.select().from(s.operationsScheduleDelayReason).where(eq(s.operationsScheduleDelayReason.scheduleId,id)),
     plans:await db.select().from(s.operationsSchedulePlanHistory).where(eq(s.operationsSchedulePlanHistory.scheduleId,id)),
     metrics:campaignIds.length?await db.select().from(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.campaignId,campaignIds)):[],

@@ -1,5 +1,8 @@
 import type { APIRoute } from 'astro';
 import { lockPromotionWorkflow } from '../../../db/promotion-pauses';
+import {promotionSnapshot} from '../../../db/promotion-timeline';
+import {randomUUID} from 'node:crypto';
+import {shanghaiDateKey} from '../../../db/promotion-rules.mjs';
 import { changeSchedulePlan, WorkflowError } from '../../../db/schedule-workflow';
 import { workflowErrorResponse } from '../../../db/workflow-api';
 import {requireBusinessOperation} from '../../../auth/business-permissions';
@@ -19,7 +22,7 @@ import {
   operationsScheduleChangeRequest,
   operationsScheduleDelayReason,
   operationsNonPromotionCheckpointEvent,
-  operationsPublicationReservation,operationsPublicationEvent,
+  operationsPublicationReservation,operationsPublicationEvent,operationsPromotionStartPlan,operationsPromotionTimelineAudit,
 } from '../../../db/schema';
 import {
   editScheduleInputFromForm,
@@ -72,7 +75,11 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         transaction.select({value:count()}).from(operationsPublicationReservation).where(eq(operationsPublicationReservation.scheduleId,schedule.id)),
         transaction.select({value:count()}).from(operationsPublicationEvent).where(eq(operationsPublicationEvent.scheduleId,schedule.id)),
       ]);
-      const blockers = {
+      const [startPlanRows,timelineAuditRows]=await Promise.all([
+        transaction.select({value:count()}).from(operationsPromotionStartPlan).where(eq(operationsPromotionStartPlan.scheduleId,schedule.id)),
+        transaction.select({value:count()}).from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.scheduleId,schedule.id)),
+      ]);
+      const blockers = {startPlans:Number(startPlanRows[0]?.value??0),timelineAudits:Number(timelineAuditRows[0]?.value??0),
         reservations:Number(reservationCountRow[0]?.value??0),publicationEvents:Number(publicationCountRow[0]?.value??0),
         versions: Number(versionCountRow?.[0]?.value ?? 0) > 1,
         campaigns: Number(campaignCountRow?.[0]?.value ?? 0),
@@ -82,7 +89,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         planHistory: Number(planCountRow?.[0]?.value ?? 0), changeRequests: Number(requestCountRow?.[0]?.value ?? 0),
         delayReasons: Number(reasonCountRow?.[0]?.value ?? 0), checkpointEvents: Number(checkpointCountRow?.[0]?.value ?? 0),
       };
-      if (blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents || blockers.reservations || blockers.publicationEvents) {
+      if (blockers.startPlans || blockers.timelineAudits || blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents || blockers.reservations || blockers.publicationEvents) {
         return { kind: 'blocked' as const, blockers };
       }
 
@@ -153,6 +160,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         .from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.scheduleId, params.id!));
       const campaignCount = Number(campaignCountRow?.value ?? 0);
+      const oldTimeline=schedule.isPromoted!==result.data.isPromoted?await promotionSnapshot(transaction,schedule.id):null;
       const endCampaigns = campaignCount > 0 && schedule.isPromoted && !result.data.isPromoted;
       if (endCampaigns) await requireBusinessOperation(transaction,locals.user!,'schedule.endPromotion');
 
@@ -238,6 +246,10 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
           : null,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, params.id!)).returning({ id: operationsContentSchedule.id });
+      if(oldTimeline?.plan){
+        await transaction.delete(operationsPromotionStartPlan).where(eq(operationsPromotionStartPlan.scheduleId,schedule.id));
+        await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:randomUUID(),businessDate:shanghaiDateKey(new Date()),action:'usage_change',reason:usageChangeReason||'调整推广身份',before:oldTimeline,after:await promotionSnapshot(transaction,schedule.id),changedById:locals.user!.id,changedByLabel:locals.user!.username});
+      }
       return saved;
     });
     if (!updated) return Response.json({ message: '没有找到这条排期。' }, { status: 404 });

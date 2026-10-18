@@ -7,7 +7,7 @@ import { WorkflowError, type Transaction } from './schedule-workflow';
 import { nextDateKey, shanghaiDateKey } from './promotion-rules.mjs';
 import { pauseIsActive, promotionStateOn } from './promotion-state.mjs';
 import { operationsPromotionPause as pauses, operationsPromotionPauseTarget as targets,
-  operationsPromotionHold as holds, operationsPromotionCampaign as campaigns, operationsPromotionWaitRange as waitRanges, operationsPromotionDailyMetric as metrics } from './schema';
+  operationsPromotionHold as holds, operationsPromotionCampaign as campaigns, operationsPromotionWaitRange as waitRanges, operationsPromotionDailyMetric as metrics, operationsPromotionDayDecision as decisions } from './schema';
 
 const dateKey = z.string().regex(/^20\d{2}-\d{2}-\d{2}$/, '日期无效').refine(value => {
   const date = new Date(`${value}T00:00:00+08:00`);
@@ -18,12 +18,13 @@ export const pauseUpdateSchema = z.object({ action: z.enum(['extend','resume']),
 export const lockPromotionWorkflow = (transaction: Transaction) => transaction.execute(sql`select pg_advisory_xact_lock(739214502)`);
 
 export async function readPromotionContext(database: Database | Transaction) {
-  const [pauseRows, targetRows, holdRows, rangeRows, campaignRows, metricRows] = await Promise.all([
+  const [pauseRows, targetRows, holdRows, rangeRows, campaignRows, metricRows, stateChanges] = await Promise.all([
     database.select().from(pauses).orderBy(asc(pauses.startsAt)), database.select().from(targets), database.select().from(holds).orderBy(asc(holds.startedOn)),
     database.select().from(waitRanges).orderBy(asc(waitRanges.startedOn)), database.select().from(campaigns),
     database.select({ campaignId: metrics.campaignId, metricDate: metrics.metricDate, dailyStatus: metrics.dailyStatus, stageTypeSnapshot: metrics.stageTypeSnapshot, reviewDecision: metrics.reviewDecision }).from(metrics).orderBy(asc(metrics.metricDate)),
+    database.select().from(decisions).orderBy(asc(decisions.businessDate)),
   ]);
-  return { pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };
+  return { stateChanges, pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };
 }
 
 export async function pauseSummary(database: Database | Transaction, now = new Date()) {

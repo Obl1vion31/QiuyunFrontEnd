@@ -1,4 +1,6 @@
 import type { APIRoute } from 'astro';
+import {randomUUID} from 'node:crypto';
+import {promotionSnapshot} from '../../../db/promotion-timeline';
 import { requireAdmin, permissionErrorResponse } from '../../../auth/permissions';
 import { asc, eq, sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
@@ -9,6 +11,7 @@ import {
   operationsPromotionStage,
   operationsPromotionHold,
   operationsPromotionWaitRange,
+  operationsPromotionDayDecision,operationsPromotionTimelineAudit,
 } from '../../../db/schema';
 import { replayPromotionHistory } from '../../../db/promotion-rules.mjs';
 import { lockPromotionWorkflow, readPromotionContext } from '../../../db/promotion-pauses';
@@ -59,17 +62,19 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         || existing.dailyStatus !== parsed.data.dailyStatus
         || existing.stageTypeSnapshot !== parsed.data.stageTypeSnapshot;
       if (lifecycleChanged) requireAdmin(locals.user);
+      const before=lifecycleChanged?await promotionSnapshot(transaction,campaign.scheduleId):null;
       const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
       const later = lifecycleChanged ? allMetrics.filter((metric) => metric.metricDate > existing.metricDate) : [];
       const context = await readPromotionContext(transaction);
       const affectedRanges = lifecycleChanged ? context.waitRanges.filter(r => r.campaignId === campaign.id && (!r.nextEffectiveOn || r.nextEffectiveOn > existing.metricDate)) : [];
-      if ((later.length > 0 || affectedRanges.length > 0) && !parsed.data.confirmCascade) {
+      const affectedDecisions=lifecycleChanged?context.stateChanges.filter(row=>row.campaignId===campaign.id&&row.businessDate>existing.metricDate):[];
+      if ((later.length > 0 || affectedRanges.length > 0 || affectedDecisions.length>0) && !parsed.data.confirmCascade) {
         const laterStages = await transaction.select({ id: operationsPromotionStage.id })
           .from(operationsPromotionStage)
           .where(sql`${operationsPromotionStage.campaignId} = ${existing.campaignId} and ${operationsPromotionStage.startedOn} > ${existing.metricDate}`);
-        return { kind: 'confirmation' as const, dailyMetrics: later.length, stages: laterStages.length, waitRanges: affectedRanges.length };
+        return { kind: 'confirmation' as const, dailyMetrics: later.length, stages: laterStages.length, waitRanges: affectedRanges.length,dayDecisions:affectedDecisions.length };
       }
 
       const retainedCandidate = allMetrics
@@ -82,6 +87,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         } : metric);
       if (lifecycleChanged) context.waitRanges = context.waitRanges.filter(r => !affectedRanges.some(a => a.id === r.id));
       if (lifecycleChanged) context.holds = context.holds.filter(hold => hold.campaignId !== campaign.id || hold.endedOn <= existing.metricDate);
+      if(lifecycleChanged)context.stateChanges=context.stateChanges.filter(row=>!affectedDecisions.some(affected=>affected.id===row.id));
       const replayed = lifecycleChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate, promotionReplayOptions(campaign, context)) : null;
       if (lifecycleChanged && !replayed) return { kind: 'invalid-decision' as const };
 
@@ -89,6 +95,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         await transaction.delete(operationsPromotionDailyMetric).where(sql`${operationsPromotionDailyMetric.campaignId} = ${existing.campaignId} and ${operationsPromotionDailyMetric.metricDate} > ${existing.metricDate}`);
       }
       for (const range of affectedRanges) await transaction.delete(operationsPromotionWaitRange).where(eq(operationsPromotionWaitRange.id, range.id));
+      for(const decision of affectedDecisions)await transaction.delete(operationsPromotionDayDecision).where(eq(operationsPromotionDayDecision.id,decision.id));
       if (lifecycleChanged) await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
       await transaction.update(operationsPromotionDailyMetric).set({
         dailyStatus: parsed.data.dailyStatus,
@@ -120,6 +127,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         promotionStatus: replayed!.currentStatus,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, campaign.scheduleId));
+      if(before)await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:randomUUID(),businessDate:existing.metricDate,action:'metric_correction',reason:parsed.data.note||'更正历史复盘决定',before,after:await promotionSnapshot(transaction,campaign.scheduleId),changedById:locals.user!.id,changedByLabel:locals.user!.username});
       return { kind: 'saved' as const, deleted: later.length };
     });
 
@@ -127,9 +135,9 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
     if (result.kind === 'invalid-decision') return Response.json({ message: '下一步与该日阶段不匹配。' }, { status: 409 });
     if (result.kind === 'confirmation') {
       return Response.json({
-        message: `修改下一步会删除后续 ${result.dailyMetrics} 条日度记录及 ${result.waitRanges} 个待定区间，并重建生命周期。`,
+        message: `修改下一步会归档后续 ${result.dailyMetrics} 条日度记录，并重置 ${result.waitRanges} 个待定区间及 ${result.dayDecisions} 项当日安排。`,
         correctionRequired: true,
-        impact: { dailyMetrics: result.dailyMetrics, stages: result.stages, waitRanges: result.waitRanges },
+        impact: { dailyMetrics: result.dailyMetrics, stages: result.stages, waitRanges: result.waitRanges,dayDecisions:result.dayDecisions },
       }, { status: 409 });
     }
     return Response.json({ ok: true, deleted: result.deleted });
