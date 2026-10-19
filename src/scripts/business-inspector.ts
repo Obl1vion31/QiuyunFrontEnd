@@ -65,7 +65,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   syncContext();
   const dirty = () => element.dataset.dirty === 'true';
   const mayLeave = async () => !dirty() || await businessConfirm('有尚未保存的修改，是否放弃？');
-  const setClean = () => { element.dataset.dirty = 'false'; document.documentElement.dataset.unsaved = 'false'; };
+  const setClean = () => { element.dataset.dirty = 'false'; document.documentElement.dataset.unsaved = String([...document.querySelectorAll('form[data-dirty=true]')].some(form=>!element.contains(form))); };
   const updateUrl = (id: string | null, replace = false) => {
     if (!parameter) return;
     const url = new URL(location.href);
@@ -214,15 +214,17 @@ function initialize() {
     };
     const controller = getInspector(element, { render });
     const parameter = element.dataset.inspectorParameter!;
-    document.querySelectorAll<HTMLElement>('[data-inspector-key]').forEach(row => {
-      const activate = (event: Event) => {
-        if (event instanceof MouseEvent && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
-        if (!(row instanceof HTMLAnchorElement) && (event.target as Element).closest('a,button,input,select,textarea')) return;
-        event.preventDefault(); controller.open(row.dataset.inspectorKey!, row);
-      };
-      row.addEventListener('click', activate);
-      row.addEventListener('keydown', event => { if (event.target === row && (event.key === 'Enter' || event.key === ' ')) activate(event); });
-    });
+    // Stable delegation also covers locally refreshed rows without rebinding or losing drafts.
+    const host=element.closest('[data-inspector-host]')??element.parentElement!;
+    const activate=(event:Event)=>{
+      const row=(event.target as Element).closest<HTMLElement>('[data-inspector-key]');
+      if(!row||!host.contains(row))return;
+      if(event instanceof KeyboardEvent&&(event.target!==row||!['Enter',' '].includes(event.key)))return;
+      if(event instanceof MouseEvent&&(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey))return;
+      if(!(row instanceof HTMLAnchorElement)&&(event.target as Element).closest('a,button,input,select,textarea'))return;
+      event.preventDefault();controller.open(row.dataset.inspectorKey!,row);
+    };
+    host.addEventListener('click',activate);host.addEventListener('keydown',activate);
     const requested = new URL(location.href).searchParams.get(parameter);
     if (requested) controller.open(requested, document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(requested)}"]`), false);
   });

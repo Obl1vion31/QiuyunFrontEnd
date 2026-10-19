@@ -61,7 +61,7 @@ pnpm build
 
 - 年度规划：`/business/annual-plan`，总规划由学科细致规划自动汇总。
 - 帖子排期：`/business/operations-schedule`，新做帖建立 V0，修改内容建立 V1+，默认按月历查看，“排期待审”沿用台账并在详情处理申请差异；满应发 2 小时未登记提醒“尚未登记”，按真实发布时间判延期；发布统一登记时间与帖子链接，支持完整分享文案和未来时间。
-- 推广日度：`/business/daily-promotion-review`，行内首次安排、连续待定／暂停记录、业务日期、T+1 指标、测试／直接放量、行内当日暂停、待定末日下一步、历史更正和团队节假日暂停。
+- 推广日度：`/business/daily-promotion-review`，行内首次安排、连续待定／暂停记录、业务日期、T+1 指标、测试／直接放量、行内当日暂停、待定末日下一步、历史更正和团队节假日暂停；生命周期按阶段展示原记录累计指标，历史按尚未结束／已结束分区，可在统一详情中回看阶段与逐日数据。
 - 推广阶段：`/business/daily-promotion-review?view=stage`，自选日期汇总测试／放量，保存 V0/V1+ 快照供例会引用。
 - 非推广复盘：`/business/non-promotion-review`，首轮／二轮指标、学科分类筛选及单轮／整篇不复盘与恢复。
 - 例会：`/business/meeting-review`，五部分报告、指定版本快照、私有图片和结论事项；全局规则：`/business/settings`。

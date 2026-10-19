@@ -67,7 +67,7 @@ flowchart LR
 | --- | --- | --- |
 | 应用壳层与正文留白 | [Frame](../src/components/BusinessConsoleFrame.astro)、[排期](../src/pages/business/operations-schedule.astro) | `main.business-console-content` 使用 Frame 变量，业务样式只作用于正文内部 |
 | 公共标题和视角切换 | [Toolbar](../src/components/BusinessConsoleToolbar.astro)、[推广顶栏](../src/components/BusinessPromotionToolbar.astro) | 命名插槽组合控件；推广 `transition:persist` 保留顶栏及按钮，切换后同步激活态 |
-| 已加载详情模板 | [非推广](../src/pages/business/non-promotion-review.astro)、[推广历史](../src/pages/business/daily-promotion-review.astro) | 行 `data-inspector-key`，惰性 `template[data-inspector-template]`，`BusinessInspector parameter="row" templates` |
+| 已加载详情模板 | [非推广](../src/pages/business/non-promotion-review.astro)、[推广每日与历史](../src/pages/business/daily-promotion-review.astro) | 行 `data-inspector-key`，惰性 `template[data-inspector-template]`，`BusinessInspector parameter="row" templates`；公共控制器在稳定父容器委托事件，本帖局部刷新后仍可打开详情；阅读详情不触发外部草稿离开确认，清理面板时保留其他表单的未保存保护 |
 | 业务对象填充面板 | [年度适配器](../src/scripts/annual-plan.ts)、[排期](../src/pages/business/operations-schedule.astro) | `getInspector(element,{render,select})`；排期内联适配器通过 `business:inspector-select` / `business:inspector-render-record` 通信 |
 | 统一详情开关 | [Inspector 组件](../src/components/BusinessInspector.astro)、[控制器](../src/scripts/business-inspector.ts) | 几何、单一正文滚动、固定头尾、焦点、历史、dirty、移动端和动效在公共实现修改；静态内容和惰性模板由控制器统一收纳到 `data-inspector-body` |
 | 保存与重新读取 | [非推广适配器](../src/scripts/non-promotion-review.ts)、[读取模型](../src/db/non-promotion-read-model.ts) | POST 成功后 `setClean()`，GET 同一读模型刷新行、模板及轮次基准；失败保留输入 |
@@ -106,3 +106,5 @@ flowchart LR
 每日指标行的 `.review-entry-data` 按 `.review-metric-inputs`、`.review-costs` 与 `.review-completion` 三组组织；容器查询先保护五项输入的可用宽度，空间不足时由 `.review-outcome` 将成本和操作完整收在下一行，不以固定同行断言替代比例判断。成本使用 `dl / output` 和原更新控制器，选择与唯一提交按钮按内容定宽。头部 `.review-note-field` 在同一位置显示已有 ID 或补填控件；暂停隐藏、禁用与草稿沿用 `data-active-*`，缺失 ID 在暂停时显示只读“未填写”。`test:cards` 实际填写长金额、人数和 ID，保存尺寸与截图，再通过图像查看审查整体比例、条件字段及响应式状态；原业务提交不变。
 
 面板动效统一由 `business-inspector.ts` 与 `business-dialog.ts` 管理。排期正文使用 `data-inspector-host` 接入共享轨道；Inspector 在实际退出动画结束前保留 `.is-open`，同时收拢停靠轨道和间距，内容保持固定宽度。Sheet／Dialog 等待面板和 `::backdrop` 都退出再调用原生关闭，快速重开废弃旧退出任务。两类容器通过 `setBusinessScrollLock` 共享嵌套锁与滚动恢复，Frame 保留滚动条槽位。不要在页面添加关闭定时器、移除节点或重复锁定；逐帧验收入口为 `pnpm test:motion`。
+
+推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，汇总复用原成本公式。`BusinessPromotionSummary / BusinessPromotionTotals / BusinessPromotionDetails / BusinessPromotionMetric` 共用七项数值、阶段与逐日展示；历史列表筛选在聚合后执行，详情始终读取完整事实。状态编辑器以 `embedded` 接入详情，批量传入真实审计，空审计不生成入口。每日使用公共覆盖 Inspector，避免挤压其他未保存卡片；历史使用公共停靠轨道。

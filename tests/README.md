@@ -43,6 +43,7 @@ pnpm test:motion
 pnpm test:timeline
 pnpm test:pending
 pnpm test:cards
+pnpm test:overview
 pnpm test:publication
 pnpm test:browser
 pnpm test:workflows
@@ -72,3 +73,5 @@ pnpm test:annual-plan
 日度卡片按输入、计算结果、完成操作三组验收，优先保护可读宽度与整体比例，空间不足允许完整换行。`pnpm test:cards` 在 1920／1600／1440／1366／1280／1080／900／768／600／390／320px 实际填写金额、人数及 ID，检查输入文本可完整阅读、五项等宽、成本标签及数值不裁切、下一步尺寸、有无 ID 的共同头部与指标起点；覆盖暂停草稿、零分母、失败重试与真实保存。截图和计算尺寸位于 `.tools/test-artifacts/review-cards-verified/`，须实际打开图像审查比例、层级和空间，不能只运行断言或要求九个元素同行。原区间、笔记 ID 必填与局部刷新由 `test:pending`、`test:timeline` 继续回归。
 
 `pnpm test:motion` 使用隔离库在 1440／1280／390／320px 逐帧检查排期详情、发布登记、编辑排期、创建改帖的面板几何、遮罩透明度、背景日历、滚动位置与锁定时机；另验快速重开、嵌套确认和减少动态效果。退出期间不提前改变定位或隐藏，面板与遮罩归零后才关闭，覆盖式不改变背景宽度，停靠式轨道收拢的终帧误差不超过 1px。记录保存在 `.tools/test-artifacts/panel-motion-regression.json`，同类共享组件继续通过全部跨页浏览器回归验收。
+
+`pnpm test:overview` 使用隔离事实检查每日／历史的七项指标、按累计人数计算成本、真实零与未登记区分、暂停及结束保留阶段、上下分区去重、日筛选之外的完整 Inspector、阅读详情不影响其他草稿、真实保存后局部刷新仍可展开；在 1600／1440／1280／1080／768／390／320px 检查真实字体、文字完整及横向溢出。截图与计算尺寸位于 `.tools/test-artifacts/promotion-overview/`，必须实际打开检查并按观察迭代。纯计算回归见 `promotion-overview.test.ts`。

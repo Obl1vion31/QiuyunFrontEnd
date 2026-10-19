@@ -11,3 +11,5 @@ Sheet／Dialog 的遮罩进入、退出及面板退出动画也在此统一维�
 `business-changes.css` 统一 SSR 与异步详情的申请差异，原内容／申请内容按字段纵向排列；台账表格样式必须限定在主列表内，避免影响 Inspector。
 
 `promotion-pending.css` 仅作用于推广“待完成复盘”，集中维护首次安排、持续状态与正常数据行的宽度、头部、语义日期、指标、行内展开和操作区，复用表单变量；不更改共享工作台外壳。
+
+`promotion-overview.css` 统一推广生命周期、历史与 Inspector 中的只读七项指标、阶段信息及逐日记录。使用内容容器断点保护标签和金额可读性，与 `promotion-pending.css` 的录入区域分工。

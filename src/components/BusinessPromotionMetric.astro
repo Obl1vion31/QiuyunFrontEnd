@@ -1,0 +1,36 @@
+---
+import BusinessFormDialog from './BusinessFormDialog.astro';
+import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
+import {promotionTotals,promotionDecisionLabels,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
+interface Props {metric:PromotionFact;entry:PromotionOverview}
+const {metric,entry}=Astro.props;
+const formatFullDate=(date:string)=>date;
+const decisionOptions=metric.stageTypeSnapshot==='scaling'?['scaling_continue','wait_continue','formal_discarded','ended']:['test_continue','wait_continue','test_discarded','start_scaling'];
+---
+<details class="promotion-day" data-metric-card={metric.id}>
+ <summary><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{metric.dailyStatus==='active'?`消耗 ¥${Number(metric.spend).toFixed(2)}`:metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'}</span></summary>
+ <BusinessPromotionTotals totals={promotionTotals([metric])}/>
+ <p class="promotion-day-decision">下一步：{promotionDecisionLabels[metric.reviewDecision]??metric.reviewDecision}</p>
+ {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
+ <button type="button" class="business-action-secondary" data-edit-trigger={metric.id}>编辑这一天</button>
+                          <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
+                            <form class="business-form" data-history-edit-form>
+                              <header class="dialog-head"><div><h3 id={`history-edit-${metric.id}`}>{formatFullDate(metric.metricDate)}</h3><p>{entry.post.contentName} · {metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
+                              <input type="hidden" name="metricId" value={metric.id} />
+                              <input type="hidden" name="dailyStatus" value={metric.dailyStatus} />
+                              <input type="hidden" name="stageTypeSnapshot" value={metric.stageTypeSnapshot} />
+                              <div class="form-dialog-body"><div class="edit-fields">
+                                <p class="edit-system-state"><span>当日状态</span><strong>{metric.dailyStatus === 'waiting_action' ? (metric.stageTypeSnapshot === 'testing' ? '测试待定' : '推广暂停') : metric.stageTypeSnapshot === 'testing' ? '测试' : '放量'}</strong><small>由前一天的“下一步”决定</small></p>
+                                <label>消耗<input name="spend" type="number" min="0" step="0.01" value={Number(metric.spend).toFixed(2)} readonly={metric.dailyStatus === 'waiting_action'} required /></label>
+                                <label>平台开口<input name="platformOpenCount" type="number" min="0" step="1" value={metric.platformOpenCount} readonly={metric.dailyStatus === 'waiting_action'} required /></label>
+                                <label>实际开口<input name="actualOpenCount" type="number" min="0" step="1" value={metric.actualOpenCount} readonly={metric.dailyStatus === 'waiting_action'} required /></label>
+                                <label>平台留资<input name="platformLeadCount" type="number" min="0" step="1" value={metric.platformLeadCount} readonly={metric.dailyStatus === 'waiting_action'} required /></label>
+                                <label>实际留资<input name="actualLeadCount" type="number" min="0" step="1" value={metric.actualLeadCount} readonly={metric.dailyStatus === 'waiting_action'} required /></label>
+                                <label>下一步<select name="reviewDecision" data-history-decision required disabled={Astro.locals.user?.role !== 'admin'}>{decisionOptions.map((decision) => <option value={decision} selected={metric.reviewDecision === decision}>{decision === 'wait_continue' ? (metric.stageTypeSnapshot === 'testing' ? '测试待定' : '推广暂停') : promotionDecisionLabels[decision]}</option>)}</select></label>
+                                <label class="edit-note">备注<textarea name="note" maxlength="500" rows="3">{metric.note ?? ''}</textarea></label>
+                              </div>
+                              <p class="edit-impact" data-edit-message role="alert"></p></div>
+                              <footer class="dialog-actions"><button type="button" data-close-edit>取消</button><button type="submit">保存修改</button></footer>
+                            </form>
+                          </BusinessFormDialog>
+</details>

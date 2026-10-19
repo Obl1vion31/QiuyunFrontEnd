@@ -90,13 +90,13 @@ test('推广相邻视图复用一个工具栏并保留公共节点', async () =>
   assert.doesNotMatch(source, /历史总览/);
 });
 
-test('生命周期图例与共享标题说明使用同一字体基线', async () => {
-  const header = await readFile(new URL('../src/components/BusinessPageHeader.astro', import.meta.url), 'utf8');
-  const daily = await readFile(new URL('../src/pages/business/daily-promotion-review.astro', import.meta.url), 'utf8');
-  assert.match(header, /business-page-header__meta :global\(p\).*font:500 var\(--console-caption\)\/var\(--console-caption-leading\) var\(--console-font\)/);
-  assert.match(daily, /class="lifecycle-meta"/);
-  assert.match(daily, /class="lifecycle-cutoff"/);
-  assert.match(daily, /\.lifecycle-meta\{display:flex;align-items:center/);
+test('生命周期以原始复盘汇总为主体，概览和详情共用数值组件', async () => {
+  const daily=await readFile(new URL('../src/pages/business/daily-promotion-review.astro',import.meta.url),'utf8');
+  const summary=await readFile(new URL('../src/components/BusinessPromotionSummary.astro',import.meta.url),'utf8');
+  const detail=await readFile(new URL('../src/components/BusinessPromotionDetails.astro',import.meta.url),'utf8');
+  assert.doesNotMatch(daily,/relative-track|promotionStageShares/);
+  for(const source of [summary,detail])assert.match(source,/<BusinessPromotionTotals/);
+  assert.match(summary,/data-inspector-key/);
 });
 
 test('四个业务详情共用 Inspector，不另行声明面板几何', async () => {

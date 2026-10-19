@@ -1,0 +1,17 @@
+---
+import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
+import type {PromotionOverview,PromotionTotals} from '../db/promotion-overview';
+interface Props {entry:PromotionOverview;daily?:boolean;href:string}
+const {entry,daily=false,href}=Astro.props;
+const recorded=(t:PromotionTotals)=>t.recordedDays?`${t.from}${t.through!==t.from?` 至 ${t.through}`:''}`:'尚无已登记数据';
+---
+<article class:list={['promotion-summary',daily?'lifecycle-card':'history-record']} data-lifecycle-schedule={daily?entry.scheduleId:undefined} data-history-schedule={daily?undefined:entry.scheduleId} data-history-row={daily?undefined:true}>
+ <header>
+  <a href={href} data-inspector-key={entry.key}><strong>{entry.post.contentName}</strong><span>V{entry.post.versionNumber} · {entry.post.subjectName}{entry.post.categoryName?` / ${entry.post.categoryName}`:''}</span></a>
+  <span class:list={['promotion-status','history-status',entry.status]}>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${entry.latest.currentStage==='testing'?'测试':'放量'}`:''}</span>
+ </header>
+ {daily?entry.stages.map(stage=><section class="promotion-summary-stage" data-phase={stage.stageType}>
+  <div class="promotion-summary-caption"><h3>{stage.label}</h3><span>{recorded(stage.totals)}</span>{stage.totals.recordedDays>0&&<span class="promotion-record-count">已登记 {stage.totals.recordedDays} 天</span>}{stage.missingDates.length>0&&<span class="promotion-missing">{stage.missingDates.length} 天待补录</span>}</div>
+  {stage.totals.recordedDays>0&&<BusinessPromotionTotals totals={stage.totals}/>}
+ </section>):<section class="promotion-summary-stage"><div class="promotion-summary-caption"><h3>{entry.totals.recordedDays?'全周期汇总':'全周期'}</h3><span>{recorded(entry.totals)}</span>{entry.totals.recordedDays>0&&<span class="promotion-record-count">已登记 {entry.totals.recordedDays} 天</span>}</div>{entry.totals.recordedDays>0&&<BusinessPromotionTotals totals={entry.totals}/>}</section>}
+</article>

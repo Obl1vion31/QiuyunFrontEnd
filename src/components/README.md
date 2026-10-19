@@ -70,3 +70,5 @@ ContentTunnel.module.css
 停靠详情通过 `data-inspector-host` 接入公共轨道，开合时保留正文宽度并一同过渡轨道与间距；覆盖详情在退出完成前保持定位。Sheet／Dialog 的面板与遮罩、嵌套滚动锁由 `business-dialog.ts` 统一管理，页面不得提前隐藏或原生移除容器。
 
 `BusinessPromotionTimeline.astro` 每日委托 `BusinessPromotionPendingRows.astro` 表达首次安排和持续区间，历史和排期 Inspector 按需展开更正，共用业务日期、写入控制器与审计；`BusinessScheduleApprovals.astro` 沿用排期台账与共享 Inspector。`BusinessChangeDiff.astro` 与 `src/scripts/business-change-diff.ts` 为 SSR／异步详情提供相同的纵向字段对照，不另建详情开关或横向对比表。
+
+`BusinessPromotionSummary / BusinessPromotionTotals / BusinessPromotionDetails / BusinessPromotionMetric` 供每日生命周期与历史总览共同使用，依次负责总览、七项只读数值、统一 Inspector 内容与逐日展开／原编辑表单。不要在视图中重复维护汇总或复制 Inspector 开关。
