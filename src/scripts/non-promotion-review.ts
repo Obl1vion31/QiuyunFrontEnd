@@ -1,5 +1,6 @@
 import { navigate } from 'astro:transitions/client';
 import { getInspector } from './business-inspector';
+import { businessConfirm } from './business-dialog';
 import type { readNonPromotionReview } from '../db/non-promotion-read-model';
 type ReviewItem = Awaited<ReturnType<typeof readNonPromotionReview>>['tableRows'][number];
 function initialize() {
@@ -104,7 +105,7 @@ function initialize() {
     if (form.matches('[data-id-correction]')) {
       const oldValue = form.querySelector<HTMLInputElement>('input[readonly]')!.value;
       const newValue = (form.elements.namedItem('platformNoteId') as HTMLInputElement).value.trim().toLowerCase();
-      if (!confirm(`旧值：${oldValue}\n新值：${newValue}\n\n该帖子的全部版本与复盘都会同步。确认更正？`)) return;
+      if (!await businessConfirm(`旧值：${oldValue}\n新值：${newValue}\n\n该帖子的全部版本与复盘都会同步。`,{title:'更正笔记 ID',confirmLabel:'确认更正',cancelLabel:'继续编辑'})) return;
     }
     button.disabled = true; output.textContent = '正在保存…';
     try {

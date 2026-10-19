@@ -157,10 +157,6 @@ const iconPaths = {
         event.preventDefault();
         return;
       }
-      if (document.documentElement.dataset.unsaved === 'true' && !window.confirm('有尚未保存的修改，确定离开当前页面吗？')) {
-        event.preventDefault();
-        return;
-      }
       document.documentElement.dataset.unsaved = 'false';
       rememberCurrentLocation();
       selectPath(new URL(link.href).pathname);

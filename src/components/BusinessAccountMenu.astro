@@ -15,6 +15,8 @@ const panelId = `business-account-${placement}`;
 </div>}
 <script>
   import { signOut } from '../auth/client';
+  import { businessConfirm } from '../scripts/business-dialog';
+  import { getInspector } from '../scripts/business-inspector';
   const placePanels = () => {
     document.querySelectorAll<HTMLElement>('.business-account__panel:not([data-account-ready])').forEach(panel => {
       panel.dataset.accountReady = 'true';
@@ -33,12 +35,14 @@ const panelId = `business-account-${placement}`;
   document.addEventListener('click', async event => {
     const target = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-sign-out]') : null;
     if (!target || target.dataset.signingOut) return;
-    if (document.documentElement.dataset.unsaved === 'true' && !window.confirm('有尚未保存的修改，确定退出登录吗？')) return;
+    if (document.documentElement.dataset.unsaved === 'true' && !await businessConfirm('有尚未保存的修改，确定退出登录吗？',{confirmLabel:'放弃修改并退出'})) return;
     const message = target.parentElement?.querySelector<HTMLElement>('[data-account-error]');
     if (message) message.hidden = true;
     target.dataset.signingOut = 'true'; target.disabled = true; target.textContent = '正在退出…'; target.dataset.loadingLabel = '正在退出登录…';
     try {
       await signOut();
+      document.documentElement.dataset.unsaved='false';
+      document.querySelectorAll<HTMLElement>('[data-inspector][data-dirty=true]').forEach(pane=>getInspector(pane).setClean());
       for (const key of Object.keys(sessionStorage)) if (key.startsWith('business-console:')) sessionStorage.removeItem(key);
       window.location.replace('/login');
     } catch {

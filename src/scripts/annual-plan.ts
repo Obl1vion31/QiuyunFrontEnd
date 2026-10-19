@@ -170,26 +170,28 @@ function initializeAnnualPlan() {
       if (!response.ok) { target.textContent = result.message; return; } target.replaceChildren();
       for (const version of result.versions) {
         const article = document.createElement('article'); article.innerHTML = `<div class="annual-version-meta"><strong>V${version.versionNumber}</strong><time datetime="${escapeHtml(version.createdAt)}">${historyTime(version.createdAt)}</time></div><p>${escapeHtml(version.changeSummary)}</p><small>${escapeHtml(version.changedByLabel)} · ${escapeHtml(version.diffSummary.join('；'))}</small>`;
+        const feedback=document.createElement('p');feedback.setAttribute('role','alert');feedback.hidden=true;article.append(feedback);
+        const showError=(message:string)=>{feedback.textContent=message;feedback.hidden=!message;};
         const view = document.createElement('button'); view.type = 'button'; view.textContent = '查看版本内容';
         view.addEventListener('click', async () => {
-          const existing = q('.snapshot-view', article); if (existing) { existing.remove(); return; } view.disabled = true;
+          const existing = q('.snapshot-view', article); if (existing) { existing.remove(); return; } view.disabled = true;showError('');
           try {
             const response = await fetch(`/api/operations-annual-plans/${row.id}/versions/${version.versionNumber}`); const detail = await response.json();
-            if (!response.ok) { window.alert(detail.message); return; }
+            if (!response.ok) { showError(detail.message||'历史版本读取失败，请重试。'); return; }
             const snapshot = normalizeSnapshot(detail.version.snapshot as AnnualPlanSnapshot); const panel = document.createElement('div'); panel.className = 'snapshot-view';
             const title = document.createElement('strong'); title.textContent = `${snapshot.row.sectionLabel} / ${snapshot.row.rowName}`; panel.append(title);
             const items = document.createElement('ul'); for (const block of snapshot.blocks) { const item = document.createElement('li'); item.textContent = `${formatSlotRange(block)} · ${block.note || '暂无备注'} · ${blockPromotionLabel(block)}`; items.append(item); } panel.append(items);
             for (const link of snapshot.links) { const anchor = document.createElement('a'); anchor.href = link.url; anchor.target = '_blank'; anchor.rel = 'noreferrer'; anchor.textContent = `${link.label} ↗`; panel.append(anchor); }
             if (snapshot.row.note) { const note = document.createElement('p'); note.textContent = snapshot.row.note; panel.append(note); } article.append(panel);
-          } catch { window.alert('历史版本读取失败，请重试。'); } finally { view.disabled = false; }
+          } catch { showError('历史版本读取失败，请重试。'); } finally { view.disabled = false; }
         }); article.append(view);
         if (version.versionNumber !== row.currentVersionNumber) {
           const restore = document.createElement('button'); restore.type = 'button'; restore.hidden=!mayOperate('annual.restore'); restore.textContent = '恢复此版本';
           restore.addEventListener('click', async () => {
-            if (!window.confirm(`将 V${version.versionNumber} 的内容恢复为新版本，当前及历史版本都会保留。确定恢复吗？`)) return;
-            restore.disabled = true;
-            try { const response = await fetch(`/api/operations-annual-plans/${row.id}/restore`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ versionNumber: version.versionNumber, expectedVersionNumber: row.currentVersionNumber }) }); const result = await response.json(); if (response.ok) {clearUnsaved();window.location.reload();} else window.alert(result.message); }
-            catch { window.alert('恢复失败，请重试。'); } finally { restore.disabled = false; }
+            if (!await businessConfirm(`将 V${version.versionNumber} 的内容恢复为新版本，当前及历史版本都会保留。`,{title:'恢复历史版本',confirmLabel:'恢复为新版本',cancelLabel:'取消'})) return;
+            restore.disabled = true;showError('');
+            try { const response = await fetch(`/api/operations-annual-plans/${row.id}/restore`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ versionNumber: version.versionNumber, expectedVersionNumber: row.currentVersionNumber }) }); const result = await response.json(); if (response.ok) {clearUnsaved();window.location.reload();} else showError(result.message||'恢复失败，请重试。'); }
+            catch { showError('恢复失败，请重试。'); } finally { restore.disabled = false; }
           }); article.append(restore);
         } target.append(article);
       }

@@ -687,7 +687,9 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
       inspectorDelete?.addEventListener('click', async () => {
         const record = activeRecord;
         const error = inspectorDeleteError;
-        if (!record || !window.confirm(`确定删除“${record.contentName}”的排期吗？\n删除后无法恢复。`)) return;
+        if (!record || inspectorDelete.disabled || !await window.businessConfirm(`确定删除“${record.contentName}”的排期吗？\n删除后无法恢复。`,{title:'删除排期',confirmLabel:'确认删除',cancelLabel:'取消'})) return;
+        if(activeRecord?.id!==record.id)return;
+        inspectorDelete.disabled=true;
         if (error) error.textContent = '';
         try {
           const response = await fetch(`/api/operations-content/${record.id}`, {
@@ -699,6 +701,8 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
           if (error) error.textContent = result.message ?? '删除失败，请重试。';
         } catch {
           if (error) error.textContent = '无法连接服务，请稍后重试。';
+        } finally {
+          inspectorDelete.disabled=false;
         }
       });
       const publicationControl = (name) => publicationForm.elements.namedItem(name);

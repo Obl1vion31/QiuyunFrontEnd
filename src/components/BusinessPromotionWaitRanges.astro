@@ -40,6 +40,7 @@ const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaign
 </section>
 <script>
   import { getInspector } from '../scripts/business-inspector';
+  import { businessConfirm } from '../scripts/business-dialog';
   const setup = () => document.querySelectorAll<HTMLFormElement>('[data-wait-range-form]:not([data-ready])').forEach(form => {
     form.dataset.ready = 'true';
     const requestKey = form.dataset.requestKey ?? crypto.randomUUID();
@@ -52,7 +53,8 @@ const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaign
       try {
         out.textContent = '正在保存…';
         let response = await send(); let result = await response.json();
-        if (result.confirmationRequired && confirm(`更改区间会删除 ${result.impact.from} 至 ${result.impact.through} 的 ${result.impact.dailyMetrics} 条日度事实，并重新开放待办。确认继续吗？`)) {
+        if (result.confirmationRequired) {
+          if(!await businessConfirm(`更改区间会删除 ${result.impact.from} 至 ${result.impact.through} 的 ${result.impact.dailyMetrics} 条日度事实，并重新开放待办。`,{title:'更改待定区间',confirmLabel:'确认更改',cancelLabel:'继续编辑'})){out.textContent='';return;}
           payload.confirmCascade = true; response = await send(); result = await response.json();
         }
         if (!response.ok) { out.textContent = result.message ?? '请确认影响后再保存。'; return; }

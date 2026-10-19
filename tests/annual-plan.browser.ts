@@ -57,7 +57,7 @@ try {
   browser = await playwright.chromium.launch({ headless: true }); await mkdir('.tools/test-artifacts', { recursive: true });
   const errors: string[] = []; const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   await context.addCookies(cookie.split('; ').map(pair => ({ name: pair.slice(0, pair.indexOf('=')), value: pair.slice(pair.indexOf('=') + 1), url: baseURL })));
-  const page = await context.newPage(); page.on('pageerror', (error: Error) => errors.push(error.message));
+  const page = await context.newPage(); page.on('pageerror', (error: Error) => errors.push(error.message));page.on('dialog',(dialog:any)=>{errors.push('出现原生弹框：'+dialog.type());void dialog.dismiss();});
   const checkHistory=async(page:any,width:number)=>{
     await page.locator('[data-load-history]').click();await page.locator('[data-history-list] time').first().waitFor();
     assert.match(await page.locator('[data-history-list] time').first().innerText(),/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
@@ -66,6 +66,11 @@ try {
     assert.equal(await view.evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(23, 33, 28)');
     await view.click();await page.locator('.snapshot-view').first().waitFor();
     assert.equal(await page.locator('.snapshot-view strong').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'14px');
+    if(width===1280){
+      await view.click();await page.route('**/api/operations-annual-plans/*/versions/*',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构版本读取失败'})}));await view.click();await page.locator('[data-history-list] [role=alert]').getByText('虚构版本读取失败',{exact:true}).waitFor();await page.unroute('**/api/operations-annual-plans/*/versions/*');await view.click();await page.locator('.snapshot-view').first().waitFor();
+      const restore=page.locator('[data-history-list] button').filter({hasText:'恢复此版本'}).first();{const answer=respondToBusinessConfirm(page);await restore.click();await answer;}
+      await page.route('**/api/operations-annual-plans/*/restore',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构恢复失败，历史保留'})}));{const answer=respondToBusinessConfirm(page,true);await restore.click();await answer;}await page.locator('[data-history-list] [role=alert]').getByText('虚构恢复失败，历史保留',{exact:true}).waitFor();await page.unroute('**/api/operations-annual-plans/*/restore');
+    }
     await page.screenshot({path:`.tools/test-artifacts/annual-history-consistency-${width}.png`});
   };
   await page.goto(baseURL+'/business/annual-plan?year=2031');

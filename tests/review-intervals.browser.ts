@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { startFixture, employee, admin } from './auth.fixture';
 import * as schema from '../src/db/schema';
 import { nextDateKey, previousDateKey, shanghaiDateKey } from '../src/db/promotion-rules.mjs';
+import {respondToBusinessConfirm} from './business-confirm.helper';
 const fixture=await startFixture();const {db,baseURL}=fixture;let browser:any;
 try {
  const today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today),earlier=previousDateKey(yesterday);
@@ -52,7 +53,9 @@ try {
   const afterFrame=await page.locator('.workspace').boundingBox(),afterToolbar=await page.locator('.business-toolbar').boundingBox();assert.equal(frame.x,afterFrame.x);assert.equal(toolbar.height,afterToolbar.height);
   await page.screenshot({path:`.tools/test-artifacts/stage-review-${width}.png`,fullPage:true});
   await page.goto(baseURL+`/business/meeting-review?meeting=${meeting.id}`);await page.locator('[data-report]').waitFor();for(const label of ['本周动向','推广阶段复盘快照','非推广复盘快照','临时事项快照','本周结论与事项进展'])assert.ok(await page.getByRole('heading',{name:label,exact:true}).isVisible());assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:`.tools/test-artifacts/meeting-review-${width}.png`,fullPage:true});
-  if(width===390){await page.locator('textarea[name=temporaryNotes]').fill('虚构手机编辑');await page.locator('[data-save]').last().click();await page.getByText('草稿已保存',{exact:true}).waitFor();}
+  if(width===390){await page.locator('textarea[name=temporaryNotes]').fill('虚构手机编辑');await page.locator('[data-save]').last().click();await page.getByText('草稿已保存',{exact:true}).waitFor();page.on('dialog',(dialog:any)=>{errors.push('出现原生弹框：'+dialog.type());void dialog.dismiss();});{const answer=respondToBusinessConfirm(page);await page.locator('[data-finalize]').click();await answer;}assert.equal(await page.locator('textarea[name=temporaryNotes]').inputValue(),'虚构手机编辑');
+   await page.route(`**/api/meeting-reviews/${meeting.id}`,async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构定稿失败，输入保留'})}));{const answer=respondToBusinessConfirm(page,true);await page.locator('[data-finalize]').click();await answer;}await page.locator('[data-output]').getByText('虚构定稿失败，输入保留',{exact:true}).waitFor();assert.equal(await page.locator('textarea[name=temporaryNotes]').inputValue(),'虚构手机编辑');await page.unroute(`**/api/meeting-reviews/${meeting.id}`);
+  }
   await context.close();
  }
  assert.deepEqual(errors,[]);

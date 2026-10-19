@@ -95,10 +95,12 @@ flowchart LR
 
 排期页面的日历日期按钮及空白点击共用 `openForm`，仅传入预填日期；日期与时分组合成原 `plannedPublishAt` 提交，编辑、改帖沿用相同控件。月历与台账复用完成状态计算，推广身份由独立标签表示。验收见 `publication.browser.ts`。
 
-日期格式统一入口为 `business-date.ts`，SSR 与异步回显不得再定义私有格式。面板读取采用 500ms 延迟反馈；Frame 只为写入修改触发按钮。`business-dialog.ts` 维护公共站内确认和 Sheet／Dialog 退出生命周期，业务关闭回调清理 dirty 后沿用公共 close，不直接隐藏 DOM。共享控制器也接管未定制的原生 cancel；已有未保存取消保护的容器标记 `data-dialog-cancel-managed`，由原保护完成确认后调用公共 close。
+日期格式统一入口为 `business-date.ts`，SSR 与异步回显不得再定义私有格式。面板读取采用 500ms 延迟反馈；Frame 只为写入修改触发按钮。`business-dialog.ts` 维护公共站内确认和 Sheet／Dialog 退出生命周期，删除排期、区间影响、笔记 ID、年度恢复和例会定稿／草稿删除均通过 `businessConfirm` 的标题及动作参数接入；失败由所属区域提供反馈。确认框与其他 Dialog 的 footer 共用 `business-forms.css`，原生按钮也显式使用 40px／13px 规格。Sidebar 的未保存保护交给共享导航控制器，退出成功后再清理 dirty，避免二次触发 beforeunload。业务关闭回调清理 dirty 后沿用公共 close，不直接隐藏 DOM。共享控制器也接管未定制的原生 cancel；已有未保存取消保护的容器标记 `data-dialog-cancel-managed`，由原保护完成确认后调用公共 close。
 
 年度和排期的操作目录在 `auth/business-capabilities.ts`，服务端有效授权与审计在 `auth/business-permissions.ts`；`db/business-approvals.ts` 根据真实差异检查权限、事务预检并保存申请，批准复用原写入入口。`withDatabase` 用请求隔离的异步上下文保证业务写入与申请状态原子提交；不得以临时提升员工角色绕过校验。权限 UI 只负责入口与只读字段，不能替代服务端检查。
 
 排期待审复用排期台账的行、日期分组和共享 Inspector，`BusinessChangeDiff` 为 SSR 差异实例；`operations-workflow.ts` 调用 `appendChangeDiff` 提供同结构异步详情，样式集中在 `business-changes.css`。列表的表格选择器必须限定在 `.table-wrap`，不得撑宽详情。`BusinessPromotionTimeline` 每日委托待办行展示首次安排与持续区间，历史／Inspector 沿用更正表单；首次资格同时核对排期原状态，历史终态没有活动明细也不能进入首次队列。
 
 待办行的 `.review-arrangement` 将目标日期、选择与保存就近排列；到期后显示 `reviewOn`（区间末日次日），隐藏提交字段 `reviewDate` 仍为区间末日，不能随展示文案一并顺延。摘要省去重复生效说明，完整连续日期在本行区间记录中查看。`promotion-pending.browser.ts` 同时检查单日逾期保存的真实业务日和桌面同行／窄屏完整换行。
+
+每日指标行的 `.review-metric-inputs` 承载五项原始输入，`.review-costs` 使用 `dl / output` 展示计算结果，仍由原 `data-open-cost / data-lead-cost` 控制器更新；`.review-completion` 将下一步与唯一提交按钮收在一起。`data-active-*` 的暂停隐藏、禁用、草稿保留及原提交字段不变。验收同时检查卡片高度、实际字号、只读输出和操作间距，不能用缩小控件换取紧凑。
