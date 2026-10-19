@@ -58,7 +58,7 @@ test('测试待定与放量暂停保留各自阶段，缩短截止日与提前�
  }
 });
 test('区间预览明确含首尾与下次复盘；长区间连续范围不展开成海量节点',()=>{
- assert.equal(inclusiveDays('2028-02-28','2028-03-01'),3);assert.match(promotionIntervalPreview('2026-10-17','2026-10-20')!,/共 4 天.*2026-10-21.*2026-10-20/);assert.equal(promotionIntervalPreview('2026-10-17','2026-10-16'),null);
+ assert.equal(inclusiveDays('2028-02-28','2028-03-01'),3);assert.equal(promotionIntervalPreview('2026-10-17','2026-10-20'),'2026-10-17 至 2026-10-20（含首尾共 4 天），记录为待定区间。');assert.equal(promotionIntervalPreview('2026-10-17','2026-10-16'),null);
  const records=promotionPeriodRecords({startedOn:'2026-10-17',endedOn:'2026-12-31',days:76,state:'待定',status:'待定中',untilLabel:'待定至',reviewOn:'2027-01-01',due:false,context:'尚未开始推广',range:undefined},now);
  assert.equal(records.length,10);assert.equal(records[7].gapBefore?.from,'2026-10-24');assert.equal(records[7].gapBefore?.to,'2026-12-28');assert.equal(records.at(-1)?.date,'2026-12-31');
 });

@@ -24,3 +24,5 @@
 `business-change-diff.ts` 用安全文本节点生成纵向字段对照，与 `BusinessChangeDiff.astro` 共用 `business-changes.css`；用于异步排期申请详情，不引入独立滚动容器。
 
 推广待办由 `promotion-timeline.ts` 管理行内状态／截止日／记录展开、带语义的区间预览、同条多表单草稿确认及单帖刷新；保留统一内容容器与其他帖子的输入。预览和连续日期取自纯展示模型，不写入指标。
+
+`promotion-disclosure.ts` 管理黄绿生命周期色块的首次呈现及数据的成对展开／收起；文字、比例与轨道几何保持稳定，收起归零后才关闭原生 details。快速反向、键盘与减少动态效果统一处理，筛选、读取详情和局部刷新不重播。

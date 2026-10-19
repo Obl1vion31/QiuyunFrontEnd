@@ -22,7 +22,7 @@ const items=rows.map(row=>({row,period:pendingPromotionPeriod(row)})).sort((a,b)
     </>:<>
      <form class="business-form timeline-inline-form review-initial-form" data-timeline-form data-pending-first data-pending-start={row.date} data-fingerprint={row.fingerprint}>
       <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="target" value="initial"/><input type="hidden" name="reviewDate" value={row.date}/>
-      <label class="review-arrangement"><span><time datetime={row.date}>{row.date}</time> 的安排</span><select name="action" aria-label="当日安排" required><option value="">请选择</option><option value="wait">待定（未开始推广）</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></select></label>
+      <label class="review-arrangement"><span><time datetime={row.date}>{row.date}</time> 的安排</span><select name="action" aria-label="当日安排" required><option value="">请选择</option><option value="wait">待定</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></select></label>
       <label data-timeline-through hidden>待定至（含当天）<input type="date" name="waitingThrough" value={row.date} min={row.date} disabled/></label>
       <button type="submit" class="business-action-primary">保存当日安排</button>
       <p class="review-draft-preview" data-pending-preview hidden aria-live="polite"/>
@@ -36,7 +36,7 @@ const items=rows.map(row=>({row,period:pendingPromotionPeriod(row)})).sort((a,b)
     </div>
     {period.due&&<form class="business-form timeline-next-form review-next-form" data-timeline-form data-fingerprint={row.fingerprint}>
      <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={period.endedOn}/><input type="hidden" name="action" value={period.range?'next':'plan'}/>{period.range&&<input type="hidden" name="rangeId" value={period.range.id}/>}
-     <label class="review-arrangement"><span><time datetime={period.reviewOn}>{period.reviewOn}</time> 的安排</span><select name="nextDecision" required><option value="">请选择下一步</option>{!period.range?<><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:period.range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
+     <label class="review-arrangement"><span><time datetime={period.reviewOn}>{period.reviewOn}</time> 的安排</span><select name="nextDecision" required><option value="">请选择</option>{!period.range?<><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:period.range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
      <button type="submit" class="business-action-primary">保存下一步</button><output role="alert"/>
     </form>}
     {editable&&<>

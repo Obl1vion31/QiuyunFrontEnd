@@ -5,7 +5,7 @@ export type PromotionTimelineRow=Awaited<ReturnType<typeof readPromotionTimeline
 export const inclusiveDays=(from:string,to:string)=>Math.round((Date.parse(to)-Date.parse(from))/86400000)+1;
 export function promotionIntervalPreview(from:string,to:string,state='待定'){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to)||!Number.isFinite(Date.parse(from))||!Number.isFinite(Date.parse(to))||to<from)return null;
- return `${from} 至 ${to}（含首尾，共 ${inclusiveDays(from,to)} 天）记录为${state}区间；${nextDateKey(to)} 复盘时处理 ${to} 的下一步。`;
+ return `${from} 至 ${to}（含首尾共 ${inclusiveDays(from,to)} 天），记录为${state}区间。`;
 }
 export function pendingPromotionPeriod(row:PromotionTimelineRow,now=new Date()){
  const yesterday=previousDateKey(shanghaiDateKey(now));

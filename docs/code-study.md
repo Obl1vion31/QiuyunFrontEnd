@@ -103,11 +103,11 @@ flowchart LR
 
 待办行的 `.review-arrangement` 将目标日期、选择与保存就近排列；到期后显示 `reviewOn`（区间末日次日），隐藏提交字段 `reviewDate` 仍为区间末日，不能随展示文案一并顺延。摘要省去重复生效说明，完整连续日期在本行区间记录中查看。`promotion-pending.browser.ts` 同时检查单日逾期保存的真实业务日和桌面同行／窄屏完整换行。
 
-每日指标行的 `.review-entry-data` 按 `.review-metric-inputs`、`.review-costs` 与 `.review-completion` 三组组织；容器查询先保护五项输入的可用宽度，空间不足时由 `.review-outcome` 将成本和操作完整收在下一行，不以固定同行断言替代比例判断。成本使用 `dl / output` 和原更新控制器，选择与唯一提交按钮按内容定宽。头部 `.review-note-field` 在同一位置显示已有 ID 或补填控件；暂停隐藏、禁用与草稿沿用 `data-active-*`，缺失 ID 在暂停时显示只读“未填写”。`test:cards` 实际填写长金额、人数和 ID，保存尺寸与截图，再通过图像查看审查整体比例、条件字段及响应式状态；原业务提交不变。
+每日指标行的 `.review-entry-data` 共用等宽网格；五项输入、两项 `output`、下一步和唯一提交按钮按同一列宽、标签与 40px 控件基线排列。容器不足按五／三／两列重排，宽容器才九列同行；原语义包装与 `data-active-*` 保留，成本浅底虚线并注明自动计算。头部 `.review-note-field` 在同一位置显示已有 ID 或补填控件，缺失 ID 在暂停时显示只读“未填写”。`test:cards` 实际填写长金额、人数和 ID，测量九项等宽等高、可读性与有无 ID 的共同起点，再实际查看截图；提交和暂停草稿保持原逻辑。
 
 面板动效统一由 `business-inspector.ts` 与 `business-dialog.ts` 管理。排期正文使用 `data-inspector-host` 接入共享轨道；Inspector 在实际退出动画结束前保留 `.is-open`，同时收拢停靠轨道和间距，内容保持固定宽度。Sheet／Dialog 等待面板和 `::backdrop` 都退出再调用原生关闭，快速重开废弃旧退出任务。两类容器通过 `setBusinessScrollLock` 共享嵌套锁与滚动恢复，Frame 保留滚动条槽位。不要在页面添加关闭定时器、移除节点或重复锁定；逐帧验收入口为 `pnpm test:motion`。
 
-推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，复用原成本、阶段天数与比例公式。`BusinessPromotionSummary` 保留原黄绿条形，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开累计、阶段与逐日表格，日期列固定且只在表格内横向滚动。表格行 `data-inspector-key=metric.id` 仍交给公共 Inspector，`campaign` 参数保留原帖详情键，并支持日度记录 ID；`BusinessPromotionDetails / BusinessPromotionMetric` 显示当前选择，帖子入口保留整篇安排。历史筛选不截断展开数据，本帖刷新保留展开和表格位置。
+推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，复用原成本、阶段天数与比例公式。`BusinessPromotionSummary` 保留原黄绿条形，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格与表尾汇总，日期列固定且只在表格内横向滚动。`promotion-disclosure.ts` 管理色块首次呈现及成对展开动画，真实高度与内边距一起收拢后再关闭 details，支持快速反向与减少动态效果。表格行 `data-inspector-key=metric.id` 仍交给公共 Inspector，`campaign` 参数保留原帖详情键，并支持日度记录 ID；`BusinessPromotionDetails / BusinessPromotionMetric` 显示当前选择，帖子入口保留整篇安排。历史筛选不截断展开数据，本帖刷新保留展开和表格位置。
 
 `promotion-audit-view.ts` 只读分类首次安排、业务更正、技术维护及未确认类别，并把快照翻译成明确前后状态；`BusinessPromotionTimeline` 在推广与排期 Inspector 共用此过滤，底层审计不删改。已知技术记录不进入业务历史，新增未知技术类别先询问用户。单日详情只接入当日事件，整篇入口查看全部业务历史；无业务记录不显示空入口。
 

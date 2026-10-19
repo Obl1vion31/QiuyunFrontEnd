@@ -71,4 +71,4 @@ ContentTunnel.module.css
 
 `BusinessPromotionTimeline.astro` 每日委托 `BusinessPromotionPendingRows.astro` 表达首次安排和持续区间，历史和排期 Inspector 按需展开更正，共用业务日期、写入控制器与审计；`BusinessScheduleApprovals.astro` 沿用排期台账与共享 Inspector。`BusinessChangeDiff.astro` 与 `src/scripts/business-change-diff.ts` 为 SSR／异步详情提供相同的纵向字段对照，不另建详情开关或横向对比表。
 
-`BusinessPromotionSummary` 保留黄绿生命周期条，`BusinessPromotionData / BusinessPromotionTotals / BusinessPromotionDataTable` 在本条展开累计、阶段和逐日表格；每日与历史共用。记录点击交给公共 Inspector，`BusinessPromotionDetails / BusinessPromotionMetric` 负责所选记录、业务安排与原编辑表单，不在页面复制详情开关或重复维护汇总。
+`BusinessPromotionSummary` 保留黄绿生命周期条，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格及表尾汇总，`BusinessPromotionTotals` 继续用于 Inspector 的单日指标；每日与历史共用。记录点击交给公共 Inspector，`BusinessPromotionDetails / BusinessPromotionMetric` 负责所选记录、业务安排与原编辑表单，不在页面复制详情开关或重复维护汇总。

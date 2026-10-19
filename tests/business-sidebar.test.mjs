@@ -93,7 +93,7 @@ test('推广相邻视图复用一个工具栏并保留公共节点', async () =>
 test('生命周期保留原条形结构，数据在本条展开并通过表格进入共享详情', async () => {
  const summary=await readFile(new URL('../src/components/BusinessPromotionSummary.astro',import.meta.url),'utf8');
  const data=await readFile(new URL('../src/components/BusinessPromotionData.astro',import.meta.url),'utf8');
- assert.match(summary,/relative-track/);assert.match(summary,/data-promotion-data/);assert.match(summary,/<BusinessPromotionData /);assert.match(data,/<BusinessPromotionTotals/);assert.match(data,/<BusinessPromotionDataTable/);
+ assert.match(summary,/relative-track/);assert.match(summary,/data-promotion-data/);assert.match(summary,/<BusinessPromotionData /);assert.match(data,/<BusinessPromotionDataTable/);
 });
 
 test('四个业务详情共用 Inspector，不另行声明面板几何', async () => {

@@ -2,7 +2,6 @@
 import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
 import BusinessPromotionDataTable from '../../components/BusinessPromotionDataTable.astro';
 import BusinessPromotionSummary from '../../components/BusinessPromotionSummary.astro';
-import BusinessPromotionTotals from '../../components/BusinessPromotionTotals.astro';
 import BusinessPromotionDetails from '../../components/BusinessPromotionDetails.astro';
 import {promotionOverview,promotionTotals,promotionDecisionLabels as decisionLabels} from '../../db/promotion-overview';
 import '../../styles/promotion-overview.css';
@@ -289,7 +288,7 @@ const historyHref = (overrides: Record<string, string>) => {
                            <p class="review-draft-preview" data-pause-preview aria-live="polite"/>
                           </div>
                           <div class="review-outcome">
-                           <dl class="review-costs" data-active-costs aria-label="自动计算成本"><div class="review-cost"><dt>实际开口成本</dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本</dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl>
+                           <dl class="review-costs" data-active-costs aria-label="自动计算成本"><div class="review-cost"><dt>实际开口成本 <small>（自动计算）</small></dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本 <small>（自动计算）</small></dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl>
                            <div class="review-completion"><label class="review-decision" data-active-decision><span>下一步</span><select data-review-decision aria-label="下一步" name="reviewDecision" required><option value="">请选择</option>{decisionOptions.map((decision) => <option value={decision}>{decision === 'wait_continue' ? (stageType === 'testing' ? '测试待定' : '推广暂停') : decisionLabels[decision]}</option>)}</select></label><button type="submit" class="business-action-primary">完成复盘</button></div>
                           </div>
                           </div><p role="alert" data-form-message></p>
@@ -337,7 +336,7 @@ const historyHref = (overrides: Record<string, string>) => {
                 {historyDayGroups.length>0&&<p class="promotion-table-hint">左右滑动查看全部指标</p>}
                 {!historyDayGroups.length&&<div class="empty-state">该范围内没有日度记录。</div>}
                 {historyDayGroups.map(group=><details open class="day-group" data-day-group={group.metricDate}>
-                  <summary><h2>{group.metricDate}</h2><span>{group.rows.length} 条记录</span></summary><BusinessPromotionTotals totals={group.totals}/>
+                  <summary><h2>{group.metricDate}</h2><span>{group.rows.length} 条记录</span></summary>
                   <BusinessPromotionDataTable rows={group.rows} showPost/>
                 </details>)}
               </div>}
