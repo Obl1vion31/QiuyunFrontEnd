@@ -126,7 +126,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if(element.hidden||element.dataset.closing==='true')return true;
     const previous=getComputedStyle(element),from={width:element.getBoundingClientRect().width,opacity:previous.opacity,transform:previous.transform},oldGap=host?getComputedStyle(host).columnGap:'0px';
     stopMotion();generation++;setClean();element.dataset.closing='true';const token=generation;
-    const finish=()=>{if(token!==generation||signal.aborted)return;element.hidden=true;element.classList.remove('is-open','open');delete element.dataset.closing;select(null);setBusinessScrollLock(element,false);trigger?.focus({preventScroll:true});};
+    const finish=()=>{if(token!==generation||signal.aborted)return;element.hidden=true;element.classList.remove('is-open','open');delete element.dataset.closing;select(null);setBusinessScrollLock(element,false);const focusTarget=trigger?.getClientRects().length?trigger:trigger?.closest('details:not([open])')?.querySelector<HTMLElement>(':scope>summary');focusTarget?.focus({preventScroll:true});};
     if(matchMedia('(prefers-reduced-motion:reduce)').matches)finish();
     else{
       const dock=!!host&&getComputedStyle(element).position!=='fixed';
@@ -151,7 +151,14 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if (element.hidden || document.querySelector('dialog[open]')) return;
     if (event.key === 'Escape') { event.preventDefault(); close(); }
     if (event.key === 'Tab' && matchMedia('(max-width:900px)').matches) {
-      const nodes = [...element.querySelectorAll<HTMLElement>('a[href],button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]')].filter(node => node.getClientRects().length);
+      const nodes = [...element.querySelectorAll<HTMLElement>('a[href],button:not(:disabled),summary,input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]')].filter(node => {
+        if(!node.getClientRects().length)return false;
+        // Chrome 会为关闭 details 的内容保留布局盒；矩形存在不等于能聚焦。
+        for(let parent=node.parentElement;parent&&parent!==element;parent=parent.parentElement){
+          if(parent instanceof HTMLDetailsElement&&!parent.open&&!parent.querySelector(':scope>summary')?.contains(node))return false;
+        }
+        return true;
+      });
       const first = nodes[0], last = nodes.at(-1);
       if (event.shiftKey && (document.activeElement === first || document.activeElement === element)) { event.preventDefault(); last?.focus(); }
       else if (!event.shiftKey && (document.activeElement === last || document.activeElement === element)) { event.preventDefault(); first?.focus(); }

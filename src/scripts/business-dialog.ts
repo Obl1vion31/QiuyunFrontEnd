@@ -40,7 +40,11 @@ window.__businessHistoryPop=event=>{
   const pane=document.querySelector<HTMLElement>('[data-inspector-ready=true]');
   const localOnly=()=>{
     if(!pane?.dataset.inspectorParameter)return false;
+    // 只读详情选择可保留页内草稿；已打开的编辑弹层仍由原离开保护接管。
+    if(document.querySelector('dialog[open]:not([data-business-confirm])'))return false;
     const previous=new URL(historyLocation),next=new URL(destination);
+    previous.searchParams.delete(pane.dataset.inspectorParameter);next.searchParams.delete(pane.dataset.inspectorParameter);
+    previous.hash='';next.hash='';
     for(const key of pane.dataset.inspectorLocalParameters?.split(',').filter(Boolean)??[]){previous.searchParams.delete(key);next.searchParams.delete(key);}
     return previous.href===next.href;
   };

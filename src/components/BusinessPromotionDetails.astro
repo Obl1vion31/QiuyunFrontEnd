@@ -1,28 +1,21 @@
 ---
-import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
 import BusinessPromotionMetric from './BusinessPromotionMetric.astro';
 import BusinessPromotionTimeline from './BusinessPromotionTimeline.astro';
 import BusinessPromotionWaitRanges from './BusinessPromotionWaitRanges.astro';
-import type {PromotionOverview} from '../db/promotion-overview';
+import type {PromotionOverview,PromotionFact} from '../db/promotion-overview';
 import type {readPromotionContext} from '../db/promotion-pauses';
 import type {operationsPromotionTimelineAudit} from '../db/schema';
-interface Props {entry:PromotionOverview;context:Awaited<ReturnType<typeof readPromotionContext>>;audits:(typeof operationsPromotionTimelineAudit.$inferSelect)[];closeHref:string}
-const {entry,context,audits,closeHref}=Astro.props;
-const ranges=context.waitRanges.filter(r=>entry.campaigns.some(c=>c.id===r.campaignId));
+interface Props {entry:PromotionOverview;context:Awaited<ReturnType<typeof readPromotionContext>>;audits:(typeof operationsPromotionTimelineAudit.$inferSelect)[];closeHref:string;metric?:PromotionFact}
+const {entry,context,audits,closeHref,metric}=Astro.props;
+const ranges=context.waitRanges.filter(r=>entry.campaigns.some(c=>c.id===r.campaignId)&&(!metric||r.startedOn<=metric.metricDate&&r.endedOn>=metric.metricDate));
 const holds=context.holds.filter(r=>entry.campaigns.some(c=>c.id===r.campaignId));
 ---
 <header><div><h2 data-inspector-title>{entry.post.contentName}</h2><p>V{entry.post.versionNumber} · {entry.post.subjectName}</p></div><a href={closeHref} data-close-inspector aria-label="关闭生命周期详情">×</a></header>
 <div class="promotion-detail">
- <dl class="promotion-detail-meta"><div><dt>当前状态</dt><dd>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${entry.latest.currentStage==='testing'?'测试':'放量'}`:''}</dd></div><div><dt>发布日期</dt><dd>{entry.post.publishedOn}</dd></div><div class="promotion-detail-id"><dt>笔记 ID</dt><dd class="promotion-note-id">{entry.post.platformNoteId??'待补'}</dd></div></dl>
- {entry.stages.length===0&&<p class="promotion-no-data">尚无已登记的测试或放量数据。</p>}
- {entry.stages.map(stage=><section class="promotion-detail-stage" data-phase={stage.stageType}>
-  <h3>{stage.label}阶段</h3>
-  <p class="promotion-record-range">{stage.totals.recordedDays?`${stage.totals.from}${stage.totals.from!==stage.totals.through?` 至 ${stage.totals.through}`:''}`:'尚无已登记数据'}{stage.totals.recordedDays>0&&<span class="promotion-record-count"> · 已登记 {stage.totals.recordedDays} 天</span>}</p>
-  {stage.totals.recordedDays>0&&<BusinessPromotionTotals totals={stage.totals}/>}
-  {stage.missingDates.length>0&&<details class="promotion-missing-days"><summary>{stage.missingDates.length} 天待补录</summary><p>{stage.missingDates.join('、')}</p></details>}
-  {stage.metrics.length>0&&<details class="promotion-stage-days"><summary>逐日复盘（{stage.metrics.length}）</summary>{stage.metrics.slice().reverse().map(metric=><BusinessPromotionMetric metric={metric} entry={entry}/>)}</details>}
- </section>)}
- {(ranges.length>0||holds.length>0||!entry.closed&&entry.latest)&&<details class="promotion-detail-extra"><summary>待定与暂停记录</summary><BusinessPromotionWaitRanges campaigns={entry.campaigns.map(c=>({...c,contentName:entry.post.contentName,versionNumber:entry.post.versionNumber}))} ranges={context.waitRanges} context={context} historical/>{holds.map(hold=><p>{hold.stageType==='testing'?'测试待定':'推广暂停'}：{hold.startedOn} 至 {hold.endedOn??'尚未恢复'}</p>)}</details>}
- <BusinessPromotionTimeline history embedded rows={[entry.post]} audits={audits}/>
+ <dl class="promotion-detail-meta"><div><dt>当前推广</dt><dd>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${entry.latest.currentStage==='testing'?'测试':'放量'}`:''}</dd></div><div><dt>发布日期</dt><dd>{entry.post.publishedOn}</dd></div><div class="promotion-detail-id"><dt>笔记 ID</dt><dd class="promotion-note-id">{entry.post.platformNoteId??'待补'}</dd></div></dl>
+ {metric&&<BusinessPromotionMetric metric={metric} entry={entry}/>}
+ {(ranges.length>0||holds.length>0||!entry.closed&&entry.latest)&&<details class="promotion-detail-extra"><summary>待定与暂停记录</summary><BusinessPromotionWaitRanges campaigns={entry.campaigns.map(c=>({...c,contentName:entry.post.contentName,versionNumber:entry.post.versionNumber}))} ranges={ranges} context={context} historical/>{holds.map(hold=><p>{hold.stageType==='testing'?'测试待定':'推广暂停'}：{hold.startedOn} 至 {hold.endedOn??'尚未恢复'}</p>)}</details>}
+ {metric&&<a class="promotion-all-business" data-inspector-key={entry.key} href={`?${new URLSearchParams({...Object.fromEntries(Astro.url.searchParams),campaign:entry.key})}`}>查看整篇推广安排与业务历史</a>}
+ <BusinessPromotionTimeline history embedded rows={[entry.post]} audits={audits} businessDate={metric?.metricDate}/>
  {entry.post.platformNoteId&&<details class="note-id-correction promotion-detail-extra" data-admin-only><summary>更正笔记 ID</summary><form class="business-form" data-note-id-correction action={`/api/operations-content/${entry.post.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><input type="hidden" data-old-note-id value={entry.post.platformNoteId}/><input name="platformNoteId" aria-label="新笔记 ID" pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="新的 24 位笔记 ID"/><button class="business-action-secondary">确认更正</button><output/></form><p>该帖子的全部版本与复盘都会同步。</p></details>}
 </div>

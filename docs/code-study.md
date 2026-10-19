@@ -107,4 +107,12 @@ flowchart LR
 
 面板动效统一由 `business-inspector.ts` 与 `business-dialog.ts` 管理。排期正文使用 `data-inspector-host` 接入共享轨道；Inspector 在实际退出动画结束前保留 `.is-open`，同时收拢停靠轨道和间距，内容保持固定宽度。Sheet／Dialog 等待面板和 `::backdrop` 都退出再调用原生关闭，快速重开废弃旧退出任务。两类容器通过 `setBusinessScrollLock` 共享嵌套锁与滚动恢复，Frame 保留滚动条槽位。不要在页面添加关闭定时器、移除节点或重复锁定；逐帧验收入口为 `pnpm test:motion`。
 
-推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，汇总复用原成本公式。`BusinessPromotionSummary / BusinessPromotionTotals / BusinessPromotionDetails / BusinessPromotionMetric` 共用七项数值、阶段与逐日展示；历史列表筛选在聚合后执行，详情始终读取完整事实。状态编辑器以 `embedded` 接入详情，批量传入真实审计，空审计不生成入口。每日使用公共覆盖 Inspector，避免挤压其他未保存卡片；历史使用公共停靠轨道。
+推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，复用原成本、阶段天数与比例公式。`BusinessPromotionSummary` 保留原黄绿条形，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开累计、阶段与逐日表格，日期列固定且只在表格内横向滚动。表格行 `data-inspector-key=metric.id` 仍交给公共 Inspector，`campaign` 参数保留原帖详情键，并支持日度记录 ID；`BusinessPromotionDetails / BusinessPromotionMetric` 显示当前选择，帖子入口保留整篇安排。历史筛选不截断展开数据，本帖刷新保留展开和表格位置。
+
+`promotion-audit-view.ts` 只读分类首次安排、业务更正、技术维护及未确认类别，并把快照翻译成明确前后状态；`BusinessPromotionTimeline` 在推广与排期 Inspector 共用此过滤，底层审计不删改。已知技术记录不进入业务历史，新增未知技术类别先询问用户。单日详情只接入当日事件，整篇入口查看全部业务历史；无业务记录不显示空入口。
+
+公共离开保护把 Inspector 选择参数作为本地历史处理，页面其他草稿保留；面板自己的未保存修改继续确认。表格或分区收起后关闭 Inspector，焦点回到所属展开入口。
+
+旧待定初始化使用迁移中原有的扁平日期字段，只表达真实的首次待定安排；旧记录没有逐次操作时间，不能把待定截止日误写成操作日，也不生成相同前后值的假更正。
+
+移动端 Inspector 的焦点范围包含原生 `summary`，排除折叠内容中的字段；Chrome 的关闭 `details` 仍可能保留布局盒，不能只用 `getClientRects()` 判断键盘可达性。

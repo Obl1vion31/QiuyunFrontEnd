@@ -1,17 +1,28 @@
 ---
-import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
-import type {PromotionOverview,PromotionTotals} from '../db/promotion-overview';
+import BusinessPromotionData from './BusinessPromotionData.astro';
+import type {PromotionOverview} from '../db/promotion-overview';
 interface Props {entry:PromotionOverview;daily?:boolean;href:string}
 const {entry,daily=false,href}=Astro.props;
-const recorded=(t:PromotionTotals)=>t.recordedDays?`${t.from}${t.through!==t.from?` 至 ${t.through}`:''}`:'尚无已登记数据';
+const stageLabel=(stage:string)=>stage==='testing'?'测试':'放量';
+const unrecordedLabel=entry.latest?.currentStage?'尚无复盘记录':entry.post.plan?.plannedOn?`${entry.post.plan.plannedOn} 计划${stageLabel(entry.post.plan.plannedStage??'testing')}`:entry.post.waitingThrough?`待定至 ${entry.post.waitingThrough}`:entry.status==='awaiting_promotion'?'首次安排待确认':'尚无阶段记录';
 ---
 <article class:list={['promotion-summary',daily?'lifecycle-card':'history-record']} data-lifecycle-schedule={daily?entry.scheduleId:undefined} data-history-schedule={daily?undefined:entry.scheduleId} data-history-row={daily?undefined:true}>
  <header>
   <a href={href} data-inspector-key={entry.key}><strong>{entry.post.contentName}</strong><span>V{entry.post.versionNumber} · {entry.post.subjectName}{entry.post.categoryName?` / ${entry.post.categoryName}`:''}</span></a>
-  <span class:list={['promotion-status','history-status',entry.status]}>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${entry.latest.currentStage==='testing'?'测试':'放量'}`:''}</span>
+  <span class:list={['promotion-status','history-status',entry.status]}>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${stageLabel(entry.latest.currentStage)}`:''}</span>
  </header>
- {daily?entry.stages.map(stage=><section class="promotion-summary-stage" data-phase={stage.stageType}>
-  <div class="promotion-summary-caption"><h3>{stage.label}</h3><span>{recorded(stage.totals)}</span>{stage.totals.recordedDays>0&&<span class="promotion-record-count">已登记 {stage.totals.recordedDays} 天</span>}{stage.missingDates.length>0&&<span class="promotion-missing">{stage.missingDates.length} 天待补录</span>}</div>
-  {stage.totals.recordedDays>0&&<BusinessPromotionTotals totals={stage.totals}/>}
- </section>):<section class="promotion-summary-stage"><div class="promotion-summary-caption"><h3>{entry.totals.recordedDays?'全周期汇总':'全周期'}</h3><span>{recorded(entry.totals)}</span>{entry.totals.recordedDays>0&&<span class="promotion-record-count">已登记 {entry.totals.recordedDays} 天</span>}</div>{entry.totals.recordedDays>0&&<BusinessPromotionTotals totals={entry.totals}/>}</section>}
+ {daily&&<div class="stage-summaries">{entry.stages.map(stage=>{
+  const segments=entry.timeline.filter(row=>row.stageType===stage.stageType),days=segments.reduce((n,row)=>n+row.days,0);
+  return <p class={stage.stageType}><b>{stage.label}<span class="narrow-stage-days"> {days} 天</span></b><span>{segments.length?`${segments[0].startedOn}${segments[0].startedOn!==segments.at(-1)!.through?` 至 ${segments.at(-1)!.through}`:''}`:`${stage.startedOn} 开始`}</span></p>;
+ })}</div>}
+  {!daily&&entry.timeline.length>0&&<p class="history-narrow-stages">{entry.timeline.map(stage=><span class={stage.stageType}>{stageLabel(stage.stageType)} {stage.days} 天</span>)}</p>}
+ <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}>
+  <summary class="lifecycle-expand">
+   <span class="relative-track" aria-label={`${entry.post.contentName}阶段天数比例`}>
+    {entry.timeline.length?entry.timeline.map(stage=><span class:list={['life-segment',stage.stageType]} style={`width:${stage.share}%`} title={`${stageLabel(stage.stageType)} ${stage.days} 天：${stage.startedOn} 至 ${stage.through}`} aria-label={`${stageLabel(stage.stageType)} ${stage.days} 天`}><span>{stageLabel(stage.stageType)} {stage.days} 天</span></span>):<span class:list={['life-unrecorded',entry.latest?.currentStage??'']} >{unrecordedLabel}</span>}
+   </span>
+   <span class="lifecycle-data-action"><span class="when-closed">展开数据</span><span class="when-open">收起数据</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+  </summary>
+  <BusinessPromotionData entry={entry}/>
+ </details>
 </article>

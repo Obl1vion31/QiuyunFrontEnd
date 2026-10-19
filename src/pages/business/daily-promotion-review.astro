@@ -1,5 +1,6 @@
 ---
 import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
+import BusinessPromotionDataTable from '../../components/BusinessPromotionDataTable.astro';
 import BusinessPromotionSummary from '../../components/BusinessPromotionSummary.astro';
 import BusinessPromotionTotals from '../../components/BusinessPromotionTotals.astro';
 import BusinessPromotionDetails from '../../components/BusinessPromotionDetails.astro';
@@ -205,7 +206,7 @@ const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,co
 const lifecycleRows=overview.filter(row=>!row.closed&&row.latest);
 const historyRows=overview.filter(row=>(!historyTo||row.startedOn<=historyTo)&&(!row.endedOn||row.endedOn>=historyFrom)&&(!historyQuery||row.post.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&(!historyStatus||row.status===historyStatus));
 const activeHistoryRows=historyRows.filter(row=>!row.closed),endedHistoryRows=historyRows.filter(row=>row.closed);
-const templateRows=overview.filter(row=>(activeView==='daily'?lifecycleRows:historyRows).includes(row)||row.key===selectedCampaignId);
+const templateRows=overview.filter(row=>(activeView==='daily'?lifecycleRows:historyRows).includes(row)||row.key===selectedCampaignId||row.metrics.some(metric=>metric.id===selectedCampaignId));
 const historyDayGroups=[...new Set(historyRows.flatMap(row=>row.metrics).filter(m=>m.metricDate>=historyFrom&&m.metricDate<=(historyTo||yesterday)).map(m=>m.metricDate))].sort().reverse().map(metricDate=>{
  const rows=historyRows.flatMap(entry=>entry.metrics.filter(metric=>metric.metricDate===metricDate).map(metric=>({entry,metric})));
  return {metricDate,rows,totals:promotionTotals(rows.map(r=>r.metric))};
@@ -244,7 +245,7 @@ const historyHref = (overrides: Record<string, string>) => {
 
           {activeView === 'daily' && <>
           <section class="calendar-section" aria-labelledby="calendar-title">
-            <BusinessPageHeader title="最新推广生命周期" headingId="calendar-title" contained />
+            <BusinessPageHeader title="最新推广生命周期" headingId="calendar-title" contained><p class="lifecycle-meta" slot="meta"><span><i class="legend testing"/>测试</span><span><i class="legend scaling"/>放量</span></p></BusinessPageHeader>
             {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong><p>已结束的推广可在历史总览查看。</p></div>:<div class="lifecycle-list">{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
           </section>
 
@@ -328,25 +329,26 @@ const historyHref = (overrides: Record<string, string>) => {
             </form>
             <div class="history-layout" data-inspector-host>
               {historyMode==='post'?<div class="history-list">
-                {[{key:'unfinished',label:'尚未结束推广',rows:activeHistoryRows},{key:'ended',label:'已结束推广',rows:endedHistoryRows}].map(group=><section class="promotion-history-group" data-history-group={group.key}>
-                  <h2>{group.label}<small>{group.rows.length} 篇</small></h2>
+                {[{key:'unfinished',label:'尚未结束推广',rows:activeHistoryRows},{key:'ended',label:'已结束推广',rows:endedHistoryRows}].map(group=><details open class="promotion-history-group" data-history-group={group.key}>
+                  <summary><h2>{group.label}<small>{group.rows.length} 篇</small></h2></summary>
                   {group.rows.length?group.rows.map(entry=><BusinessPromotionSummary entry={entry} href={historyHref({campaign:entry.key})}/>):<p class="promotion-group-empty">当前筛选范围内没有{group.key==='ended'?'已结束':'尚未结束'}的帖子。</p>}
-                </section>)}
+                </details>)}
               </div>:<div class="day-history">
+                {historyDayGroups.length>0&&<p class="promotion-table-hint">左右滑动查看全部指标</p>}
                 {!historyDayGroups.length&&<div class="empty-state">该范围内没有日度记录。</div>}
-                {historyDayGroups.map(group=><section class="day-group" data-day-group={group.metricDate}>
-                  <header><h2>{group.metricDate}</h2><span>{group.rows.length} 条记录</span></header><BusinessPromotionTotals totals={group.totals}/>
-                  {group.rows.map(({entry,metric})=><article class="promotion-day-row" data-history-row data-history-schedule={entry.scheduleId} data-history-date={group.metricDate} data-metric-id={metric.id}>
-                    <header><a data-inspector-key={entry.key} href={historyHref({campaign:entry.key})}><strong>{entry.post.contentName}</strong><span>V{entry.post.versionNumber} · {entry.post.subjectName}</span></a><span class="promotion-status">{metric.dailyStatus!=='active'?(metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'):metric.stageTypeSnapshot==='testing'?'测试':'放量'}</span></header>
-                    <BusinessPromotionTotals totals={promotionTotals([metric])}/>
-                  </article>)}
-                </section>)}
+                {historyDayGroups.map(group=><details open class="day-group" data-day-group={group.metricDate}>
+                  <summary><h2>{group.metricDate}</h2><span>{group.rows.length} 条记录</span></summary><BusinessPromotionTotals totals={group.totals}/>
+                  <BusinessPromotionDataTable rows={group.rows} showPost/>
+                </details>)}
               </div>}
               <BusinessInspector class="history-inspector" parameter="campaign" templates data-promotion-inspector />
             </div>
           </section>}
           {activeView==='daily'&&<BusinessInspector parameter="campaign" templates data-inspector-overlay data-promotion-inspector/>}
-          {activeView!=='stage'&&templateRows.map(entry=><template data-history-schedule={entry.scheduleId} data-inspector-template={entry.key}><BusinessPromotionDetails entry={entry} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>)}
+          {activeView!=='stage'&&templateRows.map(entry=><>
+            <template data-history-schedule={entry.scheduleId} data-inspector-template={entry.key}><BusinessPromotionDetails entry={entry} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>
+            {entry.metrics.map(metric=><template data-history-schedule={entry.scheduleId} data-inspector-template={metric.id}><BusinessPromotionDetails entry={entry} metric={metric} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId&&a.businessDate===metric.metricDate)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>)}
+          </>)}
         </main>
     </BusinessConsoleFrame>
 

@@ -1,0 +1,22 @@
+---
+import {promotionTotals,promotionDecisionLabels,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
+interface Props {rows:Array<{entry:PromotionOverview;metric:PromotionFact}>;showPost?:boolean}
+const {rows,showPost=false}=Astro.props;
+const fields=['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount','actualOpenCost','actualLeadCost'] as const;
+const labels=['消耗','平台开口','实际开口','平台留资','实际留资','实际开口成本','实际留资成本'];
+---
+<div class="promotion-table-scroll" tabindex="0" aria-label="每日复盘数据表格">
+<table class:list={['promotion-data-table',{'has-post':showPost}]}>
+ <colgroup><col class="record-identity"/><col class="record-stage"/>{fields.map(key=><col class={key==='spend'?'record-spend':key.endsWith('Cost')?'record-cost':'record-number'}/>)}<col class="record-decision"/></colgroup>
+ <thead><tr><th scope="col">{showPost?'帖子':'数据日期'}</th><th scope="col">阶段</th>{labels.map(label=><th scope="col">{label}</th>)}<th scope="col">下一步</th></tr></thead>
+ <tbody>{rows.map(({entry,metric})=>{
+  const totals=promotionTotals([metric]);
+  return <tr tabindex="0" data-daily-record={metric.id} data-metric-id={metric.id} data-inspector-key={metric.id} data-history-row={showPost||undefined} data-history-schedule={entry.scheduleId} data-history-date={metric.metricDate} aria-label={`${entry.post.contentName} ${metric.metricDate} 复盘详情`}>
+   <th scope="row">{showPost?<><strong>{entry.post.contentName}</strong><small>V{entry.post.versionNumber} · {entry.post.subjectName}</small></>:<time datetime={metric.metricDate}>{metric.metricDate}</time>}</th>
+   <td><span class:list={['promotion-phase',metric.stageTypeSnapshot]}>{metric.dailyStatus==='active'?(metric.stageTypeSnapshot==='testing'?'测试':'放量'):metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'}</span></td>
+   {fields.map(key=><td data-total={key}>{totals[key]==null?'—':key==='spend'||key.endsWith('Cost')?`¥${totals[key]!.toFixed(2)}`:totals[key]}</td>)}
+   <td>{metric.reviewDecision==='wait_continue'?(metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'):promotionDecisionLabels[metric.reviewDecision]??metric.reviewDecision}</td>
+  </tr>;
+ })}</tbody>
+</table>
+</div>

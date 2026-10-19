@@ -1,16 +1,17 @@
 ---
 import BusinessFormDialog from './BusinessFormDialog.astro';
 import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
+import {nextDateKey} from '../db/promotion-rules.mjs';
 import {promotionTotals,promotionDecisionLabels,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
 interface Props {metric:PromotionFact;entry:PromotionOverview}
 const {metric,entry}=Astro.props;
 const formatFullDate=(date:string)=>date;
 const decisionOptions=metric.stageTypeSnapshot==='scaling'?['scaling_continue','wait_continue','formal_discarded','ended']:['test_continue','wait_continue','test_discarded','start_scaling'];
 ---
-<details class="promotion-day" data-metric-card={metric.id}>
- <summary><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{metric.dailyStatus==='active'?`消耗 ¥${Number(metric.spend).toFixed(2)}`:metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'}</span></summary>
+<article class="promotion-day" data-metric-card={metric.id}>
+ <header><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{metric.dailyStatus==='active'?(metric.stageTypeSnapshot==='testing'?'测试':'放量'):metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'}</span></header>
  <BusinessPromotionTotals totals={promotionTotals([metric])}/>
- <p class="promotion-day-decision">下一步：{promotionDecisionLabels[metric.reviewDecision]??metric.reviewDecision}</p>
+ <p class="promotion-day-decision">{nextDateKey(metric.metricDate)} 的安排：{promotionDecisionLabels[metric.reviewDecision]??metric.reviewDecision}</p>
  {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
  <button type="button" class="business-action-secondary" data-edit-trigger={metric.id}>编辑这一天</button>
                           <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
@@ -33,4 +34,4 @@ const decisionOptions=metric.stageTypeSnapshot==='scaling'?['scaling_continue','
                               <footer class="dialog-actions"><button type="button" data-close-edit>取消</button><button type="submit">保存修改</button></footer>
                             </form>
                           </BusinessFormDialog>
-</details>
+</article>

@@ -1,0 +1,31 @@
+---
+import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
+import BusinessPromotionDataTable from './BusinessPromotionDataTable.astro';
+import type {PromotionOverview} from '../db/promotion-overview';
+interface Props {entry:PromotionOverview}
+const {entry}=Astro.props;
+const fields=['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount','actualOpenCost','actualLeadCost'] as const;
+---
+<div class="promotion-expanded-data">
+ <section class="promotion-cumulative" aria-label="累计数据汇总">
+  <div class="promotion-data-heading"><h3>累计汇总</h3>{entry.totals.recordedDays>0&&<span>{entry.totals.from}{entry.totals.through!==entry.totals.from?` 至 ${entry.totals.through}`:''} · 已登记 {entry.totals.recordedDays} 天</span>}</div>
+  {entry.totals.recordedDays>0?<BusinessPromotionTotals totals={entry.totals}/>:<p class="promotion-no-data">尚无已登记数据。</p>}
+ </section>
+ {entry.stages.length>0&&<section class="promotion-stage-summary" aria-label="阶段汇总">
+  <div class="promotion-data-heading"><h3>阶段汇总</h3><span class="promotion-table-hint">左右滑动查看全部指标</span></div>
+  <div class="promotion-table-scroll" tabindex="0" aria-label="阶段汇总数据表格"><table class="promotion-data-table promotion-stage-table">
+   <colgroup><col class="record-identity"/><col class="record-stage"/>{fields.map(key=><col class={key==='spend'?'record-spend':key.endsWith('Cost')?'record-cost':'record-number'}/>)}<col class="record-decision"/></colgroup>
+   <thead><tr><th scope="col">已登记区间</th><th scope="col">阶段</th>{['消耗','平台开口','实际开口','平台留资','实际留资','实际开口成本','实际留资成本','登记情况'].map(label=><th scope="col">{label}</th>)}</tr></thead>
+   <tbody>{entry.stages.map(stage=><tr data-phase={stage.stageType}>
+    <th scope="row">{stage.totals.from?<><time>{stage.totals.from}</time>{stage.totals.through!==stage.totals.from&&<time>至 {stage.totals.through}</time>}</>:'尚未登记'}</th>
+    <td><span class:list={['promotion-phase',stage.stageType]}>{stage.label}</span></td>
+    {fields.map(key=><td data-total={key}>{stage.totals[key]==null?'—':key==='spend'||key.endsWith('Cost')?`¥${stage.totals[key]!.toFixed(2)}`:stage.totals[key]}</td>)}
+    <td>{stage.totals.recordedDays} 天已登记{stage.missingDates.length>0&&<small class="promotion-missing" title={stage.missingDates.join('、')}>{stage.missingDates.length} 天待补录</small>}</td>
+   </tr>)}</tbody>
+  </table></div>
+ </section>}
+ <section aria-label="全部每日复盘">
+  <div class="promotion-data-heading"><h3>每日复盘</h3><span>{entry.metrics.length} 条记录</span></div>
+  {entry.metrics.length?<BusinessPromotionDataTable rows={entry.metrics.map(metric=>({entry,metric}))}/>:<p class="promotion-no-data">尚无已登记的每日复盘。</p>}
+ </section>
+</div>

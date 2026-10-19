@@ -15,7 +15,7 @@ test('同一排期多个活动合成一条，阶段保留原日期，暂停和�
  const campaigns=[{id:'c',scheduleId:'s',startedOn:'2026-10-15',endedOn:'2026-10-17',initialStage:'testing',currentStage:'testing',currentStatus:'ended'},{id:'d',scheduleId:'s',startedOn:'2026-10-18',endedOn:null,initialStage:'scaling',currentStage:'scaling',currentStatus:'scaling'}];
  const stages=[{campaignId:'c',stageType:'testing',startedOn:'2026-10-15',endedOn:'2026-10-17'},{campaignId:'d',stageType:'scaling',startedOn:'2026-10-18',endedOn:null}];
  const rows=promotionOverview({posts,campaigns,stages,metrics:[fact(),fact({id:'n',campaignId:'d',metricDate:'2026-10-18',stageTypeSnapshot:'scaling'})],context,today:'2026-10-19',now:new Date('2026-10-19T20:00:00+08:00')});
- assert.equal(rows.length,1);assert.equal(rows[0].stages.length,2);assert.equal(rows[0].totals.spend,200);assert.deepEqual(rows[0].stages[0].missingDates,['2026-10-15','2026-10-16']);assert.equal(rows[0].stages[1].totals.from,'2026-10-18');
+ assert.equal(rows.length,1);assert.equal(rows[0].stages.length,2);assert.equal(rows[0].totals.spend,200);assert.deepEqual(rows[0].stages[0].missingDates,['2026-10-15','2026-10-16']);assert.equal(rows[0].stages[1].totals.from,'2026-10-18');assert.deepEqual(rows[0].timeline.map(stage=>stage.days),[3,1]);assert.deepEqual(rows[0].timeline.map(stage=>stage.share),[75,25]);assert.equal(rows[0].cutoff,'2026-10-18');
  campaigns[1].currentStatus='ended';campaigns[1].endedOn='2026-10-18' as any;
  const ended=promotionOverview({posts,campaigns,stages,metrics:[fact()],context,today:'2026-10-19'})[0];assert.equal(ended.closed,true);assert.equal(ended.stages[0].totals.spend,100);assert.equal(ended.stages[1].totals.spend,null);
 });
@@ -29,5 +29,5 @@ test('按真实时刻叠加团队暂停，等待窗口不形成漏填指标',()=
  const pausedContext={...context,pauses:[{id:'p',startsAt:'2026-10-19T19:00:00+08:00',endsAt:'2026-10-20T00:00:00+08:00'}],targets:[{pauseId:'p',campaignId:'c'}],holds:[{campaignId:'c',stageType:'testing',resumeStage:'testing',startedOn:'2026-10-15',endedOn:'2026-10-16'}]};
  const input={posts,campaigns:[campaign],stages:[{campaignId:'c',stageType:'testing',startedOn:'2026-10-15',endedOn:null}],metrics:[fact()],context:pausedContext,today:'2026-10-19'};
  const before=promotionOverview({...input,now:new Date('2026-10-19T18:59:00+08:00')})[0],after=promotionOverview({...input,now:new Date('2026-10-19T19:01:00+08:00')})[0];
- assert.equal(before.status,'testing');assert.equal(after.status,'promotion_paused');assert.equal(after.stages[0].totals.spend,100);assert.deepEqual(after.stages[0].missingDates,['2026-10-18']);
+ assert.equal(before.status,'testing');assert.equal(after.status,'promotion_paused');assert.equal(after.stages[0].totals.spend,100);assert.deepEqual(after.stages[0].missingDates,['2026-10-18']);assert.equal(after.timeline[0].days,1,'条形只到最后已登记日，排除暂停窗口，不随缺失日期增长');
 });

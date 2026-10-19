@@ -1,8 +1,8 @@
 /** 生命周期只从现有日度事实计算；缺失、暂停与归档记录不补成投放零值。 */
 import type {PromotionTimelineRow} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
-import {campaignPauseWindows,campaignWaitWindows,dateInWindows,effectivePromotionStatus,promotionLabels} from './promotion-state.mjs';
-import {calculateActualPromotionCosts,nextDateKey,previousDateKey} from './promotion-rules.mjs';
+import {campaignPauseWindows,campaignWaitWindows,countPromotionDays,dateInWindows,effectivePromotionStatus,promotionLabels} from './promotion-state.mjs';
+import {calculateActualPromotionCosts,nextDateKey,previousDateKey,promotionStageShares} from './promotion-rules.mjs';
 
 export interface PromotionFact {
  id:string;campaignId:string;metricDate:string;dailyStatus:string;stageTypeSnapshot:string;
@@ -30,6 +30,16 @@ export function promotionOverview(input:{posts:PromotionTimelineRow[];campaigns:
   const state=latest?effectivePromotionStatus(latest.currentStatus,latest.currentStage,latest.id,input.context,input.now??new Date()):post.promotionStatus;
   const status=!post.isPromoted?'none':state;
   const closed=!post.isPromoted||['ended','test_discarded','formal_discarded'].includes(status);
+  // 沿用原生命周期的阶段天数比例；截止已登记日，不把比例当作完成率。
+  const cutoff=metrics.at(-1)?.metricDate??null;
+  const timeline=input.stages.filter(stage=>ids.has(stage.campaignId)&&cutoff&&stage.startedOn<=cutoff)
+   .sort((a,b)=>a.startedOn.localeCompare(b.startedOn)).map(stage=>{
+    const campaign=campaigns.find(row=>row.id===stage.campaignId)!;
+    const through=[stage.endedOn??cutoff!,campaign.endedOn??cutoff!,cutoff!].sort()[0];
+    const windows=[...campaignPauseWindows(campaign,input.context),...campaignWaitWindows(campaign,input.context),...input.context.holds.filter(row=>row.campaignId===campaign.id),...metrics.filter(row=>row.campaignId===campaign.id&&row.dailyStatus!=='active').map(row=>({startedOn:row.metricDate,endedOn:row.metricDate}))];
+    return {...stage,through,days:countPromotionDays(stage.startedOn,through,windows)};
+   }).filter(stage=>stage.days>0);
+  const shares=promotionStageShares(timeline.map(stage=>stage.days));
   const stages=['testing','scaling'].flatMap(stageType=>{
    const intervals=input.stages.filter(stage=>ids.has(stage.campaignId)&&stage.stageType===stageType);
    const rows=metrics.filter(row=>row.stageTypeSnapshot===stageType);
@@ -45,7 +55,7 @@ export function promotionOverview(input:{posts:PromotionTimelineRow[];campaigns:
    return [{stageType,label:stageType==='testing'?'测试':'放量',metrics:rows,totals:promotionTotals(rows),missingDates:[...missing].sort(),startedOn:intervals.map(s=>s.startedOn).sort()[0]??rows[0]?.metricDate??latest?.startedOn??post.publishedOn,endedOn:intervals.some(s=>!s.endedOn)?null:intervals.map(s=>s.endedOn!).sort().at(-1)??null}];
   });
   const key=campaigns.some(c=>c.id===input.selected)?input.selected!:latest?.id??`unstarted:${post.scheduleId}`;
-  return {key,scheduleId:post.scheduleId,post,campaigns,latest,status,statusLabel:status==='none'?'已转非推广':status==='scaling'?'放量中':promotionLabels[status]??status,closed,stages,metrics,totals:promotionTotals(metrics),startedOn:campaigns[0]?.startedOn??post.publishedOn,endedOn:closed?latest?.endedOn??metrics.at(-1)?.metricDate??post.publishedOn:null};
+  return {key,scheduleId:post.scheduleId,post,campaigns,latest,status,statusLabel:status==='none'?'已转非推广':status==='scaling'?'放量中':promotionLabels[status]??status,closed,stages,timeline:timeline.map((stage,index)=>({...stage,share:shares[index]})),cutoff,metrics,totals:promotionTotals(metrics),startedOn:campaigns[0]?.startedOn??post.publishedOn,endedOn:closed?latest?.endedOn??metrics.at(-1)?.metricDate??post.publishedOn:null};
  }).sort((a,b)=>Number(a.closed)-Number(b.closed)||b.startedOn.localeCompare(a.startedOn)||a.post.contentName.localeCompare(b.post.contentName,'zh-CN'));
 }
 export type PromotionOverview=ReturnType<typeof promotionOverview>[number];
