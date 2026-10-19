@@ -10,6 +10,7 @@ import {changePromotionTimeline,promotionSnapshot,readPromotionTimeline,timeline
 import {firstMissingPromotionDate} from '../src/db/promotion-state.mjs';
 import {registerPublication} from '../src/db/publication-workflow';
 import {publicationSchema} from '../src/db/validation';
+import {inclusiveDays,isPendingPromotionRow,pendingPromotionPeriod,promotionPeriodRecords,promotionIntervalPreview} from '../src/db/promotion-pending';
 const pg=new PGlite(),db=drizzle(pg,{schema:s});
 const staff={id:'fictional-timeline-staff',username:'虚构日序员工',role:'employee' as const},admin={...staff,role:'admin' as const};
 const now=new Date('2026-10-21T12:00:00+08:00');
@@ -33,6 +34,33 @@ test('首次待办锚定发布日期，待定末日保留空下一步；晚处�
  [view]=await readPromotionTimeline(db,new Date('2026-10-25T12:00:00+08:00'),row.id);assert.equal(view.date,'2026-10-20');assert.equal(view.plan?.plannedOn,null);assert.equal(view.campaign,null);
  await changePromotionTimeline(db,await input(row.id,{action:'plan',reviewDate:'2026-10-20',nextDecision:'start_scaling'}),staff,now);
  [view]=await readPromotionTimeline(db,now,row.id);assert.equal(view.plan?.plannedOn,'2026-10-21');assert.equal(view.campaign?.startedOn,'2026-10-21');assert.equal(view.campaign?.initialStage,'scaling');assert.equal(view.date,'2026-10-21');assert.equal((await promotionSnapshot(db,row.id)).metrics.length,0);
+});
+test('首次待定形成连续区间，包含中间日期且不产生指标；到期只保留原末日',async()=>{
+ const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:'2026-10-20'}),staff,now);
+ const day=new Date('2026-10-19T12:00:00+08:00'),[view]=await readPromotionTimeline(db,day,row.id),period=pendingPromotionPeriod(view,day)!;
+ assert.equal(period.startedOn,'2026-10-17');assert.equal(period.endedOn,'2026-10-20');assert.equal(period.days,4);assert.equal(period.reviewOn,'2026-10-21');assert.equal(period.due,false);
+ const records=promotionPeriodRecords(period,day);assert.deepEqual(records.map(row=>row.date),['2026-10-17','2026-10-18','2026-10-19','2026-10-20']);assert.equal(records[2].label,'待定中');
+ assert.equal(isPendingPromotionRow({...view,pending:false},day),true,'团队暂停不抹掉已保存区间的展示');
+ const late=pendingPromotionPeriod(view,new Date('2026-10-25T12:00:00+08:00'))!;assert.equal(late.endedOn,'2026-10-20');assert.equal(late.days,4);assert.equal(late.due,true);
+ const snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.metrics.length,0);assert.equal(snapshot.campaigns.length,0);
+ assert.equal(pendingPromotionPeriod({...view,promotionStatus:'ended',canArrangeInitial:false},day),null);
+});
+test('测试待定与放量暂停保留各自阶段，缩短截止日与提前恢复同步连续记录',async()=>{
+ for(const stage of ['testing','scaling']){
+  const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:stage==='testing'?'start_testing':'start_scaling'}),staff,now);
+  await changePromotionTimeline(db,await input(row.id,{action:'pause',waitingThrough:'2026-10-20',reason:'临时暂停'}),staff,now);
+  let [view]=await readPromotionTimeline(db,now,row.id),period=pendingPromotionPeriod(view,now)!;
+  assert.equal(period.status,stage==='testing'?'测试待定中':'推广暂停中');assert.equal(period.days,4);assert.equal((await promotionSnapshot(db,row.id)).metrics.length,0);
+  await changePromotionTimeline(db,await input(row.id,{action:'next',reviewDate:'2026-10-20',rangeId:period.range!.id,nextDecision:'wait_continue',waitingThrough:'2026-10-18',reason:'缩短区间'}),staff,now);
+  [view]=await readPromotionTimeline(db,now,row.id);period=pendingPromotionPeriod(view,now)!;assert.equal(period.days,2);assert.equal(period.reviewOn,'2026-10-19');
+  await changePromotionTimeline(db,await input(row.id,{action:stage==='testing'?'start_testing':'start_scaling',target:'day',reviewDate:'2026-10-18',reason:'十八日实际已恢复'}),staff,now);
+  [view]=await readPromotionTimeline(db,now,row.id);assert.equal(pendingPromotionPeriod(view,now),null);assert.equal(view.campaign?.currentStatus,stage);assert.equal((await promotionSnapshot(db,row.id)).metrics.length,0);
+ }
+});
+test('区间预览明确含首尾与下次复盘；长区间连续范围不展开成海量节点',()=>{
+ assert.equal(inclusiveDays('2028-02-28','2028-03-01'),3);assert.match(promotionIntervalPreview('2026-10-17','2026-10-20')!,/共 4 天.*2026-10-21.*2026-10-20/);assert.equal(promotionIntervalPreview('2026-10-17','2026-10-16'),null);
+ const records=promotionPeriodRecords({startedOn:'2026-10-17',endedOn:'2026-12-31',days:76,state:'待定',status:'待定中',untilLabel:'待定至',reviewOn:'2027-01-01',due:false,context:'尚未开始推广',range:undefined},now);
+ assert.equal(records.length,10);assert.equal(records[7].gapBefore?.from,'2026-10-24');assert.equal(records[7].gapBefore?.to,'2026-12-28');assert.equal(records.at(-1)?.date,'2026-12-31');
 });
 test('直接放量不生成测试阶段或指标；重复请求仅创建一次',async()=>{
  const row=await seed(),body=await input(row.id,{action:'start_scaling'});

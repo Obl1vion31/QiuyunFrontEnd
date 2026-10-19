@@ -22,3 +22,5 @@
 `promotion-timeline.ts` 绑定首次安排、待定下一步与历史更正；保存后只刷新本篇业务行，保留其他草稿和公共节点。`schedule-approvals.ts` 绑定共享 Inspector 内的新旧审核，结果原位显示并刷新提醒；过期申请明确显示失效。
 
 `business-change-diff.ts` 用安全文本节点生成纵向字段对照，与 `BusinessChangeDiff.astro` 共用 `business-changes.css`；用于异步排期申请详情，不引入独立滚动容器。
+
+推广待办由 `promotion-timeline.ts` 管理行内状态／截止日／记录展开、带语义的区间预览、同条多表单草稿确认及单帖刷新；保留统一内容容器与其他帖子的输入。预览和连续日期取自纯展示模型，不写入指标。

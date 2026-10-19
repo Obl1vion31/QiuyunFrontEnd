@@ -1,0 +1,100 @@
+/* 推广待办：对象、持续区间、日度指标和操作共用行容器，限定在本区块内。 */
+#daily-table .promotion-pending-content{display:grid;gap:10px;padding:12px;background:var(--console-surface-subtle)}
+#daily-table .promotion-pending-rows,#daily-table .daily-grid{display:grid;gap:10px;margin:0;padding:0;min-width:0}
+#daily-table :is(.review-pending-row,.review-metric-row){box-sizing:border-box;min-width:0;margin:0;padding:14px 16px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);color:var(--console-ink);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+#daily-table .review-pending-row.is-continuing{border-inline-start:3px solid #b29859;background:#fcfbf6}
+#daily-table .review-entry-header{display:grid;grid-template-columns:minmax(180px,1fr) 145px auto;align-items:center;gap:12px 20px;min-width:0;margin:0}
+#daily-table .review-entry-identity{display:grid;gap:3px;min-width:0}
+#daily-table .review-entry-identity strong{font-size:var(--console-emphasis);font-weight:600;white-space:normal;overflow-wrap:anywhere}
+#daily-table .review-entry-identity small,#daily-table .review-state small{display:block;color:var(--console-muted);font-size:var(--console-caption);overflow-wrap:anywhere}
+#daily-table .review-note-id{display:inline;font-size:var(--console-caption);font-variant-numeric:tabular-nums}
+#daily-table .review-entry-date{display:grid;gap:3px;min-width:0}
+#daily-table .review-entry-date>span{font-size:var(--console-caption);color:var(--console-muted)}
+#daily-table time{font:500 var(--console-text)/var(--console-text-leading) var(--console-font);font-variant-numeric:tabular-nums}
+#daily-table .review-state{display:grid;justify-items:start;gap:4px}
+#daily-table .review-state-badge{display:inline-block;padding:3px 7px;border-radius:5px;color:#73551d;background:#f3e6c8;font:600 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
+#daily-table .review-row-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+#daily-table :is(.review-row-actions,.review-initial-form,.review-inline-editor,.review-next-form,.review-metric-actions) button{box-sizing:border-box;width:auto;min-width:0;height:var(--console-control-height);margin:0;padding:9px 12px;border-radius:var(--console-control-radius);font:600 var(--console-text)/var(--console-text-leading) var(--console-font);white-space:nowrap;cursor:pointer}
+#daily-table .business-action-primary{border:1px solid var(--console-blue);color:#fff;background:var(--console-blue)}
+#daily-table .business-action-secondary{border:1px solid var(--console-line);color:var(--console-ink);background:var(--console-surface)}
+#daily-table button[aria-expanded=true]{border-color:#a9bce6;color:var(--console-blue);background:#edf2ff}
+#daily-table button:disabled{opacity:.6;cursor:default}
+#daily-table :is(.review-initial-form,.review-inline-editor,.review-next-form){display:flex;flex-wrap:wrap;align-items:end;gap:10px 12px;min-width:0;margin:0}
+#daily-table .review-initial-form{justify-content:flex-end;max-width:520px}
+#daily-table .review-initial-form>label{width:170px;min-width:0}
+#daily-table .review-initial-form>[data-timeline-through]{width:155px}
+#daily-table .review-draft-preview{flex-basis:100%;min-width:0;margin:0;padding:8px 10px;border-radius:6px;color:#40556c;background:#edf2f7;font-size:var(--console-caption);line-height:var(--console-caption-leading);overflow-wrap:anywhere}
+#daily-table .review-period-summary{margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
+#daily-table .review-period-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
+#daily-table .review-period-facts>div{min-width:0}
+#daily-table .review-period-facts dt{margin:0 0 4px;color:var(--console-muted);font-size:var(--console-caption)}
+#daily-table .review-period-facts dd{display:grid;gap:3px;margin:0;font-weight:600}
+#daily-table .review-period-facts dd small{color:var(--console-muted);font-size:var(--console-caption);font-weight:400}
+#daily-table .review-period-record{margin:10px 0 0;color:#73551d;font-size:var(--console-caption)}
+#daily-table .review-period-record strong{font-weight:500}
+#daily-table .review-next-form{margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
+#daily-table .review-next-form>label{width:260px;max-width:100%}
+#daily-table .review-next-form>p{flex:1;min-width:120px;margin:0 0 10px;color:var(--console-muted);font-size:var(--console-caption)}
+#daily-table .review-row-panel{margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line);min-width:0}
+#daily-table .review-row-panel h3{margin:0 0 12px;font-size:var(--console-text);font-weight:600}
+#daily-table .review-row-panel>p{margin:0 0 12px;font-size:var(--console-caption);color:var(--console-muted)}
+#daily-table .review-inline-editor>label{width:175px;min-width:0;flex:none}
+#daily-table .review-inline-editor>.review-reason{flex:1;min-width:160px}
+#daily-table .review-period-days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;margin:0}
+#daily-table .review-period-days>div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--console-line);min-width:0}
+#daily-table .review-period-days dt,#daily-table .review-period-days dd{margin:0;min-width:0;font-size:var(--console-caption);overflow-wrap:anywhere}
+#daily-table .review-period-days dd{color:#73551d}
+#daily-table .review-period-gap{grid-column:1/-1}
+#daily-table :is(.review-inline-editor,.review-next-form,.review-initial-form)>output{flex-basis:100%;min-width:0;font-size:var(--console-caption);color:#913c35}
+#daily-table .review-metric-fields{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:end;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
+#daily-table .review-metric-fields input{text-align:right}
+#daily-table .review-cost{display:grid;gap:6px;align-self:stretch;align-content:end;min-width:0}
+#daily-table .review-cost>span{font-size:var(--console-caption);color:var(--console-muted)}
+#daily-table .review-cost>output{display:flex;align-items:center;justify-content:flex-end;height:var(--console-control-height);font:600 var(--console-emphasis)/var(--console-text-leading) var(--console-font);font-variant-numeric:tabular-nums}
+#daily-table .review-day-state{display:grid;gap:6px;min-width:150px;margin:0;background:transparent;color:var(--console-ink);font-size:var(--console-text);writing-mode:horizontal-tb;justify-self:end}
+#daily-table .review-day-state.testing select{background:#fff1bf;color:#6a4a00}
+#daily-table .review-day-state.scaling select{background:#ddf2e8;color:#205d48}
+#daily-table .review-day-state.waiting_action select{background:#f3e6c8;color:#73551d}
+#daily-table .review-metric-actions{display:flex;align-items:end;justify-content:flex-end;flex-wrap:wrap;gap:10px 12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
+#daily-table .review-id-entry{width:250px;margin-right:auto}
+#daily-table .review-decision{width:250px}
+#daily-table .review-metric-actions [data-form-message]{flex-basis:100%;min-width:0;padding:0;margin:0;color:#913c35;font-size:var(--console-caption)}
+#daily-table .review-pause-fields{display:flex;align-items:end;flex-wrap:wrap;gap:12px;padding-top:12px;margin-top:12px;border-top:1px solid var(--console-line)}
+#daily-table .review-pause-fields>[data-pause-reason]{flex:1;min-width:170px}
+#daily-table .review-pause-fields>[data-pause-through]{width:175px}
+#daily-table .review-locked-row{background:var(--console-surface-subtle)}
+#daily-table .review-locked-row .review-state-badge{color:#65716b;background:#e8ece9}
+#daily-table .review-locked-message{margin:12px 0 0;color:var(--console-muted);font-size:var(--console-caption)}
+#daily-table [hidden],#daily-table output:empty,#daily-table [data-form-message]:empty{display:none!important}
+@media(max-width:1200px){
+ #daily-table .review-entry-header{grid-template-columns:minmax(0,1fr) auto;gap:12px}
+ #daily-table .review-initial-form,#daily-table .review-row-actions{grid-column:1/-1;justify-content:flex-start;max-width:none}
+ #daily-table .review-metric-row .review-entry-header{grid-template-columns:minmax(0,1fr) 120px 150px}
+}
+@media(max-width:700px){
+ #daily-table .promotion-pending-content{padding:10px;gap:10px}
+ #daily-table :is(.review-pending-row,.review-metric-row){padding:12px}
+ #daily-table .review-entry-header{gap:10px 12px}
+ #daily-table .review-initial-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}
+ #daily-table .review-initial-form>label{width:auto;grid-column:1}
+ #daily-table .review-initial-form>[data-timeline-through]{width:auto}
+ #daily-table .review-initial-form>button{grid-column:2;grid-row:1}
+ #daily-table .review-initial-form>:is(output,.review-draft-preview){grid-column:1/-1}
+ #daily-table .review-row-actions{gap:8px}
+ #daily-table .review-row-actions button{flex:1;padding-inline:8px;font-size:var(--console-caption)}
+ #daily-table .review-period-facts{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ #daily-table .review-period-facts>div:last-child{grid-column:1/-1}
+ #daily-table .review-period-days{grid-template-columns:minmax(0,1fr)}
+ #daily-table .review-inline-editor>label,#daily-table .review-inline-editor>.review-reason{flex:1 1 100%;width:auto;min-width:0}
+ #daily-table .review-inline-editor>button{margin-left:auto}
+ #daily-table .review-next-form>label{width:100%}
+ #daily-table .review-next-form>p{flex-basis:100%;margin:0}
+ #daily-table .review-next-form>button{margin-left:auto}
+ #daily-table .review-metric-row .review-entry-header{grid-template-columns:minmax(0,1fr) auto}
+ #daily-table .review-day-state{grid-column:1/-1;justify-self:stretch;min-width:0}
+ #daily-table .review-metric-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ #daily-table .review-metric-fields>label:first-child{grid-column:1/-1}
+ #daily-table .review-id-entry,#daily-table .review-decision{width:100%;min-width:0}
+ #daily-table .review-metric-actions>button{margin-left:auto}
+ #daily-table .review-pause-fields>[data-pause-reason],#daily-table .review-pause-fields>[data-pause-through]{width:100%;flex-basis:100%;min-width:0}
+}

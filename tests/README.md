@@ -40,6 +40,7 @@ pnpm db:check
 pnpm build
 pnpm test:ui
 pnpm test:timeline
+pnpm test:pending
 pnpm test:publication
 pnpm test:browser
 pnpm test:workflows
@@ -61,3 +62,5 @@ pnpm test:annual-plan
 `pnpm test:timeline` 在构建后使用隔离库验收首次业务日期、末日空下一步、次日计划、无 ID／指标的当日暂停、其他帖子草稿与公共节点保留、排期 Inspector 未保存保护、整篇不复盘及恢复、排期待审和分类配置回填；检查 1440／390／320px。规则与迁移测试补充历史开始日提前／延后、最早缺口、冲突预览与归档、请求幂等、指纹防覆盖以及旧解析帖事实保留。
 
 首次安排与排期待审回归额外检查：每日首次行的桌面高度与条件字段、无活动明细旧终态不进入首次队列且接口拒绝重启、历史状态筛选、设置无重复入口、审批沿用台账行、详情正文／差异／日期的 `scrollWidth` 不超过 `clientWidth`。`pnpm test:interaction` 保留旧审核地址兼容访问与原权限断言；排期审批从实际排期入口验收。
+
+`pnpm test:pending` 使用隔离库与真实行内操作验证待定／测试待定／放量暂停、含首尾的逐日记录、T+1 日期、截止缩短、提前恢复、同行编辑草稿保护、网络失败重试和正常日度推进；1440／1280／390／320px 比较状态行与数据行边界、实际控件规格和字体。规则测试补充连续覆盖、长区间压缩和不产生零指标。

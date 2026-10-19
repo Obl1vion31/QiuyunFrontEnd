@@ -42,7 +42,7 @@ try{
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});const bounds=await article(pending.id).evaluate((node:HTMLElement)=>({client:node.clientWidth,scroll:node.scrollWidth}));assert.ok(bounds.scroll<=bounds.client+1,`${width}px 首次行不横向溢出`);await article(pending.id).screenshot({path:`.tools/test-artifacts/promotion-first-choice-${width}.png`});}await page.setViewportSize({width:1440,height:1000});
  const first=article(pending.id).locator('[data-timeline-form]');await first.locator('[name=action]').selectOption('wait');assert.equal(await first.locator('[name=waitingThrough]').isVisible(),true);assert.equal(await first.locator('[name=waitingThrough]').inputValue(),published);await first.locator('[name=action]').selectOption('start_testing');assert.equal(await first.locator('[name=waitingThrough]').isDisabled(),true);
  assert.equal(await article(pending.id).locator('[name=reviewDate]').first().inputValue(),published);
- assert.equal(await article(waiting.id).locator('[name=nextDecision]').first().inputValue(),'');assert.equal(await article(waiting.id).locator('time').innerText(),yesterday);
+ assert.equal(await article(waiting.id).locator('[name=nextDecision]').first().inputValue(),'');assert.equal(await article(waiting.id).locator('[data-pending-period-end]').innerText(),yesterday);
  await metric(draft.id).locator('[name=spend]').fill('37');
  await page.evaluate((id:string)=>{(window as any).__toolbar=document.querySelector('[data-promotion-toolbar]');(window as any).__draft=document.querySelector(`[data-metric-form][data-schedule-id="${id}"]`);},draft.id);
  // 不填写 ID 或数字即可暂停；切换回正常时保留数字草稿。

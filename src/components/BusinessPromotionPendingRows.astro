@@ -1,0 +1,69 @@
+---
+import type {PromotionTimelineRow} from '../db/promotion-pending';
+import {pendingPromotionPeriod,promotionPeriodRecords} from '../db/promotion-pending';
+import {shanghaiDateKey,previousDateKey} from '../db/promotion-rules.mjs';
+interface Props {rows:PromotionTimelineRow[]}
+const {rows}=Astro.props,today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today),admin=Astro.locals.user?.role==='admin';
+const items=rows.map(row=>({row,period:pendingPromotionPeriod(row)})).sort((a,b)=>(a.period?.endedOn??a.row.date).localeCompare(b.period?.endedOn??b.row.date));
+---
+{items.length>0&&<section class="promotion-timeline promotion-pending-rows" aria-label="推广安排与持续状态">
+ {items.map(({row,period})=>{
+  const editable=admin||!!period?.range||!row.hasMetrics;
+  const stateId=`pending-state-${row.scheduleId}`,rangeId=`pending-range-${row.scheduleId}`,recordsId=`pending-records-${row.scheduleId}`;
+  return <article class:list={['review-pending-row',{'is-continuing':!!period,'is-due':period?.due}]} data-timeline-row={row.scheduleId} data-pending-row data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={period?.status??'推广待开始'}>
+   <header class="review-entry-header">
+    <div class="review-entry-identity"><strong>{row.contentName}</strong><small>V{row.versionNumber} · {row.subjectName}</small></div>
+    {period?<>
+     <div class="review-state"><span class="review-state-badge">{period.status}</span><small>{period.context}{period.due?' · 待处理下一步':''}</small></div>
+     <div class="review-row-actions">
+      {editable&&<><button type="button" class="business-action-secondary" data-pending-toggle="state" aria-label="修改当日状态" aria-controls={stateId} aria-expanded="false">修改状态</button><button type="button" class="business-action-secondary" data-pending-toggle="range" aria-controls={rangeId} aria-expanded="false">调整截止日</button></>}
+      <button type="button" class="business-action-secondary" data-pending-toggle="records" aria-label="查看区间记录" aria-controls={recordsId} aria-expanded="false">区间记录</button>
+     </div>
+    </>:<>
+     <div class="review-entry-date"><span>安排日期</span><time datetime={row.date}>{row.date}</time></div>
+     <form class="business-form timeline-inline-form review-initial-form" data-timeline-form data-pending-first data-pending-start={row.date} data-fingerprint={row.fingerprint}>
+      <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="target" value="initial"/><input type="hidden" name="reviewDate" value={row.date}/>
+      <label>当日安排<select name="action" aria-label="当日安排" required><option value="">请选择</option><option value="wait">待定（未开始推广）</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></select></label>
+      <label data-timeline-through hidden>待定至（含当天）<input type="date" name="waitingThrough" value={row.date} min={row.date} disabled/></label>
+      <button type="submit" class="business-action-primary">保存当日安排</button>
+      <p class="review-draft-preview" data-pending-preview hidden aria-live="polite"/>
+      <output role="alert"/>
+     </form>
+    </>}
+   </header>
+   {period&&<>
+    <div class="review-period-summary">
+     <dl class="review-period-facts"><div><dt>{period.state}起始</dt><dd><time datetime={period.startedOn}>{period.startedOn}</time></dd></div><div><dt>{period.untilLabel}（含当天）</dt><dd><time data-pending-period-end datetime={period.endedOn}>{period.endedOn}</time></dd></div><div><dt>下次复盘</dt><dd><time datetime={period.reviewOn}>{period.reviewOn}</time><small>处理 {period.endedOn} 的下一步</small></dd></div></dl>
+     <p class="review-period-record">已保存为连续{period.state}区间 · 共 {period.days} 天{period.due&&<strong> · 截止日已到，下一步尚未安排</strong>}</p>
+    </div>
+    {period.due&&<form class="business-form timeline-next-form review-next-form" data-timeline-form data-fingerprint={row.fingerprint}>
+     <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={period.endedOn}/><input type="hidden" name="action" value={period.range?'next':'plan'}/>{period.range&&<input type="hidden" name="rangeId" value={period.range.id}/>}
+     <label>{period.endedOn} 之后的安排<select name="nextDecision" required><option value="">请选择下一步</option>{!period.range?<><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:period.range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
+     <p>保存后从 {period.reviewOn} 生效。</p><button type="submit" class="business-action-primary">保存下一步</button><output role="alert"/>
+    </form>}
+    {editable&&<>
+     <section class="review-row-panel" data-pending-panel="state" id={stateId} hidden aria-label="修改当日状态">
+      <h3>修改当日状态</h3>
+      <form class="business-form timeline-state-form review-inline-editor" data-timeline-form data-fingerprint={row.fingerprint}>
+       <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="target" value={period.range?'day':'initial'}/>
+       <label>实际{period.range?'恢复':'开始'}日期<input type="date" name="reviewDate" value={period.endedOn<yesterday?period.endedOn:yesterday} min={row.publishedOn} max={today} required/></label>
+       <label>当日状态<select name="action" required><option value="">请选择</option>{period.range?.stageType!=='scaling'&&<option value="start_testing">{period.range?'恢复测试':'开始测试'}</option>}<option value="start_scaling">{period.range?'放量／恢复推广':'直接放量'}</option></select></label>
+       <label class="review-reason">修改原因<input name="reason" maxlength="2000" required/></label><button type="submit" class="business-action-primary">保存当日安排</button><output role="alert"/>
+      </form>
+     </section>
+     <section class="review-row-panel" data-pending-panel="range" id={rangeId} hidden aria-label="调整截止日">
+      <h3>调整{period.state}截止日</h3>
+      <form class="business-form timeline-range-form review-inline-editor" data-timeline-form data-fingerprint={row.fingerprint}>
+       <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={period.range?period.endedOn:row.publishedOn}/><input type="hidden" name="action" value={period.range?'next':'wait'}/>{period.range&&<><input type="hidden" name="rangeId" value={period.range.id}/><input type="hidden" name="nextDecision" value="wait_continue"/></>}
+       <label>{period.untilLabel}（含当天）<input type="date" name="waitingThrough" value={period.endedOn} min={period.startedOn} required/></label><label class="review-reason">调整原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存截止日</button><output role="alert"/>
+      </form>
+     </section>
+    </>}
+    <section class="review-row-panel" data-pending-panel="records" id={recordsId} hidden aria-label="区间记录">
+     <h3>{period.state}区间记录</h3><p>{period.startedOn} 至 {period.endedOn}（含首尾）连续{period.state}，共 {period.days} 天。</p>
+     <dl class="review-period-days">{promotionPeriodRecords(period).map(record=><>{record.gapBefore&&<div class="review-period-gap"><dt>{record.gapBefore.from} 至 {record.gapBefore.to}</dt><dd>连续{period.state}</dd></div>}<div data-period-date={record.date}><dt><time datetime={record.date}>{record.date}</time></dt><dd>{record.label}</dd></div></>)}</dl>
+    </section>
+   </>}
+  </article>;
+ })}
+</section>}

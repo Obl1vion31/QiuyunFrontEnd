@@ -1,5 +1,6 @@
 import {businessConfirm} from './business-dialog';
 import {getInspector} from './business-inspector';
+import {promotionIntervalPreview} from '../db/promotion-pending';
 export const randomRequestKey=()=>crypto.randomUUID();
 /** 仅替换本篇业务行；其他帖子输入、公共表头、工具栏与滚动保持原样。 */
 export async function refreshPromotionSchedule(scheduleId:string){
@@ -7,16 +8,17 @@ export async function refreshPromotionSchedule(scheduleId:string){
  if(paneHost){const response=await fetch(`/api/operations-content/${scheduleId}/promotion-timeline`,{cache:'no-store'});if(!response.ok)throw new Error('状态刷新失败');const html=await response.text();if(paneHost.closest<HTMLElement>('[data-inspector]')?.dataset.selectedId===scheduleId){paneHost.innerHTML=html;const state=paneHost.querySelector<HTMLElement>('[data-timeline-row]');paneHost.closest('[data-inspector]')?.dispatchEvent(new CustomEvent('business:promotion-state-updated',{detail:{id:scheduleId,label:state?.dataset.promotionLabel,status:state?.dataset.promotionStatus}}));document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}return;}
  const response=await fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store'});if(!response.ok)throw new Error('列表刷新失败');
  const fresh=new DOMParser().parseFromString(await response.text(),'text/html'),key=CSS.escape(scheduleId),scroll=window.scrollY;
+ const dailyBody=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
  const oldArticles=[...document.querySelectorAll<HTMLElement>(`[data-timeline-row="${key}"]`)],newArticles=[...fresh.querySelectorAll<HTMLElement>(`[data-timeline-row="${key}"]`)];
  oldArticles.forEach((node,index)=>{if(newArticles[index])node.replaceWith(newArticles[index].cloneNode(true));else node.remove();});
- if(!oldArticles.length&&newArticles.length){let host=document.querySelector<HTMLElement>('.promotion-timeline');if(!host){host=document.createElement('section');host.className='promotion-timeline';document.querySelector('.daily-section')?.insertBefore(host,document.querySelector('.daily-table-wrap,.daily-section>.empty-state'));}for(const node of newArticles)host.append(node.cloneNode(true));}
+ if(!oldArticles.length&&newArticles.length){let host=document.querySelector<HTMLElement>('.promotion-timeline');if(!host){const source=fresh.querySelector('.promotion-timeline');if(source&&dailyBody){host=source.cloneNode(false) as HTMLElement;dailyBody.insertBefore(host,dailyBody.querySelector('.daily-table-wrap,.empty-state'));}}for(const node of newArticles)host?.append(node.cloneNode(true));}
  const selector=`[data-metric-form][data-schedule-id="${key}"],[data-locked-schedule="${key}"]`;
  const oldRows=[...document.querySelectorAll(selector)],newRows=[...fresh.querySelectorAll(selector)];
  const grid=document.querySelector('.daily-grid');
  if(grid){const anchor=oldRows[0]??null;for(const row of newRows)grid.insertBefore(row.cloneNode(true),anchor);oldRows.forEach(row=>row.remove());}
- else if(newRows.length){document.querySelector('.daily-section>.empty-state')?.remove();const wrap=fresh.querySelector('.daily-table-wrap');if(wrap)document.querySelector('.daily-section')?.append(wrap.cloneNode(true));}
+ else if(newRows.length){dailyBody?.querySelector('.empty-state')?.remove();const wrap=fresh.querySelector('.daily-table-wrap');if(wrap)dailyBody?.append(wrap.cloneNode(true));}
  for(const node of document.querySelectorAll('[data-promotion-pending-count]'))node.textContent=fresh.querySelector('[data-promotion-pending-count]')?.textContent??'';
- const empty=fresh.querySelector('.daily-section>.empty-state');document.querySelector('.daily-section>.empty-state')?.remove();if(empty)document.querySelector('.daily-section')?.append(empty.cloneNode(true));
+ const empty=fresh.querySelector('[data-promotion-pending-body]>.empty-state');dailyBody?.querySelector('.empty-state')?.remove();if(empty)dailyBody?.append(empty.cloneNode(true));
  const cardSelector=`[data-lifecycle-schedule="${key}"]`,oldCard=document.querySelector(cardSelector),newCard=fresh.querySelector(cardSelector);
  if(oldCard){if(newCard)oldCard.replaceWith(newCard.cloneNode(true));else oldCard.remove();}else if(newCard){let list=document.querySelector('.lifecycle-list');if(!list){const source=fresh.querySelector('.lifecycle-list');if(source){list=source.cloneNode(false) as HTMLElement;document.querySelector('.calendar-section>.empty-state')?.remove();document.querySelector('.calendar-section')?.append(list);}}list?.append(newCard.cloneNode(true));}
  const historySelector=`.history-layout [data-history-schedule="${key}"]`,oldHistory=[...document.querySelectorAll<HTMLElement>(historySelector)],newHistory=[...fresh.querySelectorAll<HTMLElement>(historySelector)];
@@ -31,11 +33,25 @@ export async function refreshPromotionSchedule(scheduleId:string){
  for(const group of document.querySelectorAll<HTMLElement>('.day-group')){if(!group.querySelector('[data-inspector-key]')){group.remove();continue;}const date=group.querySelector('[data-history-date]')?.getAttribute('data-history-date'),source=date?fresh.querySelector(`[data-history-date="${CSS.escape(date)}"]`)?.closest('.day-group'):null;if(source){const totals=group.querySelector('header dl'),next=source.querySelector('header dl');if(totals&&next)totals.replaceChildren(...[...next.childNodes].map(node=>node.cloneNode(true)));}}
  document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));document.dispatchEvent(new CustomEvent('business:workflow-updated'));window.scrollTo({top:scroll});
 }
-function initialize(){document.querySelectorAll<HTMLFormElement>('[data-timeline-form]:not([data-ready])').forEach(form=>{
+function initialize(){
+ document.querySelectorAll<HTMLElement>('[data-pending-row]:not([data-pending-ready])').forEach(row=>{
+  row.dataset.pendingReady='true';
+  const toggle=(name:string)=>{
+   const target=row.querySelector<HTMLElement>(`[data-pending-panel="${name}"]`),opening=!!target?.hidden;
+   row.querySelectorAll<HTMLElement>('[data-pending-panel]').forEach(panel=>panel.hidden=panel!==target||!opening);
+   row.querySelectorAll<HTMLButtonElement>('[data-pending-toggle]').forEach(button=>button.setAttribute('aria-expanded',String(opening&&button.dataset.pendingToggle===name)));
+   if(opening)target?.querySelector<HTMLElement>('input:not([type=hidden]),select,[tabindex]')?.focus({preventScroll:true});
+  };
+  row.addEventListener('click',event=>{const button=(event.target as Element).closest<HTMLButtonElement>('[data-pending-toggle]');if(button)toggle(button.dataset.pendingToggle!);});
+  row.addEventListener('keydown',event=>{if(event.key!=='Escape'||!(event.target as Element).closest('[data-pending-panel]'))return;event.preventDefault();const panel=(event.target as Element).closest<HTMLElement>('[data-pending-panel]')!;toggle(panel.dataset.pendingPanel!);row.querySelector<HTMLButtonElement>(`[data-pending-toggle="${panel.dataset.pendingPanel}"]`)?.focus();});
+ });
+ document.querySelectorAll<HTMLFormElement>('[data-timeline-form]:not([data-ready])').forEach(form=>{
  form.dataset.ready='true';const requestKey=crypto.randomUUID();
- const sync=()=>{const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value;const through=form.querySelector<HTMLElement>('[data-timeline-through]');if(through){through.hidden=action!=='wait';through.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=action!=='wait';input.required=action==='wait';});}};
- sync();form.addEventListener('change',sync);form.addEventListener('input',()=>{form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)pane.dataset.dirty='true';});
+ const sync=()=>{const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value;const through=form.querySelector<HTMLElement>('[data-timeline-through]');if(through){through.hidden=action!=='wait';through.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=action!=='wait';input.required=action==='wait';});}const preview=form.querySelector<HTMLElement>('[data-pending-preview]');if(preview){preview.hidden=action!=='wait';preview.textContent=promotionIntervalPreview(form.dataset.pendingStart!,String((form.elements.namedItem('waitingThrough') as HTMLInputElement)?.value))??'请选择不早于安排日期的截止日。';}};
+ sync();form.addEventListener('change',sync);form.addEventListener('input',()=>{sync();form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)pane.dataset.dirty='true';});
  form.addEventListener('submit',async event=>{event.preventDefault();const out=form.querySelector('output')!,button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+  const otherDrafts=[...(form.closest('[data-pending-row]')?.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')??[])].filter(other=>other!==form);
+  if(otherDrafts.length&&!await businessConfirm('本条还有其他未保存修改。继续保存会更新整条记录，是否放弃这些修改？',{confirmLabel:'继续保存'}))return;
   const payload={...Object.fromEntries(new FormData(form)),requestKey,fingerprint:form.dataset.fingerprint,confirmImpact:false};button.disabled=true;out.textContent='正在保存…';
   const send=()=>fetch('/api/promotion-timeline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   let saved=false;

@@ -36,7 +36,7 @@ test('首次录入和统一更正都受服务端约束', async () => {
   assert.match(correction, /23505/);
 });
 
-test('推广页保持既有结构并在身份区展示笔记 ID', async () => {
+test('推广待办与历史保留帖子身份和首次补填笔记 ID', async () => {
   const page = await read('src/pages/business/daily-promotion-review.astro');
-  for (const marker of ['lifecycle-list','awaiting-list','daily-grid','history-workspace','promotion-note-id']) assert.match(page, new RegExp(marker));
+  for (const marker of ['lifecycle-list','data-promotion-pending-body','daily-grid','history-workspace','review-entry-identity','data-note-id-required']) assert.match(page, new RegExp(marker));
 });
