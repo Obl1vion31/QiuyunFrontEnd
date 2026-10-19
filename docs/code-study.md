@@ -103,6 +103,6 @@ flowchart LR
 
 待办行的 `.review-arrangement` 将目标日期、选择与保存就近排列；到期后显示 `reviewOn`（区间末日次日），隐藏提交字段 `reviewDate` 仍为区间末日，不能随展示文案一并顺延。摘要省去重复生效说明，完整连续日期在本行区间记录中查看。`promotion-pending.browser.ts` 同时检查单日逾期保存的真实业务日和桌面同行／窄屏完整换行。
 
-每日指标行的 `.review-entry-data` 在桌面将五项 `.review-metric-inputs`、两项 `.review-costs` 与 `.review-completion` 排在同一横行；成本使用 `dl / output`，仍由原 `data-open-cost / data-lead-cost` 控制器更新，下一步与唯一提交按钮紧邻。首次笔记 ID 位于帖子信息处，`data-active-*` 的暂停隐藏、禁用、草稿保留及原提交字段不变。验收检查九个输入／输出／操作的对齐、卡片高度、实际字号和窄屏重排，不能用缩小控件换取紧凑。
+每日指标行的 `.review-entry-data` 按 `.review-metric-inputs`、`.review-costs` 与 `.review-completion` 三组组织；容器查询先保护五项输入的可用宽度，空间不足时由 `.review-outcome` 将成本和操作完整收在下一行，不以固定同行断言替代比例判断。成本使用 `dl / output` 和原更新控制器，选择与唯一提交按钮按内容定宽。头部 `.review-note-field` 在同一位置显示已有 ID 或补填控件；暂停隐藏、禁用与草稿沿用 `data-active-*`，缺失 ID 在暂停时显示只读“未填写”。`test:cards` 实际填写长金额、人数和 ID，保存尺寸与截图，再通过图像查看审查整体比例、条件字段及响应式状态；原业务提交不变。
 
 面板动效统一由 `business-inspector.ts` 与 `business-dialog.ts` 管理。排期正文使用 `data-inspector-host` 接入共享轨道；Inspector 在实际退出动画结束前保留 `.is-open`，同时收拢停靠轨道和间距，内容保持固定宽度。Sheet／Dialog 等待面板和 `::backdrop` 都退出再调用原生关闭，快速重开废弃旧退出任务。两类容器通过 `setBusinessScrollLock` 共享嵌套锁与滚动恢复，Frame 保留滚动条槽位。不要在页面添加关闭定时器、移除节点或重复锁定；逐帧验收入口为 `pnpm test:motion`。

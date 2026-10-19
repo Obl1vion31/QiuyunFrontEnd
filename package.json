@@ -30,7 +30,8 @@
     "test:registration": "node --import tsx tests/registration-deadline.browser.ts",
     "test:interaction": "node --import tsx tests/interaction-consistency.browser.ts",
     "test:pending": "node --import tsx tests/promotion-pending.browser.ts",
-    "test:motion": "node --import tsx tests/panel-motion.browser.ts"
+    "test:motion": "node --import tsx tests/panel-motion.browser.ts",
+    "test:cards": "node --import tsx tests/promotion-card.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

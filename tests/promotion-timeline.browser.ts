@@ -5,10 +5,10 @@ import {mkdir} from 'node:fs/promises';
 import {eq} from 'drizzle-orm';
 import {startFixture,admin,employee} from './auth.fixture';
 import * as s from '../src/db/schema';
-import {previousDateKey,shanghaiDateKey} from '../src/db/promotion-rules.mjs';
+import {previousDateKey,nextDateKey,shanghaiDateKey} from '../src/db/promotion-rules.mjs';
 import {respondToBusinessConfirm} from './business-confirm.helper';
 const fixture=await startFixture(),{db,baseURL}=fixture;let browser:any;
-const today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today),published=previousDateKey(yesterday);
+const today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today),published=previousDateKey(yesterday),rescheduledAt=nextDateKey(today)+'T19:00';
 async function seed(name:string,options:{promoted?:boolean;publishedOn?:string;actual?:boolean}={}){
  const promoted=options.promoted??true,date=options.publishedOn??published;
  const [content]=await db.insert(s.operationsContent).values({}).returning();
@@ -28,7 +28,7 @@ try{
  const old=await seed('虚构整篇不复盘帖',{promoted:false,publishedOn:shanghaiDateKey(new Date(Date.now()-8*86400000))});
  const approval=await seed('虚构排期审核帖',{actual:false,promoted:false});
  // 员工真实提交整笔改期申请，审核前不改原记录。
- const edit=new FormData();for(const [key,value] of Object.entries({contentName:'虚构排期审核帖',subjectId:'tmua',categoryId:'temporary',promotionStatus:'none',plannedPublishAt:today+'T19:00',expectedPlanRevision:'0',planChangeReason:'虚构业务改期',projectDocUrl:''}))edit.set(key,value);
+ const edit=new FormData();for(const [key,value] of Object.entries({contentName:'虚构排期审核帖',subjectId:'tmua',categoryId:'temporary',promotionStatus:'none',plannedPublishAt:rescheduledAt,expectedPlanRevision:'0',planChangeReason:'虚构业务改期',projectDocUrl:''}))edit.set(key,value);
  const submitted=await fetch(baseURL+`/api/operations-content/${approval.id}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:staffCookie},body:edit});assert.equal(submitted.status,202,await submitted.text());
  const rejected=await seed('虚构驳回申请帖',{actual:false,promoted:false});edit.set('contentName','虚构驳回申请帖');assert.equal((await fetch(baseURL+`/api/operations-content/${rejected.id}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:staffCookie},body:edit})).status,202);
  const pw=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});
@@ -72,7 +72,7 @@ try{
  await review.locator('[data-schedule-approval] textarea').fill('未保存的审核说明');{const answer=respondToBusinessConfirm(review);await review.keyboard.press('Escape');await answer;}assert.equal(await review.locator('[data-schedule-approval] textarea').inputValue(),'未保存的审核说明');await review.locator('[data-schedule-approval] textarea').fill('');
  let documents=0;review.on('request',(r:any)=>{if(r.resourceType()==='document')documents++});await review.locator('[data-schedule-approval] button[value=approve]').click();await review.locator('[data-schedule-approval] output').getByText('已通过',{exact:true}).waitFor();assert.equal(documents,0);assert.equal(await review.locator('[data-approval-queue-count]').innerText(),'1');
  await review.locator('[data-approval-item]').last().focus();await review.keyboard.press('Enter');await review.locator('[data-schedule-approval-inspector]>header').getByText('虚构驳回申请帖',{exact:true}).waitFor();await review.locator('[data-schedule-approval] button[value=reject]').click();await review.locator('[data-schedule-approval] output').getByText('请填写驳回说明。',{exact:true}).waitFor();await review.locator('[data-schedule-approval] textarea').fill('虚构驳回说明');await review.locator('[data-schedule-approval] button[value=reject]').click();await review.locator('[data-schedule-approval] output').getByText('已驳回',{exact:true}).waitFor();assert.equal(await review.locator('[data-approval-queue-count]').innerText(),'0');assert.equal(documents,0);
- assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,approval.id)))[0].plannedPublishAt.toISOString(),new Date(today+'T19:00+08:00').toISOString());
+ assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,approval.id)))[0].plannedPublishAt.toISOString(),new Date(rescheduledAt+'+08:00').toISOString());
  const [directCampaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.scheduleId,direct.id));
  const numbers=new FormData();for(const [key,value] of Object.entries({campaignId:directCampaign.id,metricDate:published,dailyStatus:'active',stageTypeSnapshot:'scaling',spend:'10',platformOpenCount:'2',actualOpenCount:'1',platformLeadCount:'1',actualLeadCount:'1',reviewDecision:'scaling_continue',platformNoteId:'a'.repeat(24)}))numbers.set(key,value);
  const savedNumbers=await fetch(baseURL+'/api/promotion-daily',{method:'POST',headers:{Origin:baseURL,Cookie:staffCookie},body:numbers});assert.equal(savedNumbers.status,201,await savedNumbers.text());

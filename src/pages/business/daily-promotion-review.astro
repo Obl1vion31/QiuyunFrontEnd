@@ -444,7 +444,8 @@ const historyHref = (overrides: Record<string, string>) => {
                           <input type="hidden" name="dailyStatus" value={defaultWaiting ? 'waiting_action' : 'active'} />
                           <input type="hidden" name="stageTypeSnapshot" value={stageType} />
                           <header class="review-entry-header">
-                           <div class="review-entry-identity"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}{campaign.platformNoteId&&<span class="review-note-id" title={campaign.platformNoteId}> · ID {campaign.platformNoteId}</span>}</small>{!campaign.platformNoteId && <label class="review-id-entry" data-active-id><span>笔记 ID</span><input name="platformNoteId" data-note-id-required pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="首次日度复盘填写" /></label>}</div>
+                           <div class="review-entry-identity"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></div>
+                           <div class="review-note-field">{campaign.platformNoteId?<span>笔记 ID</span>:<label for={`review-note-${campaign.id}`}>笔记 ID</label>}{campaign.platformNoteId?<span class="review-note-value" title={campaign.platformNoteId}>{campaign.platformNoteId}</span>:<><input id={`review-note-${campaign.id}`} aria-label="笔记 ID" name="platformNoteId" data-active-id data-note-id-required pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="首次复盘补填"/><span class="review-note-value" data-paused-note-id hidden>未填写</span></>}</div>
                            <div class="review-entry-date"><span>数据日期</span><time datetime={metricDate}>{metricDate}</time></div>
                            <label class={`stage-cell review-day-state ${defaultWaiting ? 'waiting_action' : stageType}`}><span>当日状态</span><select name="dayAction" aria-label="当日状态"><option value="active">{defaultWaiting?(stageType==='testing'?'测试待定':'推广暂停'):stageType==='scaling'?'放量':'测试'}</option><option value="pause">当日暂停</option></select></label>
                           </header>
@@ -457,13 +458,15 @@ const historyHref = (overrides: Record<string, string>) => {
                            <label>平台留资<input aria-label="平台留资人数" name="platformLeadCount" type="number" min="0" step="1" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
                            <label>实际留资<input aria-label="实际留资人数" name="actualLeadCount" type="number" min="0" step="1" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
                            </div>
-                           <dl class="review-costs" aria-label="自动计算成本"><div class="review-cost"><dt>实际开口成本</dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本</dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl>
                           </div>
                           <div class="review-pause-fields" data-pause-fields hidden>
                            <label data-pause-reason>暂停原因<input name="pauseReason" maxlength="2000" disabled/></label><label data-pause-through>暂停至（含当天）<input type="date" name="pauseThrough" value={metricDate} min={metricDate} disabled/></label>
                            <p class="review-draft-preview" data-pause-preview aria-live="polite"/>
                           </div>
+                          <div class="review-outcome">
+                           <dl class="review-costs" data-active-costs aria-label="自动计算成本"><div class="review-cost"><dt>实际开口成本</dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本</dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl>
                            <div class="review-completion"><label class="review-decision" data-active-decision><span>下一步</span><select data-review-decision aria-label="下一步" name="reviewDecision" required><option value="">请选择</option>{decisionOptions.map((decision) => <option value={decision}>{decision === 'wait_continue' ? (stageType === 'testing' ? '测试待定' : '推广暂停') : decisionLabels[decision]}</option>)}</select></label><button type="submit" class="business-action-primary">完成复盘</button></div>
+                          </div>
                           </div><p role="alert" data-form-message></p>
                         </form>
                       : <div data-locked-schedule={campaign.scheduleId} class="review-metric-row review-locked-row">
@@ -663,7 +666,8 @@ const historyHref = (overrides: Record<string, string>) => {
         const syncPause=()=>{const paused=(form.elements.namedItem('dayAction') as HTMLSelectElement).value==='pause';
           for(const name of ['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount','platformNoteId']){const control=form.elements.namedItem(name) as HTMLInputElement|null;if(control){control.disabled=paused;control.required=!paused;}}
           const decision=form.elements.namedItem('reviewDecision') as HTMLSelectElement;decision.required=!paused;decision.disabled=paused;
-          for(const selector of ['[data-active-fields]','[data-active-id]','[data-active-decision]']){const host=form.querySelector<HTMLElement>(selector);if(host)host.hidden=paused;}
+          for(const selector of ['[data-active-fields]','[data-active-costs]','[data-active-id]','[data-active-decision]']){const host=form.querySelector<HTMLElement>(selector);if(host)host.hidden=paused;}
+          const emptyId=form.querySelector<HTMLElement>('[data-paused-note-id]');if(emptyId)emptyId.hidden=!paused;
           const fields=form.querySelector<HTMLElement>('[data-pause-fields]');if(fields)fields.hidden=!paused;
           for(const selector of ['[data-pause-reason]','[data-pause-through]']){const host=form.querySelector<HTMLElement>(selector)!;host.hidden=!paused;host.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=!paused;input.required=paused;});}
           const preview=form.querySelector<HTMLElement>('[data-pause-preview]');if(preview)preview.textContent=promotionIntervalPreview(String((form.elements.namedItem('metricDate') as HTMLInputElement).value),String((form.elements.namedItem('pauseThrough') as HTMLInputElement).value),'暂停')??'请选择不早于数据日期的暂停截止日。';
