@@ -53,7 +53,16 @@ dialog.business-form-dialog { box-sizing:border-box; width:min(var(--form-dialog
 dialog.business-form-dialog::backdrop { background:#07111d73; backdrop-filter:blur(4px); }
 dialog.business-form-dialog[open]{animation:business-dialog-in 220ms cubic-bezier(.2,.8,.2,1)}
 .business-confirm{--form-dialog-width:420px}.business-confirm [data-confirm-message]{margin:0;white-space:pre-wrap}.business-confirm .dialog-actions{min-height:64px}
-@keyframes business-dialog-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes business-dialog-in{from{opacity:var(--business-enter-opacity,0);transform:var(--business-enter-transform,translateY(8px))}to{opacity:1;transform:none}}
+dialog:is(.business-form-dialog,.business-form-sheet){--business-exit-transform:translateY(8px)}
+dialog.business-form-sheet{--business-exit-transform:translateX(28px)}
+dialog:is(.business-form-dialog,.business-form-sheet)[open]::backdrop{animation:business-backdrop-in 220ms cubic-bezier(.2,.8,.2,1) both}
+dialog:is(.business-form-dialog,.business-form-sheet)[open][data-closing]{animation:business-modal-out 220ms cubic-bezier(.2,.8,.2,1) both}
+dialog:is(.business-form-dialog,.business-form-sheet)[open][data-closing]::backdrop{animation:business-backdrop-out 220ms cubic-bezier(.2,.8,.2,1) both}
+@keyframes business-modal-out{from{opacity:var(--business-close-opacity,1);transform:var(--business-close-transform,none)}to{opacity:0;transform:var(--business-exit-transform)}}
+@keyframes business-backdrop-in{from{opacity:var(--business-backdrop-enter-opacity,0)}to{opacity:1}}
+@keyframes business-backdrop-out{from{opacity:var(--business-backdrop-opacity,1)}to{opacity:0}}
+@media(prefers-reduced-motion:reduce){dialog:is(.business-form-dialog,.business-form-sheet)[open][data-closing],dialog:is(.business-form-dialog,.business-form-sheet)[open]::backdrop,dialog:is(.business-form-dialog,.business-form-sheet)[open][data-closing]::backdrop{animation:none}}
 @media(prefers-reduced-motion:reduce){dialog.business-form-dialog[open]{animation:none}}
 .business-reason-fields{display:grid;grid-template-columns:minmax(100px,.7fr) minmax(0,1.3fr);gap:12px;align-items:start}
 .business-reason-fields fieldset{margin:0;padding:0;border:0;min-width:0}.business-reason-fields legend{padding:0;margin-bottom:6px;font-weight:600}

@@ -49,7 +49,7 @@ dialog.business-form-sheet>form{display:grid;grid-template-rows:auto minmax(0,1f
 .business-form-sheet button:disabled{opacity:.6;cursor:default}
 .business-form-sheet :is(button,input,select,textarea):focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .business-form-sheet [hidden]{display:none!important}
-@keyframes business-sheet-in{from{opacity:.65;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes business-sheet-in{from{opacity:var(--business-enter-opacity,0);transform:var(--business-enter-transform,translateX(28px))}to{opacity:1;transform:none}}
 @media(max-width:900px){dialog.business-form-sheet{width:100%;border-radius:0}.business-form-sheet .sheet-body{padding:16px}.business-form-sheet .dialog-head,.business-form-sheet .dialog-actions{padding-left:16px;padding-right:16px}.business-form-sheet .form-grid{gap:16px 12px}}
 @media(max-width:480px){.business-form-sheet .publication-time-field,.business-form-sheet .publication-status-field{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){dialog.business-form-sheet[open]{animation:none}}

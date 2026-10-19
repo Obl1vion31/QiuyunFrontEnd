@@ -1,5 +1,5 @@
 import { navigate } from 'astro:transitions/client';
-import { businessConfirm } from './business-dialog';
+import { businessConfirm, setBusinessScrollLock } from './business-dialog';
 
 /** 静态详情与惰性模板都使用同一条正文滚动轨道。 */
 function organizeInspector(element: HTMLElement) {
@@ -39,12 +39,15 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   const { signal } = lifecycle;
   let selected: string | null = null;
   let trigger: HTMLElement | null = null;
-  let closeTimer = 0;
+  let motion:Animation[]=[];
+  const stopMotion=()=>{for(const animation of motion)animation.cancel();motion=[];};
+  const motionOptions={duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both' as FillMode};
   let generation = 0;
   let currentUrl = new URL(location.href);
   let viewportFrame = 0;
   const fitViewport = () => {
     if (element.hidden || !selected) return;
+    setBusinessScrollLock(element,matchMedia('(max-width:900px)').matches);
     const top = element.getBoundingClientRect().top;
     element.style.setProperty('--inspector-height', `${Math.max(120, window.innerHeight - top - 20)}px`);
   };
@@ -89,10 +92,12 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
       void mayLeave().then(accepted=>{if(accepted&&token===generation&&!signal.aborted){setClean();open(id,source,writeHistory);}});
       return false;
     }
-    clearTimeout(closeTimer); generation++;
+    const wasVisible=!element.hidden,wasClosing=element.dataset.closing==='true';
+    const previous=getComputedStyle(element),from={width:element.getBoundingClientRect().width,opacity:wasVisible?previous.opacity:'0',transform:wasVisible?previous.transform:'translateX(18px)'},oldGap=host?getComputedStyle(host).columnGap:'0px';
+    stopMotion();generation++;delete element.dataset.closing;
     if (source) trigger = source;
     else if (!trigger?.isConnected) trigger = document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(id)}"],[data-inspect-id="${CSS.escape(id)}"]`);
-    if (selected !== id) { setClean(); if (options.render) options.render(id); else element.dispatchEvent(new CustomEvent('business:inspector-render-record',{detail:{id}})); }
+    if (selected !== id||wasClosing) { setClean(); if (options.render) options.render(id); else element.dispatchEvent(new CustomEvent('business:inspector-render-record',{detail:{id}})); }
     organizeInspector(element);
     const body = element.querySelector<HTMLElement>('[data-inspector-body]')!;
     if (selected !== id) body.scrollTop = 0;
@@ -101,7 +106,14 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     element.setAttribute('role', matchMedia('(max-width:900px)').matches ? 'dialog' : 'complementary');
     element.setAttribute('aria-modal', String(matchMedia('(max-width:900px)').matches));
     const token = generation;
-    requestAnimationFrame(() => { if (token !== generation) return; element.classList.add('is-open'); fitViewport(); element.focus({ preventScroll: true }); });
+    element.classList.add('is-open');fitViewport();
+    if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+      const dock=!!host&&getComputedStyle(element).position!=='fixed',width=element.getBoundingClientRect().width;
+      const animations=[element.animate([{opacity:from.opacity,transform:from.transform,...(dock?{width:`${wasVisible?from.width:0}px`}:{})},{opacity:1,transform:'none',...(dock?{width:`${width}px`}:{})}],motionOptions)];
+      if(dock)animations.push(host!.animate([{gap:oldGap},{gap:getComputedStyle(host!).columnGap}],motionOptions));
+      motion=animations;void Promise.allSettled(animations.map(animation=>animation.finished)).then(()=>{if(token!==generation||signal.aborted)return;for(const animation of animations)animation.cancel();if(motion===animations)motion=[];});
+    }
+    element.focus({ preventScroll: true });
     if (writeHistory) updateUrl(id);
     return true;
   };
@@ -111,9 +123,17 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
       void mayLeave().then(accepted=>{if(accepted&&token===generation&&!signal.aborted){setClean();close(writeHistory);}});
       return false;
     }
-    generation++; setClean(); select(null); element.classList.remove('is-open', 'open');
-    closeTimer = window.setTimeout(() => { element.hidden = true; }, matchMedia('(prefers-reduced-motion:reduce)').matches ? 0 : 220);
-    trigger?.focus({ preventScroll: true });
+    if(element.hidden||element.dataset.closing==='true')return true;
+    const previous=getComputedStyle(element),from={width:element.getBoundingClientRect().width,opacity:previous.opacity,transform:previous.transform},oldGap=host?getComputedStyle(host).columnGap:'0px';
+    stopMotion();generation++;setClean();element.dataset.closing='true';const token=generation;
+    const finish=()=>{if(token!==generation||signal.aborted)return;element.hidden=true;element.classList.remove('is-open','open');delete element.dataset.closing;select(null);setBusinessScrollLock(element,false);trigger?.focus({preventScroll:true});};
+    if(matchMedia('(prefers-reduced-motion:reduce)').matches)finish();
+    else{
+      const dock=!!host&&getComputedStyle(element).position!=='fixed';
+      const animations=[element.animate([{opacity:from.opacity,transform:from.transform,...(dock?{width:`${from.width}px`}:{})},{opacity:0,transform:'translateX(18px)',...(dock?{width:'0px'}:{})}],motionOptions)];
+      if(dock)animations.push(host!.animate([{gap:oldGap},{gap:'0px'}],motionOptions));
+      motion=animations;void Promise.allSettled(animations.map(animation=>animation.finished)).then(()=>{if(token!==generation||signal.aborted)return;finish();for(const animation of animations)animation.cancel();if(motion===animations)motion=[];});
+    }
     if (writeHistory) updateUrl(null);
     return true;
   };
@@ -171,7 +191,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   };
   document.addEventListener('click', guardNavigation, {signal,capture:true});
   document.addEventListener('submit', guardNavigation, {signal,capture:true});
-  document.addEventListener('astro:before-swap', () => { clearTimeout(closeTimer); lifecycle.abort(); }, { once: true, signal });
+  document.addEventListener('astro:before-swap', () => { stopMotion();setBusinessScrollLock(element,false);lifecycle.abort(); }, { once: true, signal });
   return { open, close, setClean,
     configure:(next:InspectorOptions)=>{Object.assign(options,next);syncContext();},
     setLocalParameter:(name:string,value:string)=>{

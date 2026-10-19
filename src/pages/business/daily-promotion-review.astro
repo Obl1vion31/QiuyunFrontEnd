@@ -444,10 +444,11 @@ const historyHref = (overrides: Record<string, string>) => {
                           <input type="hidden" name="dailyStatus" value={defaultWaiting ? 'waiting_action' : 'active'} />
                           <input type="hidden" name="stageTypeSnapshot" value={stageType} />
                           <header class="review-entry-header">
-                           <div class="review-entry-identity"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}{campaign.platformNoteId&&<span class="review-note-id" title={campaign.platformNoteId}> · ID {campaign.platformNoteId}</span>}</small></div>
+                           <div class="review-entry-identity"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}{campaign.platformNoteId&&<span class="review-note-id" title={campaign.platformNoteId}> · ID {campaign.platformNoteId}</span>}</small>{!campaign.platformNoteId && <label class="review-id-entry" data-active-id><span>笔记 ID</span><input name="platformNoteId" data-note-id-required pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="首次日度复盘填写" /></label>}</div>
                            <div class="review-entry-date"><span>数据日期</span><time datetime={metricDate}>{metricDate}</time></div>
                            <label class={`stage-cell review-day-state ${defaultWaiting ? 'waiting_action' : stageType}`}><span>当日状态</span><select name="dayAction" aria-label="当日状态"><option value="active">{defaultWaiting?(stageType==='testing'?'测试待定':'推广暂停'):stageType==='scaling'?'放量':'测试'}</option><option value="pause">当日暂停</option></select></label>
                           </header>
+                          <div class="review-entry-data">
                           <div class="review-metric-fields" data-active-fields>
                            <div class="review-metric-inputs">
                            <label>消耗<input aria-label="消耗" name="spend" type="number" min="0" step="0.01" placeholder="¥" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
@@ -462,10 +463,8 @@ const historyHref = (overrides: Record<string, string>) => {
                            <label data-pause-reason>暂停原因<input name="pauseReason" maxlength="2000" disabled/></label><label data-pause-through>暂停至（含当天）<input type="date" name="pauseThrough" value={metricDate} min={metricDate} disabled/></label>
                            <p class="review-draft-preview" data-pause-preview aria-live="polite"/>
                           </div>
-                          <footer class="review-metric-actions">
-                           {!campaign.platformNoteId && <label class="review-id-entry" data-active-id><span>笔记 ID</span><input name="platformNoteId" data-note-id-required pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="首次日度复盘填写" /></label>}
-                           <div class="review-completion"><label class="review-decision" data-active-decision><span>下一步</span><select data-review-decision aria-label="下一步" name="reviewDecision" required><option value="">请选择</option>{decisionOptions.map((decision) => <option value={decision}>{decision === 'wait_continue' ? (stageType === 'testing' ? '测试待定' : '推广暂停') : decisionLabels[decision]}</option>)}</select></label><button type="submit" class="business-action-primary">完成复盘</button></div><p role="alert" data-form-message></p>
-                          </footer>
+                           <div class="review-completion"><label class="review-decision" data-active-decision><span>下一步</span><select data-review-decision aria-label="下一步" name="reviewDecision" required><option value="">请选择</option>{decisionOptions.map((decision) => <option value={decision}>{decision === 'wait_continue' ? (stageType === 'testing' ? '测试待定' : '推广暂停') : decisionLabels[decision]}</option>)}</select></label><button type="submit" class="business-action-primary">完成复盘</button></div>
+                          </div><p role="alert" data-form-message></p>
                         </form>
                       : <div data-locked-schedule={campaign.scheduleId} class="review-metric-row review-locked-row">
                           <header class="review-entry-header"><div class="review-entry-identity"><strong>{campaign.contentName}</strong><small>V{campaign.versionNumber} · {campaign.subjectName}</small></div><div class="review-entry-date"><span>数据日期</span><time datetime={metricDate}>{metricDate}</time></div><span class="review-state-badge">待前日复盘</span></header>

@@ -117,6 +117,7 @@ try {
     assert.equal(await page.locator('.missing-round').count(),1);assert.match(await page.locator('.missing-round').innerText(),/二轮.*暂无已复盘数据/s);assert.equal(await page.locator('.missing-round [data-inspector-key]').count(),0);
     await page.goto(baseURL+'/business/non-promotion-review?view=history&subject=tmua&category=innovation');
     assert.equal(await page.locator('.review-post-group').count(),2,'同一逻辑帖的 V0 / V1 按排期独立分组');
+    for(const group of await page.locator('.review-post-group').all()){assert.equal(await group.locator('[data-review-common][data-label="帖子"]:visible').count(),1,'分组只展示一次帖子名称与版本');assert.equal(await group.locator('[data-review-common][data-label="实验日期"]:visible').count(),1);assert.equal(await group.locator('[data-review-common][data-label="分类"]:visible').count(),1);assert.equal(await group.locator('[data-inspector-key]').count(),2,'两轮仍是可独立操作的记录');}
     assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),true);
     assert.equal(await page.locator('[data-review-filters] [type=radio],[data-group-toggle]').count(),0,'筛选与展示方式独立分组');
     const controlHeights=await page.locator('[data-review-filters] select,[data-review-display]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));assert.ok(controlHeights.every((height:number)=>height===36),'筛选与展示控件统一紧凑规格');
@@ -132,6 +133,7 @@ try {
     let groupDocuments=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')groupDocuments++;});
     await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});
     await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.waitForURL(/group=0/);
+    assert.equal(await page.locator('[data-review-body] [data-inspector-key] [data-label="帖子"]:visible').count(),4,'不分组时每个轮次独立展示完整帖子信息');
     assert.deepEqual(await groupingGeometry(),groupGeometry,'分组切换保留筛选、表头和六列坐标');
     assert.equal(await page.locator('.table-scroll').evaluate((node:HTMLElement)=>node.scrollLeft),tableScroll,'分组切换保留表格横向位置');
     assert.equal(await page.evaluate(()=>(window as any).__groupTable===document.querySelector('.review-table')&&(window as any).__groupHead===document.querySelector('.table-head')&&(window as any).__groupRows.every((node:Element)=>node.isConnected)),true,'只移动现有行，保留公共节点');

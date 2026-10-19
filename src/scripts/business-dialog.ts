@@ -64,23 +64,48 @@ window.__businessHistoryPop=event=>{
 document.addEventListener('astro:page-load',()=>{historyLocation=new URL(location.href);historyPosition=Number(history.state?.businessPosition??historyPosition);});
 const closing=new WeakMap<HTMLDialogElement,Promise<void>>();
 const natives=new WeakMap<HTMLDialogElement,(value?:string)=>void>();
+const modalGenerations=new WeakMap<HTMLDialogElement,number>();
+const scrollLocks=new Set<HTMLElement>();
+let lockedScroll:{x:number;y:number}|undefined;
+/** 详情覆盖与原生模态框共用锁，嵌套关闭时保留外层锁与原页面位置。 */
+export function setBusinessScrollLock(owner:HTMLElement,locked:boolean){
+  if(locked){if(!scrollLocks.size)lockedScroll={x:scrollX,y:scrollY};scrollLocks.add(owner);document.documentElement.dataset.businessScrollLocked='true';}
+  else{scrollLocks.delete(owner);if(!scrollLocks.size&&lockedScroll){const position=lockedScroll;lockedScroll=undefined;delete document.documentElement.dataset.businessScrollLocked;window.scrollTo(position.x,position.y);}}
+}
+document.addEventListener('astro:before-swap',()=>{scrollLocks.clear();lockedScroll=undefined;delete document.documentElement.dataset.businessScrollLocked;});
 export function closeBusinessDialog(dialog:HTMLDialogElement,value?:string):Promise<void> {
   if(!dialog.open)return Promise.resolve();
   const current=closing.get(dialog);if(current)return current;
+  const token=(modalGenerations.get(dialog)??0)+1;modalGenerations.set(dialog,token);
+  const style=getComputedStyle(dialog),backdrop=getComputedStyle(dialog,'::backdrop');
+  dialog.style.setProperty('--business-close-opacity',style.opacity);dialog.style.setProperty('--business-close-transform',style.transform);dialog.style.setProperty('--business-backdrop-opacity',backdrop.opacity);
   dialog.dataset.closing='true';
   const task=Promise.resolve().then(async()=>{
-    if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
-      const side=dialog.classList.contains('business-form-sheet');
-      const animation=dialog.animate([{opacity:1,transform:'none'},{opacity:0,transform:side?'translateX(28px)':'translateY(8px)'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
-      await animation.finished.catch(()=>{});(natives.get(dialog)??HTMLDialogElement.prototype.close.bind(dialog))(value);animation.cancel();
-    } else (natives.get(dialog)??HTMLDialogElement.prototype.close.bind(dialog))(value);
+    // 面板和伪元素遮罩都结束后才退出 top layer，不在最后一帧切断遮罩。
+    getComputedStyle(dialog).animationName;getComputedStyle(dialog,'::backdrop').animationName;
+    const animations=dialog.getAnimations({subtree:true}).filter(animation=>(animation.effect as KeyframeEffect|null)?.target===dialog);
+    await Promise.allSettled(animations.map(animation=>animation.finished));
+    if(modalGenerations.get(dialog)!==token)return;
+    (natives.get(dialog)??HTMLDialogElement.prototype.close.bind(dialog))(value);
     delete dialog.dataset.closing;closing.delete(dialog);
+    setBusinessScrollLock(dialog,false);
   });closing.set(dialog,task);return task;
 }
 function initialize(){
   document.querySelectorAll<HTMLDialogElement>('dialog.business-form-sheet,dialog.business-form-dialog').forEach(dialog=>{
     if(natives.has(dialog))return;
-    natives.set(dialog,dialog.close.bind(dialog));dialog.close=(value?:string)=>{void closeBusinessDialog(dialog,value);};
+    natives.set(dialog,dialog.close.bind(dialog));const showModal=dialog.showModal.bind(dialog);
+    dialog.showModal=()=>{
+      const position={x:scrollX,y:scrollY};
+      if(dialog.open&&closing.has(dialog)){
+        const style=getComputedStyle(dialog),backdrop=getComputedStyle(dialog,'::backdrop');
+        dialog.style.setProperty('--business-enter-opacity',style.opacity);dialog.style.setProperty('--business-enter-transform',style.transform);dialog.style.setProperty('--business-backdrop-enter-opacity',backdrop.opacity);
+        modalGenerations.set(dialog,(modalGenerations.get(dialog)??0)+1);closing.delete(dialog);delete dialog.dataset.closing;
+      }else if(!dialog.open){for(const key of ['--business-enter-opacity','--business-enter-transform','--business-backdrop-enter-opacity'])dialog.style.removeProperty(key);}
+      setBusinessScrollLock(dialog,true);try{showModal();window.scrollTo(position.x,position.y);}catch(error){setBusinessScrollLock(dialog,false);throw error;}
+    };
+    dialog.close=(value?:string)=>{void closeBusinessDialog(dialog,value);};
+    dialog.addEventListener('close',()=>{if(!dialog.open)setBusinessScrollLock(dialog,false);});
     dialog.addEventListener('cancel',event=>{
       if(dialog.hasAttribute('data-dialog-cancel-managed')||dialog.hasAttribute('data-business-confirm')||event.defaultPrevented)return;
       event.preventDefault();void closeBusinessDialog(dialog);

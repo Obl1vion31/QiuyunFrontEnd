@@ -29,10 +29,11 @@ function initialize() {
     const pane = table.closest<HTMLElement>('.table-scroll')!;
     const position = {x:scrollX,y:scrollY,left:pane.scrollLeft,top:pane.scrollTop};
     if(grouped){
-      for(const group of groups){group.classList.add('review-post-group');group.replaceChildren(...groupRows.get(group)!);for(const node of group.querySelectorAll<HTMLElement>('[data-review-placeholder]'))node.hidden=false;}
+      for(const group of groups){group.classList.add('review-post-group');const rows=groupRows.get(group)!;group.replaceChildren(...rows);rows.forEach((row,index)=>row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.toggle('review-common-repeat',index>0);if(index>0)cell.setAttribute('aria-hidden','true');else cell.removeAttribute('aria-hidden');}));for(const node of group.querySelectorAll<HTMLElement>('[data-review-placeholder]'))node.hidden=false;}
       body.replaceChildren(...[...groups].sort((left,right)=>compare(left.querySelector('[data-row-href]')!,right.querySelector('[data-row-href]')!)));
     }else{
       groups.forEach(group=>group.classList.remove('review-post-group'));
+      for(const row of records)for(const cell of row.querySelectorAll<HTMLElement>('[data-review-common]')){cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');}
       body.replaceChildren(...[...records].sort(compare));
     }
     document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(item => {

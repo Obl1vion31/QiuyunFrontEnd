@@ -284,7 +284,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
             {queueView&&<span>{queueLabel} · 跨月份显示</span>}
           </nav>
 
-          {selectedStatus==='approvals'?<BusinessScheduleApprovals/>:<div class="content-layout">
+          {selectedStatus==='approvals'?<BusinessScheduleApprovals/>:<div class="content-layout" data-inspector-host>
             <section class="content-stage">
               {(selectedDisplay === 'ledger' || selectedView === 'promotion') && <div class="table-wrap">
           <table>
@@ -935,7 +935,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
   .status-strip .attention-summary strong{color:#73551d}
   .status-strip .attention-summary.active{border-color:#d9ba66;background:#fff7dc}
 
-  .content-layout{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+  .content-layout{min-width:0}
   .content-stage{min-width:0}
   .table-wrap{overflow:auto;border:1px solid #d0d6d2;border-radius:14px;background:#fafbf9;box-shadow:0 10px 32px #10243e0b}
   .table-wrap table{width:100%;min-width:900px;border-collapse:separate;border-spacing:0;font-size:.76rem}

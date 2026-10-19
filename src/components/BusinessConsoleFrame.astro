@@ -156,6 +156,8 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     --console-control-radius:8px;
   }
   html,body{min-height:100%;background:var(--console-canvas)}
+  html{scrollbar-gutter:stable}
+  html[data-business-scroll-locked]{overflow:hidden;overscroll-behavior:none}
   body{margin:0;overflow-x:hidden}
   .business-console-frame{width:100%;font-family:var(--console-font);font-size:var(--console-text);line-height:var(--console-text-leading)}
   .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}

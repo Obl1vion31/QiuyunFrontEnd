@@ -16,7 +16,7 @@
 
 `business-date.ts` 统一工作台完整时间的上海时区显示；SSR 与浏览器共用，不转换业务日期键或替代原生日期选择控件。
 
-- `business-dialog.ts`：站内未保存确认与 Sheet／Dialog 的成对进出生命周期。
+- `business-dialog.ts`：站内未保存确认与 Sheet／Dialog 的面板、遮罩成对进出生命周期，以及详情／抽屉／嵌套确认共用的滚动锁；实际退出完成后才原生关闭，快速重开取消旧任务。
 - `business-permissions.ts`：读取服务端下发的操作权限、同步入口显示；服务端始终独立复核。
 
 `promotion-timeline.ts` 绑定首次安排、待定下一步与历史更正；保存后只刷新本篇业务行，保留其他草稿和公共节点。`schedule-approvals.ts` 绑定共享 Inspector 内的新旧审核，结果原位显示并刷新提醒；过期申请明确显示失效。

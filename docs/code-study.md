@@ -71,7 +71,7 @@ flowchart LR
 | 业务对象填充面板 | [年度适配器](../src/scripts/annual-plan.ts)、[排期](../src/pages/business/operations-schedule.astro) | `getInspector(element,{render,select})`；排期内联适配器通过 `business:inspector-select` / `business:inspector-render-record` 通信 |
 | 统一详情开关 | [Inspector 组件](../src/components/BusinessInspector.astro)、[控制器](../src/scripts/business-inspector.ts) | 几何、单一正文滚动、固定头尾、焦点、历史、dirty、移动端和动效在公共实现修改；静态内容和惰性模板由控制器统一收纳到 `data-inspector-body` |
 | 保存与重新读取 | [非推广适配器](../src/scripts/non-promotion-review.ts)、[读取模型](../src/db/non-promotion-read-model.ts) | POST 成功后 `setClean()`，GET 同一读模型刷新行、模板及轮次基准；失败保留输入 |
-| 原位分组与查询参数 | [非推广适配器](../src/scripts/non-promotion-review.ts)、[共享 Inspector](../src/scripts/business-inspector.ts) | 六列表头和行节点持续存在，只重排数据；`localParameters` 登记局部参数，`setLocalParameter` 与 `onContextChange` 同步 URL 和前后退，保留详情及 dirty 输入 |
+| 原位分组与查询参数 | [非推广适配器](../src/scripts/non-promotion-review.ts)、[共享 Inspector](../src/scripts/business-inspector.ts) | 六列表头和行节点持续存在，分组重排并合并 `data-review-common` 重复信息，平铺恢复每轮完整信息；`localParameters`、`setLocalParameter` 与 `onContextChange` 同步 URL 和前后退，保留详情及 dirty 输入 |
 | 筛选与展示方式 | [非推广页面](../src/pages/business/non-promotion-review.astro)、[ViewSwitch](../src/components/BusinessViewSwitch.astro) | 条件表单与展示操作分组；单选切换只更新已登记的局部参数，不提交筛选或重建表格 |
 | 编辑与发布抽屉 | [FormSheet](../src/components/BusinessFormSheet.astro)、[排期页面](../src/pages/business/operations-schedule.astro) | 插槽内保留原表单与字段，使用 `dialog-head / sheet-body / dialog-actions` 三段结构；只滚动正文，字段与按钮规格由组件维护 |
 | 完整日期时间拆分输入 | [DateTimeFields](../src/components/BusinessDateTimeFields.astro)、[控制器](../src/scripts/business-datetime.ts)、[排期](../src/pages/business/operations-schedule.astro) | 原生 date／time 与原时间戳隐藏字段共用；配置通过 `business:datetime-configure` 或 `configureDateTimeField`，捕获输入／提交同步，动态改期表单克隆同一模板 |
@@ -103,4 +103,6 @@ flowchart LR
 
 待办行的 `.review-arrangement` 将目标日期、选择与保存就近排列；到期后显示 `reviewOn`（区间末日次日），隐藏提交字段 `reviewDate` 仍为区间末日，不能随展示文案一并顺延。摘要省去重复生效说明，完整连续日期在本行区间记录中查看。`promotion-pending.browser.ts` 同时检查单日逾期保存的真实业务日和桌面同行／窄屏完整换行。
 
-每日指标行的 `.review-metric-inputs` 承载五项原始输入，`.review-costs` 使用 `dl / output` 展示计算结果，仍由原 `data-open-cost / data-lead-cost` 控制器更新；`.review-completion` 将下一步与唯一提交按钮收在一起。`data-active-*` 的暂停隐藏、禁用、草稿保留及原提交字段不变。验收同时检查卡片高度、实际字号、只读输出和操作间距，不能用缩小控件换取紧凑。
+每日指标行的 `.review-entry-data` 在桌面将五项 `.review-metric-inputs`、两项 `.review-costs` 与 `.review-completion` 排在同一横行；成本使用 `dl / output`，仍由原 `data-open-cost / data-lead-cost` 控制器更新，下一步与唯一提交按钮紧邻。首次笔记 ID 位于帖子信息处，`data-active-*` 的暂停隐藏、禁用、草稿保留及原提交字段不变。验收检查九个输入／输出／操作的对齐、卡片高度、实际字号和窄屏重排，不能用缩小控件换取紧凑。
+
+面板动效统一由 `business-inspector.ts` 与 `business-dialog.ts` 管理。排期正文使用 `data-inspector-host` 接入共享轨道；Inspector 在实际退出动画结束前保留 `.is-open`，同时收拢停靠轨道和间距，内容保持固定宽度。Sheet／Dialog 等待面板和 `::backdrop` 都退出再调用原生关闭，快速重开废弃旧退出任务。两类容器通过 `setBusinessScrollLock` 共享嵌套锁与滚动恢复，Frame 保留滚动条槽位。不要在页面添加关闭定时器、移除节点或重复锁定；逐帧验收入口为 `pnpm test:motion`。
