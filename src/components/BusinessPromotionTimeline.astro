@@ -16,6 +16,8 @@ const actionLabels:Record<string,string>={wait:'尚未开始',plan:'安排下一
 function snapshotSummary(value:Record<string,unknown>){
  const campaigns=value.campaigns as Array<{startedOn:string;initialStage:string}>|undefined;
  const plan=value.plan as {waitingThrough?:string;plannedOn?:string}|undefined;
+ const schedule=value.schedule as {promotionStatus?:string}|undefined;
+ if(!campaigns?.length&&!plan?.waitingThrough&&schedule?.promotionStatus&&schedule.promotionStatus!=='awaiting_promotion')return promotionLabels[schedule.promotionStatus]??schedule.promotionStatus;
  return [plan?.waitingThrough?`待定至 ${plan.waitingThrough}`:'',...(campaigns??[]).map(row=>`${row.startedOn} 开始${row.initialStage==='scaling'?'放量':'测试'}`),!campaigns?.length&&!plan?.waitingThrough?'尚未开始':''].filter(Boolean).join('；');
 }
 const auditRows=audits.map(audit=>{
@@ -26,22 +28,30 @@ const auditRows=audits.map(audit=>{
 const displayRows=visible.map(row=>{
   const range=row.ranges.filter(item=>item.startedOn<=yesterday&&!item.nextDecision).at(-1);
   const date=range?(range.endedOn<yesterday?range.endedOn:yesterday):history?(row.campaign?.startedOn??row.date):row.date;
-  const waiting=!!range||!row.campaign&&!!row.waitingThrough&&!row.plan?.plannedOn;
+  const waiting=!!range||row.canArrangeInitial&&!!row.waitingThrough&&!row.plan?.plannedOn;
   const end=range?.endedOn??row.waitingThrough;
   const nextDue=row.isPromoted&&waiting&&end&&end<=yesterday;
-  const label=range?(range.stageType==='testing'?'测试待定':'推广暂停'):row.campaign?(row.plan?.plannedOn&&row.plan.plannedOn>yesterday?'次日推广已安排':'已开始推广'):row.plan?.plannedOn?`计划${row.plan.plannedStage==='scaling'?'放量':'测试'}`:waiting?'尚未开始 · 待定':'首次安排待确认';
-  const editable=row.isPromoted&&(admin||!row.hasMetrics);
+  const status=row.campaign?.currentStatus??row.promotionStatus;
+  const label=['ended','test_discarded','formal_discarded'].includes(status)||!row.campaign&&!row.canArrangeInitial?(promotionLabels[status]??status):range?(range.stageType==='testing'?'测试待定':'推广暂停'):row.campaign?(row.plan?.plannedOn&&row.plan.plannedOn>yesterday?'次日推广已安排':'已开始推广'):row.plan?.plannedOn?`计划${row.plan.plannedStage==='scaling'?'放量':'测试'}`:waiting?'尚未开始 · 待定':'首次安排待确认';
+  const editable=row.isPromoted&&(!!row.campaign||row.canArrangeInitial)&&(admin||!row.hasMetrics);
   return {row,range,date,waiting,end,nextDue,label,editable};
 });
+if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
 
 ---
-{visible.length>0&&<section class="promotion-timeline" aria-label={history?'推广状态历史':'首次安排与待定'}>
+{visible.length>0&&<section class:list={["promotion-timeline",{"promotion-timeline--daily":!history}]} aria-label={history?'推广状态历史':'首次安排与待定'}>
  {history&&<h2>推广安排与状态历史</h2>}
- {displayRows.map(({row,range,date,waiting,end,nextDue,label,editable})=><article data-timeline-row={row.scheduleId} data-promotion-status={row.campaign?.currentStatus??'awaiting_promotion'} data-promotion-label={row.campaign?promotionLabels[row.campaign.currentStatus==='waiting_action'?(row.campaign.currentStage==='testing'?'test_pending':'promotion_paused'):row.campaign.currentStatus]:'推广待开始'}>
-   <header><strong>{row.contentName}</strong><span>V{row.versionNumber} · {row.subjectName}</span><time>{date}</time><mark>{label}</mark>{waiting&&<span>待定至 {end}（含当天）</span>}</header>
+ {displayRows.map(({row,range,date,waiting,end,nextDue,label,editable})=><article class:list={[{"timeline-daily-row":!history}]} data-timeline-row={row.scheduleId} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={row.campaign?promotionLabels[row.campaign.currentStatus==='waiting_action'?(row.campaign.currentStage==='testing'?'test_pending':'promotion_paused'):row.campaign.currentStatus]:promotionLabels[row.promotionStatus]??row.promotionStatus}>
+   <header><div class="timeline-identity"><strong>{row.contentName}</strong><span>V{row.versionNumber} · {row.subjectName}</span></div><time>{date}</time><mark>{label}{waiting&&<small>至 {end}（含当天）</small>}</mark></header>
    {row.plan?.plannedOn&&!row.campaign&&<p>{row.plan.plannedOn} 计划{row.plan.plannedStage==='scaling'?'放量':'测试'}，请确认当天实际状态。</p>}
-   {editable&&<details open={!waiting&&!row.campaign&&!history}>
-    <summary>{waiting||row.campaign?'更正当日状态':'选择首次安排'}</summary>
+   {!history&&!waiting&&editable&&!row.campaign&&<form class="business-form timeline-inline-form" data-timeline-form data-fingerprint={row.fingerprint}>
+    <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="target" value="initial"/><input type="hidden" name="reviewDate" value={date}/>
+    <label><span class="timeline-sr-only">当日状态</span><select name="action" aria-label="当日状态" required><option value="">请选择当日安排</option><option value="wait">尚未开始</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></select></label>
+    <label data-timeline-through hidden><span class="timeline-sr-only">待定至（含当天）</span><input type="date" name="waitingThrough" aria-label="待定至（含当天）" value={date} min={date} disabled/></label>
+    <button type="submit" class="business-action-primary">保存当日安排</button><output role="alert"/>
+   </form>}
+   {editable&&(history||waiting||row.campaign)&&<details open={!waiting&&!row.campaign&&!history}>
+    <summary>{history?(waiting||row.campaign?'更正当日状态':'选择首次安排'):'修改当日状态'}</summary>
     <form class="business-form timeline-state-form" data-timeline-form data-fingerprint={row.fingerprint}>
      <input type="hidden" name="scheduleId" value={row.scheduleId}/>
      <input type="hidden" name="target" value={range?'day':'initial'}/>
@@ -70,4 +80,21 @@ const displayRows=visible.map(row=>{
 </style>
 <style is:global>
 .timeline-archive{overflow:auto}.timeline-archive table{border-collapse:collapse;font-size:12px}.timeline-archive th,.timeline-archive td{padding:6px 9px;border-bottom:1px solid var(--console-line);white-space:nowrap;text-align:left;font-variant-numeric:tabular-nums}
+</style>
+<style is:global>
+.timeline-identity{min-width:0;display:grid;gap:2px}.timeline-identity strong{overflow-wrap:anywhere}.promotion-timeline mark small{color:inherit;font-size:12px}.timeline-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.daily-section>.promotion-timeline--daily{gap:0;margin:0;background:#edf2f7;border-bottom:1px solid var(--console-line)}
+.promotion-timeline--daily .timeline-daily-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:10px 18px;margin:0;padding:12px 18px;border:0;border-bottom:1px solid var(--console-line);border-radius:0;background:transparent}
+.promotion-timeline--daily .timeline-daily-row:last-child{border-bottom:0}
+.promotion-timeline--daily header{display:grid;grid-template-columns:minmax(110px,1fr) 100px minmax(90px,auto);gap:8px 12px;min-width:0}
+.promotion-timeline--daily .timeline-daily-row mark{background:#e1e8f0;color:#40556c;font-weight:500}
+.promotion-timeline--daily :is(.timeline-inline-form,.timeline-next-form){display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin:0;min-width:0}
+.promotion-timeline--daily article>.timeline-next-form{grid-column:2;grid-row:1}
+.promotion-timeline--daily .timeline-inline-form>label{flex:1;min-width:115px;max-width:180px}
+.promotion-timeline--daily article>.timeline-next-form>label{flex:1;min-width:125px}
+.promotion-timeline--daily :is(.timeline-inline-form,.timeline-next-form)>button{flex:none;width:auto;min-height:var(--console-control-height);padding:9px 12px;border-radius:var(--console-control-radius);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.promotion-timeline--daily article>details{grid-column:1/-1;margin:0}.promotion-timeline--daily article>details>summary{color:var(--console-blue);font-size:12px}.promotion-timeline--daily article>details:not([open]){justify-self:start}
+.promotion-timeline--daily output:empty{display:none}
+@media(max-width:1100px){.promotion-timeline--daily .timeline-daily-row{grid-template-columns:minmax(0,1fr)}.promotion-timeline--daily article>.timeline-next-form{grid-column:1;grid-row:auto}.promotion-timeline--daily :is(.timeline-inline-form,.timeline-next-form){justify-content:flex-start}.promotion-timeline--daily .timeline-inline-form>label{flex:1}}
+@media(max-width:600px){.promotion-timeline--daily .timeline-daily-row{padding:10px 12px}.promotion-timeline--daily header{grid-template-columns:minmax(0,1fr) auto}.promotion-timeline--daily mark{grid-column:1/-1;justify-self:start}.promotion-timeline--daily .timeline-identity span{font-size:12px}.promotion-timeline--daily :is(.timeline-inline-form,.timeline-next-form)>label{flex-basis:auto;min-width:0}.promotion-timeline--daily :is(.timeline-inline-form,.timeline-next-form)>button{max-width:100%}.promotion-timeline--daily .timeline-inline-form>[data-timeline-through]{flex-basis:100%}}
 </style>

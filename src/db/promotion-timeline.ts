@@ -41,7 +41,7 @@ export const timelineFingerprint = (value: unknown) => createHash('sha256').upda
 
 export async function readPromotionTimeline(db: Reader, now = new Date(), onlySchedule?: string) {
   const [rows, plans, context, schedules, allMetrics, allStages] = await Promise.all([
-    db.select({scheduleId:s.operationsContentSchedule.id,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,isPromoted:s.operationsContentSchedule.isPromoted,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
+    db.select({scheduleId:s.operationsContentSchedule.id,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
     db.select().from(s.operationsPromotionStartPlan), readPromotionContext(db), db.select().from(s.operationsContentSchedule), db.select().from(s.operationsPromotionDailyMetric).orderBy(asc(s.operationsPromotionDailyMetric.metricDate)), db.select().from(s.operationsPromotionStage).orderBy(asc(s.operationsPromotionStage.startedOn)),
   ]);
   const today=shanghaiDateKey(now), yesterday=previousDateKey(today);
@@ -53,8 +53,9 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
     const owned=context.campaigns.filter(c=>c.scheduleId===row.scheduleId),ids=new Set(owned.map(c=>c.id));
     const pausedRanges=context.waitRanges.filter(r=>r.campaignId===campaign?.id);
     const snapshot={schedule:schedules.find(record=>record.id===row.scheduleId),plan:plan??null,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
-    return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,date,
-      pending:row.isPromoted&&!campaign&&publishedOn<=yesterday&&!dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})),
+    const canArrangeInitial=row.isPromoted&&row.promotionStatus==='awaiting_promotion'&&!campaign;
+    return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,date,canArrangeInitial,
+      pending:canArrangeInitial&&publishedOn<=yesterday&&!dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})),
       ranges:pausedRanges, hasMetrics:snapshot.metrics.length>0, fingerprint:timelineFingerprint(snapshot)};
   });
 }
@@ -70,6 +71,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     if(repeat){if(repeat.scheduleId!==schedule.id||repeat.changedById!==actor.id)throw new WorkflowError('请求已被使用。');return {ok:true,businessDate:repeat.businessDate,repeated:true};}
     if(!schedule.isPromoted||!schedule.actualPublishAt)throw new WorkflowError('只能处理已发布的推广帖。',422);
     const before=await promotionSnapshot(tx,schedule.id),fingerprint=timelineFingerprint(before);
+    if(!before.campaigns.length&&schedule.promotionStatus!=='awaiting_promotion')throw new WorkflowError('该帖已有历史推广状态，不能作为首次安排重新开始。');
     if(input.fingerprint&&input.fingerprint!==fingerprint)throw new WorkflowError('推广记录已变化，请刷新后核对。');
     if(input.confirmImpact&&!input.fingerprint)throw new WorkflowError('请重新预览本次修改的影响。');
     const publishedOn=shanghaiDateKey(schedule.actualPublishAt),today=shanghaiDateKey(now),date=input.reviewDate;

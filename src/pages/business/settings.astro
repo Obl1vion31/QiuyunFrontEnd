@@ -36,7 +36,7 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
 <BusinessConsoleFrame active="settings">
   <BusinessConsoleToolbar title="系统设置" subtitle="影响新建内容的全局业务规则" />
   <main class="business-console-content">
-    <nav class="settings-tabs" aria-label="设置视角">{[['rules','业务规则'],['permissions','账号权限'],['approvals','待审核']].map(([key,label])=><a href={`?view=${key}`} aria-current={view===key?'page':undefined}>{label}</a>)}</nav>
+    <nav class="settings-tabs" aria-label="设置视角">{[['rules','业务规则'],['permissions','账号权限']].map(([key,label])=><a href={`?view=${key}`} aria-current={view===key?'page':undefined}>{label}</a>)}</nav>
     <BusinessPageHeader title={view==='permissions'?'账号权限':view==='approvals'?'待审核变更':'分类与默认用途'} description={view==='rules'?'新规则从生效日应用，历史内容与复盘快照保留原规则。':undefined} />
     {loadError && <p class="error">{loadError}</p>}
     {view==='rules'&&<div class="settings-layout">
@@ -63,7 +63,6 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
     </section>}
     {view==='approvals'&&<>
       <BusinessPendingChanges module="annual" all/>
-      <p><a href="/business/operations-schedule?status=approvals&amp;display=ledger">进入排期管理审核排期变更 →</a></p>
     </>}
   <script is:inline type="application/json" id="category-policy-values" set:html={JSON.stringify({policies,categories:postCategories,today:shanghaiDateKey(new Date())}).replaceAll('<','\\u003c')}/>
   </main>

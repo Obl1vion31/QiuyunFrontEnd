@@ -502,7 +502,7 @@ const historyHref = (overrides: Record<string, string>) => {
               <a class:list={{ active: historyMode === 'post' }} href={historyHref({ mode: 'post', campaign: '' })}>帖子视角</a>
               <a class:list={{ active: historyMode === 'day' }} href={historyHref({ mode: 'day', campaign: '' })}>日视角</a>
             </nav>
-          {<BusinessPromotionTimeline history rows={timelineRows.filter(row=>(!historyQuery||row.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&row.publishedOn<=historyTo&&(!row.campaign?.endedOn||row.campaign.endedOn>=historyFrom)&&(!historyStatus||(row.campaign?visibleStatus(row.campaign):'awaiting_promotion')===historyStatus))}/>}
+          {<BusinessPromotionTimeline history rows={timelineRows.filter(row=>(!historyQuery||row.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&row.publishedOn<=historyTo&&(!row.campaign?.endedOn||row.campaign.endedOn>=historyFrom)&&(!historyStatus||(row.campaign?visibleStatus(row.campaign):row.promotionStatus)===historyStatus))}/>}
             <div class="history-layout" data-inspector-host>
               {historyMode === 'post' ? <div class="history-list" role="table" aria-label="推广历史活动">
                 <div class="history-table-head history-record" role="row">

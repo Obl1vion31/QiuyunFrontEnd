@@ -16,6 +16,17 @@ const now=new Date('2026-10-21T12:00:00+08:00');
 before(()=>migrateFixture(pg));after(()=>pg.close());
 async function seed(){const [content]=await db.insert(s.operationsContent).values({}).returning();const [version]=await db.insert(s.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:'虚构日期测试帖',subjectId:'tmua',categoryId:'temporary'}).returning();return (await db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date('2026-10-17T18:00:00+08:00'),actualPublishAt:new Date('2026-10-17T18:00:00+08:00'),isPromoted:true,promotionStatus:'awaiting_promotion',completionStatus:'on_time'}).returning())[0];}
 async function input(id:string,values:Record<string,unknown>){return timelineSchema.parse({scheduleId:id,reviewDate:'2026-10-17',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,id)),...values});}
+test('没有活动明细的历史状态不能误作首次待办，也不能经接口重新开始',async()=>{
+ for(const status of ['ended','test_discarded','formal_discarded','testing','scaling','waiting_action']){
+  const row=await seed();await db.update(s.operationsContentSchedule).set({promotionStatus:status}).where(eq(s.operationsContentSchedule.id,row.id));
+  const before=await promotionSnapshot(db,row.id),[view]=await readPromotionTimeline(db,now,row.id);
+  assert.equal(view.promotionStatus,status);assert.equal(view.pending,false);assert.equal(view.canArrangeInitial,false);
+  for(const actor of [staff,admin])for(const action of ['wait','start_testing','start_scaling'])await assert.rejects(changePromotionTimeline(db,await input(row.id,{action}),actor,now),/历史推广状态/);
+  assert.deepEqual(await promotionSnapshot(db,row.id),before);
+  assert.equal((await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,row.id))).length,0);
+ }
+ const row=await seed(),[view]=await readPromotionTimeline(db,now,row.id);assert.equal(view.canArrangeInitial,true);assert.equal(view.pending,true);
+});
 test('首次待办锚定发布日期，待定末日保留空下一步；晚处理不跳日',async()=>{
  const row=await seed();let [view]=await readPromotionTimeline(db,now,row.id);assert.equal(view.date,'2026-10-17');
  await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:'2026-10-20'}),staff,now);

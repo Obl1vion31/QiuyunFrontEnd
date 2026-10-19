@@ -1,27 +1,48 @@
 ---
 import BusinessInspector from './BusinessInspector.astro';
+import BusinessChangeDiff from './BusinessChangeDiff.astro';
 import {getDb} from '../db/client';
 import {readScheduleApprovals} from '../db/schedule-approvals';
 import {businessDateTime} from '../scripts/business-date';
-const rows=await readScheduleApprovals(getDb(),Astro.locals.user!);
+import {promotionLabels} from '../db/promotion-state.mjs';
+const rows=(await readScheduleApprovals(getDb(),Astro.locals.user!)).sort((a,b)=>(a.plannedPublishAt?new Date(a.plannedPublishAt).getTime():Infinity)-(b.plannedPublishAt?new Date(b.plannedPublishAt).getTime():Infinity)||a.createdAt.getTime()-b.createdAt.getTime());
 const admin=Astro.locals.user?.role==='admin';
+const planned=(row:typeof rows[number])=>row.plannedPublishAt?businessDateTime(row.plannedPublishAt):'尚未创建';
+const day=(row:typeof rows[number])=>row.plannedPublishAt?planned(row).slice(0,10):'尚未创建';
 ---
-<section class="schedule-approval-layout" data-inspector-host data-schedule-approval-queue>
- <div class="schedule-approval-list"><h2>待审核申请 <span data-approval-queue-count>{rows.length}</span></h2>
- {rows.length?rows.map(row=><div role="button" tabindex="0" class="schedule-approval-item" data-inspector-key={row.key} data-approval-item={row.key}><strong>{row.name} · V{row.version}</strong><span data-approval-item-status>待审核 · {row.statusLabel}</span>{row.diff.filter(change=>change.label==='应发时间').map(change=><span>{change.before} → {change.after}</span>)}<small>{row.requestedBy} · {businessDateTime(row.createdAt)}</small></div>):<p>当前没有待审核申请。</p>}
- </div>
- <BusinessInspector parameter="request" templates label="排期申请详情" data-schedule-approval-inspector/>
+<section class="content-layout schedule-approval-layout" data-inspector-host data-schedule-approval-queue>
+ <section class="content-stage">
+  <div class="table-wrap schedule-approval-list">
+   <table aria-label="待审核排期申请"><caption class="sr-only">待审核申请 <span data-approval-queue-count>{rows.length}</span></caption>
+    <thead><tr><th>应发时间</th><th>版本</th><th>内容</th><th>推广阶段</th><th>申请状态</th><th>文档</th></tr></thead>
+    <tbody>{rows.map((row,index)=><>
+     {(index===0||day(rows[index-1])!==day(row))&&<tr class="day-divider"><th colspan="6"><span class="timeline-dot"></span><strong>{day(row)}</strong><small>{rows.filter(item=>day(item)===day(row)).length} 条</small></th></tr>}
+     <tr class="schedule-row schedule-approval-item" tabindex="0" data-inspector-key={row.key} data-approval-item={row.key}>
+      <td class="time-cell"><strong>{row.plannedPublishAt?planned(row).slice(11):'—'}</strong><small>{row.actualPublishAt?`实发 ${businessDateTime(row.actualPublishAt).slice(11)}`:row.statusLabel}</small></td>
+      <td><span class="version-chip">V{row.version}</span><small>{row.workType==='revision'?'改帖':'新做帖'}</small></td>
+      <td class="content-cell"><strong>{row.name}</strong><small>{row.subjectName} · {row.title}</small>{row.diff.filter(change=>change.label==='应发时间').map(change=><small class="approval-date-change">{change.before} → {change.after}</small>)}</td>
+      <td><span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span>{row.isPromoted&&<small>{promotionLabels[row.promotionStatus]??row.promotionStatus}</small>}</td>
+      <td><span class="completion approval-pending" data-approval-item-status>待审核</span><small>{row.requestedBy} · {businessDateTime(row.createdAt)}</small></td>
+      <td>{row.projectDocUrl?<a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a>:<span class="missing">待登记</span>}</td>
+     </tr>
+    </>)}</tbody>
+   </table>
+   {!rows.length&&<div class="empty"><strong>当前没有待审核申请</strong></div>}
+  </div>
+ </section>
+ <BusinessInspector class="inspector" parameter="request" templates label="排期申请详情" data-schedule-approval-inspector/>
  {rows.map(row=><template data-inspector-template={row.key}>
-  <header><div><h2>{row.name} · V{row.version}</h2><p>待审核 · {row.statusLabel}</p></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
-  <section class="schedule-approval-detail"><h3>{row.title}</h3><p>{row.requestedBy} · {businessDateTime(row.createdAt)}</p>{row.reason&&<p>{row.reason}</p>}<div class="approval-diff"><table><thead><tr><th>字段</th><th>原内容</th><th>申请修改为</th></tr></thead><tbody>{row.diff.map(change=><tr><th>{change.label}</th><td>{change.before}</td><td>{change.after}</td></tr>)}</tbody></table></div>
-  </section>
+  <header><div><div class="inspector-header-meta"><span>V{row.version}</span><small>{row.workType==='revision'?'改帖':'新做帖'}</small></div><h2>{row.name}</h2><p>待审核 · {row.statusLabel}</p></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
+  <div class="inspector-body schedule-approval-detail">
+   <section class="inspector-title"><p>{row.subjectName}</p></section>
+   <dl class="detail-list"><div><dt>推广状态</dt><dd>{promotionLabels[row.promotionStatus]??row.promotionStatus}</dd></div><div><dt>当前应发时间</dt><dd>{planned(row)}</dd></div><div><dt>实发时间</dt><dd>{row.actualPublishAt?businessDateTime(row.actualPublishAt):row.statusLabel}</dd></div></dl>
+   <section class="inspector-section"><h3>{row.title}</h3><p>{row.requestedBy} · {businessDateTime(row.createdAt)}</p>{row.reason&&<p class="approval-reason">{row.reason}</p>}<div class="approval-diff"><BusinessChangeDiff changes={row.diff}/></div></section>
+  </div>
   {admin&&<footer class="business-inspector-actions"><form class="business-form" data-schedule-approval={row.endpoint} data-approval-key={row.key} data-schedule-id={row.scheduleId}><label>审核说明<textarea name="reason" maxlength="500" rows="2"/></label><div class="business-action-group"><button type="submit" class="business-action-primary" name="action" value="approve">通过</button><button type="submit" class="business-action-secondary" name="action" value="reject">驳回</button></div><output role="alert"/></form></footer>}
  </template>)}
 </section>
 <script>import '../scripts/schedule-approvals';</script>
 <style is:global>
-.schedule-approval-layout{margin-top:16px}.schedule-approval-list{min-width:0;border:1px solid var(--console-line);border-radius:12px;background:var(--console-surface)}.schedule-approval-list h2{padding:16px;margin:0;font-size:16px}.schedule-approval-list>p{padding:16px}.schedule-approval-item{box-sizing:border-box;width:100%;display:grid;gap:6px;padding:16px;text-align:left;border:0;border-top:1px solid var(--console-line);background:transparent;color:var(--console-ink);font:400 13px/20px var(--console-font);cursor:pointer}.schedule-approval-item.selected{background:#e8eefa}.schedule-approval-item small{color:var(--console-muted);font-size:12px}.schedule-approval-item:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}.schedule-approval-detail{padding:18px}.schedule-approval-detail h3{font-size:14px}.approval-diff{overflow:auto}.approval-diff table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}.approval-diff td,.approval-diff th{padding:10px 8px;border-bottom:1px solid var(--console-line);overflow-wrap:anywhere;min-width:85px}.schedule-approval-layout .business-inspector-actions form{display:grid;gap:12px;margin:0}
-</style>
-<style is:global>
-.schedule-approval-detail .approval-diff thead{display:table-header-group}
+.schedule-approval-layout .approval-date-change{white-space:normal;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.approval-pending{color:#73551d;background:#fff1bf}.schedule-approval-detail{min-width:0}.schedule-approval-detail h3{margin:0 0 8px;font-size:var(--console-text)}.schedule-approval-detail .approval-reason{white-space:pre-wrap;overflow-wrap:anywhere}.schedule-approval-detail .approval-diff{margin-top:16px;min-width:0}.schedule-approval-layout .business-inspector-actions form{display:grid;gap:12px;margin:0;min-width:0}.schedule-approval-detail .detail-list dd{min-width:0;overflow-wrap:anywhere}.schedule-approval-item td:last-child a{position:relative;z-index:1}
+.schedule-approval-layout .business-inspector-actions .business-action-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 </style>

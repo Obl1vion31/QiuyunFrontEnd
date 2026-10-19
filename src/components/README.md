@@ -67,4 +67,4 @@ ContentTunnel.module.css
 
 `BusinessInspector.astro` 与 `src/scripts/business-inspector.ts` 是所有业务详情的共同入口。使用前先读[设计规则](../../docs/DESIGN.md#共享正文与-inspector)与[接入实例](../../docs/code-study.md#共享界面接入)；几何和开关流程不能在页面复制。
 
-`BusinessPromotionTimeline.astro` 共用每日、历史和排期 Inspector 的业务日期状态表单与审计；`BusinessScheduleApprovals.astro` 用共享 Inspector 展示排期申请差异和固定审核操作，不另外实现详情开关。
+`BusinessPromotionTimeline.astro` 每日使用紧凑行，历史和排期 Inspector 按需展开更正，共用业务日期、写入控制器与审计；`BusinessScheduleApprovals.astro` 沿用排期台账与共享 Inspector。`BusinessChangeDiff.astro` 与 `src/scripts/business-change-diff.ts` 为 SSR／异步详情提供相同的纵向字段对照，不另建详情开关或横向对比表。

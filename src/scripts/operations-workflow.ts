@@ -1,5 +1,6 @@
 import './promotion-timeline';
 import './schedule-approvals';
+import {appendChangeDiff} from './business-change-diff';
 import {mayOperate} from './business-permissions';
 import { configureDateTimeField } from './business-datetime';
 import { businessDateTime, delayDayLabel } from './business-date';
@@ -177,7 +178,7 @@ function initialize() {
         if(!request.key.startsWith('proposal:'))continue;
         const section=element('section');section.className='workflow-application';section.append(element('h4','待审核修改'),element('p',`${request.title} · ${request.requestedBy}`));
         if(request.reason)section.append(element('p',request.reason));
-        for(const change of request.diff)section.append(element('p',`${change.label}：${change.before} → ${change.after}`));
+        appendChangeDiff(section,request.diff);
         if(isAdmin){const form=element('form');form.className='workflow-form business-form';form.dataset.scheduleApproval=request.endpoint;form.dataset.scheduleId=id;form.dataset.approvalKey=request.key;
           const label=element('label','审核说明');const reason=element('textarea');reason.name='reason';reason.maxLength=500;label.append(reason);form.append(label);const actions=element('div');actions.className='business-action-group';
           for(const [value,text] of [['approve','通过'],['reject','驳回']]){const button=element('button',text);button.type='submit';button.name='action';button.value=value;button.className=value==='approve'?'business-action-primary':'business-action-secondary';actions.append(button);}const output=element('output');output.setAttribute('role','alert');form.append(actions,output);section.append(form);
@@ -186,7 +187,9 @@ function initialize() {
       const applicationLabels:Record<string,string>={pending:'待审批',approved:'已同意',rejected:'已驳回',obsolete:'已失效'};
       for(const application of [...workflow.applications].reverse()){
         const row=element('section');row.className='workflow-application';
-        row.append(element('p',`${applicationLabels[application.status]} · ${application.requestedByLabel}\n${timeLabel(application.originalPlannedPublishAt)} → ${timeLabel(application.requestedPublishAt)}\n${application.reason}`));
+        row.append(element('p',`${applicationLabels[application.status]} · ${application.requestedByLabel}`));
+        appendChangeDiff(row,[{label:'应发时间',before:timeLabel(application.originalPlannedPublishAt),after:timeLabel(application.requestedPublishAt)}]);
+        row.append(element('p',application.reason));
         if(application.decisionReason)row.append(element('small',`${application.decidedByLabel||'系统'}：${application.decisionReason}`));
         if(application.status==='pending'){
           if(isAdmin)for(const action of ['approve','reject']){
