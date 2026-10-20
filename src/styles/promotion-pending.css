@@ -47,21 +47,24 @@
 #daily-table .review-period-days dd{color:#73551d}
 #daily-table .review-period-gap{grid-column:1/-1}
 #daily-table :is(.review-inline-editor,.review-next-form,.review-initial-form)>output{flex-basis:100%;min-width:0;font-size:var(--console-caption);color:#913c35}
-#daily-table .review-metric-row:not(.review-locked-row) .review-entry-header{grid-template-columns:minmax(180px,1fr) 232px 112px 144px;grid-template-areas:"identity note date state";align-items:center;gap:16px}
-#daily-table .review-metric-row:not(.review-locked-row) .review-entry-identity{grid-area:identity}
-#daily-table .review-note-field{grid-area:note}
-#daily-table .review-metric-row:not(.review-locked-row) .review-entry-date{grid-area:date}
-#daily-table .review-day-state{grid-area:state}
-#daily-table .review-note-field{display:grid;gap:6px;min-width:0}
-#daily-table :is(.review-note-field,.review-entry-date)>:first-child{color:var(--console-muted);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
-#daily-table .review-note-value,#daily-table .review-metric-row:not(.review-locked-row) .review-entry-date time{display:flex;align-items:center;min-height:40px;font-size:var(--console-text);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-#daily-table .review-metric-row:not(.review-locked-row) .review-entry-date{gap:6px}
+#daily-table .review-metric-row:not(.review-locked-row) .review-entry-header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+#daily-table .review-metric-row:not(.review-locked-row) .review-entry-identity{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+#daily-table .review-note-field{display:flex;min-height:40px;align-items:center;gap:6px;flex:0 1 280px;min-width:0}
+#daily-table .review-note-field>:first-child,#daily-table .review-entry-date>span,#daily-table .review-inline-status>span{flex:none;color:var(--console-muted);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+#daily-table .review-note-field input{flex:1;min-width:0;width:220px}
+#daily-table .review-note-value{min-width:0;font:400 var(--console-text)/var(--console-text-leading) var(--console-font);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#daily-table .review-metric-row .review-entry-date,#daily-table .review-inline-status{display:flex;align-items:center;gap:4px;white-space:nowrap}
+#daily-table .review-inline-status b{padding:2px 6px;border-radius:4px;font:500 var(--console-text)/var(--console-text-leading) var(--console-font);color:#6a4a00;background:#fff1bf}
+#daily-table .review-inline-status.scaling b{color:#205d48;background:#ddf2e8}
+#daily-table .review-inline-status b.is-draft{color:#795b27;background:#f6efdf}
+#daily-table .review-state-trigger{height:40px;min-width:0;padding:8px 10px;font:600 var(--console-text)/var(--console-text-leading) var(--console-font);cursor:pointer}
+#daily-table .review-day-editor{padding-top:10px}
 /* 九个字段共用一套列宽，所有包装仅保留语义与原控制器钩子。 */
-#daily-table .review-entry-data{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:end;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
+#daily-table .review-entry-data{display:grid;grid-template-columns:repeat(5,minmax(112px,156px));align-items:end;gap:12px 8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
 #daily-table :is(.review-metric-fields,.review-metric-inputs,.review-outcome,.review-costs,.review-completion){display:contents}
 #daily-table .review-metric-fields input{text-align:right;font-variant-numeric:tabular-nums}
 #daily-table .review-cost{display:grid;gap:6px;min-width:0}
-#daily-table .review-cost dt{color:var(--console-ink);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
+#daily-table .review-cost dt{display:flex;align-items:baseline;gap:4px;color:var(--console-ink);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
 #daily-table .review-cost dt small{display:inline;color:var(--console-muted);font-weight:400;white-space:nowrap}
 #daily-table .review-cost dd{min-width:0;margin:0}
 #daily-table .review-cost output{box-sizing:border-box;display:flex;justify-content:flex-end;align-items:center;width:100%;height:40px;padding:9px 10px;border:1px dashed #abb5af;border-radius:var(--console-control-radius);background:var(--console-surface-subtle);color:var(--console-ink);font:400 var(--console-text)/var(--console-text-leading) var(--console-font);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -85,18 +88,15 @@
 #daily-table .review-locked-row .review-state-badge{color:#65716b;background:#e8ece9}
 #daily-table .review-locked-message{margin:12px 0 0;color:var(--console-muted);font-size:var(--console-caption)}
 #daily-table [hidden],#daily-table output:empty,#daily-table [data-form-message]:empty{display:none!important}
-@container review-card (min-width:1500px){#daily-table .review-entry-data{grid-template-columns:repeat(9,minmax(0,1fr))}}
-@container review-card (max-width:819px){#daily-table .review-entry-data{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@container review-card (max-width:760px){
- #daily-table .review-metric-row:not(.review-locked-row) .review-entry-header{grid-template-columns:minmax(232px,1fr) 112px 144px;grid-template-areas:"identity identity identity" "note date state"}
- #daily-table .review-note-field{width:232px;max-width:100%}
-}
+@container review-card (min-width:1072px){#daily-table .review-entry-data{grid-template-columns:repeat(9,minmax(112px,156px))}}
+@container review-card (max-width:591px){#daily-table .review-entry-data{grid-template-columns:repeat(3,minmax(112px,156px))}}
 @container review-card (max-width:519px){
- #daily-table .review-metric-row:not(.review-locked-row) .review-entry-header{grid-template-columns:minmax(0,1fr) 104px;grid-template-areas:"identity date" "note note" "state state";gap:12px}
- #daily-table .review-note-field{width:100%}
- #daily-table .review-day-state{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px}
+ #daily-table .review-metric-row:not(.review-locked-row) .review-entry-identity{flex-basis:100%}
+ #daily-table .review-note-field{flex-basis:100%;flex-wrap:wrap}
+ #daily-table .review-note-field>:first-child{flex-basis:100%}
+ #daily-table .review-note-field input,#daily-table .review-note-value{width:100%;flex-basis:100%;min-height:40px;display:flex;align-items:center}
 }
-@container review-card (max-width:479px){
+@container review-card (max-width:359px){
  #daily-table .review-entry-data{grid-template-columns:repeat(2,minmax(0,1fr))}
  #daily-table .review-entry-data:has([data-pause-fields]:not([hidden])){grid-template-columns:minmax(0,1fr)}
  #daily-table .review-pause-fields>[data-pause-reason],#daily-table .review-pause-fields>[data-pause-through]{width:100%;flex-basis:100%;min-width:0}

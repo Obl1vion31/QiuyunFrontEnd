@@ -1,3 +1,4 @@
+import './business-data-motion';
 import { navigate } from 'astro:transitions/client';
 import { getInspector } from './business-inspector';
 import { businessConfirm } from './business-dialog';
@@ -78,11 +79,12 @@ function initialize() {
         row.dataset[key] = value == null ? '' : String(value);
         const cell = row.querySelector<HTMLElement>(`[data-label="${key === 'click' ? '点击率' : '3 秒阅读率'}"] .metric-cell`)!;
         const delta = value == null || cohort.mean == null ? null : value - cohort.mean;
+        cell.classList.toggle('has-value',value!=null);cell.toggleAttribute('data-result-metric',value!=null);
         cell.classList.remove('positive','negative','neutral');
         cell.classList.add(delta == null || Math.abs(delta)<.01 ? 'neutral' : delta>0 ? 'positive' : 'negative');
         cell.title = `${item.checkpoint.type==='day_7'?'首轮':'二轮'}同类均值 ${cohort.mean?.toFixed(2) ?? '—'}% · n=${cohort.count} 篇`;
         cell.querySelector('strong')!.textContent = value == null ? '待录入' : `${value.toFixed(2)}%`;
-        const em = cell.querySelector('em'); if (em) em.textContent = `同类均值 ${cohort.mean?.toFixed(2)??'—'}% · n=${cohort.count}`;
+        const em=cell.querySelector('em');if(em){const label=document.createElement('span'),mean=document.createElement('span'),sample=document.createElement('span');label.className='metric-reference-label';label.textContent='同类均值 ';mean.textContent=cohort.mean==null?'— ':`${cohort.mean.toFixed(2)}% `;sample.textContent=`· ${cohort.count} 篇`;em.replaceChildren(label,mean,sample);}
         cell.querySelector('small')!.textContent = delta == null ? '暂无同类基准' : `${delta>0?'+':''}${delta.toFixed(2)}pp`;
       }
       const template = [...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node => node.dataset.inspectorTemplate === item.key);

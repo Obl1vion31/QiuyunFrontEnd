@@ -38,8 +38,8 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
     {activeView==='history' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'按帖子分组',value:'1'},{label:'不分组',value:'0'}]} data-review-display/></div>}
     </div>
     <section class="review-workspace" data-inspector-host>
-      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)}>
-        <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">分类</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={grouped&&!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={grouped&&!selectedRound}>3 秒阅读率 <i aria-hidden="true">↕</i></button></span></div>
+      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)} data-nonpromotion-results={activeView==='history'||undefined}>
+        <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={grouped&&!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={grouped&&!selectedRound}><span class="sort-read-full">3 秒阅读率</span><span class="sort-read-short">阅读率</span> <i aria-hidden="true">↕</i></button></span><span role="columnheader">分类</span></div>
         <div data-review-body>
         {rows.filter(row=>tableRows.some(item=>item.row.id===row.id)).map(row=>({id:row.id, row, items:tableRows.filter(item=>item.row.id===row.id)})).map(group => <div class:list={{'review-post-group':grouped}} role="rowgroup" data-review-group={group.id}>
         {group.items.map((item,index) => {
@@ -51,14 +51,14 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
               <span class="review-post-title">{item.row.projectDocUrl?<a href={item.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{item.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{item.row.contentName}</strong>}<small>V{item.row.versionNumber}</small></span>
               {!item.row.projectDocUrl&&<small>项目文档待补</small>}
             </span>
-            <span role="cell" aria-colindex="3" data-review-common data-label="分类" class:list={{'review-common-repeat':grouped&&index>0}} aria-hidden={grouped&&index>0?'true':undefined}>{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
-            <span role="cell" aria-colindex="4" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
-            <span role="cell" aria-colindex="5" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
-            <span role="cell" aria-colindex="6" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
+            <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
+            <span role="cell" aria-colindex="4" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
+            <span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
+            <span role="cell" aria-colindex="6" data-review-common data-label="分类" class:list={{'review-common-repeat':grouped&&index>0}} aria-hidden={grouped&&index>0?'true':undefined}>{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
           </div>;
         })}
           {activeView==='history' && !selectedRound && ['day_7','day_15'].filter(type=>!group.items.some(item=>item.checkpoint.type===type)).map(type=><div class="review-row missing-round" role="row" data-review-placeholder data-checkpoint={type} hidden={!grouped}>
-            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':grouped}]}>{shanghaiDateKey(group.row.actualPublishAt)}</span><span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':grouped}]}><span class="review-post-title">{group.row.projectDocUrl?<a href={group.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{group.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{group.row.contentName}</strong>}<small>V{group.row.versionNumber}</small></span>{!group.row.projectDocUrl&&<small>项目文档待补</small>}</span><span role="cell" aria-colindex="3" data-review-common data-label="分类" class:list={{'review-common-repeat':grouped}}>{group.row.subjectName} / {group.row.categoryName||'临时帖'}</span><span role="cell" aria-colindex="4"><mark>{names[type]}</mark></span><span role="cell" aria-colindex="5" class="metric">暂无已复盘数据</span><span role="cell" aria-colindex="6" class="metric">—</span>
+            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':grouped}]}>{shanghaiDateKey(group.row.actualPublishAt)}</span><span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':grouped}]}><span class="review-post-title">{group.row.projectDocUrl?<a href={group.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{group.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{group.row.contentName}</strong>}<small>V{group.row.versionNumber}</small></span>{!group.row.projectDocUrl&&<small>项目文档待补</small>}</span><span role="cell" aria-colindex="3"><mark>{names[type]}</mark></span><span role="cell" aria-colindex="4" data-label="点击率" class="metric">暂无已复盘数据</span><span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric">—</span><span role="cell" aria-colindex="6" data-review-common data-label="分类" class:list={{'review-common-repeat':grouped}}>{group.row.subjectName} / {group.row.categoryName||'临时帖'}</span>
           </div>)}
         </div>)}
         </div>
@@ -118,19 +118,45 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-filters select:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .review-workspace{min-height:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
 .table-pane{min-width:0}.table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}
-.review-table{width:100%;min-width:960px}
-.review-row{display:grid;grid-template-columns:104px minmax(220px,1.4fr) minmax(132px,.8fr) 72px minmax(184px,1fr) minmax(184px,1fr);align-items:center;min-height:60px;border-bottom:1px solid #dde2df;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.review-table{width:100%;min-width:964px}
+.review-row{display:grid;grid-template-columns:104px minmax(220px,1fr) 72px minmax(220px,1.25fr) minmax(220px,1.25fr) 128px;align-items:center;min-height:60px;border-bottom:1px solid #dde2df;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-row>span{min-width:0;padding:8px 12px}
 .table-head{position:sticky;top:0;z-index:2;min-height:42px;color:#53615a;background:#edf1ee;font-size:var(--console-caption);line-height:var(--console-caption-leading);font-weight:600}
-.table-head>span:nth-last-child(-n+2){text-align:right}.table-head button{display:inline-flex;align-items:center;gap:5px;margin:0;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head>span:nth-last-child(-n+2) button{float:right}.table-head i{opacity:.5;font-size:var(--console-caption);font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
+.table-head>span:nth-child(4),.table-head>span:nth-child(5){text-align:left}.table-head button{display:inline-flex;align-items:center;gap:5px;margin:0;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head i{opacity:.5;font-size:var(--console-caption);font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
 .review-row:not(.table-head):hover,.review-row.selected{background:#f5f7f5}.review-row.selected{box-shadow:inset 3px 0 var(--console-blue)}.review-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
 .date-cell{font-variant-numeric:tabular-nums}
 .post-cell{display:grid;gap:3px}.review-post-title{display:flex;align-items:baseline;gap:8px;min-width:0}.post-cell a{display:flex;align-items:center;gap:5px;min-width:0;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:var(--console-muted);font-size:var(--console-caption);font-style:normal}.post-cell strong{min-width:0;overflow:hidden;color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:600;text-overflow:ellipsis;white-space:nowrap}.post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.review-post-title small{flex:none}
 .review-row mark{display:inline-block;padding:2px 6px;border:1px solid #d9dfdb;border-radius:5px;color:#53615a;background:#f2f4f2;font-size:var(--console-caption);font-weight:600;line-height:var(--console-caption-leading);white-space:nowrap}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}
-.review-row .metric{text-align:right}.review-row[hidden]{display:none}.review-post-group{border-bottom:1px solid var(--console-line)}.review-row.missing-round{color:var(--console-muted);font-size:var(--console-caption)}.review-table button:disabled{cursor:default;opacity:.6}
-.review-common-repeat{visibility:hidden;pointer-events:none}.review-post-group .review-row{border-bottom:0}.review-post-group .review-row>[role=cell]:nth-child(n+4){border-bottom:1px solid #dde2df}.review-post-group .review-row:last-child>[role=cell]{border-bottom:0}
+.review-row .metric{text-align:left}.review-row[hidden]{display:none}.review-post-group{border-bottom:1px solid var(--console-line)}.review-row.missing-round{color:var(--console-muted);font-size:var(--console-caption)}.review-table button:disabled{cursor:default;opacity:.6}
+.review-common-repeat{visibility:hidden;pointer-events:none}.review-post-group .review-row{border-bottom:0}.review-post-group .review-row>[role=cell]:nth-child(n+3):nth-child(-n+5){border-bottom:1px solid #dde2df}.review-post-group .review-row:last-child>[role=cell]{border-bottom:0}
 .review-empty{padding:32px 16px;text-align:center;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .review-form label{font-size:var(--console-text);line-height:var(--console-text-leading);color:var(--console-ink);font-weight:600}.review-workspace .review-form :is(input,textarea){min-height:var(--console-control-height);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .rate{height:var(--console-control-height)}.review-workspace .rate input{min-height:0;height:calc(var(--console-control-height) - 2px)}.review-workspace .rate b,.review-workspace .review-form>button{font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
 @media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters select{width:100%}.review-display{width:100%}}
+</style>
+
+<style is:global>
+/* 手机先呈现对象与两项结果，分组沿用同一批行和字段节点。 */
+.sort-read-short{display:none}
+@media(max-width:700px){
+ .review-workspace .review-table{min-width:0;width:100%}
+ .review-workspace .review-table .table-head{position:relative;display:flex;align-items:center;width:100%;height:auto;min-height:40px;overflow:visible;clip-path:none;white-space:normal}
+ .review-table .table-head>span:has(button){flex:1;padding:8px 4px;min-width:0}
+ .review-table .table-head>span:not(:has(button)){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .review-table .table-head button{gap:3px;scroll-margin-top:80px}
+ .sort-read-full{display:none}.sort-read-short{display:inline}
+ .review-row:not(.table-head){grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"date date date" "post post post" "node click read" "category category category";align-items:start;gap:8px;padding:12px}
+ .review-table .review-row:not(.table-head)>span{padding:0}
+ .review-row>[aria-colindex="1"]{grid-area:date;color:var(--console-muted);font-size:12px}
+ .review-row>[aria-colindex="2"]{grid-area:post}
+ .review-row>[aria-colindex="3"]{grid-area:node}
+ .review-row>[aria-colindex="4"]{grid-area:click}
+ .review-row>[aria-colindex="5"]{grid-area:read}
+ .review-row>[aria-colindex="6"]{grid-area:category;color:var(--console-muted);font-size:12px}
+ .review-post-group .review-row:has(.review-common-repeat){grid-template-areas:"node click read"}
+ .review-table .review-common-repeat{display:none}
+ .review-workspace .review-table .review-post-group .review-row>[role=cell]:nth-child(n){border-bottom:0}
+ .review-row .metric::before{content:attr(data-label);display:block;margin-bottom:4px;color:var(--console-muted);font-size:12px}
+ .post-cell strong{white-space:normal;overflow-wrap:anywhere}
+}
 </style>

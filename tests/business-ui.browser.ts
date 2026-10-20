@@ -105,7 +105,7 @@ try {
         const heights=await page.locator('[data-pause-form] input[type=date],[data-pause-form] button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));
         assert.ok(heights.every((height:number)=>height===36),'节假日操作同组控件对齐');
         if(width===1440)assert.equal((await page.locator('[data-pause-form]').boundingBox())!.height,36,'桌面节假日暂停保持单行');
-        const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[name=dayAction]').selectOption('pause');
+        const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[data-toggle-day-state]').click();assert.equal(await dailyForm.locator('[data-toggle-day-state]').getAttribute('aria-expanded'),'true');await dailyForm.locator('[name=dayAction]').selectOption('pause');
         const waitControls=await dailyForm.locator('[data-pause-reason] input,[data-pause-through] input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(waitControls.length,2);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'行内暂停与日度表单共用常规控件规格');
         assert.equal(await dailyForm.locator('[name=spend]').isDisabled(),true);await dailyForm.locator('[name=dayAction]').selectOption('active');{const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
       }
@@ -131,7 +131,7 @@ try {
     const tableScroll=await page.locator('.table-scroll').evaluate((node:HTMLElement)=>{node.scrollLeft=43;return node.scrollLeft;});
     const groupGeometry=await groupingGeometry();assert.equal(groupGeometry.columns.length,6);
     let groupDocuments=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')groupDocuments++;});
-    await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});
+    await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});if(width<=390){assert.equal(await page.locator('.table-scroll').evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth+1),true,'手机无需横向寻找结果');const values=await page.locator('[data-review-body] [data-result-metric] strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const range=document.createRange();range.selectNodeContents(node);const box=node.getBoundingClientRect();return {size:parseFloat(getComputedStyle(node).fontSize),fits:range.getBoundingClientRect().width<=box.width+1,right:box.right};}));assert.ok(values.every((value:any)=>value.size>=18&&value.fits&&value.right<=width),'手机两项结果完整可见');}
     await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.waitForURL(/group=0/);
     assert.equal(await page.locator('[data-review-body] [data-inspector-key] [data-label="帖子"]:visible').count(),4,'不分组时每个轮次独立展示完整帖子信息');
     assert.deepEqual(await groupingGeometry(),groupGeometry,'分组切换保留筛选、表头和六列坐标');
@@ -148,8 +148,8 @@ try {
     assert.equal(groupDocuments,0,'分组前后退同样原位完成');
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
-    assert.match(await first.innerText(),/同类均值 8.99%/);assert.match(await first.innerText(),/-3.47pp/);
-    assert.match(await second.innerText(),/同类均值 8.59%/);assert.match(await second.innerText(),/-3.64pp/);
+    assert.match(await first.innerText(),/同类均值\s+8.99%/);assert.match(await first.innerText(),/-3.47pp/);
+    assert.match(await second.innerText(),/同类均值\s+8.59%/);assert.match(await second.innerText(),/-3.64pp/);
     assert.equal(await first.locator('[data-label=节点]').innerText(),'首轮');assert.equal(await second.locator('[data-label=节点]').innerText(),'二轮');
     assert.equal(await first.locator('.post-cell').innerText().then((value:string)=>value.includes('ID ')),false,'完整 ID 留在悬停和详情，不重复占行');
     await page.evaluate(()=>{(window as any).__table=document.querySelector('.review-table');(window as any).__document=document;});
@@ -189,7 +189,7 @@ try {
       await page.route('**/api/non-promotion-reviews?**',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:'{}'}));
       await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText(/保存已成功，列表刷新失败/).waitFor();assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'虚构本地保存');
       await page.unroute('**/api/non-promotion-reviews?**');
-      await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值 9.59%/);
+      await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值\s+9.59%/);
       await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
     }
     await page.locator('[name=checkpoint]').selectOption('day_7');await page.waitForURL(/checkpoint=day_7/);assert.equal(await page.locator('[data-sort=click]').isDisabled(),false);assert.equal(await page.locator('[data-checkpoint=day_15]').count(),0);
@@ -210,7 +210,7 @@ try {
       await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});
       await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     }
-    await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator(`[data-history-row][data-history-schedule="${campaign.scheduleId}"] .lifecycle-expand`).click();await page.locator('[data-daily-record]').first().locator('th').click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();
+    await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator('[data-daily-record]').first().locator('th').click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();
     const editor=page.locator('dialog[open]');
     const editControls=await editor.locator('input:not([type=hidden]),select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
     assert.ok(editControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),`推广历史更正共用常规表单规格 ${JSON.stringify(editControls)}`);

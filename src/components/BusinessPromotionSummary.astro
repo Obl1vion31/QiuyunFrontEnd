@@ -12,10 +12,10 @@ const unrecordedLabel=entry.latest?.currentStage?'尚无复盘记录':entry.post
   <a href={href} data-inspector-key={entry.key}><strong>{entry.post.contentName}</strong><span>V{entry.post.versionNumber}</span></a>
   <span class:list={['promotion-status','history-status',entry.status]}>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${stageLabel(entry.latest.currentStage)}`:''}</span>
  </header>
- <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}>
+ <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId} open={!daily&&entry.metrics.length>0}>
   <summary class="lifecycle-expand">
    <span class="relative-track" role="img" aria-label={`${entry.post.contentName}：${stageDays.length?stageDays.map(stage=>`${stageLabel(stage.stageType)} ${stage.days} 天`).join('，')+'，阶段天数比例':unrecordedLabel}`}>
-    {entry.timeline.length?entry.timeline.map(stage=><span class:list={['life-segment',stage.stageType]} style={`width:${stage.share}%`} title={`${stageLabel(stage.stageType)} ${stage.days} 天：${stage.startedOn} 至 ${stage.through}`} aria-label={`${stageLabel(stage.stageType)} ${stage.days} 天`}><i class="life-fill" aria-hidden="true"/></span>):<span class:list={['life-unrecorded',entry.latest?.currentStage??'']} >{unrecordedLabel}</span>}
+    {entry.timeline.length?<span class="life-color-track" aria-hidden="true">{entry.timeline.map(stage=><span class:list={['life-segment',stage.stageType]} style={`width:${stage.share}%`} title={`${stageLabel(stage.stageType)} ${stage.days} 天：${stage.startedOn} 至 ${stage.through}`} aria-label={`${stageLabel(stage.stageType)} ${stage.days} 天`}><i class="life-fill" aria-hidden="true"/></span>)}</span>:<span class:list={['life-unrecorded',entry.latest?.currentStage??'']} >{unrecordedLabel}</span>}
     {stageDays.length>0&&<span class="life-stage-labels" aria-hidden="true">{stageDays.map(stage=><span class={stage.stageType}>{stageLabel(stage.stageType)} {stage.days} 天</span>)}</span>}
    </span>
    <span class="lifecycle-data-action"><span class="when-closed">展开数据</span><span class="when-open">收起数据</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>

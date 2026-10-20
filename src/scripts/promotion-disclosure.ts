@@ -1,8 +1,8 @@
-/** 生命周期只在首次进入对应视图时呈现；局部保存与读取详情不重播。 */
-const enteredViews=new Set<string>();
+import './business-data-motion';
+/** 成对展开／收起，不改写条形比例或复盘事实。 */
 const active=new Map<HTMLDetailsElement,()=>void>();
 const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
-function initialize(enter=false){
+function initialize(){
  document.querySelectorAll<HTMLDetailsElement>('details[data-promotion-data]:not([data-disclosure-ready])').forEach(details=>{
   const summary=details.querySelector<HTMLElement>(':scope>summary')!,body=details.querySelector<HTMLElement>(':scope>.promotion-expanded-data')!;
   if(!summary||!body)return;
@@ -28,16 +28,10 @@ function initialize(enter=false){
    Promise.all(animations.map(animation=>animation.finished.catch(()=>{}))).then(()=>{if(token===revision)finish();});
   });
  });
- if(!enter)return;
- const view=new URL(location.href).searchParams.get('view')==='history'?'history':'daily';
- if(enteredViews.has(view))return;
- const fills=[...document.querySelectorAll<HTMLElement>('.life-fill')].filter(node=>{const box=node.getBoundingClientRect();return box.width>0&&box.top<innerHeight&&box.bottom>0;});
- if(!fills.length)return;
- enteredViews.add(view);
- if(!reduced())fills.forEach(fill=>fill.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'}));
 }
-initialize(true);
-document.addEventListener('astro:page-load',()=>initialize(true));
+
+initialize();
+document.addEventListener('astro:page-load',initialize);
 document.addEventListener('business:promotion-fragment-updated',()=>initialize());
 document.addEventListener('astro:before-swap',()=>{for(const finish of active.values())finish();});
 matchMedia('(prefers-reduced-motion:reduce)').addEventListener('change',event=>{if(event.matches)for(const finish of active.values())finish();});
