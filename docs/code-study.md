@@ -107,7 +107,7 @@ flowchart LR
 
 面板动效统一由 `business-inspector.ts` 与 `business-dialog.ts` 管理。排期正文使用 `data-inspector-host` 接入共享轨道；Inspector 在实际退出动画结束前保留 `.is-open`，同时收拢停靠轨道和间距，内容保持固定宽度。Sheet／Dialog 等待面板和 `::backdrop` 都退出再调用原生关闭，快速重开废弃旧退出任务。两类容器通过 `setBusinessScrollLock` 共享嵌套锁与滚动恢复，Frame 保留滚动条槽位。不要在页面添加关闭定时器、移除节点或重复锁定；逐帧验收入口为 `pnpm test:motion`。
 
-推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，复用原成本、阶段天数与比例公式。`BusinessPromotionSummary` 保留原黄绿条形，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格与表尾汇总，日期列固定且只在表格内横向滚动。`promotion-disclosure.ts` 管理成对展开动画，`business-data-motion.ts` 管理生命周期整条遮罩与非推广结果的真实导航入场，真实高度与内边距一起收拢后再关闭 details，支持快速反向与减少动态效果。表格行 `data-inspector-key=metric.id` 仍交给公共 Inspector，`campaign` 参数保留原帖详情键，并支持日度记录 ID；`BusinessPromotionDetails / BusinessPromotionMetric` 显示当前选择，帖子入口保留整篇安排。历史筛选不截断展开数据，本帖刷新保留展开和表格位置。历史有事实时默认展开，上方静态分组只保留刷新钩子、无分类标题，下方结束分区继续用原生 details。
+推广生命周期由 `src/db/promotion-overview.ts` 只读计算，同一排期版本归并活动，按原 `stageTypeSnapshot` 区分测试／放量，复用原成本、阶段天数与比例公式。`BusinessPromotionSummary` 保留原黄绿条形，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格与表尾汇总，日期列固定且只在表格内横向滚动。`promotion-disclosure.ts` 管理成对展开动画，`business-data-motion.ts` 管理生命周期整条遮罩与非推广结果的真实导航入场，真实高度与内边距一起收拢后再关闭 details，支持快速反向与减少动态效果。表格行 `data-inspector-key=metric.id` 仍交给公共 Inspector，`campaign` 参数保留原帖详情键，并支持日度记录 ID；`BusinessPromotionDetails / BusinessPromotionMetric` 显示当前选择，帖子入口保留整篇安排。历史筛选不截断展开数据，本帖刷新保留展开和表格位置。历史每帖数据默认收起，上方静态分组只保留刷新钩子、无分类标题；下方结束分区及日视角日期使用默认关闭的原生 details。
 
 `promotion-audit-view.ts` 只读分类首次安排、业务更正、技术维护及未确认类别，并把快照翻译成明确前后状态；`BusinessPromotionTimeline` 在推广与排期 Inspector 共用此过滤，底层审计不删改。已知技术记录不进入业务历史，新增未知技术类别先询问用户。单日详情只接入当日事件，整篇入口查看全部业务历史；无业务记录不显示空入口。
 

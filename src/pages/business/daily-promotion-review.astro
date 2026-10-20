@@ -335,14 +335,14 @@ const historyHref = (overrides: Record<string, string>) => {
                 <div class="promotion-history-active" data-history-group="unfinished">
                   {activeHistoryRows.length?activeHistoryRows.map(entry=><BusinessPromotionSummary entry={entry} href={historyHref({campaign:entry.key})}/>):<p class="promotion-group-empty">当前筛选范围内没有尚未结束的帖子。</p>}
                 </div>
-                <details open class="promotion-history-group" data-history-group="ended">
+                <details class="promotion-history-group" data-history-group="ended">
                   <summary><h2>已结束推广<small>{endedHistoryRows.length} 篇</small></h2></summary>
                   {endedHistoryRows.length?endedHistoryRows.map(entry=><BusinessPromotionSummary entry={entry} href={historyHref({campaign:entry.key})}/>):<p class="promotion-group-empty">当前筛选范围内没有已结束的帖子。</p>}
                 </details>
               </div>:<div class="day-history">
                 {historyDayGroups.length>0&&<p class="promotion-table-hint">左右滑动查看全部指标</p>}
                 {!historyDayGroups.length&&<div class="empty-state">该范围内没有日度记录。</div>}
-                {historyDayGroups.map(group=><details open class="day-group" data-day-group={group.metricDate}>
+                {historyDayGroups.map(group=><details class="day-group" data-day-group={group.metricDate}>
                   <summary><h2>{group.metricDate}</h2><span>{group.rows.length} 条记录</span></summary>
                   <BusinessPromotionDataTable rows={group.rows} showPost/>
                 </details>)}

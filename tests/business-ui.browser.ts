@@ -210,7 +210,7 @@ try {
       await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});
       await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     }
-    await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator('[data-daily-record]').first().locator('th').click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();
+    await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator('[data-history-group=unfinished] .lifecycle-expand').first().click();await page.locator('[data-daily-record]').first().locator('th').click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();
     const editor=page.locator('dialog[open]');
     const editControls=await editor.locator('input:not([type=hidden]),select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
     assert.ok(editControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),`推广历史更正共用常规表单规格 ${JSON.stringify(editControls)}`);
