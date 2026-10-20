@@ -122,7 +122,7 @@ document.addEventListener('click',async event=>{
   if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.altKey||event.shiftKey)return;
   if(document.documentElement.dataset.unsaved!=='true'||document.querySelector('[data-inspector][data-dirty=true]'))return;
   const link=(event.target as Element).closest<HTMLAnchorElement>('a[href]');
-  if(!link||link.target==='_blank'||link.hasAttribute('download')||link.hasAttribute('data-inspector-key'))return;
+  if(!link||link.target==='_blank'||link.hasAttribute('download')||link.hasAttribute('data-inspector-key')||link.hasAttribute('data-close-inspector'))return;
   event.preventDefault();event.stopImmediatePropagation();
   if(await businessConfirm('有尚未保存的修改，是否放弃？')){document.documentElement.dataset.unsaved='false';void navigate(link.href);}
 },true);

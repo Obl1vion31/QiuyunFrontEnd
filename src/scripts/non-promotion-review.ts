@@ -1,4 +1,5 @@
 import './business-data-motion';
+import {nonPromotionGroups} from '../db/non-promotion-groups';
 import { navigate } from 'astro:transitions/client';
 import { getInspector } from './business-inspector';
 import { businessConfirm } from './business-dialog';
@@ -12,55 +13,57 @@ function initialize() {
   document.dispatchEvent(new Event('business:inspector-refresh'));
   const controller = getInspector(inspector);
   const body = table.querySelector<HTMLElement>('[data-review-body]')!;
-  const groups = [...body.querySelectorAll<HTMLElement>('[data-review-group]')];
   const records = [...body.querySelectorAll<HTMLElement>('[data-row-href]')];
-  const groupRows = new Map(groups.map(group => [group, ([...group.children] as HTMLElement[]).sort((left,right)=>Number(left.dataset.checkpoint!=='day_7')-Number(right.dataset.checkpoint!=='day_7'))]));
   const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
   const displaySwitch = document.querySelector<HTMLElement>('[data-review-display]');
-  const singleRound = Boolean(filters?.querySelector<HTMLSelectElement>('[name="checkpoint"]')?.value);
+  const overview=table.querySelector<HTMLElement>('[data-category-overview]')!;
+  const context=document.querySelector<HTMLElement>('[data-category-context]')!;
   let sortState = { key: 'date', direction: 'descending' };
+  let overviewScroll=0,transition:Animation|null=null;
   const arrange = () => {
-    const grouped = table.dataset.grouped === 'true';
-    const {key,direction} = sortState;
-    const compare = (l:HTMLElement,r:HTMLElement) => {
-      if (key !== 'date' && (l.dataset[key] === '') !== (r.dataset[key] === '')) return l.dataset[key] === '' ? 1 : -1;
-      const comparison = key === 'date' ? l.dataset.date!.localeCompare(r.dataset.date!) : Number(l.dataset[key]) - Number(r.dataset[key]);
-      return direction === 'ascending' ? comparison : -comparison;
+    const grouped=table.dataset.grouped==='true',category=table.dataset.category||'',summary=grouped&&!category;
+    const {key,direction}=sortState;
+    const compare=(left:HTMLElement,right:HTMLElement)=>{
+      if(key!=='date'&&(left.dataset[key]==='')!==(right.dataset[key]===''))return left.dataset[key]===''?1:-1;
+      const delta=key==='date'?left.dataset.date!.localeCompare(right.dataset.date!):Number(left.dataset[key])-Number(right.dataset[key]);
+      return direction==='ascending'?delta:-delta;
     };
-    const pane = table.closest<HTMLElement>('.table-scroll')!;
-    const position = {x:scrollX,y:scrollY,left:pane.scrollLeft,top:pane.scrollTop};
-    if(grouped){
-      for(const group of groups){group.classList.add('review-post-group');const rows=groupRows.get(group)!;group.replaceChildren(...rows);rows.forEach((row,index)=>row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.toggle('review-common-repeat',index>0);if(index>0)cell.setAttribute('aria-hidden','true');else cell.removeAttribute('aria-hidden');}));for(const node of group.querySelectorAll<HTMLElement>('[data-review-placeholder]'))node.hidden=false;}
-      body.replaceChildren(...[...groups].sort((left,right)=>compare(left.querySelector('[data-row-href]')!,right.querySelector('[data-row-href]')!)));
-    }else{
-      groups.forEach(group=>group.classList.remove('review-post-group'));
-      for(const row of records)for(const cell of row.querySelectorAll<HTMLElement>('[data-review-common]')){cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');}
-      body.replaceChildren(...[...records].sort(compare));
+    body.replaceChildren(...[...records].sort(compare));
+    for(const row of records){row.hidden=grouped&&!!category&&row.dataset.categoryKey!==category;row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');});}
+    body.hidden=summary;overview.hidden=!summary;context.hidden=!grouped||!category;
+    context.querySelector('[data-category-title]')!.textContent=table.querySelector<HTMLElement>(`[data-category-group="${CSS.escape(category)}"]`)?.dataset.categoryLabel??'';
+    const heads=table.querySelectorAll<HTMLElement>('.table-head>[role=columnheader]');
+    heads[1].textContent=summary?'帖子分类':'帖子';heads[2].textContent='轮次';heads[5].textContent=summary?'':'分类';
+    for(const button of document.querySelectorAll<HTMLButtonElement>('[data-sort]')){
+      button.disabled=summary;const active=button.dataset.sort===key;
+      button.closest('[role=columnheader]')?.setAttribute('aria-sort',active&&!summary?direction:'none');
+      button.querySelector('i')!.textContent=active&&!summary?(direction==='ascending'?'↑':'↓'):'↕';
+      if(button.dataset.sort==='date')button.firstChild!.textContent=summary?'有效样本 ':'实验日期 ';
+      if(button.dataset.sort==='click')button.firstChild!.textContent=summary?'平均点击率 ':'点击率 ';
+      if(button.dataset.sort==='read'){button.querySelector('.sort-read-full')!.textContent=summary?'平均 3 秒阅读率':'3 秒阅读率';button.querySelector('.sort-read-short')!.textContent=summary?'平均阅读率':'阅读率';}
     }
-    document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(item => {
-      item.disabled = item.dataset.sort!=='date' && grouped && !singleRound;
-      const active = item.dataset.sort===key;
-      item.closest('[role="columnheader"]')?.setAttribute('aria-sort', active ? direction : 'none');
-      item.querySelector('i')!.textContent = active ? (direction === 'ascending' ? '↑' : '↓') : '↕';
-    });
-    pane.scrollLeft=position.left;pane.scrollTop=position.top;window.scrollTo(position.x,position.y);
   };
-  document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(button => button.addEventListener('click', () => {
-    const key = button.dataset.sort!;
-    sortState = { key, direction: sortState.key === key && sortState.direction === 'descending' ? 'ascending' : 'descending' };
-    arrange();
-  }));
-  if(displaySwitch)controller.configure({localParameters:['group'],onContextChange:url=>{
-    const grouped=url.searchParams.get('group')!=='0';table.dataset.grouped=String(grouped);
+  const move=(back:boolean)=>{
+    const target=back?overview:body;
+    const previous=getComputedStyle(target);const from=target.getAnimations().length?{opacity:previous.opacity,transform:previous.transform}:{opacity:'.6',transform:`translateX(${back?-10:10}px)`};
+    transition?.cancel();if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+    transition=target.animate([from,{opacity:1,transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)'});
+  };
+  document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.sort!;sortState={key,direction:sortState.key===key&&sortState.direction==='descending'?'ascending':'descending'};arrange();}));
+  if(displaySwitch)controller.configure({localParameters:['group','bucket'],onContextChange:url=>{
+    const grouped=url.searchParams.get('group')!=='0',requested=url.searchParams.get('bucket')??'';
+    const category=table.querySelector(`[data-category-group="${CSS.escape(requested)}"]`)?requested:'';
+    const previous=table.dataset.category??'';
+    table.dataset.grouped=String(grouped);table.dataset.category=grouped?category:'';
     displaySwitch.querySelectorAll<HTMLInputElement>('input').forEach(input=>input.checked=input.value===(grouped?'1':'0'));
     (filters!.elements.namedItem('group') as HTMLInputElement).value=grouped?'1':'0';
-    if(grouped&&!singleRound&&sortState.key!=='date')sortState={key:'date',direction:'descending'};
-    for(const row of records){const href=new URL(row.dataset.rowHref!,location.href);href.searchParams.set('group',grouped?'1':'0');row.dataset.rowHref=href.pathname+href.search;}
+    for(const row of records){const href=new URL(row.dataset.rowHref!,location.href);href.searchParams.set('group',grouped?'1':'0');if(category)href.searchParams.set('bucket',category);else href.searchParams.delete('bucket');row.dataset.rowHref=href.pathname+href.search;}
     arrange();
+    if(previous!==category){move(!category);if(!category)window.scrollTo({top:overviewScroll});}
   }});
-  displaySwitch?.addEventListener('change',event=>{
-    const input=event.target as HTMLInputElement;if(input.checked)controller.setLocalParameter('group',input.value);
-  });
+  displaySwitch?.addEventListener('change',event=>{const input=event.target as HTMLInputElement;if(input.checked)controller.setLocalParameters({group:input.value,bucket:null});});
+  table.addEventListener('click',event=>{const button=(event.target as Element).closest<HTMLButtonElement>('[data-category-open]');if(!button)return;overviewScroll=scrollY;controller.setLocalParameter('bucket',button.dataset.categoryOpen!);context.querySelector<HTMLButtonElement>('[data-category-back]')?.focus({preventScroll:true});});
+  context.querySelector('[data-category-back]')?.addEventListener('click',()=>{const category=table.dataset.category!;controller.setLocalParameters({bucket:null});table.querySelector<HTMLButtonElement>(`[data-category-open="${CSS.escape(category)}"]`)?.focus({preventScroll:true});});
   arrange();
   filters?.addEventListener('change', event => {
     const field = event.target as HTMLInputElement;
@@ -91,6 +94,15 @@ function initialize() {
       if (template) for (const [field, value] of Object.entries({ recordedThrough:item.metric?.recordedThrough,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion })) {
         const input = template.content.querySelector<HTMLInputElement|HTMLTextAreaElement>(`[name="${field}"]`);
         if (input) { input.value = String(value ?? ''); input.defaultValue = input.value; }
+      }
+    }
+    for(const group of nonPromotionGroups(data.tableRows)){
+      const summary=table.querySelector<HTMLElement>(`[data-category-group="${CSS.escape(group.key)}"]`);if(!summary)continue;
+      for(const round of group.rounds){
+        const cell=summary.querySelector<HTMLElement>(`[data-category-click="${round.type}"]`);if(!cell)continue;
+        cell.textContent=round.click==null?'—':`${round.click.toFixed(2)}%`;
+        summary.querySelector(`[data-category-read="${round.type}"]`)!.textContent=round.read==null?'—':`${round.read.toFixed(2)}%`;
+        cell.closest('.review-row')!.querySelector('[aria-colindex="1"]')!.textContent=`${round.count} 篇`;
       }
     }
     arrange();

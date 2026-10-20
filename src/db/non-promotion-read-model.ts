@@ -1,3 +1,4 @@
+import {nonPromotionGroups} from './non-promotion-groups';
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { getDb } from './client';
 import { operationsCategory, operationsCategoryPolicyVersion, operationsContent, operationsContentPerformanceMetric, operationsContentSchedule, operationsContentVersion, operationsNonPromotionReview, operationsNonPromotionCheckpointEvent, operationsSubject } from './schema';
@@ -63,8 +64,10 @@ const tableRows = rows.flatMap(row => {
       click: summarizeRates(peers.map(metric => Number(metric.clickRate))), read: summarizeRates(peers.map(metric => Number(metric.threeSecondReadRate))) };
   });
 });
+const categoryGroups=nonPromotionGroups(tableRows);
+const selectedGroup=categoryGroups.some(group=>group.key===url.searchParams.get('bucket'))?url.searchParams.get('bucket')!:null;
 const selected = tableRows.find(row => row.key === url.searchParams.get('row'));
 const baseHref = viewHref(activeView);
 
-return { checkpointEvents, today, names, loadError, schedules, metrics, reviews, policies, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref };
+return { checkpointEvents, today, names, loadError, schedules, metrics, reviews, policies, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref,categoryGroups,selectedGroup };
 }

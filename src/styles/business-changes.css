@@ -5,4 +5,4 @@
 .business-change-field dl>div{display:grid;gap:3px;min-width:0}
 .business-change-field dt{color:var(--console-muted);font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
 .business-change-field dd{min-width:0;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--console-ink);font:400 var(--console-text)/var(--console-text-leading) var(--console-font);font-variant-numeric:tabular-nums}
-.business-change-field dl>div:last-child dd{font-weight:600}
+.business-change-field dl>div:last-child dd{font-weight:500}

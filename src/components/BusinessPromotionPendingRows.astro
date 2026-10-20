@@ -11,9 +11,9 @@ const items=rows.map(row=>({row,period:pendingPromotionPeriod(row)})).sort((a,b)
   const editable=admin||!!period?.range||!row.hasMetrics;
   const editorId=`pending-arrangement-${row.scheduleId}`;
   const waitAction=period?.range?'next':'wait';
-  return <article class:list={['review-pending-row',{'is-initial':!period,'is-continuing':!!period,'is-due':period?.due}]} data-timeline-row={row.scheduleId} data-pending-row data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={period?.status??'推广待开始'}>
+  return <article class:list={['review-pending-row',{'is-initial':!period,'is-continuing':!!period,'is-due':period?.due}]} data-timeline-row={row.scheduleId} data-pending-row data-pending-record={`${row.scheduleId}:${row.date}`} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={period?.status??'推广待开始'}>
    <header class="review-entry-header">
-    <div class="review-entry-identity"><strong>{row.contentName}</strong><small>V{row.versionNumber} · {row.subjectName}</small></div>
+    <div class="review-entry-identity"><a class="review-post-link" href={`?view=daily&campaign=review:${row.scheduleId}:${row.date}`} data-pending-inspector={row.scheduleId}><strong>{row.contentName}</strong></a><small>V{row.versionNumber} · {row.subjectName}</small></div>
     {period?<>
      <span class="review-period-status"><span>{period.range?.stageType==='testing'?'测试待定至':period.range?'推广暂停至':'待定至'}</span><time data-pending-period-end datetime={period.endedOn}>{period.endedOn}</time><small>（含）</small></span>
      <form class="business-form timeline-next-form review-next-form" data-timeline-form data-pending-due={String(period.due)} data-fingerprint={row.fingerprint}>

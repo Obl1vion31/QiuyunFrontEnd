@@ -17,10 +17,18 @@ function enter(){
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   if(token!==generation||reduced.matches)return;
   const targets=[...document.querySelectorAll<HTMLElement>(view==='nonpromotion-history'?'[data-nonpromotion-results] [data-result-metric]':'.life-color-track')];
+  let visibleIndex=0;
   const play=(target:HTMLElement)=>{
    const lifecycle=target.classList.contains('life-color-track');
-   const animation=target.animate(lifecycle?[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}]:[{opacity:.65,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:lifecycle?800:240,easing:'cubic-bezier(.4,0,.2,1)'});
-   animations.add(animation);animation.finished.catch(()=>{}).finally(()=>animations.delete(animation));
+   const delay=lifecycle?Math.min(visibleIndex++*40,120):0;
+   const nodes=lifecycle?[...target.querySelectorAll<HTMLElement>('.life-fill')]:[target];
+   if(lifecycle){
+    // Keep a faint, correctly proportioned track present from the first frame.
+    const base=target.cloneNode(true) as HTMLElement;base.classList.add('life-base-track');base.classList.remove('life-color-track');base.setAttribute('aria-hidden','true');target.before(base);
+    const cleanup=()=>base.remove();
+    const animation=target.animate([{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],{duration:480,delay,easing:'cubic-bezier(.16,1,.3,1)',fill:'backwards'});
+    animations.add(animation);animation.finished.catch(()=>{}).finally(()=>{animations.delete(animation);cleanup();});
+   }else for(const node of nodes){const animation=node.animate([{opacity:.65,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:240,easing:'cubic-bezier(.2,.8,.2,1)'});animations.add(animation);animation.finished.catch(()=>{}).finally(()=>animations.delete(animation));}
   };
   observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){observer?.unobserve(entry.target);play(entry.target as HTMLElement);}},{threshold:.15});
   for(const target of targets){const box=target.getBoundingClientRect();if(box.width>0&&box.top<innerHeight&&box.bottom>0)play(target);else observer.observe(target);}

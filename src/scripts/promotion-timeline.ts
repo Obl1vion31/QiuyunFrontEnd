@@ -17,10 +17,10 @@ export async function refreshPromotionSchedule(scheduleId:string){
  const response=await fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store'});if(!response.ok)throw new Error('列表刷新失败');
  const fresh=new DOMParser().parseFromString(await response.text(),'text/html'),key=CSS.escape(scheduleId),scroll=window.scrollY;
  const dailyBody=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
- const oldArticles=[...document.querySelectorAll<HTMLElement>(`[data-timeline-row="${key}"]`)],newArticles=[...fresh.querySelectorAll<HTMLElement>(`[data-timeline-row="${key}"]`)];
+ const oldArticles=[...document.querySelectorAll<HTMLElement>(`[data-promotion-pending-body] [data-timeline-row="${key}"]`)],newArticles=[...fresh.querySelectorAll<HTMLElement>(`[data-promotion-pending-body] [data-timeline-row="${key}"]`)];
  oldArticles.forEach((node,index)=>{if(newArticles[index])node.replaceWith(newArticles[index].cloneNode(true));else node.remove();});
  if(!oldArticles.length&&newArticles.length){let host=document.querySelector<HTMLElement>('.promotion-timeline');if(!host){const source=fresh.querySelector('.promotion-timeline');if(source&&dailyBody){host=source.cloneNode(false) as HTMLElement;dailyBody.insertBefore(host,dailyBody.querySelector('.daily-table-wrap,.empty-state'));}}for(const node of newArticles)host?.append(node.cloneNode(true));}
- const selector=`[data-metric-form][data-schedule-id="${key}"],[data-locked-schedule="${key}"]`;
+ const selector=`#daily-table [data-metric-form][data-schedule-id="${key}"],#daily-table [data-locked-schedule="${key}"]`;
  const oldRows=[...document.querySelectorAll(selector)],newRows=[...fresh.querySelectorAll(selector)];
  const grid=document.querySelector('.daily-grid');
  if(grid){const anchor=oldRows[0]??null;for(const row of newRows)grid.insertBefore(row.cloneNode(true),anchor);oldRows.forEach(row=>row.remove());}
@@ -68,6 +68,7 @@ function initialize(){
   }
  };
  sync();form.addEventListener('change',sync);form.addEventListener('input',()=>{sync();form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)pane.dataset.dirty='true';});
+ if(form.hasAttribute('data-timeline-mirror'))return;
  form.addEventListener('submit',async event=>{event.preventDefault();if(form.dataset.pendingDue==='false')return;const out=form.querySelector('output')!,button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;
   const otherDrafts=[...(form.closest('[data-pending-row]')?.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')??[])].filter(other=>other!==form);
   if(otherDrafts.length&&!await businessConfirm('本条还有其他未保存修改。继续保存会更新整条记录，是否放弃这些修改？',{confirmLabel:'继续保存'}))return;
@@ -76,8 +77,10 @@ function initialize(){
   let saved=false;
   try{let response=await send(),result=await response.json();if(result.confirmationRequired&&await businessConfirm(`更正会归档 ${result.impact.dates.join('、')} 的 ${result.impact.dailyMetrics} 条冲突指标并重新开放补录，是否继续？`,{title:'确认历史影响',confirmLabel:'确认更正'})){payload.confirmImpact=true;response=await send();result=await response.json();}
    if(!response.ok){out.textContent=result.message??result.impact?.message??'保存失败，输入已保留。';return;}
-   saved=true;const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)getInspector(pane).setClean();delete form.dataset.dirty;await refreshPromotionSchedule(String(new FormData(form).get('scheduleId')));document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));
+   saved=true;const scheduleId=String(new FormData(form).get('scheduleId'));const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)getInspector(pane).setClean();delete form.dataset.dirty;document.dispatchEvent(new CustomEvent('business:promotion-arrangement-saving',{detail:{scheduleId}}));await refreshPromotionSchedule(scheduleId);document.dispatchEvent(new CustomEvent('business:promotion-arrangement-saved',{detail:{scheduleId}}));document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));
   }catch{out.textContent=saved?'已保存，列表刷新失败，请刷新页面核对。':'连接失败，输入已保留。';}finally{button.disabled=saved;}
  });
 });}
 initialize();document.addEventListener('astro:page-load',initialize);document.addEventListener('business:inspector-render',initialize);document.addEventListener('business:promotion-fragment-updated',initialize);
+
+document.addEventListener('business:promotion-mirror-ready',initialize);

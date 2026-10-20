@@ -1,4 +1,5 @@
 ---
+import {businessDateTime} from '../scripts/business-date';
 import BusinessPromotionMetric from './BusinessPromotionMetric.astro';
 import BusinessPromotionTimeline from './BusinessPromotionTimeline.astro';
 import BusinessPromotionWaitRanges from './BusinessPromotionWaitRanges.astro';
@@ -12,7 +13,8 @@ const holds=context.holds.filter(r=>entry.campaigns.some(c=>c.id===r.campaignId)
 ---
 <header><div><h2 data-inspector-title>{entry.post.contentName}</h2><p>V{entry.post.versionNumber} · {entry.post.subjectName}</p></div><a href={closeHref} data-close-inspector aria-label="关闭生命周期详情">×</a></header>
 <div class="promotion-detail">
- <dl class="promotion-detail-meta"><div><dt>当前推广</dt><dd>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${entry.latest.currentStage==='testing'?'测试':'放量'}`:''}</dd></div><div><dt>发布日期</dt><dd>{entry.post.publishedOn}</dd></div><div class="promotion-detail-id"><dt>笔记 ID</dt><dd class="promotion-note-id">{entry.post.platformNoteId??'待补'}</dd></div></dl>
+ <dl class="promotion-detail-meta"><div><dt>当前推广</dt><dd>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${entry.latest.currentStage==='testing'?'测试':'放量'}`:''}</dd></div><div class="promotion-detail-id"><dt>笔记 ID</dt><dd class="promotion-note-id">{entry.post.platformNoteId??'待补'}</dd></div></dl>
+ <dl class="promotion-detail-meta promotion-references"><div><dt>应发时间</dt><dd>{entry.post.plannedPublishAt?businessDateTime(entry.post.plannedPublishAt):'—'}</dd></div><div><dt>实发时间</dt><dd>{entry.post.actualPublishAt?businessDateTime(entry.post.actualPublishAt):'—'}</dd></div><div><dt>项目文档</dt><dd>{entry.post.projectDocUrl?<a href={entry.post.projectDocUrl} target="_blank" rel="noreferrer">查看项目文档 ↗</a>:'待补'}</dd></div>{entry.post.publicationUrl&&<div><dt>帖子链接</dt><dd><a href={entry.post.publicationUrl} target="_blank" rel="noreferrer">查看已发布帖子 ↗</a></dd></div>}</dl>
  {metric&&<BusinessPromotionMetric metric={metric} entry={entry}/>}
  {(ranges.length>0||holds.length>0||!entry.closed&&entry.latest)&&<details class="promotion-detail-extra"><summary>待定与暂停记录</summary><BusinessPromotionWaitRanges campaigns={entry.campaigns.map(c=>({...c,contentName:entry.post.contentName,versionNumber:entry.post.versionNumber}))} ranges={ranges} context={context} historical/>{holds.map(hold=><p>{hold.stageType==='testing'?'测试待定':'推广暂停'}：{hold.startedOn} 至 {hold.endedOn??'尚未恢复'}</p>)}</details>}
  {metric&&<a class="promotion-all-business" data-inspector-key={entry.key} href={`?${new URLSearchParams({...Object.fromEntries(Astro.url.searchParams),campaign:entry.key})}`}>查看整篇推广安排与业务历史</a>}

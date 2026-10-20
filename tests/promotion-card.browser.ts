@@ -1,3 +1,4 @@
+import {respondToBusinessConfirm} from './business-confirm.helper';
 /** 单帖卡片的真实尺寸、完整文本、条件字段与连续填写；只使用隔离数据库。 */
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -13,17 +14,35 @@ try{
  for(const knownId of [true,false]){
   const [content]=await fixture.db.insert(s.operationsContent).values({platformNoteId:knownId?'a'.repeat(24):null}).returning();
   const [version]=await fixture.db.insert(s.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:'虚构面试课发布与复盘数据核对帖',subjectId:'tmua',categoryId:'temporary'}).returning();
-  const [schedule]=await fixture.db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date(day+'T18:00+08:00'),actualPublishAt:new Date(day+'T18:00+08:00'),isPromoted:true,promotionStatus:'testing',completionStatus:'on_time'}).returning();ids.push(schedule.id);
-  const [campaign]=await fixture.db.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:day,initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();
-  await fixture.db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,stageType:'testing',startedOn:day});
+  const start=knownId?previousDateKey(day):day;
+  const [schedule]=await fixture.db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date(start+'T18:00+08:00'),actualPublishAt:new Date(start+'T18:00+08:00'),isPromoted:true,promotionStatus:'testing',completionStatus:'on_time'}).returning();ids.push(schedule.id);
+  const [campaign]=await fixture.db.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:start,initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();
+  await fixture.db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,stageType:'testing',startedOn:start});
  }
  const login=await fetch(fixture.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:fixture.baseURL,'Content-Type':'application/json'},body:JSON.stringify(employee)});assert.equal(login.status,200);
  const pw=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});await mkdir(folder,{recursive:true});
  const context=await browser.newContext({viewport:{width:1440,height:1100},reducedMotion:'reduce'});await context.addCookies(login.headers.getSetCookie().map(cookie=>{const pair=cookie.split(';')[0];return {name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:fixture.baseURL};}));
  const page=await context.newPage(),errors:string[]=[],measurements:any[]=[];page.on('pageerror',(e:Error)=>errors.push(e.message));page.on('dialog',(dialog:any)=>{errors.push(dialog.type());void dialog.dismiss();});
- await page.goto(fixture.baseURL+'/business/daily-promotion-review');
- const card=(id:string)=>page.locator(`[data-metric-form][data-schedule-id="${id}"]`);
+ await page.goto(fixture.baseURL+`/business/daily-promotion-review?view=daily&campaign=review:${ids[0]}:${previousDateKey(day)}`);
+ await page.locator('[data-promotion-inspector] [data-metric-form]').waitFor();await page.locator('[data-promotion-inspector] [data-close-inspector]').click();await page.locator('[data-promotion-inspector]').waitFor({state:'hidden'});
+ const card=(id:string)=>page.locator(`#daily-table [data-metric-form][data-schedule-id="${id}"]`);
  for(const id of ids){for(const [name,value]of Object.entries({spend:'123456.78',platformOpenCount:'123456',actualOpenCount:'1',platformLeadCount:'98765',actualLeadCount:'2'}))await card(id).locator(`[name=${name}]`).fill(value);await card(id).locator('[name=reviewDecision]').selectOption('test_continue');}
+
+ const pane=page.locator('[data-promotion-inspector]'),source=card(ids[0]);
+ const locked=page.locator(`[data-locked-schedule="${ids[0]}"]`);await locked.locator('[data-pending-inspector]').click();await pane.waitFor();assert.equal(await pane.locator('[data-metric-form]').count(),0,'未解锁日期不能串入前一天的可填表单');assert.equal(await pane.locator('[data-pending-review-pane] time').innerText(),day);await pane.locator('[data-close-inspector]').click();await pane.waitFor({state:'hidden'});
+ const before=await source.boundingBox();await source.locator('[data-pending-inspector]').click();await pane.waitFor();
+ const mirror=pane.locator('[data-metric-form]');assert.equal(await mirror.locator('[name=spend]').inputValue(),'123456.78','面板读取已有卡片草稿');
+ assert.equal(await pane.locator('.promotion-references dt').allTextContents().then((labels:string[])=>labels.includes('实发时间')),true);
+ assert.equal((await source.boundingBox())!.width,before!.width,'覆盖式详情不挤压列表');
+ await mirror.locator('[name=spend]').fill('99.50');assert.equal(await source.locator('[name=spend]').inputValue(),'99.50');assert.equal(await mirror.locator('[data-open-cost]').innerText(),'¥99.50');
+ {const answer=respondToBusinessConfirm(page);await pane.locator('[data-close-inspector]').click();await answer;}assert.equal(await pane.isVisible(),true);assert.equal(await mirror.locator('[name=spend]').inputValue(),'99.50');
+ {const answer=respondToBusinessConfirm(page,true);await pane.locator('[data-close-inspector]').click();await answer;}await pane.waitFor({state:'hidden'});
+ assert.equal(await source.locator('[name=spend]').inputValue(),'123456.78','放弃只撤销面板打开后的修改');
+ await source.locator('[data-pending-inspector]').click();await pane.waitFor();assert.equal(await mirror.locator('[name=spend]').inputValue(),'123456.78');await pane.locator('[data-close-inspector]').click();await pane.waitFor({state:'hidden'});
+
+ const typography=await source.evaluate((node:HTMLElement)=>[...node.querySelectorAll<HTMLElement>('.review-post-link strong,.review-entry-date time,.review-note-value,.review-metric-inputs label,.review-metric-inputs input,.review-cost output,.review-state-trigger')].map(n=>{const s=getComputedStyle(n);return {tag:n.tagName,size:s.fontSize,weight:s.fontWeight,family:s.fontFamily};}));
+ assert.ok(typography.every((item:any)=>item.weight===(['INPUT','OUTPUT'].includes(item.tag)?'400':item.tag==='SPAN'?'400':'500')),'真实字重按输入、说明和主信息分层');
+ const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const documentNode=await cdp.send('DOM.getDocument');const target=await cdp.send('DOM.querySelector',{nodeId:documentNode.root.nodeId,selector:'#daily-table .review-post-link strong'});const actualFonts=await cdp.send('CSS.getPlatformFontsForNode',{nodeId:target.nodeId});assert.ok(actualFonts.fonts.length,'记录真实中文渲染字体');await writeFile(`${folder}/typography.json`,JSON.stringify({typography,actualFonts},null,2));await cdp.detach();
  await page.evaluate(()=>(document.activeElement as HTMLElement)?.blur());
  for(const width of [1920,1600,1440,1366,1280,1080,900,768,600,390,320]){
   await page.setViewportSize({width,height:1100});
@@ -38,6 +57,8 @@ try{
    }));
   }
  }
+
+ for(const width of [1440,1280,390,320]){await page.setViewportSize({width,height:1100});await source.locator('[data-pending-inspector]').click();await pane.waitFor();await pane.screenshot({path:`${folder}/inspector-${width}.png`});assert.equal(await pane.locator('[data-inspector-body]').evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth+1),true,`${width} 详情不横向溢出`);await page.keyboard.press('Escape');await pane.waitFor({state:'hidden'});}
  await writeFile(`${folder}/measurements.json`,JSON.stringify(measurements,null,2));
  for(const item of measurements){
   assert.equal(item.overflow,false,`${item.viewport}px 卡片不溢出`);
@@ -50,7 +71,8 @@ try{
  const missing=card(ids[1]);await missing.locator('.review-note-field label').click();assert.equal(await missing.locator('[name=platformNoteId]').evaluate((node:HTMLElement)=>node===document.activeElement),true,'ID 标签关联真实输入');await missing.locator('[name=platformNoteId]').fill('b'.repeat(24));await missing.locator('[data-toggle-day-state]').click();assert.equal(await missing.locator('[data-toggle-day-state]').getAttribute('aria-expanded'),'true');await missing.locator('[name=dayAction]').selectOption('pause');assert.equal(await missing.locator('.review-costs').isVisible(),false);assert.equal(await missing.locator('[name=platformNoteId]').isDisabled(),true);await missing.locator('[data-paused-note-id]').waitFor();await missing.screenshot({path:`${folder}/320-paused.png`});
  await missing.locator('[name=dayAction]').selectOption('active');assert.equal(await missing.locator('[name=platformNoteId]').inputValue(),'b'.repeat(24));assert.equal(await missing.locator('[name=spend]').inputValue(),'123456.78');await missing.locator('[name=actualLeadCount]').fill('0');assert.equal(await missing.locator('[data-lead-cost]').innerText(),'—');await missing.locator('[name=actualLeadCount]').fill('2');
  await page.route('**/api/promotion-daily',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构保存失败，请重试。'})}));await missing.getByRole('button',{name:'完成复盘',exact:true}).click();await missing.locator('[data-form-message]').getByText('虚构保存失败，请重试。',{exact:true}).waitFor();await missing.screenshot({path:`${folder}/320-save-error.png`});assert.equal(await missing.locator('[name=spend]').inputValue(),'123456.78');await page.unroute('**/api/promotion-daily');
- await missing.getByRole('button',{name:'完成复盘',exact:true}).click();await missing.waitFor({state:'hidden'});assert.equal((await fixture.db.select().from(s.operationsPromotionDailyMetric)).length,1);assert.equal(await card(ids[0]).locator('[name=spend]').inputValue(),'123456.78');
+ await missing.locator('[data-pending-inspector]').click();await pane.waitFor();await mirror.getByRole('button',{name:'完成复盘',exact:true}).click();await missing.waitFor({state:'hidden'});await pane.locator('.promotion-day header time').getByText(day,{exact:true}).waitFor();await page.keyboard.press('Escape');await pane.waitFor({state:'hidden'});assert.equal((await fixture.db.select().from(s.operationsPromotionDailyMetric)).length,1);assert.equal(await card(ids[0]).locator('[name=spend]').inputValue(),'123456.78');
  const [saved]=await fixture.db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,ids[1]));const [version]=await fixture.db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,saved.contentVersionId));const [content]=await fixture.db.select().from(s.operationsContent).where(eq(s.operationsContent.id,version.contentId));assert.equal(content.platformNoteId,'b'.repeat(24));
+ {const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;}await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);assert.equal(await card(ids[0]).locator('[name=spend]').inputValue(),'','确认离开后不恢复已放弃的旧草稿');
  assert.deepEqual(errors,[]);await context.close();console.log('通过：11 种屏宽的输入可读宽度、成本完整文字、操作比例、有无笔记 ID 一致结构、暂停草稿、零分母、失败重试及真实保存。截图与计算尺寸已留存供视觉审查。');
 }catch(error){console.error(fixture.logs().slice(-3000));throw error;}finally{await browser?.close();await fixture.stop();}

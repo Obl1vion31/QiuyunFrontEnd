@@ -107,6 +107,7 @@ try {
   await page.goto(`${baseURL}/business/non-promotion-review?view=history&subject=tmua&category=innovation`);
   assert.equal(await page.locator('.review-row[data-row-href]').count(),2);
   assert.match(await page.locator('.metric-cell').first().getAttribute('title')||'',/20.00% · n=2/);
+  await page.locator('[data-category-open="tmua:innovation"]').first().click();
   await page.locator('.review-row[data-row-href]').first().click();await page.locator('[data-inspector]').waitFor();assert.equal(new URL(page.url()).searchParams.get('category'),'innovation');
   await page.keyboard.press('Escape');await page.waitForURL((url:URL)=>!url.searchParams.has('row'));assert.equal(new URL(page.url()).searchParams.get('subject'),'tmua');
   await page.locator('[data-module-href="/business/operations-schedule"]').click();await page.waitForURL('**/operations-schedule*');

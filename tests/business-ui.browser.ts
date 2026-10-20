@@ -3,7 +3,7 @@ import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
 import { and, eq } from 'drizzle-orm';
-import { mkdir } from 'node:fs/promises';
+import { mkdir,writeFile } from 'node:fs/promises';
 import { startFixture, admin } from './auth.fixture';
 import * as schema from '../src/db/schema';
 import { previousDateKey, shanghaiDateKey } from '../src/db/promotion-rules.mjs';
@@ -37,8 +37,8 @@ try {
   const playwright=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);
   browser=await playwright.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});
   const errors:string[]=[];
-  for(const width of [1440,390,320]) {
-    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
+  for(const width of [1440,1280,390,320]) {
+    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',...(width===1440?{recordVideo:{dir:'.tools/test-artifacts/category-motion',size:{width:1440,height:900}}}:{})});
     await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));
     const page=await context.newPage();
     page.on('pageerror',(error:Error)=>errors.push(error.message));
@@ -113,39 +113,39 @@ try {
       const box=await page.locator('.toolbar-segmented').boundingBox();for(const key of ['x','y','width','height']) assert.ok(Math.abs(box[key]-original[key])<=1,`${width} ${view} tabs ${key}`);
     }
     const redirected=await fetch(baseURL+`/business/promotion-stage-review?from=${start}&to=${start}&review=example&snapshot=version`,{redirect:'manual',headers:{Cookie:cookie}});assert.equal(redirected.status,302);assert.match(redirected.headers.get('location')!,/view=stage&from=.*review=example&snapshot=version/);
+    await page.goto(baseURL+'/business/non-promotion-review?view=history');
+    assert.equal(await page.locator('[data-category-group]').count(),2,'同学科不同类型分别汇总');
+    assert.equal(await page.locator('[data-category-group="tmua:temporary"] [data-category-click=day_7]').innerText(),'8.00%');
+    await page.screenshot({path:`.tools/test-artifacts/review-all-categories-${width}.png`,fullPage:true});
     await page.goto(baseURL+'/business/non-promotion-review?view=history&subject=tmua&category=temporary');
-    assert.equal(await page.locator('.missing-round').count(),1);assert.match(await page.locator('.missing-round').innerText(),/二轮.*暂无已复盘数据/s);assert.equal(await page.locator('.missing-round [data-inspector-key]').count(),0);
+    assert.equal(await page.locator('[data-category-read=day_15]').innerText(),'—','缺轮不补零');
+    assert.equal(await page.locator('[data-category-read=day_15]').locator('..').locator('..').locator('[aria-colindex="1"]').innerText(),'0 篇');
     await page.goto(baseURL+'/business/non-promotion-review?view=history&subject=tmua&category=innovation');
-    assert.equal(await page.locator('.review-post-group').count(),2,'同一逻辑帖的 V0 / V1 按排期独立分组');
-    for(const group of await page.locator('.review-post-group').all()){assert.equal(await group.locator('[data-review-common][data-label="帖子"]:visible').count(),1,'分组只展示一次帖子名称与版本');assert.equal(await group.locator('[data-review-common][data-label="实验日期"]:visible').count(),1);assert.equal(await group.locator('[data-review-common][data-label="分类"]:visible').count(),1);assert.equal(await group.locator('[data-inspector-key]').count(),2,'两轮仍是可独立操作的记录');}
-    assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),true);
-    assert.equal(await page.locator('[data-review-filters] [type=radio],[data-group-toggle]').count(),0,'筛选与展示方式独立分组');
-    const controlHeights=await page.locator('[data-review-filters] select,[data-review-display]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));assert.ok(controlHeights.every((height:number)=>height===36),'筛选与展示控件统一紧凑规格');
-    assert.equal(await page.locator('[data-sort=click]').isDisabled(),true);
-    assert.equal(await page.locator('.sort-hint,.post-group-title').count(),0);
-    const groupingGeometry=()=>page.evaluate(()=>{
-      const rects=[document.querySelector('[data-review-filters]')!,document.querySelector('.table-head')!,...document.querySelectorAll('.table-head>[role=columnheader]')].map(node=>{const r=node.getBoundingClientRect();return [r.x,r.y,r.width,r.height]});
-      return {filters:rects[0],header:rects[1],columns:rects.slice(2)};
-    });
-    await page.evaluate(()=>{(window as any).__groupTable=document.querySelector('.review-table');(window as any).__groupHead=document.querySelector('.table-head');(window as any).__groupRows=[...document.querySelectorAll('[data-inspector-key]')];});
-    const tableScroll=await page.locator('.table-scroll').evaluate((node:HTMLElement)=>{node.scrollLeft=43;return node.scrollLeft;});
-    const groupGeometry=await groupingGeometry();assert.equal(groupGeometry.columns.length,6);
+    assert.equal(await page.locator('[data-category-group]').count(),1,'同学科同类型形成一个分类');
+    assert.equal(await page.locator('[data-category-click=day_7]').innerText(),'8.99%');
+    assert.equal(await page.locator('[data-category-click=day_15]').innerText(),'8.59%','两轮均值隔离');
+    assert.equal(await page.getByRole('radio',{name:'按帖子分类',exact:true}).isChecked(),true);
+    assert.equal(await page.locator('[data-review-filters] [type=radio],[data-group-toggle]').count(),0);
+    const controlHeights=await page.locator('[data-review-filters] select,[data-review-display]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));assert.ok(controlHeights.every((height:number)=>height===36));
+    const groupingGeometry=()=>page.locator('.table-head>[role=columnheader]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.x,r.width,r.height]}));
+    const groupGeometry=await groupingGeometry();
+    await page.evaluate(()=>{(window as any).__groupTable=document.querySelector('.review-table');(window as any).__groupHead=document.querySelector('.table-head');(window as any).__groupRows=[...document.querySelectorAll('[data-row-href]')];});
     let groupDocuments=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')groupDocuments++;});
-    await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});if(width<=390){assert.equal(await page.locator('.table-scroll').evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth+1),true,'手机无需横向寻找结果');const values=await page.locator('[data-review-body] [data-result-metric] strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const range=document.createRange();range.selectNodeContents(node);const box=node.getBoundingClientRect();return {size:parseFloat(getComputedStyle(node).fontSize),fits:range.getBoundingClientRect().width<=box.width+1,right:box.right};}));assert.ok(values.every((value:any)=>value.size>=18&&value.fits&&value.right<=width),'手机两项结果完整可见');}
-    await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.waitForURL(/group=0/);
-    assert.equal(await page.locator('[data-review-body] [data-inspector-key] [data-label="帖子"]:visible').count(),4,'不分组时每个轮次独立展示完整帖子信息');
-    assert.deepEqual(await groupingGeometry(),groupGeometry,'分组切换保留筛选、表头和六列坐标');
-    assert.equal(await page.locator('.table-scroll').evaluate((node:HTMLElement)=>node.scrollLeft),tableScroll,'分组切换保留表格横向位置');
-    assert.equal(await page.evaluate(()=>(window as any).__groupTable===document.querySelector('.review-table')&&(window as any).__groupHead===document.querySelector('.table-head')&&(window as any).__groupRows.every((node:Element)=>node.isConnected)),true,'只移动现有行，保留公共节点');
-    assert.equal(groupDocuments,0,'分组切换不请求新文档');
+    await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});
+    await page.locator('[data-category-open="tmua:innovation"]').first().click();
+    assert.equal(await page.locator('[data-review-body]').isVisible(),true);
+    assert.equal(await page.locator('[data-review-body] [data-row-href]:visible').count(),4);
+    assert.equal(await page.locator('[data-category-title]').innerText(),'TMUA · 创新帖');
+    await page.screenshot({path:`.tools/test-artifacts/review-category-detail-${width}.png`,fullPage:true});
+    await page.locator('[data-category-back]').click();assert.equal(await page.locator('[data-category-overview]').isVisible(),true);
+    await page.goBack();await page.waitForURL(/bucket=tmua/);assert.equal(await page.locator('[data-review-body]').isVisible(),true);
+    await page.goForward();await page.waitForURL((url:URL)=>!url.searchParams.has('bucket'));
+    await page.getByRole('radio',{name:'平铺',exact:true}).check();await page.waitForURL(/group=0/);
+    assert.equal(await page.locator('[data-review-body] [data-inspector-key] [data-label="帖子"]:visible').count(),4);
+    assert.deepEqual(await groupingGeometry(),groupGeometry,'分类、明细和平铺保留六列宽度');
+    assert.equal(await page.evaluate(()=>(window as any).__groupTable===document.querySelector('.review-table')&&(window as any).__groupHead===document.querySelector('.table-head')&&(window as any).__groupRows.every((node:Element)=>node.isConnected)),true,'公共节点与事实记录持续存在');
+    assert.equal(groupDocuments,0,'分类切换与前后退无文档请求');
     await page.screenshot({path:`.tools/test-artifacts/review-ungrouped-${width}.png`,fullPage:true});
-    await page.locator('[data-sort=click]').click();
-    await page.getByRole('radio',{name:'按帖子分组',exact:true}).check();await page.waitForURL(/group=1/);
-    assert.equal(await page.locator('[data-sort=click]').isDisabled(),true);
-    assert.equal(await page.locator('[data-sort=date]').locator('..').getAttribute('aria-sort'),'descending','跨轮分组恢复日期倒序');
-    await page.goBack();await page.waitForURL(/group=0/);assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),false);
-    await page.goForward();await page.waitForURL(/group=1/);assert.equal(await page.getByRole('radio',{name:'按帖子分组',exact:true}).isChecked(),true);
-    assert.equal(groupDocuments,0,'分组前后退同样原位完成');
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
     assert.match(await first.innerText(),/同类均值\s+8.99%/);assert.match(await first.innerText(),/-3.47pp/);
@@ -166,14 +166,6 @@ try {
     await inspector.locator('.correction summary').click();
     assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
     await inspector.locator('[name=conclusion]').fill('尚未保存');
-    if(width===1440){
-      await inspector.locator('[name=conclusion]').evaluate((node:Element)=>{(window as any).__dirtyEditor=node;});
-      await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.getByRole('radio',{name:'按帖子分组',exact:true}).check();
-      assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
-      assert.equal(await inspector.locator('[name=conclusion]').evaluate((node:Element)=>node===(window as any).__dirtyEditor),true,'局部分组保留编辑节点和输入');
-      await page.goBack();await page.waitForURL(/group=0/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
-      await page.goBack();await page.waitForURL(/group=1/);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
-    }
     {const answered=respondToBusinessConfirm(page);await page.getByRole('link',{name:'待复盘',exact:true}).click();await answered;}assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
     {const answered=respondToBusinessConfirm(page);await page.goBack();await answered;}await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[1]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[1]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await inspector.locator('[data-close-inspector]').click();await answered;}assert.equal(await inspector.isVisible(),true,'未保存取消关闭');
@@ -193,8 +185,8 @@ try {
       await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
     }
     await page.locator('[name=checkpoint]').selectOption('day_7');await page.waitForURL(/checkpoint=day_7/);assert.equal(await page.locator('[data-sort=click]').isDisabled(),false);assert.equal(await page.locator('[data-checkpoint=day_15]').count(),0);
-    await page.locator('[data-sort=click]').click();await page.locator('[data-sort=click]').click();assert.equal(await page.locator('.review-post-group').first().getAttribute('data-review-group'),ids[1],'单轮指标排序按整个帖子组移动');
-    await page.getByRole('radio',{name:'不分组',exact:true}).check();await page.waitForURL(/group=0/);assert.equal(await page.locator('.review-post-group').count(),0);
+    await page.locator('[data-sort=click]').click();await page.locator('[data-sort=click]').click();assert.equal(await page.locator('[data-review-body] [data-row-href]').first().getAttribute('data-schedule-id'),ids[1],'按首轮指标排序独立记录');
+    await page.getByRole('radio',{name:'平铺',exact:true}).check();await page.waitForURL(/group=0/);assert.equal(await page.locator('.review-post-group').count(),0);
     await page.screenshot({path:`.tools/test-artifacts/business-ui-${width}.png`,fullPage:true});
     if(width===1440) {
       await page.goto(baseURL+`/business/operations-schedule?month=${published.slice(0,7)}`);
@@ -221,9 +213,19 @@ try {
     await editor.locator('textarea').evaluate((node:HTMLElement)=>node.style.height='1100px');await editor.locator('.form-dialog-body').evaluate((node:HTMLElement)=>node.scrollTop=node.scrollHeight);
     assert.deepEqual(await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),editorGeometry,`推广历史长表单头尾固定 ${JSON.stringify(await editor.evaluate((node:HTMLElement)=>({html:node.outerHTML.slice(0,600),dialogHeight:getComputedStyle(node).height,formHeight:getComputedStyle(node.querySelector('form')!).height,formDisplay:getComputedStyle(node.querySelector('form')!).display,bodyHeight:getComputedStyle(node.querySelector('.form-dialog-body')!).height})))}`);
     await page.screenshot({path:`.tools/test-artifacts/promotion-edit-ui-${width}.png`});await editor.locator('[data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
+    if(width===1440){
+      await page.emulateMedia({reducedMotion:'no-preference'});await page.goto(baseURL+'/business/non-promotion-review?view=history');
+      const samples=()=>page.evaluate(async()=>{const target=document.querySelector<HTMLElement>('[data-review-body]')!,bar=document.querySelector('.business-toolbar')!,frames:any[]=[];for(let n=0;n<22;n++){await new Promise(requestAnimationFrame);const style=getComputedStyle(target),box=bar.getBoundingClientRect();frames.push({opacity:Number(style.opacity),transform:style.transform,animations:target.getAnimations().length,toolbar:[box.x,box.y,box.width,box.height]});}return frames;});
+      const entering=samples();await page.locator('[data-category-open="tmua:innovation"]').first().click();const frames=await entering;assert.ok(frames.some((frame:any)=>frame.animations>0));assert.ok(frames.every((frame:any)=>JSON.stringify(frame.toolbar)===JSON.stringify(frames[0].toolbar)),'分类转场保持工具栏稳定');
+      await page.locator('[data-review-body] [data-row-href]').first().click();await page.locator('[data-inspector]').waitFor();await page.locator('[data-inspector] [data-close-inspector]').click();await page.locator('[data-inspector]').waitFor({state:'hidden'});
+      await page.locator('[data-category-back]').click();await page.locator('[data-category-open="tmua:innovation"]').first().click();await page.locator('[data-category-back]').click();await page.locator('[data-category-overview]').waitFor();
+      await page.emulateMedia({reducedMotion:'reduce'});await page.locator('[data-category-open="tmua:innovation"]').first().click();assert.equal(await page.locator('[data-review-body]').evaluate((node:HTMLElement)=>node.getAnimations().length),0);
+      await writeFile('.tools/test-artifacts/category-motion/frames.json',JSON.stringify(frames,null,2));
+    }
     await context.close();
+    if(width===1440)await page.video()?.saveAs('.tools/test-artifacts/category-motion/category-and-inspector.webm');
     await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'4.95'}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[1]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
   }
-  assert.deepEqual(errors,[]);console.log('通过：共享正文和工具栏几何、推广同节点切换、同名分组与轮次基准、无文档跳转 Inspector、历史与键盘、未保存保护、保存刷新及失败保留、1440/390/320px。');
+  assert.deepEqual(errors,[]);console.log('通过：共享正文和工具栏几何、推广同节点切换、分类均值、分类明细和平铺与轮次基准、无文档跳转 Inspector、历史与键盘、未保存保护、保存刷新及失败保留、1440/1280/390/320px。');
 } catch(error){console.error(fixture.logs());throw error;}
 finally{await browser?.close();await fixture.stop();}

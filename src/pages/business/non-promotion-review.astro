@@ -11,7 +11,7 @@ import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 import { subjects } from '../../db/taxonomy';
 export const prerender = false;
 const databaseStartedAt=performance.now();
-const { checkpointEvents, today, names, loadError, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref } = await readNonPromotionReview(Astro.url);
+const { checkpointEvents, today, names, loadError, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
 const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 ---
@@ -35,31 +35,40 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
       {activeView === 'history' && <><label>复盘轮次<select name="checkpoint"><option value="">全部轮次</option><option value="day_7" selected={selectedRound==='day_7'}>首轮</option><option value="day_15" selected={selectedRound==='day_15'}>二轮</option></select></label><input type="hidden" name="group" value={grouped?'1':'0'}/></>}
       {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}`}>清除筛选</a>}
     </form>
-    {activeView==='history' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'按帖子分组',value:'1'},{label:'不分组',value:'0'}]} data-review-display/></div>}
+    {activeView==='history' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'按帖子分类',value:'1'},{label:'平铺',value:'0'}]} data-review-display/></div>}
     </div>
     <section class="review-workspace" data-inspector-host>
-      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)} data-nonpromotion-results={activeView==='history'||undefined}>
+      <div class="table-pane"><div class="review-category-context" data-category-context hidden={!grouped||!selectedGroup}><button type="button" data-category-back>‹ 返回分类汇总</button><strong data-category-title>{categoryGroups.find(group=>group.key===selectedGroup)?.label}</strong></div><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
         <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={grouped&&!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={grouped&&!selectedRound}><span class="sort-read-full">3 秒阅读率</span><span class="sort-read-short">阅读率</span> <i aria-hidden="true">↕</i></button></span><span role="columnheader">分类</span></div>
-        <div data-review-body>
-        {rows.filter(row=>tableRows.some(item=>item.row.id===row.id)).map(row=>({id:row.id, row, items:tableRows.filter(item=>item.row.id===row.id)})).map(group => <div class:list={{'review-post-group':grouped}} role="rowgroup" data-review-group={group.id}>
-        {group.items.map((item,index) => {
+        <div data-category-overview hidden={!grouped||!!selectedGroup}>
+ {categoryGroups.map(group=><div class="review-category-group" role="rowgroup" data-category-group={group.key} data-category-label={group.label}>
+ {group.rounds.filter(round=>!selectedRound||round.type===selectedRound).map((round,index)=><div class="review-row category-summary-row" role="row">
+ <span role="cell" aria-colindex="1" data-label="有效样本">{round.count} 篇</span>
+ <span role="cell" aria-colindex="2" data-label="帖子分类">{index===0&&<button type="button" data-category-open={group.key}>{group.label}</button>}</span>
+ <span role="cell" aria-colindex="3"><mark>{names[round.type]}</mark></span>
+ <span role="cell" aria-colindex="4" class="metric" data-label="平均点击率"><strong data-category-click={round.type}>{round.click==null?'—':`${round.click.toFixed(2)}%`}</strong></span>
+ <span role="cell" aria-colindex="5" class="metric" data-label="平均 3 秒阅读率"><strong data-category-read={round.type}>{round.read==null?'—':`${round.read.toFixed(2)}%`}</strong></span>
+ <span role="cell" aria-colindex="6">{index===0&&<button type="button" data-category-open={group.key} class="category-detail-link">查看明细 →</button>}</span>
+ </div>)}
+ </div>)}
+ </div><div data-review-body hidden={grouped&&!selectedGroup}>
+        {rows.filter(row=>tableRows.some(item=>item.row.id===row.id)).map(row=>({id:row.id, row, items:tableRows.filter(item=>item.row.id===row.id)})).map(group => <div class="review-record-container" role="rowgroup" data-review-group={group.id}>
+        {group.items.map((item) => {
           const clickValue=item.metric?Number(item.metric.clickRate):null;const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
           const click=metricPresentation(clickValue,item.click.mean);const read=metricPresentation(readValue,item.read.mean);
-          return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
-            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':grouped&&index>0}]} aria-hidden={grouped&&index>0?'true':undefined}>{shanghaiDateKey(item.row.actualPublishAt)}</span>
-            <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':grouped&&index>0}]} aria-hidden={grouped&&index>0?'true':undefined} title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
+          return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
+            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':false}]} >{shanghaiDateKey(item.row.actualPublishAt)}</span>
+            <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':false}]}  title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
               <span class="review-post-title">{item.row.projectDocUrl?<a href={item.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{item.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{item.row.contentName}</strong>}<small>V{item.row.versionNumber}</small></span>
               {!item.row.projectDocUrl&&<small>项目文档待补</small>}
             </span>
             <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
             <span role="cell" aria-colindex="4" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
             <span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
-            <span role="cell" aria-colindex="6" data-review-common data-label="分类" class:list={{'review-common-repeat':grouped&&index>0}} aria-hidden={grouped&&index>0?'true':undefined}>{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
+            <span role="cell" aria-colindex="6" data-review-common data-label="分类" class:list={{'review-common-repeat':false}} >{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
           </div>;
         })}
-          {activeView==='history' && !selectedRound && ['day_7','day_15'].filter(type=>!group.items.some(item=>item.checkpoint.type===type)).map(type=><div class="review-row missing-round" role="row" data-review-placeholder data-checkpoint={type} hidden={!grouped}>
-            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':grouped}]}>{shanghaiDateKey(group.row.actualPublishAt)}</span><span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':grouped}]}><span class="review-post-title">{group.row.projectDocUrl?<a href={group.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{group.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{group.row.contentName}</strong>}<small>V{group.row.versionNumber}</small></span>{!group.row.projectDocUrl&&<small>项目文档待补</small>}</span><span role="cell" aria-colindex="3"><mark>{names[type]}</mark></span><span role="cell" aria-colindex="4" data-label="点击率" class="metric">暂无已复盘数据</span><span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric">—</span><span role="cell" aria-colindex="6" data-review-common data-label="分类" class:list={{'review-common-repeat':grouped}}>{group.row.subjectName} / {group.row.categoryName||'临时帖'}</span>
-          </div>)}
+
         </div>)}
         </div>
       </div></div>
@@ -95,15 +104,15 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 </BusinessConsoleFrame>
 <script>import '../../scripts/non-promotion-review';</script>
 <style is:global>
-:root{font-family:var(--console-font);color:var(--console-ink);background:#e9ece8}*{box-sizing:border-box}body{margin:0}.error-banner{margin-bottom:12px;padding:12px;border-radius:8px;color:#923c26;background:#ffe5dc;font-size:var(--console-caption)}.note-id{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}.note-id{overflow:hidden;color:#77827c;font-size:var(--console-caption);text-overflow:ellipsis;white-space:nowrap}.note-id.missing{font-family:inherit}.inspector>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;padding:18px;border-bottom:1px solid var(--console-line);background:#fafbf9f2;backdrop-filter:blur(10px)}.inspector header span{color:var(--console-blue);font-size:var(--console-caption);font-weight:600}.inspector h1{margin:3px 0;font-size:1rem}.inspector header p,.identity-panel p{margin:0;color:var(--console-muted);font-size:var(--console-caption)}.inspector header>a{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--console-ink);background:#e6eae7;font-size:1.1rem;text-decoration:none}.identity-panel,.correction{padding:15px 18px;border-bottom:1px solid var(--console-line)}.identity-panel>label,.correction summary{color:var(--console-muted);font-size:var(--console-caption);font-weight:600}.full-id{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}.full-id code{font-size:var(--console-caption)}.full-id button,.correction button{border:1px solid #aeb8b2;border-radius:6px;padding:6px 9px;background:#fff;font-size:var(--console-caption);font-weight:600;cursor:pointer}.correction summary{cursor:pointer}.correction form,.review-form{display:grid;gap:12px}.correction form{margin-top:12px}.correction p{margin:0;color:#795129;font-size:var(--console-caption)}.review-form{padding:18px}.review-form label,.correction label{display:grid;gap:5px;color:var(--console-muted);font-size:var(--console-caption);font-weight:600}.review-form input,.review-form textarea,.correction input{width:100%;border:1px solid #abb5af;border-radius:7px;padding:9px;color:var(--console-ink);background:#fff;font:600 var(--console-caption) var(--console-font)}.review-form textarea{min-height:110px;resize:vertical}.rate{display:grid;grid-template-columns:1fr 32px;align-items:center;border:1px solid #abb5af;border-radius:7px;background:#fff}.rate input{border:0}.rate b{text-align:center}.review-form output,.correction output{color:#963f29;font-size:var(--console-caption)}.review-form>button{height:40px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font-weight:600;cursor:pointer}.review-form>button:disabled{opacity:.55}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+:root{font-family:var(--console-font);color:var(--console-ink);background:#e9ece8}*{box-sizing:border-box}body{margin:0}.error-banner{margin-bottom:12px;padding:12px;border-radius:8px;color:#923c26;background:#ffe5dc;font-size:var(--console-caption)}.note-id{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-variant-numeric:tabular-nums}.note-id{overflow:hidden;color:#77827c;font-size:var(--console-caption);text-overflow:ellipsis;white-space:nowrap}.note-id.missing{font-family:inherit}.inspector>header{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:12px;padding:18px;border-bottom:1px solid var(--console-line);background:#fafbf9f2;backdrop-filter:blur(10px)}.inspector header span{color:var(--console-blue);font-size:var(--console-caption);font-weight:500}.inspector h1{margin:3px 0;font-size:1rem}.inspector header p,.identity-panel p{margin:0;color:var(--console-muted);font-size:var(--console-caption)}.inspector header>a{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--console-ink);background:#e6eae7;font-size:1.1rem;text-decoration:none}.identity-panel,.correction{padding:15px 18px;border-bottom:1px solid var(--console-line)}.identity-panel>label,.correction summary{color:var(--console-muted);font-size:var(--console-caption);font-weight:500}.full-id{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}.full-id code{font-size:var(--console-caption)}.full-id button,.correction button{border:1px solid #aeb8b2;border-radius:6px;padding:6px 9px;background:#fff;font-size:var(--console-caption);font-weight:500;cursor:pointer}.correction summary{cursor:pointer}.correction form,.review-form{display:grid;gap:12px}.correction form{margin-top:12px}.correction p{margin:0;color:#795129;font-size:var(--console-caption)}.review-form{padding:18px}.review-form label,.correction label{display:grid;gap:5px;color:var(--console-muted);font-size:var(--console-caption);font-weight:500}.review-form input,.review-form textarea,.correction input{width:100%;border:1px solid #abb5af;border-radius:7px;padding:9px;color:var(--console-ink);background:#fff;font:400 var(--console-caption) var(--console-font)}.review-form textarea{min-height:110px;resize:vertical}.rate{display:grid;grid-template-columns:1fr 32px;align-items:center;border:1px solid #abb5af;border-radius:7px;background:#fff}.rate input{border:0}.rate b{text-align:center}.review-form output,.correction output{color:#963f29;font-size:var(--console-caption)}.review-form>button{height:40px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font-weight:500;cursor:pointer}.review-form>button:disabled{opacity:.55}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 <style is:global>
-.review-summary{display:flex;align-items:center;gap:15px;color:#68736d;font-size:var(--console-caption);white-space:nowrap}.review-summary span{display:flex;align-items:baseline;gap:5px}.review-summary b{color:#27342d;font:600 13px var(--console-font);font-variant-numeric:tabular-nums}[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}@media(max-width:900px){.review-summary{display:none}}
+.review-summary{display:flex;align-items:center;gap:15px;color:#68736d;font-size:var(--console-caption);white-space:nowrap}.review-summary span{display:flex;align-items:baseline;gap:5px}.review-summary b{color:#27342d;font:500 13px var(--console-font);font-variant-numeric:tabular-nums}[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}@media(max-width:900px){.review-summary{display:none}}
 </style>
 </body></html>
 
 <style is:global>
-.checkpoint-action{margin:0 18px 18px;border-top:1px solid var(--console-line);padding-top:14px}.checkpoint-action summary{cursor:pointer;font-size:13px;font-weight:600}.checkpoint-action>p{font-size:13px;line-height:1.5;white-space:pre-wrap}.checkpoint-action small{display:block;color:var(--console-muted);font-size:var(--console-caption)}.checkpoint-action .review-form{padding:14px 0 0}
+.checkpoint-action{margin:0 18px 18px;border-top:1px solid var(--console-line);padding-top:14px}.checkpoint-action summary{cursor:pointer;font-size:13px;font-weight:500}.checkpoint-action>p{font-size:13px;line-height:1.5;white-space:pre-wrap}.checkpoint-action small{display:block;color:var(--console-muted);font-size:var(--console-caption)}.checkpoint-action .review-form{padding:14px 0 0}
 </style>
 
 <style is:global>
@@ -112,26 +121,26 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 <style is:global>
 .review-controls{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:16px 24px;margin-bottom:16px}
 .review-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;min-width:0;margin:0}
-.review-filters>label,.review-display{display:grid;gap:6px;margin:0;color:var(--console-ink);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.review-filters>label,.review-display{display:grid;gap:6px;margin:0;color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-filters select{width:160px;max-width:100%;height:var(--console-control-compact);min-width:0;margin:0;border:1px solid #abb5af;border-radius:var(--console-control-radius);padding:6px 10px;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-filters a{display:flex;align-items:center;height:var(--console-control-compact);padding:0 8px;color:var(--console-blue);font-size:var(--console-caption)}
 .review-filters select:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .review-workspace{min-height:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
 .table-pane{min-width:0}.table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}
 .review-table{width:100%;min-width:964px}
-.review-row{display:grid;grid-template-columns:104px minmax(220px,1fr) 72px minmax(220px,1.25fr) minmax(220px,1.25fr) 128px;align-items:center;min-height:60px;border-bottom:1px solid #dde2df;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.review-row{display:grid;grid-template-columns:100px minmax(200px,1.1fr) 64px minmax(180px,1fr) minmax(180px,1fr) 184px;align-items:center;min-height:60px;border-bottom:1px solid #dde2df;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-row>span{min-width:0;padding:8px 12px}
-.table-head{position:sticky;top:0;z-index:2;min-height:42px;color:#53615a;background:#edf1ee;font-size:var(--console-caption);line-height:var(--console-caption-leading);font-weight:600}
+.table-head{position:sticky;top:0;z-index:2;min-height:42px;color:#53615a;background:#edf1ee;font-size:var(--console-caption);line-height:var(--console-caption-leading);font-weight:500}
 .table-head>span:nth-child(4),.table-head>span:nth-child(5){text-align:left}.table-head button{display:inline-flex;align-items:center;gap:5px;margin:0;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head i{opacity:.5;font-size:var(--console-caption);font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
 .review-row:not(.table-head):hover,.review-row.selected{background:#f5f7f5}.review-row.selected{box-shadow:inset 3px 0 var(--console-blue)}.review-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
 .date-cell{font-variant-numeric:tabular-nums}
-.post-cell{display:grid;gap:3px}.review-post-title{display:flex;align-items:baseline;gap:8px;min-width:0}.post-cell a{display:flex;align-items:center;gap:5px;min-width:0;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:var(--console-muted);font-size:var(--console-caption);font-style:normal}.post-cell strong{min-width:0;overflow:hidden;color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:600;text-overflow:ellipsis;white-space:nowrap}.post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.review-post-title small{flex:none}
-.review-row mark{display:inline-block;padding:2px 6px;border:1px solid #d9dfdb;border-radius:5px;color:#53615a;background:#f2f4f2;font-size:var(--console-caption);font-weight:600;line-height:var(--console-caption-leading);white-space:nowrap}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}
+.post-cell{display:grid;gap:3px}.review-post-title{display:flex;align-items:baseline;gap:8px;min-width:0}.post-cell a{display:flex;align-items:center;gap:5px;min-width:0;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:var(--console-muted);font-size:var(--console-caption);font-style:normal}.post-cell strong{min-width:0;overflow:hidden;color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:500;text-overflow:ellipsis;white-space:nowrap}.post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.review-post-title small{flex:none}
+.review-row mark{display:inline-block;padding:2px 6px;border:1px solid #d9dfdb;border-radius:5px;color:#53615a;background:#f2f4f2;font-size:var(--console-caption);font-weight:500;line-height:var(--console-caption-leading);white-space:nowrap}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}
 .review-row .metric{text-align:left}.review-row[hidden]{display:none}.review-post-group{border-bottom:1px solid var(--console-line)}.review-row.missing-round{color:var(--console-muted);font-size:var(--console-caption)}.review-table button:disabled{cursor:default;opacity:.6}
 .review-common-repeat{visibility:hidden;pointer-events:none}.review-post-group .review-row{border-bottom:0}.review-post-group .review-row>[role=cell]:nth-child(n+3):nth-child(-n+5){border-bottom:1px solid #dde2df}.review-post-group .review-row:last-child>[role=cell]{border-bottom:0}
 .review-empty{padding:32px 16px;text-align:center;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
-.review-workspace .review-form label{font-size:var(--console-text);line-height:var(--console-text-leading);color:var(--console-ink);font-weight:600}.review-workspace .review-form :is(input,textarea){min-height:var(--console-control-height);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
-.review-workspace .rate{height:var(--console-control-height)}.review-workspace .rate input{min-height:0;height:calc(var(--console-control-height) - 2px)}.review-workspace .rate b,.review-workspace .review-form>button{font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.review-workspace .review-form label{font-size:var(--console-text);line-height:var(--console-text-leading);color:var(--console-ink);font-weight:500}.review-workspace .review-form :is(input,textarea){min-height:var(--console-control-height);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.review-workspace .rate{height:var(--console-control-height)}.review-workspace .rate input{min-height:0;height:calc(var(--console-control-height) - 2px)}.review-workspace .rate b,.review-workspace .review-form>button{font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
 @media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters select{width:100%}.review-display{width:100%}}
 </style>
 
@@ -159,4 +168,27 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
  .review-row .metric::before{content:attr(data-label);display:block;margin-bottom:4px;color:var(--console-muted);font-size:12px}
  .post-cell strong{white-space:normal;overflow-wrap:anywhere}
 }
+</style>
+
+<style is:global>
+.review-category-context{display:flex;align-items:center;gap:16px;min-height:48px;padding:8px 12px;border-bottom:1px solid var(--console-line)}
+.review-category-context button,.category-summary-row button{padding:0;border:0;background:transparent;color:var(--console-blue);font:500 13px/20px var(--console-font);cursor:pointer;white-space:nowrap}
+.review-category-context strong{font-size:14px;font-weight:500}
+.review-category-group{border-bottom:1px solid var(--console-line)}
+.category-summary-row{border:0}
+.category-summary-row .metric strong{font-size:20px;font-weight:500;line-height:28px;font-variant-numeric:tabular-nums}
+.category-summary-row [data-category-open]:not(.category-detail-link){font-size:14px;color:var(--console-ink);text-align:left}
+.review-category-group .category-summary-row+.category-summary-row>:nth-child(n+3):nth-child(-n+5){border-top:1px solid var(--console-line)}
+.review-row>[data-label="分类"]{white-space:nowrap}
+[data-category-overview][hidden],[data-review-body][hidden],.review-category-context[hidden]{display:none!important}
+@media(max-width:900px){
+ .category-summary-row .metric strong{font-size:18px}
+ .review-category-group .category-summary-row+.category-summary-row{grid-template-areas:"date date date" "node click read";border-top:1px solid var(--console-line)}
+ .review-category-group .category-summary-row+.category-summary-row>[aria-colindex="2"],.review-category-group .category-summary-row+.category-summary-row>[aria-colindex="6"]{display:none}
+ .review-category-context{flex-wrap:wrap;gap:6px 14px}
+}
+</style>
+<style is:global>
+.review-table .table-head>[role=columnheader]{display:flex;align-items:center;align-self:stretch;min-height:42px}
+@media(max-width:700px){.review-table .table-head>span:not(:has(button)){min-height:0}}
 </style>

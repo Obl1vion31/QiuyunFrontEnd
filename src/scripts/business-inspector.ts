@@ -21,6 +21,7 @@ export interface InspectorOptions {
   render?: (id: string) => void;
   select?: (id: string | null) => void;
   localParameters?: string[];
+  discard?: () => void;
   onContextChange?: (url: URL) => void;
 }
 const controllers = new WeakMap<HTMLElement, ReturnType<typeof createInspector>>();
@@ -64,7 +65,12 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   const syncContext = () => { element.dataset.inspectorHistoryBase = baseUrl(currentUrl); element.dataset.inspectorLocalParameters = (options.localParameters??[]).join(','); };
   syncContext();
   const dirty = () => element.dataset.dirty === 'true';
-  const mayLeave = async () => !dirty() || await businessConfirm('有尚未保存的修改，是否放弃？');
+  const mayLeave = async () => {
+    if (!dirty()) return true;
+    if (!await businessConfirm('有尚未保存的修改，是否放弃？')) return false;
+    options.discard?.();
+    return true;
+  };
   const setClean = () => { element.dataset.dirty = 'false'; document.documentElement.dataset.unsaved = String([...document.querySelectorAll('form[data-dirty=true]')].some(form=>!element.contains(form))); };
   const updateUrl = (id: string | null, replace = false) => {
     if (!parameter) return;
@@ -200,7 +206,17 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   document.addEventListener('submit', guardNavigation, {signal,capture:true});
   document.addEventListener('astro:before-swap', () => { stopMotion();setBusinessScrollLock(element,false);lifecycle.abort(); }, { once: true, signal });
   return { open, close, setClean,
+    refresh:()=>{if(!selected||dirty())return;const body=element.querySelector<HTMLElement>('[data-inspector-body]'),scroll=body?.scrollTop??0;options.render?.(selected);organizeInspector(element);const next=element.querySelector<HTMLElement>('[data-inspector-body]');if(next)next.scrollTop=scroll;},
     configure:(next:InspectorOptions)=>{Object.assign(options,next);syncContext();},
+    setLocalParameters:(values:Record<string,string|null>)=>{
+      const url=new URL(location.href);
+      for(const [name,value] of Object.entries(values)){
+        if(!options.localParameters?.includes(name))throw new Error('未注册的局部视图参数');
+        if(value==null)url.searchParams.delete(name);else url.searchParams.set(name,value);
+      }
+      if(url.href!==location.href)history.pushState({...history.state,businessInspector:true},'',url);
+      currentUrl=url;syncContext();options.onContextChange?.(url);
+    },
     setLocalParameter:(name:string,value:string)=>{
       if(!options.localParameters?.includes(name))throw new Error('未注册的局部视图参数');
       const url=new URL(location.href);url.searchParams.set(name,value);

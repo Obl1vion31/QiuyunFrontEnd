@@ -8,8 +8,10 @@
   font:400 var(--console-text)/var(--console-text-leading) var(--console-font);
 }
 :where(.business-console-frame,.business-form-sheet,.business-form-dialog) button {
+  font-weight:500;
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(h1,h2,h3,h4) {
   font-weight:600;
 }
-:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(h1,h2,h3,h4,strong,b) {
-  font-weight:600;
-}
+
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(strong,b) {font-weight:500;}
