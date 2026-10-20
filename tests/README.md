@@ -6,7 +6,7 @@
 
 先执行 `pnpm build`，再执行 `pnpm test:browser` 和 `pnpm test:annual-plan`。浏览器验收使用 `auth.fixture.ts` 自带的 PGlite 数据库、虚构账号与独立端口，覆盖真实 HTTP 权限、业务写入和桌面／手机登录体验，不连接 `.env` 中的共享 Neon 数据库。
 
-浏览器工具通过 `PLAYWRIGHT_MODULE` 指定；默认读取项目内被忽略的 `.tools/tooling/node_modules/playwright/index.mjs`。Chromium 可通过 `PLAYWRIGHT_BROWSERS_PATH` 指定下载位置。截图保存在 `.tools/test-artifacts/`，不放入公开资源。
+浏览器工具通过 `PLAYWRIGHT_MODULE` 指定；默认读取项目内被忽略的 `.tools/tooling/node_modules/playwright/index.mjs`。Chromium 可通过 `PLAYWRIGHT_BROWSERS_PATH` 指定下载位置。原始截图保存在 `.tools/test-artifacts/`；实际审阅后的最终截图另存到根目录 [`verified/`](../verified/README.md)，按时间和页面编目，不放入网站公开资源。
 
 公网验收只做已授权账号登录、读取和无权限请求，不向共享业务库添加虚构数据。构建前需使用 Node 22；本机工具目录、测试产物及数据库备份不会提交或发布。
 
@@ -54,7 +54,7 @@ pnpm test:reviews
 pnpm test:annual-plan
 ```
 
-新增复用模式时更新[真实接入例子](../docs/code-study.md#共享界面接入)及行为测试。截图只放 `.tools/test-artifacts/`；公网检查使用匿名只读请求，业务写入全部在隔离库验证。浏览器触发导航后先等待请求完成，再直接核对隔离库，避免与 PGlite socket 的会话查询交叉。
+新增复用模式时更新[真实接入例子](../docs/code-study.md#共享界面接入)及行为测试。原始截图留在 `.tools/test-artifacts/`，最终视觉交付按 [`verified/`](../verified/README.md) 归档并提供查看链接；公网检查使用匿名只读请求，业务写入全部在隔离库验证。浏览器触发导航后先等待请求完成，再直接核对隔离库，避免与 PGlite socket 的会话查询交叉。
 
 `pnpm test:publication` 在构建后验证统一未来时间登记、完整分享文案、历史空链接、旧预约接口停用、权限和并发，以及 1440／390／320px 默认月历、发布状态与推广身份、同日多帖、两行卡片和长标题单行省略、详情打开后的布局、筛选、点击日期新建、未保存保护和失败保留。`publication-workflow.test.ts` 用固定北京时间验证 17:00 登记 20:00、历史边界、到期理由推进及更正留痕；原迁移兼容测试继续保留。业务写入仅使用隔离库。
 

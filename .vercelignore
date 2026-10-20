@@ -23,3 +23,6 @@ public/images/THE-PLAN/
 public/images/Daily/
 public/images/REVIEW/
 public/**/*.md
+
+# 视觉验收归档仅供项目内查看，不进入网站部署。
+/verified/

@@ -5,6 +5,7 @@
 - [公网工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)
 - [最新交接](handoff.md)：最近交付、验证范围和接手顺序。
 - [文档导航](docs/README.md)：业务规则、代码、数据库和发布说明。
+- [视觉验收图库](verified/README.md)：按时间保存的最终界面截图，可直接查看并反馈。
 
 ## 本地启动
 
@@ -55,7 +56,8 @@ pnpm build
 | `public/` | 网站实际使用的公开图片与脚本 |
 | `data/` | 本机私有原始表格和核对素材 |
 | `docs/` | 当前有效的规则、专题说明与历史归档 |
-| `.tools/` | 被忽略的本机工具、测试产物和私有备份 |
+| `verified/` | 按时间归档的最终视觉截图与查看索引，不进入网站部署 |
+| `.tools/` | 被忽略的本机工具、原始测试产物和私有备份 |
 
 ## 日常使用与发布
 
