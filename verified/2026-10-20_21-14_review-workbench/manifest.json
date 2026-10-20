@@ -7,7 +7,7 @@
   "sourceDigestMethod": "SHA256 of sorted src/drizzle code and package manifest paths plus file SHA256",
   "dataSource": "isolated-test-fixtures",
   "status": "self-reviewed-awaiting-user-feedback",
-  "deployment": "not-published",
+  "deployment": "published",
   "images": [
     {
       "file": "non-promotion-review/nonpromotion-categories-1280.png",
@@ -408,5 +408,14 @@
       390,
       320
     ]
+  },
+  "publishedRelease": {
+    "commit": "1d48f405f30c8716122ba4ebad5c6397b69c7812",
+    "origin": "https://qiuyun-frontend.vercel.app",
+    "deploymentId": "dpl_H4kVhCQ9iKYPfrwQDQ3NuXFSuJat",
+    "verifiedAt": "2026-10-20T13:26:35.512Z",
+    "migration": "0035_retire_team_promotion_pauses",
+    "publicChecks": 36,
+    "assetsMatchReviewedBuild": true
   }
 }
