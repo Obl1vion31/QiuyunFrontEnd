@@ -42,20 +42,20 @@ const rows = schedules.filter(row => (!row.categoryId || latestPolicy.get(row.ca
 });
 const pending = rows.filter(row => row.next);
 const activeView = ['history','skipped'].includes(url.searchParams.get('view') ?? '') ? url.searchParams.get('view')! : 'pending';
-const selectedRound = activeView === 'history' && ['day_7','day_15'].includes(url.searchParams.get('checkpoint') ?? '') ? url.searchParams.get('checkpoint')! : '';
+const selectedRound = '';
 const grouped = activeView === 'history' && url.searchParams.get('group') !== '0';
 const viewHref = (view: string, key?: string) => {
   const query = new URLSearchParams({ view });
   if (selectedSubject) query.set('subject', selectedSubject);
   if (selectedCategory) query.set('category', selectedCategory);
-  if (view === 'history') { if (selectedRound) query.set('checkpoint', selectedRound); query.set('group', url.searchParams.get('group') === '0' ? '0' : '1'); }
+  if (view === 'history') { query.set('group', url.searchParams.get('group') === '0' ? '0' : '1'); }
   if (key) query.set('row', key);
   return `?${query}`;
 };
 const tableRows = rows.flatMap(row => {
   const visible = activeView === 'pending' ? (row.next ? [row.next] : [])
     : reviewCheckpoints.filter(checkpoint => (activeView === 'history' ? row.completed : row.skipped).includes(checkpoint.type));
-  return visible.filter(checkpoint => !selectedRound || checkpoint.type === selectedRound).map(checkpoint => {
+  return visible.map(checkpoint => {
     const key = `${row.id}:${checkpoint.type}`;
     const peers = metrics.filter(metric => metric.checkpointType === checkpoint.type && metric.subjectId === row.subjectId
       && metric.categoryId === row.categoryId && checkpointEvents.get(`${metric.scheduleId}:${metric.checkpointType}`)?.action !== 'skip');

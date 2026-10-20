@@ -3,30 +3,64 @@ import {getInspector} from './business-inspector';
 export const randomRequestKey=()=>crypto.randomUUID();
 /** 更新数据不收起用户正在查看的本帖表格，也不重置横向比较位置。 */
 function replacePromotionRow(old:Element,next:Element){
+ const focused=document.activeElement as HTMLInputElement|HTMLSelectElement|null;
+ const focusSelector=focused&&old.contains(focused)?focused.name?`[name="${CSS.escape(focused.name)}"]`:focused.matches('[data-edit-start]')?'[data-edit-start]':null:null;
+ const focusDay=focused?.closest<HTMLElement>('[data-review-day]')?.dataset.reviewDay;
+ const selection=focused instanceof HTMLInputElement&&['text','search','url','tel','password'].includes(focused.type)?[focused.selectionStart,focused.selectionEnd]:null;
+ const dayStates=new Map([...old.querySelectorAll<HTMLDetailsElement>('details[data-review-day]')].map(node=>[node.dataset.reviewDay,node.open]));
  const clone=next.cloneNode(true) as HTMLElement;
+ // 午夜换日若移除了正在编辑的安排，先保留这条有草稿的日期，保存／放弃后再归并。
+ for(const source of old.querySelectorAll<HTMLFormElement>('form[data-timeline-form][data-dirty=true]')){
+  const sourceDay=source.closest<HTMLElement>('[data-review-day]');if(!sourceDay)continue;
+  const targetDay=clone.querySelector<HTMLElement>(`[data-review-day="${CSS.escape(sourceDay.dataset.reviewDay!)}"]`);
+  if(targetDay&&[...targetDay.querySelectorAll('form')].some(form=>form.className===source.className))continue;
+  const preserved=sourceDay.cloneNode(true) as HTMLElement;preserved.dataset.preservedArrangementDraft='true';
+  for(const node of [preserved,...preserved.querySelectorAll<HTMLElement>('*')])for(const attribute of [...node.attributes])if(attribute.name==='data-ready'||attribute.name.endsWith('-ready'))node.removeAttribute(attribute.name);
+  const hint=preserved.querySelector('.review-day-hint');if(hint)hint.textContent='安排修改未保存';
+  if(targetDay)targetDay.replaceWith(preserved);else{const after=[...clone.querySelectorAll<HTMLElement>('[data-review-day]')].find(day=>day.dataset.reviewDate!>sourceDay.dataset.reviewDate!);clone.insertBefore(preserved,after??null);}
+ }
+ const previousCurrent=old.querySelector<HTMLElement>('.is-current[data-stage-node]')?.dataset.stageNode;
+ const nextCurrent=clone.querySelector<HTMLElement>('.is-current[data-stage-node]');
+ if(previousCurrent&&nextCurrent&&nextCurrent.dataset.stageNode!==previousCurrent)nextCurrent.dataset.phaseChanged='true';
+ clone.querySelectorAll<HTMLDetailsElement>('details[data-review-day]').forEach(node=>{if(dayStates.has(node.dataset.reviewDay))node.open=dayStates.get(node.dataset.reviewDay)!;});
+ for(const source of old.querySelectorAll<HTMLElement>('[data-review-day]')){
+  const target=clone.querySelector<HTMLElement>(`[data-review-day="${CSS.escape(source.dataset.reviewDay!)}"]`);if(!target)continue;
+  const nested=[...target.querySelectorAll<HTMLDetailsElement>('details')];source.querySelectorAll<HTMLDetailsElement>('details').forEach((node,index)=>{if(nested[index])nested[index].open=node.open;});
+  for(const selector of ['[data-pending-panel]','[data-day-editor]']){const previous=[...source.querySelectorAll<HTMLElement>(selector)],next=[...target.querySelectorAll<HTMLElement>(selector)];previous.forEach((node,index)=>{if(next[index])next[index].hidden=node.hidden;});}
+  const triggers=[...target.querySelectorAll<HTMLElement>('[aria-expanded]')];source.querySelectorAll<HTMLElement>('[aria-expanded]').forEach((node,index)=>{if(triggers[index])triggers[index].setAttribute('aria-expanded',node.getAttribute('aria-expanded')!);});
+ }
+
+ for(const source of old.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')){
+  const day=source.closest<HTMLElement>('[data-review-day]')?.dataset.reviewDay;
+  const date=source.querySelector<HTMLInputElement>('[name=metricDate],[name=reviewDate]')?.value;
+  const candidates=[...clone.querySelectorAll<HTMLFormElement>('form')];
+  const target=candidates.find(form=>form.className===source.className&&(day?form.closest<HTMLElement>('[data-review-day]')?.dataset.reviewDay===day:form.querySelector<HTMLInputElement>('[name=metricDate],[name=reviewDate]')?.value===date));
+  if(!target)continue;
+  const sourceFields=[...source.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input:not([type=hidden]),select,textarea')],targetFields=[...target.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input:not([type=hidden]),select,textarea')];
+  sourceFields.forEach((field,index)=>{const live=field.name?target.elements.namedItem(field.name):targetFields[index];if(live instanceof HTMLInputElement||live instanceof HTMLSelectElement||live instanceof HTMLTextAreaElement){live.value=field.value;if(live instanceof HTMLInputElement&&field instanceof HTMLInputElement)live.checked=field.checked;}});
+  target.dataset.dirty='true';
+ }
+
  const opened=new Set([...old.querySelectorAll<HTMLDetailsElement>('details[open][data-promotion-data]')].map(node=>node.dataset.promotionData));
  clone.querySelectorAll<HTMLDetailsElement>('details[data-promotion-data]').forEach(node=>node.open=opened.has(node.dataset.promotionData));
  const positions=[...old.querySelectorAll<HTMLElement>('.promotion-table-scroll')].map(node=>node.scrollLeft);
- old.replaceWith(clone);clone.querySelectorAll<HTMLElement>('.promotion-table-scroll').forEach((node,index)=>node.scrollLeft=positions[index]??0);
+ old.replaceWith(clone);if(focusSelector&&focusDay){const field=clone.querySelector<HTMLInputElement>(`[data-review-day="${CSS.escape(focusDay)}"] ${focusSelector}`);field?.focus({preventScroll:true});if(field&&selection)field.setSelectionRange(selection[0],selection[1]);}clone.querySelectorAll<HTMLElement>('.promotion-table-scroll').forEach((node,index)=>node.scrollLeft=positions[index]??0);
  return clone;
 }
 /** 仅替换本篇业务行；其他帖子输入、公共表头、工具栏与滚动保持原样。 */
-export async function refreshPromotionSchedule(scheduleId:string){
+export async function refreshPromotionSchedule(scheduleId:string,freshDocument?:Document){
  const paneHost=document.querySelector<HTMLElement>(`[data-promotion-state-history]:has([data-timeline-row="${CSS.escape(scheduleId)}"])`);
- if(paneHost){const response=await fetch(`/api/operations-content/${scheduleId}/promotion-timeline`,{cache:'no-store'});if(!response.ok)throw new Error('状态刷新失败');const html=await response.text();if(paneHost.closest<HTMLElement>('[data-inspector]')?.dataset.selectedId===scheduleId){paneHost.innerHTML=html;const state=paneHost.querySelector<HTMLElement>('[data-timeline-row]');paneHost.closest('[data-inspector]')?.dispatchEvent(new CustomEvent('business:promotion-state-updated',{detail:{id:scheduleId,label:state?.dataset.promotionLabel,status:state?.dataset.promotionStatus}}));document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}return;}
- const response=await fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store'});if(!response.ok)throw new Error('列表刷新失败');
- const fresh=new DOMParser().parseFromString(await response.text(),'text/html'),key=CSS.escape(scheduleId),scroll=window.scrollY;
+ if(paneHost){const response=await fetch(`/api/operations-content/${scheduleId}/promotion-timeline`,{cache:'no-store'});if(!response.ok)throw new Error('状态刷新失败');const html=await response.text();if(paneHost.closest<HTMLElement>('[data-inspector]')?.dataset.selectedId===scheduleId){paneHost.innerHTML=html;const state=paneHost.querySelector<HTMLElement>('[data-timeline-row]');paneHost.closest('[data-inspector]')?.dispatchEvent(new CustomEvent('business:promotion-state-updated',{detail:{id:scheduleId,label:state?.dataset.promotionLabel,status:state?.dataset.promotionStatus}}));document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}if(!document.querySelector('[data-promotion-pending-body]'))return;}
+ let fresh=freshDocument;
+ if(!fresh){const response=await fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store'});if(!response.ok)throw new Error('列表刷新失败');fresh=new DOMParser().parseFromString(await response.text(),'text/html');}
+ const key=CSS.escape(scheduleId),scroll=window.scrollY;
  const dailyBody=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
- const oldArticles=[...document.querySelectorAll<HTMLElement>(`[data-promotion-pending-body] [data-timeline-row="${key}"]`)],newArticles=[...fresh.querySelectorAll<HTMLElement>(`[data-promotion-pending-body] [data-timeline-row="${key}"]`)];
- oldArticles.forEach((node,index)=>{if(newArticles[index])node.replaceWith(newArticles[index].cloneNode(true));else node.remove();});
- if(!oldArticles.length&&newArticles.length){let host=document.querySelector<HTMLElement>('.promotion-timeline');if(!host){const source=fresh.querySelector('.promotion-timeline');if(source&&dailyBody){host=source.cloneNode(false) as HTMLElement;dailyBody.insertBefore(host,dailyBody.querySelector('.daily-table-wrap,.empty-state'));}}for(const node of newArticles)host?.append(node.cloneNode(true));}
- const selector=`#daily-table [data-metric-form][data-schedule-id="${key}"],#daily-table [data-locked-schedule="${key}"]`;
- const oldRows=[...document.querySelectorAll(selector)],newRows=[...fresh.querySelectorAll(selector)];
- const grid=document.querySelector('.daily-grid');
- if(grid){const anchor=oldRows[0]??null;for(const row of newRows)grid.insertBefore(row.cloneNode(true),anchor);oldRows.forEach(row=>row.remove());}
- else if(newRows.length){dailyBody?.querySelector('.empty-state')?.remove();const wrap=fresh.querySelector('.daily-table-wrap');if(wrap)dailyBody?.append(wrap.cloneNode(true));}
+ const oldPost=document.querySelector(`[data-review-post="${key}"]`),newPost=fresh.querySelector(`[data-review-post="${key}"]`);
+ if(oldPost){if(newPost)replacePromotionRow(oldPost,newPost);else oldPost.remove();}else if(newPost){dailyBody?.querySelector('.empty-state')?.remove();dailyBody?.append(newPost.cloneNode(true));}
+ const sourceBody=fresh.querySelector<HTMLElement>('[data-promotion-pending-body]');
+ if(dailyBody&&sourceBody){dailyBody.dataset.serverNow=sourceBody.dataset.serverNow;dailyBody.dataset.dueCount=sourceBody.dataset.dueCount;}
  for(const node of document.querySelectorAll('[data-promotion-pending-count]'))node.textContent=fresh.querySelector('[data-promotion-pending-count]')?.textContent??'';
- const empty=fresh.querySelector('[data-promotion-pending-body]>.empty-state');dailyBody?.querySelector('.empty-state')?.remove();if(empty)dailyBody?.append(empty.cloneNode(true));
+ if(dailyBody&&!dailyBody.querySelector('[data-review-post]')){dailyBody.querySelector('.empty-state')?.remove();const empty=sourceBody?.querySelector('.empty-state');if(empty)dailyBody.append(empty.cloneNode(true));}
  const cardSelector=`[data-lifecycle-schedule="${key}"]`,oldCard=document.querySelector(cardSelector),newCard=fresh.querySelector(cardSelector);
  if(oldCard){if(newCard)replacePromotionRow(oldCard,newCard);else oldCard.remove();}else if(newCard){let list=document.querySelector('.lifecycle-list');if(!list){const source=fresh.querySelector('.lifecycle-list');if(source){list=source.cloneNode(false) as HTMLElement;document.querySelector('.calendar-section>.empty-state')?.remove();document.querySelector('.calendar-section')?.append(list);}}list?.append(newCard.cloneNode(true));}
  const lifecycle=document.querySelector('.lifecycle-list');if(lifecycle&&!lifecycle.children.length){lifecycle.remove();const empty=fresh.querySelector('.calendar-section>.empty-state');if(empty)document.querySelector('.calendar-section')?.append(empty.cloneNode(true));}
@@ -56,7 +90,7 @@ function initialize(){
  document.querySelectorAll<HTMLFormElement>('[data-timeline-form]:not([data-ready])').forEach(form=>{
  form.dataset.ready='true';const requestKey=crypto.randomUUID();
  const sync=()=>{
-  const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value,waiting=action==='wait'||form.hasAttribute('data-pending-editor')&&action==='next';
+  const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value,waiting=action==='wait'||action==='pause'||form.hasAttribute('data-pending-editor')&&action==='next';
   const through=form.querySelector<HTMLElement>('[data-timeline-through]');
   if(through){through.hidden=!waiting;through.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=!waiting;input.required=waiting;});}
   if(form.hasAttribute('data-pending-editor')){

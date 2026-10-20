@@ -17,5 +17,5 @@ export async function checkBusinessDateTime(group: any) {
   }));
   assert.equal(boxes.length,2); assert.ok(boxes[0].x<boxes[1].x);
   assert.equal(boxes[0].y,boxes[1].y); assert.equal(boxes[0].width,boxes[1].width);
-  assert.ok(boxes.every((box:{height:number;size:string;family:string})=>box.height===40&&box.size==='13px'&&box.family.includes('system-ui')));
+  assert.ok(boxes.every((box:{height:number;size:string;family:string})=>box.height===40&&box.size==='14px'&&box.family.includes('system-ui')));
 }

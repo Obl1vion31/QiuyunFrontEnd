@@ -246,6 +246,13 @@
       "when": 1792351270708,
       "tag": "0034_promotion_business_timeline",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792509600000,
+      "tag": "0035_retire_team_promotion_pauses",
+      "breakpoints": true
     }
   ]
 }

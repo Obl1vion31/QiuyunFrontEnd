@@ -4,6 +4,8 @@ import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astr
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
 import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
 import MetricCell from '../../components/MetricCell.astro';
+import BusinessNonPromotionTableHead from '../../components/BusinessNonPromotionTableHead.astro';
+import {nonPromotionGroupLabel} from '../../db/non-promotion-groups';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
@@ -11,7 +13,7 @@ import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 import { subjects } from '../../db/taxonomy';
 export const prerender = false;
 const databaseStartedAt=performance.now();
-const { checkpointEvents, today, names, loadError, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, selectedRound, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
+const { checkpointEvents, today, names, loadError, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
 const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 ---
@@ -32,26 +34,22 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
       <input type="hidden" name="view" value={activeView}/>
       <label>学科<select name="subject"><option value="">全部学科</option>{subjects.map(subject=><option value={subject.id} selected={subject.id===selectedSubject}>{subject.name}</option>)}</select></label>
       <label>帖子分类<select name="category" disabled={!selectedSubject}><option value="">{selectedSubject?'全部分类':'请先选择学科'}</option>{categoryOptions.map(category=><option value={category.id} selected={category.id===selectedCategory}>{latestPolicy.get(category.id)?.displayName||category.name}</option>)}</select></label>
-      {activeView === 'history' && <><label>复盘轮次<select name="checkpoint"><option value="">全部轮次</option><option value="day_7" selected={selectedRound==='day_7'}>首轮</option><option value="day_15" selected={selectedRound==='day_15'}>二轮</option></select></label><input type="hidden" name="group" value={grouped?'1':'0'}/></>}
+      {activeView === 'history' && <input type="hidden" name="group" value={grouped?'1':'0'}/>}
       {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}`}>清除筛选</a>}
     </form>
     {activeView==='history' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'按帖子分类',value:'1'},{label:'平铺',value:'0'}]} data-review-display/></div>}
     </div>
     <section class="review-workspace" data-inspector-host>
-      <div class="table-pane"><div class="review-category-context" data-category-context hidden={!grouped||!selectedGroup}><button type="button" data-category-back>‹ 返回分类汇总</button><strong data-category-title>{categoryGroups.find(group=>group.key===selectedGroup)?.label}</strong></div><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
-        <div class="review-row table-head" role="row"><span role="columnheader" aria-sort="descending"><button type="button" data-sort="date">实验日期 <i aria-hidden="true">↓</i></button></span><span role="columnheader">帖子</span><span role="columnheader">节点</span><span role="columnheader" aria-sort="none"><button type="button" data-sort="click" disabled={grouped&&!selectedRound}>点击率 <i aria-hidden="true">↕</i></button></span><span role="columnheader" aria-sort="none"><button type="button" data-sort="read" disabled={grouped&&!selectedRound}><span class="sort-read-full">3 秒阅读率</span><span class="sort-read-short">阅读率</span> <i aria-hidden="true">↕</i></button></span><span role="columnheader">分类</span></div>
-        <div data-category-overview hidden={!grouped||!!selectedGroup}>
- {categoryGroups.map(group=><div class="review-category-group" role="rowgroup" data-category-group={group.key} data-category-label={group.label}>
- {group.rounds.filter(round=>!selectedRound||round.type===selectedRound).map((round,index)=><div class="review-row category-summary-row" role="row">
- <span role="cell" aria-colindex="1" data-label="有效样本">{round.count} 篇</span>
- <span role="cell" aria-colindex="2" data-label="帖子分类">{index===0&&<button type="button" data-category-open={group.key}>{group.label}</button>}</span>
- <span role="cell" aria-colindex="3"><mark>{names[round.type]}</mark></span>
- <span role="cell" aria-colindex="4" class="metric" data-label="平均点击率"><strong data-category-click={round.type}>{round.click==null?'—':`${round.click.toFixed(2)}%`}</strong></span>
- <span role="cell" aria-colindex="5" class="metric" data-label="平均 3 秒阅读率"><strong data-category-read={round.type}>{round.read==null?'—':`${round.read.toFixed(2)}%`}</strong></span>
- <span role="cell" aria-colindex="6">{index===0&&<button type="button" data-category-open={group.key} class="category-detail-link">查看明细 →</button>}</span>
- </div>)}
- </div>)}
- </div><div data-review-body hidden={grouped&&!selectedGroup}>
+      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
+        <div data-flat-head hidden={grouped}><BusinessNonPromotionTableHead/></div>
+        <div data-category-overview hidden={!grouped}>
+          <div class="category-grid category-group-head" aria-hidden="true"><span>帖子分类</span><span>首轮</span><span>二轮</span><span></span></div>
+          <div class="category-grid category-sub-head" aria-hidden="true"><span></span>{[0,1].map(()=> <><span>样本</span><span>平均点击率</span><span>平均 3 秒阅读率</span></>)}<span></span></div>
+          {categoryGroups.map(group=><details class="review-category-group" data-category-details data-category-group={group.key} data-category-label={group.label} open={selectedGroup===group.key}>
+            <summary class="category-grid category-summary-row"><strong title={group.label}>{group.label}</strong>{group.rounds.map(round=><><span class="review-sr-only">{round.type==='day_7'?'首轮':'二轮'}：</span><span data-category-count={round.type}>{round.count} 篇</span><strong class="category-rate" data-category-click={round.type}>{round.click==null?'—':`${round.click.toFixed(2)}%`}</strong><strong class="category-rate" data-category-read={round.type}>{round.read==null?'—':`${round.read.toFixed(2)}%`}</strong></>)}<span class="category-detail-link"><span class="when-closed">看明细</span><span class="when-open">收起明细</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
+            <div class="category-detail-body" data-disclosure-body><BusinessNonPromotionTableHead/><div data-category-records={group.key}></div></div>
+          </details>)}
+        </div><div data-review-body hidden={grouped}>
         {rows.filter(row=>tableRows.some(item=>item.row.id===row.id)).map(row=>({id:row.id, row, items:tableRows.filter(item=>item.row.id===row.id)})).map(group => <div class="review-record-container" role="rowgroup" data-review-group={group.id}>
         {group.items.map((item) => {
           const clickValue=item.metric?Number(item.metric.clickRate):null;const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
@@ -59,13 +57,13 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
           return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
             <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':false}]} >{shanghaiDateKey(item.row.actualPublishAt)}</span>
             <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':false}]}  title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
-              <span class="review-post-title">{item.row.projectDocUrl?<a href={item.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{item.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{item.row.contentName}</strong>}<small>V{item.row.versionNumber}</small></span>
+              <span class="review-post-title">{item.row.projectDocUrl?<a href={item.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{item.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{item.row.contentName}</strong>}<small>V{item.row.versionNumber}</small><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small></span>
               {!item.row.projectDocUrl&&<small>项目文档待补</small>}
             </span>
             <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
             <span role="cell" aria-colindex="4" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
             <span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
-            <span role="cell" aria-colindex="6" data-review-common data-label="分类" class:list={{'review-common-repeat':false}} >{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
+            <span role="cell" aria-colindex="6" data-review-common class="review-category-column" data-label="分类"  >{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
           </div>;
         })}
 
@@ -191,4 +189,16 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 <style is:global>
 .review-table .table-head>[role=columnheader]{display:flex;align-items:center;align-self:stretch;min-height:42px}
 @media(max-width:700px){.review-table .table-head>span:not(:has(button)){min-height:0}}
+</style>
+<style is:global>
+.review-table [hidden]{display:none!important}
+.review-table .review-row{grid-template-columns:116px minmax(180px,1fr) 64px minmax(190px,1fr) minmax(190px,1fr);gap:0 16px}
+.review-table .review-category-column{display:none!important}.review-post-category{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}.review-table[data-grouped=true] .review-post-category{display:none}
+.review-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.category-grid{display:grid;grid-template-columns:220px repeat(2,58px minmax(104px,1fr) minmax(120px,1.1fr)) 88px;gap:0 12px;align-items:center;min-width:0}
+.category-group-head{height:30px;color:var(--console-muted);font:500 13px/20px var(--console-font)}.category-group-head>span:nth-child(2){grid-column:2/5;text-align:center}.category-group-head>span:nth-child(3){grid-column:5/8;text-align:center}.category-sub-head{height:30px;border-bottom:1px solid var(--console-line);color:var(--console-muted);font:400 12px/20px var(--console-font)}.category-sub-head>span{text-align:right}
+.review-category-group{margin:0;border-bottom:1px solid var(--console-line)}.review-category-group:last-child{border-bottom:0}.category-summary-row{height:56px;list-style:none;cursor:pointer;font:400 13px/20px var(--console-font)}.category-summary-row::-webkit-details-marker{display:none}.category-summary-row>strong:first-child{font:500 14px/22px var(--console-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.category-summary-row>*:not(:first-child){text-align:right}.category-summary-row>.category-rate{font:500 16px/24px var(--console-font);font-variant-numeric:tabular-nums}.category-summary-row:hover{background:var(--console-surface-subtle)}.category-detail-link{display:flex;align-items:center;justify-content:flex-end;gap:4px;color:var(--console-blue);white-space:nowrap}.category-detail-link svg{transition:transform 220ms}.review-category-group[open]>.category-summary-row svg{transform:rotate(180deg)}.review-category-group:not([open])>.category-summary-row .when-open,.review-category-group[open]>.category-summary-row .when-closed{display:none}
+.category-detail-body{padding:8px 0 12px;min-width:0;box-sizing:border-box}.category-detail-body>.table-head{background:var(--console-surface-subtle)}
+[data-category-overview]{padding:0 16px}.review-table[data-grouped=true]{min-width:988px}.review-table .review-row.table-head{min-height:44px}.review-table .review-post-title{flex-wrap:wrap}.review-table .table-head button{font:500 13px/20px var(--console-font)}
+@media(max-width:900px){.review-table[data-grouped=true]{min-width:988px}.review-table[data-grouped=false]{min-width:0}.category-detail-body .review-row{grid-template-columns:116px minmax(180px,1fr) 64px minmax(190px,1fr) minmax(190px,1fr)}.category-detail-body .review-row>span{display:block!important}.category-detail-body .review-row>.review-category-column{display:none!important}}
+@media(prefers-reduced-motion:reduce){.category-detail-link svg{transition:none}}
 </style>

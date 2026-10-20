@@ -3,7 +3,7 @@ import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
 import { and, eq } from 'drizzle-orm';
-import { mkdir,writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { startFixture, admin } from './auth.fixture';
 import * as schema from '../src/db/schema';
 import { previousDateKey, shanghaiDateKey } from '../src/db/promotion-rules.mjs';
@@ -60,13 +60,13 @@ try {
       const controlFonts=await page.locator('button:visible,input:visible,select:visible,textarea:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({label:node.getAttribute('aria-label')||node.textContent?.slice(0,18),family:getComputedStyle(node).fontFamily})));assert.ok(controlFonts.every((item:any)=>item.family.includes('system-ui')&&!item.family.includes('monospace')),`${path} 控件字体统一 ${JSON.stringify(controlFonts.filter((item:any)=>!item.family.includes('system-ui')||item.family.includes('monospace')))}`);
       if(path==='settings') {
         const controls=await page.locator('.business-form input:not([type=checkbox]),.business-form select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
-        const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'系统设置接入公共表单规格');
+        const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'系统设置接入公共表单规格');
         await page.screenshot({path:`.tools/test-artifacts/settings-ui-${width}.png`,fullPage:true});
       }
       if(path==='meeting-review') {
         await page.locator('[data-open-create]').click();const dialog=page.locator('[data-create]');await dialog.waitFor();
         const controls=await dialog.locator('input:not([type=hidden])').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
-        assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'例会创建与其他表单使用相同控件');
+        assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'例会创建与其他表单使用相同控件');
         assert.equal(await dialog.getAttribute('aria-labelledby'),'create-meeting-title');
         await checkBusinessDateTime(dialog.locator('[data-datetime-field]'));await fillBusinessDateTime(page,'meetingAt',`${today}T00:00`);
         assert.equal(await dialog.locator('[name=meetingAt]').inputValue(),`${today}T00:00`);
@@ -102,11 +102,9 @@ try {
         assert.ok(heights.every((height:number)=>height===36),'阶段筛选使用紧凑控件规格');
       }
       if(view==='daily') {
-        const heights=await page.locator('[data-pause-form] input[type=date],[data-pause-form] button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));
-        assert.ok(heights.every((height:number)=>height===36),'节假日操作同组控件对齐');
-        if(width===1440)assert.equal((await page.locator('[data-pause-form]').boundingBox())!.height,36,'桌面节假日暂停保持单行');
+        assert.equal(await page.locator('[data-pause-form]').count(),0,'团队暂停已移除');
         const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[data-toggle-day-state]').click();assert.equal(await dailyForm.locator('[data-toggle-day-state]').getAttribute('aria-expanded'),'true');await dailyForm.locator('[name=dayAction]').selectOption('pause');
-        const waitControls=await dailyForm.locator('[data-pause-reason] input,[data-pause-through] input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(waitControls.length,2);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),'行内暂停与日度表单共用常规控件规格');
+        const waitControls=await dailyForm.locator('[data-pause-reason] input,[data-pause-through] input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(waitControls.length,2);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'行内暂停与日度表单共用常规控件规格');
         assert.equal(await dailyForm.locator('[name=spend]').isDisabled(),true);await dailyForm.locator('[name=dayAction]').selectOption('active');{const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
       }
 
@@ -114,38 +112,14 @@ try {
     }
     const redirected=await fetch(baseURL+`/business/promotion-stage-review?from=${start}&to=${start}&review=example&snapshot=version`,{redirect:'manual',headers:{Cookie:cookie}});assert.equal(redirected.status,302);assert.match(redirected.headers.get('location')!,/view=stage&from=.*review=example&snapshot=version/);
     await page.goto(baseURL+'/business/non-promotion-review?view=history');
-    assert.equal(await page.locator('[data-category-group]').count(),2,'同学科不同类型分别汇总');
-    assert.equal(await page.locator('[data-category-group="tmua:temporary"] [data-category-click=day_7]').innerText(),'8.00%');
-    await page.screenshot({path:`.tools/test-artifacts/review-all-categories-${width}.png`,fullPage:true});
-    await page.goto(baseURL+'/business/non-promotion-review?view=history&subject=tmua&category=temporary');
-    assert.equal(await page.locator('[data-category-read=day_15]').innerText(),'—','缺轮不补零');
-    assert.equal(await page.locator('[data-category-read=day_15]').locator('..').locator('..').locator('[aria-colindex="1"]').innerText(),'0 篇');
-    await page.goto(baseURL+'/business/non-promotion-review?view=history&subject=tmua&category=innovation');
-    assert.equal(await page.locator('[data-category-group]').count(),1,'同学科同类型形成一个分类');
-    assert.equal(await page.locator('[data-category-click=day_7]').innerText(),'8.99%');
-    assert.equal(await page.locator('[data-category-click=day_15]').innerText(),'8.59%','两轮均值隔离');
-    assert.equal(await page.getByRole('radio',{name:'按帖子分类',exact:true}).isChecked(),true);
-    assert.equal(await page.locator('[data-review-filters] [type=radio],[data-group-toggle]').count(),0);
-    const controlHeights=await page.locator('[data-review-filters] select,[data-review-display]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));assert.ok(controlHeights.every((height:number)=>height===36));
-    const groupingGeometry=()=>page.locator('.table-head>[role=columnheader]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.x,r.width,r.height]}));
-    const groupGeometry=await groupingGeometry();
-    await page.evaluate(()=>{(window as any).__groupTable=document.querySelector('.review-table');(window as any).__groupHead=document.querySelector('.table-head');(window as any).__groupRows=[...document.querySelectorAll('[data-row-href]')];});
-    let groupDocuments=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')groupDocuments++;});
-    await page.screenshot({path:`.tools/test-artifacts/review-grouped-${width}.png`,fullPage:true});
-    await page.locator('[data-category-open="tmua:innovation"]').first().click();
-    assert.equal(await page.locator('[data-review-body]').isVisible(),true);
-    assert.equal(await page.locator('[data-review-body] [data-row-href]:visible').count(),4);
-    assert.equal(await page.locator('[data-category-title]').innerText(),'TMUA · 创新帖');
-    await page.screenshot({path:`.tools/test-artifacts/review-category-detail-${width}.png`,fullPage:true});
-    await page.locator('[data-category-back]').click();assert.equal(await page.locator('[data-category-overview]').isVisible(),true);
-    await page.goBack();await page.waitForURL(/bucket=tmua/);assert.equal(await page.locator('[data-review-body]').isVisible(),true);
-    await page.goForward();await page.waitForURL((url:URL)=>!url.searchParams.has('bucket'));
-    await page.getByRole('radio',{name:'平铺',exact:true}).check();await page.waitForURL(/group=0/);
-    assert.equal(await page.locator('[data-review-body] [data-inspector-key] [data-label="帖子"]:visible').count(),4);
-    assert.deepEqual(await groupingGeometry(),groupGeometry,'分类、明细和平铺保留六列宽度');
-    assert.equal(await page.evaluate(()=>(window as any).__groupTable===document.querySelector('.review-table')&&(window as any).__groupHead===document.querySelector('.table-head')&&(window as any).__groupRows.every((node:Element)=>node.isConnected)),true,'公共节点与事实记录持续存在');
-    assert.equal(groupDocuments,0,'分类切换与前后退无文档请求');
-    await page.screenshot({path:`.tools/test-artifacts/review-ungrouped-${width}.png`,fullPage:true});
+    assert.equal(await page.locator('[data-category-group]').count(),2);
+    assert.equal(await page.locator('select[name=checkpoint]').count(),0);
+    const group=page.locator('[data-category-group="tmua:innovation"]');await group.locator('summary').first().click();
+    await page.evaluate(()=>{(window as any).__record=document.querySelector('[data-category-group="tmua:innovation"] [data-row-href]');});
+    await page.getByRole('radio',{name:'平铺',exact:true}).check();assert.equal(await page.evaluate(()=>(window as any).__record.isConnected),true);
+    await page.getByRole('radio',{name:'按帖子分类',exact:true}).check();assert.equal(await group.getAttribute('open')!==null,true);
+    await page.screenshot({path:`.tools/test-artifacts/review-inline-categories-${width}.png`,fullPage:true});
+    await page.getByRole('radio',{name:'平铺',exact:true}).check();
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
     assert.match(await first.innerText(),/同类均值\s+8.99%/);assert.match(await first.innerText(),/-3.47pp/);
@@ -184,10 +158,6 @@ try {
       await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值\s+9.59%/);
       await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
     }
-    await page.locator('[name=checkpoint]').selectOption('day_7');await page.waitForURL(/checkpoint=day_7/);assert.equal(await page.locator('[data-sort=click]').isDisabled(),false);assert.equal(await page.locator('[data-checkpoint=day_15]').count(),0);
-    await page.locator('[data-sort=click]').click();await page.locator('[data-sort=click]').click();assert.equal(await page.locator('[data-review-body] [data-row-href]').first().getAttribute('data-schedule-id'),ids[1],'按首轮指标排序独立记录');
-    await page.getByRole('radio',{name:'平铺',exact:true}).check();await page.waitForURL(/group=0/);assert.equal(await page.locator('.review-post-group').count(),0);
-    await page.screenshot({path:`.tools/test-artifacts/business-ui-${width}.png`,fullPage:true});
     if(width===1440) {
       await page.goto(baseURL+`/business/operations-schedule?month=${published.slice(0,7)}`);
       await page.route(`**/api/operations-content/${ids[0]}/workflow`,async(route:any)=>{const response=await route.fetch();await new Promise(resolve=>setTimeout(resolve,400));await route.fulfill({response});});
@@ -205,7 +175,7 @@ try {
     await page.goto(baseURL+'/business/daily-promotion-review?view=history');await page.locator('[data-history-group=unfinished] .lifecycle-expand').first().click();await page.locator('[data-daily-record]').first().locator('th').click();await page.locator('[data-edit-trigger]').first().click();await page.locator('dialog[open]').waitFor();
     const editor=page.locator('dialog[open]');
     const editControls=await editor.locator('input:not([type=hidden]),select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
-    assert.ok(editControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='13px'),`推广历史更正共用常规表单规格 ${JSON.stringify(editControls)}`);
+    assert.ok(editControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),`推广历史更正共用常规表单规格 ${JSON.stringify(editControls)}`);
     assert.equal(await editor.locator('header').evaluate((node:HTMLElement)=>getComputedStyle(node).backgroundColor),'rgb(16, 36, 62)','保留深蓝标题栏');
     assert.equal(await editor.locator('h3').evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'18px','详情区样式不泄漏到编辑标题');
     assert.equal(await editor.locator('.dialog-head p').evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(216, 226, 239)','深蓝标题栏辅助信息清晰可读');
@@ -213,19 +183,8 @@ try {
     await editor.locator('textarea').evaluate((node:HTMLElement)=>node.style.height='1100px');await editor.locator('.form-dialog-body').evaluate((node:HTMLElement)=>node.scrollTop=node.scrollHeight);
     assert.deepEqual(await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),editorGeometry,`推广历史长表单头尾固定 ${JSON.stringify(await editor.evaluate((node:HTMLElement)=>({html:node.outerHTML.slice(0,600),dialogHeight:getComputedStyle(node).height,formHeight:getComputedStyle(node.querySelector('form')!).height,formDisplay:getComputedStyle(node.querySelector('form')!).display,bodyHeight:getComputedStyle(node.querySelector('.form-dialog-body')!).height})))}`);
     await page.screenshot({path:`.tools/test-artifacts/promotion-edit-ui-${width}.png`});await editor.locator('[data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
-    if(width===1440){
-      await page.emulateMedia({reducedMotion:'no-preference'});await page.goto(baseURL+'/business/non-promotion-review?view=history');
-      const samples=()=>page.evaluate(async()=>{const target=document.querySelector<HTMLElement>('[data-review-body]')!,bar=document.querySelector('.business-toolbar')!,frames:any[]=[];for(let n=0;n<22;n++){await new Promise(requestAnimationFrame);const style=getComputedStyle(target),box=bar.getBoundingClientRect();frames.push({opacity:Number(style.opacity),transform:style.transform,animations:target.getAnimations().length,toolbar:[box.x,box.y,box.width,box.height]});}return frames;});
-      const entering=samples();await page.locator('[data-category-open="tmua:innovation"]').first().click();const frames=await entering;assert.ok(frames.some((frame:any)=>frame.animations>0));assert.ok(frames.every((frame:any)=>JSON.stringify(frame.toolbar)===JSON.stringify(frames[0].toolbar)),'分类转场保持工具栏稳定');
-      await page.locator('[data-review-body] [data-row-href]').first().click();await page.locator('[data-inspector]').waitFor();await page.locator('[data-inspector] [data-close-inspector]').click();await page.locator('[data-inspector]').waitFor({state:'hidden'});
-      await page.locator('[data-category-back]').click();await page.locator('[data-category-open="tmua:innovation"]').first().click();await page.locator('[data-category-back]').click();await page.locator('[data-category-overview]').waitFor();
-      await page.emulateMedia({reducedMotion:'reduce'});await page.locator('[data-category-open="tmua:innovation"]').first().click();assert.equal(await page.locator('[data-review-body]').evaluate((node:HTMLElement)=>node.getAnimations().length),0);
-      await writeFile('.tools/test-artifacts/category-motion/frames.json',JSON.stringify(frames,null,2));
-    }
     await context.close();
-    if(width===1440)await page.video()?.saveAs('.tools/test-artifacts/category-motion/category-and-inspector.webm');
     await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'4.95'}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[1]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
   }
-  assert.deepEqual(errors,[]);console.log('通过：共享正文和工具栏几何、推广同节点切换、分类均值、分类明细和平铺与轮次基准、无文档跳转 Inspector、历史与键盘、未保存保护、保存刷新及失败保留、1440/1280/390/320px。');
-} catch(error){console.error(fixture.logs());throw error;}
-finally{await browser?.close();await fixture.stop();}
+  assert.deepEqual(errors,[]);console.log('business UI shared geometry and inline category checks passed');
+}finally{await browser?.close();await fixture.stop();}

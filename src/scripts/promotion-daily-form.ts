@@ -19,7 +19,7 @@ function initialize(){
   const empty=form.querySelector<HTMLElement>('[data-paused-note-id]');if(empty)empty.hidden=!paused;
   const pause=form.querySelector<HTMLElement>('[data-pause-fields]')!;pause.hidden=!paused;
   pause.querySelectorAll<HTMLInputElement>('input').forEach(field=>{field.disabled=!paused;field.required=paused;});
-  const label=form.querySelector<HTMLElement>('[data-day-status]')!;label.textContent=paused?'当日暂停（待保存）':label.dataset.defaultLabel!;label.classList.toggle('is-draft',paused);
+  const label=form.querySelector<HTMLElement>('[data-day-status]')!;label.textContent=paused?'当日暂停（待保存）':label.dataset.defaultLabel!;label.classList.toggle('is-draft',paused);const summary=form.closest('[data-review-day]')?.querySelector<HTMLElement>('.review-date-state');if(summary)summary.textContent=label.textContent;
   form.querySelector<HTMLOutputElement>('[data-open-cost]')!.textContent=cost(Number(draft.values.spend),Number(draft.values.actualOpenCount));
   form.querySelector<HTMLOutputElement>('[data-lead-cost]')!.textContent=cost(Number(draft.values.spend),Number(draft.values.actualLeadCount));
   const button=form.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=draft.busy;button.textContent=paused?'保存当日暂停':'完成复盘';
@@ -30,7 +30,7 @@ function initialize(){
  const bind=(form:HTMLFormElement)=>{
   if(form.dataset.dailyReady)return;form.dataset.dailyReady='true';
   const key=formKey(form);let draft=drafts.get(key);
-  if(!draft){draft={values:values(form),dirty:false,busy:false,message:'',requestKey:randomRequestKey(),views:new Set()};drafts.set(key,draft);}
+  if(!draft){draft={values:values(form),dirty:form.dataset.dirty==='true',busy:false,message:'',requestKey:randomRequestKey(),views:new Set()};drafts.set(key,draft);}else{for(const field of form.querySelectorAll<HTMLInputElement>('input[type=hidden][name]'))draft.values[field.name]=field.value;}
   const state=draft;state.views.add(form);render(form,state);
   const editor=form.querySelector<HTMLElement>('[data-day-editor]')!,trigger=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;
   trigger.addEventListener('click',()=>{editor.hidden=!editor.hidden;trigger.setAttribute('aria-expanded',String(!editor.hidden));if(!editor.hidden)editor.querySelector('select')?.focus({preventScroll:true});});
@@ -76,7 +76,7 @@ function initialize(){
  const listeners=new AbortController();document.addEventListener('astro:before-swap',()=>listeners.abort(),{once:true});
  document.addEventListener('business:promotion-arrangement-saving',event=>{const {scheduleId}=(event as CustomEvent).detail;if(getInspector(pane).selected?.startsWith(`review:${scheduleId}:`))getInspector(pane).setClean();},{signal:listeners.signal});
  document.addEventListener('business:promotion-arrangement-saved',event=>{const {scheduleId}=(event as CustomEvent).detail;const controller=getInspector(pane);if(!controller.selected?.startsWith(`review:${scheduleId}:`))return;const template=document.querySelector<HTMLTemplateElement>(`template[data-history-schedule="${CSS.escape(scheduleId)}"]`);if(template){controller.setClean();controller.open(template.dataset.inspectorTemplate!,null,true);}},{signal:listeners.signal});
- getInspector(pane).configure({discard:()=>restore?.()});
+ getInspector(pane).configure({discard:()=>{restore?.();document.dispatchEvent(new Event('business:promotion-draft-restored'));}});
  pane.addEventListener('business:inspector-render',()=>{
   restore=undefined;
   const slot=pane.querySelector<HTMLElement>('[data-pending-review-pane]');if(!slot)return;

@@ -32,7 +32,8 @@
     "test:pending": "node --import tsx tests/promotion-pending.browser.ts",
     "test:motion": "node --import tsx tests/panel-motion.browser.ts",
     "test:overview": "node --import tsx tests/promotion-overview.browser.ts",
-    "test:cards": "node --import tsx tests/promotion-card.browser.ts"
+    "test:cards": "node --import tsx tests/promotion-card.browser.ts",
+    "test:review-workbench": "node --import tsx tests/review-workbench.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

@@ -6,8 +6,8 @@ import { drizzle } from 'drizzle-orm/pglite';
 import { eq } from 'drizzle-orm';
 import { migrateFixture } from './migrate-fixture';
 import * as schema from '../src/db/schema';
-import { requiresAdmin } from '../src/auth/permissions';
-import { createPromotionPause, guardPromotionStart, pauseCreateSchema, readPromotionContext, updatePromotionPause } from '../src/db/promotion-pauses';
+import {readFile} from 'node:fs/promises';
+import {readPromotionContext} from '../src/db/promotion-pauses';
 import { campaignPauseWindows, countPromotionDays, effectivePromotionStatus, fullPauseRange, nextReviewDate, pauseIsActive, promotionReplayOptions, waitingPromotionDays } from '../src/db/promotion-state.mjs';
 import { replayPromotionHistory } from '../src/db/promotion-rules.mjs';
 const pg=new PGlite();const db=drizzle(pg,{schema});
@@ -20,12 +20,6 @@ async function seed(status:string,stage='scaling') {
   const [schedule]=await db.insert(schema.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:now,actualPublishAt:now,isPromoted:true,promotionStatus:status,completionStatus:'on_time'}).returning();
   const [campaign]=await db.insert(schema.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:'2026-10-01',currentStatus:status,currentStage:stage}).returning();return campaign;
 }
-test('员工拥有暂停、调整与恢复权限，其他管理入口保持原权限',()=>{
-  assert.equal(requiresAdmin('/api/promotion-pauses','POST'),false);
-  assert.equal(requiresAdmin('/api/promotion-pauses/id','PATCH'),false);
-  assert.equal(requiresAdmin('/api/operations-annual-plans','POST'),false);
-  assert.equal(pauseCreateSchema.safeParse({endsOn:'2026-02-30',requestKey:randomUUID()}).success,false);
-});
 test('完整暂停日包含截止日，立即暂停当天仍需真实数据，提前恢复日不整日略过',()=>{
   const pause={id:'pause',startsAt:now,endsAt:new Date('2026-10-19T00:00:00+08:00')};
   assert.deepEqual(fullPauseRange(pause),{startedOn:'2026-10-16',endedOn:'2026-10-18'});
@@ -33,28 +27,20 @@ test('完整暂停日包含截止日，立即暂停当天仍需真实数据，�
   assert.equal(pauseIsActive(pause,new Date('2026-10-19T00:00:00+08:00')),false);
   assert.deepEqual(fullPauseRange({...pause,resumedAt:new Date('2026-10-17T10:00:00+08:00')}),{startedOn:'2026-10-16',endedOn:'2026-10-16'});
 });
-test('5篇中只暂停3篇：幂等、并发防覆盖、员工调整截止与提前恢复，不修改原有等待',async()=>{
-  const waitingA=await seed('waiting_action'),waitingB=await seed('waiting_action','testing');
-  const running=await Promise.all([seed('scaling'),seed('scaling'),seed('testing','testing')]);
-  const input={endsOn:'2026-10-18',requestKey:randomUUID(),reason:'虚构假期'};
-  const results=await Promise.all([createPromotionPause(db,input,actor,now),createPromotionPause(db,input,actor,now)]);
-  assert.equal(results[0].id,results[1].id);
-  const context=await readPromotionContext(db);assert.equal(context.targets.length,3);
-  assert.ok(context.targets.every(t=>running.some(c=>c.id===t.campaignId)));
-  for(const c of running)assert.equal(effectivePromotionStatus(c.currentStatus,c.currentStage,c.id,context,now),'promotion_paused');
-  assert.equal(effectivePromotionStatus(waitingA.currentStatus,waitingA.currentStage,waitingA.id,context,now),'promotion_paused');
-  assert.equal(effectivePromotionStatus(waitingB.currentStatus,waitingB.currentStage,waitingB.id,context,now),'test_pending');
-  assert.equal(campaignPauseWindows(waitingB,context).length,1);
-  await assert.rejects(createPromotionPause(db,{...input,requestKey:randomUUID()},actor,now),/已有暂停/);
-  await assert.rejects(db.transaction(tx=>guardPromotionStart(tx,'2026-10-15',now)),/节假日暂停/);
-  await updatePromotionPause(db,results[0].id,{action:'extend',expectedRevision:0,endsOn:'2026-10-20'},actor,now);
-  await assert.rejects(updatePromotionPause(db,results[0].id,{action:'resume',expectedRevision:0},actor,now),/已更新/);
-  await updatePromotionPause(db,results[0].id,{action:'resume',expectedRevision:1},actor,new Date('2026-10-17T10:00:00+08:00'));
-  const restored=await readPromotionContext(db);
-  assert.equal(effectivePromotionStatus('testing','testing',running[2].id,restored,new Date('2026-10-18T00:00:00+08:00')),'testing');
-  assert.equal((await db.select().from(schema.operationsPromotionCampaign).where(eq(schema.operationsPromotionCampaign.id,waitingB.id)))[0].currentStatus,'waiting_action');
-  assert.equal((await db.select().from(schema.operationsPromotionDailyMetric)).length,0);
-  assert.equal(restored.pauses[0].history.length,3);
+test('团队暂停退役结束有效批次，保留关联、历史窗口及原始事实',async()=>{
+ const current=new Date(),start=new Date(current.getTime()-5*86400000),end=new Date(current.getTime()+5*86400000);
+ const campaign=await seed('testing','testing');
+ const [pause]=await db.insert(schema.operationsPromotionPause).values({requestKey:randomUUID(),startsAt:start,endsAt:end,reason:'虚构旧批次',createdById:actor.id,createdByLabel:actor.username,updatedById:actor.id,updatedByLabel:actor.username}).returning();
+ await db.insert(schema.operationsPromotionPauseTarget).values({pauseId:pause.id,campaignId:campaign.id,stageType:'testing'});
+ const [future]=await db.insert(schema.operationsPromotionPause).values({requestKey:randomUUID(),startsAt:new Date(current.getTime()+86400000),endsAt:end,reason:'虚构未来旧批次',createdById:actor.id,createdByLabel:actor.username,updatedById:actor.id,updatedByLabel:actor.username}).returning();
+ await pg.exec(await readFile(new URL('../drizzle/0035_retire_team_promotion_pauses.sql',import.meta.url),'utf8'));
+ const context=await readPromotionContext(db),retired=context.pauses.find(p=>p.id===pause.id)!;
+ assert.ok(retired.resumedAt);assert.equal(retired.revision,1);assert.equal(retired.history.at(-1)?.action,'feature_retired');
+ assert.equal(pauseIsActive(retired,new Date()),false);assert.equal(pauseIsActive(context.pauses.find(p=>p.id===future.id)!,new Date(current.getTime()+2*86400000)),false);assert.ok(fullPauseRange(retired));
+ assert.equal(context.targets.length,1);assert.equal(effectivePromotionStatus('testing','testing',campaign.id,context,new Date()),'testing');
+ assert.equal((await db.select().from(schema.operationsPromotionDailyMetric)).length,0);
+ const before=retired.resumedAt.getTime();await pg.exec(await readFile(new URL('../drizzle/0035_retire_team_promotion_pauses.sql',import.meta.url),'utf8'));
+ assert.equal((await db.select().from(schema.operationsPromotionPause).where(eq(schema.operationsPromotionPause.id,pause.id)))[0].resumedAt!.getTime(),before);
 });
 test('暂停后首个复盘跨过整日窗口，历史回放不把假期算成投放天数',()=>{
   const campaign={id:'c',startedOn:'2026-10-15',initialStage:'scaling',currentStatus:'scaling'};

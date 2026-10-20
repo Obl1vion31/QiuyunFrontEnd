@@ -59,7 +59,7 @@ try{
   assert.deepEqual(scrolls,['body'],'详情只有一条正文滚动轨道');
   const scrollY=await page.evaluate(()=>window.scrollY);const rect=await body.boundingBox();await page.mouse.move(rect!.x+rect!.width/2,rect!.y+rect!.height/2);await page.mouse.wheel(0,1000);await page.waitForTimeout(150);assert.equal(await page.evaluate(()=>window.scrollY),scrollY,'滚到底不带动背景');
   if(width<900)assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).overflowY),'hidden');
-  const controls=await inspector.locator('.business-inspector-actions button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({size:getComputedStyle(node).fontSize,height:node.getBoundingClientRect().height,font:getComputedStyle(node).fontFamily})));assert.ok(controls.every((item:any)=>item.size==='13px'&&item.height===40&&item.font.includes('system-ui')));
+  const controls=await inspector.locator('.business-inspector-actions button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({size:getComputedStyle(node).fontSize,height:node.getBoundingClientRect().height,font:getComputedStyle(node).fontFamily})));assert.ok(controls.every((item:any)=>item.size==='14px'&&item.height===40&&item.font.includes('system-ui')),JSON.stringify(controls));
   await page.screenshot({path:`.tools/test-artifacts/registration-inspector-${width}.png`});
   {const answered=respondToBusinessConfirm(page);await page.keyboard.press('Escape');await answered;}assert.equal(await inspector.isVisible(),true,'未保存关闭保护保留');
   {const answered=respondToBusinessConfirm(page,true);await page.keyboard.press('Escape');await answered;}await inspector.waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>window.scrollY),scrollY);

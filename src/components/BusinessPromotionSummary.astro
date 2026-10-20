@@ -3,25 +3,17 @@ import BusinessPromotionData from './BusinessPromotionData.astro';
 import type {PromotionOverview} from '../db/promotion-overview';
 interface Props {entry:PromotionOverview;daily?:boolean;href:string}
 const {entry,daily=false,href}=Astro.props;
-const stageLabel=(stage:string)=>stage==='testing'?'测试':'放量';
-const stageDays=['testing','scaling'].map(stageType=>({stageType,days:entry.timeline.filter(stage=>stage.stageType===stageType).reduce((total,stage)=>total+stage.days,0)})).filter(stage=>stage.days>0);
-const unrecordedLabel=entry.latest?.currentStage?'尚无复盘记录':entry.post.plan?.plannedOn?`${entry.post.plan.plannedOn} 计划${stageLabel(entry.post.plan.plannedStage??'testing')}`:entry.post.waitingThrough?`待定至 ${entry.post.waitingThrough}`:entry.status==='awaiting_promotion'?'首次安排待确认':'尚无阶段记录';
+const missing=[...new Set(entry.stages.flatMap(stage=>stage.missingDates))].length;
 ---
 <article class:list={['promotion-summary',daily?'lifecycle-card':'history-record']} data-lifecycle-schedule={daily?entry.scheduleId:undefined} data-history-schedule={daily?undefined:entry.scheduleId} data-history-row={daily?undefined:true}>
- <header>
-  <a href={href} data-inspector-key={entry.key}><strong>{entry.post.contentName}</strong><span>V{entry.post.versionNumber}</span></a>
-  <span class:list={['promotion-status','history-status',entry.status]}>{entry.statusLabel}{entry.status==='promotion_paused'&&entry.latest?.currentStage?` · ${stageLabel(entry.latest.currentStage)}`:''}</span>
- </header>
- <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}>
-  <summary class="lifecycle-expand">
-   <span class="relative-track" role="img" aria-label={`${entry.post.contentName}：${stageDays.length?stageDays.map(stage=>`${stageLabel(stage.stageType)} ${stage.days} 天`).join('，')+'，阶段天数比例':unrecordedLabel}`}>
-    {entry.timeline.length?<span class="life-color-track" aria-hidden="true">{entry.timeline.map(stage=><span class:list={['life-segment',stage.stageType]} style={`width:${stage.share}%`} title={`${stageLabel(stage.stageType)} ${stage.days} 天：${stage.startedOn} 至 ${stage.through}`} aria-label={`${stageLabel(stage.stageType)} ${stage.days} 天`}><i class="life-fill" aria-hidden="true"/></span>)}</span>:<span class:list={['life-unrecorded',entry.latest?.currentStage??'']} >{unrecordedLabel}</span>}
-    {stageDays.length>0&&<span class="life-stage-labels" aria-hidden="true">{stageDays.map(stage=><span class={stage.stageType}>{stageLabel(stage.stageType)} {stage.days} 天</span>)}</span>}
-   </span>
-   <span class="lifecycle-data-action"><span class="when-closed">展开数据</span><span class="when-open">收起数据</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
-  </summary>
-  <BusinessPromotionData entry={entry}/>
- </details>
+ <header><a href={href} data-inspector-key={entry.key}><strong>{entry.post.contentName}</strong><span>V{entry.post.versionNumber}</span></a><span class:list={['promotion-status','history-status',entry.status]}>{entry.statusLabel}</span></header>
+ <div class="promotion-stage-overview">
+  <ol class="promotion-stage-nodes" aria-label="推广阶段轨迹">
+   {entry.nodes.map(node=><li class:list={['promotion-stage-node',node.stageType,{'is-current':node.current}]} data-stage-node={`${node.campaignId}:${node.stageType}:${node.startedOn}`}><span class="stage-node-label"><i aria-hidden="true"/>{node.stageType==='testing'?'测试':'放量'}<small>{node.recordedDays?`已登记 ${node.recordedDays} 天`:'尚未登记'}</small></span><span class="stage-node-date">{node.endedOn?(node.endedOn===node.startedOn?node.startedOn:`${node.startedOn} — ${node.endedOn}`):`${node.startedOn} 起`}</span></li>)}
+   {!entry.nodes.length&&<li class="promotion-stage-empty">{entry.post.waitingThrough?`待定至 ${entry.post.waitingThrough}`:entry.status==='awaiting_promotion'?'首次安排待确认':'尚无阶段记录'}</li>}
+  </ol>
+  {(missing>0||entry.totals.through)&&<span class="promotion-record-state">{missing?`待复盘 ${missing} 天`:entry.totals.through?`已登记至 ${entry.totals.through}`:'尚无复盘记录'}</span>}
+ </div>
+ {entry.metrics.length>0&&<details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}><summary class="lifecycle-expand"><span class="lifecycle-data-action"><span class="when-closed">查看记录</span><span class="when-open">收起记录</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary><BusinessPromotionData entry={entry}/></details>}
 </article>
-
 <script>import '../scripts/promotion-disclosure';</script>

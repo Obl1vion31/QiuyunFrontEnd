@@ -65,7 +65,7 @@ try {
     const view=page.locator('[data-history-list] button').filter({hasText:'查看版本内容'}).first();
     assert.equal(await view.evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(23, 33, 28)');
     await view.click();await page.locator('.snapshot-view').first().waitFor();
-    assert.equal(await page.locator('.snapshot-view strong').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'14px');
+    assert.equal(await page.locator('.snapshot-view strong').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'16px');
     if(width===1280){
       await view.click();await page.route('**/api/operations-annual-plans/*/versions/*',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构版本读取失败'})}));await view.click();await page.locator('[data-history-list] [role=alert]').getByText('虚构版本读取失败',{exact:true}).waitFor();await page.unroute('**/api/operations-annual-plans/*/versions/*');await view.click();await page.locator('.snapshot-view').first().waitFor();
       const restore=page.locator('[data-history-list] button').filter({hasText:'恢复此版本'}).first();{const answer=respondToBusinessConfirm(page);await restore.click();await answer;}
@@ -74,8 +74,8 @@ try {
     await page.screenshot({path:`.tools/test-artifacts/annual-history-consistency-${width}.png`});
   };
   await page.goto(baseURL+'/business/annual-plan?year=2031');
-  assert.equal(await page.locator('.annual-section-empty').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'13px');
-  assert.equal(await page.locator('.annual-section-empty button').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'13px');
+  assert.equal(await page.locator('.annual-section-empty').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'14px');
+  assert.equal(await page.locator('.annual-section-empty button').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'14px');
   assert.equal(await page.getByText(/直接查看周期与备注/).count(),0);
   await page.goto(baseURL + '/business/annual-plan?year=2026');
   await page.locator('#annual-data[data-bound=true]').waitFor({ state: 'attached' }); assert.equal(await page.locator('[data-injected]').count(), 0); assert.equal(await page.locator('.time-block').first().innerText(), classInput.blocks[0].note);

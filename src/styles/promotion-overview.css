@@ -1,4 +1,4 @@
-/* 沿用黄绿生命周期条；数据仅在本条展开，两个视图共用同一表格与 Inspector。 */
+/* 两个推广视图共用阶段节点、逐日数据表和 Inspector。 */
 .lifecycle-list{display:block;min-width:0}
 .promotion-summary{container:promotion-summary/inline-size;min-width:0;padding:12px 16px;border-top:1px solid var(--console-line);background:var(--console-surface)}
 .promotion-summary:first-child{border-top:0}.history-record{padding:12px 0}
@@ -11,9 +11,6 @@
 .promotion-status.testing,.promotion-phase.testing{color:#6A4A00;background:#FFF1BF}.promotion-status.scaling,.promotion-phase.scaling{color:#205D48;background:#DDF2E8}.promotion-status.test_pending,.promotion-status.promotion_paused,.promotion-status.awaiting_promotion{color:#795b27;background:#f6efdf}
 .lifecycle-meta{display:flex;gap:14px}.lifecycle-meta>span{display:flex;align-items:center;gap:5px}.legend{width:9px;height:9px;border-radius:2px}.legend.testing{background:#D49A12}.legend.scaling{background:#3F9272}
 .lifecycle-expand{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;list-style:none;cursor:pointer}.lifecycle-expand::-webkit-details-marker{display:none}
-.relative-track{position:relative;flex:1;min-width:0;height:30px;display:flex;overflow:hidden;border-radius:7px;background:#e7ebe8}
-.life-color-track{position:absolute;inset:0;display:flex}.life-segment{position:relative;display:flex;align-items:center;min-width:0;box-sizing:border-box;color:#6A4A00;background:transparent}.life-segment.scaling{color:#205D48;background:transparent}.life-fill{position:absolute;inset:0;border-left:3px solid #D49A12;background:#FFF1BF;transform-origin:left center}.scaling>.life-fill{border-color:#3F9272;background:#DDF2E8}.life-stage-labels{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 8px;pointer-events:none;color:#6A4A00;font:500 13px/20px var(--console-font)}.life-stage-labels>span{white-space:nowrap}.life-stage-labels>.scaling{color:#205D48}
-.life-unrecorded{display:flex;align-items:center;min-width:0;width:100%;padding:0 10px;font:400 13px/20px var(--console-font);color:var(--console-muted)}.life-unrecorded.testing{color:#6A4A00;background:#FFF1BF}.life-unrecorded.scaling{color:#205D48;background:#DDF2E8}
 .lifecycle-data-action{display:flex;flex:none;align-items:center;justify-content:center;gap:5px;min-height:36px;font:500 13px/20px var(--console-font);color:var(--console-blue);white-space:nowrap}.lifecycle-data-action svg{transition:transform 160ms}
 .promotion-data-disclosure:not([open])>.lifecycle-expand .when-open,.promotion-data-disclosure[open]:not([data-collapsing])>.lifecycle-expand .when-closed,.promotion-data-disclosure[data-collapsing]>.lifecycle-expand .when-open{display:none}.promotion-data-disclosure[data-collapsing]>.lifecycle-expand .when-closed{display:inline}.promotion-data-disclosure[open]:not([data-collapsing])>.lifecycle-expand svg{transform:rotate(180deg)}
 .promotion-expanded-data{display:grid;min-width:0;padding-top:12px;box-sizing:border-box}
@@ -35,16 +32,21 @@
 .history-edit-dialog .edit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.history-edit-dialog .edit-system-state,.history-edit-dialog .edit-note{grid-column:1/-1}.history-edit-dialog .edit-system-state{display:flex;flex-wrap:wrap;gap:8px;margin:0;color:var(--console-muted);font-size:13px}.history-edit-dialog .edit-system-state strong{color:var(--console-ink)}.history-edit-dialog .edit-impact{margin:12px 0 0;color:var(--console-red,#913c35)}.history-edit-dialog .edit-impact:empty{display:none}
 @container(max-width:840px){.promotion-totals{grid-template-columns:repeat(4,minmax(0,1fr))}.promotion-totals>div:nth-child(6){border:0;padding:0}}
 @container(max-width:490px){.promotion-totals{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}}
-@media(max-width:600px){.promotion-summary{padding:14px}.history-record{padding:12px 0}.history-edit-dialog .edit-fields{grid-template-columns:1fr}.relative-track{height:30px}}
+@media(max-width:600px){.promotion-summary{padding:14px}.history-record{padding:12px 0}.history-edit-dialog .edit-fields{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.lifecycle-data-action svg{transition:none}}
 
 .promotion-table-hint{display:none;margin:0;color:var(--console-muted);font:400 13px/20px var(--console-font)}.promotion-data-heading .promotion-table-hint{margin-left:auto}.day-history{container:promotion-day-history/inline-size}.promotion-data-table thead th:first-child{position:sticky;left:0;z-index:2;background:#f0f3f1}
 @container promotion-summary (max-width:911px){.promotion-table-hint{display:block}}
 @container promotion-day-history (max-width:1011px){.promotion-table-hint{display:block}}
 
-/* A tinted base preserves actual stage shares while the foreground is emphasized. */
-.life-color-track{opacity:1}
-.life-base-track{position:absolute;inset:0;display:flex;opacity:.28;pointer-events:none}
-.life-base-track{opacity:1}
-.life-base-track .life-fill{border-color:#e5c46c;background:#fff8e3}
-.life-base-track .scaling>.life-fill{border-color:#98c8af;background:#edf8f3}
+
+.promotion-summary{position:relative;padding:12px 16px;min-height:88px}.promotion-summary>header{gap:8px 16px;justify-content:space-between;padding-right:104px;margin-bottom:8px}.promotion-summary>header a strong{font:500 16px/24px var(--console-font)}.promotion-status{padding:0;background:none!important;color:var(--console-muted)!important;font-weight:400}
+.promotion-stage-overview{display:flex;align-items:center;gap:16px;padding-right:104px;min-width:0}.promotion-stage-nodes{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;margin:0;padding:0;list-style:none;min-width:0;flex:1}.promotion-stage-node{position:relative;display:grid;gap:2px;min-width:150px}.promotion-stage-node+li:before{content:'›';position:absolute;left:-17px;top:4px;color:#9aa69e}.stage-node-label{display:flex;align-items:center;gap:6px;font:500 14px/22px var(--console-font)}.stage-node-label i{width:7px;height:7px;border-radius:50%;background:#D49A12;flex:none}.scaling .stage-node-label i{background:#3F9272}.stage-node-label small{font:400 13px/20px var(--console-font);color:var(--console-muted)}.stage-node-date{color:var(--console-muted);font:400 12px/18px var(--console-font);font-variant-numeric:tabular-nums;white-space:nowrap}.is-current .stage-node-label{color:#6A4A00}.scaling.is-current .stage-node-label{color:#205D48}.promotion-record-state,.promotion-stage-empty{color:var(--console-muted);font:400 13px/20px var(--console-font);white-space:nowrap}
+.promotion-summary .lifecycle-expand{position:absolute;right:16px;top:25px;width:auto;min-height:36px}.promotion-summary .promotion-expanded-data{margin-top:12px}.promotion-summary .lifecycle-data-action{min-height:36px}.promotion-summary [data-phase-changed]{animation:promotion-node-change 350ms ease-out}@keyframes promotion-node-change{from{background:var(--node-active-bg,#FFF1BF);box-shadow:0 0 0 4px var(--node-active-bg,#FFF1BF)}to{background:transparent;box-shadow:0 0 0 0 transparent}}
+@media(max-width:600px){.promotion-summary>header{padding-right:0}.promotion-summary .lifecycle-expand{position:static;justify-content:flex-end;margin-top:6px}.promotion-stage-overview{padding-right:0;flex-wrap:wrap;gap:8px}.promotion-stage-nodes{flex-basis:100%}.promotion-record-state{white-space:normal}}
+@media(prefers-reduced-motion:reduce){.promotion-summary [data-phase-changed]{animation:none}}
+
+/* 常规阶段在同一条概览行内比较，展开数据才增加高度。 */
+@media(min-width:901px){.promotion-summary{display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);column-gap:16px;row-gap:0;min-height:72px;padding:12px 16px}.promotion-summary>header{grid-column:1;grid-row:1;display:grid;align-content:center;justify-content:start;gap:2px;margin:0;padding:0}.promotion-stage-overview{grid-column:2;grid-row:1}.promotion-summary>.promotion-data-disclosure{grid-column:1/-1}.promotion-summary .lifecycle-expand{top:18px}.promotion-summary .promotion-expanded-data{margin-top:0;padding-top:12px}}
+
+.promotion-stage-node{--node-active-bg:#FFF1BF}.promotion-stage-node.scaling{--node-active-bg:#DDF2E8}

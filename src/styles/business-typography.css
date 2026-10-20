@@ -15,3 +15,6 @@
 }
 
 :where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(strong,b) {font-weight:500;}
+
+/* 已确认的语义层级；正文不以整体加粗表达重点。 */
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) input {font-variant-numeric:tabular-nums;}

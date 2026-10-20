@@ -54,8 +54,13 @@ export function promotionOverview(input:{posts:PromotionTimelineRow[];campaigns:
    }
    return [{stageType,label:stageType==='testing'?'测试':'放量',metrics:rows,totals:promotionTotals(rows),missingDates:[...missing].sort(),startedOn:intervals.map(s=>s.startedOn).sort()[0]??rows[0]?.metricDate??latest?.startedOn??post.publishedOn,endedOn:intervals.some(s=>!s.endedOn)?null:intervals.map(s=>s.endedOn!).sort().at(-1)??null}];
   });
+  const nodeIntervals=input.stages.filter(stage=>ids.has(stage.campaignId)&&stage.startedOn<=input.today).sort((a,b)=>a.startedOn.localeCompare(b.startedOn));
+  const nodes=nodeIntervals.map((stage,index)=>({
+   ...stage,recordedDays:new Set(metrics.filter(m=>m.campaignId===stage.campaignId&&m.stageTypeSnapshot===stage.stageType&&m.dailyStatus==='active'&&m.metricDate>=stage.startedOn&&(!stage.endedOn||m.metricDate<=stage.endedOn)).map(m=>m.metricDate)).size,
+   current:!closed&&stage.campaignId===latest?.id&&index===nodeIntervals.length-1,
+  }));
   const key=campaigns.some(c=>c.id===input.selected)?input.selected!:latest?.id??`unstarted:${post.scheduleId}`;
-  return {key,scheduleId:post.scheduleId,post,campaigns,latest,status,statusLabel:status==='none'?'已转非推广':status==='scaling'?'放量中':promotionLabels[status]??status,closed,stages,timeline:timeline.map((stage,index)=>({...stage,share:shares[index]})),cutoff,metrics,totals:promotionTotals(metrics),startedOn:campaigns[0]?.startedOn??post.publishedOn,endedOn:closed?latest?.endedOn??metrics.at(-1)?.metricDate??post.publishedOn:null};
+  return {key,nodes,scheduleId:post.scheduleId,post,campaigns,latest,status,statusLabel:status==='none'?'已转非推广':status==='scaling'?'放量中':promotionLabels[status]??status,closed,stages,timeline:timeline.map((stage,index)=>({...stage,share:shares[index]})),cutoff,metrics,totals:promotionTotals(metrics),startedOn:campaigns[0]?.startedOn??post.publishedOn,endedOn:closed?latest?.endedOn??metrics.at(-1)?.metricDate??post.publishedOn:null};
  }).sort((a,b)=>Number(a.closed)-Number(b.closed)||b.startedOn.localeCompare(a.startedOn)||a.post.contentName.localeCompare(b.post.contentName,'zh-CN'));
 }
 export type PromotionOverview=ReturnType<typeof promotionOverview>[number];

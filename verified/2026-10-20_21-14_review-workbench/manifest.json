@@ -1,0 +1,412 @@
+{
+  "archivedAt": "2026-10-20T21:14:50+08:00",
+  "timezone": "Asia/Shanghai",
+  "gitBase": "52f3fa62c65175ce88b8fb3e3a838153ed48a411",
+  "appWorkingTree": "uncommitted",
+  "appSourceDigest": "2b1e55494baf8dbdf5f760c9d667b405d211a1032112236723f8418c4a5d0721",
+  "sourceDigestMethod": "SHA256 of sorted src/drizzle code and package manifest paths plus file SHA256",
+  "dataSource": "isolated-test-fixtures",
+  "status": "self-reviewed-awaiting-user-feedback",
+  "deployment": "not-published",
+  "images": [
+    {
+      "file": "non-promotion-review/nonpromotion-categories-1280.png",
+      "state": "分类概览，两轮样本及均值并列",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1280,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/nonpromotion-categories-1280.png",
+      "capturedAt": "2026-10-20T21:12:22+08:00",
+      "sha256": "72be04f9cdea652a67f65fb4df6167cf6e9d19ab19fe705858d16a5c7de87e54"
+    },
+    {
+      "file": "non-promotion-review/nonpromotion-categories-1440.png",
+      "state": "分类概览，两轮样本及均值并列",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/nonpromotion-categories-1440.png",
+      "capturedAt": "2026-10-20T21:12:22+08:00",
+      "sha256": "0206dd84b0de1e01ea3dea045e05498dd3193879db08f1c3b3bc1a9db5511114"
+    },
+    {
+      "file": "non-promotion-review/nonpromotion-categories-1920.png",
+      "state": "分类概览，两轮样本及均值并列",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1920,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/nonpromotion-categories-1920.png",
+      "capturedAt": "2026-10-20T21:12:22+08:00",
+      "sha256": "fa20d7e84af078c47686ec7a23fe82d6f17b9b457999b02fca24fd76b4b184e4"
+    },
+    {
+      "file": "non-promotion-review/nonpromotion-expanded-1440.png",
+      "state": "分类下方展开明细",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/nonpromotion-expanded-1440.png",
+      "capturedAt": "2026-10-20T21:12:21+08:00",
+      "sha256": "4ddbdd6111559d8ddc61ff0ca14a1732370b55b086e4ab556a9c914114e0c362"
+    },
+    {
+      "file": "non-promotion-review/nonpromotion-flat-1440.png",
+      "state": "平铺，每个轮次独立显示",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1490
+      },
+      "source": ".tools/test-artifacts/review-workbench/nonpromotion-flat-1440.png",
+      "capturedAt": "2026-10-20T21:12:21+08:00",
+      "sha256": "34df965d4aa5e9b5e911667ba8351fb999341d933f6134b2ef055988639fb989"
+    },
+    {
+      "file": "non-promotion-review/nonpromotion-inspector-1440.png",
+      "state": "非推广记录 Inspector",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/nonpromotion-inspector-1440.png",
+      "capturedAt": "2026-10-20T21:12:21+08:00",
+      "sha256": "cc31b6d524d32b91abc2ebbaa9dbc9a94608113b6bb2c7cb58220779aea0ec14"
+    },
+    {
+      "file": "motion/phase-change-end.png",
+      "state": "阶段切换结束，恢复稳定状态",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1623,
+        "height": 72
+      },
+      "source": ".tools/test-artifacts/review-workbench/phase-change-end.png",
+      "capturedAt": "2026-10-20T21:12:25+08:00",
+      "sha256": "42d132ff1ade0336668852fe16e165625295a99d2ea4cf247fca8818cda9cffe"
+    },
+    {
+      "file": "motion/phase-change-mid.png",
+      "state": "阶段切换过渡中",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1623,
+        "height": 72
+      },
+      "source": ".tools/test-artifacts/review-workbench/phase-change-mid.png",
+      "capturedAt": "2026-10-20T21:12:24+08:00",
+      "sha256": "42d132ff1ade0336668852fe16e165625295a99d2ea4cf247fca8818cda9cffe"
+    },
+    {
+      "file": "motion/phase-change-start.png",
+      "state": "真实转入放量，绿色节点短暂强调",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1623,
+        "height": 72
+      },
+      "source": ".tools/test-artifacts/review-workbench/phase-change-start.png",
+      "capturedAt": "2026-10-20T21:12:24+08:00",
+      "sha256": "a8775f637f50611b835fb14e7bb4d555a8bab9c04c799fd07b34e992a7d3a58c"
+    },
+    {
+      "file": "promotion-review/promotion-card-1280.png",
+      "state": "已填写的单帖日期卡片",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 959,
+        "height": 362
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-card-1280.png",
+      "capturedAt": "2026-10-20T21:12:18+08:00",
+      "sha256": "b171906f40bd17fdb73699e6620010b0b6466efbed672afb807d65370bb8fa89"
+    },
+    {
+      "file": "promotion-review/promotion-card-1440.png",
+      "state": "已填写的单帖日期卡片",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1119,
+        "height": 362
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-card-1440.png",
+      "capturedAt": "2026-10-20T21:12:17+08:00",
+      "sha256": "3f05c244c4aa077f390e3966d4a76e03fc5c570325e1f915cc4c1bf63cf57ce5"
+    },
+    {
+      "file": "promotion-review/promotion-card-1920.png",
+      "state": "已填写的单帖日期卡片",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1599,
+        "height": 254
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-card-1920.png",
+      "capturedAt": "2026-10-20T21:12:19+08:00",
+      "sha256": "8713ee7ca357b4b7b8a47957bf85d452406d3ac98b34efb95e2f03e9ffd691f6"
+    },
+    {
+      "file": "promotion-review/promotion-expanded-1280.png",
+      "state": "阶段节点与展开的每日数据表",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1280,
+        "height": 2094
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-expanded-1280.png",
+      "capturedAt": "2026-10-20T21:12:18+08:00",
+      "sha256": "a0bd4e4bdfbf735c663456e5aaafa50de78483bde0095907335df4047ae1f361"
+    },
+    {
+      "file": "promotion-review/promotion-expanded-1440.png",
+      "state": "阶段节点与展开的每日数据表",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 2094
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-expanded-1440.png",
+      "capturedAt": "2026-10-20T21:12:17+08:00",
+      "sha256": "c3e9e40d03199c7b456a7120a3f7177610cb1dc7f7d91c2c7926fe176f2746c7"
+    },
+    {
+      "file": "promotion-review/promotion-expanded-1920.png",
+      "state": "阶段节点与展开的每日数据表",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1920,
+        "height": 1878
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-expanded-1920.png",
+      "capturedAt": "2026-10-20T21:12:20+08:00",
+      "sha256": "1ea8d4c2032c71fe34728bc1cc52882558010a1dc9acc7f6c32186d42fcddbff"
+    },
+    {
+      "file": "promotion-review/promotion-history-1440.png",
+      "state": "历史总览，已结束默认收起",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-history-1440.png",
+      "capturedAt": "2026-10-20T21:12:20+08:00",
+      "sha256": "de1f733f9e26e08f652f4b963ae9675763e700a3a243172d623624d1354457bb"
+    },
+    {
+      "file": "promotion-review/promotion-history-ended-1440.png",
+      "state": "已结束推广展开，历史数据与表尾汇总",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1078
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-history-ended-1440.png",
+      "capturedAt": "2026-10-20T21:12:20+08:00",
+      "sha256": "34fb015ae69474ba60cd90c107bc5459fb4a2cc4643fa2f60b6043d1e12925ce"
+    },
+    {
+      "file": "promotion-review/promotion-inspector-1280.png",
+      "state": "日期记录 Inspector",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1280,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-inspector-1280.png",
+      "capturedAt": "2026-10-20T21:12:18+08:00",
+      "sha256": "d459416551d6e0f0682b15a4c764461254ed4caa763c6aeb697a716eae885252"
+    },
+    {
+      "file": "promotion-review/promotion-inspector-1440.png",
+      "state": "日期记录 Inspector",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-inspector-1440.png",
+      "capturedAt": "2026-10-20T21:12:17+08:00",
+      "sha256": "8896b1e7663de783ac33ce8aa1ed03097beb7e5cabcf45f9399fb446c8f14ab8"
+    },
+    {
+      "file": "promotion-review/promotion-inspector-1920.png",
+      "state": "日期记录 Inspector",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1920,
+        "height": 1000
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-inspector-1920.png",
+      "capturedAt": "2026-10-20T21:12:20+08:00",
+      "sha256": "ac1bb05d23b73d0e1c9fa3c4930f6ab7d61d4d906f7e5e82caf90b35c883c266"
+    },
+    {
+      "file": "promotion-review/promotion-pending-1280.png",
+      "state": "待完成复盘与推广概览",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1280,
+        "height": 1831
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-pending-1280.png",
+      "capturedAt": "2026-10-20T21:12:18+08:00",
+      "sha256": "b25c78b21c0c42a389ca2afee3980edef147bade7faf84d285c5a61f77e12a73"
+    },
+    {
+      "file": "promotion-review/promotion-pending-1440.png",
+      "state": "待完成复盘与推广概览",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1440,
+        "height": 1831
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-pending-1440.png",
+      "capturedAt": "2026-10-20T21:12:16+08:00",
+      "sha256": "d7f4fa024892dcd25586584b723839e595af7909788d6ef91927c2b123f90e6f"
+    },
+    {
+      "file": "promotion-review/promotion-pending-1920.png",
+      "state": "待完成复盘与推广概览",
+      "viewport": {
+        "width": 1920,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1920,
+        "height": 1615
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-pending-1920.png",
+      "capturedAt": "2026-10-20T21:12:19+08:00",
+      "sha256": "88d977f3024d204bd2499e0fee0db0ef91875b1f3b90d01dfe96fade617dcc8e"
+    },
+    {
+      "file": "promotion-review/promotion-waiting-1440.png",
+      "state": "待定期间预览及修改安排",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "imageSize": {
+        "width": 1119,
+        "height": 216
+      },
+      "source": ".tools/test-artifacts/review-workbench/promotion-waiting-1440.png",
+      "capturedAt": "2026-10-20T21:12:15+08:00",
+      "sha256": "5c8694b970d100c02ee84b3a5cad58a4f34225f4c0d4223121a3964e35615142"
+    }
+  ],
+  "video": {
+    "file": "motion/review-workbench-desktop.webm",
+    "source": ".tools/test-artifacts/review-workbench/video/page@d3a1a47490801f71694382bf290b9c0a.webm",
+    "capturedAt": "2026-10-20T21:12:26+08:00",
+    "sha256": "5119d7418e3ff4eb8301d5a56f31026ebb64baa25e6daa9b207d6ce8d86dc741",
+    "sizeBytes": 5415012
+  },
+  "browserChecks": "review-workbench passed: retrospective start, T+1 access, midnight, data/arrangement drafts, per-post pause, failure/retry, Inspector, inline categories, ended history and retired API",
+  "verification": {
+    "unitTests": {
+      "passed": 148,
+      "failed": 0
+    },
+    "build": "passed",
+    "schemaCheck": "passed",
+    "browserSuites": [
+      "review-workbench",
+      "ui",
+      "timeline",
+      "motion",
+      "browser",
+      "publication",
+      "registration",
+      "workflows",
+      "interaction",
+      "reviews",
+      "annual-plan",
+      "pauses"
+    ],
+    "desktopViewports": [
+      1280,
+      1440,
+      1920
+    ],
+    "smallViewportRegression": [
+      390,
+      320
+    ]
+  }
+}

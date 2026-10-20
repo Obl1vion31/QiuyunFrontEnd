@@ -4,10 +4,15 @@
 
 ## 最新一轮
 
-[**2026-10-20 19:12 · 复盘页面**](2026-10-20_19-12_review-pages/README.md)
+[**2026-10-20 21:14 · 复盘工作台**](2026-10-20_21-14_review-workbench/README.md)
 
-- [推广帖复盘 · 待完成复盘](2026-10-20_19-12_review-pages/promotion-pending/README.md)
-- [非推广复盘 · 按帖子分类、分类明细与平铺](2026-10-20_19-12_review-pages/non-promotion-review/README.md)
+- [推广帖复盘](2026-10-20_21-14_review-workbench/promotion-review/README.md)
+- [非推广复盘](2026-10-20_21-14_review-workbench/non-promotion-review/README.md)
+- [动效与桌面录像](2026-10-20_21-14_review-workbench/motion/README.md)
+
+## 历史批次
+
+[2026-10-20 19:12 · 复盘页面](2026-10-20_19-12_review-pages/README.md)
 
 每轮索引标明应用代码、截图状态、视口尺寸与数据来源。图片为实际浏览器截图；“已自检”表示 agent 已检查，用户确认后才记录为用户验收通过。
 

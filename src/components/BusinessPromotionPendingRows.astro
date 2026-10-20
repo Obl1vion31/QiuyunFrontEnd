@@ -2,18 +2,18 @@
 import type {PromotionTimelineRow} from '../db/promotion-pending';
 import {pendingPromotionPeriod} from '../db/promotion-pending';
 import {shanghaiDateKey,previousDateKey} from '../db/promotion-rules.mjs';
-interface Props {rows:PromotionTimelineRow[]}
-const {rows}=Astro.props,today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today),admin=Astro.locals.user?.role==='admin';
-const items=rows.map(row=>({row,period:pendingPromotionPeriod(row)})).sort((a,b)=>(a.period?.endedOn??a.row.date).localeCompare(b.period?.endedOn??b.row.date));
+interface Props {rows:PromotionTimelineRow[];preview?:boolean;embedded?:boolean;now?:Date}
+const {rows,preview=false,embedded=false,now=new Date()}=Astro.props,today=shanghaiDateKey(now),yesterday=previousDateKey(today),admin=Astro.locals.user?.role==='admin';
+const items=rows.map(row=>({row,period:pendingPromotionPeriod(row,now,preview)})).sort((a,b)=>(a.period?.endedOn??a.row.date).localeCompare(b.period?.endedOn??b.row.date));
 ---
 {items.length>0&&<section class="promotion-timeline promotion-pending-rows" aria-label="推广安排与持续状态">
  {items.map(({row,period})=>{
   const editable=admin||!!period?.range||!row.hasMetrics;
   const editorId=`pending-arrangement-${row.scheduleId}`;
   const waitAction=period?.range?'next':'wait';
-  return <article class:list={['review-pending-row',{'is-initial':!period,'is-continuing':!!period,'is-due':period?.due}]} data-timeline-row={row.scheduleId} data-pending-row data-pending-record={`${row.scheduleId}:${row.date}`} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={period?.status??'推广待开始'}>
+  return <article class:list={['review-pending-row',{'is-initial':!period,'is-continuing':!!period,'is-due':period?.due}]} data-timeline-row={row.scheduleId} data-pending-row data-pending-record={`${row.scheduleId}:${period?.endedOn??row.date}`} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={period?.status??'推广待开始'}>
    <header class="review-entry-header">
-    <div class="review-entry-identity"><a class="review-post-link" href={`?view=daily&campaign=review:${row.scheduleId}:${row.date}`} data-pending-inspector={row.scheduleId}><strong>{row.contentName}</strong></a><small>V{row.versionNumber} · {row.subjectName}</small></div>
+    {!embedded&&<div class="review-entry-identity"><a class="review-post-link" href={`?view=daily&campaign=review:${row.scheduleId}:${period?.endedOn??row.date}`} data-pending-inspector={row.scheduleId}><strong>{row.contentName}</strong></a><small>V{row.versionNumber} · {row.subjectName}</small></div>}
     {period?<>
      <span class="review-period-status"><span>{period.range?.stageType==='testing'?'测试待定至':period.range?'推广暂停至':'待定至'}</span><time data-pending-period-end datetime={period.endedOn}>{period.endedOn}</time><small>（含）</small></span>
      <form class="business-form timeline-next-form review-next-form" data-timeline-form data-pending-due={String(period.due)} data-fingerprint={row.fingerprint}>
@@ -35,7 +35,7 @@ const items=rows.map(row=>({row,period:pendingPromotionPeriod(row)})).sort((a,b)
      {period.range&&<><input type="hidden" name="rangeId" value={period.range.id}/><input type="hidden" name="nextDecision" value="wait_continue" data-edit-wait-decision/></>}
      <label>安排<select name="action" required><option value={waitAction}>继续{period.state}</option>{period.range?.stageType!=='scaling'&&<option value="start_testing">{period.range?'恢复测试':'开始测试'}</option>}<option value="start_scaling">{period.range?'放量／恢复推广':'直接放量'}</option></select></label>
      <label data-timeline-through>{period.untilLabel}（含当天）<input type="date" name="waitingThrough" value={period.endedOn} min={period.startedOn} required/></label>
-     <label data-edit-start-field hidden>实际{period.range?'恢复':'开始'}日期<input type="date" data-edit-start value={period.endedOn<yesterday?period.endedOn:yesterday} min={row.publishedOn} max={today} disabled/></label>
+     <label data-edit-start-field hidden>实际{period.range?'恢复':'开始'}日期<input type="date" data-edit-start value={preview?today:period.endedOn<yesterday?period.endedOn:yesterday} min={row.publishedOn} max={today} disabled/></label>
      <label class="review-reason">修改原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存修改</button><output role="alert"/>
     </form>
    </section>}

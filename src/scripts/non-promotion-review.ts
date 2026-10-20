@@ -1,4 +1,5 @@
 import './business-data-motion';
+import './promotion-disclosure';
 import {nonPromotionGroups} from '../db/non-promotion-groups';
 import { navigate } from 'astro:transitions/client';
 import { getInspector } from './business-inspector';
@@ -17,53 +18,33 @@ function initialize() {
   const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
   const displaySwitch = document.querySelector<HTMLElement>('[data-review-display]');
   const overview=table.querySelector<HTMLElement>('[data-category-overview]')!;
-  const context=document.querySelector<HTMLElement>('[data-category-context]')!;
-  let sortState = { key: 'date', direction: 'descending' };
-  let overviewScroll=0,transition:Animation|null=null;
-  const arrange = () => {
-    const grouped=table.dataset.grouped==='true',category=table.dataset.category||'',summary=grouped&&!category;
-    const {key,direction}=sortState;
+  let sortState={key:'date',direction:'descending'};
+  const arrange=()=>{
+    const grouped=table.dataset.grouped==='true',focus=document.activeElement as HTMLElement|null;
     const compare=(left:HTMLElement,right:HTMLElement)=>{
+      const key=sortState.key;
       if(key!=='date'&&(left.dataset[key]==='')!==(right.dataset[key]===''))return left.dataset[key]===''?1:-1;
       const delta=key==='date'?left.dataset.date!.localeCompare(right.dataset.date!):Number(left.dataset[key])-Number(right.dataset[key]);
-      return direction==='ascending'?delta:-delta;
+      return (sortState.direction==='ascending'?delta:-delta)||left.dataset.inspectorKey!.localeCompare(right.dataset.inspectorKey!);
     };
-    body.replaceChildren(...[...records].sort(compare));
-    for(const row of records){row.hidden=grouped&&!!category&&row.dataset.categoryKey!==category;row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');});}
-    body.hidden=summary;overview.hidden=!summary;context.hidden=!grouped||!category;
-    context.querySelector('[data-category-title]')!.textContent=table.querySelector<HTMLElement>(`[data-category-group="${CSS.escape(category)}"]`)?.dataset.categoryLabel??'';
-    const heads=table.querySelectorAll<HTMLElement>('.table-head>[role=columnheader]');
-    heads[1].textContent=summary?'帖子分类':'帖子';heads[2].textContent='轮次';heads[5].textContent=summary?'':'分类';
-    for(const button of document.querySelectorAll<HTMLButtonElement>('[data-sort]')){
-      button.disabled=summary;const active=button.dataset.sort===key;
-      button.closest('[role=columnheader]')?.setAttribute('aria-sort',active&&!summary?direction:'none');
-      button.querySelector('i')!.textContent=active&&!summary?(direction==='ascending'?'↑':'↓'):'↕';
-      if(button.dataset.sort==='date')button.firstChild!.textContent=summary?'有效样本 ':'实验日期 ';
-      if(button.dataset.sort==='click')button.firstChild!.textContent=summary?'平均点击率 ':'点击率 ';
-      if(button.dataset.sort==='read'){button.querySelector('.sort-read-full')!.textContent=summary?'平均 3 秒阅读率':'3 秒阅读率';button.querySelector('.sort-read-short')!.textContent=summary?'平均阅读率':'阅读率';}
-    }
+    const sorted=[...records].sort(compare);
+    if(grouped){for(const group of table.querySelectorAll<HTMLElement>('[data-category-records]'))group.replaceChildren(...sorted.filter(row=>row.dataset.categoryKey===group.dataset.categoryRecords));}
+    else body.replaceChildren(...sorted);
+    for(const row of records){row.hidden=false;row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');});}
+    body.hidden=grouped;overview.hidden=!grouped;table.querySelector<HTMLElement>('[data-flat-head]')!.hidden=grouped;
+    for(const button of table.querySelectorAll<HTMLButtonElement>('[data-sort]')){button.disabled=false;const active=button.dataset.sort===sortState.key;button.closest('[role=columnheader]')?.setAttribute('aria-sort',active?sortState.direction:'none');button.querySelector('i')!.textContent=active?(sortState.direction==='ascending'?'↑':'↓'):'↕';}
+    if(focus?.isConnected&&focus.closest('[data-row-href]'))focus.focus({preventScroll:true});
   };
-  const move=(back:boolean)=>{
-    const target=back?overview:body;
-    const previous=getComputedStyle(target);const from=target.getAnimations().length?{opacity:previous.opacity,transform:previous.transform}:{opacity:'.6',transform:`translateX(${back?-10:10}px)`};
-    transition?.cancel();if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-    transition=target.animate([from,{opacity:1,transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)'});
-  };
-  document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.sort!;sortState={key,direction:sortState.key===key&&sortState.direction==='descending'?'ascending':'descending'};arrange();}));
+  table.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.sort!;sortState={key,direction:sortState.key===key&&sortState.direction==='descending'?'ascending':'descending'};arrange();}));
   if(displaySwitch)controller.configure({localParameters:['group','bucket'],onContextChange:url=>{
-    const grouped=url.searchParams.get('group')!=='0',requested=url.searchParams.get('bucket')??'';
-    const category=table.querySelector(`[data-category-group="${CSS.escape(requested)}"]`)?requested:'';
-    const previous=table.dataset.category??'';
-    table.dataset.grouped=String(grouped);table.dataset.category=grouped?category:'';
+    const grouped=url.searchParams.get('group')!=='0';table.dataset.grouped=String(grouped);
     displaySwitch.querySelectorAll<HTMLInputElement>('input').forEach(input=>input.checked=input.value===(grouped?'1':'0'));
     (filters!.elements.namedItem('group') as HTMLInputElement).value=grouped?'1':'0';
-    for(const row of records){const href=new URL(row.dataset.rowHref!,location.href);href.searchParams.set('group',grouped?'1':'0');if(category)href.searchParams.set('bucket',category);else href.searchParams.delete('bucket');row.dataset.rowHref=href.pathname+href.search;}
+    const bucket=url.searchParams.get('bucket');if(bucket){const detail=table.querySelector<HTMLDetailsElement>(`[data-category-group="${CSS.escape(bucket)}"]`);if(detail)detail.open=true;}
+    for(const row of records){const href=new URL(row.dataset.rowHref!,location.href);href.searchParams.set('group',grouped?'1':'0');href.searchParams.delete('bucket');row.dataset.rowHref=href.pathname+href.search;}
     arrange();
-    if(previous!==category){move(!category);if(!category)window.scrollTo({top:overviewScroll});}
   }});
   displaySwitch?.addEventListener('change',event=>{const input=event.target as HTMLInputElement;if(input.checked)controller.setLocalParameters({group:input.value,bucket:null});});
-  table.addEventListener('click',event=>{const button=(event.target as Element).closest<HTMLButtonElement>('[data-category-open]');if(!button)return;overviewScroll=scrollY;controller.setLocalParameter('bucket',button.dataset.categoryOpen!);context.querySelector<HTMLButtonElement>('[data-category-back]')?.focus({preventScroll:true});});
-  context.querySelector('[data-category-back]')?.addEventListener('click',()=>{const category=table.dataset.category!;controller.setLocalParameters({bucket:null});table.querySelector<HTMLButtonElement>(`[data-category-open="${CSS.escape(category)}"]`)?.focus({preventScroll:true});});
   arrange();
   filters?.addEventListener('change', event => {
     const field = event.target as HTMLInputElement;
@@ -102,7 +83,7 @@ function initialize() {
         const cell=summary.querySelector<HTMLElement>(`[data-category-click="${round.type}"]`);if(!cell)continue;
         cell.textContent=round.click==null?'—':`${round.click.toFixed(2)}%`;
         summary.querySelector(`[data-category-read="${round.type}"]`)!.textContent=round.read==null?'—':`${round.read.toFixed(2)}%`;
-        cell.closest('.review-row')!.querySelector('[aria-colindex="1"]')!.textContent=`${round.count} 篇`;
+        summary.querySelector(`[data-category-count="${round.type}"]`)!.textContent=`${round.count} 篇`;
       }
     }
     arrange();

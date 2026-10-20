@@ -3,7 +3,7 @@ import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
 import BusinessPromotionDataTable from '../../components/BusinessPromotionDataTable.astro';
 import BusinessPromotionSummary from '../../components/BusinessPromotionSummary.astro';
 import BusinessPromotionDetails from '../../components/BusinessPromotionDetails.astro';
-import {promotionOverview,promotionTotals,promotionDecisionLabels as decisionLabels} from '../../db/promotion-overview';
+import {promotionOverview,promotionTotals} from '../../db/promotion-overview';
 import '../../styles/promotion-overview.css';
 import BusinessPromotionStageView from '../../components/BusinessPromotionStageView.astro';
 import BusinessPromotionToolbar from '../../components/BusinessPromotionToolbar.astro';
@@ -11,14 +11,13 @@ import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
-import BusinessPromotionTimeline from '../../components/BusinessPromotionTimeline.astro';
 import '../../styles/promotion-pending.css';
-import {isPendingPromotionRow} from '../../db/promotion-pending';
 import {readPromotionTimeline} from '../../db/promotion-timeline';
 
-import BusinessPromotionPause from '../../components/BusinessPromotionPause.astro';
+import BusinessPromotionDailyPosts from '../../components/BusinessPromotionDailyPosts.astro';
+import {promotionReviewDays} from '../../db/promotion-review-days';
 import { readPromotionContext } from '../../db/promotion-pauses';
-import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, dateInWindows, effectivePromotionStatus, firstMissingPromotionDate, promotionLabels, pauseIsActive } from '../../db/promotion-state.mjs';
+import {promotionStateOn,promotionLabels} from '../../db/promotion-state.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
@@ -33,7 +32,6 @@ import {
   operationsSubject,
 } from '../../db/schema';
 import {
-  nextDateKey,
   shanghaiDateKey,
 } from '../../db/promotion-rules.mjs';
 
@@ -44,7 +42,8 @@ const addDays = (dateKey: string, amount: number) => {
   date.setUTCDate(date.getUTCDate() + amount);
   return shanghaiDateKey(date);
 };
-const today = shanghaiDateKey(new Date());
+const now=new Date();
+const today = shanghaiDateKey(now);
 const yesterday = addDays(today, -1);
 const activeView = ['history','stage'].includes(Astro.url.searchParams.get('view') ?? '') ? Astro.url.searchParams.get('view')! : 'daily';
 const isDateKey = (value: string | null): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
@@ -63,8 +62,8 @@ let timelineRows:Awaited<ReturnType<typeof readPromotionTimeline>>=[];
 let databaseError = '';
 let timelineAudits:(typeof operationsPromotionTimelineAudit.$inferSelect)[]=[];
 let promotionContext: Awaited<ReturnType<typeof readPromotionContext>> = { stateChanges: [], pauses: [], targets: [], holds: [], waitRanges: [], campaigns: [], metrics: [] };
-let pauseInfo: { active: typeof promotionContext.pauses[number] | null; testing: number; scaling: number; affected: number } = { active: null, testing: 0, scaling: 0, affected: 0 };
-const visibleStatus = (campaign: { id: string; currentStatus: string; currentStage: string | null }) => effectivePromotionStatus(campaign.currentStatus, campaign.currentStage, campaign.id, promotionContext);
+
+
 let campaigns: Array<{
   id: string;
   scheduleId: string;
@@ -159,7 +158,7 @@ try {
   readPromotionContext(database),
   database.select().from(operationsPromotionTimelineAudit).orderBy(desc(operationsPromotionTimelineAudit.createdAt)),
   ]) as [typeof campaigns, typeof stages, typeof metrics, typeof promotionContext,typeof timelineAudits];
-  timelineRows=await readPromotionTimeline(database);
+  timelineRows=await readPromotionTimeline(database,now);
   campaigns = campaigns.map(campaign => {
     if (!promotionContext.waitRanges.some(range => range.campaignId === campaign.id)) return campaign;
     const state = promotionStateOn(campaign, promotionContext, today);
@@ -167,45 +166,20 @@ try {
     stages = [...stages.filter(stage => stage.campaignId !== campaign.id), ...state.stages.map(stage => ({ ...stage, campaignId: campaign.id, id: `${campaign.id}:${stage.stageType}:${stage.startedOn}` }))];
     return { ...campaign, currentStage: state.currentStage, currentStatus: state.currentStatus, endedOn: state.endedOn };
   });
-  const active = promotionContext.pauses.find(pause => pauseIsActive(pause)) ?? null;
-  const running = campaigns.filter(campaign => ['testing','scaling'].includes(visibleStatus(campaign)));
-  pauseInfo = { active, testing: running.filter(campaign => campaign.currentStage === 'testing').length, scaling: running.filter(campaign => campaign.currentStage === 'scaling').length, affected: active ? promotionContext.targets.filter(target => target.pauseId === active.id).length : running.length };
+
 } } catch (error) {
   console.error('daily promotion review query failed', error);
   databaseError = '推广日度数据暂时不可用。请确认开发库已经执行最新迁移。';
 }
 Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 
-const dateRange = (start: string, end: string) => {
-  const dates: string[] = [];
-  for (let date = start; date <= end; date = nextDateKey(date)) dates.push(date);
-  return dates;
-};
-
-const awaitingRows=timelineRows.filter(row=>isPendingPromotionRow(row));
-const pendingRows = campaigns.flatMap((campaign) => {
-  if (campaign.startedOn > yesterday) return [];
-  const campaignMetrics = metrics.filter((metric) => metric.campaignId === campaign.id);
-  const windows = [...campaignPauseWindows(campaign, promotionContext), ...campaignWaitWindows(campaign, promotionContext), ...promotionContext.holds.filter(hold => hold.campaignId === campaign.id)];
-  const expectedDate = firstMissingPromotionDate(campaignMetrics, campaign.startedOn, windows);
-  if (expectedDate > yesterday) return [];
-  return dateRange(expectedDate, yesterday).filter(date => !campaignMetrics.some(metric=>metric.metricDate===date)&&!dateInWindows(date, windows) && promotionStateOn(campaign, promotionContext, date)?.currentStage).map((metricDate, index) => ({
-    campaign,
-    metricDate,
-    unlocked: index === 0,
-    stageType: index === 0 ? promotionStateOn(campaign, promotionContext, metricDate)?.currentStage : null,
-    campaignStatus: promotionStateOn(campaign, promotionContext, metricDate)?.currentStatus,
-    blockedBy: expectedDate,
-  }));
-}).sort((left, right) =>
-  left.metricDate.localeCompare(right.metricDate)
-  || left.campaign.contentName.localeCompare(right.campaign.contentName, 'zh-CN'));
-
-const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,selected:selectedCampaignId});
+const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now);
+const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.due).length,0);
+const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId});
 const lifecycleRows=overview.filter(row=>!row.closed&&row.latest);
 const historyRows=overview.filter(row=>(!historyTo||row.startedOn<=historyTo)&&(!row.endedOn||row.endedOn>=historyFrom)&&(!historyQuery||row.post.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&(!historyStatus||row.status===historyStatus));
 const activeHistoryRows=historyRows.filter(row=>!row.closed),endedHistoryRows=historyRows.filter(row=>row.closed);
-const templateRows=overview.filter(row=>(activeView==='daily'?lifecycleRows:historyRows).includes(row)||activeView==='daily'&&awaitingRows.some(pending=>pending.scheduleId===row.scheduleId)||row.key===selectedCampaignId||row.metrics.some(metric=>metric.id===selectedCampaignId));
+const templateRows=overview.filter(row=>(activeView==='daily'?lifecycleRows:historyRows).includes(row)||activeView==='daily'&&reviewPosts.some(pending=>pending.row.scheduleId===row.scheduleId)||row.key===selectedCampaignId||row.metrics.some(metric=>metric.id===selectedCampaignId));
 const historyDayGroups=[...new Set(historyRows.flatMap(row=>row.metrics).filter(m=>m.metricDate>=historyFrom&&m.metricDate<=(historyTo||yesterday)).map(m=>m.metricDate))].sort().reverse().map(metricDate=>{
  const rows=historyRows.flatMap(entry=>entry.metrics.filter(metric=>metric.metricDate===metricDate).map(metric=>({entry,metric})));
  return {metricDate,rows,totals:promotionTotals(rows.map(r=>r.metric))};
@@ -243,65 +217,13 @@ const historyHref = (overrides: Record<string, string>) => {
           {databaseError && <p class="notice" role="alert">{databaseError}</p>}
 
           {activeView === 'daily' && <>
-          <section class="calendar-section" aria-labelledby="calendar-title">
-            <BusinessPageHeader title="最新推广生命周期" headingId="calendar-title" contained><p class="lifecycle-meta" slot="meta"><span><i class="legend testing"/>测试</span><span><i class="legend scaling"/>放量</span></p></BusinessPageHeader>
-            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong><p>已结束的推广可在历史总览查看。</p></div>:<div class="lifecycle-list">{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
-          </section>
-
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
-            <div class="pending-heading"><BusinessSectionHeader title="待完成复盘" headingId="daily-title" description="按日期顺序完成" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingRows.length + awaitingRows.length}</small><a href="?view=history">点击进入历史总览查看 ↗</a></Fragment><BusinessPromotionPause slot="end" summary={pauseInfo} /></BusinessSectionHeader></div>
-            <div class="promotion-pending-content" data-promotion-pending-body>
-            <BusinessPromotionTimeline rows={timelineRows}/>
-            {!databaseError && pendingRows.length === 0 && awaitingRows.length === 0
-              ? <div class="empty-state"><strong>截至昨天已全部完成</strong><p>已填数据保存在历史总览；新的待办会在下一复盘日出现。</p></div>
-              : <div class="daily-table-wrap">
-                <div class="daily-grid" aria-label="待完成日度推广复盘">
-                  {pendingRows.map(({ campaign, metricDate, unlocked, stageType, campaignStatus, blockedBy }) => {
-                    const defaultWaiting = campaignStatus === 'waiting_action';
-                    const decisionOptions = stageType === 'scaling'
-                      ? ['scaling_continue','wait_continue','formal_discarded','ended']
-                      : ['test_continue','wait_continue','test_discarded','start_scaling'];
-                    return unlocked
-                      ? <form class="business-form metric-form review-metric-row" data-metric-form data-pending-record={`${campaign.scheduleId}:${metricDate}`} data-current-stage={stageType} data-campaign-status={campaignStatus} data-schedule-id={campaign.scheduleId} data-fingerprint={timelineRows.find(row=>row.scheduleId===campaign.scheduleId)?.fingerprint}>
-                          <input type="hidden" name="campaignId" value={campaign.id} />
-                          <input type="hidden" name="metricDate" value={metricDate} />
-                          <input type="hidden" name="dailyStatus" value={defaultWaiting ? 'waiting_action' : 'active'} />
-                          <input type="hidden" name="stageTypeSnapshot" value={stageType} />
-                          <header class="review-entry-header">
-<div class="review-entry-primary">                           <div class="review-entry-identity"><a class="review-post-link" href={`?view=daily&campaign=review:${campaign.scheduleId}:${metricDate}`} data-pending-inspector={campaign.scheduleId}><strong>{campaign.contentName}</strong></a></div>                           <div class="review-entry-date"><span>数据日期：</span><time datetime={metricDate}>{metricDate}</time></div></div>
-<div class="review-entry-secondary"><small class="review-version">V{campaign.versionNumber} · {campaign.subjectName}</small>                           <div class="review-note-field">{campaign.platformNoteId?<span>笔记 ID：</span>:<label for={`review-note-${campaign.id}`}>笔记 ID：</label>}{campaign.platformNoteId?<span class="review-note-value" title={campaign.platformNoteId}>{campaign.platformNoteId}</span>:<><input id={`review-note-${campaign.id}`} aria-label="笔记 ID" name="platformNoteId" data-active-id data-note-id-required pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="首次复盘补填"/><span class="review-note-value" data-paused-note-id hidden>未填写</span></>}</div>                           <div class={`review-inline-status ${defaultWaiting?'waiting_action':stageType}`}><span>当日状态：</span><b data-day-status data-default-label={defaultWaiting?(stageType==='testing'?'测试待定':'推广暂停'):stageType==='scaling'?'放量':'测试'}>{defaultWaiting?(stageType==='testing'?'测试待定':'推广暂停'):stageType==='scaling'?'放量':'测试'}</b></div></div>
-                           <button type="button" class="business-action-secondary review-state-trigger" data-toggle-day-state aria-expanded="false" aria-controls={`review-state-${campaign.id}-${metricDate}`}>修改当日状态</button>
-                          </header>
-                          <div class="review-day-editor" data-day-editor id={`review-state-${campaign.id}-${metricDate}`} hidden>
-                           <label class="review-day-state"><span>当日状态</span><select name="dayAction" aria-label="当日状态"><option value="active">{defaultWaiting?(stageType==='testing'?'测试待定':'推广暂停'):stageType==='scaling'?'放量':'测试'}</option><option value="pause">当日暂停</option></select></label>
-                          </div>
-                          <div class="review-entry-data">
-                          <div class="review-metric-fields" data-active-fields>
-                           <div class="review-metric-inputs">
-                           <label>消耗<input aria-label="消耗" name="spend" type="number" min="0" step="0.01" placeholder="¥" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
-                           <label>平台开口<input aria-label="平台开口人数" name="platformOpenCount" type="number" min="0" step="1" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
-                           <label>实际开口<input aria-label="实际开口人数" name="actualOpenCount" type="number" min="0" step="1" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
-                           <label>平台留资<input aria-label="平台留资人数" name="platformLeadCount" type="number" min="0" step="1" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
-                           <label>实际留资<input aria-label="实际留资人数" name="actualLeadCount" type="number" min="0" step="1" value={defaultWaiting ? 0 : undefined} readonly={defaultWaiting} required /></label>
-                           </div>
-                          </div>
-                          <div class="review-pause-fields" data-pause-fields hidden>
-                           <label data-pause-reason>暂停原因<input name="pauseReason" maxlength="2000" disabled/></label><label data-pause-through>暂停至（含当天）<input type="date" name="pauseThrough" value={metricDate} min={metricDate} disabled/></label>
-                          </div>
-                          <div class="review-outcome">
-                           <dl class="review-costs" data-active-costs aria-label="自动计算成本"><div class="review-cost"><dt>实际开口成本 <small title="自动计算">自动</small></dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本 <small title="自动计算">自动</small></dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl>
-                           <div class="review-completion"><label class="review-decision" data-active-decision><span>下一步</span><select data-review-decision aria-label="下一步" name="reviewDecision" required><option value="">请选择</option>{decisionOptions.map((decision) => <option value={decision}>{decision === 'wait_continue' ? (stageType === 'testing' ? '测试待定' : '推广暂停') : decisionLabels[decision]}</option>)}</select></label><button type="submit" class="business-action-primary">完成复盘</button></div>
-                          </div>
-                          </div><p role="alert" data-form-message></p>
-                        </form>
-                      : <div data-pending-record={`${campaign.scheduleId}:${metricDate}`} data-locked-schedule={campaign.scheduleId} class="review-metric-row review-locked-row">
-                          <header class="review-entry-header"><div class="review-entry-identity"><a class="review-post-link" href={`?view=daily&campaign=review:${campaign.scheduleId}:${metricDate}`} data-pending-inspector={campaign.scheduleId}><strong>{campaign.contentName}</strong></a><small>V{campaign.versionNumber} · {campaign.subjectName}</small></div><div class="review-entry-date"><span>数据日期：</span><time datetime={metricDate}>{metricDate}</time></div><span class="review-state-badge">待前日复盘</span></header>
-                          <p class="review-locked-message">请先完成 {blockedBy}，再处理这一天的数据与状态。</p>
-                        </div>;
-                  })}
-                </div>
-              </div>}
-            </div>
+            <div class="pending-heading"><BusinessSectionHeader title="待完成复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项</small><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
+            <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
+          </section>
+          <section class="calendar-section" aria-labelledby="calendar-title">
+            <BusinessSectionHeader title="推广概览" headingId="calendar-title" contained/>
+            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list">{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
           </section>
 
           </>}
@@ -426,6 +348,6 @@ const historyHref = (overrides: Record<string, string>) => {
 </html>
 
 <style>
-.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:12px;background:var(--console-surface);overflow:clip}.daily-section{margin-top:20px}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-filters>a{padding:10px 0}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
+.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:12px;background:var(--console-surface);overflow:clip}.daily-section{margin-top:0}.calendar-section{margin-top:16px}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-filters>a{padding:10px 0}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
 @media(max-width:600px){.history-head{padding:14px}.history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-search{grid-column:1/-1}.history-layout{padding:12px}.history-mode-switch{padding-inline:14px}}
 </style>

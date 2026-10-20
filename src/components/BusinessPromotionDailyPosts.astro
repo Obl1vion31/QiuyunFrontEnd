@@ -1,0 +1,34 @@
+---
+import {promotionReviewDays} from '../db/promotion-review-days';
+import type {PromotionTimelineRow} from '../db/promotion-pending';
+import type {PromotionContext} from '../db/promotion-state.mjs';
+import BusinessPromotionMetricForm from './BusinessPromotionMetricForm.astro';
+import BusinessPromotionPendingRows from './BusinessPromotionPendingRows.astro';
+interface Props {rows:PromotionTimelineRow[];context:PromotionContext;now?:Date}
+const {rows,context,now=new Date()}=Astro.props,posts=promotionReviewDays(rows,context,now),serverNow=now.toISOString();
+const total=posts.reduce((n,post)=>n+post.days.filter(day=>day.due).length,0);
+---
+<div class="promotion-pending-content" data-promotion-pending-body data-server-now={serverNow} data-due-count={total}>
+ {posts.length===0&&<div class="empty-state"><strong>当前没有需要处理的推广帖子</strong></div>}
+ {posts.map(({row,days})=>{
+ const first=days.find(day=>day.editable)??days[0];
+ return <article class="review-post-card" data-review-post={row.scheduleId}>
+  <header class="review-post-header"><a class="review-post-link" href={`?view=daily&campaign=review:${row.scheduleId}:${first.date}`} data-pending-inspector={row.scheduleId}><strong>{row.contentName}</strong></a><span>V{row.versionNumber} · {row.subjectName}</span>{row.platformNoteId&&<button type="button" class="review-copy-id" data-copy-review-id={row.platformNoteId} title={row.platformNoteId}>笔记 ID · 复制</button>}</header>
+  {days.map(day=><details class:list={['review-day',day.status==='暂停'||day.status==='待定'?'waiting':day.stage??'undecided']} data-review-day={`${row.scheduleId}:${day.date}`} data-review-date={day.date} data-opens-at={day.opensAt} data-preview={String(day.kind==='preview')} open={day===first&&day.editable}>
+   <summary class="review-day-summary"><span class="review-day-date"><time datetime={day.date}>{day.date}</time><span class="review-date-state">{day.status}</span></span><span class="review-day-hint">{day.kind==='preview'?(day.waitingThrough?`至 ${day.waitingThrough}（含）`:`${day.opensAt.slice(0,10)} 00:00 开放数据填写`):day.blockedBy?`先完成 ${day.blockedBy}`:day.kind==='arrangement'?'处理推广安排':'待填写数据'}</span><span class="review-day-action"><span class="when-closed">{day.kind==='preview'?'查看安排':'展开'}</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
+   <div class="review-day-body" data-disclosure-body>
+    {day.kind==='metric'&&day.editable?<BusinessPromotionMetricForm row={row} day={day}/>:day.kind==='arrangement'?<BusinessPromotionPendingRows rows={[row]} now={now} embedded/>:<section class="review-day-preview" data-pending-record={`${row.scheduleId}:${day.date}`}>
+     {!day.waitingThrough&&<p><time datetime={day.date}>{day.date}</time> · {day.status}{day.kind==='preview'&&<span> · {day.opensAt.slice(0,10)} 00:00 开放数据填写</span>}</p>}
+     {day.blockedBy&&<p class="review-preview-muted">请先完成 {day.blockedBy} 的复盘与安排。</p>}
+     {day.waitingThrough?<BusinessPromotionPendingRows rows={[row]} now={now} preview embedded/>:day.kind==='preview'&&<details class="review-today-arrangement"><summary>修改当日安排</summary><form class="business-form review-inline-editor" data-timeline-form data-fingerprint={row.fingerprint}>
+      <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={day.date}/><input type="hidden" name="target" value={row.campaign?'day':'initial'}/>
+      <label>当日安排<select name="action" required><option value="">请选择</option>{row.campaign?<option value="pause">当日暂停</option>:<option value="wait">待定</option>}<option value="start_testing">{row.campaign?'测试／恢复测试':'开始测试'}</option><option value="start_scaling">{row.campaign?'放量／恢复推广':'直接放量'}</option></select></label>
+      <label data-timeline-through hidden>暂停／待定至（含当天）<input type="date" name="waitingThrough" value={day.date} min={day.date} disabled/></label><label class="review-reason">修改原因<input name="reason" maxlength="2000" required/></label><button type="submit" class="business-action-primary">保存当日安排</button><output role="alert"/>
+     </form></details>}
+    </section>}
+   </div>
+  </details>)}
+ </article>;
+ })}
+</div>
+<script>import '../scripts/promotion-review-days';</script>

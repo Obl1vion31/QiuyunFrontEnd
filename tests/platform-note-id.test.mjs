@@ -37,6 +37,6 @@ test('首次录入和统一更正都受服务端约束', async () => {
 });
 
 test('推广待办与历史保留帖子身份和首次补填笔记 ID', async () => {
-  const page = await read('src/pages/business/daily-promotion-review.astro');
-  for (const marker of ['lifecycle-list','data-promotion-pending-body','daily-grid','history-workspace','review-entry-identity','data-note-id-required']) assert.match(page, new RegExp(marker));
+  const page = await read('src/pages/business/daily-promotion-review.astro') + await read('src/components/BusinessPromotionDailyPosts.astro') + await read('src/components/BusinessPromotionMetricForm.astro');
+  for (const marker of ['lifecycle-list','data-promotion-pending-body','data-review-day','history-workspace','review-post-link','data-note-id-required']) assert.match(page, new RegExp(marker));
 });

@@ -11,7 +11,7 @@ import * as schema from '../src/db/schema';
 
 export const admin = { username: 'test_admin', password: 'fictional-admin-password', role: 'admin' as const };
 export const employee = { username: 'test_employee', password: 'fictional-employee-password', role: 'employee' as const };
-export async function startFixture() {
+export async function startFixture(options:{clockFile?:string}={}) {
   const pg = new PGlite(); const db = drizzle(pg, { schema });
   await migrateFixture(pg);
   await provisionAccount(db, admin); await provisionAccount(db, employee);
@@ -20,7 +20,7 @@ export async function startFixture() {
   const address = probe.address(); assert.ok(address && typeof address === 'object');
   const port = address.port; await new Promise<void>(resolve => probe.close(() => resolve()));
   const baseURL = `http://127.0.0.1:${port}`;
-  const child = spawn(process.execPath, ['dist/server/entry.mjs'], { env: { ...process.env, HOST: '127.0.0.1', PORT: String(port), NODE_ENV: 'test', DATABASE_URL: `postgresql://postgres:postgres@${socket.getServerConn()}/postgres?max=1`, BETTER_AUTH_URL: baseURL, BETTER_AUTH_SECRET: 'fictional-browser-secret-at-least-32-characters' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, [...(options.clockFile?['--import',new URL('./clock.fixture.mjs',import.meta.url).pathname]:[]),'dist/server/entry.mjs'], { env: { ...process.env, HOST: '127.0.0.1', PORT: String(port), ...(options.clockFile?{FIXTURE_CLOCK_FILE:options.clockFile}:{}), NODE_ENV: 'test', DATABASE_URL: `postgresql://postgres:postgres@${socket.getServerConn()}/postgres?max=1`, BETTER_AUTH_URL: baseURL, BETTER_AUTH_SECRET: 'fictional-browser-secret-at-least-32-characters' }, stdio: ['ignore', 'pipe', 'pipe'] });
   let logs = ''; child.stdout.on('data', chunk => { logs += chunk; }); child.stderr.on('data', chunk => { logs += chunk; });
   const stop = async () => {
     if (child.exitCode === null && !child.signalCode) { child.kill('SIGTERM'); const timer = setTimeout(() => child.kill('SIGKILL'), 5000); await once(child, 'exit'); clearTimeout(timer); }

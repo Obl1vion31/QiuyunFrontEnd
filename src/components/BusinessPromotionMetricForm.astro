@@ -1,0 +1,30 @@
+---
+import type {PromotionTimelineRow} from '../db/promotion-pending';
+import type {ReviewDay} from '../db/promotion-review-days';
+import {promotionDecisionLabels} from '../db/promotion-overview';
+interface Props {row:PromotionTimelineRow;day:ReviewDay}
+const {row,day}=Astro.props,campaign={id:day.campaignId??row.campaign!.id},metricDate=day.date,stageType=day.stage;
+const decisionOptions=stageType==='scaling'?['scaling_continue','wait_continue','formal_discarded','ended']:['test_continue','wait_continue','test_discarded','start_scaling'];
+---
+<form class="business-form metric-form review-metric-row" data-metric-form data-pending-record={`${row.scheduleId}:${metricDate}`} data-current-stage={stageType} data-schedule-id={row.scheduleId} data-fingerprint={row.fingerprint}>
+ <input type="hidden" name="campaignId" value={campaign.id}/><input type="hidden" name="metricDate" value={metricDate}/><input type="hidden" name="dailyStatus" value="active"/><input type="hidden" name="stageTypeSnapshot" value={stageType}/>
+ <header class="review-entry-header">
+  <time class="review-pane-date" datetime={metricDate}>数据日期：{metricDate}</time>
+  {!row.platformNoteId&&<div class="review-note-field"><label for={`review-note-${campaign.id}-${metricDate}`}>笔记 ID</label><input id={`review-note-${campaign.id}-${metricDate}`} aria-label="笔记 ID" name="platformNoteId" data-active-id data-note-id-required pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="首次复盘补填"/><span data-paused-note-id hidden>未填写</span></div>}
+  <div class={`review-inline-status ${stageType}`}><span>当日状态：</span><b data-day-status data-default-label={day.status}>{day.status}</b></div>
+  <button type="button" class="business-action-secondary review-state-trigger" data-toggle-day-state aria-expanded="false" aria-controls={`review-state-${campaign.id}-${metricDate}`} aria-label="修改当日状态">修改状态</button>
+ </header>
+ <div class="review-day-editor" data-day-editor id={`review-state-${campaign.id}-${metricDate}`} hidden><label class="review-day-state"><span>当日状态</span><select name="dayAction" aria-label="当日状态"><option value="active">{day.status}</option><option value="pause">当日暂停</option></select></label></div>
+ <div class="review-entry-data">
+  <div class="review-metric-fields" data-active-fields><div class="review-metric-inputs">
+   <fieldset class="review-spend-group"><legend>投入（元）</legend><label>消耗<input aria-label="消耗" name="spend" type="number" min="0" step="0.01" required/></label></fieldset>
+   <fieldset><legend>开口（人）</legend><div class="review-field-pair"><label>平台<input aria-label="平台开口人数" name="platformOpenCount" type="number" min="0" step="1" required/></label><label>实际<input aria-label="实际开口人数" name="actualOpenCount" type="number" min="0" step="1" required/></label></div></fieldset>
+   <fieldset><legend>留资（人）</legend><div class="review-field-pair"><label>平台<input aria-label="平台留资人数" name="platformLeadCount" type="number" min="0" step="1" required/></label><label>实际<input aria-label="实际留资人数" name="actualLeadCount" type="number" min="0" step="1" required/></label></div></fieldset>
+  </div></div>
+  <div class="review-pause-fields" data-pause-fields hidden><label data-pause-reason>暂停原因<input name="pauseReason" maxlength="2000" disabled/></label><label data-pause-through>暂停至（含当天）<input type="date" name="pauseThrough" value={metricDate} min={metricDate} disabled/></label></div>
+  <div class="review-outcome">
+   <div class="review-calculated" data-active-costs><span class="review-group-heading">计算结果（元/人）</span><dl class="review-costs"><div class="review-cost"><dt>实际开口成本</dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本</dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl></div>
+   <div class="review-action-group"><div class="review-completion"><label class="review-decision" data-active-decision><span>后续动作</span><select data-review-decision aria-label="后续动作" name="reviewDecision" required><option value="">请选择</option>{decisionOptions.map(decision=><option value={decision}>{decision==='wait_continue'?(stageType==='testing'?'测试待定':'推广暂停'):promotionDecisionLabels[decision]}</option>)}</select></label><button type="submit" class="business-action-primary">完成复盘</button></div></div>
+  </div>
+ </div><p role="alert" data-form-message></p>
+</form>

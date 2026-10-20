@@ -25,8 +25,8 @@
 .business-form.business-form label:has(>input[type=checkbox]) { display:flex; align-items:center; gap:8px; font-weight:500; }
 .business-form.business-form input[type=checkbox] { flex:none; width:18px; height:18px; min-height:0; margin:0; accent-color:var(--console-blue); }
 :is(.business-form.business-form,.business-filter.business-filter) button:not([aria-label]):not(.remove-row) {
-  box-sizing:border-box; min-height:var(--form-control-height); border-radius:var(--console-control-radius);
-  padding:8px 12px; font:500 var(--console-text)/var(--console-text-leading) var(--console-font); cursor:pointer;
+  box-sizing:border-box; height:var(--form-control-height); min-height:var(--form-control-height); border-radius:var(--console-control-radius);
+  display:inline-flex; align-items:center; justify-content:center; padding:0 12px; font:500 var(--console-text)/var(--console-text-leading) var(--console-font); cursor:pointer;
 }
 :is(.business-form.business-form,.business-filter.business-filter) :is(input,select,textarea,button):focus-visible { outline:2px solid var(--console-blue); outline-offset:2px; }
 :is(.business-form.business-form,.business-filter.business-filter) button:disabled { opacity:.6; cursor:default; }
