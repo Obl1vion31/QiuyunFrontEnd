@@ -30,6 +30,7 @@ try{
  {const answer=respondToBusinessConfirm(page,true);await pane.locator('[data-close-inspector]').click();await answer;}await pane.waitFor({state:'hidden'});assert.equal(await row(untouched.id).locator('[name=action]').inputValue(),'','放弃恢复原首次安排');
  await row(scaling.id).locator('[data-pending-inspector]').click();await pane.waitFor();await pane.locator('[data-pending-toggle]').click();
  const rangeMirror=pane.locator('[data-pending-editor]');await rangeMirror.locator('[name=action]').selectOption('start_scaling');await rangeMirror.locator('[data-edit-start]').fill(published);await rangeMirror.locator('[name=reason]').fill('面板内测试未保存恢复日期');
+ {const answer=respondToBusinessConfirm(page);await page.keyboard.press('Escape');await answer;}assert.equal(await rangeMirror.isVisible(),true,'取消关闭保留安排编辑器展开状态');assert.equal(await rangeMirror.locator('[name=reason]').evaluate((node:HTMLElement)=>node===document.activeElement),true,'取消关闭恢复原输入焦点');
  {const answer=respondToBusinessConfirm(page,true);await page.keyboard.press('Escape');await answer;}await pane.waitFor({state:'hidden'});assert.equal(await row(scaling.id).locator('[data-edit-start]').inputValue(),yesterday);assert.equal(await row(scaling.id).locator('[name=reason]').inputValue(),'');
  const dueForm=row(due.id).locator('.review-next-form');
  assert.equal((await row(untouched.id).locator('.review-arrangement>span').innerText()).trim(),published+' 的安排');

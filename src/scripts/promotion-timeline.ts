@@ -51,7 +51,7 @@ function initialize(){
    if(opening)target?.querySelector<HTMLElement>('input:not([type=hidden]),select,[tabindex]')?.focus({preventScroll:true});
   };
   row.addEventListener('click',event=>{const button=(event.target as Element).closest<HTMLButtonElement>('[data-pending-toggle]');if(button)toggle(button.dataset.pendingToggle!);});
-  row.addEventListener('keydown',event=>{if(event.key!=='Escape'||!(event.target as Element).closest('[data-pending-panel]'))return;event.preventDefault();const panel=(event.target as Element).closest<HTMLElement>('[data-pending-panel]')!;toggle(panel.dataset.pendingPanel!);row.querySelector<HTMLButtonElement>(`[data-pending-toggle="${panel.dataset.pendingPanel}"]`)?.focus();});
+  row.addEventListener('keydown',event=>{if(row.closest('[data-inspector]'))return;if(event.key!=='Escape'||!(event.target as Element).closest('[data-pending-panel]'))return;event.preventDefault();const panel=(event.target as Element).closest<HTMLElement>('[data-pending-panel]')!;toggle(panel.dataset.pendingPanel!);row.querySelector<HTMLButtonElement>(`[data-pending-toggle="${panel.dataset.pendingPanel}"]`)?.focus();});
  });
  document.querySelectorAll<HTMLFormElement>('[data-timeline-form]:not([data-ready])').forEach(form=>{
  form.dataset.ready='true';const requestKey=crypto.randomUUID();
