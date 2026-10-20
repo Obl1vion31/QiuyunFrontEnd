@@ -10,7 +10,7 @@ import {changePromotionTimeline,promotionSnapshot,readPromotionTimeline,timeline
 import {firstMissingPromotionDate} from '../src/db/promotion-state.mjs';
 import {registerPublication} from '../src/db/publication-workflow';
 import {publicationSchema} from '../src/db/validation';
-import {inclusiveDays,isPendingPromotionRow,pendingPromotionPeriod,promotionPeriodRecords,promotionIntervalPreview} from '../src/db/promotion-pending';
+import {inclusiveDays,isPendingPromotionRow,pendingPromotionPeriod} from '../src/db/promotion-pending';
 const pg=new PGlite(),db=drizzle(pg,{schema:s});
 const staff={id:'fictional-timeline-staff',username:'虚构日序员工',role:'employee' as const},admin={...staff,role:'admin' as const};
 const now=new Date('2026-10-21T12:00:00+08:00');
@@ -39,7 +39,6 @@ test('首次待定形成连续区间，包含中间日期且不产生指标；�
  const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:'2026-10-20'}),staff,now);
  const day=new Date('2026-10-19T12:00:00+08:00'),[view]=await readPromotionTimeline(db,day,row.id),period=pendingPromotionPeriod(view,day)!;
  assert.equal(period.startedOn,'2026-10-17');assert.equal(period.endedOn,'2026-10-20');assert.equal(period.days,4);assert.equal(period.reviewOn,'2026-10-21');assert.equal(period.due,false);
- const records=promotionPeriodRecords(period,day);assert.deepEqual(records.map(row=>row.date),['2026-10-17','2026-10-18','2026-10-19','2026-10-20']);assert.equal(records[2].label,'待定中');
  assert.equal(isPendingPromotionRow({...view,pending:false},day),true,'团队暂停不抹掉已保存区间的展示');
  const late=pendingPromotionPeriod(view,new Date('2026-10-25T12:00:00+08:00'))!;assert.equal(late.endedOn,'2026-10-20');assert.equal(late.days,4);assert.equal(late.due,true);
  const snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.metrics.length,0);assert.equal(snapshot.campaigns.length,0);
@@ -57,10 +56,17 @@ test('测试待定与放量暂停保留各自阶段，缩短截止日与提前�
   [view]=await readPromotionTimeline(db,now,row.id);assert.equal(pendingPromotionPeriod(view,now),null);assert.equal(view.campaign?.currentStatus,stage);assert.equal((await promotionSnapshot(db,row.id)).metrics.length,0);
  }
 });
-test('区间预览明确含首尾与下次复盘；长区间连续范围不展开成海量节点',()=>{
- assert.equal(inclusiveDays('2028-02-28','2028-03-01'),3);assert.equal(promotionIntervalPreview('2026-10-17','2026-10-20'),'2026-10-17 至 2026-10-20（含首尾共 4 天），记录为待定区间。');assert.equal(promotionIntervalPreview('2026-10-17','2026-10-16'),null);
- const records=promotionPeriodRecords({startedOn:'2026-10-17',endedOn:'2026-12-31',days:76,state:'待定',status:'待定中',untilLabel:'待定至',reviewOn:'2027-01-01',due:false,context:'尚未开始推广',range:undefined},now);
- assert.equal(records.length,10);assert.equal(records[7].gapBefore?.from,'2026-10-24');assert.equal(records[7].gapBefore?.to,'2026-12-28');assert.equal(records.at(-1)?.date,'2026-12-31');
+test('未来截止日可调整，实际恢复与到期下一步仍不能提前确认',async()=>{
+ assert.equal(inclusiveDays('2028-02-28','2028-03-01'),3);
+ for(const stage of ['testing','scaling']){
+  const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:stage==='testing'?'start_testing':'start_scaling'}),staff,now);
+  await changePromotionTimeline(db,await input(row.id,{action:'pause',waitingThrough:'2026-10-25',reason:'暂停至未来日期'}),staff,now);
+  let [view]=await readPromotionTimeline(db,now,row.id);const range=pendingPromotionPeriod(view,now)!.range!;
+  await changePromotionTimeline(db,await input(row.id,{action:'next',reviewDate:range.endedOn,rangeId:range.id,nextDecision:'wait_continue',waitingThrough:'2026-10-24',reason:'调整未来截止日'}),staff,now);
+  [view]=await readPromotionTimeline(db,now,row.id);assert.equal(pendingPromotionPeriod(view,now)!.endedOn,'2026-10-24');assert.equal(view.ranges[0].nextDecision,null);assert.equal((await promotionSnapshot(db,row.id)).metrics.length,0);
+  await assert.rejects(changePromotionTimeline(db,await input(row.id,{action:'next',reviewDate:'2026-10-24',rangeId:range.id,nextDecision:stage==='testing'?'test_continue':'scaling_continue'}),staff,now),/未来日期/);
+  await assert.rejects(changePromotionTimeline(db,await input(row.id,{action:stage==='testing'?'start_testing':'start_scaling',reviewDate:'2026-10-24',reason:'未来日期不是实际投放'}),staff,now),/未来日期/);
+ }
 });
 test('直接放量不生成测试阶段或指标；重复请求仅创建一次',async()=>{
  const row=await seed(),body=await input(row.id,{action:'start_scaling'});

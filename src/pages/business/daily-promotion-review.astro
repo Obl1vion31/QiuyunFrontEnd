@@ -289,7 +289,6 @@ const historyHref = (overrides: Record<string, string>) => {
                           </div>
                           <div class="review-pause-fields" data-pause-fields hidden>
                            <label data-pause-reason>暂停原因<input name="pauseReason" maxlength="2000" disabled/></label><label data-pause-through>暂停至（含当天）<input type="date" name="pauseThrough" value={metricDate} min={metricDate} disabled/></label>
-                           <p class="review-draft-preview" data-pause-preview aria-live="polite"/>
                           </div>
                           <div class="review-outcome">
                            <dl class="review-costs" data-active-costs aria-label="自动计算成本"><div class="review-cost"><dt>实际开口成本 <small title="自动计算">自动</small></dt><dd><output data-open-cost aria-label="实际开口成本">—</output></dd></div><div class="review-cost"><dt>实际留资成本 <small title="自动计算">自动</small></dt><dd><output data-lead-cost aria-label="实际留资成本">—</output></dd></div></dl>
@@ -361,7 +360,6 @@ const historyHref = (overrides: Record<string, string>) => {
     <script>
       import {refreshPromotionSchedule} from '../../scripts/promotion-timeline';
       import {randomRequestKey} from '../../scripts/promotion-timeline';
-      import {promotionIntervalPreview} from '../../db/promotion-pending';
       import { getInspector } from '../../scripts/business-inspector';
       import {businessConfirm} from '../../scripts/business-dialog';
       const cleanInspector = (form:HTMLFormElement) => { const pane=form.closest<HTMLElement>('[data-inspector]'); if(pane)getInspector(pane).setClean(); };
@@ -387,7 +385,6 @@ const historyHref = (overrides: Record<string, string>) => {
           const emptyId=form.querySelector<HTMLElement>('[data-paused-note-id]');if(emptyId)emptyId.hidden=!paused;
           const fields=form.querySelector<HTMLElement>('[data-pause-fields]');if(fields)fields.hidden=!paused;
           for(const selector of ['[data-pause-reason]','[data-pause-through]']){const host=form.querySelector<HTMLElement>(selector)!;host.hidden=!paused;host.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=!paused;input.required=paused;});}
-          const preview=form.querySelector<HTMLElement>('[data-pause-preview]');if(preview)preview.textContent=promotionIntervalPreview(String((form.elements.namedItem('metricDate') as HTMLInputElement).value),String((form.elements.namedItem('pauseThrough') as HTMLInputElement).value),'暂停')??'请选择不早于数据日期的暂停截止日。';
           const label=form.querySelector<HTMLElement>('[data-day-status]')!;label.textContent=paused?'当日暂停（待保存）':label.dataset.defaultLabel!;label.classList.toggle('is-draft',paused);
           button.textContent=paused?'保存当日暂停':'完成复盘';
         };

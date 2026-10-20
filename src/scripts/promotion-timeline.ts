@@ -1,6 +1,5 @@
 import {businessConfirm} from './business-dialog';
 import {getInspector} from './business-inspector';
-import {promotionIntervalPreview} from '../db/promotion-pending';
 export const randomRequestKey=()=>crypto.randomUUID();
 /** 更新数据不收起用户正在查看的本帖表格，也不重置横向比较位置。 */
 function replacePromotionRow(old:Element,next:Element){
@@ -56,9 +55,20 @@ function initialize(){
  });
  document.querySelectorAll<HTMLFormElement>('[data-timeline-form]:not([data-ready])').forEach(form=>{
  form.dataset.ready='true';const requestKey=crypto.randomUUID();
- const sync=()=>{const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value;const through=form.querySelector<HTMLElement>('[data-timeline-through]');if(through){through.hidden=action!=='wait';through.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=action!=='wait';input.required=action==='wait';});}const preview=form.querySelector<HTMLElement>('[data-pending-preview]');if(preview){preview.hidden=action!=='wait';preview.textContent=promotionIntervalPreview(form.dataset.pendingStart!,String((form.elements.namedItem('waitingThrough') as HTMLInputElement)?.value))??'请选择不早于安排日期的截止日。';}};
+ const sync=()=>{
+  const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value,waiting=action==='wait'||form.hasAttribute('data-pending-editor')&&action==='next';
+  const through=form.querySelector<HTMLElement>('[data-timeline-through]');
+  if(through){through.hidden=!waiting;through.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=!waiting;input.required=waiting;});}
+  if(form.hasAttribute('data-pending-editor')){
+   const startField=form.querySelector<HTMLElement>('[data-edit-start-field]')!,start=startField.querySelector<HTMLInputElement>('input')!;
+   startField.hidden=waiting;start.disabled=waiting;start.required=!waiting;
+   (form.elements.namedItem('reviewDate') as HTMLInputElement).value=waiting?form.dataset.waitDate!:start.value;
+   const next=form.querySelector<HTMLInputElement>('[data-edit-wait-decision]');if(next)next.disabled=!waiting;
+   (form.elements.namedItem('reason') as HTMLInputElement).maxLength=waiting?500:2000;
+  }
+ };
  sync();form.addEventListener('change',sync);form.addEventListener('input',()=>{sync();form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)pane.dataset.dirty='true';});
- form.addEventListener('submit',async event=>{event.preventDefault();const out=form.querySelector('output')!,button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+ form.addEventListener('submit',async event=>{event.preventDefault();if(form.dataset.pendingDue==='false')return;const out=form.querySelector('output')!,button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;
   const otherDrafts=[...(form.closest('[data-pending-row]')?.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')??[])].filter(other=>other!==form);
   if(otherDrafts.length&&!await businessConfirm('本条还有其他未保存修改。继续保存会更新整条记录，是否放弃这些修改？',{confirmLabel:'继续保存'}))return;
   const payload={...Object.fromEntries(new FormData(form)),requestKey,fingerprint:form.dataset.fingerprint,confirmImpact:false};button.disabled=true;out.textContent='正在保存…';

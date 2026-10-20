@@ -76,7 +76,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     if(input.confirmImpact&&!input.fingerprint)throw new WorkflowError('请重新预览本次修改的影响。');
     const publishedOn=shanghaiDateKey(schedule.actualPublishAt),today=shanghaiDateKey(now),date=input.reviewDate;
     if(date<publishedOn)throw new WorkflowError('业务日期不能早于实际发布日期。',422);
-    if(date>today&&input.action!=='plan'&&input.action!=='wait')throw new WorkflowError('未来日期只能保存安排，不能确认实际投放。',422);
+    if(date>today&&input.action!=='plan'&&input.action!=='wait'&&!(input.action==='next'&&input.nextDecision==='wait_continue'))throw new WorkflowError('未来日期只能保存安排，不能确认实际投放。',422);
     let campaign=before.campaigns.at(-1);
     const context=await readPromotionContext(tx);
     const removedRanges=new Set<string>();
