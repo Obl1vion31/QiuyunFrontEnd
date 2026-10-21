@@ -1,4 +1,4 @@
-import {normalizePromotionActualStatus,promotionSuccessors,promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
+import {promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
@@ -8,7 +8,7 @@ import { lockSchedule, WorkflowError, type Transaction } from './schedule-workfl
 import { lockPromotionWorkflow, readPromotionContext, guardPromotionStart, attachPromotionToActivePause } from './promotion-pauses';
 import { businessDate } from './promotion-wait-ranges';
 import { nextDateKey, previousDateKey, shanghaiDateKey, replayPromotionHistory } from './promotion-rules.mjs';
-import { campaignPauseWindows, campaignWaitWindows, dateInWindows, fullPauseRange, firstMissingPromotionDate, promotionReplayOptions, promotionStateOn } from './promotion-state.mjs';
+import { campaignPauseWindows, campaignWaitWindows, dateInWindows, fullPauseRange, firstMissingPromotionDate, promotionReplayOptions, promotionStateOn, promotionDayStatusEdit } from './promotion-state.mjs';
 import * as s from './schema';
 
 export const timelineSchema = z.object({
@@ -92,16 +92,16 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     if(input.action==='status'){
       if(!campaign)throw new WorkflowError('尚未开始的帖子请先选择首次安排。');
       if(!input.reason)throw new WorkflowError('请填写跟进原因。',422);
-      const actual=promotionStateOn(campaign,context,date);
-      if(!actual)throw new WorkflowError('无法读取该日状态。');
-      const original=normalizePromotionActualStatus(actual.currentStatus,actual.currentStage);
-      if(!input.targetStatus||!promotionSuccessors[original]?.includes(input.targetStatus))throw new WorkflowError('请选择原状态允许衔接的后继状态。',422);
-      const targetStage=promotionStatusStage(input.targetStatus)??actual.currentStage;
+      const edit=promotionDayStatusEdit(campaign,context,date);
+      if(!edit)throw new WorkflowError('无法读取该日状态。');
+      if(!input.targetStatus||!edit.options.some(option=>option.value===input.targetStatus))throw new WorkflowError('请选择原状态允许衔接的后继状态，或恢复该日原状态。',422);
+      const targetStage=promotionStatusStage(input.targetStatus)??edit.originalStage;
       if(!targetStage)throw new WorkflowError('已结束活动不能修改为进行中。');
       await tx.insert(s.operationsPromotionDayDecision).values({campaignId:campaign.id,businessDate:date,stageType:targetStage as 'testing'|'scaling',actualStatus:input.targetStatus,reason:input.reason}).onConflictDoUpdate({target:[s.operationsPromotionDayDecision.campaignId,s.operationsPromotionDayDecision.businessDate],set:{stageType:targetStage as 'testing'|'scaling',actualStatus:input.targetStatus,reason:input.reason}});
       for(const metric of before.metrics.filter(m=>m.campaignId===campaign!.id&&m.metricDate===date&&m.recordKind!=='test_residual')){
         const legal=promotionNextOptions(input.targetStatus);
-        const decision=legal.some(o=>o.value===metric.reviewDecision)?metric.reviewDecision:legal[0]?.value??input.targetStatus;
+        // 终态的固定提交值表示“无需后续动作”，恢复后不能将它误当作次日再次淘汰。
+        const decision=promotionStatusStage(edit.currentStatus)&&legal.some(o=>o.value===metric.reviewDecision)?metric.reviewDecision:legal[0]?.value??input.targetStatus;
         const sourceStageStartedOn=targetStage===metric.stageTypeSnapshot?metric.sourceStageStartedOn:targetStage==='testing'?campaign.startedOn:[date,...before.metrics.filter(m=>m.stageTypeSnapshot==='scaling').flatMap(m=>m.sourceStageStartedOn?[m.sourceStageStartedOn]:[])].sort()[0];
         await tx.update(s.operationsPromotionDailyMetric).set({sourceStageStartedOn,actualStatusSnapshot:input.targetStatus,dailyStatus:['testing','scaling'].includes(input.targetStatus)?'active':'waiting_action',stageTypeSnapshot:targetStage,reviewDecision:decision,updatedAt:now}).where(eq(s.operationsPromotionDailyMetric.id,metric.id));
       }

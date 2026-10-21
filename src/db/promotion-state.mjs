@@ -1,4 +1,4 @@
-import {normalizePromotionActualStatus} from './promotion-successors.mjs';
+import {normalizePromotionActualStatus,promotionStatusEditOptions} from './promotion-successors.mjs';
 /** 排期、日度、历史共用的推广状态与整日暂停规则；日期均为上海时间。 */
 import { nextDateKey, previousDateKey, shanghaiDateKey, replayPromotionHistory } from './promotion-rules.mjs';
 
@@ -49,6 +49,15 @@ export function promotionStateOn(campaign, context, date = shanghaiDateKey(new D
     return { ...state, stages, currentStatus: campaign.currentStatus, currentStage: null, endedOn: campaign.endedOn };
   }
   return state;
+}
+/** 去掉本日已保存覆盖，读取真正的更正起点；刷新后与首次更正使用相同选项。 */
+export function promotionDayStatusEdit(campaign,context,date){
+ const actual=promotionStateOn(campaign,context,date);if(!actual)return null;
+ const saved=(context.stateChanges??[]).find(change=>change.campaignId===campaign.id&&change.businessDate===date&&change.actualStatus);
+ const original=saved?promotionStateOn(campaign,{...context,stateChanges:context.stateChanges.filter(change=>change!==saved)},date):actual;
+ const currentStatus=normalizePromotionActualStatus(actual.currentStatus,actual.currentStage);
+ const originalStatus=original?normalizePromotionActualStatus(original.currentStatus,original.currentStage):currentStatus;
+ return {currentStatus,originalStatus,originalStage:original?.currentStage??null,options:original?.currentStage?promotionStatusEditOptions(currentStatus,saved?originalStatus:undefined):[]};
 }
 export const dateInWindows = (date, windows) => windows.some(window => window.startedOn <= date && date <= window.endedOn);
 export function nextReviewDate(latestDate, startedOn, windows = []) {

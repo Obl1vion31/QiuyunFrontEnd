@@ -18,6 +18,7 @@ export const effectivePromotionStatus: (status: string, stage: string | null, ca
 export const campaignPauseWindows: (campaign: PromotionCampaign, context: PromotionContext) => PromotionWindow[];
 export const campaignWaitWindows: (campaign: PromotionCampaign, context: PromotionContext) => PromotionWindow[];
 export const promotionStateOn: (campaign: PromotionCampaign, context: PromotionContext, date?: string) => ReturnType<typeof import('./promotion-rules.mjs').replayPromotionHistory>;
+export const promotionDayStatusEdit:(campaign:PromotionCampaign,context:PromotionContext,date:string)=>{currentStatus:string;originalStatus:string;originalStage:string|null;options:Array<{value:string;label:string}>}|null;
 export const dateInWindows: (date: string, windows: PromotionWindow[]) => boolean;
 export const nextReviewDate: (latestDate: string | undefined, startedOn: string, windows?: PromotionWindow[]) => string;
 export const firstMissingPromotionDate: (metrics: Array<{metricDate:string}>, startedOn:string, windows?:PromotionWindow[]) => string;

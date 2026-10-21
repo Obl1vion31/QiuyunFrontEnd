@@ -8,7 +8,7 @@ import {generateDrizzleJson,generateMigration} from 'drizzle-kit/api';
 import {readFile} from 'node:fs/promises';
 import {migrateFixture} from './migrate-fixture';
 import * as s from '../src/db/schema';
-import {promotionSuccessorOptions,promotionNextOptions} from '../src/db/promotion-successors.mjs';
+import {promotionSuccessorOptions,promotionNextOptions,promotionStatusEditOptions} from '../src/db/promotion-successors.mjs';
 import {replayPromotionHistory} from '../src/db/promotion-rules.mjs';
 import {promotionDailySchema,promotionDailyUpdateSchema} from '../src/db/promotion-validation';
 import {promotionTotals} from '../src/db/promotion-overview';
@@ -68,6 +68,37 @@ test('终态当日保留未填指标行，实际数据不因暂停更正而删�
  const {schedule,campaign}=await seed();await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_continue'),campaignId:campaign.id});
  await change(schedule.id,'2026-10-17','test_paused');let snap=await promotionSnapshot(db,schedule.id);assert.equal(snap.metrics.length,1);assert.equal(snap.metrics[0].spend,'40.00');assert.equal(snap.metrics[0].actualStatusSnapshot,'test_paused');
  await change(schedule.id,'2026-10-18','test_discarded');const rows=await readPromotionTimeline(db,new Date('2026-10-21T12:00:00+08:00'),schedule.id),context=await readPromotionContext(db);const queue=promotionReviewQueue(promotionReviewDays(rows,context,new Date('2026-10-21T12:00:00+08:00')));assert.equal(queue.ready[0].day.date,'2026-10-18');assert.equal(queue.ready[0].day.actualStatus,'test_discarded');
+});
+test('同日误选终态可重新更正，恢复原状态并保留指标、归属与审计',async()=>{
+ assert.deepEqual(promotionStatusEditOptions('test_discarded','testing').map(o=>o.value),['testing','test_paused','test_pending','scaling']);
+ assert.deepEqual(promotionStatusEditOptions('test_discarded','test_pending').map(o=>o.value),['test_pending','scaling']);
+ const {schedule,campaign}=await seed();
+ await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_continue'),campaignId:campaign.id});
+ await change(schedule.id,'2026-10-17','test_discarded');
+ let snapshot=await promotionSnapshot(db,schedule.id);assert.equal(snapshot.campaigns[0].currentStatus,'test_discarded');assert.equal(snapshot.metrics[0].spend,'40.00');
+ await change(schedule.id,'2026-10-17','testing');snapshot=await promotionSnapshot(db,schedule.id);
+ assert.equal(snapshot.campaigns[0].currentStatus,'testing');assert.equal(snapshot.campaigns[0].endedOn,null);
+ assert.equal(snapshot.metrics.length,1);assert.equal(snapshot.metrics[0].spend,'40.00');assert.equal(snapshot.metrics[0].actualStatusSnapshot,'testing');assert.equal(snapshot.metrics[0].reviewDecision,'test_continue');assert.equal(snapshot.metrics[0].sourceStageStartedOn,'2026-10-17');
+ assert.equal(snapshot.decisions.length,1);assert.equal(snapshot.decisions[0].actualStatus,'testing');
+ const audits=(await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,schedule.id)));assert.equal(audits.length,2);assert.equal((audits[1].before as typeof snapshot).decisions[0].actualStatus,'test_discarded');
+ await change(schedule.id,'2026-10-17','test_pending');
+ await change(schedule.id,'2026-10-17','scaling');
+ await change(schedule.id,'2026-10-17','testing');
+ snapshot=await promotionSnapshot(db,schedule.id);assert.equal(snapshot.metrics[0].stageTypeSnapshot,'testing');assert.equal(snapshot.metrics[0].spend,'40.00');
+});
+test('更正选项刷新后仍可恢复原状态，不允许借更正重启历史终态或绕过待定边界',async()=>{
+ const {schedule,campaign}=await seed();
+ await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_pending'),campaignId:campaign.id});
+ await change(schedule.id,'2026-10-18','test_discarded');
+ const rows=await readPromotionTimeline(db,new Date('2026-10-21T12:00:00+08:00'),schedule.id),context=await readPromotionContext(db);
+ const ready=promotionReviewQueue(promotionReviewDays(rows,context,new Date('2026-10-21T12:00:00+08:00'))).ready;
+ assert.equal(ready[0].day.actualStatus,'test_discarded');assert.deepEqual(ready[0].day.statusEditOptions?.map(o=>o.value),['test_pending','scaling']);
+ await assert.rejects(change(schedule.id,'2026-10-18','testing'),/后继/);
+ await assert.rejects(change(schedule.id,'2026-10-19','testing'),/后继/);
+ const body=timelineSchema.parse({scheduleId:schedule.id,reviewDate:'2026-10-18',action:'status',targetStatus:'test_pending',reason:'更正误选',fingerprint:timelineFingerprint(await promotionSnapshot(db,schedule.id))});
+ await changePromotionTimeline(db,body,actor,new Date('2026-10-21'));await changePromotionTimeline(db,body,actor,new Date('2026-10-21'));
+ await assert.rejects(changePromotionTimeline(db,{...body,requestKey:randomUUID()},actor,new Date('2026-10-21')),/已变化/);
+ const snapshot=await promotionSnapshot(db,schedule.id);assert.equal(snapshot.campaigns[0].currentStatus,'test_pending');assert.equal(snapshot.campaigns[0].endedOn,null);
 });
 test('追加兼容迁移保留旧事实与冻结快照，解除等待零值限制且不补造历史零值',async()=>{
  const isolated=new PGlite();

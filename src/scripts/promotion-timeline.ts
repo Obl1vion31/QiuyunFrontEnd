@@ -77,13 +77,12 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
    for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field)field.value=input.value;}
    if(changed){
     if(nextForm.dataset.defaultZero==='true'&&oldForm.dataset.dirty!=='true'&&['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].every(name=>(oldForm.elements.namedItem(name) as HTMLInputElement).value===''))for(const name of ['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'])(oldForm.elements.namedItem(name) as HTMLInputElement).value='0';
-    const current=oldForm.querySelector<HTMLElement>('[data-day-status]'),newState=nextForm.querySelector<HTMLElement>('[data-day-status]');
-    if(current&&newState){current.textContent=newState.textContent;current.dataset.defaultLabel=newState.dataset.defaultLabel;}
+    const trigger=oldForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!,newTrigger=nextForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;
+    trigger.replaceChildren(...[...newTrigger.childNodes].map(node=>node.cloneNode(true)));trigger.disabled=newTrigger.disabled;
     oldForm.className=nextForm.className;
-    oldForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!.disabled=nextForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!.disabled;
     const decision=oldForm.querySelector<HTMLSelectElement>('[data-review-decision]'),newDecision=nextForm.querySelector<HTMLSelectElement>('[data-review-decision]');
     if(decision&&newDecision){const value=decision.value;decision.replaceChildren(...Array.from(newDecision.options).map(option=>option.cloneNode(true)));decision.value=Array.from(decision.options).some(option=>option.value===value)?value:'';}
-    else if(decision&&!newDecision){const replacement=nextForm.querySelector('.review-decision');if(replacement)decision.closest('.review-decision')?.replaceWith(replacement.cloneNode(true));}
+    else {const replacement=nextForm.querySelector('.review-decision');if(replacement)oldForm.querySelector('.review-decision')?.replaceWith(replacement.cloneNode(true));}
     oldForm.dispatchEvent(new Event('business:metric-context-updated'));
    }
   }else if(old){live=replacePromotionRow(old,next);}else live=next.cloneNode(true) as HTMLElement;

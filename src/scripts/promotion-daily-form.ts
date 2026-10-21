@@ -4,7 +4,7 @@ import {randomRequestKey,refreshPromotionSchedule} from './promotion-timeline';
 import {promotionActualLabels,promotionSuccessorOptions} from '../db/promotion-successors.mjs';
 
 type Values=Record<string,string>;
-type Draft={values:Values;dirty:boolean;busy:boolean;message:string;requestKey:string;views:Set<HTMLFormElement>;success?:boolean};
+type Draft={values:Values;dirty:boolean;busy:boolean;message:string;requestKey:string;views:Set<HTMLFormElement>;success?:boolean;decisionBeforeTerminal?:string};
 const documents=new WeakMap<Document,Map<string,Draft>>();
 const fields=(form:HTMLFormElement)=>[...form.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input[name],select[name],textarea[name]')];
 const values=(form:HTMLFormElement):Values=>Object.fromEntries(fields(form).map(field=>[field.name,field.value]));
@@ -15,6 +15,7 @@ type StateDraft={key:string;form:HTMLFormElement;owner:HTMLFormElement;trigger:H
 const stateDrafts=new Map<string,StateDraft>();
 const setUnsaved=()=>{document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));};
 const label=(status:string)=>promotionActualLabels[status]??status;
+const statusOptions=(owner:HTMLFormElement):Array<{value:string;label:string}>=>owner.dataset.statusEditOptions?JSON.parse(owner.dataset.statusEditOptions):promotionSuccessorOptions(owner.dataset.actualStatus!);
 function positionBubble(state:StateDraft){
  const bubble=state.form,rect=state.trigger.getBoundingClientRect(),width=Math.min(340,innerWidth-24),height=bubble.getBoundingClientRect().height;
  let left=rect.right+12,top=rect.top-12;
@@ -32,22 +33,22 @@ function updateBubble(state:StateDraft){
  state.form.dataset.dirty=String(!state.saved&&!!(state.target||state.reason));
  state.form.classList.toggle('is-saved',state.saved);
  for(const field of fields(state.form))field.disabled=state.saved||state.busy;
- const again=state.form.querySelector<HTMLButtonElement>('[data-state-again]');if(again){again.hidden=!(state.saved&&promotionSuccessorOptions(state.owner.dataset.actualStatus??state.target).length);again.disabled=state.busy;}const cancel=state.form.querySelector<HTMLButtonElement>('[data-state-cancel]');if(cancel)cancel.textContent=state.saved?'关闭':'取消';
+ const again=state.form.querySelector<HTMLButtonElement>('[data-state-again]');if(again){again.hidden=!(state.saved&&statusOptions(state.owner).length);again.disabled=state.busy;}const cancel=state.form.querySelector<HTMLButtonElement>('[data-state-cancel]');if(cancel)cancel.textContent=state.saved?'关闭':'取消';
  const button=state.form.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=state.saved||state.busy;button.textContent=state.saved?'已保存':state.busy?'正在保存…':'保存变更';
- const caption=state.trigger.querySelector<HTMLElement>('[data-state-caption]');if(caption)caption.textContent=state.saved?'已变更':state.target||state.reason?'未保存':'修改';
+ const caption=state.trigger.querySelector<HTMLElement>('[data-state-caption]');if(caption)caption.textContent=state.saved?'修改':state.target||state.reason?'未保存':'修改';
  setUnsaved();
 }
 function openStateBubble(owner:HTMLFormElement){
  const key=formKey(owner),trigger=owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;
  for(const state of stateDrafts.values())if(state.key!==key)state.form.hidden=true;
  let state=stateDrafts.get(key);
- if(state?.saved&&state.owner.dataset.actualStatus!==owner.dataset.actualStatus){state.form.remove();stateDrafts.delete(key);state=undefined;}
+ if(state?.saved){state.form.remove();stateDrafts.delete(key);state=undefined;}
  if(state){state.owner=owner;state.trigger=trigger;state.form.hidden=!state.form.hidden;trigger.setAttribute('aria-expanded',String(!state.form.hidden));if(!state.form.hidden){positionBubble(state);state.form.querySelector<HTMLSelectElement>('select')?.focus({preventScroll:true});}return;}
  const form=document.createElement('form');form.className='business-form review-state-bubble';form.dataset.dayStateForm=key;form.setAttribute('aria-label','修改当日状态');
  const header=document.createElement('header'),heading=document.createElement('strong'),close=document.createElement('button');heading.textContent='修改当日状态';close.type='button';close.className='review-state-close';close.setAttribute('aria-label','关闭状态气泡');close.textContent='×';header.append(heading,close);
  const body=document.createElement('div');body.className='review-bubble-body';
  const original=owner.dataset.actualStatus!,before=document.createElement('div');before.className='review-state-before';const beforeCaption=document.createElement('span'),beforeValue=document.createElement('strong');beforeCaption.textContent='原状态';beforeValue.textContent=label(original);before.append(beforeCaption,beforeValue);
- const targetLabel=document.createElement('label');targetLabel.textContent='实际状态';const select=document.createElement('select');select.name='targetStatus';select.required=true;select.setAttribute('aria-label','实际状态');select.add(new Option('请选择更新状态',''));for(const option of promotionSuccessorOptions(original))select.add(new Option(option.label,option.value));targetLabel.append(select);
+ const targetLabel=document.createElement('label');targetLabel.textContent='实际状态';const select=document.createElement('select');select.name='targetStatus';select.required=true;select.setAttribute('aria-label','实际状态');select.add(new Option('请选择更新状态',''));for(const option of statusOptions(owner))select.add(new Option(option.label,option.value));targetLabel.append(select);
  const reasonLabel=document.createElement('label');reasonLabel.textContent='跟进原因';const reason=document.createElement('textarea');reason.name='reason';reason.required=true;reason.maxLength=2000;reason.rows=2;reason.setAttribute('aria-label','跟进原因');reasonLabel.append(reason);
  const preview=document.createElement('div');preview.className='review-state-preview';preview.dataset.statePreview='';
  const message=document.createElement('p');message.dataset.stateMessage='';message.setAttribute('role','status');body.append(before,targetLabel,reasonLabel,preview,message);
@@ -66,8 +67,9 @@ function openStateBubble(owner:HTMLFormElement){
    if(!response.ok){message.textContent=result.message??'保存失败，输入已保留。';return;}
    current.saved=true;message.textContent='变更已保存';form.dataset.dirty='false';updateBubble(current);
    // 指标草稿留在原节点；状态与合法的次日选项由新服务端片段同步。
-   await refreshPromotionSchedule(String(payload.scheduleId));current.owner=document.querySelector<HTMLFormElement>(`#daily-table [data-metric-form][data-pending-record="${CSS.escape(key)}"]`)??current.owner;
-   current.trigger=current.owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')??trigger;current.trigger.setAttribute('aria-expanded','true');const caption=current.trigger.querySelector('[data-state-caption]');if(caption)caption.textContent='已变更';positionBubble(current);
+   const owner=current.owner,inspector=owner.closest<HTMLElement>('[data-inspector]');
+   await refreshPromotionSchedule(String(payload.scheduleId));current.owner=inspector?.querySelector<HTMLFormElement>(`[data-metric-form][data-pending-record="${CSS.escape(key)}"]`)??(owner.isConnected?owner:document.querySelector<HTMLFormElement>(`#daily-table [data-metric-form][data-pending-record="${CSS.escape(key)}"]`))??owner;
+   current.trigger=current.owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')??trigger;current.trigger.setAttribute('aria-expanded','true');positionBubble(current);
   }catch{message.textContent=current.saved?'状态已保存，列表更新失败，可关闭后重试刷新。':'连接失败，输入已保留。';}finally{current.busy=false;updateBubble(current);}
  });updateBubble(current);trigger.setAttribute('aria-expanded','true');positionBubble(current);select.focus({preventScroll:true});
 }
@@ -100,11 +102,13 @@ function initialize(){
   const changed=()=>{state.values=values(form);state.dirty=true;state.message='';document.documentElement.dataset.unsaved='true';sync(state);};
   form.addEventListener('input',changed);form.addEventListener('change',changed);
   form.addEventListener('business:metric-context-updated',()=>{
+   const previousStatus=state.values.actualStatusSnapshot,previousDecision=state.values.reviewDecision;
    if(!state.dirty&&metricNames.every(name=>state.values[name]===''))for(const name of metricNames)state.values[name]=(form.elements.namedItem(name) as HTMLInputElement).value;
    for(const field of form.querySelectorAll<HTMLInputElement>('input[type=hidden][name]'))state.values[field.name]=field.value;
-   const decision=form.querySelector<HTMLSelectElement>('[data-review-decision]');if(decision&&!Array.from(decision.options).some(option=>option.value===state.values.reviewDecision)){state.values.reviewDecision='';state.message='当日状态已更新，请重新选择次日安排。';}
-   if(!decision)state.values.reviewDecision=(form.elements.namedItem('reviewDecision') as HTMLInputElement).value;
-   for(const mirror of state.views)if(mirror!==form){mirror.dataset.actualStatus=form.dataset.actualStatus;mirror.dataset.fingerprint=form.dataset.fingerprint;mirror.querySelector('[data-day-status]')!.textContent=form.querySelector('[data-day-status]')!.textContent;const group=form.querySelector('.review-decision');if(group)mirror.querySelector('.review-decision')?.replaceWith(group.cloneNode(true));mirror.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!.disabled=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!.disabled;}
+   const decision=form.querySelector<HTMLSelectElement>('[data-review-decision]');
+   if(decision){const wanted=['test_discarded','formal_discarded','ended'].includes(previousStatus)?state.decisionBeforeTerminal??'':previousDecision;state.values.reviewDecision=Array.from(decision.options).some(option=>option.value===wanted)?wanted:'';if(!state.values.reviewDecision&&previousDecision)state.message='当日状态已更新，请重新选择次日安排。';}
+   else {if(!['test_discarded','formal_discarded','ended'].includes(previousStatus))state.decisionBeforeTerminal=previousDecision;state.values.reviewDecision=(form.elements.namedItem('reviewDecision') as HTMLInputElement).value;}
+   for(const mirror of state.views)if(mirror!==form){mirror.dataset.actualStatus=form.dataset.actualStatus;mirror.dataset.statusEditOptions=form.dataset.statusEditOptions;mirror.dataset.fingerprint=form.dataset.fingerprint;const trigger=mirror.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!,source=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;trigger.replaceChildren(...[...source.childNodes].map(node=>node.cloneNode(true)));trigger.disabled=source.disabled;const group=form.querySelector('.review-decision');if(group)mirror.querySelector('.review-decision')?.replaceWith(group.cloneNode(true));}
    sync(state);
   });
   form.addEventListener('submit',async event=>{

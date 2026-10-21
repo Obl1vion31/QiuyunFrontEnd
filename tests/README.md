@@ -79,3 +79,5 @@ pnpm test:annual-plan
 `test:ui` 覆盖六页公共容器与 Toolbar、拆分日期时间、日度单帖暂停、分类就地展开、平铺节点保留、Inspector 未保存保护及历史编辑弹层。`test:motion` 保留公共面板逐帧几何验证；展示节点动效由 `test:review-workbench` 实际录制并检查关键帧。
 
 `promotion-precise-state.test.ts` 验证精确后继、暂停／待定非零、空字段不能补零、状态与指标分离、终态当日、幂等／指纹／权限、真实日度与历史 PATCH、残留归属和区间追加、兼容迁移及快照不变。`node --import tsx tests/business-read.browser.ts` 专测共享读取的延迟、单反馈、替换取消、失败清理、Inspector／Dialog 关闭及导航取消。
+
+`pnpm test:status-correction` 使用正式页面与隔离数据库，在 1440／1024／390／320px 验证测试／放量误选淘汰后仍有“修改”、气泡内再次编辑、恢复原状态、数字与其他记录节点保留、恢复合法次日安排，以及完整刷新后再次更正。桌面录制操作过程，截图与结果保存在 `.tools/test-artifacts/status-correction/`。服务端测试同时约束原状态后继、终态之后不得重启、指标不丢、幂等和旧指纹拒绝。
