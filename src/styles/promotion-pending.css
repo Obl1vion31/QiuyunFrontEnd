@@ -39,3 +39,5 @@
 .review-state-bubble.is-saved [data-state-message]{color:#2b7c59}
 
 #daily-table .review-day-state:disabled{opacity:1}
+
+:is(#daily-table,[data-pending-review-pane]) .review-number input{padding:8px}

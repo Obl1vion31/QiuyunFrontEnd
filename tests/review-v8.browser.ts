@@ -34,7 +34,7 @@ async function fill(form:any,values:Record<string,string>={spend:'200',platformO
  for(const [name,value] of Object.entries(values))await form.locator(`[name=${name}]`).fill(value);
 }
 async function settle(){await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(100);}
-async function capture(name:string,fullPage=true){if(fullPage)await page.evaluate(()=>scrollTo(0,0));await settle();await page.screenshot({path:`${folder}/${name}.png`,fullPage});}
+async function capture(name:string,fullPage=true){if(fullPage)await page.evaluate(()=>scrollTo(0,0));await settle();await page.screenshot({path:`${folder}/${name}.png`,fullPage});if(fullPage&&page.viewportSize().width<900)await page.screenshot({path:`${folder}/${name}-viewport.png`,fullPage:false});}
 async function navigate(url:string){await page.goto(url);await page.locator('main').waitFor();await page.waitForLoadState('networkidle');await settle();}
 async function assertNoOverflow(){assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,`页面横向溢出：${page.url()}`);}
 function record(item:Post,date=yesterday){return page.locator(`[data-review-record][data-review-post="${item.post.id}"][data-review-date="${date}"]`);}
@@ -152,7 +152,7 @@ try{
  }
  await page.setViewportSize({width:1440,height:1000});
  // 大金额、数量的真实输入宽度；不修改统计口径。
- await fill(metric(posts[0]),{spend:'1234567.89',platformOpenCount:'123456',actualOpenCount:'123456',platformLeadCount:'123456',actualLeadCount:'123456'});await capture('promotion-large-values-1440');await cleanForNavigation();
+ await fill(metric(posts[0]),{spend:'1234567.89',platformOpenCount:'123456',actualOpenCount:'123456',platformLeadCount:'123456',actualLeadCount:'123456'});await capture('promotion-large-values-1440');const numberWidths=await metric(posts[0]).locator('input[type=number]').evaluateAll((inputs:HTMLInputElement[])=>{const ctx=document.createElement('canvas').getContext('2d')!;return inputs.map(input=>{const css=getComputedStyle(input);ctx.font=css.font;return{name:input.name,needed:ctx.measureText(input.value).width+parseFloat(css.paddingLeft)+parseFloat(css.paddingRight)+parseFloat(css.borderLeftWidth)+parseFloat(css.borderRightWidth),actual:input.getBoundingClientRect().width};});});assert.ok(numberWidths.every((input:{needed:number;actual:number})=>input.needed<=input.actual+1),JSON.stringify(numberWidths));await cleanForNavigation();
 
  // 只选次日安排即可保存待定零事实；保存后队列和数量一致，其他草稿保留。
  await metric(posts[0]).locator('[name=spend]').fill('111.23');
