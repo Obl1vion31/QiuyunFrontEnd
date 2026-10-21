@@ -1,0 +1,65 @@
+{
+  "codeCommit": "3111c289bef7bcc5f575635f8e12b84d49712de7",
+  "dataSource": "Official components with isolated PGlite fiction; no shared business writes",
+  "unitTests": 159,
+  "viewports": [
+    1440,
+    1024,
+    390,
+    320
+  ],
+  "media": [
+    {
+      "path": "promotion/inspector-restored-1440.png",
+      "sha256": "2a98b5ddbfa9ae45cab1ddae5eac26888ecd469a76b59ccd2ec13b0bc71e6ed1"
+    },
+    {
+      "path": "promotion/scaling-reopen-1440.png",
+      "sha256": "0ff374f6d75824c264924802c133ac4f5dc5f896ef96fa286e493b642d114d2d"
+    },
+    {
+      "path": "promotion/scaling-restored-1440.png",
+      "sha256": "68070397574390917efcb5d2d2d5b0c5affc017871196caaaaab7285b2549fb4"
+    },
+    {
+      "path": "promotion/scaling-restored-320.png",
+      "sha256": "e2a8072cf15f49b3b9208e56edf74cc16305cccf9f438bd6c96d89f44f1f2fbd"
+    },
+    {
+      "path": "promotion/testing-after-reload-390.png",
+      "sha256": "6b22db6a05c210b65b7438ba5f0e4903545491faf63807603be434036d0f266e"
+    },
+    {
+      "path": "promotion/testing-reopen-1024.png",
+      "sha256": "f4eb04248d8a85b24ad7b6e0a218759dff1a0fe52cdd38749721b2f06183afaa"
+    },
+    {
+      "path": "promotion/testing-reopen-1440.png",
+      "sha256": "2468e6f1e33ddb6577a832391ee9431c63dd510b6d8409d5ce3a200402d1bead"
+    },
+    {
+      "path": "promotion/testing-reopen-320.png",
+      "sha256": "ccf9c69c19a097bd5369e03afa0efc29b6b181e83ecf7bf75b0fa633e93381e1"
+    },
+    {
+      "path": "promotion/testing-reopen-390.png",
+      "sha256": "245c2299f9134399ba21d397ae467f9b52780032bb49134bafbb5ba9678a9e97"
+    },
+    {
+      "path": "promotion/testing-restored-1024.png",
+      "sha256": "327346deddfbd3eba0bb31dfab53f8ca2ffe60935bf6f46a81c5f1fd4c29286e"
+    },
+    {
+      "path": "promotion/testing-restored-1440.png",
+      "sha256": "d373b8317d67fedfae11817fb2f2a3b67da54b1f88751b106a6f456336811f06"
+    },
+    {
+      "path": "motion/status-correction.webm",
+      "sha256": "944460b7459ff1323da0c7e186e87031c7d32057d84c443999c5b5aa7a805ec4"
+    }
+  ],
+  "deploymentId": "dpl_6Ksm5RJ2gmcPHfjnVdQJv2U9VVDP",
+  "publicUrl": "https://qiuyun-frontend.vercel.app",
+  "publicChecks": 36,
+  "matchingAssets": 15
+}

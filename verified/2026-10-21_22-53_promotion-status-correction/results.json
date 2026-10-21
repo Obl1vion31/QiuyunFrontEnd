@@ -1,0 +1,76 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "stage": "testing",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 1440,
+      "stage": "scaling",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 1440,
+      "stage": "testing",
+      "inspectorMirrorCorrection": true
+    },
+    {
+      "width": 1024,
+      "stage": "testing",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 1024,
+      "stage": "scaling",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 390,
+      "stage": "testing",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 390,
+      "stage": "scaling",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 320,
+      "stage": "testing",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    },
+    {
+      "width": 320,
+      "stage": "scaling",
+      "reopenAfterTerminal": true,
+      "restoreOriginal": true,
+      "numbersAndOtherNodePreserved": true
+    }
+  ],
+  "snapshot": [
+    {
+      "stage": "testing",
+      "endedOn": null
+    },
+    {
+      "stage": "scaling",
+      "endedOn": null
+    }
+  ],
+  "isolatedData": true
+}
