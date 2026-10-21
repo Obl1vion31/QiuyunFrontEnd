@@ -41,7 +41,7 @@ if (['reservation_approvals','publication_due'].includes(Astro.url.searchParams.
 const requestedStatus = Astro.url.searchParams.get('status');
 const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
 const requestedPromotion = Astro.url.searchParams.get('promotion');
-const selectedPromotion = ['testing', 'scaling', 'test_pending', 'promotion_paused', 'awaiting_promotion', 'ended', 'test_discarded', 'formal_discarded'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
+const selectedPromotion = ['testing', 'test_paused', 'scaling', 'scaling_paused', 'test_pending', 'promotion_paused', 'awaiting_promotion', 'ended', 'test_discarded', 'formal_discarded'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
 const dateParts = (date: Date) => Object.fromEntries(new Intl.DateTimeFormat('en', {
   timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',

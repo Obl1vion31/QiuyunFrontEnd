@@ -10,6 +10,7 @@ const panelId = `business-account-${placement}`;
   </button>
   <div id={panelId} popover="auto" class="business-account__panel">
     <strong>{user.username}</strong><small>{user.role === 'admin' ? '管理员' : '员工'}</small>
+    <small>界面字体 MiSans · <a href="/fonts/misans-5.0.0/LICENSE-MiSans.pdf" target="_blank" rel="noopener">字体许可 ↗</a></small>
     <button type="button" data-sign-out>退出登录</button><p role="alert" data-account-error hidden></p>
   </div>
 </div>}

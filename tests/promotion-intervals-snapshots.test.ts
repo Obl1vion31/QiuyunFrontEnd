@@ -36,7 +36,7 @@ test('未来区间按日生效；到期不自动恢复，无未来指标或逐�
   assert.equal(effectivePromotionStatus('testing','testing',campaign.id,context,now),'testing');
   assert.equal(effectivePromotionStatus('testing','testing',campaign.id,context,new Date('2026-10-17T00:00:00+08:00')),'test_pending');
   assert.equal(effectivePromotionStatus('testing','testing',campaign.id,context,new Date('2026-10-25T00:00:00+08:00')),'test_pending');
-  assert.equal(nextReviewDate('2026-10-16',campaign.startedOn,campaignWaitWindows(campaign,context)),'9999-12-31');
+  assert.equal(nextReviewDate('2026-10-16',campaign.startedOn,campaignWaitWindows(campaign,context)),campaign.dailyReviewEnabledOn);
   assert.equal((await db.select().from(schema.operationsPromotionDailyMetric).where(eq(schema.operationsPromotionDailyMetric.campaignId,campaign.id))).length,1);
   await assert.rejects(saveWaitRange(db,{...input,requestKey:randomUUID(),startedOn:'2026-10-18'},employee,undefined,now),/重叠/);
   await assert.rejects(saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'test_continue',nextEffectiveOn:'2026-10-21'},employee,saved.id,now),/最后一天/);
@@ -55,6 +55,7 @@ test('推广暂停可延期并转结束，员工不能覆盖历史；存在事�
   const preview=await saveWaitRange(db,input,admin,undefined,now);assert.equal(preview.confirmationRequired,true);assert.equal(preview.impact?.dailyMetrics,1);
   assert.equal((await db.select().from(schema.operationsPromotionWaitRange).where(eq(schema.operationsPromotionWaitRange.campaignId,campaign.id))).length,0);
   const saved=await saveWaitRange(db,{...input,confirmCascade:true},admin,undefined,now);
+  const retainedFacts=await db.select().from(schema.operationsPromotionDailyMetric).where(eq(schema.operationsPromotionDailyMetric.campaignId,campaign.id));assert.equal(retainedFacts.length,2);assert.equal(retainedFacts.reduce((sum,fact)=>sum+Number(fact.spend),0),40,'旧区间更正保留真实跑量');assert.equal(retainedFacts.find(fact=>fact.metricDate==='2026-10-16')?.actualStatusSnapshot,null,'不补造旧历史的精确状态');
   await saveWaitRange(db,{...input,endedOn:'2026-10-20',expectedRevision:0},employee,saved.id,now);
   const end=new Date('2026-10-20T12:00:00+08:00');
   await saveWaitRange(db,{...input,endedOn:'2026-10-20',expectedRevision:1,nextDecision:'ended',nextEffectiveOn:'2026-10-21'},employee,saved.id,end);

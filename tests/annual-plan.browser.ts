@@ -63,7 +63,7 @@ try {
     assert.match(await page.locator('[data-history-list] time').first().innerText(),/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
     const timeStyle=await page.locator('[data-history-list] time').first().evaluate((node:HTMLElement)=>({size:getComputedStyle(node).fontSize,family:getComputedStyle(node).fontFamily}));assert.equal(timeStyle.size,'12px');assert.match(timeStyle.family,/system-ui/);
     const view=page.locator('[data-history-list] button').filter({hasText:'查看版本内容'}).first();
-    assert.equal(await view.evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(23, 33, 28)');
+    assert.equal(await view.evaluate((node:HTMLElement)=>getComputedStyle(node).color),'rgb(32, 40, 51)');
     await view.click();await page.locator('.snapshot-view').first().waitFor();
     assert.equal(await page.locator('.snapshot-view strong').first().evaluate((node:HTMLElement)=>getComputedStyle(node).fontSize),'16px');
     if(width===1280){

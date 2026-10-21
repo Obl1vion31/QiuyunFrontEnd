@@ -16,6 +16,8 @@
 
 `business-date.ts` 统一工作台完整时间的上海时区显示；SSR 与浏览器共用，不转换业务日期键或替代原生日期选择控件。
 
+`business-read.ts` 统一目标容器读取：`beginBusinessRead(target, {signal, isCurrent})` 返回请求信号、落地守卫和 `finish/cancel`；500ms 内保持安静，超过后仅目标区域显示一处反馈。相同目标的新读取取消旧任务，导航与 Inspector 关闭清理状态，业务在写入 DOM 前检查 `isCurrent()`。`readBusiness` 可包裹包含 JSON／HTML 解析的完整任务。导航进度由共享侧栏监听 Astro 读取生命周期，不依赖入口按钮。
+
 - `business-dialog.ts`：站内未保存确认与 Sheet／Dialog 的面板、遮罩成对进出生命周期，以及详情／抽屉／嵌套确认共用的滚动锁；实际退出完成后才原生关闭，快速重开取消旧任务。
 - `business-permissions.ts`：读取服务端下发的操作权限、同步入口显示；服务端始终独立复核。
 
@@ -23,8 +25,8 @@
 
 `business-change-diff.ts` 用安全文本节点生成纵向字段对照，与 `BusinessChangeDiff.astro` 共用 `business-changes.css`；用于异步排期申请详情，不引入独立滚动容器。
 
-推广待办由 `promotion-timeline.ts` 管理单一“修改安排”编辑器、截止日／实际日期切换、次日安排到期开放、同条表单草稿确认及单帖刷新；保留统一标题、内容容器与其他帖子的输入。界面不重复列举连续待定日期，底层区间保留，不写入指标。
+推广待办由 `promotion-daily-form.ts` 管理活动＋日期草稿、独立状态气泡与 Inspector 镜像；`promotion-timeline.ts` 按稳定键合并所有相关队列及分组，保留其他节点和输入。`promotion-residual.ts` 提供笔记 ID 搜索、显式选择活动／版本／日期及固定残留行，与正常日度共用 API。
 
 `promotion-disclosure.ts` 管理数据的成对展开／收起；文字、比例与轨道几何保持稳定，收起归零后才关闭原生 details。快速反向、键盘与减少动态效果统一处理，筛选、读取详情和局部刷新不重播。
 
-`business-data-motion.ts` 按真实导航区分生命周期与非推广结果展示，等新画面可见后播放整体色块遮罩或结果轻量呈现；从其他模块返回会重播，同视图筛选、详情和局部保存不重播。工作表单不接入，减少动态效果统一静态显示。
+`business-data-motion.ts` 按真实导航区分生命周期与非推广结果展示，等新画面可见后按约 600ms 顺序呈现真实节点和连线，或轻量呈现结果；从其他模块返回会重播，同视图筛选、详情和局部保存不重播。工作表单不接入，减少动态效果统一静态显示。

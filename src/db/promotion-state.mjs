@@ -1,9 +1,10 @@
+import {normalizePromotionActualStatus} from './promotion-successors.mjs';
 /** 排期、日度、历史共用的推广状态与整日暂停规则；日期均为上海时间。 */
 import { nextDateKey, previousDateKey, shanghaiDateKey, replayPromotionHistory } from './promotion-rules.mjs';
 
 export const promotionLabels = {
   none: '非推广', pending: '待发布', awaiting_promotion: '推广待开始',
-  testing: '推广测试中', test_pending: '测试待定', scaling: '推广中',
+  testing: '测试中', test_paused:'测试暂停', test_pending: '测试结束待定', scaling: '放量中', scaling_paused:'放量暂停',
   promotion_paused: '推广暂停', test_discarded: '测试淘汰',
   formal_discarded: '放量淘汰', ended: '推广结束',
 };
@@ -19,7 +20,7 @@ export function fullPauseRange(pause) {
 export function effectivePromotionStatus(status, stage, campaignId, context, now = new Date()) {
   if (['none','pending','awaiting_promotion'].includes(status)) return status;
   const campaign = context.campaigns?.find(c => c.id === campaignId);
-  if (campaign && context.waitRanges?.some(range => range.campaignId === campaignId)) {
+  if (campaign && (context.waitRanges?.some(range => range.campaignId === campaignId)||context.stateChanges?.some(change=>change.campaignId===campaignId&&change.actualStatus))) {
     const state = promotionStateOn(campaign, context, shanghaiDateKey(now));
     if (state) { status = state.currentStatus; stage = state.currentStage; }
   }
@@ -36,7 +37,7 @@ export function campaignPauseWindows(campaign, context) {
     .flatMap(pause => { const range = fullPauseRange(pause); return range ? [range] : []; });
 }
 export function campaignWaitWindows(campaign, context) {
-  return (context.waitRanges ?? []).filter(r => r.campaignId === campaign.id && (!campaign.endedOn || r.startedOn <= campaign.endedOn)).map(r => ({ startedOn: r.startedOn, endedOn: r.nextEffectiveOn ? previousDateKey(r.nextEffectiveOn) : '9999-12-31' }));
+  return (context.waitRanges ?? []).filter(r => r.campaignId === campaign.id && (!campaign.endedOn || r.startedOn <= campaign.endedOn)).map(r => ({ startedOn: r.startedOn, endedOn: [r.nextEffectiveOn ? previousDateKey(r.nextEffectiveOn) : '9999-12-31',campaign.dailyReviewEnabledOn?previousDateKey(campaign.dailyReviewEnabledOn):'9999-12-31'].sort()[0] })).filter(r=>r.startedOn<=r.endedOn);
 }
 export function promotionStateOn(campaign, context, date = shanghaiDateKey(new Date())) {
   const metrics = (context.metrics ?? []).filter(m => m.campaignId === campaign.id && m.metricDate < date);

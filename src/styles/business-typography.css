@@ -18,3 +18,6 @@
 
 /* 已确认的语义层级；正文不以整体加粗表达重点。 */
 :where(.business-console-frame,.business-form-sheet,.business-form-dialog) input {font-variant-numeric:tabular-nums;}
+
+.business-read-host {position:relative;}
+.business-read-feedback {position:absolute;z-index:8;top:12px;right:12px;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid var(--console-line);border-radius:8px;background:var(--console-surface);box-shadow:0 2px 8px #2028330a;color:var(--console-muted);font:400 13px/20px var(--console-font);pointer-events:none;}

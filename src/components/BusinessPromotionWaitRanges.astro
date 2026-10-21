@@ -11,7 +11,7 @@ interface Props {
 const { campaigns, ranges, context, historical = false } = Astro.props;
 const today = shanghaiDateKey(new Date());
 const options = (stage: string) => stage === 'testing' ? [['test_continue','恢复测试'],['start_scaling','开始放量'],['test_discarded','测试淘汰']] : [['scaling_continue','恢复推广'],['formal_discarded','放量淘汰'],['ended','推广结束']];
-const candidates = campaigns.filter(c => historical || promotionStateOn(c, context, today)?.currentStage);
+const candidates = campaigns.filter(c => !context.campaigns?.find(item=>item.id===c.id)?.dailyReviewEnabledOn&&(historical || promotionStateOn(c, context, today)?.currentStage));
 const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaignId));
 ---
 <section class="wait-ranges" aria-label="待定区间与次日计划">
@@ -54,7 +54,7 @@ const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaign
         out.textContent = '正在保存…';
         let response = await send(); let result = await response.json();
         if (result.confirmationRequired) {
-          if(!await businessConfirm(`更改区间会删除 ${result.impact.from} 至 ${result.impact.through} 的 ${result.impact.dailyMetrics} 条日度事实，并重新开放待办。`,{title:'更改待定区间',confirmLabel:'确认更改',cancelLabel:'继续编辑'})){out.textContent='';return;}
+          if(!await businessConfirm(`更改区间会将 ${result.impact.from} 至 ${result.impact.through} 的 ${result.impact.dailyMetrics} 条日度记录重新归入对应状态，保留已填写的消耗和人数。`,{title:'更改待定区间',confirmLabel:'确认更改',cancelLabel:'继续编辑'})){out.textContent='';return;}
           payload.confirmCascade = true; response = await send(); result = await response.json();
         }
         if (!response.ok) { out.textContent = result.message ?? '请确认影响后再保存。'; return; }

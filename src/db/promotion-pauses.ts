@@ -13,7 +13,7 @@ export async function readPromotionContext(database: Database | Transaction) {
   const [pauseRows, targetRows, holdRows, rangeRows, campaignRows, metricRows, stateChanges] = await Promise.all([
     database.select().from(pauses).orderBy(asc(pauses.startsAt)), database.select().from(targets), database.select().from(holds).orderBy(asc(holds.startedOn)),
     database.select().from(waitRanges).orderBy(asc(waitRanges.startedOn)), database.select().from(campaigns),
-    database.select({ campaignId: metrics.campaignId, metricDate: metrics.metricDate, dailyStatus: metrics.dailyStatus, stageTypeSnapshot: metrics.stageTypeSnapshot, reviewDecision: metrics.reviewDecision }).from(metrics).orderBy(asc(metrics.metricDate)),
+    database.select({ campaignId: metrics.campaignId, metricDate: metrics.metricDate, dailyStatus: metrics.dailyStatus, actualStatusSnapshot:metrics.actualStatusSnapshot,recordKind:metrics.recordKind,sourceStageStartedOn:metrics.sourceStageStartedOn, stageTypeSnapshot: metrics.stageTypeSnapshot, reviewDecision: metrics.reviewDecision }).from(metrics).orderBy(asc(metrics.metricDate)),
     database.select().from(decisions).orderBy(asc(decisions.businessDate)),
   ]);
   return { stateChanges, pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };

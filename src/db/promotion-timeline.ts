@@ -1,3 +1,4 @@
+import {normalizePromotionActualStatus,promotionSuccessors,promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
@@ -12,7 +13,8 @@ import * as s from './schema';
 
 export const timelineSchema = z.object({
   scheduleId: z.uuid(), reviewDate: businessDate,
-  action: z.enum(['wait','start_testing','start_scaling','plan','pause','next']),
+  action: z.enum(['wait','start_testing','start_scaling','plan','pause','next','status']),
+  targetStatus:z.enum(['testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended']).optional(),
   target: z.enum(['initial','day']).default('day'),
   waitingThrough: businessDate.optional(), rangeId: z.uuid().optional(),
   nextDecision: z.enum(['test_continue','start_testing','start_scaling','test_discarded','scaling_continue','formal_discarded','ended','wait_continue']).optional(),
@@ -68,7 +70,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     await lockPromotionWorkflow(tx);
     const schedule=await lockSchedule(tx,input.scheduleId);
     const [repeat]=await tx.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,input.requestKey));
-    if(repeat){if(repeat.scheduleId!==schedule.id||repeat.changedById!==actor.id)throw new WorkflowError('请求已被使用。');return {ok:true,businessDate:repeat.businessDate,repeated:true};}
+    if(repeat){if(repeat.scheduleId!==schedule.id||repeat.changedById!==actor.id||input.action==='status'&&(repeat.action!=='status'||repeat.businessDate!==input.reviewDate||repeat.reason!==input.reason||!(repeat.after.decisions as Array<{businessDate:string;actualStatus?:string}>|undefined)?.some(c=>c.businessDate===input.reviewDate&&c.actualStatus===input.targetStatus)))throw new WorkflowError('请求已被使用。');return {ok:true,businessDate:repeat.businessDate,repeated:true};}
     if(!schedule.isPromoted||!schedule.actualPublishAt)throw new WorkflowError('只能处理已发布的推广帖。',422);
     const before=await promotionSnapshot(tx,schedule.id),fingerprint=timelineFingerprint(before);
     if(!before.campaigns.length&&schedule.promotionStatus!=='awaiting_promotion')throw new WorkflowError('该帖已有历史推广状态，不能作为首次安排重新开始。');
@@ -87,7 +89,23 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     };
     if(before.metrics.some(m=>m.metricDate>=date))requireAdmin(actor);
     if(!input.reason&&['start_testing','start_scaling'].includes(input.action)&&(campaign||before.plan&&date<(waitingThrough??publishedOn)))throw new WorkflowError('请填写历史更正原因。',422);
-    if(input.action==='wait'){
+    if(input.action==='status'){
+      if(!campaign)throw new WorkflowError('尚未开始的帖子请先选择首次安排。');
+      if(!input.reason)throw new WorkflowError('请填写跟进原因。',422);
+      const actual=promotionStateOn(campaign,context,date);
+      if(!actual)throw new WorkflowError('无法读取该日状态。');
+      const original=normalizePromotionActualStatus(actual.currentStatus,actual.currentStage);
+      if(!input.targetStatus||!promotionSuccessors[original]?.includes(input.targetStatus))throw new WorkflowError('请选择原状态允许衔接的后继状态。',422);
+      const targetStage=promotionStatusStage(input.targetStatus)??actual.currentStage;
+      if(!targetStage)throw new WorkflowError('已结束活动不能修改为进行中。');
+      await tx.insert(s.operationsPromotionDayDecision).values({campaignId:campaign.id,businessDate:date,stageType:targetStage as 'testing'|'scaling',actualStatus:input.targetStatus,reason:input.reason}).onConflictDoUpdate({target:[s.operationsPromotionDayDecision.campaignId,s.operationsPromotionDayDecision.businessDate],set:{stageType:targetStage as 'testing'|'scaling',actualStatus:input.targetStatus,reason:input.reason}});
+      for(const metric of before.metrics.filter(m=>m.campaignId===campaign!.id&&m.metricDate===date&&m.recordKind!=='test_residual')){
+        const legal=promotionNextOptions(input.targetStatus);
+        const decision=legal.some(o=>o.value===metric.reviewDecision)?metric.reviewDecision:legal[0]?.value??input.targetStatus;
+        const sourceStageStartedOn=targetStage===metric.stageTypeSnapshot?metric.sourceStageStartedOn:targetStage==='testing'?campaign.startedOn:[date,...before.metrics.filter(m=>m.stageTypeSnapshot==='scaling').flatMap(m=>m.sourceStageStartedOn?[m.sourceStageStartedOn]:[])].sort()[0];
+        await tx.update(s.operationsPromotionDailyMetric).set({sourceStageStartedOn,actualStatusSnapshot:input.targetStatus,dailyStatus:['testing','scaling'].includes(input.targetStatus)?'active':'waiting_action',stageTypeSnapshot:targetStage,reviewDecision:decision,updatedAt:now}).where(eq(s.operationsPromotionDailyMetric.id,metric.id));
+      }
+    }else if(input.action==='wait'){
       if(campaign)throw new WorkflowError('已开始的活动请使用当日暂停。');
       const end=input.waitingThrough??date;
       if(end<date)throw new WorkflowError('待定截止日不能早于该行日期。',422);
@@ -121,6 +139,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       }else{
         const state=promotionStateOn(campaign,context,date);
         if(!state?.currentStage)throw new WorkflowError('活动已结束，不能直接恢复。');
+        if(state.currentStatus==='test_pending'&&stage==='testing')throw new WorkflowError('测试结束待定后只能继续待定、转放量或淘汰。');
         if(state.currentStage==='scaling'&&stage==='testing')throw new WorkflowError('放量后重新测试需要创建改帖版本。');
         await tx.insert(s.operationsPromotionDayDecision).values({campaignId:campaign.id,businessDate:date,stageType:stage}).onConflictDoUpdate({target:[s.operationsPromotionDayDecision.campaignId,s.operationsPromotionDayDecision.businessDate],set:{stageType:stage}});
       }
@@ -167,7 +186,9 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       const [fresh]=await tx.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,campaign.id));
       const changedContext=await readPromotionContext(tx), options=promotionReplayOptions(fresh,changedContext);
       const kept:Array<typeof s.operationsPromotionDailyMetric.$inferSelect>=[];
-      for(const metric of before.metrics.filter(m=>m.campaignId===fresh.id)){
+      const freshMetrics=await tx.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,fresh.id)).orderBy(asc(s.operationsPromotionDailyMetric.metricDate));
+      for(const metric of freshMetrics){
+        if(metric.recordKind==='test_residual'){kept.push(metric);continue;}
         if(metric.metricDate<fresh.startedOn||!replayPromotionHistory(fresh.startedOn,[...kept,metric],{...options,asOf:nextDateKey(metric.metricDate)}))removed.push(metric.id);else kept.push(metric);
       }
       const state=replayPromotionHistory(fresh.startedOn,kept,{...options,asOf:today});

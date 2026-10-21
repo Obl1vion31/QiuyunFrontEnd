@@ -7,7 +7,7 @@ const context={stateChanges:[],pauses:[],targets:[],holds:[],waitRanges:[],campa
 test('累计成本用累计消耗除实际人数，空白、真实零和旧待定记录有不同含义',()=>{
  const totals=promotionTotals([fact(),fact({id:'2',metricDate:'2026-10-18',spend:'20',actualOpenCount:2,actualLeadCount:0})]);
  assert.equal(totals.spend,120);assert.equal(totals.actualOpenCost,10);assert.equal(totals.actualLeadCost,60);assert.equal(totals.recordedDays,2);
- assert.equal(promotionTotals([]).spend,null);assert.equal(promotionTotals([fact({dailyStatus:'waiting_action'})]).spend,null);
+ assert.equal(promotionTotals([]).spend,null);assert.equal(promotionTotals([fact({dailyStatus:'waiting_action'})]).spend,100,'等待期间真实跑量合并累计');
  const zero=promotionTotals([fact({spend:'0',actualOpenCount:0,actualLeadCount:0})]);assert.equal(zero.spend,0);assert.equal(zero.actualOpenCost,null);
 });
 test('同一排期多个活动合成一条，阶段保留原日期，暂停和已结束均能查看之前数据',()=>{

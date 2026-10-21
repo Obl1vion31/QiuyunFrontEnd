@@ -103,9 +103,12 @@ try {
       }
       if(view==='daily') {
         assert.equal(await page.locator('[data-pause-form]').count(),0,'团队暂停已移除');
-        const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[data-toggle-day-state]').click();assert.equal(await dailyForm.locator('[data-toggle-day-state]').getAttribute('aria-expanded'),'true');await dailyForm.locator('[name=dayAction]').selectOption('pause');
-        const waitControls=await dailyForm.locator('[data-pause-reason] input,[data-pause-through] input').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(waitControls.length,2);assert.ok(waitControls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'行内暂停与日度表单共用常规控件规格');
-        assert.equal(await dailyForm.locator('[name=spend]').isDisabled(),true);await dailyForm.locator('[name=dayAction]').selectOption('active');{const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
+        const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[data-toggle-day-state]').click();assert.equal(await dailyForm.locator('[data-toggle-day-state]').getAttribute('aria-expanded'),'true');
+        const stateBubble=page.locator('[data-day-state-form]:visible');await stateBubble.locator('[name=targetStatus]').selectOption('test_paused');
+        assert.equal(await stateBubble.locator('input[type=date]').count(),0,'当日状态固定作用于该行日期');
+        const stateControls=await stateBubble.locator('select,textarea').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(stateControls.length,2);assert.ok(stateControls.every((c:{height:number;size:string})=>c.height>=40&&c.size==='14px'),'状态气泡使用共享常规控件规格');
+        assert.equal(await dailyForm.locator('[name=spend]').isDisabled(),false,'暂停仍允许记录实际跑量');await page.keyboard.press('Escape');
+        {const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
       }
 
       const box=await page.locator('.toolbar-segmented').boundingBox();for(const key of ['x','y','width','height']) assert.ok(Math.abs(box[key]-original[key])<=1,`${width} ${view} tabs ${key}`);
@@ -116,10 +119,10 @@ try {
     assert.equal(await page.locator('select[name=checkpoint]').count(),0);
     const group=page.locator('[data-category-group="tmua:innovation"]');await group.locator('summary').first().click();
     await page.evaluate(()=>{(window as any).__record=document.querySelector('[data-category-group="tmua:innovation"] [data-row-href]');});
-    await page.getByRole('radio',{name:'平铺',exact:true}).check();assert.equal(await page.evaluate(()=>(window as any).__record.isConnected),true);
-    await page.getByRole('radio',{name:'按帖子分类',exact:true}).check();assert.equal(await group.getAttribute('open')!==null,true);
+    await page.getByRole('radio',{name:'历史数据总览',exact:true}).check();assert.equal(await page.evaluate(()=>(window as any).__record.isConnected),true);
+    await page.getByRole('radio',{name:'分类均值查看',exact:true}).check();assert.equal(await group.getAttribute('open')!==null,true);
     await page.screenshot({path:`.tools/test-artifacts/review-inline-categories-${width}.png`,fullPage:true});
-    await page.getByRole('radio',{name:'平铺',exact:true}).check();
+    await page.getByRole('radio',{name:'历史数据总览',exact:true}).check();
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
     assert.match(await first.innerText(),/同类均值\s+8.99%/);assert.match(await first.innerText(),/-3.47pp/);
@@ -136,7 +139,7 @@ try {
     const inspector=page.locator('[data-inspector]');
     await inspector.locator('.correction summary').click();
     const readonly=await inspector.locator('.correction input[readonly]').evaluate((node:HTMLElement)=>({border:getComputedStyle(node).borderTopStyle,fill:getComputedStyle(node).backgroundColor}));
-    assert.deepEqual(readonly,{border:'dashed',fill:'rgb(242, 245, 242)'},'只读信息与可编辑字段明确区分');
+    assert.deepEqual(readonly,{border:'dashed',fill:'rgb(248, 249, 251)'},'只读信息与可编辑字段明确区分');
     await inspector.locator('.correction summary').click();
     assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
     await inspector.locator('[name=conclusion]').fill('尚未保存');
@@ -160,13 +163,13 @@ try {
     }
     if(width===1440) {
       await page.goto(baseURL+`/business/operations-schedule?month=${published.slice(0,7)}`);
-      await page.route(`**/api/operations-content/${ids[0]}/workflow`,async(route:any)=>{const response=await route.fetch();await new Promise(resolve=>setTimeout(resolve,400));await route.fulfill({response});});
+      await page.route(`**/api/operations-content/${ids[0]}/workflow`,async(route:any)=>{const response=await route.fetch();await new Promise(resolve=>setTimeout(resolve,400));try{await route.fulfill({response});}catch{}});
       await page.route(`**/api/operations-content/${ids[1]}/workflow`,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构读取失败'})}));
-      const staleResponse=page.waitForResponse((response:any)=>response.url().includes(`/api/operations-content/${ids[0]}/workflow`));
+      const staleRequest=page.waitForRequest((request:any)=>request.url().includes(`/api/operations-content/${ids[0]}/workflow`));
       await page.locator(`[data-inspect-id="${ids[0]}"]`).first().click();
-      await page.locator('[data-inspector].is-open').waitFor();
+      await page.locator('[data-inspector].is-open').waitFor();await staleRequest;
       await page.locator(`[data-inspect-id="${ids[1]}"]`).first().click();
-      await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await staleResponse;await page.waitForTimeout(50);
+      await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await page.waitForTimeout(450);
       assert.equal(await page.locator('[data-inspector]').getAttribute('data-selected-id'),ids[1]);
       assert.equal(await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').count(),1,'晚到的旧请求不覆盖新选择');
       await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});

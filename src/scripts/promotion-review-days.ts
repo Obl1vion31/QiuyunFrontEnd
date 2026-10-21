@@ -1,5 +1,6 @@
 import {refreshPromotionSchedule} from './promotion-timeline';
 import './promotion-disclosure';
+import {readBusiness} from './business-read';
 import {shanghaiDateKey} from '../db/promotion-rules.mjs';
 let timer:ReturnType<typeof setTimeout>|undefined,refreshing=false;
 let serverOffset=0,renderedDate='';
@@ -12,8 +13,7 @@ async function refreshBoundary(){
  if(document.querySelector('.business-console-workspace[aria-busy=true]')){timer=setTimeout(()=>void refreshBoundary(),500);return;}
  refreshing=true;
  try{
-  const response=await fetch(location.href,{cache:'no-store',headers:{Accept:'text/html'}});if(!response.ok)throw new Error('日期状态更新失败');
-  const fresh=new DOMParser().parseFromString(await response.text(),'text/html');
+  const fresh=await readBusiness(host,async read=>{const response=await fetch(location.href,{cache:'no-store',headers:{Accept:'text/html'},signal:read.signal});if(!response.ok)throw new Error('日期状态更新失败');return new DOMParser().parseFromString(await response.text(),'text/html');});if(!fresh)return;
   const ids=new Set([...document.querySelectorAll<HTMLElement>('[data-review-post]'),...fresh.querySelectorAll<HTMLElement>('[data-review-post]')].map(post=>post.dataset.reviewPost!));
   for(const id of ids)await refreshPromotionSchedule(id,fresh);
   host.querySelector('[data-date-refresh-error]')?.remove();initialize();

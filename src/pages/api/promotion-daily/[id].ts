@@ -1,8 +1,10 @@
+import {normalizePromotionActualStatus,promotionNextOptions} from '../../../db/promotion-successors.mjs';
+import {WorkflowError} from '../../../db/schedule-workflow';
 import type { APIRoute } from 'astro';
 import {randomUUID} from 'node:crypto';
 import {promotionSnapshot} from '../../../db/promotion-timeline';
 import { requireAdmin, permissionErrorResponse } from '../../../auth/permissions';
-import { asc, eq, sql } from 'drizzle-orm';
+import { asc, eq, inArray,sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
   operationsContentSchedule,
@@ -13,7 +15,7 @@ import {
   operationsPromotionWaitRange,
   operationsPromotionDayDecision,operationsPromotionTimelineAudit,
 } from '../../../db/schema';
-import { replayPromotionHistory } from '../../../db/promotion-rules.mjs';
+import { replayPromotionHistory,shanghaiDateKey,nextDateKey } from '../../../db/promotion-rules.mjs';
 import { lockPromotionWorkflow, readPromotionContext } from '../../../db/promotion-pauses';
 import { promotionReplayOptions } from '../../../db/promotion-state.mjs';
 import {
@@ -58,45 +60,48 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       const [campaign] = await transaction.select().from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.id, existing.campaignId)).limit(1);
       if (!campaign) return { kind: 'missing' as const };
-      const lifecycleChanged = existing.reviewDecision !== parsed.data.reviewDecision
+      const residual=existing.recordKind==='test_residual';
+      if(parsed.data.actualStatusSnapshot&&existing.actualStatusSnapshot&&parsed.data.actualStatusSnapshot!==existing.actualStatusSnapshot)throw new WorkflowError('请通过修改当日状态更正实际状态。',422);
+      if(parsed.data.recordKind==='test_residual'&&!residual)throw new WorkflowError('记录类型不能更改。',422);
+      if(residual&&(parsed.data.stageTypeSnapshot!=='testing'||parsed.data.reviewDecision!=='test_discarded'||parsed.data.dailyStatus!=='waiting_action'))throw new WorkflowError('淘汰后残留不改变推广状态或后续安排。',422);
+      if(!residual&&existing.actualStatusSnapshot){
+        const expectedStatus=['testing','scaling'].includes(existing.actualStatusSnapshot)?'active':'waiting_action';
+        if(parsed.data.dailyStatus!==expectedStatus||parsed.data.stageTypeSnapshot!==existing.stageTypeSnapshot)throw new WorkflowError('请通过修改当日状态更正该日阶段。',422);
+        const options=promotionNextOptions(existing.actualStatusSnapshot);
+        if(options.length?!options.some(o=>o.value===parsed.data.reviewDecision):parsed.data.reviewDecision!==existing.actualStatusSnapshot)throw new WorkflowError('下一步与该日实际状态不匹配。',422);
+      }
+      const lifecycleChanged = !residual&&(existing.reviewDecision !== parsed.data.reviewDecision
         || existing.dailyStatus !== parsed.data.dailyStatus
-        || existing.stageTypeSnapshot !== parsed.data.stageTypeSnapshot;
+        || existing.stageTypeSnapshot !== parsed.data.stageTypeSnapshot);
       if (lifecycleChanged) requireAdmin(locals.user);
       const before=lifecycleChanged?await promotionSnapshot(transaction,campaign.scheduleId):null;
       const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
-      const later = lifecycleChanged ? allMetrics.filter((metric) => metric.metricDate > existing.metricDate) : [];
       const context = await readPromotionContext(transaction);
-      const affectedRanges = lifecycleChanged ? context.waitRanges.filter(r => r.campaignId === campaign.id && (!r.nextEffectiveOn || r.nextEffectiveOn > existing.metricDate)) : [];
-      const affectedDecisions=lifecycleChanged?context.stateChanges.filter(row=>row.campaignId===campaign.id&&row.businessDate>existing.metricDate):[];
-      if ((later.length > 0 || affectedRanges.length > 0 || affectedDecisions.length>0) && !parsed.data.confirmCascade) {
-        const laterStages = await transaction.select({ id: operationsPromotionStage.id })
-          .from(operationsPromotionStage)
-          .where(sql`${operationsPromotionStage.campaignId} = ${existing.campaignId} and ${operationsPromotionStage.startedOn} > ${existing.metricDate}`);
-        return { kind: 'confirmation' as const, dailyMetrics: later.length, stages: laterStages.length, waitRanges: affectedRanges.length,dayDecisions:affectedDecisions.length };
+      const candidate=allMetrics.map(m=>m.id===existing.id?{...m,dailyStatus:parsed.data.dailyStatus,stageTypeSnapshot:parsed.data.stageTypeSnapshot,reviewDecision:parsed.data.reviewDecision}:m);
+      let replayed=lifecycleChanged?replayPromotionHistory(campaign.startedOn,candidate,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(new Date())}):null;
+      let later:typeof allMetrics=[];
+      let affectedRanges:typeof context.waitRanges=[];
+      let affectedDecisions:typeof context.stateChanges=[];
+      if(lifecycleChanged&&!replayed){
+        affectedRanges=context.waitRanges.filter(r=>r.campaignId===campaign.id&&(!r.nextEffectiveOn||r.nextEffectiveOn>existing.metricDate));
+        affectedDecisions=context.stateChanges.filter(r=>r.campaignId===campaign.id&&r.businessDate>existing.metricDate);
+        context.waitRanges=context.waitRanges.filter(r=>!affectedRanges.some(a=>a.id===r.id));
+        context.stateChanges=context.stateChanges.filter(r=>!affectedDecisions.some(a=>a.id===r.id));
+        context.holds=context.holds.filter(h=>h.campaignId!==campaign.id||h.endedOn<=existing.metricDate);
+        const retained:typeof allMetrics=[];
+        for(const metric of candidate){
+          if(metric.recordKind==='test_residual'||replayPromotionHistory(campaign.startedOn,[...retained,metric],{...promotionReplayOptions(campaign,context),asOf:nextDateKey(metric.metricDate)}))retained.push(metric);else if(metric.metricDate>existing.metricDate)later.push(metric);else return {kind:'invalid-decision' as const};
+        }
+        replayed=replayPromotionHistory(campaign.startedOn,retained,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(new Date())});
+        if(!replayed)return {kind:'invalid-decision' as const};
+        if((later.length||affectedRanges.length||affectedDecisions.length)&&!parsed.data.confirmCascade)return {kind:'confirmation' as const,dailyMetrics:later.length,stages:replayed.stages.length,waitRanges:affectedRanges.length,dayDecisions:affectedDecisions.length};
+        if(later.length)await transaction.delete(operationsPromotionDailyMetric).where(inArray(operationsPromotionDailyMetric.id,later.map(m=>m.id)));
+        for(const range of affectedRanges)await transaction.delete(operationsPromotionWaitRange).where(eq(operationsPromotionWaitRange.id,range.id));
+        for(const decision of affectedDecisions)await transaction.delete(operationsPromotionDayDecision).where(eq(operationsPromotionDayDecision.id,decision.id));
+        await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
       }
-
-      const retainedCandidate = allMetrics
-        .filter((metric) => !lifecycleChanged || metric.metricDate <= existing.metricDate)
-        .map((metric) => metric.id === existing.id ? {
-          ...metric,
-          dailyStatus: parsed.data.dailyStatus,
-          stageTypeSnapshot: parsed.data.stageTypeSnapshot,
-          reviewDecision: parsed.data.reviewDecision,
-        } : metric);
-      if (lifecycleChanged) context.waitRanges = context.waitRanges.filter(r => !affectedRanges.some(a => a.id === r.id));
-      if (lifecycleChanged) context.holds = context.holds.filter(hold => hold.campaignId !== campaign.id || hold.endedOn <= existing.metricDate);
-      if(lifecycleChanged)context.stateChanges=context.stateChanges.filter(row=>!affectedDecisions.some(affected=>affected.id===row.id));
-      const replayed = lifecycleChanged ? replayPromotionHistory(campaign.startedOn, retainedCandidate, promotionReplayOptions(campaign, context)) : null;
-      if (lifecycleChanged && !replayed) return { kind: 'invalid-decision' as const };
-
-      if (lifecycleChanged && later.length > 0) {
-        await transaction.delete(operationsPromotionDailyMetric).where(sql`${operationsPromotionDailyMetric.campaignId} = ${existing.campaignId} and ${operationsPromotionDailyMetric.metricDate} > ${existing.metricDate}`);
-      }
-      for (const range of affectedRanges) await transaction.delete(operationsPromotionWaitRange).where(eq(operationsPromotionWaitRange.id, range.id));
-      for(const decision of affectedDecisions)await transaction.delete(operationsPromotionDayDecision).where(eq(operationsPromotionDayDecision.id,decision.id));
-      if (lifecycleChanged) await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
       await transaction.update(operationsPromotionDailyMetric).set({
         dailyStatus: parsed.data.dailyStatus,
         stageTypeSnapshot: parsed.data.stageTypeSnapshot,
@@ -143,6 +148,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
     return Response.json({ ok: true, deleted: result.deleted });
   } catch (error) {
     const denied = permissionErrorResponse(error); if (denied) return denied;
+    if(error instanceof WorkflowError)return Response.json({message:error.message},{status:error.status});
     console.error('promotion daily update failed', error);
     return Response.json({ message: '历史日度数据保存失败，请稍后重试。' }, { status: 503 });
   }

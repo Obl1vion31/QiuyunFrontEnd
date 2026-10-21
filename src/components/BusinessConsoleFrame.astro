@@ -47,7 +47,8 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     <footer class="dialog-actions"><button type="button" data-confirm-cancel autofocus>继续编辑</button><button type="button" class="primary" data-confirm-accept>放弃修改</button></footer>
   </dialog>
 </div>
-<script>import '../scripts/business-dialog';import '../scripts/business-permissions';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
+<script>import '../scripts/business-dialog';import '../scripts/business-permissions';import '../scripts/business-read';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
+<link rel="stylesheet" href="/fonts/misans-5.0.0/MiSansVF.css" />
 
 <script is:inline>
   (() => {
@@ -136,16 +137,16 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     --console-content-x:24px;
     --console-content-top:22px;
     --console-toolbar-height:72px;
-    --console-canvas:#e9ece8;
-    --console-paper:#f7f8f5;
+    --console-canvas:#F6F7F9;
+    --console-paper:#F6F7F9;
     --console-surface:#fff;
-    --console-surface-subtle:#f2f5f2;
-    --console-ink:#17211c;
-    --console-muted:#68736d;
-    --console-line:#c9d1cc;
+    --console-surface-subtle:#F8F9FB;
+    --console-ink:#202833;
+    --console-muted:#667080;
+    --console-line:#E5E7EB;
     --console-blue:#315fd6;
     --console-blue-soft:#dce5ff;
-    --console-font:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
+    --console-font:"MiSans VF","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
     --console-text:14px;
     --console-text-leading:22px;
     --console-caption:12px;

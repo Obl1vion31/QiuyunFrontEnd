@@ -4,6 +4,7 @@ import {nonPromotionGroups} from '../db/non-promotion-groups';
 import { navigate } from 'astro:transitions/client';
 import { getInspector } from './business-inspector';
 import { businessConfirm } from './business-dialog';
+import { beginBusinessRead } from './business-read';
 import type { readNonPromotionReview } from '../db/non-promotion-read-model';
 type ReviewItem = Awaited<ReturnType<typeof readNonPromotionReview>>['tableRows'][number];
 function initialize() {
@@ -52,9 +53,12 @@ function initialize() {
     filters.requestSubmit();
   });
   const refresh = async () => {
-    const response = await fetch(`/api/non-promotion-reviews${location.search}`, { headers: { Accept: 'application/json' } });
+    const read=beginBusinessRead(table.closest<HTMLElement>('.table-pane')!);
+    try {
+    const response = await fetch(`/api/non-promotion-reviews${location.search}`, { headers: { Accept: 'application/json' },signal:read.signal });
     if (!response.ok) throw new Error('保存已成功，列表刷新失败，请刷新页面查看最新基准。');
     const data = await response.json() as {tableRows:ReviewItem[]};
+    if(!read.isCurrent())return;
     for (const item of data.tableRows) {
       const row = table.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(item.key)}"]`);
       if (!row) continue;
@@ -87,6 +91,7 @@ function initialize() {
       }
     }
     arrange();
+    } catch(error) {if(!read.isCurrent())return;throw error;} finally {read.finish();}
   };
   inspector.addEventListener('click', async event => {
     const copy = (event.target as Element).closest<HTMLButtonElement>('[data-copy-id]');
@@ -111,7 +116,6 @@ function initialize() {
       if (!response.ok) { output.textContent = result.message || '保存失败。'; return; }
       controller.setClean();
       if (new URL(location.href).searchParams.get('view') === 'history' && form.matches('[data-review-form]')) {
-        output.textContent = '已保存，正在更新同轮基准…';
         await refresh(); output.textContent = '已保存';
       } else await navigate(form.dataset.successHref || location.href);
     } catch (error) { output.textContent = error instanceof Error && error.message.startsWith('保存已成功') ? error.message : '连接失败，当前输入已保留，请重试。'; }

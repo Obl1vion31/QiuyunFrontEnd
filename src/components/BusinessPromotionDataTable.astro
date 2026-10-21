@@ -1,4 +1,5 @@
 ---
+import {promotionActualLabels,normalizePromotionActualStatus} from '../db/promotion-successors.mjs';
 import {promotionTotals,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
 interface Props {rows:Array<{entry:PromotionOverview;metric:PromotionFact}>;showPost?:boolean}
 const {rows,showPost=false}=Astro.props;
@@ -15,7 +16,7 @@ const labels=['消耗','平台开口','实际开口','平台留资','实际留�
   const totals=promotionTotals([metric]);
   return <tr tabindex="0" data-daily-record={metric.id} data-metric-id={metric.id} data-inspector-key={metric.id} data-history-row={showPost||undefined} data-history-schedule={entry.scheduleId} data-history-date={metric.metricDate} aria-label={`${entry.post.contentName} ${metric.metricDate} 复盘详情`}>
    <th scope="row">{showPost?<><strong>{entry.post.contentName}</strong><small>V{entry.post.versionNumber} · {entry.post.subjectName}</small></>:<time datetime={metric.metricDate}>{metric.metricDate}</time>}</th>
-   <td><span class:list={['promotion-phase',metric.stageTypeSnapshot]}>{metric.dailyStatus==='active'?(metric.stageTypeSnapshot==='testing'?'测试':'放量'):metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'}</span></td>
+   <td><span class:list={['promotion-phase',metric.dailyStatus==='active'?metric.stageTypeSnapshot:'paused']}>{metric.recordKind==='test_residual'?'淘汰后残留':promotionActualLabels[metric.actualStatusSnapshot??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot)]}</span></td>
    {fields.map(key=><td data-total={key}>{totals[key]==null?'—':key==='spend'||key.endsWith('Cost')?`¥${totals[key]!.toFixed(2)}`:totals[key]}</td>)}
   </tr>;
  })}</tbody>

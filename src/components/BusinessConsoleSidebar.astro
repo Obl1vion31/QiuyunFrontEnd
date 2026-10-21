@@ -78,6 +78,7 @@ const iconPaths = {
 
 <script>
   import { prefetch } from 'astro:prefetch';
+  import type { TransitionBeforePreparationEvent } from 'astro:transitions/client';
 
   const sidebar = document.querySelector<HTMLElement>('[data-business-console-sidebar]');
   if (sidebar && !sidebar.dataset.ready) {
@@ -88,6 +89,7 @@ const iconPaths = {
     let progressDelay = 0;
     let progressStartedAt = 0;
     let pendingLabel = '';
+    let navigationGeneration = 0;
 
     const moduleForPath = (pathname: string) => links.find((link) => new URL(link.dataset.moduleHref!, location.origin).pathname === pathname)?.dataset.moduleId;
     const storageKey = (id: string) => `business-console:last-url:${id}`;
@@ -108,6 +110,7 @@ const iconPaths = {
       else link.removeAttribute('aria-current');
     });
     const startProgress = (label: string) => {
+      ++navigationGeneration;
       pendingLabel = label;
       window.clearTimeout(progressDelay);
       progressDelay = window.setTimeout(() => {
@@ -119,9 +122,11 @@ const iconPaths = {
       }, 120);
     };
     const finishProgress = () => {
+      const generation = navigationGeneration;
       window.clearTimeout(progressDelay);
       const elapsed = performance.now() - progressStartedAt;
       const finish = () => {
+        if (generation !== navigationGeneration) return;
         progress?.classList.remove('is-visible');
         progress?.setAttribute('aria-hidden', 'true');
         document.querySelector<HTMLElement>('.workspace')?.removeAttribute('aria-busy');
@@ -160,7 +165,25 @@ const iconPaths = {
       document.documentElement.dataset.unsaved = 'false';
       rememberCurrentLocation();
       selectPath(new URL(link.href).pathname);
-      startProgress(link.textContent?.trim() ?? '页面');
+    });
+
+    // Astro owns all actual page reads: sidebar, toolbar, GET filters and browser history.
+    // Local Inspector history changes never enter this lifecycle and therefore stay quiet.
+    document.addEventListener('astro:before-preparation', event => {
+      const transition = event as TransitionBeforePreparationEvent;
+      rememberCurrentLocation();
+      selectPath(transition.to.pathname);
+      const link = links.find(link => new URL(link.dataset.moduleHref!, location.origin).pathname === transition.to.pathname);
+      startProgress(link?.textContent?.trim() || '页面');
+      const generation = navigationGeneration;
+      transition.signal.addEventListener('abort', () => {
+        if (generation === navigationGeneration) { selectPath(location.pathname); finishProgress(); }
+      }, { once: true });
+      const loader = transition.loader;
+      transition.loader = async () => {
+        try { await loader(); }
+        catch (error) { if (generation === navigationGeneration) { selectPath(location.pathname); finishProgress(); } throw error; }
+      };
     });
 
     document.addEventListener('astro:after-swap', () => {

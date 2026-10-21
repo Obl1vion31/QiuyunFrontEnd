@@ -2,6 +2,7 @@ import {mayOperate} from './business-permissions';
 import {businessConfirm} from './business-dialog';
 import { businessDateTime } from './business-date';
 import { getInspector } from './business-inspector';
+import { beginBusinessRead } from './business-read';
 import { blockBackground, blockPromotionLabel, formatSlotRange, normalizeSnapshot, splitBlockSegments, type PlanBlock } from '../db/annual-plan-rules.mjs';
 import type { AnnualPlanSnapshot } from '../db/schema';
 
@@ -163,10 +164,11 @@ function initializeAnnualPlan() {
   const scrolls = all<HTMLElement>('.matrix-shell,.summary-scroll'); for (const scroll of scrolls) scroll.addEventListener('scroll', () => { for (const other of scrolls) if (other !== scroll && Math.abs(other.scrollLeft - scroll.scrollLeft) > 1) other.scrollLeft = scroll.scrollLeft; });
 
   q('[data-load-history]').addEventListener('click', async () => {
-    if (!activeRow) return; const row = activeRow; const generation = inspectorController.generation; const target = q('[data-history-list]', inspector); target.textContent = '正在读取…';
+    if (!activeRow) return; const row = activeRow; const generation = inspectorController.generation; const target = q('[data-history-list]', inspector);
+    const read=beginBusinessRead(target,{label:'正在读取历史…',isCurrent:()=>activeRow?.id===row.id&&generation===inspectorController.generation});
     try {
-      const response = await fetch(`/api/operations-annual-plans/${row.id}/versions`); const result = await response.json();
-      if (activeRow?.id !== row.id || generation !== inspectorController.generation) return;
+      const response = await fetch(`/api/operations-annual-plans/${row.id}/versions`,{signal:read.signal}); const result = await response.json();
+      if (!read.isCurrent()) return;
       if (!response.ok) { target.textContent = result.message; return; } target.replaceChildren();
       for (const version of result.versions) {
         const article = document.createElement('article'); article.innerHTML = `<div class="annual-version-meta"><strong>V${version.versionNumber}</strong><time datetime="${escapeHtml(version.createdAt)}">${historyTime(version.createdAt)}</time></div><p>${escapeHtml(version.changeSummary)}</p><small>${escapeHtml(version.changedByLabel)} · ${escapeHtml(version.diffSummary.join('；'))}</small>`;
@@ -174,16 +176,18 @@ function initializeAnnualPlan() {
         const showError=(message:string)=>{feedback.textContent=message;feedback.hidden=!message;};
         const view = document.createElement('button'); view.type = 'button'; view.textContent = '查看版本内容';
         view.addEventListener('click', async () => {
-          const existing = q('.snapshot-view', article); if (existing) { existing.remove(); return; } view.disabled = true;showError('');
+          const existing = q('.snapshot-view', article); if (existing) { existing.remove(); return; } showError('');
+          const detailRead=beginBusinessRead(article,{label:'正在读取版本…',isCurrent:()=>activeRow?.id===row.id&&generation===inspectorController.generation});
           try {
-            const response = await fetch(`/api/operations-annual-plans/${row.id}/versions/${version.versionNumber}`); const detail = await response.json();
+            const response = await fetch(`/api/operations-annual-plans/${row.id}/versions/${version.versionNumber}`,{signal:detailRead.signal}); const detail = await response.json();
+            if(!detailRead.isCurrent())return;
             if (!response.ok) { showError(detail.message||'历史版本读取失败，请重试。'); return; }
             const snapshot = normalizeSnapshot(detail.version.snapshot as AnnualPlanSnapshot); const panel = document.createElement('div'); panel.className = 'snapshot-view';
             const title = document.createElement('strong'); title.textContent = `${snapshot.row.sectionLabel} / ${snapshot.row.rowName}`; panel.append(title);
             const items = document.createElement('ul'); for (const block of snapshot.blocks) { const item = document.createElement('li'); item.textContent = `${formatSlotRange(block)} · ${block.note || '暂无备注'} · ${blockPromotionLabel(block)}`; items.append(item); } panel.append(items);
             for (const link of snapshot.links) { const anchor = document.createElement('a'); anchor.href = link.url; anchor.target = '_blank'; anchor.rel = 'noreferrer'; anchor.textContent = `${link.label} ↗`; panel.append(anchor); }
             if (snapshot.row.note) { const note = document.createElement('p'); note.textContent = snapshot.row.note; panel.append(note); } article.append(panel);
-          } catch { showError('历史版本读取失败，请重试。'); } finally { view.disabled = false; }
+          } catch { if(detailRead.isCurrent())showError('历史版本读取失败，请重试。'); } finally { detailRead.finish(); }
         }); article.append(view);
         if (version.versionNumber !== row.currentVersionNumber) {
           const restore = document.createElement('button'); restore.type = 'button'; restore.hidden=!mayOperate('annual.restore'); restore.textContent = '恢复此版本';
@@ -195,7 +199,7 @@ function initializeAnnualPlan() {
           }); article.append(restore);
         } target.append(article);
       }
-    } catch { if (activeRow?.id === row.id) target.textContent = '版本历史读取失败，请重试。'; }
+    } catch { if (read.isCurrent()) target.textContent = '版本历史读取失败，请重试。'; } finally { read.finish(); }
   });
   const yearForm = q<HTMLFormElement>('#year-form'); q('[data-edit-year]').addEventListener('click', () => { q<HTMLElement>('[role=alert]', yearForm).textContent = ''; yearDialog.showModal(); });
   let yearDirty=false;yearForm.addEventListener('input',()=>{yearDirty=true;document.documentElement.dataset.unsaved='true';});const closeYear=async()=>{if(yearDirty&&!await businessConfirm('有尚未保存的修改，是否放弃？'))return;yearDirty=false;clearUnsaved();yearDialog.close();};all('[data-close-year]').forEach(button=>button.addEventListener('click',closeYear));yearDialog.addEventListener('cancel',event=>{event.preventDefault();void closeYear();});

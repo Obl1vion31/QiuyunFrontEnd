@@ -1,3 +1,4 @@
+import {promotionActualLabels} from './promotion-successors.mjs';
 /** 只分类和翻译审计；不更改、删除底层记录。未知操作须确认后再接入业务历史。 */
 import {promotionDecisionLabels} from './promotion-overview';
 import {promotionLabels} from './promotion-state.mjs';
@@ -11,12 +12,12 @@ type Snapshot={
  schedule?:{promotionStatus?:string;isPromoted?:boolean;actualPublishAt?:string;promotionDeferredThrough?:string};
  plan?:{waitingThrough?:string;plannedOn?:string;plannedStage?:string}|null;
  campaigns?:Array<{id:string;startedOn:string;initialStage:string;endedOn?:string;currentStatus?:string}>;
- metrics?:Array<{id:string;campaignId:string;metricDate:string;stageTypeSnapshot:string;dailyStatus:string;reviewDecision:string;spend:string;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number}>;
+ metrics?:Array<{id:string;campaignId:string;metricDate:string;stageTypeSnapshot:string;dailyStatus:string;actualStatusSnapshot?:string|null;recordKind?:string;reviewDecision:string;spend:string;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number}>;
  ranges?:Array<{startedOn:string;endedOn:string;stageType:string;nextDecision?:string;nextEffectiveOn?:string}>;
- decisions?:Array<{businessDate:string;stageType:string}>;
+ decisions?:Array<{businessDate:string;stageType:string;actualStatus?:string|null}>;
  auditCategory?:string;
 };
-const actions:Record<string,string>={wait:'首次推广安排',start_testing:'推广安排更正',start_scaling:'推广安排更正',plan:'安排下一步',pause:'当日暂停',next:'调整待定与下一步',metric_correction:'复盘决定更正',publication_reset:'发布时间更正',usage_change:'推广身份变更',legacy_defer:'首次推广安排'};
+const actions:Record<string,string>={status:'修改当日状态',test_residual:'补录淘汰后残留',wait:'首次推广安排',start_testing:'推广安排更正',start_scaling:'推广安排更正',plan:'安排下一步',pause:'当日暂停',next:'调整待定与下一步',metric_correction:'复盘决定更正',publication_reset:'发布时间更正',usage_change:'推广身份变更',legacy_defer:'首次推广安排'};
 const stageLabel=(stage?:string)=>stage==='scaling'?'放量':'测试';
 
 export function promotionSnapshotLabel(value:Record<string,unknown>,date:string,action:string){
@@ -36,7 +37,7 @@ export function promotionSnapshotLabel(value:Record<string,unknown>,date:string,
   const campaign=[...snapshot.campaigns].sort((a,b)=>a.startedOn.localeCompare(b.startedOn)).at(-1)!;
   const metric=snapshot.metrics?.find(row=>row.metricDate===date);
   const change=snapshot.decisions?.filter(row=>row.businessDate<=date).sort((a,b)=>a.businessDate.localeCompare(b.businessDate)).at(-1);
-  state=metric?`${date} ${metric.dailyStatus==='waiting_action'?(metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'):stageLabel(metric.stageTypeSnapshot)}`:change?`${change.businessDate} 起${stageLabel(change.stageType)}`:`${campaign.startedOn} 开始${stageLabel(campaign.initialStage)}`;
+  state=metric?`${date} ${metric.recordKind==='test_residual'?'淘汰后残留':metric.actualStatusSnapshot?promotionActualLabels[metric.actualStatusSnapshot]??metric.actualStatusSnapshot:metric.dailyStatus==='waiting_action'?(metric.stageTypeSnapshot==='testing'?'测试待定':'推广暂停'):stageLabel(metric.stageTypeSnapshot)}`:change?`${change.businessDate} 起${change.actualStatus?promotionActualLabels[change.actualStatus]??change.actualStatus:stageLabel(change.stageType)}`:`${campaign.startedOn} 开始${stageLabel(campaign.initialStage)}`;
   if(campaign.endedOn&&campaign.endedOn<=date)state+=`；${campaign.endedOn} ${promotionLabels[campaign.currentStatus??'ended']??'推广结束'}`;
  }
  if(action==='usage_change'){const identity=schedule?.isPromoted===false?'非推广':'推广帖';state=state===identity?identity:`${identity}；${state}`;}

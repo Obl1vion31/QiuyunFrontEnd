@@ -5,6 +5,7 @@ import {mayOperate} from './business-permissions';
 import { configureDateTimeField } from './business-datetime';
 import { businessDateTime, delayDayLabel } from './business-date';
 import { getInspector } from './business-inspector';
+import { beginBusinessRead } from './business-read';
 import { extractPublicationLink } from '../db/publication-link.mjs';
 import { publicationLabels } from '../db/publication-rules.mjs';
 import { isDelayed } from '../db/schedule-rules.mjs';
@@ -38,9 +39,9 @@ const responsibilityField = (host: HTMLElement, selected = '', name = 'responsib
 };
 const restoreResponsibility=(host:HTMLElement,value:string)=>host.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach(input=>input.checked=input.value===value);
 const reasonLabel=(workflow:Workflow,day:DelayDay)=>delayDayLabel(workflow.history.find(plan=>plan.revision===day.planRevision)?.plannedPublishAt??workflow.schedule.plannedPublishAt,day.dueAt);
-async function getWorkflow(id: string, actual?: string) {
+async function getWorkflow(id: string, actual?: string, signal?: AbortSignal) {
   const query = actual ? `?actual=${encodeURIComponent(actual)}` : '';
-  const response = await fetch(`/api/operations-content/${id}/workflow${query}`, { cache: 'no-store' });
+  const response = await fetch(`/api/operations-content/${id}/workflow${query}`, { cache: 'no-store', signal });
   const result = await response.json();
   if (!response.ok) throw new Error(result.message || '读取失败，请重试。');
   return result as Workflow;
@@ -94,7 +95,7 @@ function initialize() {
   const panel = document.querySelector<HTMLElement>('[data-schedule-workflow]');
   const publication = document.querySelector<HTMLFormElement>('#publication-form');
   if (!panel || !publication) return;
-  let loadingTimer=0;let stopLoading=()=>{};
+  let stopLoading=()=>{};let stopPublicationRead=()=>{};
   let panelToken = 0; let publicationId = ''; let publicationToken = 0;
   let pendingTimer: ReturnType<typeof setTimeout>; let publicationDays: DelayDay[] = [];
   const isAdmin = document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole === 'admin';
@@ -114,15 +115,13 @@ function initialize() {
     historyHost.replaceChildren(); historyHost.hidden = true;
     panel!.replaceChildren();stopLoading();
     const pane=panel!.closest<HTMLElement>('[data-inspector]')!;
-    const loading=element('div');loading.dataset.inspectorLoading='';loading.setAttribute('role','status');
-    const spinner=element('span');spinner.className='business-operation-feedback__spinner';spinner.setAttribute('aria-hidden','true');loading.append(spinner,element('span','正在加载…'));
-    loadingTimer=window.setTimeout(()=>{if(token===panelToken&&!signal.aborted&&pane.dataset.selectedId===id){pane.append(loading);pane.setAttribute('aria-busy','true');}},500);
-    const cleanup=()=>{clearTimeout(loadingTimer);loading.remove();pane.removeAttribute('aria-busy');};stopLoading=cleanup;
+    const read=beginBusinessRead(pane,{signal,isCurrent:()=>token===panelToken&&pane.dataset.selectedId===id});
+    const cleanup=read.finish;stopLoading=read.cancel;
     if(retained.size)panel!.dispatchEvent(new Event('input',{bubbles:true}));
     try {
-      const [workflow,timelineResponse] = await Promise.all([getWorkflow(id),fetch(`/api/operations-content/${id}/promotion-timeline`,{cache:'no-store'})]);
+      const [workflow,timelineResponse] = await Promise.all([getWorkflow(id,undefined,read.signal),fetch(`/api/operations-content/${id}/promotion-timeline`,{cache:'no-store',signal:read.signal})]);
       const timelineHtml=timelineResponse.ok?await timelineResponse.text():'';
-      if (signal.aborted || token !== panelToken) return;
+      if (!read.isCurrent()) return;
       const timelineHost=document.querySelector<HTMLElement>('[data-promotion-state-history]');if(timelineHost){timelineHost.innerHTML=timelineHtml;timelineHost.hidden=!timelineHost.querySelector('.promotion-timeline');document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}
       panel!.replaceChildren();
       const resultLabel = workflow.schedule.actualPublishAt
@@ -229,7 +228,7 @@ function initialize() {
       panel!.dataset.loadedScheduleId=id;panel!.dataset.ready='true';
       if(retained.size)(panel!.querySelector('form[data-dirty=true]')??historyHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
     } catch(error){
-      if(signal.aborted||token!==panelToken)return;
+      if(!read.isCurrent())return;
       panel!.replaceChildren(element('p',error instanceof Error?error.message:'读取失败。'));
       const button=element('button','重新读取');button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));panel!.append(button);
     } finally {if(token===panelToken)cleanup();}
@@ -254,12 +253,15 @@ function initialize() {
   async function showPublication() {
     if (!publicationId) return;
     const token = ++publicationToken;
-    host.dataset.ready = 'false'; status.textContent = '正在核对逐日理由…';
+    host.dataset.ready = 'false'; status.textContent = '';
+    stopPublicationRead();
+    const read=beginBusinessRead(publication!.querySelector<HTMLElement>('[data-publication-delay]')!,{label:'正在核对逐日理由…',signal,isCurrent:()=>token===publicationToken});
+    stopPublicationRead=read.cancel;
     const retained = new Map(collectInput().map(input => [`${input.planRevision}:${input.dayNumber}`,input]));
     const control=publication!.elements.namedItem('actualPublishAt') as HTMLInputElement;
     const actual=control.disabled?'':control.value;
     try {
-      const workflow = await getWorkflow(publicationId, actual); if (signal.aborted || token !== publicationToken) return;
+      const workflow = await getWorkflow(publicationId, actual,read.signal); if (!read.isCurrent()) return;
       (publication!.elements.namedItem('expectedPlanRevision') as HTMLInputElement).value = String(workflow.schedule.planRevision);
       (publication!.elements.namedItem('plannedPublishAt') as HTMLInputElement).value = inputTime(workflow.schedule.plannedPublishAt);
       const statusOutput = publication!.querySelector<HTMLOutputElement>('[data-publication-status]')!;
@@ -284,10 +286,10 @@ function initialize() {
       }
       const section = publication!.querySelector<HTMLElement>('[data-publication-delay]')!; section.hidden = publicationDays.length === 0;
       host.dataset.ready = 'true';
-    } catch (error) { if (token === publicationToken) status.textContent = error instanceof Error ? error.message : '读取失败，请重新选择实发时间。'; }
+    } catch (error) { if (read.isCurrent()) status.textContent = error instanceof Error ? error.message : '读取失败，请重新选择实发时间。'; } finally {read.finish();}
   }
   document.addEventListener('business:inspector-selection',event=>{if(!(event as CustomEvent).detail.id){++panelToken;stopLoading();}},{signal});
-  signal.addEventListener('abort',()=>stopLoading(),{once:true});
+  signal.addEventListener('abort',()=>{stopLoading();stopPublicationRead();},{once:true});
   document.addEventListener('business:schedule-selected', event => showPanel((event as CustomEvent).detail.id), { signal });
   document.addEventListener('business:publication-opened', event => {
     publicationId = (event as CustomEvent).detail.id; host.replaceChildren(); publicationDays = [];
@@ -295,7 +297,7 @@ function initialize() {
   }, { signal });
   publication.addEventListener('input', event => {
     if(!(event.target instanceof Element)||!event.target.closest('[data-datetime-name="actualPublishAt"]'))return;
-    publicationToken++; host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
+    publicationToken++; stopPublicationRead(); host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
   }, { signal });
   publication.addEventListener('change',event=>{if((event.target as HTMLInputElement).name==='correctTime'){clearTimeout(pendingTimer);showPublication();}},{signal});
   publication.addEventListener('submit', event => {

@@ -359,7 +359,7 @@ export const operationsContentSchedule = pgTable(
         (${table.isPromoted} = false AND ${table.promotionStatus} = 'none')
         OR
         (${table.isPromoted} = true AND ${table.promotionStatus} IN (
-          'pending', 'awaiting_promotion', 'testing', 'scaling', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded'
+          'pending', 'awaiting_promotion', 'testing', 'test_paused', 'test_pending', 'scaling', 'scaling_paused', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded'
         ))
       )`,
     ),
@@ -482,6 +482,7 @@ export const operationsPromotionCampaign = pgTable(
     scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'cascade' }),
     startedOn: date('started_on').notNull(),
     initialStage: text('initial_stage').notNull().default('testing'),
+    dailyReviewEnabledOn: date('daily_review_enabled_on').notNull().default(sql`(now() AT TIME ZONE 'Asia/Shanghai')::date`),
     endedOn: date('ended_on'),
     currentStage: text('current_stage'),
     currentStatus: text('current_status').notNull(),
@@ -494,13 +495,13 @@ export const operationsPromotionCampaign = pgTable(
     check('operations_promotion_initial_stage_check', sql`${table.initialStage} IN ('testing', 'scaling')`),
     check(
       'operations_promotion_campaign_status_check',
-      sql`${table.currentStatus} IN ('testing', 'scaling', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded')`,
+      sql`${table.currentStatus} IN ('testing', 'test_paused', 'test_pending', 'scaling', 'scaling_paused', 'waiting_action', 'ended', 'test_discarded', 'formal_discarded')`,
     ),
     check(
       'operations_promotion_campaign_stage_check',
       sql`(
-        (${table.currentStatus} = 'testing' AND ${table.currentStage} = 'testing')
-        OR (${table.currentStatus} = 'scaling' AND ${table.currentStage} = 'scaling')
+        (${table.currentStatus} IN ('testing','test_paused','test_pending') AND ${table.currentStage} = 'testing')
+        OR (${table.currentStatus} IN ('scaling','scaling_paused') AND ${table.currentStage} = 'scaling')
         OR (${table.currentStatus} = 'waiting_action' AND ${table.currentStage} IN ('testing', 'scaling'))
         OR (${table.currentStatus} IN ('ended', 'test_discarded', 'formal_discarded') AND ${table.currentStage} IS NULL)
       )`,
@@ -555,6 +556,8 @@ export const operationsPromotionDayDecision = pgTable('operations_promotion_day_
   id: uuid('id').defaultRandom().primaryKey(),
   campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'restrict' }),
   businessDate: date('business_date').notNull(),
+  actualStatus: text('actual_status'),
+  reason: text('reason'),
   stageType: text('stage_type').$type<'testing' | 'scaling'>().notNull(),
 }, table => [uniqueIndex('operations_promotion_day_decision_date_idx').on(table.campaignId, table.businessDate), check('operations_promotion_day_decision_stage_check', sql`${table.stageType} IN ('testing','scaling')`)]);
 
@@ -580,6 +583,9 @@ export const operationsPromotionDailyMetric = pgTable(
     campaignId: uuid('campaign_id').notNull().references(() => operationsPromotionCampaign.id, { onDelete: 'cascade' }),
     metricDate: date('metric_date').notNull(),
     dailyStatus: text('daily_status').notNull().default('active'),
+    actualStatusSnapshot: text('actual_status_snapshot'),
+    recordKind: text('record_kind').notNull().default('regular'),
+    sourceStageStartedOn: date('source_stage_started_on'),
     stageTypeSnapshot: text('stage_type_snapshot').notNull(),
     spend: numeric('spend', { precision: 12, scale: 2 }).notNull(),
     clickRate: numeric('click_rate', { precision: 7, scale: 4 }),
@@ -610,28 +616,9 @@ export const operationsPromotionDailyMetric = pgTable(
         AND ${table.platformLeadCount} >= 0
         AND ${table.actualLeadCount} >= 0`,
     ),
-    check(
-      'operations_promotion_daily_decision_check',
-      sql`(
-        (${table.dailyStatus} = 'active' AND ${table.stageTypeSnapshot} = 'testing' AND ${table.reviewDecision} IN ('test_continue', 'wait_continue', 'test_discarded', 'start_scaling'))
-        OR
-        (${table.dailyStatus} = 'active' AND ${table.stageTypeSnapshot} = 'scaling' AND ${table.reviewDecision} IN ('scaling_continue', 'wait_continue', 'formal_discarded', 'ended'))
-        OR
-        (${table.dailyStatus} = 'waiting_action' AND ${table.stageTypeSnapshot} = 'testing' AND ${table.reviewDecision} IN ('wait_continue', 'test_continue', 'test_discarded', 'start_scaling'))
-        OR
-        (${table.dailyStatus} = 'waiting_action' AND ${table.stageTypeSnapshot} = 'scaling' AND ${table.reviewDecision} IN ('wait_continue', 'scaling_continue', 'formal_discarded', 'ended'))
-      )`,
-    ),
-    check(
-      'operations_promotion_daily_waiting_zero_check',
-      sql`${table.dailyStatus} <> 'waiting_action' OR (
-        ${table.spend} = 0
-        AND ${table.platformOpenCount} = 0
-        AND ${table.actualOpenCount} = 0
-        AND ${table.platformLeadCount} = 0
-        AND ${table.actualLeadCount} = 0
-      )`,
-    ),
+    check('operations_promotion_daily_decision_check', sql`${table.reviewDecision} IN ('test_continue','wait_continue','test_discarded','start_scaling','scaling_continue','formal_discarded','ended','test_pause','test_pending','scaling_pause')`),
+    check('operations_promotion_daily_kind_check', sql`${table.recordKind} IN ('regular','test_residual') AND (${table.recordKind} <> 'test_residual' OR (${table.stageTypeSnapshot}='testing' AND ${table.sourceStageStartedOn} IS NOT NULL AND ${table.reviewDecision}='test_discarded'))`),
+    check('operations_promotion_daily_actual_status_check', sql`${table.actualStatusSnapshot} IS NULL OR ${table.actualStatusSnapshot} IN ('testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended')`),
   ],
 );
 

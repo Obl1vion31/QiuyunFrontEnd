@@ -31,10 +31,10 @@ export async function readMeetingMaterial(db: Database, meeting: typeof meetings
     for (const row of selected) { const key = `${row.scheduleId}:${row.checkpointType ?? `day_${row.checkpoint}`}`; previousCounts.set(key, (previousCounts.get(key) ?? 0) + 1); }
   }
   const activity = campaignRows.flatMap(c => {
-    const active = daily.filter(m => m.campaignId === c.id && m.dailyStatus === 'active' && m.metricDate >= meeting.periodStart && m.metricDate <= meeting.periodEnd);
+    const active = daily.filter(m => m.campaignId === c.id && m.metricDate >= meeting.periodStart && m.metricDate <= meeting.periodEnd);
     const post = content.find(p => p.scheduleId === c.scheduleId);
     if (!active.length || !post) return [];
-    return [{ campaignId: c.id, contentId: post.contentId, contentVersionId: post.contentVersionId, contentName: post.contentName, versionNumber: post.versionNumber, testingDays: active.filter(m => m.stageTypeSnapshot === 'testing').length, scalingDays: active.filter(m => m.stageTypeSnapshot === 'scaling').length, total: sumPromotionMetrics(active), metricIds: active.map(m => m.id) }];
+    return [{ campaignId: c.id, contentId: post.contentId, contentVersionId: post.contentVersionId, contentName: post.contentName, versionNumber: post.versionNumber, testingDays: active.filter(m => m.dailyStatus==='active'&&m.recordKind!=='test_residual'&&m.stageTypeSnapshot === 'testing').length, scalingDays: active.filter(m => m.dailyStatus==='active'&&m.recordKind!=='test_residual'&&m.stageTypeSnapshot === 'scaling').length, total: sumPromotionMetrics(active), metricIds: active.map(m => m.id) }];
   });
   const candidates = content.filter(p => !p.isPromoted && p.actualPublishAt).flatMap(p => {
     const policy = policyRows.find(policy => policy.categoryId === p.categoryId && policy.effectiveOn <= meeting.periodEnd);

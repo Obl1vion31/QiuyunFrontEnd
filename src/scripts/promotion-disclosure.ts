@@ -3,7 +3,7 @@ import './business-data-motion';
 const active=new Map<HTMLDetailsElement,()=>void>();
 const reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
 function initialize(){
- document.querySelectorAll<HTMLDetailsElement>('details:is([data-promotion-data],[data-review-day],[data-category-details]):not([data-disclosure-ready])').forEach(details=>{
+ document.querySelectorAll<HTMLDetailsElement>('details:is([data-promotion-data],[data-review-day],[data-review-section],[data-category-details]):not([data-disclosure-ready])').forEach(details=>{
   const summary=details.querySelector<HTMLElement>(':scope>summary')!,body=details.querySelector<HTMLElement>(':scope>.promotion-expanded-data,:scope>[data-disclosure-body]')!;
   if(!summary||!body)return;
   details.dataset.disclosureReady='true';

@@ -107,7 +107,7 @@ try {
   await page.goto(`${baseURL}/business/non-promotion-review?view=history&subject=tmua&category=innovation`);
   assert.equal(await page.locator('.review-row[data-row-href]').count(),2);
   assert.match(await page.locator('.metric-cell').first().getAttribute('title')||'',/20.00% · n=2/);
-  await page.locator('[data-category-open="tmua:innovation"]').first().click();
+  await page.locator('[data-category-group="tmua:innovation"]>summary').first().click();
   await page.locator('.review-row[data-row-href]').first().click();await page.locator('[data-inspector]').waitFor();assert.equal(new URL(page.url()).searchParams.get('category'),'innovation');
   await page.keyboard.press('Escape');await page.waitForURL((url:URL)=>!url.searchParams.has('row'));assert.equal(new URL(page.url()).searchParams.get('subject'),'tmua');
   await page.locator('[data-module-href="/business/operations-schedule"]').click();await page.waitForURL('**/operations-schedule*');
@@ -130,7 +130,7 @@ try {
   const publicationResponse=page.waitForResponse((response:any)=>response.url().endsWith(`/api/operations-content/${browserPublication.id}/publication`)&&response.request().method()==='PATCH');
   await page.locator('#publication-form button[type=submit]').click();assert.equal((await publicationResponse).status(),200);
   await page.goto(`${baseURL}/business/daily-promotion-review`);await page.locator('.lifecycle-card').waitFor();
-  assert.equal(await page.locator('.lifecycle-card>header a').evaluate((node:HTMLElement)=>getComputedStyle(node).display),'flex');
+  assert.equal(await page.locator('.lifecycle-card>header a').first().isVisible(),true,'生命周期名称保留可访问详情入口');
   await page.screenshot({path:'.tools/test-artifacts/daily-promotion-workflow-desktop.png',fullPage:true});await context.close();
   for(const width of [390,320]) {
     const {context:mobile,page:phone}=await contextFor(employeeCookie,width);

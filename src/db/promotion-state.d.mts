@@ -1,15 +1,15 @@
 export interface PromotionWindow { startedOn: string; endedOn: string }
 export interface PromotionPause { id: string; startsAt: Date | string; endsAt: Date | string; resumedAt?: Date | string | null }
 export interface PromotionContext {
-  stateChanges?: Array<{campaignId:string;businessDate:string;stageType:string}>;
+  stateChanges?: Array<{campaignId:string;businessDate:string;stageType:string;actualStatus?:string|null;reason?:string|null}>;
   waitRanges?: Array<PromotionWindow & { id?: string; campaignId: string; stageType: string; nextDecision?: string | null; nextEffectiveOn?: string | null }>;
   campaigns?: PromotionCampaign[];
-  metrics?: Array<{ campaignId: string; metricDate: string; dailyStatus: string; stageTypeSnapshot: string; reviewDecision: string }>;
+  metrics?: Array<{ campaignId: string; metricDate: string; dailyStatus: string; stageTypeSnapshot: string; reviewDecision: string;actualStatusSnapshot?:string|null;recordKind?:string;sourceStageStartedOn?:string|null }>;
   pauses: PromotionPause[];
   targets: Array<{ pauseId: string; campaignId: string }>;
   holds: Array<PromotionWindow & { campaignId: string; resumeStage: string; stageType: string; reason?: string }>;
 }
-export interface PromotionCampaign { id: string; startedOn: string; currentStatus: string; initialStage?: string; endedOn?: string | null }
+export interface PromotionCampaign { id: string; startedOn: string; currentStatus: string; dailyReviewEnabledOn?:string; initialStage?: string; endedOn?: string | null }
 export const promotionLabels: Record<string, string>;
 export const pauseEnd: (pause: PromotionPause) => Date;
 export const pauseIsActive: (pause: PromotionPause, now?: Date) => boolean;

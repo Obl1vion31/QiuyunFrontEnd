@@ -10,5 +10,5 @@ const validationSource = await readFile(
 test('does not derive the update schema from a refined daily schema', () => {
   assert.doesNotMatch(validationSource, /promotionDailySchema\.(?:omit|pick|extend|safeExtend)\s*\(/);
   assert.match(validationSource, /promotionDailyUpdateSchema\s*=\s*z\.object\s*\(/);
-  assert.match(validationSource, /promotionDailyUpdateSchema[\s\S]*?\.superRefine\(validateWaitingAction\)/);
+  assert.doesNotMatch(validationSource, /等待行动日的全部数据必须为 0|validateWaitingAction/);
 });

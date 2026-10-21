@@ -1,5 +1,6 @@
 import {businessConfirm} from './business-dialog';
 import {getInspector} from './business-inspector';
+import {readBusiness} from './business-read';
 export const randomRequestKey=()=>crypto.randomUUID();
 /** 更新数据不收起用户正在查看的本帖表格，也不重置横向比较位置。 */
 function replacePromotionRow(old:Element,next:Element){
@@ -47,20 +48,84 @@ function replacePromotionRow(old:Element,next:Element){
  old.replaceWith(clone);if(focusSelector&&focusDay){const field=clone.querySelector<HTMLInputElement>(`[data-review-day="${CSS.escape(focusDay)}"] ${focusSelector}`);field?.focus({preventScroll:true});if(field&&selection)field.setSelectionRange(selection[0],selection[1]);}clone.querySelectorAll<HTMLElement>('.promotion-table-scroll').forEach((node,index)=>node.scrollLeft=positions[index]??0);
  return clone;
 }
+
+/** 活动日期按稳定键合并；保留仍可编辑的原生输入和焦点。 */
+function reconcileDailySchedule(scheduleId:string,fresh:Document){
+ const body=document.querySelector<HTMLElement>('[data-promotion-pending-body]'),source=fresh.querySelector<HTMLElement>('[data-promotion-pending-body]');
+ if(!body||!source)return;
+ const selector=`[data-review-record][data-review-post="${CSS.escape(scheduleId)}"]`;
+ const existing=new Map([...body.querySelectorAll<HTMLElement>(selector)].map(row=>[row.dataset.reviewRecord!,row]));
+ const ensureContainer=(next:HTMLElement)=>{
+  const name=next.parentElement!.dataset.reviewContainer!;
+  let container=body.querySelector<HTMLElement>(`[data-review-container="${CSS.escape(name)}"]`);
+  if(!container&&name.startsWith('upcoming:')){
+   const sourceGroup=next.closest<HTMLElement>('[data-review-opening-group]')!,group=sourceGroup.cloneNode(true) as HTMLElement;
+   group.querySelectorAll('[data-review-record]').forEach(row=>row.remove());body.querySelector('[data-review-opening-groups]')?.append(group);
+   container=group.querySelector<HTMLElement>('[data-review-container]');
+  }
+  return container;
+ };
+ for(const next of source.querySelectorAll<HTMLElement>(selector)){
+  const key=next.dataset.reviewRecord!,old=existing.get(key),container=ensureContainer(next);if(!container)continue;
+  let live:HTMLElement;
+  const oldForm=old?.querySelector<HTMLFormElement>('[data-metric-form]'),nextForm=next.querySelector<HTMLFormElement>('[data-metric-form]');
+  if(old&&oldForm&&nextForm){
+   live=old;
+   for(const [key,value]of Object.entries(next.dataset))live.dataset[key]=value;
+   const changed=oldForm.dataset.actualStatus!==nextForm.dataset.actualStatus;
+   for(const [key,value]of Object.entries(nextForm.dataset))if(!['dailyReady','dirty'].includes(key))oldForm.dataset[key]=value;
+   for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field)field.value=input.value;}
+   if(changed){
+    if(nextForm.dataset.defaultZero==='true'&&oldForm.dataset.dirty!=='true'&&['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].every(name=>(oldForm.elements.namedItem(name) as HTMLInputElement).value===''))for(const name of ['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'])(oldForm.elements.namedItem(name) as HTMLInputElement).value='0';
+    const current=oldForm.querySelector<HTMLElement>('[data-day-status]'),newState=nextForm.querySelector<HTMLElement>('[data-day-status]');
+    if(current&&newState){current.textContent=newState.textContent;current.dataset.defaultLabel=newState.dataset.defaultLabel;}
+    oldForm.className=nextForm.className;
+    oldForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!.disabled=nextForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!.disabled;
+    const decision=oldForm.querySelector<HTMLSelectElement>('[data-review-decision]'),newDecision=nextForm.querySelector<HTMLSelectElement>('[data-review-decision]');
+    if(decision&&newDecision){const value=decision.value;decision.replaceChildren(...Array.from(newDecision.options).map(option=>option.cloneNode(true)));decision.value=Array.from(decision.options).some(option=>option.value===value)?value:'';}
+    else if(decision&&!newDecision){const replacement=nextForm.querySelector('.review-decision');if(replacement)decision.closest('.review-decision')?.replaceWith(replacement.cloneNode(true));}
+    oldForm.dispatchEvent(new Event('business:metric-context-updated'));
+   }
+  }else if(old){live=replacePromotionRow(old,next);}else live=next.cloneNode(true) as HTMLElement;
+  existing.delete(key);
+  if(live.parentElement!==container)container.append(live);
+ }
+ for(const old of existing.values()){
+  if(old.querySelector('form[data-dirty=true]')){old.dataset.preservedArrangementDraft='true';continue;}
+  old.remove();
+ }
+ // 分类外壳保持原节点与开合；只同步实际条目、数量和开放时间。
+ for(const section of body.querySelectorAll<HTMLElement>('[data-review-section]')){
+  const next=source.querySelector<HTMLElement>(`[data-review-section="${section.dataset.reviewSection}"]`);if(!next)continue;
+  const count=section.querySelectorAll('[data-review-record]').length;section.hidden=!count;
+  const heading=section.querySelector('[data-review-section-label]'),nextHeading=next.querySelector('[data-review-section-label]');if(heading&&nextHeading)heading.textContent=nextHeading.textContent;
+  const hint=section.querySelector('[data-review-opening-hint]'),nextHint=next.querySelector('[data-review-opening-hint]');if(hint)hint.textContent=nextHint?.textContent??'';
+ }
+ for(const group of body.querySelectorAll('[data-review-opening-group]'))if(!group.querySelector('[data-review-record]'))group.remove();
+ const ready=body.querySelector<HTMLElement>('[data-review-container=ready]'),empty=body.querySelector<HTMLElement>('[data-review-empty]');
+ if(ready)ready.hidden=!ready.querySelector('[data-review-record]');if(empty)empty.hidden=!!ready?.querySelector('[data-review-record]');
+ // 仅在顺序真实变化时移动节点，日常输入和其他帖子的节点保持连续。
+ for(const container of body.querySelectorAll<HTMLElement>('[data-review-container]')){
+  const name=container.dataset.reviewContainer!,target=source.querySelector<HTMLElement>(`[data-review-container="${CSS.escape(name)}"]`);
+  if(!target)continue;
+  let cursor=container.querySelector<HTMLElement>(':scope>[data-review-record]');
+  for(const next of target.querySelectorAll<HTMLElement>(':scope>[data-review-record]')){
+   const live=container.querySelector<HTMLElement>(`:scope>[data-review-record="${CSS.escape(next.dataset.reviewRecord!)}"]`);if(!live)continue;
+   if(live===cursor)cursor=cursor.nextElementSibling as HTMLElement|null;else container.insertBefore(live,cursor);
+  }
+ }
+ body.dataset.serverNow=source.dataset.serverNow;body.dataset.dueCount=source.dataset.dueCount;
+}
 /** 仅替换本篇业务行；其他帖子输入、公共表头、工具栏与滚动保持原样。 */
 export async function refreshPromotionSchedule(scheduleId:string,freshDocument?:Document){
  const paneHost=document.querySelector<HTMLElement>(`[data-promotion-state-history]:has([data-timeline-row="${CSS.escape(scheduleId)}"])`);
- if(paneHost){const response=await fetch(`/api/operations-content/${scheduleId}/promotion-timeline`,{cache:'no-store'});if(!response.ok)throw new Error('状态刷新失败');const html=await response.text();if(paneHost.closest<HTMLElement>('[data-inspector]')?.dataset.selectedId===scheduleId){paneHost.innerHTML=html;const state=paneHost.querySelector<HTMLElement>('[data-timeline-row]');paneHost.closest('[data-inspector]')?.dispatchEvent(new CustomEvent('business:promotion-state-updated',{detail:{id:scheduleId,label:state?.dataset.promotionLabel,status:state?.dataset.promotionStatus}}));document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}if(!document.querySelector('[data-promotion-pending-body]'))return;}
+ if(paneHost){const html=await readBusiness(paneHost,async read=>{const response=await fetch(`/api/operations-content/${scheduleId}/promotion-timeline`,{cache:'no-store',signal:read.signal});if(!response.ok)throw new Error('状态刷新失败');return response.text();},{isCurrent:()=>paneHost.closest<HTMLElement>('[data-inspector]')?.dataset.selectedId===scheduleId});if(html===undefined)return;if(paneHost.closest<HTMLElement>('[data-inspector]')?.dataset.selectedId===scheduleId){paneHost.innerHTML=html;const state=paneHost.querySelector<HTMLElement>('[data-timeline-row]');paneHost.closest('[data-inspector]')?.dispatchEvent(new CustomEvent('business:promotion-state-updated',{detail:{id:scheduleId,label:state?.dataset.promotionLabel,status:state?.dataset.promotionStatus}}));document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}if(!document.querySelector('[data-promotion-pending-body]'))return;}
  let fresh=freshDocument;
- if(!fresh){const response=await fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store'});if(!response.ok)throw new Error('列表刷新失败');fresh=new DOMParser().parseFromString(await response.text(),'text/html');}
+ if(!fresh){const target=document.querySelector<HTMLElement>(`[data-lifecycle-schedule="${CSS.escape(scheduleId)}"]`)??document.querySelector<HTMLElement>('[data-promotion-pending-body]')??document.body;fresh=await readBusiness(target,async task=>{const response=await fetch(location.href,{headers:{Accept:'text/html'},cache:'no-store',signal:task.signal});if(!response.ok)throw new Error('列表刷新失败');const html=await response.text();if(!task.isCurrent())throw new DOMException('旧读取已取消','AbortError');return new DOMParser().parseFromString(html,'text/html');});}
+ if(!fresh)return;
  const key=CSS.escape(scheduleId),scroll=window.scrollY;
- const dailyBody=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
- const oldPost=document.querySelector(`[data-review-post="${key}"]`),newPost=fresh.querySelector(`[data-review-post="${key}"]`);
- if(oldPost){if(newPost)replacePromotionRow(oldPost,newPost);else oldPost.remove();}else if(newPost){dailyBody?.querySelector('.empty-state')?.remove();dailyBody?.append(newPost.cloneNode(true));}
- const sourceBody=fresh.querySelector<HTMLElement>('[data-promotion-pending-body]');
- if(dailyBody&&sourceBody){dailyBody.dataset.serverNow=sourceBody.dataset.serverNow;dailyBody.dataset.dueCount=sourceBody.dataset.dueCount;}
+ reconcileDailySchedule(scheduleId,fresh);
  for(const node of document.querySelectorAll('[data-promotion-pending-count]'))node.textContent=fresh.querySelector('[data-promotion-pending-count]')?.textContent??'';
- if(dailyBody&&!dailyBody.querySelector('[data-review-post]')){dailyBody.querySelector('.empty-state')?.remove();const empty=sourceBody?.querySelector('.empty-state');if(empty)dailyBody.append(empty.cloneNode(true));}
  const cardSelector=`[data-lifecycle-schedule="${key}"]`,oldCard=document.querySelector(cardSelector),newCard=fresh.querySelector(cardSelector);
  if(oldCard){if(newCard)replacePromotionRow(oldCard,newCard);else oldCard.remove();}else if(newCard){let list=document.querySelector('.lifecycle-list');if(!list){const source=fresh.querySelector('.lifecycle-list');if(source){list=source.cloneNode(false) as HTMLElement;document.querySelector('.calendar-section>.empty-state')?.remove();document.querySelector('.calendar-section')?.append(list);}}list?.append(newCard.cloneNode(true));}
  const lifecycle=document.querySelector('.lifecycle-list');if(lifecycle&&!lifecycle.children.length){lifecycle.remove();const empty=fresh.querySelector('.calendar-section>.empty-state');if(empty)document.querySelector('.calendar-section')?.append(empty.cloneNode(true));}

@@ -71,8 +71,10 @@ ContentTunnel.module.css
 
 `BusinessPromotionTimeline.astro` 每日委托 `BusinessPromotionPendingRows.astro` 表达首次安排和持续区间，历史和排期 Inspector 按需展开更正，共用业务日期、写入控制器与审计；`BusinessScheduleApprovals.astro` 沿用排期台账与共享 Inspector。`BusinessChangeDiff.astro` 与 `src/scripts/business-change-diff.ts` 为 SSR／异步详情提供相同的纵向字段对照，不另建详情开关或横向对比表。
 
-`BusinessPromotionDailyPosts.astro` 按帖子与日期组织待办和今日预览；`BusinessPromotionMetricForm.astro` 是主列表与 Inspector 共用的填写表单，左侧日期栏负责数据日期与当日状态。可见日期与指标可填写条件由 `src/db/promotion-review-days.ts` 统一计算，客户端只负责原位更新与草稿保留。
+`BusinessPromotionDailyPosts.astro` 按活动与日期组织可填写、待开放与前日未完成分组；`BusinessPromotionMetricForm.astro` 是主列表与 Inspector 共用的填写表单，日期色块、居中状态、五项输入、只读成本、次日安排共用稳定列；状态编辑使用独立气泡。可见日期与指标可填写条件由 `src/db/promotion-review-days.ts` 统一计算，客户端只负责原位更新与草稿保留。
 
 `BusinessPromotionSummary` 在每日与历史共用真实日期的黄绿阶段节点，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格及表尾汇总，`BusinessPromotionTotals` 继续用于 Inspector 的单日指标。记录点击交给公共 Inspector，`BusinessPromotionDetails / BusinessPromotionMetric` 负责所选记录、业务安排与原编辑表单，不在页面复制详情开关或重复维护汇总。
 
-`BusinessNonPromotionTableHead.astro` 是非推广分类明细与平铺视图共用的数据表头，分类摘要固定并列展示两轮，切换展示方式时移动同一批记录节点。
+`BusinessNonPromotionTableHead.astro` 是非推广分类明细与平铺视图共用的数据表头，分类摘要采用六列单层表头，同类两轮上下排列，切换展示方式时移动同一批记录节点。
+
+`BusinessPromotionReviewRecord.astro` 是队列中的稳定活动日期记录，常规指标直接填写、未开放记录使用紧凑行；不以 details 重复嵌套填写卡片。

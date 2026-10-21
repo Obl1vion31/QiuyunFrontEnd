@@ -93,6 +93,9 @@ let metrics: Array<{
   metricDate: string;
   dailyStatus: string;
   stageTypeSnapshot: string;
+  actualStatusSnapshot: string | null;
+  recordKind: string;
+  sourceStageStartedOn: string | null;
   spend: string;
   clickRate: string | null;
   platformOpenCount: number;
@@ -144,6 +147,9 @@ try {
     metricDate: operationsPromotionDailyMetric.metricDate,
     dailyStatus: operationsPromotionDailyMetric.dailyStatus,
     stageTypeSnapshot: operationsPromotionDailyMetric.stageTypeSnapshot,
+    actualStatusSnapshot: operationsPromotionDailyMetric.actualStatusSnapshot,
+    recordKind: operationsPromotionDailyMetric.recordKind,
+    sourceStageStartedOn: operationsPromotionDailyMetric.sourceStageStartedOn,
     spend: operationsPromotionDailyMetric.spend,
     clickRate: operationsPromotionDailyMetric.clickRate,
     platformOpenCount: operationsPromotionDailyMetric.platformOpenCount,
@@ -174,7 +180,7 @@ try {
 Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 
 const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now);
-const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.due).length,0);
+const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='metric'&&day.editable).length,0);
 const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId});
 const lifecycleRows=overview.filter(row=>!row.closed&&row.latest);
 const historyRows=overview.filter(row=>(!historyTo||row.startedOn<=historyTo)&&(!row.endedOn||row.endedOn>=historyFrom)&&(!historyQuery||row.post.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&(!historyStatus||row.status===historyStatus));
@@ -217,13 +223,13 @@ const historyHref = (overrides: Record<string, string>) => {
           {databaseError && <p class="notice" role="alert">{databaseError}</p>}
 
           {activeView === 'daily' && <>
-          <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
-            <div class="pending-heading"><BusinessSectionHeader title="待完成复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项</small><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
-            <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
-          </section>
           <section class="calendar-section" aria-labelledby="calendar-title">
-            <BusinessSectionHeader title="推广概览" headingId="calendar-title" contained/>
-            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list">{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
+            <BusinessSectionHeader title="推广生命周期" headingId="calendar-title" contained/>
+            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
+          </section>
+          <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
+            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><Fragment slot="end"><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
+            <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
           </section>
 
           </>}
@@ -348,6 +354,10 @@ const historyHref = (overrides: Record<string, string>) => {
 </html>
 
 <style>
-.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:12px;background:var(--console-surface);overflow:clip}.daily-section{margin-top:0}.calendar-section{margin-top:16px}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-filters>a{padding:10px 0}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
+.business-console-content{max-width:1488px;margin-inline:auto}
+
+.calendar-section :global(.business-section-header),.daily-section :global(.business-section-header){min-height:48px;box-sizing:border-box;padding:11px 16px;border-bottom:0}.review-residual-trigger{border:0;padding:0;margin-right:16px;background:none;color:var(--console-blue);font:400 13px/20px var(--console-font);cursor:pointer}
+
+.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);overflow:clip;container-type:inline-size}.daily-section{margin-top:24px}.calendar-section{margin-top:0}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-filters>a{padding:10px 0}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
 @media(max-width:600px){.history-head{padding:14px}.history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-search{grid-column:1/-1}.history-layout{padding:12px}.history-mode-switch{padding-inline:14px}}
 </style>

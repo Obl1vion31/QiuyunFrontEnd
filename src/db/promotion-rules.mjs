@@ -1,3 +1,4 @@
+import { replayPrecisePromotionHistory } from './promotion-replay.mjs';
 export const promotionReviewDecisions = {
   testing: ['test_continue', 'wait_continue', 'test_discarded', 'start_scaling'],
   scaling: ['scaling_continue', 'wait_continue', 'formal_discarded', 'ended'],
@@ -55,7 +56,7 @@ export const nextPromotionState = (stage, decision) => {
   return { status: 'ended', stage: null, outcome: 'ended' };
 };
 
-export const replayPromotionHistory = (campaignStartedOn, metrics, options = {}) => {
+const replayLegacyPromotionHistory = (campaignStartedOn, metrics, options = {}) => {
   if (metrics.length === 0 && !options.asOf) return null;
   let currentStage = options.initialStage ?? 'testing';
   let currentStatus = currentStage;
@@ -139,7 +140,12 @@ export const replayPromotionHistory = (campaignStartedOn, metrics, options = {})
     return true;
   };
   for (const metric of metrics) {
-    if (!applyEvents(metric.metricDate) || rangeWaiting || openHolds.size) return null;
+    if (!applyEvents(metric.metricDate)) return null;
+    // 旧连续区间可以保留真实跑量；区间事件负责生命周期，等待事实不重复推动状态。
+    if(rangeWaiting||openHolds.size){
+      if(metric.dailyStatus==='waiting_action'&&metric.stageTypeSnapshot===currentStage&&metric.reviewDecision==='wait_continue')continue;
+      return null;
+    }
     if (!currentStage) return null;
     const dailyStatus = metric.dailyStatus ?? 'active';
     if (currentStatus !== 'waiting_action' && dailyStatus === 'waiting_action') {
@@ -222,3 +228,9 @@ export const calculateActualPromotionCosts = ({
   actualOpenCost: cost(spend, actualOpenCount),
   actualLeadCost: cost(spend, actualLeadCount),
 });
+
+export const replayPromotionHistory = (startedOn, metrics, options={}) => {
+ const ordered=metrics.filter(metric=>metric.recordKind!=='test_residual').sort((a,b)=>a.metricDate.localeCompare(b.metricDate));
+ const precise=ordered.some(metric=>metric.actualStatusSnapshot)||options.stateChanges?.some(change=>change.actualStatus);
+ return precise?replayPrecisePromotionHistory(startedOn,ordered,options):replayLegacyPromotionHistory(startedOn,ordered,options);
+};

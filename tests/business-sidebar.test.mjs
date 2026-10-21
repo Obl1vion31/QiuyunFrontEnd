@@ -60,7 +60,7 @@ test('共享工具栏锁定跨页几何、字体与颜色', async () => {
     'font-family:var(--console-font)',
     'color:#17211c',
     'background:color-mix(in srgb,#f7f8f5 92%,transparent)',
-    'font-size:22px;line-height:28px;font-weight:600',
+    'font-size:24px;line-height:30px;font-weight:600',
     'font-size:var(--console-caption);line-height:14px;font-weight:500',
   ]) assert.ok(source.includes(declaration), `缺少工具栏基准：${declaration}`);
 });

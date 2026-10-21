@@ -1,34 +1,33 @@
 ---
-import {promotionReviewDays} from '../db/promotion-review-days';
+import {promotionReviewDays,promotionReviewQueue} from '../db/promotion-review-days';
 import type {PromotionTimelineRow} from '../db/promotion-pending';
 import type {PromotionContext} from '../db/promotion-state.mjs';
-import BusinessPromotionMetricForm from './BusinessPromotionMetricForm.astro';
-import BusinessPromotionPendingRows from './BusinessPromotionPendingRows.astro';
+import BusinessPromotionReviewRecord from './BusinessPromotionReviewRecord.astro';
 interface Props {rows:PromotionTimelineRow[];context:PromotionContext;now?:Date}
-const {rows,context,now=new Date()}=Astro.props,posts=promotionReviewDays(rows,context,now),serverNow=now.toISOString();
-const total=posts.reduce((n,post)=>n+post.days.filter(day=>day.due).length,0);
+const {rows,context,now=new Date()}=Astro.props,queue=promotionReviewQueue(promotionReviewDays(rows,context,now));
+const shortOpening=(value:string)=>`${Number(value.slice(5,7))}/${Number(value.slice(8,10))} 00:00`;
+const groups=[{key:'arrangements',label:'待处理推广安排',records:queue.arrangements},{key:'blocked',label:'待前日复盘',records:queue.blocked},{key:'continuing',label:'待定 / 暂停中',records:queue.continuing}];
+const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台开口（人）','1'],['actualOpenCount','实际开口（人）','1'],['platformLeadCount','平台留资（人）','1'],['actualLeadCount','实际留资（人）','1']];
 ---
-<div class="promotion-pending-content" data-promotion-pending-body data-server-now={serverNow} data-due-count={total}>
- {posts.length===0&&<div class="empty-state"><strong>当前没有需要处理的推广帖子</strong></div>}
- {posts.map(({row,days})=>{
- const first=days.find(day=>day.editable)??days[0];
- return <article class="review-post-card" data-review-post={row.scheduleId}>
-  <header class="review-post-header"><a class="review-post-link" href={`?view=daily&campaign=review:${row.scheduleId}:${first.date}`} data-pending-inspector={row.scheduleId}><strong>{row.contentName}</strong></a><span>V{row.versionNumber} · {row.subjectName}</span>{row.platformNoteId&&<button type="button" class="review-copy-id" data-copy-review-id={row.platformNoteId} title={row.platformNoteId}>笔记 ID · 复制</button>}</header>
-  {days.map(day=><details class:list={['review-day',day.status==='暂停'||day.status==='待定'?'waiting':day.stage??'undecided']} data-review-day={`${row.scheduleId}:${day.date}`} data-review-date={day.date} data-opens-at={day.opensAt} data-preview={String(day.kind==='preview')} open={day===first&&day.editable}>
-   <summary class="review-day-summary"><span class="review-day-date"><time datetime={day.date}>{day.date}</time><span class="review-date-state">{day.status}</span></span><span class="review-day-hint">{day.kind==='preview'?(day.waitingThrough?`至 ${day.waitingThrough}（含）`:`${day.opensAt.slice(0,10)} 00:00 开放数据填写`):day.blockedBy?`先完成 ${day.blockedBy}`:day.kind==='arrangement'?'处理推广安排':'待填写数据'}</span><span class="review-day-action"><span class="when-closed">{day.kind==='preview'?'查看安排':'展开'}</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
-   <div class="review-day-body" data-disclosure-body>
-    {day.kind==='metric'&&day.editable?<BusinessPromotionMetricForm row={row} day={day}/>:day.kind==='arrangement'?<BusinessPromotionPendingRows rows={[row]} now={now} embedded/>:<section class="review-day-preview" data-pending-record={`${row.scheduleId}:${day.date}`}>
-     {!day.waitingThrough&&<p><time datetime={day.date}>{day.date}</time> · {day.status}{day.kind==='preview'&&<span> · {day.opensAt.slice(0,10)} 00:00 开放数据填写</span>}</p>}
-     {day.blockedBy&&<p class="review-preview-muted">请先完成 {day.blockedBy} 的复盘与安排。</p>}
-     {day.waitingThrough?<BusinessPromotionPendingRows rows={[row]} now={now} preview embedded/>:day.kind==='preview'&&<details class="review-today-arrangement"><summary>修改当日安排</summary><form class="business-form review-inline-editor" data-timeline-form data-fingerprint={row.fingerprint}>
-      <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={day.date}/><input type="hidden" name="target" value={row.campaign?'day':'initial'}/>
-      <label>当日安排<select name="action" required><option value="">请选择</option>{row.campaign?<option value="pause">当日暂停</option>:<option value="wait">待定</option>}<option value="start_testing">{row.campaign?'测试／恢复测试':'开始测试'}</option><option value="start_scaling">{row.campaign?'放量／恢复推广':'直接放量'}</option></select></label>
-      <label data-timeline-through hidden>暂停／待定至（含当天）<input type="date" name="waitingThrough" value={day.date} min={day.date} disabled/></label><label class="review-reason">修改原因<input name="reason" maxlength="2000" required/></label><button type="submit" class="business-action-primary">保存当日安排</button><output role="alert"/>
-     </form></details>}
-    </section>}
-   </div>
-  </details>)}
- </article>;
- })}
+<div class="promotion-pending-content" data-promotion-pending-body data-server-now={now.toISOString()} data-due-count={queue.ready.length}>
+ <p class="review-empty" data-review-empty hidden={queue.ready.length>0}>今日暂无待填写复盘</p>
+ <div class="review-entry-scroll" data-review-container="ready" hidden={!queue.ready.length} tabindex="0" aria-label="每日复盘录入，可左右滚动">
+  <div class="review-entry-grid review-entry-head" aria-hidden="true"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span>次日安排</span><span/></div>
+  {queue.ready.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket="ready" now={now}/>)}
+ </div>
+ <details class="review-queue-section review-upcoming" data-review-section="upcoming" hidden={!queue.upcoming.length}>
+  <summary><span data-review-section-label>待开放 {queue.upcoming.length} 项</span><span class="review-opening-hint" data-review-opening-hint>{queue.openingGroups[0]&&`最早于 ${shortOpening(queue.openingGroups[0].opensAt)} 开放`}</span><span class="review-section-action"><span class="when-closed">查看</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
+  <div data-disclosure-body data-review-opening-groups>{queue.openingGroups.map(group=><section class="review-opening-group" data-review-opening-group={group.opensAt}><h3>{shortOpening(group.opensAt)} 开放</h3><div data-review-container={`upcoming:${group.opensAt}`}>{group.records.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket="upcoming" now={now}/>)}</div></section>)}</div>
+ </details>
+ {groups.map(group=><details class="review-queue-section" data-review-section={group.key} hidden={!group.records.length}>
+  <summary><span data-review-section-label>{group.label} {group.records.length} 项</span><span class="review-section-action"><span class="when-closed">查看</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
+  <div data-disclosure-body data-review-container={group.key}>{group.records.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket={group.key} now={now}/>)}</div>
+ </details>)}
+ <section class="review-residual-editor" data-residual-editor hidden aria-label="淘汰后残留补录">
+  <form class="business-form review-residual-search" data-residual-search><label>笔记 ID<input name="noteId" aria-label="补录笔记 ID" pattern="[0-9A-Fa-f]{24}" maxlength="24" required placeholder="搜索已测试淘汰的笔记"/></label><button type="submit" class="business-action-secondary">搜索</button><button type="button" data-residual-close class="review-state-close" aria-label="关闭补录">×</button><output role="status"/></form>
+  <form class="business-form review-residual-choice" data-residual-candidates hidden><label>对应活动<select name="campaignId" required aria-label="选择补录活动"><option value="">请选择活动及版本</option></select></label><label>数据日期<input name="metricDate" type="date" required aria-label="补录数据日期"/></label><button type="submit" class="business-action-secondary">添加补录行</button></form>
+  <div class="review-entry-scroll" data-residual-rows hidden><div class="review-entry-grid review-entry-head" aria-hidden="true"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span>次日安排</span><span/></div></div>
+  <template data-residual-template><form class="business-form review-metric-row review-entry-grid residual" data-residual-form><input type="hidden" name="campaignId"/><input type="hidden" name="metricDate"/><input type="hidden" name="recordKind" value="test_residual"/><input type="hidden" name="dailyStatus" value="waiting_action"/><input type="hidden" name="actualStatusSnapshot" value="test_discarded"/><input type="hidden" name="stageTypeSnapshot" value="testing"/><input type="hidden" name="sourceStageStartedOn"/><input type="hidden" name="reviewDecision" value="test_discarded"/><time class="review-date-block"/><div class="review-entry-identity"><strong data-residual-name/><small data-residual-version/></div><span class="review-day-state"><strong>淘汰后残留</strong></span>{metrics.map(([name,label,step])=><label class="review-number"><span class="review-field-label">{label}</span><input name={name} aria-label={label} type="number" min="0" step={step} required/></label>)}<div class="review-calculated"><div><span>开口成本</span><output data-open-cost>—</output></div><div><span>留资成本</span><output data-lead-cost>—</output></div></div><span class="review-no-next">无需后续动作</span><button type="submit" class="business-action-primary review-submit">完成补录</button><p role="status" data-form-message/></form></template>
+ </section>
 </div>
-<script>import '../scripts/promotion-review-days';</script>
+<script>import '../scripts/promotion-review-days';import '../scripts/promotion-residual';</script>

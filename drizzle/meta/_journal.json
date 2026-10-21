@@ -253,6 +253,13 @@
       "when": 1792509600000,
       "tag": "0035_retire_team_promotion_pauses",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792572724240,
+      "tag": "0036_precise_promotion_review",
+      "breakpoints": true
     }
   ]
 }

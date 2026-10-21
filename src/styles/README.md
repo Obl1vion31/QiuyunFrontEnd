@@ -2,6 +2,8 @@
 
 `business-typography.css` 负责工作台及原生弹层的字体基准，组件按语义设定标题、正文、辅助和控件层级；统计使用正文字体与等宽数字，代码／原始 ID 可使用等宽字体。
 
+工作台优先使用固定自托管的 `MiSans VF`，由 Frame 引入 `/fonts/misans-5.0.0/MiSansVF.css`，保留系统中文无衬线回退。该样式也维护目标容器的延迟读取反馈；读取控制器见 `src/scripts/business-read.ts`。
+
 `business-forms.css` 由 `BusinessConsoleFrame` 引入，集中维护常规表单 `business-form`、紧凑筛选 `business-filter` 与居中 `BusinessFormDialog` 的视觉规格。
 
 Sheet／Dialog 的遮罩进入、退出及面板退出动画也在此统一维护；面板进入位置由对应组件提供，关闭完成与滚动锁交由共享控制器处理。

@@ -50,30 +50,26 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
     if (context.holds.some(r => r.campaignId === campaign.id && r.startedOn < stop && r.endedOn >= input.startedOn)) throw new WorkflowError('该日期已有历史待定安排，请选择其他日期。');
     const value = { campaignId: campaign.id, requestKey: existing?.requestKey ?? input.requestKey, startedOn: input.startedOn, endedOn: input.endedOn, stageType: input.stageType, reason: input.reason, nextDecision: input.nextDecision, nextEffectiveOn: input.nextEffectiveOn };
     const rangeContext = { ...context, waitRanges: [...context.waitRanges, { ...value, id: existing?.id ?? input.requestKey, revision: 0, history: [], updatedByLabel: actor.username, updatedAt: now }] };
-    const conflicting = actual.filter(m => m.metricDate >= input.startedOn && m.metricDate < stop);
-    let retained = actual.filter(m => !conflicting.some(c => c.id === m.id));
-    const through = [today, nextDateKey(input.endedOn), input.nextEffectiveOn ?? today, ...retained.map(m => nextDateKey(m.metricDate))].sort().at(-1)!;
-    let state = replayPromotionHistory(campaign.startedOn, retained, { ...promotionReplayOptions(campaign, rangeContext), asOf: through });
-    let deleted = conflicting;
-    if (!state) {
-      // 更改历史恢复决定可能使后续事实失效，采用已有历史更正的级联保护。
-      deleted = actual.filter(m => m.metricDate >= input.startedOn);
-      retained = actual.filter(m => m.metricDate < input.startedOn);
-      state = replayPromotionHistory(campaign.startedOn, retained, { ...promotionReplayOptions(campaign, rangeContext), asOf: through });
-    }
-    if (!state) throw new WorkflowError('区间与已有生命周期不一致；已结束或淘汰的推广不能直接恢复，请核对历史。');
-    if (deleted.length) {
-      requireAdmin(actor);
-      if (!input.confirmCascade) return { confirmationRequired: true, impact: { dailyMetrics: deleted.length, from: deleted[0].metricDate, through: deleted.at(-1)!.metricDate } };
-    }
+    // 区间改变状态归属，但不能删除其中真实发生的消耗与人数。
+    const targetStatus=input.stageType==='testing'?'test_pending':'scaling_paused';
+    // 启用日前的旧区间没有精确状态事实，不将其补写为已结束的测试待定。
+    const statusFor=(metric:typeof actual[number])=>metric.actualStatusSnapshot||metric.metricDate>=campaign.dailyReviewEnabledOn?targetStatus:null;
+    const sourceOrigin=input.stageType==='testing'||campaign.initialStage==='scaling'?campaign.startedOn:actual.find(m=>m.stageTypeSnapshot==='scaling')?.sourceStageStartedOn??actual.find(m=>m.stageTypeSnapshot==='scaling')?.metricDate??input.startedOn;
+    const changedFacts=actual.filter(m=>m.recordKind!=='test_residual'&&m.metricDate>=input.startedOn&&m.metricDate<stop&&(m.dailyStatus!=='waiting_action'||m.actualStatusSnapshot!==statusFor(m)||m.stageTypeSnapshot!==input.stageType||m.reviewDecision!=='wait_continue'||!m.sourceStageStartedOn));
+    const retained=actual.map(m=>changedFacts.some(c=>c.id===m.id)?{...m,dailyStatus:'waiting_action',actualStatusSnapshot:statusFor(m),sourceStageStartedOn:sourceOrigin,stageTypeSnapshot:input.stageType,reviewDecision:'wait_continue'}:m);
+    const through = [today, nextDateKey(input.endedOn), input.nextEffectiveOn ?? today, ...retained.filter(m=>m.recordKind!=='test_residual').map(m => nextDateKey(m.metricDate))].sort().at(-1)!;
+    const state = replayPromotionHistory(campaign.startedOn, retained, { ...promotionReplayOptions(campaign, rangeContext), asOf: through });
+    const deleted:typeof actual=[];
+    if (!state) throw new WorkflowError('区间与已有生命周期或后续安排冲突；真实指标已保留，请先核对后续状态。');
+    if(changedFacts.length){requireAdmin(actor);if(!input.confirmCascade)return {confirmationRequired:true,impact:{dailyMetrics:changedFacts.length,from:changedFacts[0].metricDate,through:changedFacts.at(-1)!.metricDate}};}
     if (boundsChanged) {
       const before = promotionStateOn(campaign, { ...context, metrics: retained }, input.startedOn);
       if (!before?.currentStage || before.currentStage !== input.stageType) throw new WorkflowError('区间与已有生命周期不一致：开始日阶段已变更、结束或淘汰。');
     }
     const changes = { ...value, revision: (existing?.revision ?? -1) + 1, updatedByLabel: actor.username, updatedAt: now,
-      history: [...(existing?.history ?? []), { at: now.toISOString(), actor: actor.username, previous: existing ? { startedOn: existing.startedOn, endedOn: existing.endedOn, nextDecision: existing.nextDecision, nextEffectiveOn: existing.nextEffectiveOn } : null, ...value, deletedMetricIds: deleted.map(m => m.id) }] };
+      history: [...(existing?.history ?? []), { at: now.toISOString(), actor: actor.username, previous: existing ? { startedOn: existing.startedOn, endedOn: existing.endedOn, nextDecision: existing.nextDecision, nextEffectiveOn: existing.nextEffectiveOn } : null, ...value, deletedMetricIds: [],reclassifiedMetricIds:changedFacts.map(m=>m.id) }] };
     const [saved] = existing ? await tx.update(ranges).set(changes).where(eq(ranges.id, existing.id)).returning() : await tx.insert(ranges).values(changes).returning();
-    for (const metric of deleted) await tx.delete(metrics).where(eq(metrics.id, metric.id));
+    for(const metric of retained.filter(m=>changedFacts.some(c=>c.id===m.id)))await tx.update(metrics).set({dailyStatus:metric.dailyStatus,actualStatusSnapshot:metric.actualStatusSnapshot,sourceStageStartedOn:metric.sourceStageStartedOn,stageTypeSnapshot:metric.stageTypeSnapshot,reviewDecision:metric.reviewDecision,updatedAt:now}).where(eq(metrics.id,metric.id));
     const current = replayPromotionHistory(campaign.startedOn, retained, { ...promotionReplayOptions(campaign, rangeContext), asOf: today })!;
     await tx.delete(stages).where(eq(stages.campaignId, campaign.id));
     for (const stage of current.stages) await tx.insert(stages).values({ campaignId: campaign.id, ...stage });
