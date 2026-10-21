@@ -15,7 +15,9 @@
 
 公共 UI、时间线、阶段／例会快照与认证、年度、工作流、发布、登记时限、交互、退役暂停和面板动效回归完成。最终证据见[本轮正式组件验收索引](verified/2026-10-21_22-15_review-workbench-v8/README.md)，状态为已自检、待用户验收。
 
-兼容迁移 `0036_precise_promotion_review.sql` 只在隔离库验证，尚未应用共享库；本轮未合入 `main` 或正式部署。发布前按[部署指南](docs/deployment.md)获得授权、备份并执行兼容迁移。正式域名仍为此前发布版本，不能据此判断本轮效果。
+已按用户发布授权将 `e93a625` 上线至[正式推广复盘入口](https://qiuyun-frontend.vercel.app/business/daily-promotion-review)，Vercel 部署 `dpl_6SzKgYLazReWtUtLZ8L7hzvZ9MZJ`。兼容迁移 `0036_precise_promotion_review.sql` 已应用共享库；迁移前后均有私有备份，47 张表原有记录核对一致，新增六列的默认值符合预期。工作分支尚未合入 `main`。
+
+发布后 36 项公网只读检查通过，含页面／接口登录保护、私有路径 404、15 份脚本／样式／字体许可资源与验收构建的摘要一致；1440／390px 浏览器确认登录跳转、输入可见且无横向溢出，已实际查看截图。业务写入及多状态视觉验收沿用上述隔离数据库结果，未向共享库写入验收数据。私有发布核对保存在 `.tools/review-v8-release-*.json` 与 `.tools/test-artifacts/review-v8-public-*.json`，备份入口仍按[部署指南](docs/deployment.md)管理。
 
 ## 运行入口
 
