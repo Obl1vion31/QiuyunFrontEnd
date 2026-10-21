@@ -1,0 +1,100 @@
+[
+  {
+    "tag": "TIME",
+    "text": "10月20日",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "13px",
+    "fontWeight": "500"
+  },
+  {
+    "tag": "STRONG",
+    "text": "示例：函数专题复习方法",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "500"
+  },
+  {
+    "tag": "SMALL",
+    "text": "V0 · 示例分类",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "12px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "测试中修改",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "500"
+  },
+  {
+    "tag": "STRONG",
+    "text": "测试中",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "13px",
+    "fontWeight": "500"
+  },
+  {
+    "tag": "INPUT",
+    "text": "123456.78",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "INPUT",
+    "text": "123456",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "INPUT",
+    "text": "123456",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "INPUT",
+    "text": "123456",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "INPUT",
+    "text": "123456",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "14px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "OUTPUT",
+    "text": "¥1.00",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "12px",
+    "fontWeight": "500"
+  },
+  {
+    "tag": "OUTPUT",
+    "text": "¥1.00",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "12px",
+    "fontWeight": "500"
+  },
+  {
+    "tag": "SELECT",
+    "text": "请选择继续测试测试暂停测试结果待定测试转放量测试淘汰",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "13px",
+    "fontWeight": "400"
+  },
+  {
+    "tag": "BUTTON",
+    "text": "完成复盘",
+    "fontFamily": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+    "fontSize": "13px",
+    "fontWeight": "500"
+  }
+]

@@ -1,0 +1,269 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/misans@5.0.0/lib/Normal/MiSansVF.min.css">
+<div id="rv-direction" aria-label="复盘工作台调整示意">
+  <section class="rd-workspace" aria-label="推广帖复盘">
+    <header class="rd-toolbar"><h1>推广帖复盘</h1><span>2026-10-21</span></header>
+    <div class="rd-canvas">
+      <section class="rd-panel" data-overview aria-label="推广生命周期">
+        <header class="rd-section-head"><h2>推广生命周期</h2><span class="rd-muted" data-stage-count></span></header>
+        <div class="rd-overview-grid rd-overview-labels" aria-hidden="true"><span>内容名称</span><span>阶段历程</span><span>当前状态 · 最近决定</span><span>详情</span></div>
+        <div data-overview-rows></div>
+      </section>
+      <section class="rd-panel" aria-label="每日复盘">
+        <header class="rd-section-head"><h2>每日复盘</h2><span class="rd-muted"><span data-ready-count>待填写 3 项</span><span class="rd-units">人数单位：人</span></span></header>
+        <div class="rd-empty" data-empty hidden>今日暂无待填写复盘</div>
+        <div class="rd-entry-scroll" data-entry-scroll role="region" aria-label="每日复盘填写台账">
+          <div class="rd-entry-grid rd-entry-head" aria-hidden="true"><span>数据日期</span><span>内容 / 版本</span><span>状态</span><span>消耗（元）</span><span>平台开口</span><span>实际开口</span><span>平台留资</span><span>实际留资</span><span>后续动作</span><span></span></div>
+          <div data-entry-rows></div>
+        </div>
+        <div class="rd-local-error" data-entry-error hidden role="alert"></div>
+        <details class="rd-upcoming"><summary><span>待开放 <span data-upcoming-count>5</span> 项</span><span class="rd-muted">10/22 00:00 开放</span><span class="rd-link rd-summary-action">查看</span></summary><div class="rd-upcoming-body"><div class="rd-opening-time">10/22 00:00 开放</div><div data-upcoming-rows></div></div></details>
+      </section>
+    </div>
+  </section>
+
+  <section class="rd-workspace rd-non" aria-label="非推广复盘">
+    <header class="rd-toolbar"><h1>非推广复盘</h1><span>已复盘</span></header>
+    <div class="rd-canvas">
+      <div class="rd-filters">
+        <label>学科<select data-subject><option value="all">全部学科</option><option value="a">示例学科 A</option><option value="b">示例学科 B</option></select></label>
+        <label>帖子分类<select data-category><option>全部帖子分类</option><option>示例长名称帖子分类</option></select></label>
+        <div class="rd-view"><span>展示方式</span><div class="rd-segment" role="group" aria-label="展示方式"><button type="button" aria-pressed="true" data-display="group">按帖子分类</button><button type="button" aria-pressed="false" data-display="flat">平铺</button></div></div>
+      </div>
+      <section class="rd-panel rd-results" aria-label="分类均值" aria-busy="false">
+        <div class="rd-loading" role="status" hidden><span></span><span class="rd-visually-hidden">正在更新分类结果</span></div>
+        <header class="rd-section-head"><h2>分类均值</h2><span class="rd-muted" data-category-count>3 个分类</span></header>
+        <div class="rd-summary-scroll" data-category-table></div>
+      </section>
+    </div>
+  </section>
+  <form class="rd-state-popover" data-state-form role="dialog" aria-label="当日暂停" hidden>
+    <strong>当日暂停</strong>
+    <label>暂停原因<input name="pauseReason" required maxlength="2000" autocomplete="off"></label>
+    <label>暂停至（含当天）<input name="pauseThrough" type="date" value="2026-10-20" min="2026-10-20" required></label>
+    <div><button type="button" class="rd-state-cancel" data-state-cancel>取消</button><button type="submit" class="rd-state-apply">应用</button></div>
+  </form>
+</div>
+<style>
+#rv-direction{--rd-font:"MiSans VF",system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;--rd-ink:#252c37;--rd-muted:#667080;--rd-line:#e5e7eb;--rd-blue:#315fd6;--rd-blue-soft:#edf2ff;--rd-canvas:#f6f7f9;--rd-test:#c08c13;--rd-test-soft:#fff7df;--rd-scale:#348866;--rd-scale-soft:#eaf5ef;--rd-pause:#8993a1;--rd-pause-soft:#eef1f4;display:grid;gap:24px;color:var(--rd-ink);font:400 14px/1.5 var(--rd-font);font-variant-numeric:tabular-nums;color-scheme:light;position:relative}
+#rv-direction *{box-sizing:border-box}
+#rv-direction [hidden]{display:none!important}
+#rv-direction :is(h1,h2,h3,p){margin:0}
+#rv-direction :is(button,input,select){font-family:inherit;font-size:14px;line-height:20px}
+#rv-direction :is(button,select,summary){cursor:pointer}
+#rv-direction button{font-weight:500}
+#rv-direction h1{font-size:24px;line-height:32px;font-weight:600}
+#rv-direction h2{font-size:18px;line-height:26px;font-weight:600}
+#rv-direction .rd-muted{font-size:12px;line-height:18px;font-weight:400;color:var(--rd-muted)}
+#rv-direction .rd-workspace{background:var(--rd-canvas);border:1px solid var(--rd-line);border-radius:10px;min-width:0;overflow:clip}
+#rv-direction .rd-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px;padding:16px 24px;background:#fff;border-bottom:1px solid var(--rd-line)}
+#rv-direction .rd-toolbar>span{font-size:13px;color:var(--rd-muted)}
+#rv-direction .rd-canvas{display:grid;gap:24px;min-width:0;width:100%;padding:16px;max-width:1120px;margin:0 auto}
+#rv-direction .rd-panel{min-width:0;border:1px solid var(--rd-line);border-radius:10px;background:white;overflow:clip;container-type:inline-size}
+#rv-direction .rd-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:50px;padding:12px 16px}
+#rv-direction .rd-overview-grid{display:grid;grid-template-columns:minmax(150px,190px) minmax(310px,1fr) 158px 64px;gap:12px;align-items:center;padding:0 16px}
+#rv-direction .rd-overview-labels{height:24px;font-size:12px;color:var(--rd-muted);border-bottom:1px solid var(--rd-line)}
+#rv-direction .rd-overview-labels>span:last-child{text-align:right}
+#rv-direction .rd-overview-row{min-height:64px;border-bottom:1px solid var(--rd-line)}
+#rv-direction .rd-overview-item:last-child .rd-overview-row{border-bottom:0}
+#rv-direction .rd-name{min-width:0}
+#rv-direction .rd-name>strong{display:block;font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rv-direction .rd-name>small{display:block;font-size:12px;font-weight:400;color:var(--rd-muted);margin-top:1px}
+#rv-direction .rd-track{display:flex;align-items:center;gap:0;min-width:0;list-style:none;padding:0;margin:0}
+#rv-direction .rd-event{position:relative;display:grid;grid-template-rows:18px 20px;align-content:center;gap:1px;min-width:70px;flex:none;padding-left:14px}
+#rv-direction .rd-event time{font-size:12px;color:var(--rd-muted);font-weight:400;line-height:18px}
+#rv-direction .rd-event>span{font-size:13px;white-space:nowrap;line-height:20px;color:#576170}
+#rv-direction .rd-event>i{position:absolute;width:7px;height:7px;border-radius:50%;left:0;top:25px;background:var(--event-color);opacity:.55}
+#rv-direction .rd-event.current>i{width:9px;height:9px;top:24px;opacity:1}
+#rv-direction .rd-event.current>span{color:var(--rd-ink);font-weight:500}
+#rv-direction .rd-event.wait>i{background:#fff;border:2px solid var(--rd-test);opacity:1}
+#rv-direction .rd-event.test{--event-color:var(--rd-test);--event-soft:var(--rd-test-soft)}
+#rv-direction .rd-event.wait{--event-color:var(--rd-test);--event-soft:var(--rd-test-soft)}
+#rv-direction .rd-event.scale{--event-color:var(--rd-scale);--event-soft:var(--rd-scale-soft)}
+#rv-direction .rd-event.pause{--event-color:var(--rd-pause);--event-soft:var(--rd-pause-soft)}
+#rv-direction .rd-connector{height:1px;width:22px;min-width:8px;margin:13px 10px 0 3px;background:#d9dfe6;flex:none}
+#rv-direction .rd-current{font-size:13px;font-weight:500;line-height:20px;min-width:0}
+#rv-direction .rd-current small{display:block;font-size:12px;line-height:18px;font-weight:400;color:var(--rd-muted);white-space:nowrap}
+#rv-direction .rd-link{border:0;padding:0;background:transparent;color:var(--rd-blue);font-size:13px;font-weight:400;white-space:nowrap;text-decoration:none;text-align:right}
+#rv-direction .rd-detail{padding:0 16px 16px;overflow:hidden}
+#rv-direction .rd-detail-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 8px;font-size:13px;font-weight:500}
+#rv-direction .rd-simple-table{width:100%;border-collapse:collapse;font-size:13px;line-height:20px;font-variant-numeric:tabular-nums}
+#rv-direction .rd-simple-table :is(th,td){padding:9px 10px;border-bottom:1px solid var(--rd-line);text-align:right;font-weight:400}
+#rv-direction .rd-simple-table th{font-size:12px;color:var(--rd-muted);background:#f7f8fa}
+#rv-direction .rd-simple-table :is(th,td):first-child{text-align:left}
+#rv-direction .rd-simple-table tbody tr:last-child td{border-bottom:0}
+#rv-direction .rd-units{margin-left:16px}
+#rv-direction .rd-entry-scroll{min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#c9d1de transparent}
+#rv-direction .rd-entry-grid{display:grid;grid-template-columns:56px minmax(130px,160px) 52px minmax(104px,1.18fr) repeat(4,minmax(88px,1fr)) 104px 80px;gap:8px;align-items:center;padding:0 16px;min-width:982px;width:100%}
+#rv-direction .rd-entry-head{height:36px;border-top:1px solid var(--rd-line);border-bottom:1px solid var(--rd-line);font-size:12px;color:var(--rd-muted);background:#fafbfc}
+#rv-direction .rd-entry-head>span:nth-child(n+4):nth-child(-n+8){text-align:right;padding-right:9px}
+#rv-direction .rd-entry-row{position:relative;min-height:78px;margin:0;border-bottom:1px solid var(--rd-line);background:white}
+#rv-direction .rd-entry-row:last-child{border-bottom:0}
+#rv-direction .rd-date-cell{display:flex;align-items:center;justify-content:center;align-self:stretch;background:var(--date-soft);color:var(--date-ink);font-size:13px;font-weight:500;white-space:nowrap;margin:0 0 0 -16px;padding-left:8px;border-left:3px solid var(--date-color)}
+#rv-direction .rd-entry-row.test{--date-color:var(--rd-test);--date-soft:var(--rd-test-soft);--date-ink:#795b0d}
+#rv-direction .rd-entry-row.scale{--date-color:var(--rd-scale);--date-soft:var(--rd-scale-soft);--date-ink:#28684f}
+#rv-direction .rd-entry-row.pause{--date-color:var(--rd-pause);--date-soft:var(--rd-pause-soft);--date-ink:#5d6673}
+#rv-direction .rd-entry-name{font-size:14px;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:20px}
+#rv-direction .rd-entry-name small{font-size:12px;font-weight:400;color:var(--rd-muted);margin-left:5px}
+#rv-direction .rd-state-select{width:100%;height:36px;border:1px solid transparent;padding:6px 0;color:var(--date-ink);background:transparent;font-size:13px;margin-bottom:20px}
+#rv-direction .rd-state-select:hover{border-color:#d9dfe8;border-radius:5px;background:#f8fafc}
+#rv-direction .rd-number{min-width:0;display:grid;align-content:center;gap:4px;position:relative;padding:8px 0}
+#rv-direction .rd-number:not(:has(output)){padding-bottom:28px}
+#rv-direction input{width:100%;min-width:0;height:36px;padding:7px 8px;border:1px solid #d3d9e2;border-radius:6px;background:#fff;color:var(--rd-ink);text-align:right;font-variant-numeric:tabular-nums}
+#rv-direction input:disabled{background:#f6f7f9;color:var(--rd-muted);border-style:dashed}
+#rv-direction .rd-cost{font-size:12px;line-height:16px;text-align:right;color:#657080;white-space:nowrap}
+#rv-direction .rd-next{height:36px;width:100%;padding:6px 5px;border:1px solid #d3d9e2;border-radius:6px;color:var(--rd-ink);background:#fff;font-size:13px;margin-bottom:20px}
+#rv-direction .rd-submit{height:36px;width:100%;padding:6px 4px;border:1px solid #3157be;border-radius:6px;background:var(--rd-blue);color:white;font-size:14px;line-height:20px;margin-bottom:20px;box-shadow:0 1px 2px #315fd622,inset 0 1px 0 #ffffff29}
+#rv-direction .rd-submit:active{transform:translateY(1px)}
+#rv-direction .rd-submit:disabled{cursor:wait;opacity:.8}
+#rv-direction .rd-submit.success{background:#348866;border-color:#2b7658}
+#rv-direction .rd-empty{padding:0 16px 12px;font-size:14px}
+#rv-direction .rd-local-error{padding:10px 16px;border-top:1px solid var(--rd-line);font-size:13px;color:#a43e35}
+#rv-direction .rd-upcoming{border-top:1px solid var(--rd-line)}
+#rv-direction .rd-upcoming>summary{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 16px;list-style:none;font-size:13px}
+#rv-direction summary::-webkit-details-marker{display:none}
+#rv-direction .rd-summary-action{margin-left:auto}
+#rv-direction .rd-opening-time{font-size:12px;color:var(--rd-muted);padding:10px 16px;background:#f8f9fb}
+#rv-direction .rd-upcoming-row{display:flex;align-items:center;gap:12px;min-height:44px;padding:10px 16px;border-top:1px solid var(--rd-line);font-size:13px}
+#rv-direction .rd-upcoming-row small{margin-left:auto;color:var(--rd-muted);font-size:12px}
+#rv-direction .rd-filters{display:flex;align-items:end;gap:16px;flex-wrap:wrap}
+#rv-direction .rd-filters label{display:grid;gap:6px;font-size:13px;min-width:0}
+#rv-direction .rd-filters select{height:36px;padding:6px 28px 6px 10px;border:1px solid #d3d9e2;border-radius:6px;background:#fff;color:var(--rd-ink)}
+#rv-direction .rd-filters label:first-child select{width:150px}
+#rv-direction .rd-filters label:nth-child(2) select{width:200px}
+#rv-direction .rd-view{margin-left:auto;display:grid;gap:6px;font-size:13px}
+#rv-direction .rd-segment{display:flex;align-items:center;padding:3px;background:#e9edf3;border-radius:7px;height:36px}
+#rv-direction .rd-segment button{border:0;border-radius:5px;background:transparent;color:var(--rd-muted);font-size:13px;padding:4px 12px}
+#rv-direction .rd-segment button[aria-pressed=true]{background:white;color:var(--rd-blue);box-shadow:0 1px 2px #273b5c0c}
+#rv-direction .rd-results{position:relative}
+#rv-direction .rd-summary-scroll{overflow-x:auto;min-width:0;overscroll-behavior-x:contain}
+#rv-direction .rd-category-table{width:100%;border-collapse:collapse;min-width:620px;table-layout:fixed;font-variant-numeric:tabular-nums}
+#rv-direction .rd-category-table col:nth-child(1){width:24%}
+#rv-direction .rd-category-table col:nth-child(2){width:8%}
+#rv-direction .rd-category-table col:nth-child(3){width:10%}
+#rv-direction .rd-category-table col:nth-child(4){width:24%}
+#rv-direction .rd-category-table col:nth-child(5){width:26%}
+#rv-direction .rd-category-table col:nth-child(6){width:8%}
+#rv-direction .rd-category-table thead th{height:36px;border-top:1px solid var(--rd-line);border-bottom:1px solid var(--rd-line);padding:6px 16px;background:#fafbfc;color:var(--rd-muted);font-size:12px;font-weight:400;text-align:right;white-space:nowrap}
+#rv-direction .rd-category-table thead th:nth-child(-n+2){text-align:left}
+#rv-direction .rd-category-table tbody.rd-category-group>tr:first-child>*{border-top:1px solid var(--rd-line)}
+#rv-direction .rd-category-table tbody.rd-category-group>tr:first-child>td:not([rowspan]){padding-top:12px}
+#rv-direction .rd-category-table tbody.rd-category-group>tr:nth-child(2)>td{padding-bottom:12px}
+#rv-direction .rd-category-table tbody.rd-category-group>tr>th{padding:10px 16px;font-size:15px;font-weight:500;text-align:left;vertical-align:middle}
+#rv-direction .rd-category-table tbody.rd-category-group>tr>th small{display:block;margin-top:2px;font-size:12px;font-weight:400;color:var(--rd-muted)}
+#rv-direction .rd-category-table tbody.rd-category-group>tr>td{height:30px;padding:3px 16px;text-align:right;font-size:14px;vertical-align:middle}
+#rv-direction .rd-category-table tbody.rd-category-group .rd-round-label{text-align:left;font-size:12px;color:var(--rd-muted)}
+#rv-direction .rd-category-table tbody.rd-category-group .rd-rate{font-size:16px;font-weight:450}
+#rv-direction .rd-category-table .rd-category-detail>td{padding:0 16px 12px!important;height:auto!important}
+#rv-direction .rd-category-detail .rd-simple-table{border:1px solid var(--rd-line)}
+#rv-direction .rd-flat-wrap{padding:0 16px 12px;min-width:600px}
+#rv-direction .rd-state-popover{position:absolute;z-index:10;width:290px;max-width:calc(100% - 24px);padding:16px;display:grid;gap:12px;background:white;border:1px solid #d9dfe8;border-radius:8px;box-shadow:0 8px 24px #24344a20}
+#rv-direction .rd-state-popover>strong{font-size:15px;font-weight:500}
+#rv-direction .rd-state-popover label{display:grid;gap:6px;font-size:13px}
+#rv-direction .rd-state-popover input{text-align:left}
+#rv-direction .rd-state-popover>div{display:flex;justify-content:flex-end;gap:8px}
+#rv-direction .rd-state-popover button{border:1px solid #d3d9e2;border-radius:6px;min-height:36px;padding:6px 14px;background:white;color:var(--rd-ink)}
+#rv-direction .rd-state-popover .rd-state-apply{background:var(--rd-blue);color:white;border-color:var(--rd-blue)}
+#rv-direction .rd-loading{position:absolute;top:0;left:0;right:0;height:3px;overflow:hidden;background:#e4eafb;z-index:3}
+#rv-direction .rd-loading>span:first-child{display:block;width:35%;height:3px;background:var(--rd-blue);animation:rd-loading 1s ease-in-out infinite}
+#rv-direction .rd-visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+#rv-direction .rd-event-flash{animation:rd-stage .3s ease-out}
+@keyframes rd-stage{from{box-shadow:0 0 0 5px var(--event-soft)}to{box-shadow:0 0 0 0 transparent}}
+@keyframes rd-loading{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+@container(max-width:810px){#rv-direction .rd-overview-grid{grid-template-columns:145px minmax(250px,1fr) 142px 60px;gap:10px}#rv-direction .rd-event{min-width:64px;padding-left:12px}#rv-direction .rd-event>span{font-size:12px}#rv-direction .rd-connector{width:12px;margin-right:6px}#rv-direction .rd-current{font-size:12px}}
+@container(max-width:740px){#rv-direction .rd-event{min-width:60px}#rv-direction .rd-connector{width:7px;margin-right:2px;margin-left:0}}
+@container(max-width:660px){#rv-direction .rd-overview-labels{display:none}#rv-direction .rd-overview-row{grid-template-columns:minmax(0,1fr) 142px 60px;gap:6px 8px;padding-top:10px;padding-bottom:10px}#rv-direction .rd-overview-row>.rd-name{grid-column:1}#rv-direction .rd-overview-row>.rd-current{grid-column:2}#rv-direction .rd-overview-row>.rd-link{grid-column:3}#rv-direction .rd-overview-row>.rd-track{grid-column:1/-1;grid-row:2}#rv-direction .rd-event{min-width:68px}#rv-direction .rd-connector{width:20px;margin-right:8px}#rv-direction .rd-current small{white-space:normal}}
+@media(max-width:540px){#rv-direction .rd-canvas{padding:10px;gap:16px}#rv-direction .rd-toolbar{padding:14px 16px;min-height:62px}#rv-direction h1{font-size:22px}#rv-direction .rd-section-head{padding:12px;gap:6px}#rv-direction .rd-units{display:none}#rv-direction .rd-overview-grid{padding-left:12px;padding-right:12px}#rv-direction .rd-overview-row{grid-template-columns:minmax(0,1fr) 112px 56px}#rv-direction .rd-name>strong{font-size:14px}#rv-direction .rd-current small{font-size:11px;line-height:16px}#rv-direction .rd-event{min-width:62px}#rv-direction .rd-filters label{flex:1;min-width:125px}#rv-direction .rd-filters label select{width:100%!important}#rv-direction .rd-view{margin-left:0}#rv-direction input{font-size:16px}#rv-direction .rd-upcoming>summary{gap:8px;padding:10px 12px}}
+@media(max-width:540px){#rv-direction .rd-filters label:nth-child(2){min-width:200px}}
+@media(max-width:370px){#rv-direction .rd-event{min-width:60px;padding-left:10px}#rv-direction .rd-connector{width:5px;margin-left:0;margin-right:2px}}
+@media(prefers-reduced-motion:reduce){#rv-direction *,#rv-direction *::before,#rv-direction *::after{animation:none!important;transition:none!important}}
+</style>
+<script>
+(() => {
+ const root=document.getElementById('rv-direction');
+ const settings={scenario:'mixed',phase:'scale'};
+ const names=['示例内容 A','示例内容 B','示例内容 C','示例内容 D','示例内容 E'];
+ const eventLabels={test:'开始测试',wait:'测试待定',scale:'开始放量',pause:'暂停'};
+ const phases=['test','scale','pause','scale','wait'];
+ const histories=[[['10/20','test']],[['10/17','test'],['10/19','wait'],['10/20','scale']],[['10/16','test'],['10/18','scale'],['10/21','pause']],[['10/18','scale']],[['10/19','test'],['10/20','wait']]];
+ const currentLabels=['测试第 2 天','放量第 2 天','暂停第 1 天','放量第 4 天','测试待定第 2 天'];
+ const decisions=['尚无复盘','10/20 继续放量','10/21 暂停至 10/22','10/20 继续放量','待定至 10/22'];
+ const readyDefinitions=[{id:0,phase:'test',spend:'200.00',po:'12',ao:'10',pl:'6',al:'5'},{id:1,phase:'scale',spend:'360.00',po:'24',ao:'18',pl:'9',al:'6'},{id:2,phase:'scale',spend:'180.00',po:'14',ao:'9',pl:'4',al:'3'}];
+ let completed=new Set(),version=0,loadingTimer,requestTimer,pendingStatusForm;
+ const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+ function dateFull(value){return '2026-'+value.replace('/','-');}
+ function simpleTable(kind='promotion',index=0){
+  if(kind==='promotion'){
+   const row=index===0?['测试','—','—','—']:index===1?['放量','¥360.00','18 人','6 人']:index===4?['待定','—','—','—']:['放量','¥180.00','9 人','3 人'];
+   return `<table class="rd-simple-table"><thead><tr><th>数据日期</th><th>阶段</th><th>消耗</th><th>实际开口</th><th>实际留资</th></tr></thead><tbody><tr><td>2026-10-20</td>${row.map(value=>`<td>${value}</td>`).join('')}</tr></tbody></table>`;
+  }
+  return '<table class="rd-simple-table"><thead><tr><th>实验日期</th><th>帖子</th><th>轮次</th><th>点击率</th><th>3 秒阅读率</th></tr></thead><tbody><tr><td>2026-10-20</td><td>示例内容 A · V0</td><td>首轮</td><td>9.25%</td><td>34.75%</td></tr><tr><td>2026-10-20</td><td>示例内容 A · V0</td><td>二轮</td><td>10.05%</td><td>36.05%</td></tr></tbody></table>';
+ }
+ function overview(animate=false){
+  const empty=settings.scenario==='empty';
+  let count={test:0,wait:0,scale:0,pause:0};
+  root.querySelector('[data-overview-rows]').innerHTML=names.map((name,i)=>{
+   let events=empty?[['10/21','test']]:histories[i];let phase=empty?'test':phases[i];let state=empty?'测试第 1 天':currentLabels[i],decision=empty?'尚无复盘':decisions[i];
+   if(!empty&&i===1&&settings.phase!=='scale'){phase=settings.phase;events=settings.phase==='pause'?[...histories[i],['10/21','pause']]:[['10/17','test']];state=settings.phase==='pause'?'暂停第 1 天':'测试第 5 天';decision=settings.phase==='pause'?'10/21 决定暂停':'10/20 继续测试';}
+   count[phase]++;
+   const track=events.map(([date,type],index)=>`${index?'<li class="rd-connector" aria-hidden="true"></li>':''}<li class="rd-event ${type} ${index===events.length-1?'current':''}"><time datetime="${dateFull(date)}">${date}</time><i class="${animate&&i===1&&index===events.length-1?'rd-event-flash':''}" aria-hidden="true"></i><span>${eventLabels[type]}</span></li>`).join('');
+   return `<article class="rd-overview-item"><div class="rd-overview-grid rd-overview-row"><div class="rd-name"><strong>${name}</strong><small>V${i%2} · 示例分类</small></div><ol class="rd-track" aria-label="推广阶段历程">${track}</ol><div class="rd-current">${state}<small>${decision}</small></div><button type="button" class="rd-link" data-history="${i}" aria-expanded="false">查看详情</button></div><div class="rd-detail" hidden><div class="rd-detail-caption"><span>每日数据</span><span class="rd-muted">${name}</span></div>${empty?'<p class="rd-muted">尚无每日数据</p>':simpleTable('promotion',i)}</div></article>`;
+  }).join('');
+  root.querySelector('[data-stage-count]').textContent=`5 篇 · 测试 ${count.test}${count.wait?` · 待定 ${count.wait}`:''} · 放量 ${count.scale} · 暂停 ${count.pause}`;
+ }
+ function updateCount(){const n=root.querySelectorAll('[data-entry-row]:not([hidden])').length;root.querySelector('[data-ready-count]').textContent=`待填写 ${n} 项`;root.querySelector('[data-empty]').hidden=n>0;root.querySelector('[data-entry-scroll]').hidden=!n;}
+ function costs(form){const spend=form.elements.spend;for(const [name,key]of [['ao','open'],['al','lead']]){const input=form.elements[name],out=form.querySelector(`[data-cost=${key}]`);out.textContent=spend.value!==''&&input.value!==''&&Number(input.value)>0?`成本 ¥${(Number(spend.value)/Number(input.value)).toFixed(2)}/人`:'成本 —';}}
+ function entries(){
+  const definitions=settings.scenario==='empty'?[]:readyDefinitions.filter(d=>!completed.has(d.id));
+  root.querySelector('[data-entry-rows]').innerHTML=definitions.map(d=>{
+   const label=d.phase==='test'?'测试':'放量';
+   const field=(name,title,cost='')=>`<div class="rd-number"><input type="number" name="${name}" aria-label="${names[d.id]} ${title}" value="${d[name]}" min="0" step="${name==='spend'?'0.01':'1'}" required>${cost?`<output class="rd-cost" data-cost="${cost}" aria-label="${cost==='open'?'实际开口成本':'实际留资成本'}">—</output>`:''}</div>`;
+   const options=d.phase==='test'?'<option>继续测试</option><option>开始放量</option><option>测试待定</option><option>测试淘汰</option>':'<option>继续放量</option><option>推广暂停</option><option>结束推广</option>';
+   return `<form class="rd-entry-grid rd-entry-row ${d.phase}" data-entry-row="${d.id}" data-original-phase="${d.phase}"><time class="rd-date-cell" datetime="2026-10-20">10月20日</time><span class="rd-entry-name">${names[d.id]}<small>V${d.id%2}</small></span><select class="rd-state-select" name="dayState" aria-label="${names[d.id]} 当日状态"><option value="active">${label}</option><option value="pause">暂停</option></select>${field('spend','消耗（元）')}${field('po','平台开口人数')}${field('ao','实际开口人数','open')}${field('pl','平台留资人数')}${field('al','实际留资人数','lead')}<select class="rd-next" name="decision" aria-label="${names[d.id]} 后续动作" required><option value="">请选择</option>${options}</select><button class="rd-submit" type="submit">完成复盘</button></form>`;
+  }).join('');
+  root.querySelectorAll('[data-entry-row]').forEach(costs);updateCount();
+ }
+ function upcoming(){root.querySelector('[data-upcoming-rows]').innerHTML=names.map((name,i)=>`<div class="rd-upcoming-row"><span>${name} <small>V${i%2}</small></span><small>数据日期 10月21日</small></div>`).join('');}
+ function categories(){
+  const subject=root.querySelector('[data-subject]').value,flat=root.querySelector('[data-display=flat]').getAttribute('aria-pressed')==='true';
+  const source=subject==='all'?[['示例学科 A','创新帖'],['示例学科 A','第一时间解析帖集'],['示例学科 B','内容讲义']]:[[`示例学科 ${subject.toUpperCase()}`,'创新帖'],[`示例学科 ${subject.toUpperCase()}`,'第一时间解析帖集']];
+  root.querySelector('[data-category-count]').textContent=flat?'6 条记录':`${source.length} 个分类`;
+  root.querySelector('[data-category-table]').innerHTML=flat?`<div class="rd-flat-wrap">${simpleTable('non')}</div>`:`<table class="rd-category-table"><colgroup><col><col><col><col><col><col></colgroup><thead><tr><th scope="col">帖子分类</th><th scope="col">轮次</th><th scope="col">样本</th><th scope="col">点击率</th><th scope="col">3 秒阅读率</th><th scope="col"></th></tr></thead>${source.map(([subject,name],i)=>`<tbody class="rd-category-group"><tr><th scope="rowgroup" rowspan="2">${name}<small>${subject}</small></th><td class="rd-round-label">首轮</td><td>${i+2} 篇</td><td class="rd-rate">${(9.25+i).toFixed(2)}%</td><td class="rd-rate">${(34.75+i).toFixed(2)}%</td><td rowspan="2"><button type="button" class="rd-link" data-category-detail aria-expanded="false">明细</button></td></tr><tr><td class="rd-round-label">二轮</td><td>${i===1?1:i+2} 篇</td><td class="rd-rate">${(10.05+i).toFixed(2)}%</td><td class="rd-rate">${(36.05+i).toFixed(2)}%</td></tr><tr class="rd-category-detail" hidden><td colspan="6">${simpleTable('non')}</td></tr></tbody>`).join('')}</table>`;
+ }
+ function reveal(body,opening){
+  const height=body.hidden?0:body.getBoundingClientRect().height;body.getAnimations().forEach(a=>a.cancel());
+  if(reduced()){body.hidden=!opening;return;}
+  if(opening)body.hidden=false;
+  const animation=body.animate([{height:height+'px',opacity:opening?.3:1},{height:opening?body.scrollHeight+'px':'0px',opacity:opening?1:0}],{duration:200,easing:'ease-out'});animation.onfinish=()=>{body.hidden=!opening;};
+ }
+ function loadCategories(){const request=++version;clearTimeout(loadingTimer);clearTimeout(requestTimer);const results=root.querySelector('.rd-results');results.setAttribute('aria-busy','true');root.querySelector('.rd-loading').hidden=true;loadingTimer=setTimeout(()=>{if(request===version)root.querySelector('.rd-loading').hidden=false;},300);requestTimer=setTimeout(()=>{if(request!==version)return;categories();root.querySelector('.rd-loading').hidden=true;results.setAttribute('aria-busy','false');},1000);}
+ function closeStateEditor(){const editor=root.querySelector('[data-state-form]');editor.hidden=true;pendingStatusForm?.elements.dayState.focus();pendingStatusForm=undefined;}
+ function openStateEditor(form){pendingStatusForm=form;form.elements.dayState.value='active';const editor=root.querySelector('[data-state-form]'),bounds=root.getBoundingClientRect(),anchor=form.elements.dayState.getBoundingClientRect();editor.style.left=Math.max(12,Math.min(anchor.left-bounds.left,root.clientWidth-302))+'px';editor.style.top=(anchor.bottom-bounds.top+8)+'px';editor.hidden=false;editor.elements.pauseReason.focus();}
+ root.addEventListener('click',e=>{
+  const upcomingSummary=e.target.closest('.rd-upcoming>summary');
+  if(upcomingSummary){e.preventDefault();const details=upcomingSummary.parentElement,body=upcomingSummary.nextElementSibling,opening=!details.open||details.dataset.closing==='true',height=details.open?body.getBoundingClientRect().height:0;body.getAnimations().forEach(a=>a.cancel());upcomingSummary.querySelector('.rd-summary-action').textContent=opening?'收起':'查看';if(reduced()){details.open=opening;return;}if(opening){details.open=true;delete details.dataset.closing;}else details.dataset.closing='true';const animation=body.animate([{height:height+'px',opacity:opening?.3:1},{height:opening?body.scrollHeight+'px':'0px',opacity:opening?1:0}],{duration:200,easing:'ease-out'});animation.onfinish=()=>{if(!opening)details.open=false;delete details.dataset.closing;};return;}
+  const button=e.target.closest('button');if(!button)return;
+  if(button.matches('[data-state-cancel]'))closeStateEditor();
+  if(button.matches('[data-history]')){const body=button.closest('.rd-overview-item').querySelector('.rd-detail'),opening=button.getAttribute('aria-expanded')!=='true';button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'收起详情':'查看详情';reveal(body,opening);}
+  if(button.matches('[data-category-detail]')){const row=button.closest('tbody').querySelector('.rd-category-detail'),opening=button.getAttribute('aria-expanded')!=='true';button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'收起':'明细';row.hidden=!opening;}
+  if(button.matches('[data-display]')){root.querySelectorAll('[data-display]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));categories();}
+ });
+ root.addEventListener('input',e=>{const form=e.target.closest('[data-entry-row]');if(form)costs(form);});
+ root.addEventListener('change',e=>{
+  if(e.target.matches('[data-subject],[data-category]'))loadCategories();
+  if(e.target.matches('[name=dayState]')){const form=e.target.closest('form'),paused=e.target.value==='pause';if(paused){openStateEditor(form);return;}form.classList.remove('pause');form.classList.add(form.dataset.originalPhase);form.querySelectorAll('input').forEach(input=>input.disabled=false);form.querySelector('[name=decision]').disabled=false;form.querySelectorAll('.rd-cost').forEach(output=>output.hidden=false);form.querySelector('.rd-submit').textContent='完成复盘';delete form.dataset.pauseReason;root.querySelector('[data-entry-error]').hidden=true;}
+ });
+ root.addEventListener('keydown',e=>{if(e.key==='Escape'&&!root.querySelector('[data-state-form]').hidden){e.preventDefault();closeStateEditor();}});
+ root.addEventListener('submit',e=>{
+  if(e.target.matches('[data-state-form]')){e.preventDefault();const editor=e.target,form=pendingStatusForm;if(!form)return;form.dataset.pauseReason=editor.elements.pauseReason.value;form.dataset.pauseThrough=editor.elements.pauseThrough.value;form.elements.dayState.value='pause';form.classList.remove(form.dataset.originalPhase);form.classList.add('pause');form.querySelectorAll('input').forEach(input=>input.disabled=true);form.querySelector('[name=decision]').disabled=true;form.querySelectorAll('.rd-cost').forEach(output=>output.hidden=true);form.querySelector('.rd-submit').textContent='保存状态';closeStateEditor();return;}
+  const form=e.target.closest('[data-entry-row]');if(!form)return;e.preventDefault();
+  const error=root.querySelector('[data-entry-error]');
+  if(form.elements.dayState.value==='pause'&&!form.dataset.pauseReason){openStateEditor(form);return;}
+  const button=form.querySelector('button[type=submit]');button.disabled=true;button.textContent='保存中';form.setAttribute('aria-busy','true');
+  setTimeout(()=>{completed.add(Number(form.dataset.entryRow));button.textContent='已完成';button.classList.add('success');root.querySelector('[data-ready-count]').textContent=`待填写 ${readyDefinitions.filter(d=>!completed.has(d.id)).length} 项`;setTimeout(()=>{form.hidden=true;updateCount();},850);},650);
+ });
+ overview();entries();upcoming();categories();
+ document.fonts.load('400 14px "MiSans VF"','推广生命周期').then(fonts=>{root.dataset.fontReady=fonts.length?'true':'fallback';}).catch(()=>{root.dataset.fontReady='fallback';});
+ if(globalThis.Tweak){let previous={...settings};const tweak=new Tweak({container:root,onChange:()=>{if(settings.scenario!==previous.scenario){completed=new Set();overview();entries();}else if(settings.phase!==previous.phase)overview(true);previous={...settings};}});tweak.addSelect(settings,'scenario',{label:'推广场景',options:[{label:'混合阶段，有待填写',value:'mixed'},{label:'五篇测试，暂无待填写',value:'empty'}]});tweak.addSelect(settings,'phase',{label:'示例内容 B 的阶段',options:[{label:'测试',value:'test'},{label:'放量',value:'scale'},{label:'暂停',value:'pause'}]});}
+})();
+</script>

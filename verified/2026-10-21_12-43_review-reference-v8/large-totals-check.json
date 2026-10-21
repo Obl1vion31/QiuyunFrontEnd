@@ -1,0 +1,242 @@
+[
+  {
+    "width": 1440,
+    "pageWidth": 1440,
+    "children": [
+      {
+        "left": 871,
+        "right": 963,
+        "parentLeft": 871,
+        "parentRight": 1171,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 871,
+            "right": 959,
+            "top": 229.5
+          }
+        ]
+      },
+      {
+        "left": 975,
+        "right": 1067,
+        "parentLeft": 871,
+        "parentRight": 1171,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 975,
+            "right": 1063,
+            "top": 229.5
+          },
+          {
+            "text": "/人",
+            "left": 975,
+            "right": 992,
+            "top": 251.5
+          }
+        ]
+      },
+      {
+        "left": 1079,
+        "right": 1171,
+        "parentLeft": 871,
+        "parentRight": 1171,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 1079,
+            "right": 1167,
+            "top": 229.5
+          },
+          {
+            "text": "/人",
+            "left": 1079,
+            "right": 1096,
+            "top": 251.5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 1920,
+    "pageWidth": 1920,
+    "children": [
+      {
+        "left": 1005,
+        "right": 1179,
+        "parentLeft": 1005,
+        "parentRight": 1551,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 1005,
+            "right": 1093,
+            "top": 238.5
+          }
+        ]
+      },
+      {
+        "left": 1191,
+        "right": 1365,
+        "parentLeft": 1005,
+        "parentRight": 1551,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 1191,
+            "right": 1279,
+            "top": 238.5
+          },
+          {
+            "text": "/人",
+            "left": 1281,
+            "right": 1298,
+            "top": 240.5
+          }
+        ]
+      },
+      {
+        "left": 1377,
+        "right": 1551,
+        "parentLeft": 1005,
+        "parentRight": 1551,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 1377,
+            "right": 1465,
+            "top": 238.5
+          },
+          {
+            "text": "/人",
+            "left": 1467,
+            "right": 1484,
+            "top": 240.5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "pageWidth": 390,
+    "children": [
+      {
+        "left": 23,
+        "right": 129.65625,
+        "parentLeft": 23,
+        "parentRight": 367,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 23,
+            "right": 111,
+            "top": 390
+          }
+        ]
+      },
+      {
+        "left": 141.65625,
+        "right": 248.328125,
+        "parentLeft": 23,
+        "parentRight": 367,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 141.65625,
+            "right": 229.65625,
+            "top": 390
+          },
+          {
+            "text": "/人",
+            "left": 141.65625,
+            "right": 158.65625,
+            "top": 412
+          }
+        ]
+      },
+      {
+        "left": 260.328125,
+        "right": 366.984375,
+        "parentLeft": 23,
+        "parentRight": 367,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 260.328125,
+            "right": 348.328125,
+            "top": 390
+          },
+          {
+            "text": "/人",
+            "left": 260.328125,
+            "right": 277.328125,
+            "top": 412
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "pageWidth": 320,
+    "children": [
+      {
+        "left": 23,
+        "right": 297,
+        "parentLeft": 23,
+        "parentRight": 297,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 23,
+            "right": 111,
+            "top": 390
+          }
+        ]
+      },
+      {
+        "left": 23,
+        "right": 154,
+        "parentLeft": 23,
+        "parentRight": 297,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 23,
+            "right": 111,
+            "top": 440
+          },
+          {
+            "text": "/人",
+            "left": 113,
+            "right": 130,
+            "top": 442
+          }
+        ]
+      },
+      {
+        "left": 166,
+        "right": 297,
+        "parentLeft": 23,
+        "parentRight": 297,
+        "parts": [
+          {
+            "text": "¥123,456.78",
+            "left": 166,
+            "right": 254,
+            "top": 440
+          },
+          {
+            "text": "/人",
+            "left": 256,
+            "right": 273,
+            "top": 442
+          }
+        ]
+      }
+    ]
+  }
+]

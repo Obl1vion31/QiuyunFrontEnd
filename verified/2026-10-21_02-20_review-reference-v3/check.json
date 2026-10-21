@@ -1,0 +1,250 @@
+{
+  "scope": "第三版独立视觉参考，示例数据；未连接业务API或数据库",
+  "geometries": [
+    {
+      "width": 1920,
+      "pageWidth": 1920,
+      "panel": 1440,
+      "overviewHeight": 396,
+      "rowHeight": 72,
+      "inputWidths": [
+        138.0625,
+        138.0625,
+        138.0625,
+        138.0625,
+        138.078125
+      ],
+      "inputCenter": [
+        683.5,
+        683.5,
+        683.5,
+        683.5,
+        683.5
+      ],
+      "dateCenter": 683.5,
+      "costCenter": 683.5,
+      "actionCenter": [
+        683.5,
+        683.5,
+        683.5
+      ],
+      "scroll": {
+        "client": 1438,
+        "width": 1438
+      }
+    },
+    {
+      "width": 1440,
+      "pageWidth": 1440,
+      "panel": 1160,
+      "overviewHeight": 396,
+      "rowHeight": 72,
+      "inputWidths": [
+        89.59375,
+        89.59375,
+        89.609375,
+        89.59375,
+        89.59375
+      ],
+      "inputCenter": [
+        683.5,
+        683.5,
+        683.5,
+        683.5,
+        683.5
+      ],
+      "dateCenter": 683.5,
+      "costCenter": 683.5,
+      "actionCenter": [
+        683.5,
+        683.5,
+        683.5
+      ],
+      "scroll": {
+        "client": 1158,
+        "width": 1158
+      }
+    },
+    {
+      "width": 1280,
+      "pageWidth": 1280,
+      "panel": 1000,
+      "overviewHeight": 396,
+      "rowHeight": 72,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputCenter": [
+        683.5,
+        683.5,
+        683.5,
+        683.5,
+        683.5
+      ],
+      "dateCenter": 683.5,
+      "costCenter": 683.5,
+      "actionCenter": [
+        683.5,
+        683.5,
+        683.5
+      ],
+      "scroll": {
+        "client": 998,
+        "width": 1150
+      }
+    },
+    {
+      "width": 1024,
+      "pageWidth": 1024,
+      "panel": 744,
+      "overviewHeight": 396,
+      "rowHeight": 72,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputCenter": [
+        683.5,
+        683.5,
+        683.5,
+        683.5,
+        683.5
+      ],
+      "dateCenter": 683.5,
+      "costCenter": 683.5,
+      "actionCenter": [
+        683.5,
+        683.5,
+        683.5
+      ],
+      "scroll": {
+        "client": 742,
+        "width": 1150
+      }
+    },
+    {
+      "width": 736,
+      "pageWidth": 736,
+      "panel": 704,
+      "overviewHeight": 591.5,
+      "rowHeight": 72,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputCenter": [
+        861,
+        861,
+        861,
+        861,
+        861
+      ],
+      "dateCenter": 861,
+      "costCenter": 861,
+      "actionCenter": [
+        861,
+        861,
+        861
+      ],
+      "scroll": {
+        "client": 702,
+        "width": 1150
+      }
+    },
+    {
+      "width": 390,
+      "pageWidth": 390,
+      "panel": 370,
+      "overviewHeight": 604,
+      "rowHeight": 72,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputCenter": [
+        921.5,
+        921.5,
+        921.5,
+        921.5,
+        921.5
+      ],
+      "dateCenter": 921.5,
+      "costCenter": 921.5,
+      "actionCenter": [
+        921.5,
+        921.5,
+        921.5
+      ],
+      "scroll": {
+        "client": 368,
+        "width": 1150
+      }
+    },
+    {
+      "width": 320,
+      "pageWidth": 320,
+      "panel": 300,
+      "overviewHeight": 604,
+      "rowHeight": 72,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputCenter": [
+        953,
+        953,
+        953,
+        953,
+        953
+      ],
+      "dateCenter": 953,
+      "costCenter": 953,
+      "actionCenter": [
+        953,
+        953,
+        953
+      ],
+      "scroll": {
+        "client": 298,
+        "width": 1150
+      }
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "五篇测试空态",
+    "待开放默认折叠及展开",
+    "多条直接填写",
+    "日期/状态/输入/成本/提交共中心线",
+    "五项输入最小88px",
+    "真实宽度壳层232px",
+    "当日修改独立于次日安排",
+    "暂停/待定指标保持可填",
+    "待定禁止恢复测试",
+    "残留搜索及单行补录无次日安排",
+    "零分母成本",
+    "六位数字与金额",
+    "提交成功计数",
+    "阶段节点单次变化",
+    "分类/历史视图",
+    "500ms延迟加载及旧请求保护",
+    "减少动态效果"
+  ],
+  "fontReady": "true"
+}

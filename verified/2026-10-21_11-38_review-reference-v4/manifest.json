@@ -1,0 +1,23 @@
+{
+  "createdAt": "2026-10-21T11:38:00+08:00",
+  "type": "independent-visual-reference",
+  "scope": "仅当日状态编辑",
+  "businessHead": "55b6ff6",
+  "sourceHash": "80c5112f28294f72ce3f17f0b66ab1bc06f5f4eae836b3898ff164971e2d82d1",
+  "files": [
+    "check.json",
+    "inline-state-review.webm",
+    "nonpromotion-unchanged-1440.png",
+    "promotion-default-1440.png",
+    "promotion-empty-1440.png",
+    "promotion-ready-1440.png",
+    "promotion-state-edit-1280.png",
+    "promotion-state-edit-1440.png",
+    "promotion-state-edit-1920.png",
+    "promotion-state-edit-320.png",
+    "promotion-state-edit-390.png",
+    "promotion-state-saved-1440.png",
+    "promotion-state-scroll-390.png"
+  ],
+  "status": "已自检，待用户最终确认"
+}

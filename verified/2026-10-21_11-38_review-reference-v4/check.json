@@ -1,0 +1,275 @@
+{
+  "scope": "独立视觉参考；本轮仅调整当日状态编辑，示例数据无API/数据库写入",
+  "viewports": [
+    {
+      "width": 1920,
+      "pageWidth": 1920,
+      "editor": {
+        "left": 357,
+        "right": 1795,
+        "width": 1438,
+        "height": 94.5
+      },
+      "items": [
+        {
+          "x": 629,
+          "right": 789,
+          "width": 160,
+          "height": 40
+        },
+        {
+          "x": 801,
+          "right": 1625,
+          "width": 824,
+          "height": 40
+        },
+        {
+          "x": 1637,
+          "right": 1693,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 1701,
+          "right": 1783,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "pageWidth": 1440,
+      "editor": {
+        "left": 257,
+        "right": 1415,
+        "width": 1158,
+        "height": 94.5
+      },
+      "items": [
+        {
+          "x": 491,
+          "right": 651,
+          "width": 160,
+          "height": 40
+        },
+        {
+          "x": 663,
+          "right": 1245,
+          "width": 582,
+          "height": 40
+        },
+        {
+          "x": 1257,
+          "right": 1313,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 1321,
+          "right": 1403,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "pageWidth": 1280,
+      "editor": {
+        "left": 257,
+        "right": 1255,
+        "width": 998,
+        "height": 94.5
+      },
+      "items": [
+        {
+          "x": 491,
+          "right": 651,
+          "width": 160,
+          "height": 40
+        },
+        {
+          "x": 663,
+          "right": 1085,
+          "width": 422,
+          "height": 40
+        },
+        {
+          "x": 1097,
+          "right": 1153,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 1161,
+          "right": 1243,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "pageWidth": 1024,
+      "editor": {
+        "left": 257,
+        "right": 999,
+        "width": 742,
+        "height": 94.5
+      },
+      "items": [
+        {
+          "x": 273,
+          "right": 433,
+          "width": 160,
+          "height": 40
+        },
+        {
+          "x": 445,
+          "right": 829,
+          "width": 384,
+          "height": 40
+        },
+        {
+          "x": 841,
+          "right": 897,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 905,
+          "right": 987,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 736,
+      "pageWidth": 736,
+      "editor": {
+        "left": 17,
+        "right": 719,
+        "width": 702,
+        "height": 94.5
+      },
+      "items": [
+        {
+          "x": 33,
+          "right": 193,
+          "width": 160,
+          "height": 40
+        },
+        {
+          "x": 205,
+          "right": 549,
+          "width": 344,
+          "height": 40
+        },
+        {
+          "x": 561,
+          "right": 617,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 625,
+          "right": 707,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "pageWidth": 390,
+      "editor": {
+        "left": 11,
+        "right": 379,
+        "width": 368,
+        "height": 224
+      },
+      "items": [
+        {
+          "x": 27,
+          "right": 363,
+          "width": 336,
+          "height": 40
+        },
+        {
+          "x": 27,
+          "right": 363,
+          "width": 336,
+          "height": 40
+        },
+        {
+          "x": 217,
+          "right": 273,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 281,
+          "right": 363,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "pageWidth": 320,
+      "editor": {
+        "left": 11,
+        "right": 309,
+        "width": 298,
+        "height": 224
+      },
+      "items": [
+        {
+          "x": 27,
+          "right": 293,
+          "width": 266,
+          "height": 40
+        },
+        {
+          "x": 27,
+          "right": 293,
+          "width": 266,
+          "height": 40
+        },
+        {
+          "x": 147,
+          "right": 203,
+          "width": 56,
+          "height": 40
+        },
+        {
+          "x": 211,
+          "right": 293,
+          "width": 82,
+          "height": 40
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "无业务日期选择",
+    "无状态弹框/遮罩",
+    "仅实际状态和跟进原因",
+    "局部展开/收起",
+    "原数据行72px",
+    "取消/Esc返回焦点",
+    "保存不依赖指标是否完整",
+    "保留数字/成本/合法次日安排/其他行DOM节点",
+    "次日选择失效时明确提示",
+    "已保存跟进原因回显",
+    "窄屏编辑条按可见宽度排版",
+    "横滚时编辑条可见",
+    "减少动态效果",
+    "补录弹框保持",
+    "非推广/空态保持"
+  ]
+}

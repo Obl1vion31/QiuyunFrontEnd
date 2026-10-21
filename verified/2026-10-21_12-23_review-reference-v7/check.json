@@ -1,0 +1,442 @@
+{
+  "scope": "独立视觉参考，修正内容列过度伸展，按最长内容统一112–176px，不由名称吞掉宽屏余量；无业务API或数据库调用",
+  "geometries": [
+    {
+      "width": 1920,
+      "pageWidth": 1920,
+      "nameWidth": 112,
+      "nameStateTextGap": 72.5,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 124.828px 113.5px 113.5px 113.484px 113.5px 181.594px 181.594px 80px",
+      "columnGap": "10px",
+      "dateNameGap": 18,
+      "stateWidth": 96,
+      "stateCenter": 633,
+      "textCenter": 633,
+      "gapToSpend": 19,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 124.828125,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 89
+        },
+        {
+          "field": "po",
+          "width": 113.5,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "ao",
+          "width": 113.5,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "pl",
+          "width": 113.484375,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "al",
+          "width": 113.5,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        }
+      ],
+      "scroll": {
+        "client": 1438,
+        "width": 1438
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 1440,
+      "pageWidth": 1440,
+      "nameWidth": 112,
+      "nameStateTextGap": 68.859375,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 96px 83.6562px 83.6719px 83.6719px 83.6562px 133.875px 133.875px 80px",
+      "columnGap": "6.364px",
+      "dateNameGap": 14.359375,
+      "stateWidth": 96,
+      "stateCenter": 525.71875,
+      "textCenter": 525.71875,
+      "gapToSpend": 15.359375,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 89
+        },
+        {
+          "field": "po",
+          "width": 83.65625,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "ao",
+          "width": 83.671875,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "pl",
+          "width": 83.671875,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "al",
+          "width": 83.65625,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        }
+      ],
+      "scroll": {
+        "client": 1158,
+        "width": 1158
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 1280,
+      "pageWidth": 1280,
+      "nameWidth": 112,
+      "nameStateTextGap": 68.5,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 525,
+      "textCenter": 525,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 89
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        }
+      ],
+      "scroll": {
+        "client": 998,
+        "width": 1132
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 1024,
+      "pageWidth": 1024,
+      "nameWidth": 112,
+      "nameStateTextGap": 68.5,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 525,
+      "textCenter": 525,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 89
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        }
+      ],
+      "scroll": {
+        "client": 742,
+        "width": 1132
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 736,
+      "pageWidth": 736,
+      "nameWidth": 112,
+      "nameStateTextGap": 68.5,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 285,
+      "textCenter": 285,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 89
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "14px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 68
+        }
+      ],
+      "scroll": {
+        "client": 702,
+        "width": 1132
+      },
+      "rowHeight": 72,
+      "overviewHeight": 591.5
+    },
+    {
+      "width": 390,
+      "pageWidth": 390,
+      "nameWidth": 112,
+      "nameStateTextGap": 68.5,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 104px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 279,
+      "textCenter": 279,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 104,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 98
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        }
+      ],
+      "scroll": {
+        "client": 368,
+        "width": 1140
+      },
+      "rowHeight": 72,
+      "overviewHeight": 604
+    },
+    {
+      "width": 320,
+      "pageWidth": 320,
+      "nameWidth": 112,
+      "nameStateTextGap": 68.5,
+      "columnsAligned": true,
+      "columns": "84px 112px 96px 104px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 279,
+      "textCenter": 279,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 104,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 98
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "16px \"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+          "needed": 73
+        }
+      ],
+      "scroll": {
+        "client": 298,
+        "width": 1140
+      },
+      "rowHeight": 72,
+      "overviewHeight": 604
+    }
+  ],
+  "transitionChecks": [
+    {
+      "source": "测试中",
+      "options": [
+        {
+          "value": "test_pause",
+          "label": "测试暂停"
+        },
+        {
+          "value": "pending",
+          "label": "测试结果待定"
+        },
+        {
+          "value": "scale",
+          "label": "测试转放量"
+        },
+        {
+          "value": "test_discarded",
+          "label": "测试淘汰"
+        }
+      ]
+    },
+    {
+      "source": "测试结果待定",
+      "options": [
+        {
+          "value": "scale",
+          "label": "测试转放量"
+        },
+        {
+          "value": "test_discarded",
+          "label": "测试淘汰"
+        }
+      ]
+    },
+    {
+      "source": "测试暂停",
+      "options": [
+        {
+          "value": "test",
+          "label": "恢复测试"
+        },
+        {
+          "value": "pending",
+          "label": "测试结果待定"
+        },
+        {
+          "value": "scale",
+          "label": "测试转放量"
+        },
+        {
+          "value": "test_discarded",
+          "label": "测试淘汰"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "测试中仅四种后继，无当前状态/继续测试",
+    "待定只可转放量或淘汰",
+    "暂停可恢复；放量遵循自身后继",
+    "初始与再次修改均空选，不代选",
+    "必选状态与非空原因",
+    "终态无次日必填，保留当日指标并可完成",
+    "名称按本批真实文字宽度限制112–176px；全行共列；数字/成本/安排均衡适配",
+    "长金额与六位数量可见",
+    "七种视口无整页横溢",
+    "状态文字居中；短标题到状态可见文字间隔不超过76px；所有行同列",
+    "桌面五条概览小于400px",
+    "气泡不增行，不更改数值与输入DOM",
+    "保存回执/草稿/取消/Esc/减少动态效果"
+  ]
+}

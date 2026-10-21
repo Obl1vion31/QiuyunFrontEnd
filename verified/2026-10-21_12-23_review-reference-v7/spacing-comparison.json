@@ -1,0 +1,74 @@
+[
+  {
+    "version": "v6",
+    "width": 1920,
+    "nameColumn": 233.109375,
+    "titleToState": 200.796875
+  },
+  {
+    "version": "v7",
+    "width": 1920,
+    "nameColumn": 112,
+    "titleToState": 72.5
+  },
+  {
+    "case": "long-title",
+    "width": 1440,
+    "pageWidth": 1440,
+    "nameWidths": [
+      134,
+      134,
+      134
+    ],
+    "stateCenters": [
+      547.71875,
+      547.71875,
+      547.71875
+    ],
+    "scroll": {
+      "client": 1158,
+      "width": 1158
+    },
+    "tooltip": "示例：这是用于验证较长内容名称的复习方法"
+  },
+  {
+    "case": "long-title",
+    "width": 1920,
+    "pageWidth": 1920,
+    "nameWidths": [
+      176,
+      176,
+      176
+    ],
+    "stateCenters": [
+      697,
+      697,
+      697
+    ],
+    "scroll": {
+      "client": 1438,
+      "width": 1438
+    },
+    "tooltip": "示例：这是用于验证较长内容名称的复习方法"
+  },
+  {
+    "case": "long-title",
+    "width": 390,
+    "pageWidth": 390,
+    "nameWidths": [
+      112,
+      112,
+      112
+    ],
+    "stateCenters": [
+      279,
+      279,
+      279
+    ],
+    "scroll": {
+      "client": 368,
+      "width": 1140
+    },
+    "tooltip": "示例：这是用于验证较长内容名称的复习方法"
+  }
+]

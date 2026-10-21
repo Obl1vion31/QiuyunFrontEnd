@@ -1,0 +1,71 @@
+{
+  "unitTests": 157,
+  "checks": {
+    "unit": {
+      "status": "passed",
+      "completedAt": "2026-10-21T21:56:06.020872+08:00"
+    },
+    "db-check": {
+      "status": "passed",
+      "completedAt": "2026-10-21T21:41:49.388762+08:00"
+    },
+    "build-and-typecheck": {
+      "status": "passed",
+      "completedAt": "2026-10-21T22:12:16.576036+08:00"
+    },
+    "official-review-v8": {
+      "status": "passed",
+      "completedAt": "2026-10-21T22:13:47.459722+08:00"
+    },
+    "business-ui": {
+      "status": "passed",
+      "completedAt": "2026-10-21T21:46:56.742219+08:00"
+    },
+    "timeline": {
+      "status": "passed",
+      "completedAt": "2026-10-21T21:50:12.602929+08:00"
+    },
+    "intervals-and-snapshots": {
+      "status": "passed",
+      "completedAt": "2026-10-21T21:56:12.027880+08:00"
+    },
+    "authentication": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:04:09.204136+08:00"
+    },
+    "annual-plan": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:05:44.695719+08:00"
+    },
+    "schedule-workflows": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:08:29.306079+08:00"
+    },
+    "registration": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:02:34.579486+08:00"
+    },
+    "publication": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:03:00.811084+08:00"
+    },
+    "interaction": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:03:30.484533+08:00"
+    },
+    "retired-pauses": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:03:34.140360+08:00"
+    },
+    "panel-motion": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:04:01.323018+08:00"
+    },
+    "target-read-controller": {
+      "status": "passed",
+      "completedAt": "2026-10-21T17:08:44.494941+08:00"
+    }
+  },
+  "reviewed": "Desktop, narrow and mobile images, large numeric input, popover receipts, natural recording frames and animation keyframes opened for visual inspection.",
+  "zoom": "125% equivalent layout via1152 CSS px/DPR1.25; native browser zoom menu not operated."
+}

@@ -1,0 +1,75 @@
+[
+  {
+    "selector": "h1",
+    "computed": {
+      "family": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+      "size": "24px",
+      "weight": "600"
+    },
+    "fonts": [
+      {
+        "familyName": "MiSans VF",
+        "postScriptName": "MiSansVF",
+        "isCustomFont": true,
+        "glyphCount": 5
+      }
+    ]
+  },
+  {
+    "selector": ".rv-name>strong",
+    "computed": {
+      "family": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+      "size": "15px",
+      "weight": "500"
+    },
+    "fonts": [
+      {
+        "familyName": "MiSans VF",
+        "postScriptName": "MiSansVF",
+        "isCustomFont": true,
+        "glyphCount": 6
+      }
+    ]
+  },
+  {
+    "selector": ".rv-number input",
+    "computed": {
+      "family": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    "fonts": []
+  },
+  {
+    "selector": ".rv-primary",
+    "computed": {
+      "family": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+      "size": "13px",
+      "weight": "500"
+    },
+    "fonts": [
+      {
+        "familyName": "MiSans VF",
+        "postScriptName": "MiSansVF",
+        "isCustomFont": true,
+        "glyphCount": 4
+      }
+    ]
+  },
+  {
+    "selector": ".rv-np-rate",
+    "computed": {
+      "family": "\"MiSans VF\", system-ui, -apple-system, \"Segoe UI\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", sans-serif",
+      "size": "18px",
+      "weight": "500"
+    },
+    "fonts": [
+      {
+        "familyName": "MiSans VF",
+        "postScriptName": "MiSansVF",
+        "isCustomFont": true,
+        "glyphCount": 5
+      }
+    ]
+  }
+]
