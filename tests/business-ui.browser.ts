@@ -92,15 +92,12 @@ try {
     await page.goto(baseURL+'/business/daily-promotion-review');
     await page.evaluate(()=>{(window as any).__toolbar=document.querySelector('[data-promotion-toolbar]');(window as any).__tabs=document.querySelector('.toolbar-segmented');(window as any).__document=document;});
     const original=await page.locator('.toolbar-segmented').boundingBox();
-    for(const view of ['stage','daily','history','stage']) {
-      if(view==='history') await page.locator('a[href="?view=history"]').click(); else await page.locator(`[data-promotion-toolbar] a[href="?view=${view}"]`).click();
+    for(const view of ['history','daily','history','daily']) {
+      if(view==='history') await page.locator('[data-promotion-toolbar] a[href="?view=history"]').click(); else await page.locator(`[data-promotion-toolbar] a[href="?view=${view}"]`).click();
       await page.waitForURL(new RegExp(`view=${view}`));await page.waitForLoadState('networkidle');
       assert.equal(await page.evaluate(()=>(window as any).__document===document&&(window as any).__toolbar===document.querySelector('[data-promotion-toolbar]')&&(window as any).__tabs===document.querySelector('.toolbar-segmented')),true,'相邻视图保留同一工具栏和切换节点');
-      if(view==='daily'||view==='stage')await page.screenshot({path:`.tools/test-artifacts/promotion-${view}-ui-${width}.png`,fullPage:true});
-      if(view==='stage') {
-        const heights=await page.locator('.range-form input[type=date],.range-form button').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().height));
-        assert.ok(heights.every((height:number)=>height===36),'阶段筛选使用紧凑控件规格');
-      }
+      if(view==='daily'||view==='history')await page.screenshot({path:`.tools/test-artifacts/promotion-${view}-ui-${width}.png`,fullPage:true});
+
       if(view==='daily') {
         assert.equal(await page.locator('[data-pause-form]').count(),0,'团队暂停已移除');
         const dailyForm=page.locator('[data-metric-form]').first();await dailyForm.locator('[data-toggle-day-state]').click();assert.equal(await dailyForm.locator('[data-toggle-day-state]').getAttribute('aria-expanded'),'true');
@@ -108,7 +105,7 @@ try {
         assert.equal(await stateBubble.locator('input[type=date]').count(),0,'当日状态固定作用于该行日期');
         const stateControls=await stateBubble.locator('select,textarea').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));assert.equal(stateControls.length,2);assert.ok(stateControls.every((c:{height:number;size:string})=>c.height>=40&&c.size==='14px'),'状态气泡使用共享常规控件规格');
         assert.equal(await dailyForm.locator('[name=spend]').isDisabled(),false,'暂停仍允许记录实际跑量');await page.keyboard.press('Escape');
-        {const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=stage"]').click();await answer;await page.waitForURL(/view=stage/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
+        {const answer=respondToBusinessConfirm(page,true);await page.locator('[data-promotion-toolbar] a[href="?view=history"]').click();await answer;await page.waitForURL(/view=history/);await page.locator('[data-promotion-toolbar] a[href="?view=daily"]').click();await page.waitForURL(/view=daily/);await page.waitForLoadState('networkidle');}
       }
 
       const box=await page.locator('.toolbar-segmented').boundingBox();for(const key of ['x','y','width','height']) assert.ok(Math.abs(box[key]-original[key])<=1,`${width} ${view} tabs ${key}`);

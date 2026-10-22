@@ -1,3 +1,5 @@
+import {openNoteId,dismissNoteId} from './promotion-note-id';
+import {readBusiness} from './business-read';
 import {getInspector} from './business-inspector';
 import {businessConfirm} from './business-dialog';
 import {randomRequestKey,refreshPromotionSchedule} from './promotion-timeline';
@@ -38,7 +40,8 @@ function updateBubble(state:StateDraft){
  const caption=state.trigger.querySelector<HTMLElement>('[data-state-caption]');if(caption)caption.textContent=state.saved?'修改':state.target||state.reason?'未保存':'修改';
  setUnsaved();
 }
-function openStateBubble(owner:HTMLFormElement){
+async function openStateBubble(owner:HTMLFormElement){
+ if(document.querySelector('.review-note-bubble')){await dismissNoteId();if(document.querySelector('.review-note-bubble'))return;}
  const key=formKey(owner),trigger=owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;
  for(const state of stateDrafts.values())if(state.key!==key)state.form.hidden=true;
  let state=stateDrafts.get(key);
@@ -73,6 +76,7 @@ function openStateBubble(owner:HTMLFormElement){
   }catch{message.textContent=current.saved?'状态已保存，列表更新失败，可关闭后重试刷新。':'连接失败，输入已保留。';}finally{current.busy=false;updateBubble(current);}
  });updateBubble(current);trigger.setAttribute('aria-expanded','true');positionBubble(current);select.focus({preventScroll:true});
 }
+document.addEventListener('business:note-id-open',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)hideBubble(state);});
 window.addEventListener('keydown',event=>{if(event.key!=='Escape'||document.querySelector('dialog[open]'))return;const state=[...stateDrafts.values()].find(state=>!state.form.hidden);if(!state)return;event.preventDefault();event.stopImmediatePropagation();hideBubble(state);},{capture:true});
 window.addEventListener('resize',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)positionBubble(state);});
 window.addEventListener('scroll',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)positionBubble(state);},true);
@@ -87,6 +91,7 @@ function initialize(){
   form.querySelector<HTMLOutputElement>('[data-lead-cost]')!.textContent=complete?cost(Number(draft.values.spend),Number(draft.values.actualLeadCount)):'—';
   const button=form.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=draft.busy;button.textContent=draft.success?'已完成':draft.busy?'正在保存…':'完成复盘';button.toggleAttribute('data-success',!!draft.success);
   form.querySelector<HTMLElement>('[data-form-message]')!.textContent=draft.message;
+  for(const field of fields(form))if(field.type!=='hidden')field.disabled=draft.busy;for(const trigger of form.querySelectorAll<HTMLButtonElement>('[data-note-id-trigger]'))trigger.disabled=draft.busy;const stateTrigger=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]');if(stateTrigger)stateTrigger.disabled=draft.busy||!statusOptions(form).length;
   form.dataset.dirty=String(draft.dirty);
  };
  const sync=(draft:Draft)=>{for(const form of draft.views){if(!form.isConnected){draft.views.delete(form);continue;}render(form,draft);}};
@@ -94,19 +99,21 @@ function initialize(){
   if(form.dataset.dailyReady)return;form.dataset.dailyReady='true';
   const key=formKey(form);let draft=drafts.get(key);
   if(!draft){draft={values:values(form),dirty:form.dataset.dirty==='true',busy:false,message:'',requestKey:randomRequestKey(),views:new Set()};drafts.set(key,draft);}else{
-   for(const field of form.querySelectorAll<HTMLInputElement>('input[type=hidden][name]'))draft.values[field.name]=field.value;
+   for(const field of form.querySelectorAll<HTMLInputElement>('input[type=hidden][name]'))if(field.name!=='platformNoteId'||field.value||!draft.values.platformNoteId)draft.values[field.name]=field.value;
    const decision=form.querySelector<HTMLSelectElement>('[data-review-decision]');if(decision&&!Array.from(decision.options).some(option=>option.value===draft!.values.reviewDecision))draft.values.reviewDecision='';
   }
   const state=draft;state.views.add(form);render(form,state);
+  form.querySelector<HTMLButtonElement>('[data-note-id-trigger]')?.addEventListener('click',()=>openNoteId(form));
+  form.addEventListener('business:note-id-draft',event=>{const {contentId,value}=(event as CustomEvent).detail;for(const d of drafts.values())if([...d.views].some(v=>v.dataset.contentId===contentId)){d.values.platformNoteId=value;d.dirty=true;d.message='';sync(d);}setUnsaved();});
   form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')?.addEventListener('click',()=>openStateBubble(form));
   const changed=()=>{state.values=values(form);state.dirty=true;state.message='';document.documentElement.dataset.unsaved='true';sync(state);};
   form.addEventListener('input',changed);form.addEventListener('change',changed);
   form.addEventListener('business:metric-context-updated',()=>{
    const previousStatus=state.values.actualStatusSnapshot,previousDecision=state.values.reviewDecision;
    if(!state.dirty&&metricNames.every(name=>state.values[name]===''))for(const name of metricNames)state.values[name]=(form.elements.namedItem(name) as HTMLInputElement).value;
-   for(const field of form.querySelectorAll<HTMLInputElement>('input[type=hidden][name]'))state.values[field.name]=field.value;
+   for(const field of form.querySelectorAll<HTMLInputElement>('input[type=hidden][name]'))if(field.name!=='platformNoteId'||field.value||!state.values.platformNoteId)state.values[field.name]=field.value;
    const decision=form.querySelector<HTMLSelectElement>('[data-review-decision]');
-   if(decision){const wanted=['test_discarded','formal_discarded','ended'].includes(previousStatus)?state.decisionBeforeTerminal??'':previousDecision;state.values.reviewDecision=Array.from(decision.options).some(option=>option.value===wanted)?wanted:'';if(!state.values.reviewDecision&&previousDecision)state.message='当日状态已更新，请重新选择次日安排。';}
+   if(decision){const wanted=['test_discarded','formal_discarded','ended'].includes(previousStatus)?state.decisionBeforeTerminal??'':previousDecision;state.values.reviewDecision=Array.from(decision.options).some(option=>option.value===wanted)?wanted:form.dataset.actualStatus==='test_pending'?'wait_continue':'';if(!state.values.reviewDecision&&previousDecision)state.message='当日状态已更新，请重新选择次日安排。';}
    else {if(!['test_discarded','formal_discarded','ended'].includes(previousStatus))state.decisionBeforeTerminal=previousDecision;state.values.reviewDecision=(form.elements.namedItem('reviewDecision') as HTMLInputElement).value;}
    for(const mirror of state.views)if(mirror!==form){mirror.dataset.actualStatus=form.dataset.actualStatus;mirror.dataset.statusEditOptions=form.dataset.statusEditOptions;mirror.dataset.fingerprint=form.dataset.fingerprint;const trigger=mirror.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!,source=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;trigger.replaceChildren(...[...source.childNodes].map(node=>node.cloneNode(true)));trigger.disabled=source.disabled;const group=form.querySelector('.review-decision');if(group)mirror.querySelector('.review-decision')?.replaceWith(group.cloneNode(true));}
    sync(state);
@@ -116,13 +123,12 @@ function initialize(){
    const pending=stateDrafts.get(key);if(pending&&!pending.saved&&(pending.target||pending.reason)){state.message='请先保存或取消当日状态变更。';sync(state);pending.form.hidden=false;positionBubble(pending);return;}
    const note=form.querySelector<HTMLInputElement>('[data-note-id-required]');
    if(note&&!/^[0-9a-fA-F]{24}$/.test(note.value.trim())){
-    state.message='首次复盘请在详情补齐笔记 ID。';sync(state);
-    if(!form.closest('[data-inspector]')){const link=document.querySelector<HTMLAnchorElement>(`#daily-table [data-pending-record="${CSS.escape(key)}"] [data-pending-inspector]`);link?.click();requestAnimationFrame(()=>pane?.querySelector<HTMLInputElement>('[data-note-id-required]')?.focus({preventScroll:true}));}else note.focus();return;
+    state.message='请先补填笔记 ID，数值已保留。';sync(state);openNoteId(form);return;
    }
    if(!form.reportValidity())return;
    state.busy=true;state.message='正在保存…';sync(state);
    try{
-    const data=new FormData(form);data.set('requestKey',state.requestKey);data.set('fingerprint',form.dataset.fingerprint??'');
+    const data=new FormData();for(const [name,value]of Object.entries(state.values))data.set(name,value);data.set('requestKey',state.requestKey);data.set('fingerprint',form.dataset.fingerprint??'');
     const response=await fetch('/api/promotion-daily',{method:'POST',body:data,headers:{Accept:'application/json'}});
     const result=await response.json();if(!response.ok){state.message=result.message??'保存失败，请重试。';return;}
     state.dirty=false;state.success=true;state.message='复盘已完成';sync(state);
@@ -138,9 +144,42 @@ function initialize(){
   });
  };
  document.querySelectorAll<HTMLFormElement>('[data-metric-form]').forEach(bind);
+
+ const batch=document.querySelector<HTMLButtonElement>('[data-save-all]');
+ if(batch&&!batch.dataset.batchReady){batch.dataset.batchReady='true';batch.addEventListener('click',async()=>{
+  const forms=[...document.querySelectorAll<HTMLFormElement>('#daily-table [data-review-container="ready"] [data-metric-form]')];
+  if(!forms.length||forms.some(form=>drafts.get(formKey(form))?.busy))return;
+  let invalid=false;
+  for(const form of forms){const draft=drafts.get(formKey(form))!;const state=stateDrafts.get(formKey(form));
+   if(state&&!state.saved&&(state.target||state.reason)){draft.message='请先保存或取消当日状态变更。';sync(draft);if(!invalid){state.form.hidden=false;positionBubble(state);}invalid=true;continue;}
+   const note=draft.values.platformNoteId??'';
+   if(!/^[0-9a-f]{24}$/i.test(note.trim())){draft.message='请补填笔记 ID。';sync(draft);if(!invalid){form.scrollIntoView({block:'nearest'});openNoteId(form);}invalid=true;continue;}
+   if(!form.checkValidity()){draft.message='请完整填写本行指标和次日安排。';sync(draft);if(!invalid){form.scrollIntoView({block:'nearest'});form.reportValidity();}invalid=true;}
+  }
+  if(invalid)return;
+  const rows=forms.map(form=>({...drafts.get(formKey(form))!.values,requestKey:drafts.get(formKey(form))!.requestKey,fingerprint:form.dataset.fingerprint}));
+  batch.disabled=true;batch.textContent='正在保存…';for(const form of forms){const draft=drafts.get(formKey(form))!;draft.busy=true;draft.message='正在整批保存…';sync(draft);}
+  let saved=false;
+  try{const response=await fetch('/api/promotion-daily/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});const result=await response.json();
+   if(!response.ok){for(const form of forms){const draft=drafts.get(formKey(form))!;draft.message=result.key&&result.key!==formKey(form)?'整批未保存，输入已保留。':result.message??'整批未保存，输入已保留。';sync(draft);}const invalid=forms.find(form=>formKey(form)===result.key)??forms[0];invalid.scrollIntoView({block:'nearest'});if(String(result.message).includes('ID'))openNoteId(invalid,result.message);else invalid.querySelector<HTMLInputElement>('[name=spend]')?.focus({preventScroll:true});return;}
+   saved=true;for(const form of forms){const draft=drafts.get(formKey(form))!;draft.dirty=false;draft.success=true;draft.message='复盘已完成';sync(draft);}
+   const controller=pane?getInspector(pane):null,selectedKey=controller?.selected?.startsWith('review:')?controller.selected:null;const savedDetail=selectedKey?result.rows.find((row:{key:string;scheduleId:string})=>selectedKey===`review:${row.scheduleId}:${row.key}`):null;if(savedDetail)controller?.setClean();
+   batch.textContent='全部已保存';
+   await new Promise(resolve=>setTimeout(resolve,matchMedia('(prefers-reduced-motion:reduce)').matches?0:320));
+   const host=document.querySelector<HTMLElement>('[data-promotion-pending-body]')!;
+   const fresh=await readBusiness(host,async task=>{const res=await fetch(location.href,{cache:'no-store',signal:task.signal});if(!res.ok)throw new Error('列表更新失败');return new DOMParser().parseFromString(await res.text(),'text/html');});
+   if(fresh)for(const id of new Set(forms.map(form=>form.dataset.scheduleId!)))await refreshPromotionSchedule(id,fresh);
+   if(savedDetail&&controller){controller.setClean();controller.open(savedDetail.id,null,true);}
+   for(const form of forms){const key=formKey(form);drafts.delete(key);stateDrafts.get(key)?.form.remove();stateDrafts.delete(key);}
+   setUnsaved();
+  }catch{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
+  finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.disabled=!count;batch.textContent=`一键保存（${count}）`;}
+ });}
+ if(batch&&![...drafts.values()].some(d=>d.busy)){const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.textContent=`一键保存（${count}）`;batch.disabled=!count;}
+
  // 内容列依据实际字体测量，同时限制最大宽度，所有行使用相同锚点。
  const host=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
- const measureNames=()=>{if(host?.isConnected){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(ctx){let width=112;for(const name of host.querySelectorAll<HTMLElement>('.review-entry-identity strong')){ctx.font=getComputedStyle(name).font;width=Math.max(width,Math.ceil(ctx.measureText(name.textContent??'').width)+16);}host.style.setProperty('--review-name-width',`${Math.min(176,width)}px`);}}};measureNames();void document.fonts.ready.then(measureNames);
+ const measureNames=()=>{if(host?.isConnected){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(ctx){let width=112;for(const name of host.querySelectorAll<HTMLElement>('.review-entry-identity strong')){ctx.font=getComputedStyle(name).font;width=Math.max(width,Math.ceil(ctx.measureText(name.textContent??'').width)+16);}host.style.setProperty('--review-name-width',`${Math.min(176,Math.max(112,host.clientWidth-1020),width)}px`);}}};measureNames();void document.fonts.ready.then(measureNames);if(host&&!host.dataset.nameMeasureReady){host.dataset.nameMeasureReady='true';const observer=new ResizeObserver(measureNames);observer.observe(host);document.addEventListener('astro:before-swap',()=>observer.disconnect(),{once:true});}
  document.querySelectorAll<HTMLFormElement>('[data-history-mode-form]:not([data-ready])').forEach(form=>{form.dataset.ready='true';form.addEventListener('change',()=>form.requestSubmit());});
  if(!pane)return;
  // 公共模板负责开合，业务适配器仅提供同一草稿的另一份视图。

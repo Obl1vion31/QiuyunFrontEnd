@@ -62,7 +62,7 @@ ContentTunnel.module.css
 
 - `BusinessPromotionWaitRanges.astro`：每日与历史共用的待定区间和下一步编辑器。
 - `BusinessPromotionToolbar.astro`：每日／阶段／历史共同持久化的工具栏；阶段正文由 `BusinessPromotionStageView.astro` 提供。
-- `BusinessPromotionSnapshot.astro`：可供截图和例会引用的阶段汇总及来源明细。
+- `BusinessPromotionSnapshot.astro`：旧只读阶段快照与来源明细。
 - `BusinessMeetingSnapshot.astro`：五部分定稿的冻结内容及旧格式兼容展示。
 
 `BusinessInspector.astro` 与 `src/scripts/business-inspector.ts` 是所有业务详情的共同入口。使用前先读[设计规则](../../docs/DESIGN.md#共享正文与-inspector)与[接入实例](../../docs/code-study.md#共享界面接入)；几何和开关流程不能在页面复制。
@@ -78,3 +78,5 @@ ContentTunnel.module.css
 `BusinessNonPromotionTableHead.astro` 是非推广分类明细与平铺视图共用的数据表头，分类摘要采用六列单层表头，同类两轮上下排列，切换展示方式时移动同一批记录节点。
 
 `BusinessPromotionReviewRecord.astro` 是队列中的稳定活动日期记录，常规指标直接填写、未开放记录使用紧凑行；不以 details 重复嵌套填写卡片。
+
+`BusinessWeeklyMeeting.tsx` 使用共享框架中的 v4 周例会编辑，`WeeklyReviewCards.tsx` 共用候选／冻结卡片，`BusinessWeeklySnapshot.astro` 显示定稿；旧 `BusinessMeetingSnapshot` 保留 v2/v3 分支。新增 UI 仍遵循公共控件、加载和未保存保护。

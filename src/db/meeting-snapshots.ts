@@ -9,7 +9,8 @@ import { operationsContentSchedule as schedules, operationsContentVersion as ver
 import type { StageSnapshot } from './promotion-stage-reviews';
 const text = z.string().max(10000).default('');
 export const meetingDraftSchema = z.object({
-  schemaVersion: z.union([z.literal(2), z.literal(3)]), coreConclusion: text, nextAction: text,
+  schemaVersion: z.union([z.literal(2), z.literal(3),z.literal(4)]), coreConclusion: text, nextAction: text,
+  promotionSelections:z.array(z.string().min(1).max(200)).max(500).default([]),materialFingerprint:z.string().max(64).optional(),
   situation: text, strategy: text, temporaryNotes: text,
   promotionSnapshotIds: z.array(z.uuid()).max(20).default([]), attachmentIds: z.array(z.uuid()).max(20).default([]),
   temporaryLinks: z.array(z.object({ label: z.string().max(200), url: z.url().max(2000).refine(v => /^https?:\/\//i.test(v), '只支持 HTTP/HTTPS 链接') })).max(20).default([]),
@@ -17,7 +18,7 @@ export const meetingDraftSchema = z.object({
   issues: z.array(z.object({ id: z.uuid().optional(), problem: z.string().trim().min(1).max(2000), conclusion: text, status: z.enum(['pending','validating','resolved','paused']) })).max(100),
   nonPromotionSelections: z.array(z.object({ scheduleId: z.uuid(), checkpointType: z.enum(['day_7','day_15']) })).max(500),
 }).superRefine((v, ctx) => {
-  for (const values of [v.promotionSnapshotIds, v.attachmentIds, v.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`), v.issues.flatMap(i => i.id ? [i.id] : [])]) if (values.length !== new Set(values).size) ctx.addIssue({ code: 'custom', message: '引用或勾选重复' });
+  for (const values of [v.promotionSelections, v.promotionSnapshotIds, v.attachmentIds, v.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`), v.issues.flatMap(i => i.id ? [i.id] : [])]) if (values.length !== new Set(values).size) ctx.addIssue({ code: 'custom', message: '引用或勾选重复' });
 });
 export async function readMeetingMaterial(db: Database, meeting: typeof meetings.$inferSelect) {
   const [content, campaignRows, daily, reviews, policyRows, checkpointEvents, priorVersions, meetingRows] = await Promise.all([

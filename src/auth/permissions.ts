@@ -23,6 +23,7 @@ export function requiresAdmin(path: string, method: string) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) return false;
   // 年度与排期写入由逐账号操作权限在事务内检查；其他危险操作沿用原管理员边界。
   if(isConfigurableBusinessWrite(normalized,method))return false;
+  if(normalized==='/api/promotion-daily/batch'&&method==='POST')return false;
   if (method === 'DELETE') return true;
   if (normalized === '/api/operations-annual-plans' || normalized.startsWith('/api/operations-annual-plans/')) return true;
   if (/^\/api\/operations-content\/[^/]+\/platform-note-id$/.test(normalized)) return true;

@@ -1,21 +1,21 @@
 ---
 import BusinessConsoleToolbar from './BusinessConsoleToolbar.astro';
 import BusinessToolbarSegmented from './BusinessToolbarSegmented.astro';
-const { stage = false } = Astro.props;
+const { history = false } = Astro.props;
 ---
 <div transition:persist="promotion-toolbar" data-promotion-toolbar>
-  <BusinessConsoleToolbar title="推广帖复盘" subtitle="每日数据 · 阶段快照" mobilePriority="center">
+  <BusinessConsoleToolbar title="推广帖复盘" subtitle="每日数据 · 历史总览" mobilePriority="center">
     <BusinessToolbarSegmented slot="center" label="推广复盘视图" items={[
-      {label:'每日复盘',href:'?view=daily',active:!stage},
-      {label:'阶段复盘',href:'?view=stage',active:stage},
+      {label:'每日复盘',href:'?view=daily',active:!history},
+      {label:'历史总览',href:'?view=history',active:history},
     ]}/>
   </BusinessConsoleToolbar>
 </div>
 <script>
 const updatePromotionTabs = () => {
-  const stage = new URL(location.href).searchParams.get('view') === 'stage';
+  const history = new URL(location.href).searchParams.get('view') === 'history';
   document.querySelectorAll<HTMLAnchorElement>('[data-promotion-toolbar] .toolbar-segmented a').forEach(link => {
-    const active = (new URL(link.href).searchParams.get('view') === 'stage') === stage;
+    const active = (new URL(link.href).searchParams.get('view') === 'history') === history;
     link.classList.toggle('active', active);
     if (active) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
   });

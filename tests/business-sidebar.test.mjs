@@ -86,8 +86,8 @@ test('推广相邻视图复用一个工具栏并保留公共节点', async () =>
   const source = await readFile(new URL('../src/components/BusinessPromotionToolbar.astro', import.meta.url), 'utf8');
   assert.match(source, /transition:persist="promotion-toolbar"/);
   assert.match(source, /每日复盘/);
-  assert.match(source, /阶段复盘/);
-  assert.doesNotMatch(source, /历史总览/);
+  assert.match(source, /历史总览/);
+  assert.doesNotMatch(source, /阶段复盘/);
 });
 
 test('生命周期采用真实阶段节点，数据在本帖展开并进入共享详情', async () => {

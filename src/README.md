@@ -20,6 +20,6 @@
 
 修改共享导航、字体或布局进入共享组件，不在页面复制壳层。客户端不得导入数据库连接和认证密钥。业务写入使用服务端校验与事务，角色从已验证会话读取。新增入口同步检查[已确认边界](../docs/DECISIONS.md)和对应目录说明。
 
-推广复盘统一由 `pages/business/daily-promotion-review.astro` 承载每日／阶段，历史收在每日内部；阶段正文复用 `BusinessPromotionStageView`，旧阶段页仅做兼容重定向。例会五部分位于 `meeting-review.astro`，草稿和定稿的事实装配在 `db/meeting-snapshots.ts`；图片只走受认证的 `api/meeting-attachments`，不放入公开资源。
+推广页承载每日／历史；新增阶段复盘进入周例会，`BusinessPromotionStageView` 只读展示旧快照。`meeting-review.astro` 区分旧 v2/v3 编辑与 v4 周例会，v4 候选／基准在 `db/meeting-weekly-material.ts`，卡片和编辑在 `BusinessWeeklyMeeting`／`WeeklyReviewCards`。图片只走认证接口，不放入公开资源。
 
 推广状态由 `db/promotion-timeline.ts` 维护业务日期、首次安排、实际当日暂停及历史更正；推广历史和排期通过同一组件展示。排期待审直接位于排期管理，设置只保留年度审核与全局规则。

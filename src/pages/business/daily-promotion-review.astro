@@ -45,6 +45,7 @@ const addDays = (dateKey: string, amount: number) => {
 const now=new Date();
 const today = shanghaiDateKey(now);
 const yesterday = addDays(today, -1);
+if(Astro.url.searchParams.get('view')==='stage'&&!Astro.url.searchParams.has('review')&&!Astro.url.searchParams.has('snapshot')){const target=new URL('/business/meeting-review',Astro.url);for(const key of ['from','to']){const value=Astro.url.searchParams.get(key);if(value)target.searchParams.set(key,value);}return Astro.redirect(target.pathname+target.search,302);}
 const activeView = ['history','stage'].includes(Astro.url.searchParams.get('view') ?? '') ? Astro.url.searchParams.get('view')! : 'daily';
 const isDateKey = (value: string | null): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 const requestedHistoryFrom = Astro.url.searchParams.get('from');
@@ -215,7 +216,7 @@ const historyHref = (overrides: Record<string, string>) => {
   </head>
   <body>
     <BusinessConsoleFrame active="daily-promotion">
-        <BusinessPromotionToolbar stage={activeView==='stage'} />
+        <BusinessPromotionToolbar history={activeView==='history'} />
 
         <main class="business-console-content">
 
@@ -228,7 +229,7 @@ const historyHref = (overrides: Record<string, string>) => {
             {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
           </section>
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
-            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><Fragment slot="end"><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
+            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><Fragment slot="end"><button type="button" class="business-action-primary" data-save-all disabled={!pendingCount}>一键保存（{pendingCount}）</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
             <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
           </section>
 

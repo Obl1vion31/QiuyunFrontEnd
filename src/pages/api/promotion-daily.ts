@@ -1,8 +1,7 @@
-import {normalizePromotionActualStatus,promotionNextOptions} from '../../db/promotion-successors.mjs';
-import {timelineFingerprint,promotionSnapshot} from '../../db/promotion-timeline';
+import {writePromotionDaily} from '../../db/promotion-daily-write';
 import {platformNoteIdSchema} from '../../db/platform-note-id';
 import type { APIRoute } from 'astro';
-import { and, asc, eq, inArray, or, sql } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
@@ -11,17 +10,15 @@ import {
   operationsContentVersion,
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
-  operationsPromotionStage,
-  operationsSubject,operationsPromotionTimelineAudit,
+  operationsSubject,
 } from '../../db/schema';
 import {
   calculateActualPromotionCosts,
-  replayPromotionHistory,
   shanghaiDateKey,nextDateKey,
 } from '../../db/promotion-rules.mjs';
 import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/promotion-validation';
-import { attachPromotionToActivePause, guardPromotionStart, lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
-import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, effectivePromotionStatus, firstMissingPromotionDate, promotionReplayOptions } from '../../db/promotion-state.mjs';
+import { lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
+import { effectivePromotionStatus } from '../../db/promotion-state.mjs';
 import { WorkflowError } from '../../db/schedule-workflow';
 
 export const prerender = false;
@@ -133,100 +130,7 @@ export const POST: APIRoute = async ({ request, url,locals }) => {
   try {
     const saved = await getDb().transaction(async (transaction) => {
       await lockPromotionWorkflow(transaction);
-      await transaction.execute(
-        // Serialize reviews for the same campaign so two dates cannot be finalized out of order.
-        sql`select id from operations_promotion_campaign where id = ${result.data.campaignId} for update`,
-      );
-      const [campaign] = await transaction.select({
-        id: operationsPromotionCampaign.id,
-        scheduleId: operationsPromotionCampaign.scheduleId,
-        startedOn: operationsPromotionCampaign.startedOn,
-        initialStage: operationsPromotionCampaign.initialStage,
-        dailyReviewEnabledOn:operationsPromotionCampaign.dailyReviewEnabledOn,endedOn:operationsPromotionCampaign.endedOn,
-        currentStage: operationsPromotionCampaign.currentStage,
-        currentStatus: operationsPromotionCampaign.currentStatus,
-        contentId: operationsContent.id,
-        platformNoteId: operationsContent.platformNoteId,
-      }).from(operationsPromotionCampaign)
-        .innerJoin(operationsContentSchedule, eq(operationsPromotionCampaign.scheduleId, operationsContentSchedule.id))
-        .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
-        .innerJoin(operationsContent, eq(operationsContentVersion.contentId, operationsContent.id))
-        .where(eq(operationsPromotionCampaign.id, result.data.campaignId))
-        .limit(1);
-      if (!campaign) return { kind: 'missing' as const };
-      if(result.data.requestKey){const [repeat]=await transaction.select().from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.requestKey,result.data.requestKey));if(repeat){const prior=(repeat.after.metrics as Array<Record<string,unknown>>|undefined)?.find(m=>m.id===repeat.after.metricId);if(repeat.scheduleId!==campaign.scheduleId||repeat.changedById!==locals.user!.id||repeat.businessDate!==result.data.metricDate||!prior||['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].some(key=>Number(prior[key])!==Number(result.data[key as 'spend']))||prior.reviewDecision!==result.data.reviewDecision||prior.recordKind!==result.data.recordKind)throw new WorkflowError('请求编号已被使用，请重新保存。');return {kind:'saved' as const,id:String(repeat.after.metricId),nextStatus:String(repeat.after.nextStatus)};}}
-      const before=result.data.requestKey||result.data.fingerprint?await promotionSnapshot(transaction,campaign.scheduleId):null;
-      if(result.data.fingerprint&&timelineFingerprint(before)!==result.data.fingerprint)throw new WorkflowError('推广记录已变化，请刷新后核对。');
-
-      if (!campaign.platformNoteId && !result.data.platformNoteId) return { kind: 'note-id-required' as const };
-      const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
-        .where(eq(operationsPromotionDailyMetric.campaignId, campaign.id))
-        .orderBy(asc(operationsPromotionDailyMetric.metricDate));
-      if(allMetrics.some(m=>m.metricDate===result.data.metricDate))return {kind:'duplicate' as const};
-      const context = await readPromotionContext(transaction);
-      const residual=result.data.recordKind==='test_residual';
-      const windows = [...campaignPauseWindows(campaign, context), ...campaignWaitWindows(campaign, context), ...context.holds.filter(hold => hold.campaignId === campaign.id)];
-      const expectedDate = firstMissingPromotionDate(allMetrics.filter(m=>m.recordKind!=='test_residual'), campaign.startedOn, windows);
-      const dailyState = promotionStateOn(campaign, context, result.data.metricDate);
-      const actualStatus=dailyState?normalizePromotionActualStatus(dailyState.currentStatus,dailyState.currentStage):null;
-      if(residual){
-        if(campaign.currentStatus!=='test_discarded'||!campaign.endedOn||result.data.metricDate<=campaign.endedOn||result.data.stageTypeSnapshot!=='testing'||result.data.reviewDecision!=='test_discarded')return {kind:'invalid-residual' as const};
-      }else{
-        if(result.data.metricDate!==expectedDate)return {kind:'out-of-order' as const,expectedDate};
-        const terminalToday=context.stateChanges.find(c=>c.campaignId===campaign.id&&c.businessDate===result.data.metricDate&&c.actualStatus===actualStatus&&['test_discarded','formal_discarded','ended'].includes(c.actualStatus??''));
-        if(!dailyState?.currentStage&&!terminalToday)return {kind:'closed' as const};
-        const expectedDailyStatus=['testing','scaling'].includes(actualStatus!)?'active':'waiting_action';
-        if(result.data.dailyStatus!==expectedDailyStatus||result.data.stageTypeSnapshot!==(dailyState?.currentStage??terminalToday?.stageType)||(!terminalToday&&!promotionNextOptions(actualStatus!).some(o=>o.value===result.data.reviewDecision))||(terminalToday&&result.data.reviewDecision!==actualStatus))return {kind:'invalid-decision' as const};
-      }
-      const sourceStages=await transaction.select().from(operationsPromotionStage).where(eq(operationsPromotionStage.campaignId,campaign.id)).orderBy(asc(operationsPromotionStage.startedOn));
-      const sourceStageStartedOn=result.data.stageTypeSnapshot==='testing'?campaign.startedOn:[...sourceStages.filter(s=>s.stageType==='scaling').map(s=>s.startedOn),...context.stateChanges.filter(c=>c.campaignId===campaign.id&&c.stageType==='scaling').map(c=>c.businessDate),...allMetrics.filter(m=>m.reviewDecision==='start_scaling').map(m=>nextDateKey(m.metricDate)),...(campaign.initialStage==='scaling'?[campaign.startedOn]:[])].sort()[0]??result.data.metricDate;
-      const newFact={...result.data,actualStatusSnapshot:residual?'test_discarded':actualStatus,sourceStageStartedOn};
-      const replayed=residual?null:replayPromotionHistory(campaign.startedOn,[...allMetrics,newFact].sort((a,b)=>a.metricDate.localeCompare(b.metricDate)),{...promotionReplayOptions(campaign,context),asOf:today});
-      if(!residual&&!replayed)return {kind:'invalid-decision' as const};
-      if (!campaign.platformNoteId && result.data.platformNoteId) {
-        await transaction.update(operationsContent).set({
-          platformNoteId: result.data.platformNoteId,
-          updatedAt: new Date(),
-        }).where(eq(operationsContent.id, campaign.contentId));
-      }
-      const [metric] = await transaction.insert(operationsPromotionDailyMetric).values({
-        campaignId: campaign.id,
-        metricDate: result.data.metricDate,
-        dailyStatus: residual?'waiting_action':result.data.dailyStatus,
-        actualStatusSnapshot:newFact.actualStatusSnapshot,recordKind:result.data.recordKind,sourceStageStartedOn,
-        stageTypeSnapshot: result.data.stageTypeSnapshot,
-        spend: result.data.spend.toFixed(2),
-        clickRate: null,
-        platformOpenCount: result.data.platformOpenCount,
-        actualOpenCount: result.data.actualOpenCount,
-        platformLeadCount: result.data.platformLeadCount,
-        actualLeadCount: result.data.actualLeadCount,
-        reviewDecision: result.data.reviewDecision,
-        note: result.data.note ?? null,
-      }).returning({ id: operationsPromotionDailyMetric.id });
-
-      const audit=async(nextStatus:string)=>{if(result.data.requestKey)await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:result.data.requestKey,businessDate:result.data.metricDate,action:residual?'test_residual':'daily_review',reason:result.data.note||'完成每日复盘',before:before??{},after:{...await promotionSnapshot(transaction,campaign.scheduleId),metricId:metric.id,nextStatus},changedById:locals.user!.id,changedByLabel:locals.user!.username});};
-      if(residual){await audit(campaign.currentStatus);return {kind:'saved' as const,id:metric.id,nextStatus:campaign.currentStatus};}
-      if(!replayed)throw new Error('Missing validated lifecycle');
-      await transaction.delete(operationsPromotionStage)
-        .where(eq(operationsPromotionStage.campaignId, campaign.id));
-      for (const stage of replayed.stages) {
-        await transaction.insert(operationsPromotionStage).values({ campaignId: campaign.id, ...stage });
-      }
-
-      await transaction.update(operationsPromotionCampaign).set({
-        currentStage: replayed.currentStage,
-        currentStatus: replayed.currentStatus,
-        endedOn: replayed.endedOn,
-        updatedAt: new Date(),
-      }).where(eq(operationsPromotionCampaign.id, campaign.id));
-      await transaction.update(operationsContentSchedule).set({
-        promotionStatus: replayed.currentStatus,
-        updatedAt: new Date(),
-      }).where(eq(operationsContentSchedule.id, campaign.scheduleId));
-
-      await audit(replayed.currentStatus);
-      return { kind: 'saved' as const, id: metric.id, nextStatus: replayed.currentStatus };
+      return writePromotionDaily(transaction,result.data,locals.user!);
     });
 
     if(saved.kind==='duplicate')return Response.json({message:'这一天已经完成复盘，请核对后更正原记录。'},{status:409});

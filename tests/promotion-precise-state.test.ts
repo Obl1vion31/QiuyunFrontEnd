@@ -136,7 +136,7 @@ test('真实日度 API 原子保存 ID 与指标、幂等返回、T+1、非零�
  response=await post(values);assert.equal(response.status,201);assert.equal((await response.json()).id,saved.id);
  const facts=(await promotionSnapshot(db,schedule.id)).metrics;assert.equal(facts.length,1);assert.equal(facts[0].spend,'40.00');assert.equal(facts[0].sourceStageStartedOn,'2026-10-17');
  response=await post({...values,requestKey:randomUUID(),metricDate:'2026-10-18'});assert.equal(response.status,409,'旧指纹阻止覆盖');
- response=await post({...values,requestKey:randomUUID(),fingerprint:undefined,metricDate:'2026-10-21'});assert.equal(response.status,422,'T+1 阻止今天指标');
+ response=await post({...values,requestKey:randomUUID(),fingerprint:undefined,metricDate:new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())});assert.equal(response.status,422,'T+1 阻止今天指标');
  response=await post({...values,requestKey:randomUUID(),fingerprint:undefined,metricDate:'2026-10-19'});assert.equal(response.status,409,'前一天未完成不可越过');
  await change(schedule.id,'2026-10-18','test_discarded');
  response=await post({...values,requestKey:randomUUID(),fingerprint:undefined,metricDate:'2026-10-18',actualStatusSnapshot:'test_discarded',reviewDecision:'test_discarded'});assert.equal(response.status,201,JSON.stringify(await response.clone().json()));

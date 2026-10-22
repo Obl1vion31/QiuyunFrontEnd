@@ -1,0 +1,15 @@
+---
+import {PromotionCards,NonPromotionCards} from './WeeklyReviewCards';
+import '../styles/meeting-weekly.css';
+const {snapshot}=Astro.props;
+const {generated={},draft={},meeting={}}=snapshot;
+const summary=generated.summary??{};
+const money=(v:number|null)=>v==null?'—':`¥${Number(v).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+---
+<article class="weekly-frozen" data-meeting-snapshot data-weekly-snapshot>
+ <section class="weekly-paper"><header><div><h2>本期结论与行动</h2><p>{meeting.periodStart} — {meeting.periodEnd} · 已定稿快照</p></div></header><div class="weekly-summary"><div><span>实际跑量帖子</span><strong>{summary.posts??'—'}<small>篇</small></strong></div><div><span>本期总消耗</span><strong>{money(summary.spend)}</strong></div><div><span>实际开口成本</span><strong>{money(summary.actualOpenCost)}</strong></div><div><span>实际留资成本</span><strong>{money(summary.actualLeadCost)}</strong></div></div><div class="weekly-writing-grid">{[['跑量情况',draft.situation],['本周具体动作',draft.strategy],['核心结论与整体总结',draft.coreConclusion],['下一步行动',draft.nextAction]].map(([title,value])=><div><h3>{title}</h3><p style="white-space:pre-wrap">{value||'尚未填写'}</p></div>)}</div>{draft.issues?.map((i:any)=><p><strong>{i.problem}</strong> · {i.conclusion||'暂无进展'}</p>)}</section>
+ <section class="weekly-calendar-link"><strong>内容发布排期核对</strong><a href={`/business/operations-schedule?month=${meeting.periodStart?.slice(0,7)}`}>查看月历 ↗</a></section>
+ <section class="weekly-paper"><header><h2>推广帖阶段复盘</h2></header><PromotionCards rows={generated.promotions??[]} inputs={draft.promotionInputs??{}} readonly/>{!generated.promotions?.length&&<p class="weekly-empty">本次未选推广阶段</p>}</section>
+ <section class="weekly-paper"><header><h2>非推广帖复盘</h2></header><NonPromotionCards rows={generated.nonPromotions??[]} readonly/>{!generated.nonPromotions?.length&&<p class="weekly-empty">本次未选非推广节点</p>}</section>
+ <section class="weekly-paper"><header><h2>其他事项</h2></header><p>{draft.temporaryNotes||'尚未填写'}</p>{draft.temporaryLinks?.map((l:any)=><p><a href={l.url} target="_blank" rel="noreferrer">{l.label||l.url}</a></p>)}<div class="weekly-images">{generated.attachments?.map((a:any)=><a href={`/api/meeting-attachments/${a.id}`}><img src={`/api/meeting-attachments/${a.id}`} alt={a.name}/></a>)}</div></section>
+</article>

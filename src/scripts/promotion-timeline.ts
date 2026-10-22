@@ -74,7 +74,7 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
    for(const [key,value]of Object.entries(next.dataset))live.dataset[key]=value;
    const changed=oldForm.dataset.actualStatus!==nextForm.dataset.actualStatus;
    for(const [key,value]of Object.entries(nextForm.dataset))if(!['dailyReady','dirty'].includes(key))oldForm.dataset[key]=value;
-   for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field)field.value=input.value;}
+   for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field&&(input.name!=='platformNoteId'||input.value||!field.value))field.value=input.value;}
    if(changed){
     if(nextForm.dataset.defaultZero==='true'&&oldForm.dataset.dirty!=='true'&&['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].every(name=>(oldForm.elements.namedItem(name) as HTMLInputElement).value===''))for(const name of ['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'])(oldForm.elements.namedItem(name) as HTMLInputElement).value='0';
     const trigger=oldForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!,newTrigger=nextForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;

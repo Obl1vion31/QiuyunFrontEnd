@@ -25,8 +25,10 @@
 
 `business-change-diff.ts` 用安全文本节点生成纵向字段对照，与 `BusinessChangeDiff.astro` 共用 `business-changes.css`；用于异步排期申请详情，不引入独立滚动容器。
 
-推广待办由 `promotion-daily-form.ts` 管理活动＋日期草稿、独立状态气泡与 Inspector 镜像；`promotion-timeline.ts` 按稳定键合并所有相关队列及分组，保留其他节点和输入。`promotion-residual.ts` 提供笔记 ID 搜索、显式选择活动／版本／日期及固定残留行，与正常日度共用 API。
+推广待办由 `promotion-daily-form.ts` 管理活动＋日期草稿、独立状态气泡、轻量笔记 ID 草稿、一键保存与 Inspector 镜像；`promotion-timeline.ts` 按稳定键合并所有相关队列及分组，保留其他节点和输入。`promotion-residual.ts` 提供笔记 ID 搜索、显式选择活动／版本／日期及固定残留行，与正常日度共用 API。
 
 `promotion-disclosure.ts` 管理数据的成对展开／收起；文字、比例与轨道几何保持稳定，收起归零后才关闭原生 details。快速反向、键盘与减少动态效果统一处理，筛选、读取详情和局部刷新不重播。
 
 `business-data-motion.ts` 按真实导航区分生命周期与非推广结果展示，等新画面可见后按约 600ms 顺序呈现真实节点和连线，或轻量呈现结果；从其他模块返回会重播，同视图筛选、详情和局部保存不重播。工作表单不接入，减少动态效果统一静态显示。
+
+`promotion-note-id.ts` 负责首次 ID 的锚定气泡和只读查看，确认由同 contentId 草稿同步；已有 ID 更正仍走原确认入口。

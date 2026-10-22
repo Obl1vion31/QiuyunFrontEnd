@@ -55,9 +55,9 @@ flowchart LR
 
 ## 推广阶段与例会入口
 
-- `/business/daily-promotion-review?view=stage`：自选日期、预览及 V0/V1+ 快照；聚合与存储在 `src/db/promotion-stage-reviews.ts`，接口为 `/api/promotion-stage-reviews`。旧 `/api/stage-reviews` 继续作为例会兼容入口。
+- `/business/daily-promotion-review`：每日与历史共用顶栏。`?view=stage` 无快照时带日期转入周例会；已有 review／snapshot 只读，聚合与保存接口保留旧业务兼容。
 - `src/db/promotion-wait-ranges.ts` 与 `/api/promotion-wait-ranges`：逐帖区间、次日动作和历史保护；每日和历史的状态入口由 `BusinessPromotionTimeline` 按场景呈现，共用原读写与回放规则。共用时序推导在 `promotion-rules.mjs` 与 `promotion-state.mjs`。
-- `src/db/meeting-snapshots.ts`：例会草稿校验和服务端生成的引用事实；`BusinessMeetingSnapshot` 展示冻结版本。`/api/meeting-attachments` 负责登录保护的图片上传和读取。
+- `src/db/meeting-snapshots.ts` 保留 v2/v3 校验装配；`meeting-weekly-material.ts` 生成 v4 周例会候选、区间总量、历史／同期基准与来源指纹，`BusinessWeeklyMeeting`／`WeeklyReviewCards` 承载编辑，`BusinessWeeklySnapshot` 同结构显示冻结结果。`GET /api/meeting-reviews/:id/material` 显式刷新，PATCH 保存／定稿只接收选择与人工内容；图片继续走认证接口。
 
 ## 共享界面接入
 
@@ -121,3 +121,13 @@ flowchart LR
 推广待办的真实双入口实例在 `promotion-daily-form.ts`：以活动与业务日期定位草稿，录入行与 Inspector 为同一草稿的两个视图；模板提供排期资料，表单沿用原接口。公共 Inspector 的可选 `discard` 钩子恢复业务适配器的入口快照，`refresh` 只重绘干净详情；`setLocalParameters` 原子更新已注册展示参数，不制造多次浏览器历史。非推广 `group` 保留旧 0/1 兼容含义，新增 `bucket` 定位学科＋分类的明细；`non-promotion-groups.ts` 同供 SSR、保存后刷新与单元验证，不能与同轮基准样本池混用。
 
 推广精确状态和后继选择共用 `promotion-successors.mjs`；`promotionDayStatusEdit` 排除该日已有覆盖后回放原状态，SSR 和事务共用更正选项，误选终态可恢复该日原状态且不开放历史终态之后重启。状态气泡只传行日期、目标状态与原因，保存后仍显示“修改”，次日安排独立；终态与进行中互改时原位恢复相应选择控件，保留数字草稿。`promotion-residual.ts` 复用日度 API 的笔记搜索／残留保存；服务端稳定归属由日度事实的 `sourceStageStartedOn` 及阶段聚合维护，不以临时阶段行 ID 关联。
+
+### 每日轻量补 ID 与批量复盘
+
+`BusinessPromotionMetricForm` 的内容／版本区只加 ID 提示，`promotion-note-id.ts` 管理锚定小气泡；通过 `business:note-id-draft` 写入 `promotion-daily-form.ts` 的同 contentId 共享草稿。首次补 ID 不调用 Inspector，名称详情仍沿用公共 Inspector。已有 ID 不由日度覆盖。
+
+`promotion-daily-write.ts` 复用原单条事务写入；`api/promotion-daily/batch.ts` 先校验事务初始指纹、内容 ID 一致性，再按稳定顺序写入，任何一行失败整批回滚。浏览器只捕获当前 ready 队列，镜像去重，成功用同一服务端文档按 schedule 合并，不替换其他输入节点。
+
+### 周例会卡片与读取反馈
+
+周例会 React 岛复用 Frame、Toolbar、BusinessDateTimeFields、表单变量与 `businessConfirm`；异步候选调用公共 `readBusiness`，保留当前人工输入和勾选，区间变动使旧响应失效。条件筛选仅设置卡片 hidden，完整事实／比较来源由服务端保存到 v4 JSON，不增加表结构。新模式用 `tests/meeting-weekly.browser.ts` 验证正式组件和隔离业务数据，旧 v2/v3 与旧阶段只读兼容继续由 `test:reviews` 验证。

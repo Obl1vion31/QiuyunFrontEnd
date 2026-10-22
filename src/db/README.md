@@ -18,7 +18,8 @@
 
 - `promotion-wait-ranges.ts`：逐帖待定区间、次日生效计划、并发版本与历史级联保护。
 - `promotion-stage-reviews.ts`：自选区间测试／放量聚合、缺口和来源事实、不可变 V0/V1+ 快照。
-- `meeting-snapshots.ts`：五部分例会草稿校验、非推广候选及服务端事实组装，引用绑定具体快照版本。
+- `meeting-snapshots.ts`：旧 v2/v3 例会兼容与通用草稿校验；`meeting-weekly-material.ts`：v4 周例会的实际日期候选、跨期阶段、基准、来源指纹及二轮首轮对照。
+- `promotion-daily-write.ts`：单条／批量共用事务写入，批量入口统一先验指纹和共享 ID，任何错误整批回滚。
 
 - `publication-workflow.ts`：统一发布登记、帖子链接和按操作授权的时间更正事务；`publication-rules.mjs` 维护发布状态及历史空链接边界，旧预约只保留历史。
 

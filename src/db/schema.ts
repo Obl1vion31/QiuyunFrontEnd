@@ -667,7 +667,10 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 ]);
 
 export interface WeeklyMeetingDraft {
-  schemaVersion: 2 | 3;
+  schemaVersion: 2 | 3 | 4;
+  promotionSelections?: string[];
+  materialFingerprint?: string;
+  materialSnapshot?: Record<string, unknown>;
   situation?: string;
   strategy?: string;
   promotionSnapshotIds?: string[];
