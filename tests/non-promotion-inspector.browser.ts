@@ -57,7 +57,11 @@ try {
   await context.route('https://fictional.example.test/**',(route:any)=>route.fulfill({status:200,contentType:'text/html',body:'<html><body>隔离资料页面</body></html>'}));
   await context.route('https://www.xiaohongshu.com/**',(route:any)=>route.fulfill({status:200,contentType:'text/html',body:'<html><body>隔离帖子页面</body></html>'}));
   const nav = async(path:string) => {await page.goto(baseURL+path);await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);};
-  const shot = async(name:string) => page.screenshot({path:folder+'/'+name+'.png',fullPage:false});
+  const shot = async(name:string) => {
+    await pane.evaluate(async(node:HTMLElement)=>{await Promise.allSettled(node.getAnimations({subtree:true}).map(a=>a.finished));});
+    await page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+    await page.screenshot({path:folder+'/'+name+'.png',fullPage:false});
+  };
   const row = (id:string,round='day_7')=>page.locator('[data-inspector-key="'+id+':'+round+'"]');
   const pane = page.locator('[data-inspector]');
   const close = async()=>{await pane.locator('[data-close-inspector]').click();await pane.waitFor({state:'hidden'});};
@@ -137,7 +141,10 @@ try {
     await shot('missing-resources-'+width);await close();
     await row(long.schedule.id).locator('.review-entry-button').click();await pane.waitFor({state:'visible'});
     assert.equal(await pane.locator('[name=platformNoteId]').count(),1);
-    await shot('long-title-'+width);await close();
+    await shot('long-title-'+width);
+    const toolbar = await page.locator('.business-toolbar').boundingBox();
+    assert.ok(toolbar&&Math.abs(toolbar.y)<=1,'滚动后打开详情保留顶部工具栏：'+JSON.stringify(toolbar));
+    await close();
   }
   checks.push('1440/1024/390/320px 三入口、键盘、准确身份、缺资料、长标题、焦点与草稿保护');
   assert.equal(documents,0,'打开及切换详情无文档导航');

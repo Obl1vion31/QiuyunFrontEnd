@@ -160,7 +160,8 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   html,body{min-height:100%;background:var(--console-canvas)}
   html{scrollbar-gutter:stable}
   html[data-business-scroll-locked]{overflow:hidden;overscroll-behavior:none}
-  body{margin:0;overflow-x:hidden}
+  /* Clip horizontal overflow without creating an ancestor scroll container for sticky toolbars. */
+  body{margin:0;overflow-x:clip}
   .business-console-frame{width:100%;font-family:var(--console-font);font-size:var(--console-text);line-height:var(--console-text-leading)}
   .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
   .business-console-content{box-sizing:border-box;width:auto;max-width:none;margin:0;padding:var(--console-content-top) var(--console-content-x) 46px;min-width:0}
