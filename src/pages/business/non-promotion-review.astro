@@ -8,6 +8,7 @@ import BusinessNonPromotionTableHead from '../../components/BusinessNonPromotion
 import {nonPromotionGroupLabel} from '../../db/non-promotion-groups';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
+import { businessDateTime } from '../../scripts/business-date';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 import { subjects } from '../../db/taxonomy';
@@ -56,13 +57,12 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
           return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
             <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':false}]} >{shanghaiDateKey(item.row.actualPublishAt)}</span>
             <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':false}]}  title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
-              <span class="review-post-title">{item.row.projectDocUrl?<a href={item.row.projectDocUrl} target="_blank" rel="noreferrer"><strong>{item.row.contentName}</strong><i aria-hidden="true">↗</i></a>:<strong>{item.row.contentName}</strong>}<small>V{item.row.versionNumber}</small><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small></span>
-              {!item.row.projectDocUrl&&<small>项目文档待补</small>}
+              <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={'查看详情：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small></span>
             </span>
             <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
             <span role="cell" aria-colindex="4" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
             <span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
-            <span role="cell" aria-colindex="6" data-review-common class="review-category-column" data-label="分类"  >{item.row.subjectName} / {item.row.categoryName||'临时帖'}</span>
+            <span role="cell" aria-colindex="6" class="review-action-cell" data-label="操作"><button type="button" class="review-entry-button" data-inspector-trigger aria-label={(activeView==='pending'?'点击录入':'查看详情')+'：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}>{activeView==='pending'?'点击录入':'查看详情'}</button></span>
           </div>;
         })}
 
@@ -74,7 +74,16 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
       <BusinessInspector class="inspector" parameter="row" templates />
       {tableRows.map(selected => <template data-inspector-template={selected.key}>
         <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 data-inspector-title>{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'} · V{selected.row.versionNumber}</p></div><a href={baseHref} data-close-inspector aria-label="关闭详情">×</a></header>
-        <section class="identity-panel"><label>小红书笔记 ID</label>{selected.row.platformNoteId?<div class="full-id"><code>{selected.row.platformNoteId}</code><button type="button" data-copy-id={selected.row.platformNoteId}>复制</button></div>:<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}</section>
+        <section class="identity-panel review-resources" aria-label="帖子资料">
+          <dl>
+            <div><dt>项目文档</dt><dd>{selected.row.projectDocUrl?<a href={selected.row.projectDocUrl} target="_blank" rel="noopener noreferrer">打开项目文档 ↗</a>:<span class="resource-missing">未登记</span>}</dd></div>
+            <div><dt>小红书帖子</dt><dd>{selected.row.publicationUrl?<a href={selected.row.publicationUrl} target="_blank" rel="noopener noreferrer">打开小红书帖子 ↗</a>:<span class="resource-missing">未登记</span>}</dd></div>
+            <div><dt>应发时间</dt><dd>{businessDateTime(selected.row.plannedPublishAt)}</dd></div>
+            <div><dt>实际发布时间</dt><dd>{businessDateTime(selected.row.actualPublishAt)}</dd></div>
+          </dl>
+          <a class="review-schedule-link" href={'/business/operations-schedule?'+new URLSearchParams({month:businessDateTime(selected.row.plannedPublishAt).slice(0,7),row:selected.row.id})} target="_blank" rel="noopener noreferrer">查看排期详情 ↗</a>
+          <label>小红书笔记 ID</label>{selected.row.platformNoteId?<div class="full-id"><code>{selected.row.platformNoteId}</code><button type="button" data-copy-id={selected.row.platformNoteId}>复制</button></div>:<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}
+        </section>
         {selected.row.platformNoteId&&<details class="correction" data-admin-only><summary>更正笔记 ID</summary><form class="business-form" data-id-correction action={`/api/operations-content/${selected.row.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><label>旧值<input value={selected.row.platformNoteId} readonly/></label><label>新值<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" required/></label><p>确认后，该帖子的全部版本与复盘都会同步。</p><output></output><button type="submit">确认更正</button></form></details>}
         {activeView!=='skipped'&&<form class="review-form business-form" data-review-form data-success-href={viewHref('history')}>
           <input type="hidden" name="scheduleId" value={selected.row.id}/><input type="hidden" name="checkpointType" value={selected.checkpoint.type}/>
@@ -120,14 +129,14 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-filters a{display:flex;align-items:center;height:var(--console-control-compact);padding:0 8px;color:var(--console-blue);font-size:var(--console-caption)}
 .review-filters select:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .review-workspace{min-height:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
-.table-pane{min-width:0}.table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}
+.table-pane{min-width:0;container-type:inline-size;container-name:nonpromotion-table}.table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}
 .review-table{width:100%;min-width:964px}
 .review-row{display:grid;grid-template-columns:100px minmax(200px,1.1fr) 64px minmax(180px,1fr) minmax(180px,1fr) 184px;align-items:center;min-height:60px;border-bottom:1px solid #dde2df;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-row>span{min-width:0;padding:8px 12px}
 .table-head{position:sticky;top:0;z-index:2;min-height:42px;color:#53615a;background:#F8F9FB;font-size:var(--console-caption);line-height:var(--console-caption-leading);font-weight:500}
 .table-head>span:nth-child(4),.table-head>span:nth-child(5){text-align:left}.table-head button{display:inline-flex;align-items:center;gap:5px;margin:0;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head i{opacity:.5;font-size:var(--console-caption);font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
 .review-row:not(.table-head):hover,.review-row.selected{background:#F8F9FB}.review-row.selected{box-shadow:inset 3px 0 var(--console-blue)}.review-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
-.date-cell{font-variant-numeric:tabular-nums}
+.date-cell{font-variant-numeric:tabular-nums;white-space:nowrap}
 .post-cell{display:grid;gap:3px}.review-post-title{display:flex;align-items:baseline;gap:8px;min-width:0}.post-cell a{display:flex;align-items:center;gap:5px;min-width:0;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:var(--console-muted);font-size:var(--console-caption);font-style:normal}.post-cell strong{min-width:0;overflow:hidden;color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:500;text-overflow:ellipsis;white-space:nowrap}.post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.review-post-title small{flex:none}
 .review-row mark{display:inline-block;padding:2px 6px;border:1px solid #d9dfdb;border-radius:5px;color:#53615a;background:#f2f4f2;font-size:var(--console-caption);font-weight:500;line-height:var(--console-caption-leading);white-space:nowrap}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}
 .review-row .metric{text-align:left}.review-row[hidden]{display:none}.review-post-group{border-bottom:1px solid var(--console-line)}.review-row.missing-round{color:var(--console-muted);font-size:var(--console-caption)}.review-table button:disabled{cursor:default;opacity:.6}
@@ -136,32 +145,10 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-workspace .review-form label{font-size:var(--console-text);line-height:var(--console-text-leading);color:var(--console-ink);font-weight:500}.review-workspace .review-form :is(input,textarea){min-height:var(--console-control-height);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .rate{height:var(--console-control-height)}.review-workspace .rate input{min-height:0;height:calc(var(--console-control-height) - 2px)}.review-workspace .rate b,.review-workspace .review-form>button{font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
 @media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters select{width:100%}.review-display{width:100%}}
-/* 手机先呈现对象与两项结果，分组沿用同一批行和字段节点。 */
 .sort-read-short{display:none}
-@media(max-width:700px){
- .review-workspace .review-table{min-width:0;width:100%}
- .review-workspace .review-table .table-head{position:relative;display:flex;align-items:center;width:100%;height:auto;min-height:40px;overflow:visible;clip-path:none;white-space:normal}
- .review-table .table-head>span:has(button){flex:1;padding:8px 4px;min-width:0}
- .review-table .table-head>span:not(:has(button)){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
- .review-table .table-head button{gap:3px;scroll-margin-top:80px}
- .sort-read-full{display:none}.sort-read-short{display:inline}
- .review-row:not(.table-head){grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"date date date" "post post post" "node click read" "category category category";align-items:start;gap:8px;padding:12px}
- .review-table .review-row:not(.table-head)>span{padding:0}
- .review-row>[aria-colindex="1"]{grid-area:date;color:var(--console-muted);font-size:12px}
- .review-row>[aria-colindex="2"]{grid-area:post}
- .review-row>[aria-colindex="3"]{grid-area:node}
- .review-row>[aria-colindex="4"]{grid-area:click}
- .review-row>[aria-colindex="5"]{grid-area:read}
- .review-row>[aria-colindex="6"]{grid-area:category;color:var(--console-muted);font-size:12px}
- .review-post-group .review-row:has(.review-common-repeat){grid-template-areas:"node click read"}
- .review-table .review-common-repeat{display:none}
- .review-workspace .review-table .review-post-group .review-row>[role=cell]:nth-child(n){border-bottom:0}
- .review-row .metric::before{content:attr(data-label);display:block;margin-bottom:4px;color:var(--console-muted);font-size:12px}
- .post-cell strong{white-space:normal;overflow-wrap:anywhere}
-}
 /* A category spans both rounds. Data columns keep one shared header and the same anchors. */
 .review-table [hidden]{display:none!important}
-.review-table .review-row{grid-template-columns:116px minmax(180px,1fr) 64px minmax(190px,1fr) minmax(190px,1fr);gap:0 16px}
+.review-table .review-row{grid-template-columns:116px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;gap:0 12px}
 .review-table .review-category-column{display:none!important}
 .review-post-category{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}
 .review-table[data-grouped=true] .review-post-category{display:none}
@@ -195,7 +182,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 @media(max-width:900px){
  .review-workspace .review-table[data-grouped=true]{min-width:660px}
  .review-table[data-grouped=false]{min-width:0}
- .category-detail-body .review-row{width:100%;min-width:916px;grid-template-columns:116px minmax(180px,1fr) 64px minmax(190px,1fr) minmax(190px,1fr);grid-template-areas:none;gap:0 16px;align-items:center;padding:0}
+ .category-detail-body .review-row{width:100%;min-width:916px;grid-template-columns:116px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;grid-template-areas:none;gap:0 12px;align-items:center;padding:0}
  .category-detail-body .review-row>span{display:block!important;grid-area:auto;padding:8px 12px!important}
  .category-detail-body .review-row>.review-category-column{display:none!important}
  .category-detail-body .review-row .metric::before{display:none}
@@ -204,8 +191,6 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 }
 @media(max-width:700px){
  .review-filters label:has(select[name="category"]) select{width:100%}
- .review-table[data-grouped=false] .review-row:not(.table-head){grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"date date date" "post post post" "node click read" "category category category";align-items:start;gap:8px;padding:12px}
- .review-table .table-head>span:not(:has(button)){min-height:0}
 }
 @media(max-width:480px){
  .review-filters{grid-template-columns:1fr}
@@ -213,4 +198,47 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
  .review-display .business-view-switch{max-width:100%}
 }
 @media(prefers-reduced-motion:reduce){.category-detail-link svg{transition:none}}
+
+.review-table .review-row>.review-action-cell{display:flex;align-items:center;justify-content:flex-end}
+.review-table .review-row>.review-action-head{justify-content:flex-end}
+.review-title-button{display:inline-flex;min-width:0;max-width:100%;margin:0;padding:0;border:0;background:transparent;color:var(--console-ink);font:inherit;text-align:left;cursor:pointer}
+.review-title-button:hover strong{text-decoration:underline;text-underline-offset:3px}
+.review-title-button:focus-visible,.review-entry-button:focus-visible,.review-resources a:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px;border-radius:4px}
+.review-entry-button{display:inline-flex;align-items:center;justify-content:center;flex:none;height:var(--console-control-compact);margin:0;padding:0 10px;border:1px solid var(--console-line);border-radius:var(--console-control-radius);background:var(--console-surface);color:var(--console-blue);font:500 13px/20px var(--console-font);white-space:nowrap;cursor:pointer}
+.review-entry-button:hover{border-color:var(--console-blue);background:var(--console-blue-soft)}
+.review-resources dl{display:grid;gap:10px;margin:0;font:400 13px/20px var(--console-font)}
+.review-resources dl>div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px;align-items:baseline}
+.review-resources dt{color:var(--console-muted)}.review-resources dd{min-width:0;margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.review-resources a{color:var(--console-blue);text-decoration:none}.review-resources a:hover{text-decoration:underline;text-underline-offset:3px}
+.review-resources .resource-missing{color:var(--console-muted)}
+.review-resources .review-schedule-link{display:inline-block;margin:12px 0 16px;font:400 13px/20px var(--console-font)}
+.review-resources>label{display:block}.review-resources>p{margin-top:6px}
+/* Adapt to the remaining list width, including when a docked Inspector is open. */
+.review-table[data-grouped=false]{min-width:0}
+@container nonpromotion-table (min-width:601px) and (max-width:1000px){
+ .review-table[data-grouped=false] .review-row{grid-template-columns:108px minmax(140px,1fr) 52px minmax(112px,1fr) minmax(112px,1fr) 88px;gap:0 8px}
+ .review-table[data-grouped=false] .review-row>span{padding:8px}
+ .review-table[data-grouped=false] .metric-primary{display:grid;min-width:0;max-width:100%;gap:2px}
+ .review-table[data-grouped=false] .review-title-button strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden}
+}
+@container nonpromotion-table (max-width:600px){
+ .review-table[data-grouped=false] .table-head{position:relative;display:flex;align-items:center;width:100%;height:auto;min-height:40px;overflow:visible}
+ .review-table[data-grouped=false] .table-head>span:has(button){flex:1;padding:8px 4px;min-width:0}
+ .review-table[data-grouped=false] .table-head>span:not(:has(button)){position:absolute;min-height:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ .review-table[data-grouped=false] .table-head button{gap:3px}
+ .review-table[data-grouped=false] .sort-read-full{display:none}
+ .review-table[data-grouped=false] .sort-read-short{display:inline}
+ .review-table[data-grouped=false] .review-row:not(.table-head){grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"date date action" "post post post" "node click read";align-items:start;gap:8px;padding:12px}
+ .review-table[data-grouped=false] .review-row:not(.table-head)>span{padding:0}
+ .review-table[data-grouped=false] .review-row>[aria-colindex="1"]{grid-area:date;align-self:center;color:var(--console-muted);font-size:12px}
+ .review-table[data-grouped=false] .review-row>[aria-colindex="2"]{grid-area:post}
+ .review-table[data-grouped=false] .review-row>[aria-colindex="3"]{grid-area:node}
+ .review-table[data-grouped=false] .review-row>[aria-colindex="4"]{grid-area:click}
+ .review-table[data-grouped=false] .review-row>[aria-colindex="5"]{grid-area:read}
+ .review-table[data-grouped=false] .review-row>.review-action-cell{grid-area:action;justify-self:end}
+ .review-table[data-grouped=false] .metric::before{content:attr(data-label);display:block;margin-bottom:4px;color:var(--console-muted);font-size:12px}
+ .review-table[data-grouped=false] .metric-primary{display:grid;gap:2px}
+ .review-table[data-grouped=false] .post-cell strong{white-space:normal;overflow-wrap:anywhere}
+ .review-table[data-grouped=false] .review-entry-button{padding:0 8px}
+}
 </style>

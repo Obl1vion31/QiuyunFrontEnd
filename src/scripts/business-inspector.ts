@@ -193,7 +193,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     const target = event.target as Element;
     if (target.closest('[data-inspector]')) return;
     const link = target.closest<HTMLAnchorElement>('a[href]');
-    if (event.type === 'click' && (!link || link.target === '_blank' || link.hasAttribute('download') || link.closest('[data-inspector]') || link.hasAttribute('data-inspector-key'))) return;
+    if (event.type === 'click' && (!link || link.target === '_blank' || link.hasAttribute('download') || link.closest('[data-inspector]') || link.hasAttribute('data-inspector-key') || link.hasAttribute('data-inspector-trigger') && link.closest('[data-inspector-key]'))) return;
     if (event.type === 'submit' && !(target instanceof HTMLFormElement && target.getAttribute('method')?.toLowerCase() === 'get')) return;
     event.preventDefault(); event.stopImmediatePropagation();
     void mayLeave().then(accepted=>{
@@ -244,8 +244,11 @@ function initialize() {
       if(!row||!host.contains(row))return;
       if(event instanceof KeyboardEvent&&(event.target!==row||!['Enter',' '].includes(event.key)))return;
       if(event instanceof MouseEvent&&(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey))return;
-      if(!(row instanceof HTMLAnchorElement)&&(event.target as Element).closest('a,button,input,select,textarea'))return;
-      event.preventDefault();controller.open(row.dataset.inspectorKey!,row);
+      // Explicit row actions share selection, draft protection and focus return.
+      // Native buttons synthesize click on Enter/Space; only the row handles keydown.
+      const control=(event.target as Element).closest<HTMLElement>('a,button,input,select,textarea');
+      if(!(row instanceof HTMLAnchorElement)&&control&&!control.hasAttribute('data-inspector-trigger'))return;
+      event.preventDefault();controller.open(row.dataset.inspectorKey!,control??row);
     };
     host.addEventListener('click',activate);host.addEventListener('keydown',activate);
     const requested = new URL(location.href).searchParams.get(parameter);

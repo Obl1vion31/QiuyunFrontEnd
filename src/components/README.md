@@ -75,7 +75,7 @@ ContentTunnel.module.css
 
 `BusinessPromotionSummary` 在每日与历史共用真实日期的黄绿阶段节点，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格及表尾汇总，`BusinessPromotionTotals` 继续用于 Inspector 的单日指标。记录点击交给公共 Inspector，`BusinessPromotionDetails / BusinessPromotionMetric` 负责所选记录、业务安排与原编辑表单，不在页面复制详情开关或重复维护汇总。
 
-`BusinessNonPromotionTableHead.astro` 是非推广分类明细与平铺视图共用的数据表头，分类摘要采用六列单层表头，同类两轮上下排列，切换展示方式时移动同一批记录节点。
+`BusinessNonPromotionTableHead.astro` 是非推广分类明细与平铺视图共用的六列数据表头，含紧凑操作列；行、标题和按钮统一打开包含帖子资料及表单的共享 Inspector。分类摘要采用六列单层表头，同类两轮上下排列，切换展示方式时移动同一批记录节点。
 
 `BusinessPromotionReviewRecord.astro` 是队列中的稳定活动日期记录，常规指标直接填写、未开放记录使用紧凑行；不以 details 重复嵌套填写卡片。
 
