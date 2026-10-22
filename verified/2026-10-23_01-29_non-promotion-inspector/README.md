@@ -1,7 +1,7 @@
 # 非推广复盘入口与帖子资料验收
 
 - 代码：`24c88bec9b01f798b5a348e9ba430d2b2c6341ae`，工作分支 `agent/content-console-redesign`。
-- 状态：已自检，待用户反馈；本轮未公网发布。
+- 状态：已自检；2026-10-23 按用户持续授权发布公网，发布源 `2bf3ccf6991156dd30dab8ba172b7aa71814d40e`。
 - 来源：正式 Astro 页面、共享 Inspector 及受认证 API，隔离 PGlite 与虚构账号／帖子。测试业务时钟固定为北京时间 2026-10-23 12:00；没有向共享 Neon 写入验收数据。
 - 三种入口统一定位排期＋轮次；资料区含项目文档、小红书链接、应发／实发时间、排期详情及笔记 ID。缺失资料显示“未登记”，外链新标签保留当前草稿。
 - 1024px 及停靠详情下按内容容器调整列宽，日期保持单行，标题最多两行，两项指标使用一致层级；手机动作位于日期行右侧。
@@ -33,3 +33,11 @@
 - `pnpm test:interaction`：100／450ms 安静读取、慢读反馈、旧响应隔离、导航／退出确认、权限和删除失败恢复通过；将旧例会字段选择器更新为现有“临时事项”可访问标签。
 
 长期规则同步至 DESIGN、DECISIONS 与共享界面接入实例；仅扩展现有只读模型字段，无数据库迁移。
+
+## 公网发布（2026-10-23）
+
+[正式非推广复盘](https://qiuyun-frontend.vercel.app/business/non-promotion-review)；部署 `dpl_C7zVp6npPyCnduuCpH2nxRh5uufL` 已为 READY，正式域名已绑定。干净导出的提交构建与线上 45 个资源 SHA-256 一致；69 项匿名读取、登录跳转、接口拒绝未登录和私有路径检查通过。线上 1440／390px 登录页已实际查看，业务录入与三入口继续沿用本轮隔离验收，无线上业务写入或数据库迁移。
+
+[发布回执](checks/production-release.json) · [公网检查](checks/production-smoke.json) · [浏览器检查](checks/production-browser.json) · [桌面登录](checks/production-login-1440.png) · [手机登录](checks/production-login-390.png)
+
+用户已确认后续修改完成必要测试及视觉自检后直接发布；Windows／WSL 全局 AGENTS、项目 AGENTS、DECISIONS 和部署指南同步记录，直到用户通知变更。main 合并仍独立确认。

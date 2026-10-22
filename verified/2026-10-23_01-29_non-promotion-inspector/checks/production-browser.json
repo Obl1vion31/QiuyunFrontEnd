@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-10-22T18:05:15.477Z",
+  "businessLogin": false,
+  "businessWrites": false,
+  "results": [
+    {
+      "width": 1440,
+      "documentWidth": 1440,
+      "title": "登录 · 内容工作台",
+      "font": "system-ui, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "forms": 1,
+      "errors": [],
+      "passed": true
+    },
+    {
+      "width": 390,
+      "documentWidth": 390,
+      "title": "登录 · 内容工作台",
+      "font": "system-ui, \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "forms": 1,
+      "errors": [],
+      "passed": true
+    }
+  ]
+}

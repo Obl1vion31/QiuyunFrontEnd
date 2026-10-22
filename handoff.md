@@ -4,12 +4,14 @@
 
 ## 最新交付：非推广复盘入口与资料（2026-10-23）
 
-- 工作分支 `agent/content-console-redesign`，实现 `24c88be`；[正式截图与录像](verified/2026-10-23_01-29_non-promotion-inspector/README.md)已自检，待用户反馈，本项尚未公网发布。
+- 工作分支 `agent/content-console-redesign`，实现 `24c88be`；[正式截图与录像](verified/2026-10-23_01-29_non-promotion-inspector/README.md)已自检，并于 2026-10-23 按用户授权发布公网，发布源 `2bf3ccf`。
 - 待复盘末列提供“点击录入”，已复盘／不复盘提供“查看详情”；行、标题和动作共用排期＋轮次的共享 Inspector，重复打开不重建表单，关闭回到实际触发控件。
 - 资料默认展示项目文档、小红书、应发／实际发布时间、排期详情和笔记 ID；外链新标签保留输入，跨月排期按应发上海月份定位，缺失显示“未登记”。读取模型增加现有字段，无迁移。
 - 按实际列表宽度自适应，1024px 及停靠详情保留可见操作、完整日期和可读标题；手机动作放在日期右侧；修正横向溢出样式影响吸顶的问题，滚动后打开详情仍保留顶部工具栏。已实际查看 1440／1024／390／320px 待填、资料、缺失、长标题和历史截图，以及录像关键帧。
 - `pnpm build`、166 项单元／业务规则、`test:non-promotion`、`test:ui`、`test:motion`、`test:interaction` 通过；测试只用隔离 PGlite。跨页用例将旧例会字段选择器改为当前“临时事项”标签。
 - DESIGN、DECISIONS、共享接入示例与目录说明已同步，替换旧的“非推广标题直达文档”规则；统计、轮次与保存业务口径继续沿用。
+
+- 持续发布约定已写入 Windows／WSL 全局 AGENTS 和项目规则：后续修改通过必要测试与视觉自检后直接发布并核对，无需逐轮确认，直到用户另行通知；main 合并仍单独确认。
 
 ## 最近已发布：周例会与每日复盘（2026-10-23）
 
@@ -31,7 +33,8 @@
 
 已发布的周例会版本只扩展现有会议 JSON v4 和日度事务服务，没有新增 SQL 迁移；测试全部使用隔离 PGlite 和虚构账号／业务事实，未向共享 Neon 写入验收数据。共享库已在上一轮应用 `0036_precise_promotion_review.sql`，不要重复迁移。
 
-公网已发布本轮 `798acaf` 实现，发布源 `f2e0730`，地址 [工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)／[周例会](https://qiuyun-frontend.vercel.app/business/meeting-review)，部署 `dpl_7XGXzLX94YoKjAp5gn9CJiVQSxeb`。2026-10-23 北京时间发布后 69 项检查通过，45 个线上资源与干净发布构建的 SHA-256 一致；正式域名绑定、登录保护、API 未登录拒绝、私有路径不可访问及 1440／390px 登录页已核对。业务写入沿用隔离验收，不在线上补造数据。发布时将已提交版本导出到独立目录，未包含另一组未提交的非推广／Inspector 改动。应用回滚基线为上一部署 `dpl_6Ksm5RJ2gmcPHfjnVdQJv2U9VVDP`；既有备份与回滚入口见[部署指南](docs/deployment.md)。推送分支不会自动部署。
+公网当前为非推广入口与资料实现 `24c88be`，发布源 `2bf3ccf`；[正式非推广复盘](https://qiuyun-frontend.vercel.app/business/non-promotion-review)，部署 `dpl_C7zVp6npPyCnduuCpH2nxRh5uufL`。69 项公网检查通过，45 个线上资源与干净发布构建的 SHA-256 一致，正式域名、登录保护、API 未登录拒绝、私有路径及 1440／390px 登录页已核对。业务录入继续在隔离库验收，未在线上写入测试数据，无新增迁移。上个可回滚应用部署为 `dpl_7XGXzLX94YoKjAp5gn9CJiVQSxeb`，备份和回滚入口见[部署指南](docs/deployment.md)。Git 推送不自动部署，后续按用户持续授权主动执行 CLI 发布。
+
 
 ## 接手入口
 
