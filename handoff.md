@@ -2,7 +2,16 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 最新交付（2026-10-23）
+## 最新交付：非推广复盘入口与资料（2026-10-23）
+
+- 工作分支 `agent/content-console-redesign`，实现 `24c88be`；[正式截图与录像](verified/2026-10-23_01-29_non-promotion-inspector/README.md)已自检，待用户反馈，本项尚未公网发布。
+- 待复盘末列提供“点击录入”，已复盘／不复盘提供“查看详情”；行、标题和动作共用排期＋轮次的共享 Inspector，重复打开不重建表单，关闭回到实际触发控件。
+- 资料默认展示项目文档、小红书、应发／实际发布时间、排期详情和笔记 ID；外链新标签保留输入，跨月排期按应发上海月份定位，缺失显示“未登记”。读取模型增加现有字段，无迁移。
+- 按实际列表宽度自适应，1024px 及停靠详情保留可见操作、完整日期和可读标题；手机动作放在日期右侧；修正横向溢出样式影响吸顶的问题，滚动后打开详情仍保留顶部工具栏。已实际查看 1440／1024／390／320px 待填、资料、缺失、长标题和历史截图，以及录像关键帧。
+- `pnpm build`、166 项单元／业务规则、`test:non-promotion`、`test:ui`、`test:motion`、`test:interaction` 通过；测试只用隔离 PGlite。跨页用例将旧例会字段选择器改为当前“临时事项”标签。
+- DESIGN、DECISIONS、共享接入示例与目录说明已同步，替换旧的“非推广标题直达文档”规则；统计、轮次与保存业务口径继续沿用。
+
+## 最近已发布：周例会与每日复盘（2026-10-23）
 
 - 工作分支 `agent/content-console-redesign`，本轮实现 `798acaf`。用户批准的周例会整合及四项每日体验已经接入正式组件，验收证据见[本轮索引](verified/2026-10-22_22-04_weekly-review/README.md)。已按用户授权于 2026-10-23 公网发布，发布源 `f2e0730`；工作分支尚未合入 `main`。
 - 推广页顶部恢复每日复盘／历史总览；新增阶段讨论进入周例会。旧阶段快照只读、旧 v2/v3 例会继续兼容。周例会新建 v4 空白文字模板，候选默认不勾选，可全选本期；月例会暂缓。
@@ -12,7 +21,7 @@
 - 测试结束待定的新草稿默认五项零及继续待定。每日提供一键保存，捕获当前可填最早日期队列，全部成功或全部回滚；保留单行提交、初始指纹、请求幂等、权限和 ID 一致性，保存后更新累计与全部分组，下一日不自动并入本批。
 - 已上线的当日状态再次更正继续保留，误选终态可恢复该日覆盖前状态；数字、合法次日安排与其他记录节点不丢。终止当日仍可结算真实指标，之后不自动进入普通待办；测试淘汰后残留走单独补录。
 
-## 验证与设计沉淀
+## 已发布版本的验证与设计沉淀
 
 全部 166 项测试通过，其中周例会规则 7 项；类型检查、构建与 `db:check` 通过。`test:weekly`、`test:review-workbench`、`test:ui`、`test:reviews`、`test:status-correction`、`test:timeline`、`test:motion` 通过。正式每日与周例会检查 1920／1440／1280／1024／736／390／320px；状态更正九组含 1440／1024／390／320px，面板动效含 1440／1280／390／320px。已实际查看截图和录像关键帧；完整范围、数据来源和链接见验收索引。
 
@@ -20,12 +29,12 @@
 
 ## 发布与数据边界
 
-本轮只扩展现有会议 JSON v4 和日度事务服务，没有新增 SQL 迁移；测试全部使用隔离 PGlite 和虚构账号／业务事实，未向共享 Neon 写入验收数据。共享库已在上一轮应用 `0036_precise_promotion_review.sql`，不要重复迁移。
+已发布的周例会版本只扩展现有会议 JSON v4 和日度事务服务，没有新增 SQL 迁移；测试全部使用隔离 PGlite 和虚构账号／业务事实，未向共享 Neon 写入验收数据。共享库已在上一轮应用 `0036_precise_promotion_review.sql`，不要重复迁移。
 
 公网已发布本轮 `798acaf` 实现，发布源 `f2e0730`，地址 [工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)／[周例会](https://qiuyun-frontend.vercel.app/business/meeting-review)，部署 `dpl_7XGXzLX94YoKjAp5gn9CJiVQSxeb`。2026-10-23 北京时间发布后 69 项检查通过，45 个线上资源与干净发布构建的 SHA-256 一致；正式域名绑定、登录保护、API 未登录拒绝、私有路径不可访问及 1440／390px 登录页已核对。业务写入沿用隔离验收，不在线上补造数据。发布时将已提交版本导出到独立目录，未包含另一组未提交的非推广／Inspector 改动。应用回滚基线为上一部署 `dpl_6Ksm5RJ2gmcPHfjnVdQJv2U9VVDP`；既有备份与回滚入口见[部署指南](docs/deployment.md)。推送分支不会自动部署。
 
 ## 接手入口
 
-Node 22、pnpm 9.15.9；WSL 仓库 `/home/obl1vion/projects/qiuyunFrontend`，运行时 `.tools/runtime/node-v22.23.3-linux-x64/bin`。先构建，`pnpm test:weekly` 验证本轮，其他命令见[测试说明](tests/README.md)。原始产物 `.tools/test-artifacts/meeting-weekly/`、`review-v8/`，最终截图与录像在上述 verified 索引。
+Node 22、pnpm 9.15.9；WSL 仓库 `/home/obl1vion/projects/qiuyunFrontend`，运行时 `.tools/runtime/node-v22.23.3-linux-x64/bin`。先构建，`pnpm test:non-promotion` 验证本轮入口，`pnpm test:weekly` 验证已发布周例会，其他命令见[测试说明](tests/README.md)。原始产物 `.tools/test-artifacts/non-promotion-inspector/`、`.tools/test-artifacts/meeting-weekly/`、`review-v8/`，最终截图与录像在上述 verified 索引。
 
-业务与界面以本轮规范覆盖旧条款，既有第八版布局和状态更正仍继承；下次不重新设计已确认的概览、每日列或公共 Inspector，不把旧图中的整套首次 ID Inspector、独立阶段新建入口恢复回来。
+后续继承非推广统一入口与资料区规范，以及既有第八版布局和状态更正；下次不重新设计已确认的概览、每日列或公共 Inspector，不把旧图中的整套首次 ID Inspector、独立阶段新建入口恢复回来。
