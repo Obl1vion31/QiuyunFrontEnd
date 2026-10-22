@@ -11,8 +11,8 @@
 | 推广阶段卡片、完整结果与同类比较 | [1440px](weekly/weekly-promotion-1440.png) · [1920px](weekly/weekly-promotion-1920.png) | [390px](weekly/weekly-promotion-390.png) |
 | 非推广二轮携首轮对照 | [1440px](weekly/weekly-non-1440.png) | [390px](weekly/weekly-non-390.png) |
 | 首次补 ID 小气泡 | [正式行内小组件](daily/daily-id-popover-1440.png) | [单行录入 390px](daily/daily-ready-390.png) |
-| 五篇测试、没有可填写项 | [1440px](daily/promotion-empty-1440.png) | [390px](daily/promotion-empty-390-viewport.png) |
-| 多条待填写、直接录入 | [1440px](daily/promotion-ready-1440.png) | [390px](daily/promotion-ready-390-viewport.png) |
+| 五篇测试、没有可填写项 | [1440px](daily/promotion-empty-1440.png) | — |
+| 多条待填写、直接录入 | [1440px](daily/promotion-ready-1440.png) | [390px](daily/daily-ready-390.png) |
 | 测试／放量／暂停混合 | [1440px](daily/promotion-mixed-1440.png) | [390px](daily/promotion-mixed-390-viewport.png) |
 | 周例会定稿 | [冻结 V0](weekly/weekly-final-1440.png) · [追加 V1](weekly/weekly-revision-v1-1440.png) | [320px](weekly/weekly-final-320.png) |
 
