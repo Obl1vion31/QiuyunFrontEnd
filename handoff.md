@@ -2,9 +2,9 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 最新交付（2026-10-22）
+## 最新交付（2026-10-23）
 
-- 工作分支 `agent/content-console-redesign`，本轮实现 `798acaf`。用户批准的周例会整合及四项每日体验已经接入正式组件，验收证据见[本轮索引](verified/2026-10-22_22-04_weekly-review/README.md)。本轮尚未公网发布，等待用户验收；工作分支尚未合入 `main`。
+- 工作分支 `agent/content-console-redesign`，本轮实现 `798acaf`。用户批准的周例会整合及四项每日体验已经接入正式组件，验收证据见[本轮索引](verified/2026-10-22_22-04_weekly-review/README.md)。已按用户授权于 2026-10-23 公网发布，发布源 `f2e0730`；工作分支尚未合入 `main`。
 - 推广页顶部恢复每日复盘／历史总览；新增阶段讨论进入周例会。旧阶段快照只读、旧 v2/v3 例会继续兼容。周例会新建 v4 空白文字模板，候选默认不勾选，可全选本期；月例会暂缓。
 - 结论与行动在前，月历核对仅保留链接。测试按最后测试日和暂停／终止节点纳入完整阶段，放量按区间真实事实；卡片提供历史／同期比较、本帖历史、上次复盘及来源。二轮携首轮对照，对照不重复增加主复盘数。实际截止日、首次录入和最近更新分别呈现。
 - 本期总量按日期内全部真实跑量独立统计，不累加跨期测试卡。暂停／待定和残留归原阶段而不计正常投放日；残留和历史放量更正通过往期追加卡呈现相关事实。草稿显式刷新、保留输入和有效勾选，失效项确认；定稿核对来源指纹，冻结 V0，修订追加 V1+。
@@ -22,7 +22,7 @@
 
 本轮只扩展现有会议 JSON v4 和日度事务服务，没有新增 SQL 迁移；测试全部使用隔离 PGlite 和虚构账号／业务事实，未向共享 Neon 写入验收数据。共享库已在上一轮应用 `0036_precise_promotion_review.sql`，不要重复迁移。
 
-公网当前仍为上一轮 `3111c28`，地址 [工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)，部署 `dpl_6Ksm5RJ2gmcPHfjnVdQJv2U9VVDP`。该版本状态再次更正已发布，既有迁移前后私有备份和发布核对沿用[部署指南](docs/deployment.md)。本轮验收确认后再发布；推送分支不会自动部署。
+公网已发布本轮 `798acaf` 实现，发布源 `f2e0730`，地址 [工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)／[周例会](https://qiuyun-frontend.vercel.app/business/meeting-review)，部署 `dpl_7XGXzLX94YoKjAp5gn9CJiVQSxeb`。2026-10-23 北京时间发布后 69 项检查通过，45 个线上资源与干净发布构建的 SHA-256 一致；正式域名绑定、登录保护、API 未登录拒绝、私有路径不可访问及 1440／390px 登录页已核对。业务写入沿用隔离验收，不在线上补造数据。发布时将已提交版本导出到独立目录，未包含另一组未提交的非推广／Inspector 改动。应用回滚基线为上一部署 `dpl_6Ksm5RJ2gmcPHfjnVdQJv2U9VVDP`；既有备份与回滚入口见[部署指南](docs/deployment.md)。推送分支不会自动部署。
 
 ## 接手入口
 

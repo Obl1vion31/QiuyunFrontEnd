@@ -1,6 +1,6 @@
 # 周例会与每日复盘正式验收
 
-状态：已自检，待用户验收。对应代码 `798acaf`，工作分支 `agent/content-console-redesign`；本轮尚未部署。
+状态：已自检，2026-10-23 按用户授权公网发布。对应代码 `798acaf`，发布源 `f2e0730`，工作分支 `agent/content-console-redesign`。
 
 截图和录像全部来自正式组件、认证接口与隔离 PGlite 虚构数据。每日第八版回归使用 2026-10-21 业务时钟，周例会场景使用 2026-10-22；归档时间按北京时间。没有向共享库写入验收数据。本轮复用现有 JSON 快照，不增加 SQL 迁移。
 
@@ -35,3 +35,11 @@
 - 正式页面检查宽度：1920／1440／1280／1024／736／390／320px；公共 UI 回归含 1440／1280／390／320px，面板动效同档；状态更正含 1440／1024／390／320px。
 
 [检查摘要](checks/validation.json) · [周例会浏览器结果](checks/weekly-result.json) · [第八版回归结果](checks/v8-results.json)。其他视口截图按页面与宽度保存于 `daily/`、`weekly/`。
+
+## 公网发布核对（2026-10-23）
+
+正式入口：[每日复盘](https://qiuyun-frontend.vercel.app/business/daily-promotion-review) · [周例会](https://qiuyun-frontend.vercel.app/business/meeting-review)。部署 `dpl_7XGXzLX94YoKjAp5gn9CJiVQSxeb` 已 Ready 并绑定正式域名，发布源 `f2e0730`；不增加 SQL 迁移。
+
+69 项公网检查通过，45 个脚本、样式、字体及许可资源与独立干净构建的 SHA-256 一致。首页与登录页可访问；业务页面要求登录，API 拒绝未登录请求，私有配置与资料路径不可访问。1440／390px 浏览器登录跳转无脚本错误、无横向溢出，已实际查看截图。线上只核对公开访问和登录保护；业务交互、写入与权限仍使用本批隔离验收，不向共享库写入测试事实。
+
+[公网资源与权限检查](checks/production-smoke.json) · [公网浏览器检查](checks/production-browser.json)。另一组未提交的非推广／Inspector 修改保留在工作区，未进入此次部署。
