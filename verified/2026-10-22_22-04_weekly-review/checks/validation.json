@@ -1,0 +1,27 @@
+{
+  "code": "798acaf",
+  "database": "isolated PGlite; no shared writes",
+  "unitTests": 166,
+  "weeklyRules": 7,
+  "browserPassed": [
+    "test:weekly",
+    "test:review-workbench",
+    "test:ui",
+    "test:reviews",
+    "test:status-correction",
+    "test:timeline",
+    "test:motion"
+  ],
+  "build": "passed, 0 errors / 0 warnings",
+  "dbCheck": "passed; no SQL migration",
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024,
+    736,
+    390,
+    320
+  ],
+  "reviewStatus": "已自检，待用户验收"
+}

@@ -1,0 +1,259 @@
+{
+  "computed": [
+    {
+      "tag": "A",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "tag": "A",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "tag": "A",
+      "class": "active",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "tag": "A",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "tag": "A",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "tag": "A",
+      "class": "business-sidebar__settings",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "business-account__trigger",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "13px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "ARTICLE",
+      "class": "promotion-summary lifecycle-card",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "business-action-primary",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "13px",
+      "weight": "500"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "review-residual-trigger",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "13px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "review-note-trigger",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "12px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "review-day-state",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "500"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "SELECT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "business-action-primary review-submit",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "500"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "review-note-trigger",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "12px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "review-day-state",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "500"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "INPUT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "SELECT",
+      "class": "",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "400"
+    },
+    {
+      "tag": "BUTTON",
+      "class": "business-action-primary review-submit",
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "size": "14px",
+      "weight": "500"
+    }
+  ],
+  "platform": {
+    "fonts": [
+      {
+        "familyName": "MiSans VF",
+        "postScriptName": "MiSansVF",
+        "isCustomFont": true,
+        "glyphCount": 5
+      }
+    ]
+  }
+}
