@@ -8,6 +8,8 @@
 
 浏览器工具通过 `PLAYWRIGHT_MODULE` 指定；默认读取项目内被忽略的 `.tools/tooling/node_modules/playwright/index.mjs`。Chromium 可通过 `PLAYWRIGHT_BROWSERS_PATH` 指定下载位置。原始截图保存在 `.tools/test-artifacts/`；实际审阅后的最终截图另存到根目录 [`verified/`](../verified/README.md)，按时间和页面编目，不放入网站公开资源。
 
+首页接入后运行 `pnpm build`、`pnpm test:home`。首页测试只提供真实构建的静态资源，不启动或连接业务库；检查用户指定的 1440／1280／1024px 桌面与确认样片的几何一致性、九图完整平带回收、停止纵向滚动后的持续横移、暂停／键盘、六阶段、往返、离场停止、缺图和减少动态效果。`HOME_EVIDENCE_DIR` 可指定本轮 verified 目录；截图与实际录像仍须人工查看。用 `--record-only` 可在检查后单独重录，避免竞争录制资源。
+
 公网验收只做已授权账号登录、读取和无权限请求，不向共享业务库添加虚构数据。构建前需使用 Node 22；本机工具目录、测试产物及数据库备份不会提交或发布。
 
 历史迁移含特定导入批次断言，隔离测试从当前 schema 建立业务结构，再执行本次认证 SQL；不会修改已共享的历史迁移，也不会使用真实业务数据补足断言。Chromium 系统库与中文字体可在 `.tools/system/` 解压，并用 `LD_LIBRARY_PATH`、`FONTCONFIG_FILE` 提供，避免修改系统配置。

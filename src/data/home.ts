@@ -63,7 +63,7 @@ export const homeContent = {
   meta: {
     title: '前端内容总控台',
     description: '贯穿策划、内容、视觉、发布、用户触点与复盘的前端工作流总枢纽。',
-    updatedAt: '2026/07/25',
+    updatedAt: '2026/10/23',
   },
 
   // 2.2 Hero
@@ -79,14 +79,15 @@ export const homeContent = {
   // 2.3 封面
   // 【需求】每张真实素材只创建一个循环实例；未设置 image 时显示代码备用封面。
   covers: [
-    { id: 'cover-plan', label: '内容策划', caption: '把一个想法变成清晰选题', tone: 'blue', image: '/images/home/封面模板1.png' },
-    { id: 'cover-read', label: '阅读体验', caption: '让复杂信息更容易读完', tone: 'yellow', image: '/images/home/封面模板2.jpg' },
-    { id: 'cover-visual', label: '视觉设计', caption: '用封面建立第一眼吸引力', tone: 'coral', image: '/images/home/封面模板3.jpg' },
-    { id: 'cover-publish', label: '内容发布', caption: '让内容在正确时间被看见', tone: 'orange', image: '/images/home/封面模板4.jpg' },
-    { id: 'cover-touch', label: '用户触点', caption: '把评论与私信变成有效信号', tone: 'mint', image: '/images/home/封面模板5.jpg' },
-    { id: 'cover-review', label: '数据复盘', caption: '让结果回到下一轮内容', tone: 'ink', image: '/images/home/封面模板6.jpg' },
-    { id: 'cover-step-camp', label: 'STEP 先导营', caption: '课程招生活动封面', tone: 'blue', image: '/images/home/封面模板7.jpg' },
-    { id: 'cover-step-guide', label: 'STEP 讲义', caption: '微分方程内容封面', tone: 'mint', image: '/images/home/封面模板8.jpg' },
+    { id: 'cover-case', label: 'TMUA 学员案例', caption: 'UCL 和华威录取后，脱产重申剑桥', tone: 'mint', image: '/images/home/tmua-1.png' },
+    { id: 'cover-forecast', label: '2026 TMUA 考点预判', caption: '自编讲义与原创模考', tone: 'blue', image: '/images/home/tmua-2.png' },
+    { id: 'cover-score', label: 'TMUA 估分预测', caption: '2026 年 10 月场估分预测', tone: 'mint', image: '/images/home/tmua-3.png' },
+    { id: 'cover-mock', label: 'TMUA 全真 MOCK', caption: '300 余候选题，最终入选 120 题', tone: 'orange', image: '/images/home/tmua-4.png' },
+    { id: 'cover-sprint', label: 'TMUA 新难度冲刺大班', caption: '难度升级后的学习方法', tone: 'yellow', image: '/images/home/tmua-5.png' },
+    { id: 'cover-study', label: 'TMUA 四阶段备考', caption: '十月场复盘与一月备考调整', tone: 'mint', image: '/images/home/tmua-6.png' },
+    { id: 'cover-mock-three', label: 'TMUA 三轮全真 MOCK', caption: '精选 120 道模考题，覆盖 TMUA 全考点', tone: 'mint', image: '/images/home/tmua-7.png' },
+    { id: 'cover-english', label: 'TMUA 全英文小班课', caption: '入学测试与双师讲评', tone: 'blue', image: '/images/home/tmua-8.png' },
+    { id: 'cover-imperial', label: '帝国理工转轨录取案例', caption: '体制内转轨与录取分享', tone: 'coral', image: '/images/home/tmua-9.png' },
   ] as CoverItem[],
 
   // 2.4 使命

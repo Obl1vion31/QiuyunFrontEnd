@@ -16,7 +16,7 @@ flowchart LR
 
 | 功能 | 页面入口 | 主要规则与接口 |
 | --- | --- | --- |
-| 总枢纽首页 | `src/pages/index.astro` | `src/data/home.ts`、`ContentTunnel` 组件 |
+| 总枢纽首页 | `src/pages/index.astro` | `src/data/home.ts`、`ContentTunnel`、`src/scripts/home-motion.ts`；浅弧与平带连续循环，后两区采用紧凑阅读布局 |
 | 年度规划 | `src/pages/business/annual-plan.astro` | `src/db/annual-plan*`、`api/operations-annual-plans*` |
 | 排期与版本 | `src/pages/business/operations-schedule.astro` | `src/db/validation.ts`、`api/operations-content*` |
 | 延期与改期审批 | 排期 Inspector | `schedule-rules.mjs`、`schedule-workflow.ts`、改期与逐日理由接口 |

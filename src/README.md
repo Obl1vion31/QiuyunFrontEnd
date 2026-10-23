@@ -5,6 +5,8 @@
 | 目录／文件 | 职责 |
 | --- | --- |
 | `pages/index.astro` | 静态总枢纽首页 |
+| `components/ContentTunnel.tsx`、`scripts/home-motion.ts` | 首屏浅弧→平带的连续循环、暂停与可见性管理 |
+| `styles/home.css`、`components/ContentTunnel.module.css` | 首页基础排版、紧凑后两区与首屏局部样式 |
 | `pages/login.astro` | 用户名登录 |
 | `pages/business/` | 年度规划、排期、推广、非推广、例会和设置页面 |
 | `pages/api/` | 同源、登录与权限校验后的 HTTP 入口 |
