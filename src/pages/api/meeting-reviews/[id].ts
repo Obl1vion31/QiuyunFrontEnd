@@ -1,4 +1,5 @@
 import {readWeeklyMaterial,selectWeeklyMaterial,type WeeklyMaterial} from '../../../db/meeting-weekly-material';
+import {meetingNonPromotionSelections} from '../../../db/meeting-non-promotion';
 import {lockPromotionWorkflow} from '../../../db/promotion-pauses';
 import {shanghaiDateKey} from '../../../db/promotion-rules.mjs';
 import {nextDateKey} from '../../../db/promotion-rules.mjs';
@@ -55,6 +56,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        const material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
        if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');
        if((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType)))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
+       if(draft.workflowVersion===5)draft.nonPromotionSelections=meetingNonPromotionSelections(material,draft.nonPromotionSelections);
        if(finalizing&&draft.nonPromotionInputs)draft.nonPromotionInputs=Object.fromEntries(Object.entries(draft.nonPromotionInputs).map(([key,input])=>{const {platformNoteId:_id,...rest}=input;return [key,rest]}));
        const common=await assembleMeetingSnapshot(transaction,target,{...draft,nonPromotionSelections:[],promotionSnapshotIds:[]});
        draft.materialSnapshot=material as unknown as Record<string,unknown>;

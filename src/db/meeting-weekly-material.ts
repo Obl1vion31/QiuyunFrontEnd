@@ -7,6 +7,7 @@ import { promotionStateOn, promotionLabels } from './promotion-state.mjs';
 import { nextDateKey, previousDateKey, shanghaiDateKey } from './promotion-rules.mjs';
 import { promotionTotals, type PromotionFact } from './promotion-overview';
 import { readCheckpointEvents } from './non-promotion-workflow';
+import {checkpointsForPublishDate} from './stage-review-rules.mjs';
 import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages, operationsCategoryPolicyVersion as policies } from './schema';
 export const sourceHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v)).digest('hex');
 export type MeetingRecord = typeof meetings.$inferSelect;
@@ -82,6 +83,8 @@ export interface WeeklyNonPromotionCard {
     categoryId: string | null;
     categoryName: string | null;
     checkpointType: 'day_7' | 'day_15';
+    publishedOn?:string;
+    dueOn?:string;
     recordedThrough: string | null;
     firstRecordedAt: string | null;
     updatedAt: string | null;
@@ -121,6 +124,9 @@ export interface WeeklyMaterial {
     pending: Array<{
         scheduleId?:string;
         recordedThrough?:string;
+        publishedOn?:string;
+        dueOn?:string;
+        versionNumber?:number;
         key: string;
         contentName: string;
         checkpointType: string;
@@ -238,13 +244,11 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
         for (const checkpointType of ['day_7', 'day_15'] as const) {
             const key = `${post.scheduleId}:${checkpointType}`, metric = performanceRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), review = reviewRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), skipped = events.get(key)?.action === 'skip';
             const policy = policyRows.find(p => p.categoryId === post.categoryId && p.effectiveOn <= end);
-            const due = new Date(post.actualPublishAt!);
-            due.setUTCDate(due.getUTCDate() + (checkpointType === 'day_7' ? 7 : 15));
-            const dueOn = shanghaiDateKey(due);
+            const {publishedOn,dueOn}=checkpointsForPublishDate(post.actualPublishAt!).find(row=>row.type===checkpointType)!;
             if(skipped&&between(dueOn,start,end)){const event=events.get(key)!;excludedNonPromotions.push({key,contentName:post.contentName,checkpointType,reason:event.reason,eventId:event.id});}
             if (!metric) {
                 if (!skipped && policy?.requiresNonPromotionReview !== false && dueOn >= start && dueOn <= end)
-                    pending.push({ key,scheduleId:post.scheduleId,recordedThrough:end, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
+                    pending.push({ key,scheduleId:post.scheduleId,versionNumber:post.versionNumber,publishedOn,dueOn,recordedThrough:dueOn, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
                 continue;
             }
             if (metric.recordedThrough > end)
@@ -253,14 +257,17 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const current = between(cutoff, start, end) && !skipped;
             const latest = review && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt;
             const changed = prior.length ? !prior.some(p => p.card.sourceHash === hash || !p.card.sourceHash && latest <= p.savedAt) : !!lastFinalized && latest > lastFinalized;
-            const card: WeeklyNonPromotionCard = { ...post, key, checkpointType, recordedThrough: cutoff, firstRecordedAt: iso(metric.createdAt), updatedAt: iso(review?.updatedAt && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt), sourceHash: hash, kind: current ? 'current' : 'supplement', label: current ? '本期数据' : prior.length ? '往期数据更新' : '往期补录', clickRate: Number(metric.clickRate), threeSecondReadRate: Number(metric.threeSecondReadRate), conclusion: review?.conclusion ?? '', cause: review?.cause ?? '', nextAction: review?.nextAction ?? '', skipped, previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
+            const card: WeeklyNonPromotionCard = { ...post, key, checkpointType,publishedOn,dueOn, recordedThrough: cutoff, firstRecordedAt: iso(metric.createdAt), updatedAt: iso(review?.updatedAt && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt), sourceHash: hash, kind: current ? 'current' : 'supplement', label: current ? '本期数据' : prior.length ? '往期数据更新' : '往期补录', clickRate: Number(metric.clickRate), threeSecondReadRate: Number(metric.threeSecondReadRate), conclusion: review?.conclusion ?? '', cause: review?.cause ?? '', nextAction: review?.nextAction ?? '', skipped, previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
             (card as any)._eligible = current || !skipped && cutoff < start && changed;
             nonPool.push(card);
         }
     // 本期二轮尚未处理时，将缺失的首轮作为同卡片流程的前置节点展示。
     for(const node of [...pending].filter(n=>n.checkpointType==='day_15')){
       const key=`${node.scheduleId}:day_7`;
-      if(!performanceRows.some(p=>p.scheduleId===node.scheduleId&&p.checkpointType==='day_7')&&events.get(key)?.action!=='skip'&&!pending.some(p=>p.key===key))pending.unshift({...node,key,checkpointType:'day_7',reason:'请先处理首轮'});
+      if(!performanceRows.some(p=>p.scheduleId===node.scheduleId&&p.checkpointType==='day_7')&&events.get(key)?.action!=='skip'&&!pending.some(p=>p.key===key)){
+        const dueOn=checkpointsForPublishDate(content.find(p=>p.scheduleId===node.scheduleId)!.actualPublishAt!).find(row=>row.type==='day_7')!.dueOn;
+        pending.unshift({...node,key,checkpointType:'day_7',dueOn,recordedThrough:dueOn,reason:'请先处理首轮'});
+      }
     }
     for (const card of nonPool) {
         card.ownHistory = nonPool.filter(p => p.contentId === card.contentId && p.versionNumber < card.versionNumber && p.checkpointType === card.checkpointType).map(p => ({ versionNumber: p.versionNumber, recordedThrough: p.recordedThrough, clickRate: p.clickRate, threeSecondReadRate: p.threeSecondReadRate }));

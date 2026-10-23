@@ -2,13 +2,14 @@
 import BusinessWeeklySnapshot from './BusinessWeeklySnapshot.astro';
 import { businessDateTime } from '../scripts/business-date';
 import BusinessPromotionSnapshot from './BusinessPromotionSnapshot.astro';
-interface Props { snapshot: Record<string, any> }
-const { snapshot } = Astro.props;
+import type {WeeklyPostReference} from '../db/meeting-note-ids';
+interface Props { snapshot: Record<string, any>;postReferences?:Record<string,WeeklyPostReference> }
+const { snapshot,postReferences={} } = Astro.props;
 const { generated = {}, draft = {}, meeting = {} } = snapshot;
 const text = (value: unknown) => typeof value === 'string' && value.trim() ? value : '尚未填写';
 const money = (n: number | null) => n == null ? '—' : `¥${Number(n).toFixed(2)}`;
 ---
-{snapshot.schemaVersion===4?<BusinessWeeklySnapshot snapshot={snapshot}/>:<article class="meeting-snapshot" data-meeting-snapshot>
+{snapshot.schemaVersion===4?<BusinessWeeklySnapshot snapshot={snapshot} postReferences={postReferences}/>:<article class="meeting-snapshot" data-meeting-snapshot>
   <h2>{meeting.name}</h2><p>{meeting.periodStart}—{meeting.periodEnd} · 已定稿快照</p>
   <section><h3>本周动向</h3>{generated.activity?.map((row: any) => <p>{row.contentName} V{row.versionNumber} · 测试 {row.testingDays} 天 · 放量 {row.scalingDays} 天 · 消耗 {money(row.total.spend)} · 开口 {row.total.actualOpenCount} · 留资 {row.total.actualLeadCount}</p>)}{generated.alignment?.map((r: any) => <p>{r.contentName} V{r.versionNumber} · {businessDateTime(r.plannedPublishAt)} · {r.status === 'unpublished' ? '待发布' : r.status === 'delayed' ? '延期发布' : '已发布'}</p>)}<h4>整体情况</h4><p class="writing">{text(draft.situation)}</p><h4>策略</h4><p class="writing">{text(draft.strategy)}</p></section>
   <section><h3>推广阶段复盘快照</h3>{generated.promotionSnapshots?.map((ref: any) => <BusinessPromotionSnapshot snapshot={ref.snapshot} versionNumber={ref.versionNumber}/>)}{generated.promotions?.map((r: any) => <p>{r.contentName} V{r.versionNumber} · 消耗 {money(r.total?.spend)} · 开口 {r.total?.actualOpenCount ?? '—'} · 留资 {r.total?.actualLeadCount ?? '—'}</p>)}{Object.entries(draft.promotionInputs ?? {}).map(([id, input]: [string, any]) => <p>{generated.activity?.find((r: any) => r.campaignId === id)?.contentName ?? generated.promotions?.find((r: any) => r.campaignId === id)?.contentName ?? '推广帖'} · 手动点击率 {input.clickRate == null ? '待补' : `${input.clickRate}%`} · {input.currentSituation} {input.activeAction}</p>)}</section>
