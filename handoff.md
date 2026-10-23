@@ -2,9 +2,9 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 最新接入：首页九图持续循环（2026-10-23）
+## 最新发布：首页九图持续循环（2026-10-23）
 
-- 用户已确认九图样片为正式执行与验收标准，现已接入真实首页。[正式组件截图与录屏](verified/2026-10-23_14-11_home-release/README.md)已自检，公网发布核对进行中。
+- 用户已确认九图样片为正式执行与验收标准，已接入真实首页并发布公网，发布源 `db225eb`。[正式组件与线上截图、录屏](verified/2026-10-23_14-11_home-release/README.md)已自检；73 项公网核对、54 个资源哈希及线上三档桌面通过。
 - 保留 Astro／React 与单实例封面，SSR 直接输出浅弧初态；新增 `src/scripts/home-motion.ts` 管理同一相位的换组、展开与平带持续循环，暂停、离场与减少动态均接入。九张原图哈希一致，A 的纵向逻辑及紧凑后两区保留；入口与业务内容不变。
 - 三档桌面与确认样片对照通过，包括标题字号与换行；完整九图回收零可见瞬移，暂停／键盘、往返、SSR、缺图和减少动态通过。166 项规则、构建／类型检查、db:check、test:home 通过；无迁移和业务写入。DESIGN、DECISIONS、源码教学及测试入口已同步。
 
@@ -47,7 +47,7 @@
 
 已发布的周例会版本只扩展现有会议 JSON v4 和日度事务服务，没有新增 SQL 迁移；测试全部使用隔离 PGlite 和虚构账号／业务事实，未向共享 Neon 写入验收数据。共享库已在上一轮应用 `0036_precise_promotion_review.sql`，不要重复迁移。
 
-公网当前为非推广入口与资料实现 `24c88be`，发布源 `2bf3ccf`；[正式非推广复盘](https://qiuyun-frontend.vercel.app/business/non-promotion-review)，部署 `dpl_C7zVp6npPyCnduuCpH2nxRh5uufL`。69 项公网检查通过，45 个线上资源与干净发布构建的 SHA-256 一致，正式域名、登录保护、API 未登录拒绝、私有路径及 1440／390px 登录页已核对。业务录入继续在隔离库验收，未在线上写入测试数据，无新增迁移。上个可回滚应用部署为 `dpl_7XGXzLX94YoKjAp5gn9CJiVQSxeb`，备份和回滚入口见[部署指南](docs/deployment.md)。Git 推送不自动部署，后续按用户持续授权主动执行 CLI 发布。
+公网当前首页发布源 `db225eb`，[正式首页](https://qiuyun-frontend.vercel.app)，部署 `dpl_4y8GjbiwBoRYnr3TfwA1XNLSDXW5`。73 项公网检查通过，54 个线上资源与本地 Vercel 模式构建 SHA-256 一致；正式域名、登录保护、API 未登录拒绝、私有路径及首页三档桌面已核对。既有非推广、推广与周例会功能沿用已发布实现。本轮无数据库迁移或业务写入。上个可回滚应用部署为 `dpl_C7zVp6npPyCnduuCpH2nxRh5uufL`，备份和回滚入口见[部署指南](docs/deployment.md)。Git 推送不自动部署，后续按用户持续授权主动执行 CLI 发布。
 
 
 ## 接手入口

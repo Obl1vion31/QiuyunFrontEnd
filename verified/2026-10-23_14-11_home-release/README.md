@@ -1,6 +1,6 @@
 # 首页正式接入：九图浅弧与持续平带
 
-用户已确认[九图持续循环样片](../2026-10-23_13-42_home-loop/README.md)作为验收标准。本轮已接入实际 Astro／React 首页，桌面自检通过；公网发布核对结果随后记录于本索引。
+用户已确认[九图持续循环样片](../2026-10-23_13-42_home-loop/README.md)作为验收标准。本轮已接入实际 Astro／React 首页，桌面自检通过，并发布至[正式首页](https://qiuyun-frontend.vercel.app)。状态：已自检、已发布并完成公网核对。
 
 - [实际首页录屏](motion/home-scroll.mp4)、[平铺持续循环片段](motion/flat-loop.mp4)、[录屏关键帧](motion/keyframes.png)。
 - [1440 首屏](screenshots/initial-1440.png)、[展开](screenshots/unfold-1440.png)、[平带](screenshots/flat-1440.png)、[跨屏](screenshots/handoff-1440.png)。
@@ -31,3 +31,9 @@ HOME_EVIDENCE_DIR=verified/2026-10-23_14-11_home-release pnpm test:home
 ```
 
 运行工具配置见 [tests/README.md](../../tests/README.md)。原始 WebM 与逐帧数据位于 `.tools/test-artifacts/home-release/`，本目录保留已实际审阅的最终截图与 MP4。正式组件定位见[首页代码学习](../../docs/home-code-study.md)。
+
+## 公网核对
+
+发布源 `db225eb`，Vercel 生产部署 `dpl_4y8GjbiwBoRYnr3TfwA1XNLSDXW5` 已就绪并绑定正式域名；详情与可回滚部署见 [release.json](release.json)。公网 73 项检查通过，54 个线上 CSS／JS、字体和图片资源与本地 Vercel 模式构建 SHA-256 一致，登录保护、业务未登录拒绝与私有路径均正常，见 [public-smoke.json](public-smoke.json)。
+
+线上另实际核对 1440／1280／1024px：九张图、无横向溢出、平铺持续横移、暂停／键盘恢复与减少动态均通过；无脚本错误或写入请求。[线上首屏](production/hero-1440.png)、[线上 1024 平带](production/flat-1024.png)、[线上工作流](production/workflow-1280.png)、[线上操作录像](production/online-check.mp4)及[关键帧](production/keyframes.png)已实际查看，详见 [production/browser.json](production/browser.json)。
