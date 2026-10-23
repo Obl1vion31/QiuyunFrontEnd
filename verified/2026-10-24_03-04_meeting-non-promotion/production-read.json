@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-23T19:10:25.213Z",
+  "scope": "共享库只读检查；按2026-10-17至22计算现有业务材料，未建立会议",
+  "meetingRecords": 0,
+  "pendingNodes": 4,
+  "referencePosts": 4,
+  "cutoffsMatchPublishDates": true,
+  "businessWrites": false,
+  "passed": true
+}
