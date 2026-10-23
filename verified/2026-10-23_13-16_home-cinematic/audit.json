@@ -1,0 +1,15 @@
+{
+  "sameBusinessContentAndLowerMarkup": true,
+  "samePublicAssets": true,
+  "history": {
+    "bfcacheRestored": false,
+    "scrollAndPlaybackAfterBack": true
+  },
+  "pause": {
+    "frozenBeyondFullCycle": true
+  },
+  "offline": {
+    "fonts": true,
+    "covers": true
+  }
+}

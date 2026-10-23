@@ -1,0 +1,11 @@
+import {readFile,mkdir} from 'node:fs/promises';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+const batch=resolve(dirname(fileURLToPath(import.meta.url)),'..'),run=promisify(execFile);
+const checks=JSON.parse(await readFile(resolve(batch,'checks.json'),'utf8')),mp4=resolve(batch,'motion/cinematic-preview.mp4');
+await mkdir(resolve(batch,'motion'),{recursive:true});
+await run('ffmpeg',['-y','-i',checks.motion[0].video,'-c:v','libx264','-crf','21','-preset','fast','-pix_fmt','yuv420p','-movflags','+faststart',mp4]);
+await run('ffmpeg',['-y','-i',mp4,'-vf','fps=1/4,scale=720:-1,tile=2x3','-frames:v','1',resolve(batch,'motion/keyframes.png')]);
+console.log(mp4);
