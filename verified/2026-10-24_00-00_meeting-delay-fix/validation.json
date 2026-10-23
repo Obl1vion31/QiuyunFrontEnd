@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "cf4c9912c191a06b2dd9f34037cc61c444bb8c0b",
+  "status": "已自检并发布公网，待用户反馈",
+  "unitTests": 175,
+  "desktopWidths": [
+    1920,
+    1440,
+    1280,
+    1024
+  ],
+  "isolatedBrowserChecks": [
+    "meeting-inline",
+    "meeting-weekly",
+    "schedule-workflow + latest-delay",
+    "publication",
+    "registration",
+    "business-ui",
+    "interaction-consistency",
+    "promotion-timeline",
+    "review-intervals"
+  ],
+  "typecheckAndBuild": true,
+  "dbCheck": true,
+  "screenshotsActuallyViewed": true,
+  "videoKeyframesActuallyViewed": true,
+  "publicChecks": 76,
+  "matchingAssets": 55,
+  "realDataReadOnlyVerificationPassed": true
+}
