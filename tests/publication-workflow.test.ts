@@ -84,3 +84,14 @@ test('旧预约仅保留历史且不产生待审或到点提醒，统一登记�
  const w=await read(s.id);assert.equal(w.publicationReservations[0].status,'fulfilled');assert.equal(publicationState(w.schedule),'published');
  assert.equal((await db.select().from(schema.operationsPublicationEvent).where(eq(schema.operationsPublicationEvent.scheduleId,s.id))).length,1);
 });
+
+
+test('更正实发为按时后实际删除失效原因，旧发布表单不得恢复已改期的理由',async()=>{
+ const planned=new Date(now.getTime()-30*3600000),s=await seed(null,planned);
+ const w=await read(s.id);await registerPublication(db,s.id,sent(s),w.days.map(d=>({planRevision:0,dayNumber:d.dayNumber,responsibility:'self' as const,reason:'有效原因',expectedUpdatedAt:null})),false,employee,now);
+ const latest=(await read(s.id)).schedule;
+ await registerPublication(db,s.id,{...revision(latest),actualPublishAt:planned,publicationUrl:link,correctionReason:'核实为按时发布'},[],false,admin,now);
+ assert.equal((await read(s.id)).days.length,0);
+ assert.equal((await db.select().from(schema.operationsScheduleDelayReason).where(eq(schema.operationsScheduleDelayReason.scheduleId,s.id))).length,0);
+ await assert.rejects(registerPublication(db,s.id,sent(s),[],false,employee,now),/已更新/);
+});

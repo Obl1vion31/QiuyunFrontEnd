@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import type {APIContext,APIRoute} from 'astro';
 import {and,eq,inArray} from 'drizzle-orm';
 import {getDb,withDatabase,type Database} from './client';
@@ -98,9 +99,9 @@ async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>
   const campaignIds=campaigns.map(row=>row.id);
   const startPlans=await db.select().from(s.operationsPromotionStartPlan).where(eq(s.operationsPromotionStartPlan.scheduleId,id));
   const dayDecisions=campaignIds.length?await db.select().from(s.operationsPromotionDayDecision).where(inArray(s.operationsPromotionDayDecision.campaignId,campaignIds)):[];
-  return {schedule,versions,campaigns,
+  return {schedule:withoutLegacyDelay(schedule),versions,campaigns,
     ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
-    reasons:await db.select().from(s.operationsScheduleDelayReason).where(eq(s.operationsScheduleDelayReason.scheduleId,id)),
+    reasons:await db.select().from(s.operationsScheduleDelayReason).where(and(eq(s.operationsScheduleDelayReason.scheduleId,id),eq(s.operationsScheduleDelayReason.planRevision,schedule.planRevision))),
     plans:await db.select().from(s.operationsSchedulePlanHistory).where(eq(s.operationsSchedulePlanHistory.scheduleId,id)),
     metrics:campaignIds.length?await db.select().from(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.campaignId,campaignIds)):[],
     ranges:campaignIds.length?await db.select().from(s.operationsPromotionWaitRange).where(inArray(s.operationsPromotionWaitRange.campaignId,campaignIds)):[],

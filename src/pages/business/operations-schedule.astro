@@ -26,7 +26,7 @@ import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxo
 import { publicationLabels,publicationState,mayKeepEmptyPublicationLink } from '../../db/publication-rules.mjs';
 import { teamScheduleNotifications } from '../../db/schedule-workflow';
 import { businessDateTime } from '../../scripts/business-date';
-import { completionStatus, needsRegistration, requiresPlanApproval, delayThresholdMs } from '../../db/schedule-rules.mjs';
+import { completionStatus, needsRegistration, requiresPlanApproval, delayThresholdMs, publicationDelayLabel } from '../../db/schedule-rules.mjs';
 
 export const prerender = false;
 const permissions=Astro.locals.businessPermissions=await effectiveBusinessPermissions(getDb(),Astro.locals.user!);
@@ -103,7 +103,7 @@ let rows: Array<{
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
   revisionSummary: string | null; projectDocUrl: string | null;
   syncToMoments: boolean; isPromoted: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
-  completionStatus: string; delayReason: string | null; planRevision: number; delayThresholdHours:number; publicationUrl:string|null;publicationRevision:number;
+  completionStatus: string; planRevision: number; delayThresholdHours:number; publicationUrl:string|null;publicationRevision:number;
 }> = [];
 const databaseStartedAt = performance.now();
 try {
@@ -131,7 +131,6 @@ try {
     actualPublishAt: operationsContentSchedule.actualPublishAt,
     publicationUrl:operationsContentSchedule.publicationUrl,publicationRevision:operationsContentSchedule.publicationRevision,
     completionStatus: operationsContentSchedule.completionStatus,
-    delayReason: operationsContentSchedule.delayReason,
   }).from(operationsContentSchedule)
     .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
     .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
@@ -190,8 +189,8 @@ const clientRows = rows.map((row) => {
     plannedPublishAt: inputDateTime(row.plannedPublishAt),
     actualPublishAt: inputDateTime(row.actualPublishAt),
     projectDocUrl: row.projectDocUrl ?? '',
-    delayReason: row.delayReason ?? '',
     revisionSummary: row.revisionSummary ?? '',
+    delayLabel:publicationDelayLabel(row.plannedPublishAt,row.actualPublishAt),
     promotionLabel: promotionLabels[rowStatus(row)] ?? row.promotionStatus,
     completionLabel: isOverdue(row) ? '尚未登记' : completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)] ?? '待发布',
     plannedDisplay: displayDateTime(row.plannedPublishAt),
@@ -340,6 +339,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
                   <div><dt>实发时间</dt><dd data-inspector-actual></dd></div>
                   <div data-inspector-completion-row><dt>发布状态</dt><dd data-inspector-completion></dd></div>
                 </dl>
+                <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理"><p>正在读取待处理事项…</p></section>
                 <details class="inspector-section inspector-reference" open><summary>相关资料</summary>
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
@@ -481,6 +481,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         setInspectorText('[data-inspector-planned]', record.plannedDisplay);
         setInspectorText('[data-inspector-actual]', record.actualDisplay);
         setInspectorText('[data-inspector-completion]', record.completionLabel);
+        setInspectorText('[data-inspector-delay-label]',record.delayLabel);inspector.querySelector('[data-inspector-delay-label]').hidden=!record.delayLabel;
         inspector.querySelector('[data-inspector-completion-row]').hidden=record.completionLabel==='尚未登记';
         inspector.querySelector('.inspector-reference').open=record.completionLabel!=='尚未登记';
         setInspectorText('[data-inspector-revision-summary]', record.revisionSummary);
@@ -866,7 +867,7 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
         record.publicationRevision=data.schedule.publicationRevision;record.publicationUrl=data.schedule.publicationUrl;
         record.planRevision=data.schedule.planRevision;record.plannedPublishAt=asInput(data.schedule.plannedPublishAt);record.plannedDisplay=window.businessDateTime(data.schedule.plannedPublishAt);
         record.publicationState=data.publicationState;record.publicationLabel=data.publicationLabel;
-        record.requiresPlanApproval=data.requiresPlanApproval;record.delayThresholdHours=data.schedule.delayThresholdHours;record.completionLabel=data.completionLabel;
+        record.requiresPlanApproval=data.requiresPlanApproval;record.delayThresholdHours=data.schedule.delayThresholdHours;record.completionLabel=data.completionLabel;record.delayLabel=data.delayLabel;
         record.actualPublishAt=asInput(data.schedule.actualPublishAt);record.allowEmptyPublicationLink=data.allowEmptyPublicationLink;
         record.actualDisplay=data.schedule.actualPublishAt?window.businessDateTime(data.schedule.actualPublishAt):'—';
         if(activeRecord?.id===record.id){setInspectorText('[data-inspector-planned]',record.plannedDisplay);setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';}
@@ -1074,3 +1075,5 @@ const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
 .inspector-danger summary{margin-bottom:8px}
 .inspector-danger small:empty{display:none}
 </style>
+
+<style>.inspector-delay-label{margin:0 0 12px;font:500 13px/20px var(--console-font);color:var(--console-ink)}</style>

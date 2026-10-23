@@ -1,3 +1,4 @@
+import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import {promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { asc, eq, inArray } from 'drizzle-orm';
@@ -39,7 +40,7 @@ export async function promotionSnapshot(db: Reader, scheduleId: string) {
     ids.length?db.select().from(s.operationsPromotionHold).where(inArray(s.operationsPromotionHold.campaignId,ids)).orderBy(asc(s.operationsPromotionHold.startedOn)):[],
   ]);
   const planned=(await readMeetingDecisions(db)).filter(d=>ids.includes(d.campaignId)).map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,reason:'例会决定',meetingDecision:true}));
-  return {schedule,plan:plans[0]??null,campaigns,metrics,ranges,stages,decisions:[...planned,...decisions],holds};
+  return {schedule:withoutLegacyDelay(schedule),plan:plans[0]??null,campaigns,metrics,ranges,stages,decisions:[...planned,...decisions],holds};
 }
 export const timelineFingerprint = (value: unknown) => createHash('sha256').update(JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)&&!(item instanceof Date)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item)).digest('hex');
 
@@ -56,7 +57,7 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
     const date=campaign?campaign.startedOn:plan?.plannedOn??(waitingThrough?waitingThrough<yesterday?waitingThrough:yesterday:publishedOn);
     const owned=context.campaigns.filter(c=>c.scheduleId===row.scheduleId),ids=new Set(owned.map(c=>c.id));
     const pausedRanges=context.waitRanges.filter(r=>r.campaignId===campaign?.id);
-    const snapshot={schedule:schedules.find(record=>record.id===row.scheduleId),plan:plan??null,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
+    const snapshot={schedule:withoutLegacyDelay(schedules.find(record=>record.id===row.scheduleId)!),plan:plan??null,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
     const canArrangeInitial=row.isPromoted&&row.promotionStatus==='awaiting_promotion'&&!campaign;
     return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,date,canArrangeInitial,
       pending:canArrangeInitial&&publishedOn<=yesterday&&!dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})),

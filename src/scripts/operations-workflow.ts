@@ -14,7 +14,7 @@ type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved:
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
 type ChangeProposal={key:string;name:string;title:string;requestedBy:string;reason:string;endpoint:string;scheduleId:string|null;diff:Array<{label:string;before:string;after:string}>};
-type Workflow = {changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type Workflow = {delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -38,7 +38,7 @@ const responsibilityField = (host: HTMLElement, selected = '', name = 'responsib
   group.append(options);host.append(group);return group;
 };
 const restoreResponsibility=(host:HTMLElement,value:string)=>host.querySelectorAll<HTMLInputElement>('input[type=radio]').forEach(input=>input.checked=input.value===value);
-const reasonLabel=(workflow:Workflow,day:DelayDay)=>delayDayLabel(workflow.history.find(plan=>plan.revision===day.planRevision)?.plannedPublishAt??workflow.schedule.plannedPublishAt,day.dueAt);
+const reasonLabel=(workflow:Workflow,day:DelayDay)=>`${businessDateTime(day.dueAt)} · ${delayDayLabel(workflow.schedule.plannedPublishAt,day.dueAt)}`;
 async function getWorkflow(id: string, actual?: string, signal?: AbortSignal) {
   const query = actual ? `?actual=${encodeURIComponent(actual)}` : '';
   const response = await fetch(`/api/operations-content/${id}/workflow${query}`, { cache: 'no-store', signal });
@@ -138,9 +138,10 @@ function initialize() {
       if (workflow.registrationState === 'missing') {
         const warning=element('p','尚未登记');warning.className='workflow-registration-warning';warning.setAttribute('role','status');panel!.append(warning);
       }
+      const delayLabel=document.querySelector<HTMLElement>('[data-inspector-delay-label]');if(delayLabel){delayLabel.textContent=workflow.delayLabel;delayLabel.hidden=!workflow.delayLabel;}
       if (pending.length) {
         const section=element('section');section.className='workflow-pending-reasons';
-        section.append(element('h4',workflow.schedule.actualPublishAt?`延期原因 · 待填 ${pending.length} 天`:`尚未发布时填写原因 · ${pending.length} 天`));
+        section.append(element('h4',workflow.schedule.actualPublishAt?`延期原因 · 待填 ${pending.length} 条`:`尚未发布时填写原因 · ${pending.length} 条`));
         for (const [index,day] of pending.entries()) {
           const row=element('details');row.className='workflow-reason';row.dataset.delayKey=`${day.planRevision}:${day.dayNumber}`;row.open=index===0;
           row.append(element('summary',reasonLabel(workflow,day)));
@@ -154,9 +155,9 @@ function initialize() {
         const details=history(`已填延期原因 ${saved.length} 条`);
         for(const day of saved){
           const row=element('section');row.className='workflow-reason';
-          row.append(element('h4',`R${day.planRevision} · ${reasonLabel(workflow,day)}`));
+          row.append(element('h4',reasonLabel(workflow,day)));
           const labels={self:'自身原因',external:'非自身原因',requester:'需求端原因',unknown:'未知'};
-          row.append(element('p',`${labels[day.saved!.responsibility]}：${day.saved!.reason}`),element('small',`${day.saved!.source==='historical'?'':day.saved!.changedByLabel}${day.archived?' · 实发更正前的记录':''}`));
+          row.append(element('p',`${labels[day.saved!.responsibility]}：${day.saved!.reason}`),element('small',`${day.saved!.source==='historical'?'':day.saved!.changedByLabel}`));
           if(!day.archived&&mayOperate('schedule.reason')){
             const button=element('button','更正理由');button.type='button';button.className='business-action-secondary';
             const form=reasonForm(day,id,()=>showPanel(id));form.hidden=true;
@@ -272,7 +273,7 @@ function initialize() {
       for (const day of pending) {
         const row = element('section'); row.className = 'publication-reason-day'; row.dataset.delayDay = '';
         row.dataset.planRevision = String(day.planRevision); row.dataset.dayNumber = String(day.dayNumber);
-        row.append(element('strong', `R${day.planRevision} · ${reasonLabel(workflow,day)}`));
+        row.append(element('strong', reasonLabel(workflow,day)));
         const prior = retained.get(`${day.planRevision}:${day.dayNumber}`);
         const fields=element('div');fields.className='business-reason-fields';row.append(fields);responsibilityField(fields, prior?.responsibility,`responsibility-${++responsibilityGroup}`);
         const text = textField(fields, '', '文字原因'); text.value = prior?.reason || ''; text.setAttribute('placeholder', '例如：今日正在修改中');
@@ -281,7 +282,7 @@ function initialize() {
       const saved = publicationDays.filter(day => day.saved);
       if (saved.length) {
         const details = element('details'); details.append(element('summary', `已填写／历史理由 ${saved.length} 条`));
-        for (const day of saved) { const row = element('section'); row.className='publication-reason-day'; row.append(element('strong', `R${day.planRevision} · ${reasonLabel(workflow,day)}`),element('p', day.saved!.reason),element('small', day.saved!.source==='historical'?'':day.saved!.changedByLabel)); details.append(row); }
+        for (const day of saved) { const row = element('section'); row.className='publication-reason-day'; row.append(element('strong', reasonLabel(workflow,day)),element('p', day.saved!.reason),element('small', day.saved!.source==='historical'?'':day.saved!.changedByLabel)); details.append(row); }
         host.append(details);
       }
       const section = publication!.querySelector<HTMLElement>('[data-publication-delay]')!; section.hidden = publicationDays.length === 0;

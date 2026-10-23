@@ -14,6 +14,13 @@ export const delayDays = (plannedAt, through, effectiveAt = null, thresholdHours
     dayNumber: index + 1, dueAt: new Date(start + index * delayDayMs),
   }));
 };
+/** 当前应发与实发的真实间隔，与“原因条数”分别表达。 */
+export const publicationDelayLabel = (plannedAt, actualAt) => {
+  if (!actualAt || !isDelayed(plannedAt, actualAt)) return '';
+  const total = Math.floor((actualAt.getTime() - plannedAt.getTime()) / 60000);
+  const days = Math.floor(total / 1440), hours = Math.floor(total % 1440 / 60), minutes = total % 60;
+  return `较最新排期晚发布 ${days ? `${days} 天` : ''}${hours ? `${days ? ' ' : ''}${hours} 小时` : ''}${minutes ? `${days || hours ? ' ' : ''}${minutes} 分钟` : ''}`;
+};
 export const completionStatus = (plannedAt, actualAt, thresholdHours = 2) => !actualAt ? 'pending'
   : isDelayed(plannedAt, actualAt, thresholdHours) ? 'delayed' : 'on_time';
 export const needsRegistration = (schedule, now) => !schedule.actualPublishAt && isDelayed(schedule.plannedPublishAt, now, 2);

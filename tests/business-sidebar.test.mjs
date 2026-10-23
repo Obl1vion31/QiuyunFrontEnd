@@ -71,7 +71,7 @@ test('六个页面只通过共享组件表达工具栏控件', async () => {
     ['operations-schedule', ['BusinessToolbarPeriodNav', 'BusinessToolbarSegmented', 'BusinessToolbarActions']],
     ['daily-promotion-review', ['BusinessPromotionToolbar']],
     ['non-promotion-review', ['BusinessToolbarSegmented', 'BusinessToolbarSummary']],
-    ['meeting-review', ['BusinessToolbarContext', 'BusinessToolbarActions']],
+    ['meeting-review', ['BusinessToolbarActions']],
     ['settings', []],
   ]);
   for (const [page, components] of expected) {

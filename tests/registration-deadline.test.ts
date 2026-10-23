@@ -54,14 +54,14 @@ test('员工门槛前直接改期留痕，旧时间超时后不可用新时间�
   const registered=await seed(afterHours(1),8);await db.transaction(tx=>changeSchedulePlan(tx,registered,afterHours(-1),'更正应发时间',employee,afterHours(30)));
   assert.equal((await readScheduleWorkflow(db,registered.id,undefined,afterHours(30))).schedule.delayThresholdHours,8);
 });
-test('历史也按两小时判延期，已保存原因原日期保留',async()=>{
+test('历史也按两小时判延期，展示按最新两小时起点，实发预览不归档失效原因',async()=>{
   const old=await seed(afterHours(4),8);const w=await readScheduleWorkflow(db,old.id,undefined,afterHours(30));
   assert.equal(w.schedule.completionStatus,'delayed');assert.equal(w.days.length,1);
   const pending=await seed();const dueAt=afterHours(8);
   await db.insert(schema.operationsScheduleDelayReason).values({scheduleId:pending.id,planRevision:0,dayNumber:1,dueAt,responsibility:'self',reason:'原记录',changedByLabel:'虚构员工'});
-  const read=await readScheduleWorkflow(db,pending.id,undefined,afterHours(30));assert.equal(read.days[0].dueAt.getTime(),dueAt.getTime());assert.equal(read.days.length,2);
-  // 回填按时实发只归档已有原因，不制造新的原因要求。
-  const preview=await readScheduleWorkflow(db,pending.id,afterHours(1),afterHours(30));assert.equal(preview.days.length,1);assert.equal(preview.days[0].archived,true);
+  const read=await readScheduleWorkflow(db,pending.id,undefined,afterHours(30));assert.equal(read.days[0].dueAt.getTime(),afterHours(2).getTime());assert.equal(read.days.length,2);
+  // 按时实发预览没有延期原因，不回填旧记录。
+  const preview=await readScheduleWorkflow(db,pending.id,afterHours(1),afterHours(30));assert.equal(preview.days.length,0);
 });
 test('追加迁移只设置门槛快照，不改已登记事实、原因与旧修订',async()=>{
   const isolated=new PGlite();

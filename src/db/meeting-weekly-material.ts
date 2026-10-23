@@ -120,7 +120,6 @@ export interface WeeklyMaterial {
     excludedNonPromotions?:Array<{key:string;contentName:string;checkpointType:string;reason:string;eventId:string}>;
     pending: Array<{
         scheduleId?:string;
-        platformNoteId?:string|null;
         recordedThrough?:string;
         key: string;
         contentName: string;

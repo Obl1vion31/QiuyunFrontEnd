@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import {readWeeklyNoteIds} from '../../../../db/meeting-note-ids';
 import { eq } from 'drizzle-orm';
 import { getDb } from '../../../../db/client';
 import { operationsReviewMeeting } from '../../../../db/schema';
@@ -14,8 +15,8 @@ export const GET: APIRoute = async ({ params, url }) => {
         const periodStart = url.searchParams.get('from') ?? meeting.periodStart, periodEnd = url.searchParams.get('to') ?? meeting.periodEnd;
         if (!businessDate.safeParse(periodStart).success || !businessDate.safeParse(periodEnd).success || periodStart > periodEnd || periodEnd >= shanghaiDateKey(new Date()))
             return Response.json({ message: '请选择今天以前的有效区间。' }, { status: 422 });
-        const material = await getDb().transaction(tx => readWeeklyMaterial(tx, { ...meeting, periodStart, periodEnd }), { isolationLevel: 'repeatable read' });
-        return Response.json({ material }, { headers: { 'Cache-Control': 'private, no-store' } });
+        const {material,noteIds} = await getDb().transaction(async tx => {const material=await readWeeklyMaterial(tx,{...meeting,periodStart,periodEnd});return {material,noteIds:await readWeeklyNoteIds(tx,material)}}, { isolationLevel: 'repeatable read' });
+        return Response.json({ material,noteIds }, { headers: { 'Cache-Control': 'private, no-store' } });
     }
     catch (error) {
         console.error('weekly material read failed', error);

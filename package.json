@@ -18,7 +18,7 @@
     "test:timeline": "node --import tsx tests/promotion-timeline.browser.ts",
     "test:reviews": "node --import tsx tests/review-intervals.browser.ts",
     "test:pauses": "node --import tsx tests/promotion-pauses.browser.ts",
-    "test:workflows": "node --import tsx tests/schedule-workflow.browser.ts",
+    "test:workflows": "node --import tsx tests/schedule-workflow.browser.ts && node --import tsx tests/latest-delay.browser.ts",
     "test:annual-plan": "node --import tsx tests/annual-plan.browser.ts",
     "account:create": "node --import tsx scripts/create-account.ts",
     "start": "node ./dist/server/entry.mjs",

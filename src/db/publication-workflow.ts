@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 import {promotionSnapshot} from './promotion-timeline';
 import {shanghaiDateKey} from './promotion-rules.mjs';
 import { and, eq, inArray,sql } from 'drizzle-orm';
@@ -45,6 +46,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
       const [metricCount]=await tx.select({value:count()}).from(metrics).where(inArray(metrics.campaignId,campaignRows.map(row=>row.id)));
       return {kind:'reset-required' as const,campaigns:campaignRows.length,dailyMetrics:Number(metricCount.value)};
     }
+    await pruneScheduleDelayReasons(tx,{...schedule,actualPublishAt:actual},now);
     for(const reason of dailyReasons)await saveDelayReason(tx,schedule,reason,actor,now,actual);
     const workflow=await readScheduleWorkflow(tx,id,actual,now);
     if(workflow.days.some(day=>!day.saved&&!day.archived))throw new WorkflowError('请为每一天延期选择责任方并填写原因，再保存实发登记。',422);

@@ -45,7 +45,7 @@ try {
   await request(`/api/business-change-proposals/${application.requestId}`,'PATCH',employeeCookie,{action:'approve'},403);
   const decisions=await Promise.all([0,1].map(()=>fetch(`${baseURL}/api/business-change-proposals/${application.requestId}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:adminCookie,'Content-Type':'application/json'},body:JSON.stringify({action:'approve'})})));
   assert.deepEqual(decisions.map(response=>response.status).sort(),[200,200]);
-  const approved=await request(`/api/operations-content/${approval.id}/workflow`,'GET',employeeCookie);assert.equal(approved.overdueDays,0);assert.equal(approved.history.length,1);assert.ok(approved.days.some((day:any)=>!day.saved));
+  const approved=await request(`/api/operations-content/${approval.id}/workflow`,'GET',employeeCookie);assert.equal(approved.overdueDays,0);assert.equal(approved.history.length,1);assert.equal(approved.days.length,0);
   const temporary=await create({subjectId:'temporary',categoryId:'temporary',contentName:'临时学科临时帖',plannedPublishAt:inputTime(hours(24))});
   assert.ok(temporary.id);
   const pending=await create({contentName:'虚构待填理由帖子',plannedPublishAt:inputTime(hours(-10))});
@@ -62,8 +62,8 @@ try {
   // 模拟导入的原始指标尚未形成复盘；跳过后也不能进入同类样本。
   await db.insert(schema.operationsContentPerformanceMetric).values({scheduleId:skipped.id,checkpointType:'day_7',recordedThrough:inputTime(hours(-24*16)).slice(0,10),clickRate:'95',threeSecondReadRate:'95'});
   await request('/api/non-promotion-reviews','POST',employeeCookie,{scheduleId:skipped.id,checkpointType:'day_7',recordedThrough:inputTime(hours(-24*16)).slice(0,10),clickRate:'10',threeSecondReadRate:'20',conclusion:'',platformNoteId:'1'.repeat(24)},409);
-  const meeting=await request('/api/meeting-reviews','POST',employeeCookie,{name:'虚构复盘会',periodStart:inputTime(hours(-24*25)).slice(0,10),periodEnd:inputTime(now).slice(0,10),meetingAt:now.toISOString()},201);
-  const invalidMeeting=await fetch(`${baseURL}/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:employeeCookie,'Content-Type':'application/json'},body:JSON.stringify({action:'finalize',draft:{schemaVersion:2,coreConclusion:'',nextAction:'',promotionInputs:{},issues:[],nonPromotionSelections:[{scheduleId:skipped.id,checkpointType:'day_7'}]}})});assert.equal(invalidMeeting.status,409);
+  const meeting=await request('/api/meeting-reviews','POST',employeeCookie,{name:'虚构复盘会',periodStart:inputTime(hours(-24*25)).slice(0,10),periodEnd:inputTime(hours(-24)).slice(0,10),meetingAt:now.toISOString()},201);
+  const invalidMeeting=await fetch(`${baseURL}/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:employeeCookie,'Content-Type':'application/json'},body:JSON.stringify({action:'finalize',draft:{schemaVersion:2,coreConclusion:'',nextAction:'',promotionInputs:{},issues:[],nonPromotionSelections:[{scheduleId:skipped.id,checkpointType:'day_7'}]}})});assert.equal(invalidMeeting.status,422);const meetingMaterial=await request(`/api/meeting-reviews/${meeting.id}/material`,'GET',employeeCookie);assert.equal(meetingMaterial.material.nonPromotions.some((row:any)=>row.scheduleId===skipped.id&&row.checkpointType==='day_7'),false);
   const restoredWithReview=await published('虚构已完成二轮帖','step','non-promotional-handout');
   await request('/api/non-promotion-checkpoints','POST',employeeCookie,{...skipInput,scheduleId:restoredWithReview.id});
   await request('/api/non-promotion-reviews','POST',employeeCookie,{scheduleId:restoredWithReview.id,checkpointType:'day_15',recordedThrough:inputTime(hours(-24*8)).slice(0,10),clickRate:'50',threeSecondReadRate:'60',conclusion:'',platformNoteId:'7'.repeat(24)},201);
@@ -137,7 +137,7 @@ try {
     await phone.goto(`${baseURL}/business/non-promotion-review?subject=tmua&category=innovation&row=${skipped.id}:day_7`);await phone.locator('[data-inspector]').waitFor();
     assert.ok(await phone.locator('[data-inspector]').evaluate((node:HTMLElement)=>node.getBoundingClientRect().width<=innerWidth));
     await phone.screenshot({path:`.tools/test-artifacts/non-promotion-workflow-${width}.png`,fullPage:true});
-    await phone.goto(`${baseURL}/business/operations-schedule?status=reasons&row=${approval.id}`);await phone.locator('[data-schedule-workflow] .workflow-reason').first().waitFor();
+    await phone.goto(`${baseURL}/business/operations-schedule?row=${pending.id}`);await phone.locator('[data-schedule-workflow-history] summary').filter({hasText:'已填延期原因'}).click();await phone.locator('[data-schedule-workflow-history] .workflow-reason').first().waitFor();
     await phone.screenshot({path:`.tools/test-artifacts/schedule-workflow-${width}.png`,fullPage:true});await mobile.close();
   }
   const {context:adminContext,page:adminPage}=await contextFor(adminCookie);await adminPage.goto(`${baseURL}/business/operations-schedule?status=approvals`);

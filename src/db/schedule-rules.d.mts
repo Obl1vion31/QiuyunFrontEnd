@@ -5,6 +5,7 @@ export function delayStartsAt(plannedAt: Date, effectiveAt?: Date | null, thresh
 export function delayDayCount(plannedAt: Date, through: Date, effectiveAt?: Date | null, thresholdHours?: number): number;
 export function delayDays(plannedAt: Date, through: Date, effectiveAt?: Date | null, thresholdHours?: number): Array<{ dayNumber: number; dueAt: Date }>;
 export function completionStatus(plannedAt: Date, actualAt: Date | null, thresholdHours?: number): 'pending' | 'delayed' | 'on_time';
+export function publicationDelayLabel(plannedAt: Date, actualAt: Date | null): string;
 type RegistrationSchedule = {plannedPublishAt: Date; actualPublishAt: Date | null};
 export function needsRegistration(schedule: RegistrationSchedule, now: Date): boolean;
 export function registrationState(schedule: RegistrationSchedule, now: Date): 'pending' | 'missing' | 'registered';
