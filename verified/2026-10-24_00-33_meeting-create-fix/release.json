@@ -1,0 +1,27 @@
+{
+  "sourceCommit": "ed0a8327ee48ac31073bd7fa84baf6cb5be55bd2",
+  "deploymentId": "dpl_CcUkfLjqS2xAXCJDyrwkrWKDYj2B",
+  "deploymentUrl": "https://qiuyun-frontend-bed1ekz4b-opgobl1v-5358.vercel.app",
+  "formalUrl": "https://qiuyun-frontend.vercel.app",
+  "aliases": [
+    "qiuyun-frontend.vercel.app",
+    "qiuyun-frontend-opgobl1v-5358.vercel.app"
+  ],
+  "readyState": "READY",
+  "checkedAt": "2026-10-23T16:38:28.871Z",
+  "tests": 180,
+  "browserChecks": [
+    "meeting-create",
+    "meeting-weekly",
+    "meeting-inline",
+    "interaction-consistency"
+  ],
+  "build": "types and Node/Vercel builds passed",
+  "dbCheck": "passed; no schema migration",
+  "originProtection": {
+    "sameOriginForms": "401 without session",
+    "crossOriginForm": "403",
+    "allowedDomains": "exact production HTTPS plus local development hosts",
+    "checkOrigin": true
+  }
+}
