@@ -80,3 +80,5 @@
 | 事项流转 | [事项表格](issues-1440.png) · [无历史](issues-no-history-1440.png) · [解决状态](issues-resolved-1440.png) |
 | 参考内检查表 | [standards-1440.png](standards-1440.png) |
 | 操作过程 | [meeting-flow.mp4](motion/meeting-flow.mp4) · [关键帧](motion/keyframes.png) |
+
+本参考为历史方案。用户后续确认的内联卡片和两阶段定稿已正式接入，当前标准见[正式验收](../2026-10-23_18-54_meeting-inline/README.md)。

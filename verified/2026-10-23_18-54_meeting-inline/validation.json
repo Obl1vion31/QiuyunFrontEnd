@@ -24,5 +24,9 @@
   ],
   "checks": "checks.json",
   "video": "meeting-flow.webm",
-  "reviewed": "截图与录像关键帧已实际查看"
+  "reviewed": "截图与录像关键帧已实际查看",
+  "sourceCommit": "d0f9fca4ff0add1341d17c956af2b4e4b2774431",
+  "deploymentId": "dpl_C1rv4b4Nk33kcpTsqShrxGHkdZzC",
+  "publicChecks": 76,
+  "matchingPublicAssets": 55
 }

@@ -2,13 +2,13 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 最新交付：例会总览与内联卡片（2026-10-23）
+## 最新发布：例会总览与内联卡片（2026-10-23）
 
 - 已按用户批准的简化流程接入正式组件：周／月总览表格、原位候选确认、三列等高卡片、点击率／观察／行动内联确认与修改；本帖历史优先，历史同类仅保留样本和核心数据。
 - 保存草稿返回表格，未完成非推广输入保留；非推广确认立即调用正式复盘接口。推广指标继续走专属入口。会前冻结材料，会后定稿才发布次日安排、更新事项；通常会前V0／会后V1，同日最新版优先且历史不可变。
 - 每日入口继承例会决定、置灰并标记版本，修改须理由且保留数字；更正同步已录日度的次日安排。事项按纯表格流转，未解决带方案进入下次，会后解决才退出。复用既有JSON与审计表，无SQL迁移。
 - [本轮视觉标准、截图、录像与验证](verified/2026-10-23_18-54_meeting-inline/README.md)。171项规则、类型检查／构建、db:check以及例会、推广、公共UI、状态更正、时间线、旧例会与非推广隔离回归通过。当前例会实际检查1920／1440／1280／1024px，手机沿用相邻公共回归。
-- 公网发布结果将在正式域名与资源核对完成后记录；测试没有向共享Neon写入虚构数据。工作分支继续保留，不自动合入main。
+- 实现与公网发布源 `d0f9fca`，正式域名已指向 `dpl_C1rv4b4Nk33kcpTsqShrxGHkdZzC`；76项公网检查通过，55个资源哈希一致。测试没有向共享Neon写入虚构数据，工作分支保留。
 
 ## 最新发布：首页九图持续循环（2026-10-23）
 
@@ -55,11 +55,11 @@
 
 已发布的周例会版本只扩展现有会议 JSON v4 和日度事务服务，没有新增 SQL 迁移；测试全部使用隔离 PGlite 和虚构账号／业务事实，未向共享 Neon 写入验收数据。共享库已在上一轮应用 `0036_precise_promotion_review.sql`，不要重复迁移。
 
-公网当前首页发布源 `db225eb`，[正式首页](https://qiuyun-frontend.vercel.app)，部署 `dpl_4y8GjbiwBoRYnr3TfwA1XNLSDXW5`。73 项公网检查通过，54 个线上资源与本地 Vercel 模式构建 SHA-256 一致；正式域名、登录保护、API 未登录拒绝、私有路径及首页三档桌面已核对。既有非推广、推广与周例会功能沿用已发布实现。本轮无数据库迁移或业务写入。上个可回滚应用部署为 `dpl_C7zVp6npPyCnduuCpH2nxRh5uufL`，备份和回滚入口见[部署指南](docs/deployment.md)。Git 推送不自动部署，后续按用户持续授权主动执行 CLI 发布。
+公网当前发布源 `d0f9fca`，部署 `dpl_C1rv4b4Nk33kcpTsqShrxGHkdZzC`，[例会总览](https://qiuyun-frontend.vercel.app/business/meeting-review)。76项匿名HTTP与资源检查通过，55个线上资源与本地Vercel构建SHA-256一致；登录保护、API拒绝未登录及私有路径已核对，实际写入流程使用隔离库。本轮无SQL迁移或共享业务写入。上个可回滚应用部署 `dpl_4y8GjbiwBoRYnr3TfwA1XNLSDXW5`；Git推送不自动部署，后续沿持续授权执行CLI发布。
 
 
 ## 接手入口
 
-Node 22、pnpm 9.15.9；WSL 仓库 `/home/obl1vion/projects/qiuyunFrontend`，运行时 `.tools/runtime/node-v22.23.3-linux-x64/bin`。先构建，`pnpm test:non-promotion` 验证本轮入口，`pnpm test:weekly` 验证已发布周例会，其他命令见[测试说明](tests/README.md)。原始产物 `.tools/test-artifacts/non-promotion-inspector/`、`.tools/test-artifacts/meeting-weekly/`、`review-v8/`，最终截图与录像在上述 verified 索引。
+Node 22、pnpm 9.15.9；WSL 仓库 `/home/obl1vion/projects/qiuyunFrontend`，运行时 `.tools/runtime/node-v22.23.3-linux-x64/bin`。先构建，`pnpm test:weekly` 验证本轮例会与跨日衔接，`pnpm test:non-promotion` 验证非推广入口，其他命令见[测试说明](tests/README.md)。原始产物 `.tools/test-artifacts/non-promotion-inspector/`、`.tools/test-artifacts/meeting-weekly/`、`review-v8/`，最终截图与录像在上述 verified 索引。
 
 后续继承非推广统一入口与资料区规范，以及既有第八版布局和状态更正；下次不重新设计已确认的概览、每日列或公共 Inspector，不把旧图中的整套首次 ID Inspector、独立阶段新建入口恢复回来。
