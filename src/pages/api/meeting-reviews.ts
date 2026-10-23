@@ -1,4 +1,5 @@
 import {readWeeklyMaterial} from '../../db/meeting-weekly-material';
+import {readOpenMeetingIssues} from '../../db/meeting-snapshots';
 import {businessDate} from '../../db/promotion-wait-ranges';
 import {shanghaiDateKey} from '../../db/promotion-rules.mjs';
 import { eq } from 'drizzle-orm';
@@ -22,10 +23,10 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
   const result = meetingReviewSchema.safeParse(formObject(form));
   if (!result.success) return Response.json({ message: '请检查会议信息。', fields: issuesByField(result.error.issues) }, { status: 422 });
   if(!businessDate.safeParse(result.data.periodStart).success||!businessDate.safeParse(result.data.periodEnd).success||result.data.periodEnd>=shanghaiDateKey(new Date()))return Response.json({message:'例会只汇总今天以前的数据。'},{status:422});
-  const name = result.data.name || `${shortDate(result.data.periodStart, true)}—${shortDate(result.data.periodEnd)} 周度业务复盘`;
+  const name = result.data.name || `${shortDate(result.data.periodStart, true)}—${shortDate(result.data.periodEnd)} ${result.data.meetingType==='monthly'?'月度':'周度'}业务复盘`;
   try {
-    const meeting = await getDb().transaction(async tx => { const [created] = await tx.insert(operationsReviewMeeting).values({
-      ...result.data, name, meetingType: 'weekly', draftSnapshot: { schemaVersion: 4, promotionSelections: [], coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: [], nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',
+    const meeting = await getDb().transaction(async tx => { const carried=await readOpenMeetingIssues(tx);const [created] = await tx.insert(operationsReviewMeeting).values({
+      ...result.data, name, meetingType: result.data.meetingType, draftSnapshot: { schemaVersion: 4, workflowVersion:5, candidatesConfirmed:false, promotionSelections: [], coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: carried, nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',
     }).returning();
       const material = await readWeeklyMaterial(tx, created);
       await tx.update(operationsReviewMeeting).set({ draftSnapshot: { ...created.draftSnapshot, materialFingerprint:material.fingerprint,materialSnapshot:material as unknown as Record<string,unknown> } }).where(eq(operationsReviewMeeting.id, created.id));

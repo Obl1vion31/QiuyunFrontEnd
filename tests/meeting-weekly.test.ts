@@ -123,3 +123,13 @@ test('残留与历史放量更正进入往期追加卡，按相关事实显示�
     assert.equal(sc.periodTotal.spend, null);
     assert.equal(next.summary.spend, 20);
 });
+
+
+test('会后次日淘汰不能产生普通投放事实，会议当天事实仍保留',async()=>{
+ const {writePromotionDaily}=await import('../src/db/promotion-daily-write');
+ const post=await seed('隔离会后次日结束');await fact(post.campaign.id,'2026-10-09','test_continue');
+ const m=await meeting('2026-10-01','2026-10-08');
+ await db.insert(s.operationsReviewMeetingVersion).values({meetingId:m.id,versionNumber:1,finalizedByLabel:'隔离',changeSummary:'会后定稿',snapshot:{finalizationStage:'post',decisionEffectiveOn:'2026-10-10',generated:{meetingDecisions:[{id:m.id+':'+post.campaign.id+':2026-10-10',meetingId:m.id,versionNumber:1,campaignId:post.campaign.id,scheduleId:post.schedule.id,effectiveOn:'2026-10-10',targetStatus:'test_discarded',stageType:'testing',label:'隔离会后'}]}}});
+ const result=await db.transaction(tx=>writePromotionDaily(tx as any,{campaignId:post.campaign.id,platformNoteId:post.c.platformNoteId,metricDate:'2026-10-10',dailyStatus:'waiting_action',actualStatusSnapshot:'test_discarded',recordKind:'regular',stageTypeSnapshot:'testing',spend:10,platformOpenCount:1,actualOpenCount:1,platformLeadCount:1,actualLeadCount:1,reviewDecision:'test_discarded'}, {id:randomUUID(),username:'隔离'}));
+ assert.equal(result.kind,'closed');assert.equal((await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,post.campaign.id))).length,1);
+});

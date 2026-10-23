@@ -667,6 +667,12 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 ]);
 
 export interface WeeklyMeetingDraft {
+  workflowVersion?:5;
+  hasRevisionDraft?:boolean;
+  candidatesConfirmed?:boolean;
+  finalizationStage?:'pre'|'post';
+  promotionDecisions?:Record<string,string>;
+  nonPromotionInputs?:Record<string,{mode?:'record'|'skip';editing?:boolean;clickRate?:string;threeSecondReadRate?:string;recordedThrough?:string;conclusion?:string;platformNoteId?:string;reason?:string}>;
   schemaVersion: 2 | 3 | 4;
   promotionSelections?: string[];
   materialFingerprint?: string;
@@ -679,7 +685,7 @@ export interface WeeklyMeetingDraft {
   attachmentIds?: string[];
   coreConclusion: string;
   nextAction: string;
-  promotionInputs: Record<string, { clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
+  promotionInputs: Record<string, { confirmed?:boolean; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
   issues: Array<{ id?: string; problem: string; conclusion: string; status: 'pending' | 'validating' | 'resolved' | 'paused' }>;
   nonPromotionSelections: Array<{ scheduleId: string; checkpointType: 'day_7' | 'day_15' }>;
 }

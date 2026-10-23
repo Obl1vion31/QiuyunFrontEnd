@@ -1,7 +1,8 @@
 export interface PromotionWindow { startedOn: string; endedOn: string }
 export interface PromotionPause { id: string; startsAt: Date | string; endsAt: Date | string; resumedAt?: Date | string | null }
 export interface PromotionContext {
-  stateChanges?: Array<{campaignId:string;businessDate:string;stageType:string;actualStatus?:string|null;reason?:string|null}>;
+  meetingDecisions?:Array<import('./meeting-decisions').MeetingDecision>;
+  stateChanges?: Array<{campaignId:string;businessDate:string;stageType:string;actualStatus?:string|null;reason?:string|null;meetingDecision?:boolean}>;
   waitRanges?: Array<PromotionWindow & { id?: string; campaignId: string; stageType: string; nextDecision?: string | null; nextEffectiveOn?: string | null }>;
   campaigns?: PromotionCampaign[];
   metrics?: Array<{ campaignId: string; metricDate: string; dailyStatus: string; stageTypeSnapshot: string; reviewDecision: string;actualStatusSnapshot?:string|null;recordKind?:string;sourceStageStartedOn?:string|null }>;

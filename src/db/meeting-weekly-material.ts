@@ -30,6 +30,7 @@ export interface Benchmark {
     samples?: Array<Record<string, unknown>>;
 }
 export interface WeeklyPromotionCard {
+    currentStatus?:string;
     key: string;
     originKey: string;
     sourceHash: string;
@@ -61,6 +62,8 @@ export interface WeeklyPromotionCard {
     historical: Benchmark;
     peers: Benchmark;
     ownHistory: Array<{
+        stageType?:string;
+        periodLabel?:string;
         name: string;
         versionNumber: number;
         spend: number | null;
@@ -114,7 +117,11 @@ export interface WeeklyMaterial {
     promotions: WeeklyPromotionCard[];
     nonPromotions: WeeklyNonPromotionCard[];
     nonPromotionContext: WeeklyNonPromotionCard[];
+    excludedNonPromotions?:Array<{key:string;contentName:string;checkpointType:string;reason:string;eventId:string}>;
     pending: Array<{
+        scheduleId?:string;
+        platformNoteId?:string|null;
+        recordedThrough?:string;
         key: string;
         contentName: string;
         checkpointType: string;
@@ -140,7 +147,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
     ]);
     const start = meeting.periodStart, end = meeting.periodEnd;
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
-    const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === 'weekly' && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
+    const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
     const priorCards = (key: string, type: 'promotions' | 'nonPromotions', origin = false) => previous.flatMap(p => { const g = (p.version!.snapshot as any)?.generated; const cards = (type === 'promotions' ? [...(g?.promotions ?? []), ...(g?.promotionSnapshots ?? []).flatMap((ref: any) => (ref.snapshot?.rows ?? []).map((r: any) => ({ ...r, originKey: `${r.campaignId}:${r.stageType}:${r.originalStageStartedOn ?? r.startedOn}` })))] : g?.nonPromotions ?? []) as Array<any>; return cards.map(c => ({ ...c, key: c.key ?? `${c.scheduleId}:${c.checkpointType ?? `day_${c.checkpoint}`}` })).filter(c => (origin ? c.originKey : c.key) === key && !c.comparisonOnly).map(card => ({ card, savedAt: p.version!.createdAt, ref: { meetingId: p.meeting.id, name: p.meeting.name, versionNumber: p.version!.versionNumber, periodEnd: p.meeting.periodEnd } })); });
     const lastFinalized = previous[0]?.version?.createdAt;
     const pool: WeeklyPromotionCard[] = [];
@@ -185,7 +192,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const changedNodes = nodes.filter(n => between(n.date, start, end));
             const periodFacts = relevant.filter(f => between(f.metricDate, start, end));
             const late = relevant.filter(f => f.metricDate < start && lastFinalized && f.updatedAt > lastFinalized && !prior.some(p => p.card.facts?.some((old: any) => old.id === f.id && sourceHash(old) === sourceHash(f))));
-            const current = stageType === 'scaling' ? periodFacts.length > 0 : matchingNodes.length > 0;
+            const current = stageType === 'scaling' ? periodFacts.length > 0 : matchingNodes.length > 0 || state.currentStatus==='testing' && periodFacts.some(f=>f.dailyStatus==='active'&&f.recordKind!=='test_residual');
             const supplement = !current && (late.length > 0 || stageType === 'testing' && periodFacts.length > 0 || prior.length > 0 && changedNodes.length > 0);
             const cutoff = stageType === 'testing' ? nodes.map(n => n.lastTestingOn).sort().at(-1) ?? null : end;
             const added = [...new Map([...periodFacts, ...late].map(f => [f.id, f])).values()].sort((a, b) => a.metricDate.localeCompare(b.metricDate));
@@ -208,6 +215,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const eligible = current || supplement;
             const card: WeeklyPromotionCard = { ...post, key: originKey, originKey, sourceHash: sourceHash({ facts: cardFacts, nodes }), campaignId: campaign.id, stageType, startedOn: supplement && added.length ? added[0].metricDate : stageType === 'testing' ? origin : [origin, start].sort().at(-1)!, endedOn: supplement && added.length ? added.at(-1)!.metricDate : stageType === 'testing' ? (cutoff ?? end) : end, kind: current ? 'current' : 'supplement', label: stageType === 'scaling' ? (supplement ? '往期放量补录' : '本期放量') : supplement ? '往期补充与更新' : matchingNodes.some(n => n.label === '测试暂停') && !matchingNodes.some(n => ['测试结束待定', '测试淘汰', '开始放量'].includes(n.label)) ? '测试阶段小结' : last?.label ?? '测试结果', events: [...new Map(nodes.map(n => [`${n.date}:${n.label}`, n])).values()].sort((a, b) => a.date.localeCompare(b.date) || a.label.localeCompare(b.label)), facts: cardFacts, total: totals(cardFacts), periodTotal: totals(periodFacts), changes: totals(changes), missingDates: [...new Set(missingDates)], previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
             (card as any)._eligible = eligible;
+            card.currentStatus=promotionStateOn(campaign,context,shanghaiDateKey(new Date()))?.currentStatus??state.currentStatus;
             (card as any)._historicalFacts = relevant.filter(f => f.metricDate < start);
             (card as any)._cutoff = stageType === 'scaling' ? (phase.length && phase.every(p => p.endedOn) ? phase.map(p => p.endedOn!).sort().at(-1) : null) : cutoff;
             pool.push(card);
@@ -217,9 +225,16 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
         const same = pool.filter(p => p.stageType === card.stageType && p.subjectId === card.subjectId && p.categoryId === card.categoryId);
         card.historical = benchPromotion(same.filter(p => (p as any)._cutoff && ((p as any)._cutoff < start)).map(p => ({ key: p.key, facts: (p as any)._historicalFacts as Fact[] })), card.key);
         card.peers = benchPromotion(same.filter(p => (p as any)._eligible && p.kind === 'current').map(p => ({ key: p.key, facts: p.facts })), card.key);
-        card.ownHistory = pool.filter(p => p.contentId === card.contentId && p.versionNumber < card.versionNumber && p.stageType === card.stageType).map(p => ({ name: p.contentName, versionNumber: p.versionNumber, spend: p.total.spend, actualOpenCost: p.total.actualOpenCost, actualLeadCost: p.total.actualLeadCost }));
+        const owned=new Set(context.campaigns.filter(c=>content.find(p=>p.scheduleId===c.scheduleId)?.contentId===card.contentId).map(c=>c.id));
+        card.ownHistory = (['testing','scaling'] as const).flatMap(stageType=>{
+          const before=facts.filter(f=>owned.has(f.campaignId)&&f.metricDate<start&&f.stageTypeSnapshot===stageType);
+          if(!before.length)return [];
+          const t=totals(before);
+          return [{name:card.contentName,versionNumber:card.versionNumber,stageType,periodLabel:before[0].metricDate+'—'+before.at(-1)!.metricDate,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost}];
+        });
     }
-    const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [];
+    for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total;card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
+    const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [], excludedNonPromotions:NonNullable<WeeklyMaterial['excludedNonPromotions']>=[];
     for (const post of content.filter(p => !p.isPromoted && p.actualPublishAt))
         for (const checkpointType of ['day_7', 'day_15'] as const) {
             const key = `${post.scheduleId}:${checkpointType}`, metric = performanceRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), review = reviewRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), skipped = events.get(key)?.action === 'skip';
@@ -227,9 +242,10 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const due = new Date(post.actualPublishAt!);
             due.setUTCDate(due.getUTCDate() + (checkpointType === 'day_7' ? 7 : 15));
             const dueOn = shanghaiDateKey(due);
+            if(skipped&&between(dueOn,start,end)){const event=events.get(key)!;excludedNonPromotions.push({key,contentName:post.contentName,checkpointType,reason:event.reason,eventId:event.id});}
             if (!metric) {
-                if (!skipped && policy?.requiresNonPromotionReview !== false && dueOn <= end)
-                    pending.push({ key, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
+                if (!skipped && policy?.requiresNonPromotionReview !== false && dueOn >= start && dueOn <= end)
+                    pending.push({ key,scheduleId:post.scheduleId,recordedThrough:end, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
                 continue;
             }
             if (metric.recordedThrough > end)
@@ -242,6 +258,11 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             (card as any)._eligible = current || !skipped && cutoff < start && changed;
             nonPool.push(card);
         }
+    // 本期二轮尚未处理时，将缺失的首轮作为同卡片流程的前置节点展示。
+    for(const node of [...pending].filter(n=>n.checkpointType==='day_15')){
+      const key=`${node.scheduleId}:day_7`;
+      if(!performanceRows.some(p=>p.scheduleId===node.scheduleId&&p.checkpointType==='day_7')&&events.get(key)?.action!=='skip'&&!pending.some(p=>p.key===key))pending.unshift({...node,key,checkpointType:'day_7',reason:'请先处理首轮'});
+    }
     for (const card of nonPool) {
         card.ownHistory = nonPool.filter(p => p.contentId === card.contentId && p.versionNumber < card.versionNumber && p.checkpointType === card.checkpointType).map(p => ({ versionNumber: p.versionNumber, recordedThrough: p.recordedThrough, clickRate: p.clickRate, threeSecondReadRate: p.threeSecondReadRate }));
         const same = nonPool.filter(p => p.subjectId === card.subjectId && p.categoryId === card.categoryId && p.checkpointType === card.checkpointType && !p.skipped);
@@ -258,7 +279,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
     for (const p of nonPool)
         delete (p as any)._eligible;
     const periodFacts = facts.filter(f => between(f.metricDate, start, end)), summary = { ...totals(periodFacts), posts: new Set(periodFacts.map(f => context.campaigns.find(c => c.id === f.campaignId)?.scheduleId ?? f.campaignId)).size, testingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'testing').map(f => f.campaignId)).size, scalingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'scaling').map(f => f.campaignId)).size };
-    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, promotions, nonPromotions, nonPromotionContext: nonPool, pending };
+    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions };
     return { ...base, fingerprint: sourceHash(base) };
 }
 export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: string[], nonSelections: Array<{
@@ -269,5 +290,5 @@ export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: st
     const keys = new Set(nonSelections.map(s => `${s.scheduleId}:${s.checkpointType}`));
     const primary = material.nonPromotions.filter(p => keys.has(p.key)).map(p => ({ ...p, comparisonOnly: false }));
     const comparison = primary.filter(p => p.checkpointType === 'day_15' && !keys.has(`${p.scheduleId}:day_7`)).flatMap(p => { const first = material.nonPromotionContext.find(c => c.scheduleId === p.scheduleId && c.checkpointType === 'day_7'); return first ? [{ ...first, comparisonOnly: true }] : []; });
-    return { promotions, nonPromotions: [...primary, ...comparison] };
+    return { promotions, nonPromotions: [...primary, ...comparison],excludedNonPromotions:material.excludedNonPromotions??[] };
 }

@@ -35,3 +35,9 @@ test('发布时间与推广身份更正不被误认作技术重置',()=>{
  assert.equal(view.category,'business');assert.match(view.beforeLabel,/2026-10-17 18:00/);assert.match(view.afterLabel,/2026-10-17 19:00/);
  assert.equal(promotionSnapshotLabel({schedule:{isPromoted:false,promotionStatus:'none'}},'2026-10-17','usage_change'),'非推广');
 });
+
+test('例会安排理由更正作为真实业务事件展示具体前后状态',()=>{
+ const decision={effectiveOn:'2026-10-24',targetStatus:'test_paused',versionNumber:1};
+ const view=promotionAuditView(audit({action:'meeting_decision_correction',reason:'会后补充核对，继续测试',before:{meetingDecision:decision},after:{meetingDecision:{...decision,targetStatus:'testing'}}}));
+ assert.equal(view.visible,true);assert.equal(view.category,'business');assert.equal(view.title,'例会安排更正');assert.match(view.beforeLabel,/2026-10-24.*测试暂停/);assert.match(view.afterLabel,/2026-10-24.*测试中/);assert.equal(view.reason,'会后补充核对，继续测试');
+});

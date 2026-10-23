@@ -1,0 +1,398 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/misans@5.0.0/lib/Normal/MiSansVF.min.css">
+<div id="meeting-acceptance" lang="zh-CN" aria-label="例会桌面视觉验收参考">
+  <div class="ma-reference">
+    <div><strong>例会 · 桌面验收参考</strong><span>独立示意，未接入业务数据</span></div>
+    <nav aria-label="验收场景">
+      <button type="button" data-scene="overview">总览表格</button>
+      <button type="button" data-scene="candidates">选择候选</button>
+      <button type="button" data-scene="cards" aria-pressed="true">三列卡片</button>
+      <button type="button" data-scene="daily">定稿与次日</button>
+      <button type="button" data-scene="issues">事项流转</button>
+      <button type="button" data-scene="standards">验收清单</button>
+    </nav>
+  </div>
+  <div class="ma-shell">
+    <aside class="ma-sidebar" aria-label="内容工作台">
+      <div class="ma-brand"><small>OPERATIONS</small><strong>内容发布控制台</strong><b>秋</b></div>
+      <div class="ma-navgroup"><span>计划与执行</span><div><i data-lucide="calendar-range" aria-hidden="true"></i><em>总周期规划</em></div><div><i data-lucide="calendar-days" aria-hidden="true"></i><em>排期管理</em></div></div>
+      <div class="ma-navgroup"><span>复盘与沉淀</span><div><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><em>推广帖复盘</em></div><div><i data-lucide="notebook-tabs" aria-hidden="true"></i><em>非推广帖复盘</em></div><button type="button" data-scene="overview" class="ma-navactive"><i data-lucide="messages-square" aria-hidden="true"></i><em>例会总览</em></button></div>
+      <div class="ma-sidebar-foot"><span>内容工作台</span><small>视觉参考</small></div>
+    </aside>
+    <div class="ma-workspace">
+      <header class="ma-toolbar">
+        <div><h1>例会总览</h1><p data-context>2026-10-16—2026-10-22 · 编辑草稿</p></div>
+        <span class="ma-toolbar-center" data-toolbar-center>周例会 · 数据截至 2026-10-22</span>
+        <div class="ma-actions" data-toolbar-actions></div>
+      </header>
+      <main class="ma-main" data-main></main>
+    </div>
+    <div class="ma-panel-host" data-panel-host hidden></div>
+    <div class="ma-modal-host" data-modal-host hidden></div>
+  </div>
+  <div class="ma-reference-foot"><span>版式参考：用户所附截图的帖子名与指标；本帖历史使用占位符，会议记录与文字为场景示意。</span><span data-feedback role="status" aria-live="polite">仅演示，不保存到网站</span></div>
+</div>
+<style>
+#meeting-acceptance{--ma-bg:light-dark(#f5f6f8,#171d24);--ma-paper:light-dark(#fff,#222a33);--ma-ink:light-dark(#252f39,#e6eaf0);--ma-muted:light-dark(#6c7886,#aab6c4);--ma-line:light-dark(#e1e6ec,#3b4654);--ma-blue:light-dark(#315edb,#9bb7ff);--ma-blue-bg:light-dark(#edf2ff,#283b62);--ma-green:light-dark(#406957,#a2cfb8);--ma-green-bg:light-dark(#edf6f1,#273f35);--ma-amber:light-dark(#82651e,#e1c780);--ma-amber-bg:light-dark(#fff7df,#403820);--ma-side:light-dark(#e8eeea,#232f2a);--ma-red:light-dark(#ad3c32,#ffb2a7);--ma-red-bg:light-dark(#fff3f1,#452d2a);--ma-quiet:light-dark(#f5f7f9,#2b3540);color-scheme:light dark;color:var(--ma-ink);font:400 14px/22px "MiSans VF","PingFang SC","Microsoft YaHei",sans-serif}
+#meeting-acceptance *{box-sizing:border-box}
+#meeting-acceptance [hidden]{display:none!important}
+#meeting-acceptance button,#meeting-acceptance input,#meeting-acceptance select,#meeting-acceptance textarea{font:inherit;color:inherit}
+#meeting-acceptance button{cursor:pointer}
+#meeting-acceptance button:disabled{cursor:default}
+#meeting-acceptance h1,#meeting-acceptance h2,#meeting-acceptance h3,#meeting-acceptance p{margin:0}
+#meeting-acceptance h1{font-size:24px;line-height:30px;font-weight:600}
+#meeting-acceptance h2{font-size:18px;line-height:26px;font-weight:600}
+#meeting-acceptance h3{font-size:15px;line-height:22px;font-weight:500}
+#meeting-acceptance strong,#meeting-acceptance b{font-weight:500}
+#meeting-acceptance small{font-size:12px;line-height:18px;color:var(--ma-muted)}
+#meeting-acceptance .ma-reference{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+#meeting-acceptance .ma-reference>div{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#meeting-acceptance .ma-reference>div>span{font-size:12px;color:var(--ma-muted)}
+#meeting-acceptance .ma-reference nav{display:flex;gap:4px;flex-wrap:wrap}
+#meeting-acceptance .ma-reference nav button{border:0;border-radius:6px;padding:7px 10px;background:transparent;color:var(--ma-muted);font-size:13px}
+#meeting-acceptance .ma-reference nav button[aria-pressed=true]{background:var(--ma-blue-bg);color:var(--ma-blue)}
+#meeting-acceptance .ma-shell{display:grid;grid-template-columns:224px minmax(0,1fr);background:var(--ma-bg);border:1px solid var(--ma-line);border-radius:10px;overflow:clip;position:relative;min-height:820px}
+#meeting-acceptance .ma-sidebar{background:var(--ma-side);border-right:1px solid var(--ma-line);padding:26px 14px 16px;display:flex;flex-direction:column;gap:32px}
+#meeting-acceptance .ma-brand{padding:0 10px;display:grid;gap:2px}
+#meeting-acceptance .ma-brand small{color:var(--ma-green);font-weight:600;letter-spacing:1.4px}
+#meeting-acceptance .ma-brand strong{font-size:18px;line-height:26px;font-weight:600;white-space:nowrap}
+#meeting-acceptance .ma-brand b{display:none}
+#meeting-acceptance .ma-navgroup{display:grid;gap:6px}
+#meeting-acceptance .ma-navgroup>span{font-size:12px;font-weight:500;color:var(--ma-muted);padding:0 12px 4px}
+#meeting-acceptance .ma-navgroup>div,#meeting-acceptance .ma-navgroup>button{display:flex;gap:12px;align-items:center;height:44px;padding:0 12px;border:0;border-radius:8px;background:transparent;text-align:left}
+#meeting-acceptance .ma-navgroup em{font-style:normal;font-size:14px;font-weight:500;white-space:nowrap}
+#meeting-acceptance .ma-navgroup svg{width:18px;height:18px;flex:none}
+#meeting-acceptance .ma-navgroup .ma-navactive{background:var(--ma-blue-bg);color:var(--ma-blue)}
+#meeting-acceptance .ma-sidebar-foot{margin-top:auto;border-top:1px solid var(--ma-line);padding:16px 10px 0;display:flex;justify-content:space-between;gap:8px;font-size:13px}
+#meeting-acceptance .ma-workspace{min-width:0}
+#meeting-acceptance .ma-toolbar{min-height:72px;padding:12px 24px;display:grid;grid-template-columns:minmax(190px,1fr) auto minmax(160px,1fr);align-items:center;gap:16px;background:var(--ma-paper);border-bottom:1px solid var(--ma-line)}
+#meeting-acceptance .ma-toolbar p{font-size:12px;line-height:18px;color:var(--ma-muted);margin-top:2px}
+#meeting-acceptance .ma-toolbar-center{font-size:12px;line-height:18px;color:var(--ma-muted)}
+#meeting-acceptance .ma-actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+#meeting-acceptance .ma-btn{display:inline-flex;justify-content:center;align-items:center;gap:6px;height:40px;padding:0 14px;border:1px solid var(--ma-line);border-radius:6px;background:var(--ma-paper);font-size:13px;font-weight:500;white-space:nowrap}
+#meeting-acceptance .ma-btn.ma-primary{background:var(--ma-blue);border-color:var(--ma-blue);color:light-dark(#fff,#182b54)}
+#meeting-acceptance .ma-btn.ma-compact{height:36px;padding-inline:12px}
+#meeting-acceptance .ma-link{border:0;background:transparent;color:var(--ma-blue);padding:0;text-align:left;font-size:13px}
+#meeting-acceptance .ma-main{padding:24px;max-width:1536px;margin:auto;min-width:0;display:grid;gap:20px}
+#meeting-acceptance .ma-paper{padding:22px;background:var(--ma-paper);border:1px solid var(--ma-line);border-radius:10px;min-width:0}
+#meeting-acceptance .ma-sectionhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+#meeting-acceptance .ma-sectionhead p{font-size:13px;color:var(--ma-muted);margin-top:4px}
+#meeting-acceptance .ma-subnav{display:flex;gap:4px;flex-wrap:wrap}
+#meeting-acceptance .ma-subnav button{padding:6px 12px;border:1px solid transparent;background:transparent;color:var(--ma-muted);border-radius:5px;font-size:13px}
+#meeting-acceptance .ma-subnav button[aria-pressed=true]{border-color:var(--ma-line);background:var(--ma-paper);color:var(--ma-ink)}
+#meeting-acceptance .ma-badge{display:inline-flex;align-items:center;padding:2px 7px;font-size:12px;line-height:18px;border-radius:4px;background:var(--ma-quiet);color:var(--ma-muted);white-space:nowrap}
+#meeting-acceptance .ma-badge.ma-pending{background:var(--ma-amber-bg);color:var(--ma-amber)}
+#meeting-acceptance .ma-badge.ma-done{background:var(--ma-green-bg);color:var(--ma-green)}
+#meeting-acceptance .ma-tablewrap{max-width:100%;overflow-x:auto}
+#meeting-acceptance table{border-collapse:collapse;width:100%;text-align:left;font-size:13px}
+#meeting-acceptance th{padding:11px 14px;font-weight:500;color:var(--ma-muted);background:var(--ma-quiet);border-bottom:1px solid var(--ma-line);white-space:nowrap}
+#meeting-acceptance td{padding:16px 14px;border-bottom:1px solid var(--ma-line);vertical-align:middle}
+#meeting-acceptance tr:last-child td{border-bottom:0}
+#meeting-acceptance td small{display:block;margin-top:4px}
+#meeting-acceptance .ma-empty{padding:50px 16px;text-align:center;color:var(--ma-muted);font-size:13px}
+#meeting-acceptance .ma-empty .ma-btn{display:flex;margin:16px auto 0;width:max-content}
+#meeting-acceptance .ma-versions{display:grid;gap:0}
+#meeting-acceptance .ma-versionrow{display:grid;grid-template-columns:140px 1fr auto;gap:16px;padding:16px 0;align-items:center;border-bottom:1px solid var(--ma-line)}
+#meeting-acceptance .ma-versionrow:last-child{border:0;padding-bottom:0}
+#meeting-acceptance .ma-versionrow:first-child{padding-top:0}
+#meeting-acceptance .ma-versionrow p{font-size:13px}
+#meeting-acceptance .ma-versionrow small{display:block;margin-top:4px}
+#meeting-acceptance .ma-note{display:flex;align-items:start;gap:10px;padding:12px 14px;background:var(--ma-blue-bg);border-radius:6px;font-size:13px;color:var(--ma-ink)}
+#meeting-acceptance .ma-note svg{width:16px;height:16px;flex:none;margin-top:3px;color:var(--ma-blue)}
+#meeting-acceptance .ma-steps{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ma-muted)}
+#meeting-acceptance .ma-steps b{color:var(--ma-blue)}
+#meeting-acceptance .ma-check{display:inline-flex;align-items:center;gap:8px;font-size:13px}
+#meeting-acceptance input[type=checkbox]{width:17px;height:17px;margin:0;accent-color:var(--ma-blue);flex:none}
+#meeting-acceptance input:not([type=checkbox]),#meeting-acceptance select,#meeting-acceptance textarea{width:100%;min-width:0;border:1px solid var(--ma-line);border-radius:6px;background:var(--ma-paper);padding:8px 10px;font-size:14px;line-height:22px}
+#meeting-acceptance input:not([type=checkbox]),#meeting-acceptance select{height:40px}
+#meeting-acceptance textarea{resize:vertical;min-height:84px}
+#meeting-acceptance input:disabled,#meeting-acceptance select:disabled{background:var(--ma-quiet);border-style:dashed;color:var(--ma-muted);opacity:1}
+#meeting-acceptance .ma-tools{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+#meeting-acceptance .ma-tools input[type=search]{width:240px}
+#meeting-acceptance .ma-footer-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 18px;background:var(--ma-paper);border:1px solid var(--ma-line);border-radius:8px}
+#meeting-acceptance .ma-footer-actions>span{margin-right:auto;font-size:13px;color:var(--ma-muted)}
+#meeting-acceptance .ma-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+#meeting-acceptance .ma-card{padding:18px;border:1px solid var(--ma-line);border-radius:8px;background:var(--ma-paper);display:grid;grid-template-rows:66px 76px 106px 56px 56px 46px 36px;gap:12px;min-width:0;height:552px}
+#meeting-acceptance .ma-card>header{display:flex;gap:10px;justify-content:space-between;align-items:start;min-width:0}
+#meeting-acceptance .ma-card>header>div{min-width:0}
+#meeting-acceptance .ma-card>header strong{font-size:15px;line-height:22px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-weight:500}
+#meeting-acceptance .ma-card>header small{display:block;margin-top:4px}
+#meeting-acceptance .ma-card .ma-stage{flex:none}
+#meeting-acceptance .ma-result{display:grid;gap:9px;align-content:start}
+#meeting-acceptance .ma-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#meeting-acceptance .ma-values span{display:block;font-size:12px;line-height:18px;color:var(--ma-muted);white-space:nowrap}
+#meeting-acceptance .ma-values strong{font-size:19px;line-height:28px;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums}
+#meeting-acceptance .ma-result>p{font-size:12px;color:var(--ma-muted);display:flex;flex-wrap:wrap;gap:0 8px}
+#meeting-acceptance .ma-result>p>span{white-space:nowrap}
+#meeting-acceptance .ma-own{border-top:1px solid var(--ma-line);padding-top:10px;min-width:0}
+#meeting-acceptance .ma-ownhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:8px}
+#meeting-acceptance .ma-ownhead button{font-size:12px;color:var(--ma-muted)}
+#meeting-acceptance .ma-compare{display:grid;grid-template-columns:minmax(60px,1fr) minmax(40px,.8fr) minmax(66px,1fr);gap:3px 8px;font-size:13px;line-height:20px}
+#meeting-acceptance .ma-compare>span:nth-child(3n+2),#meeting-acceptance .ma-compare>span:nth-child(3n){text-align:right;font-variant-numeric:tabular-nums}
+#meeting-acceptance .ma-compare small{font-size:12px;line-height:20px}
+#meeting-acceptance .ma-ownempty{display:flex;align-items:center;justify-content:center;height:62px;background:var(--ma-quiet);border-radius:5px;font-size:13px;color:var(--ma-muted)}
+#meeting-acceptance .ma-history{padding:8px 10px;background:var(--ma-quiet);border-radius:5px;display:grid;align-content:center;gap:3px;font-size:12px;line-height:18px}
+#meeting-acceptance .ma-history strong{font-size:12px;font-weight:500}
+#meeting-acceptance .ma-history div{display:flex;gap:12px;flex-wrap:wrap;color:var(--ma-muted)}
+#meeting-acceptance .ma-supplement{display:grid;grid-template-columns:105px minmax(0,1fr);gap:12px;align-items:center}
+#meeting-acceptance .ma-ctr{height:56px;padding:5px 9px;border:1px solid var(--ma-line);border-radius:6px;text-align:left;background:var(--ma-paper);display:grid;gap:1px}
+#meeting-acceptance .ma-ctr small{font-size:12px}
+#meeting-acceptance .ma-ctr span{font-size:14px;color:var(--ma-blue)}
+#meeting-acceptance .ma-supplement>div{display:grid;gap:4px;min-width:0}
+#meeting-acceptance .ma-supplement>div>button{color:var(--ma-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#meeting-acceptance .ma-card-decision{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--ma-line)}
+#meeting-acceptance .ma-card-decision small{display:block;font-size:12px}
+#meeting-acceptance .ma-card-decision strong{font-size:13px}
+#meeting-acceptance .ma-cardfooter{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--ma-line);padding-top:10px}
+#meeting-acceptance .ma-formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+#meeting-acceptance .ma-field{display:grid;gap:6px;font-size:13px;color:var(--ma-muted)}
+#meeting-acceptance .ma-field>span{color:var(--ma-ink)}
+#meeting-acceptance .ma-required{color:var(--ma-red);margin-left:3px;font-weight:400}
+#meeting-acceptance .ma-review-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--ma-line)}
+#meeting-acceptance .ma-review-summary:last-child{border:0;padding-bottom:0}
+#meeting-acceptance .ma-review-summary strong{font-size:14px}
+#meeting-acceptance .ma-review-summary small{display:block}
+#meeting-acceptance .ma-panel-host{position:absolute;inset:0;z-index:12;background:light-dark(#1e2b3b30,#0005);display:flex;justify-content:flex-end}
+#meeting-acceptance .ma-inspector{width:min(480px,100%);background:var(--ma-paper);height:820px;max-height:100%;display:flex;flex-direction:column;box-shadow:-8px 0 30px #101e3412;animation:ma-panel-in .22s ease both}
+#meeting-acceptance .ma-inspector.ma-exit{animation:ma-panel-out .22s ease both}
+#meeting-acceptance .ma-inspector>header{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:22px 24px;border-bottom:1px solid var(--ma-line);background:var(--ma-paper)}
+#meeting-acceptance .ma-inspector>header p{font-size:13px;color:var(--ma-muted);margin-top:4px}
+#meeting-acceptance .ma-close{border:0;background:transparent;font-size:22px;width:32px;height:32px;color:var(--ma-muted);flex:none}
+#meeting-acceptance .ma-inspector-body{padding:22px 24px;overflow:auto;min-height:0;flex:1;display:flex;flex-direction:column;gap:22px;overscroll-behavior:contain}
+#meeting-acceptance .ma-inspector-body section{display:grid;gap:12px}
+#meeting-acceptance .ma-inspector-body .ma-result{padding:14px;background:var(--ma-quiet);border-radius:6px}
+#meeting-acceptance .ma-inspector>footer{padding:14px 24px;border-top:1px solid var(--ma-line);display:flex;gap:8px;justify-content:flex-end;background:var(--ma-paper)}
+#meeting-acceptance .ma-inspector hr{border:0;border-top:1px solid var(--ma-line);width:100%;margin:0}
+#meeting-acceptance .ma-error{padding:12px 14px;border-radius:6px;background:var(--ma-red-bg);color:var(--ma-red);font-size:13px}
+#meeting-acceptance .ma-error>div{display:grid;gap:4px;margin-top:8px}
+#meeting-acceptance .ma-error button{color:var(--ma-red);font-size:13px}
+#meeting-acceptance [aria-invalid=true]{border-color:var(--ma-red)!important}
+#meeting-acceptance .ma-modal-host{position:absolute;inset:0;z-index:20;background:light-dark(#1e2b3b50,#0008);display:flex;align-items:flex-start;justify-content:center;padding:110px 24px 32px}
+#meeting-acceptance .ma-modal{width:min(480px,100%);padding:24px;border:1px solid var(--ma-line);border-radius:10px;background:var(--ma-paper);display:grid;gap:18px;box-shadow:0 16px 60px #172b3f25}
+#meeting-acceptance .ma-modal p{font-size:13px;color:var(--ma-muted)}
+#meeting-acceptance .ma-modebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#meeting-acceptance .ma-modebar>span{font-size:13px;color:var(--ma-muted)}
+#meeting-acceptance .ma-modebar select{width:auto;min-width:200px}
+#meeting-acceptance .ma-timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+#meeting-acceptance .ma-timeline>div{padding:4px 20px;border-right:1px solid var(--ma-line);display:grid;gap:6px}
+#meeting-acceptance .ma-timeline>div:first-child{padding-left:0}
+#meeting-acceptance .ma-timeline>div:last-child{border:0;padding-right:0}
+#meeting-acceptance .ma-timeline strong{font-size:15px}
+#meeting-acceptance .ma-timeline small{font-size:13px;line-height:20px}
+#meeting-acceptance .ma-daily-row{display:grid;grid-template-columns:90px minmax(130px,1.4fr) minmax(95px,1fr) minmax(95px,1fr) minmax(95px,1fr) minmax(95px,1fr);gap:16px;align-items:center;padding:18px 0;border-top:1px solid var(--ma-line)}
+#meeting-acceptance .ma-daily-row>div{min-width:0}
+#meeting-acceptance .ma-daily-row small{display:block}
+#meeting-acceptance .ma-daily-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding-top:16px}
+#meeting-acceptance .ma-lock-area{margin-top:20px;padding:18px;background:var(--ma-quiet);border-radius:6px;display:grid;grid-template-columns:minmax(230px,1fr) minmax(200px,1fr) auto;align-items:center;gap:16px}
+#meeting-acceptance .ma-lock-area p{font-size:13px;color:var(--ma-muted);margin-top:4px}
+#meeting-acceptance .ma-lockedlabel{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px}
+#meeting-acceptance .ma-lockedlabel svg{width:15px;height:15px;color:var(--ma-muted)}
+#meeting-acceptance .ma-version-state{padding:12px 14px;border-left:3px solid var(--ma-blue);background:var(--ma-blue-bg);font-size:13px;display:grid;gap:4px}
+#meeting-acceptance .ma-issues td{vertical-align:top}
+#meeting-acceptance .ma-issues input:not([type=checkbox]),#meeting-acceptance .ma-issues textarea{min-width:160px}
+#meeting-acceptance .ma-issues select{min-width:105px}
+#meeting-acceptance .ma-issues textarea{min-height:64px}
+#meeting-acceptance .ma-issues td:last-child{min-width:95px;padding-top:27px;text-align:center}
+#meeting-acceptance [data-view=issues] table{table-layout:fixed}
+#meeting-acceptance [data-view=issues] th:nth-child(1){width:30%}
+#meeting-acceptance [data-view=issues] th:nth-child(2){width:38%}
+#meeting-acceptance [data-view=issues] th:nth-child(3){width:18%}
+#meeting-acceptance [data-view=issues] th:nth-child(4){width:14%}
+#meeting-acceptance .ma-standards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+#meeting-acceptance .ma-standard{border-bottom:1px solid var(--ma-line);padding-bottom:16px;display:flex;gap:10px;align-items:start}
+#meeting-acceptance .ma-standard input{margin-top:3px}
+#meeting-acceptance .ma-standard strong{display:block;font-size:14px}
+#meeting-acceptance .ma-standard span{display:block;font-size:13px;color:var(--ma-muted);margin-top:4px}
+#meeting-acceptance .ma-reference-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;line-height:18px;color:var(--ma-muted)}
+@keyframes ma-panel-in{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes ma-panel-out{from{transform:translateX(0);opacity:1}to{transform:translateX(24px);opacity:0}}
+@media(max-width:1279px){#meeting-acceptance .ma-shell{grid-template-columns:64px minmax(0,1fr)}#meeting-acceptance .ma-sidebar{padding:24px 8px;gap:28px}#meeting-acceptance .ma-brand{padding:0;text-align:center}#meeting-acceptance .ma-brand small,#meeting-acceptance .ma-brand strong,#meeting-acceptance .ma-navgroup>span,#meeting-acceptance .ma-navgroup em,#meeting-acceptance .ma-sidebar-foot{display:none}#meeting-acceptance .ma-brand b{display:block;font-size:20px;color:var(--ma-green)}#meeting-acceptance .ma-navgroup>div,#meeting-acceptance .ma-navgroup>button{padding:0;justify-content:center}#meeting-acceptance .ma-toolbar-center{display:none}#meeting-acceptance .ma-toolbar{grid-template-columns:1fr auto}#meeting-acceptance .ma-card{padding:16px}#meeting-acceptance .ma-values strong{font-size:18px}}
+@media(max-width:1100px){#meeting-acceptance .ma-main{padding:18px}#meeting-acceptance .ma-paper{padding:18px}#meeting-acceptance .ma-card .ma-values{grid-template-columns:1fr 1fr}#meeting-acceptance .ma-card .ma-values>div:first-child{display:none}#meeting-acceptance .ma-card .ma-result>p::before{content:attr(data-spend);margin-right:8px}#meeting-acceptance .ma-card{grid-template-rows:66px 76px 106px 68px 56px 46px 36px;height:560px}#meeting-acceptance .ma-card>header{display:grid;gap:3px;grid-template-columns:1fr}#meeting-acceptance .ma-card>header strong{font-size:14px}#meeting-acceptance .ma-stage{justify-self:start}#meeting-acceptance .ma-card>header small{display:none}#meeting-acceptance .ma-lock-area{grid-template-columns:1fr 1fr}#meeting-acceptance .ma-lock-area>.ma-link{grid-column:2}#meeting-acceptance .ma-daily-row{grid-template-columns:90px 1.5fr 1fr 1fr}#meeting-acceptance .ma-daily-row>div:nth-child(n+5){display:none}}
+@media(max-width:850px){#meeting-acceptance .ma-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#meeting-acceptance .ma-standards{grid-template-columns:1fr}#meeting-acceptance .ma-formgrid{grid-template-columns:1fr}#meeting-acceptance .ma-daily-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}#meeting-acceptance .ma-timeline{grid-template-columns:1fr;gap:14px}#meeting-acceptance .ma-timeline>div{padding:0;border:0}#meeting-acceptance .ma-toolbar{padding:12px 18px}#meeting-acceptance .ma-toolbar .ma-actions .ma-btn{padding:0 9px}}
+@media(max-width:600px){#meeting-acceptance .ma-shell{grid-template-columns:minmax(0,1fr)}#meeting-acceptance .ma-sidebar{display:none}#meeting-acceptance .ma-main{padding:12px}#meeting-acceptance .ma-grid{grid-template-columns:1fr}#meeting-acceptance .ma-toolbar{grid-template-columns:1fr;gap:10px}#meeting-acceptance .ma-toolbar .ma-actions{justify-content:flex-start}#meeting-acceptance .ma-card{height:548px;grid-template-rows:66px 76px 106px 56px 56px 46px 36px}#meeting-acceptance .ma-card .ma-values{grid-template-columns:repeat(3,minmax(0,1fr))}#meeting-acceptance .ma-card .ma-values>div:first-child{display:block}#meeting-acceptance .ma-card .ma-result>p::before{content:none}#meeting-acceptance .ma-card>header{display:flex}#meeting-acceptance .ma-card>header small{display:block}#meeting-acceptance .ma-lock-area{grid-template-columns:1fr}#meeting-acceptance .ma-lock-area>.ma-link{grid-column:1}#meeting-acceptance .ma-daily-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#meeting-acceptance .ma-versionrow{grid-template-columns:1fr;gap:8px}#meeting-acceptance .ma-footer-actions{flex-wrap:wrap}#meeting-acceptance .ma-footer-actions>span{flex-basis:100%}#meeting-acceptance .ma-modal-host{padding:32px 12px}#meeting-acceptance .ma-reference nav{gap:2px}}
+@media(min-width:601px) and (max-width:1100px){#meeting-acceptance .ma-card>header strong::after{content:attr(data-version);font-size:12px;font-weight:400;color:var(--ma-muted)}}
+@media(min-width:851px) and (max-width:1279px){#meeting-acceptance .ma-shell{grid-template-columns:224px minmax(0,1fr)}#meeting-acceptance .ma-sidebar{padding:26px 14px 16px;gap:32px}#meeting-acceptance .ma-brand{padding:0 10px;text-align:left}#meeting-acceptance .ma-brand small,#meeting-acceptance .ma-brand strong,#meeting-acceptance .ma-navgroup>span,#meeting-acceptance .ma-navgroup em{display:block}#meeting-acceptance .ma-brand b{display:none}#meeting-acceptance .ma-sidebar-foot{display:flex}#meeting-acceptance .ma-navgroup>div,#meeting-acceptance .ma-navgroup>button{padding:0 12px;justify-content:flex-start}}
+@media(min-width:851px) and (max-width:1100px){#meeting-acceptance .ma-card{grid-template-rows:66px 96px 106px 88px 56px 46px 36px;height:600px}#meeting-acceptance .ma-cardfooter>small{display:none}#meeting-acceptance .ma-history div{gap:2px 12px}}
+@media(prefers-reduced-motion:reduce){#meeting-acceptance .ma-inspector{animation:none!important}}
+</style>
+<script>
+(function(){
+  var root=document.getElementById('meeting-acceptance');
+  var main=root.querySelector('[data-main]'),panelHost=root.querySelector('[data-panel-host]'),modalHost=root.querySelector('[data-modal-host]');
+  var saved=window.openai&&window.openai.widgetState;
+  var initial=saved&&saved.modelContent&&saved.modelContent.kind==='meeting-reference'?saved.modelContent:{};
+  var state={scene:initial.scene||'cards',phase:'draft',filter:'all',empty:false,selected:['p1','p2','p3','p4','p5'],candidate:[],ctr:{},observations:{},actions:{},decisions:{p1:'测试暂停',p2:'测试转放量',p3:'继续待定',p4:'继续待定',p5:'测试淘汰'},fields:{},nonDone:false,issueResolved:false,override:null,returnFocus:null,panelKey:null};
+  var posts=[
+    {id:'p1',name:'面试课第二轮③',version:'V0',subject:'面试课',stage:'测试中',spend:'512.92',open:'512.92',lead:'—',opens:1,leads:0,n:4,ho:'727.47',hl:'1,091.21',own:false},
+    {id:'p2',name:'TMUA一月1v1',version:'V0',subject:'TMUA',stage:'测试结束待定',spend:'588.79',open:'588.79',lead:'588.79',opens:1,leads:1,n:9,ho:'606.98',hl:'780.40',own:true},
+    {id:'p3',name:'面试课第二轮②',version:'V1',subject:'面试课',stage:'测试结束待定',spend:'520.24',open:'520.24',lead:'—',opens:1,leads:0,n:4,ho:'727.47',hl:'1,091.21',own:true},
+    {id:'p4',name:'面试课第一轮②',version:'V1',subject:'面试课',stage:'测试结束待定',spend:'660.84',open:'330.42',lead:'660.84',opens:2,leads:1,n:4,ho:'727.47',hl:'1,091.21',own:false},
+    {id:'p5',name:'面试课第二轮①',version:'V1',subject:'面试课',stage:'测试结束待定',spend:'—',open:'—',lead:'—',opens:'—',leads:'—',n:4,ho:'727.47',hl:'1,091.21',own:false}
+  ];
+  var checks=[
+    ['总览与版本','周／月共用表格；草稿、V0、V1及修订草稿明确区分。'],
+    ['保存后返回','保存草稿返回总览；再次进入保留已填内容，失败则留在原处。'],
+    ['候选先确认','默认不选，确认后只生成所选卡片；全选不带入往期补充。'],
+    ['三列与跨行等高','桌面主规格一行三张；不同内容与跨行卡高误差不超过1px。'],
+    ['自身历史优先','本帖上期／历史累计置前；无样本显示“暂无可对比样本”。'],
+    ['历史同类简化','只保留样本数与明确指标；删除同期、成本差和比较天数。'],
+    ['点击率状态','空值为“待补充”，真实零值为0.00%；可进入文本框填写。'],
+    ['推广指标只读','消耗、开口、留资不可在例会改写，统一前往推广专属入口。'],
+    ['非推广处理完整','本期应处理节点全部补齐或明确不复盘，取消勾选不能绕过。'],
+    ['定稿门槛','点击率、衡量情况、本周具体动作、核心结论、下一步行动齐全。'],
+    ['草稿不生效','草稿中的状态只是拟议；编辑V1草稿期间继续执行已定稿V0。'],
+    ['次日生效','23号正常跑量；23号定稿决定24号安排，不回写22号证据。'],
+    ['每日继承与锁定','24号补23号数据，次日安排（24号）预填、锁定并标明例会版本。'],
+    ['理由与更正','锁定值变更必须填理由；取消保留指标、原安排与输入位置。'],
+    ['事项持续跟进','问题／解决方案／进度／已解决纯表格；定稿后未解决承接、已解决退出。'],
+    ['交互与证据','检查字体、对齐、键盘、焦点、未保存、减少动态，并留存截图与录屏。']
+  ];
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(x){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x];});}
+  function btn(text,attr,primary){return '<button type="button" class="ma-btn '+(primary?'ma-primary':'')+'" '+(attr||'')+'>'+text+'</button>';}
+  function link(text,attr){return '<button type="button" class="ma-link" '+(attr||'')+'>'+text+'</button>';}
+  function money(v){return v==='—'?'—':'¥'+v;}
+  function icon(name){return '<i data-lucide="'+name+'" aria-hidden="true"></i>';}
+  function icons(){if(globalThis.lucide)globalThis.lucide.createIcons({attrs:{width:16,height:16}});}
+  function feedback(t){root.querySelector('[data-feedback]').textContent=t;}
+  function fitOverlay(kind){
+    var observer=new IntersectionObserver(function(entries){
+      var visible=entries[0].intersectionRect,shell=root.querySelector('.ma-shell').getBoundingClientRect();
+      var host=kind==='panel'?panelHost:modalHost,box=host.querySelector(kind==='panel'?'.ma-inspector':'.ma-modal');
+      observer.disconnect();if(host.hidden||!box||visible.height<=0)return;
+      if(kind==='panel'){var height=Math.min(820,Math.max(280,visible.height-24));box.style.height=height+'px';box.style.marginTop=Math.max(0,Math.min(shell.height-height,visible.top-shell.top+12))+'px';}
+      else{var h=box.getBoundingClientRect().height;host.style.paddingTop=Math.max(16,Math.min(shell.height-h-16,visible.top-shell.top+Math.max(16,(visible.height-h)/2)))+'px';}
+    });observer.observe(root);
+  }
+  function persist(){if(window.openai&&window.openai.setWidgetState)window.openai.setWidgetState({modelContent:{kind:'meeting-reference',scene:state.scene},privateContent:null}).catch(function(){});}
+  function field(label,name,value,placeholder){return '<label class="ma-field"><span>'+label+'<b class="ma-required">*</b></span><textarea data-field="'+name+'" placeholder="'+(placeholder||'待补充')+'">'+esc(value||'')+'</textarea></label>';}
+  function result(p){return '<div class="ma-result"><div class="ma-values"><div><span>消耗</span><strong>'+money(p.spend)+'</strong></div><div><span>实际开口成本</span><strong>'+money(p.open)+'</strong></div><div><span>实际留资成本</span><strong>'+money(p.lead)+'</strong></div></div><p data-spend="消耗 '+money(p.spend)+'"><span>实际开口 '+p.opens+' 人</span><span>实际留资 '+p.leads+' 人</span></p></div>';}
+  function own(p){return '<section class="ma-own"><div class="ma-ownhead"><span>本帖历史对比</span>'+link('上期 ▾','data-own="'+p.id+'"')+'</div>'+(p.own?'<div class="ma-compare"><small>实际成本</small><span><small>历史值¹</small></span><span><small>本期</small></span><span>开口</span><span>占位</span><span>'+money(p.open)+'</span><span>留资</span><span>占位</span><span>'+money(p.lead)+'</span></div>':'<div class="ma-ownempty">暂无可对比样本</div>')+'</section>';}
+  function card(p){var c=state.ctr[p.id];return '<article class="ma-card" data-card="'+p.id+'"><header><div><strong>'+esc(p.name)+'</strong><small>'+p.version+' · '+p.subject+'</small></div><span class="ma-badge ma-pending ma-stage">'+p.stage+'</span></header>'+result(p)+own(p)+'<div class="ma-history"><strong>历史同类（'+p.n+' 份样本）</strong><div><span>开口成本 '+money(p.ho)+'</span><span>留资成本 '+money(p.hl)+'</span></div></div><div class="ma-supplement"><button type="button" class="ma-ctr" data-open="'+p.id+'" data-focus="ctr"><small>点击率</small><span data-ctr-display="'+p.id+'">'+(c==null||c===''?'待补充':Number(c).toFixed(2)+'%')+'</span></button><div>'+link('观察 · '+(state.observations[p.id]?'已填写':'待补充'),'data-open="'+p.id+'" data-focus="observation"')+link('行动 · '+(state.actions[p.id]?'已填写':'待补充'),'data-open="'+p.id+'" data-focus="action"')+'</div></div><div class="ma-card-decision"><div><small>拟议 · 2026-10-24 起</small><strong data-decision-display="'+p.id+'">'+esc(state.decisions[p.id]||'维持原样')+'</strong></div>'+link('修改','data-open="'+p.id+'" data-focus="decision"')+'</div><footer class="ma-cardfooter">'+link('查看与编辑','data-open="'+p.id+'"')+'<small>截至 2026-10-22</small></footer></article>';}
+  function overview(){
+    return '<section class="ma-paper"><div class="ma-sectionhead"><div><h2>例会记录</h2><p>按会议查看草稿、定稿与各次修订</p></div><div class="ma-subnav" aria-label="例会类型">'+['all','weekly','monthly'].map(function(x,i){return '<button type="button" data-filter="'+x+'" aria-pressed="'+(state.filter===x)+'">'+['全部','周例会','月例会'][i]+'</button>';}).join('')+'</div></div><div class="ma-tools" style="margin-bottom:14px"><small>日期均为北京时间</small><label class="ma-check"><input type="checkbox" data-empty '+(state.empty?'checked':'')+'>查看无记录状态</label></div><div class="ma-tablewrap"><table><thead><tr><th>会议日期</th><th>复盘区间</th><th>周期</th><th>会议与版本</th><th>版本备注</th></tr></thead><tbody>'+(state.empty?'<tr><td colspan="5"><div class="ma-empty">暂无例会记录'+btn('新建例会','data-scene="candidates"',true)+'</div></td></tr>':(state.filter!=='monthly'?'<tr><td>2026-10-23<small>周例会</small></td><td>2026-10-16<br>—2026-10-22</td><td>2026 M10 Week3<small>周期示例</small></td><td>'+link('本期周例会（草稿）','data-scene="cards"')+'<small>继续编辑</small></td><td>尚未定稿</td></tr><tr><td>2026-10-16<small>周例会</small></td><td>2026-10-09<br>—2026-10-15</td><td>2026 M10 Week2<small>周期示例</small></td><td>'+link('上期周例会（V1）','data-version="V1"')+'<small>已定稿 · '+link('查看 V0','data-version="V0"')+'</small></td><td>更正说明占位</td></tr>':'')+(state.filter!=='weekly'?'<tr><td>会议日期待填<small>月例会</small></td><td>开始日—截止日</td><td>2026 M10</td><td>'+link('月例会（草稿）','data-monthly')+'</td><td>待填写</td></tr>':''))+'</tbody></table></div></section><section class="ma-paper"><div class="ma-sectionhead"><div><h2>历史版本</h2><p>各版本保留当时的数据、结论与会后决定</p></div></div><div class="ma-versions"><div class="ma-versionrow"><div><span class="ma-badge ma-done">已定稿 V1</span></div><div><p>上期周例会 · 最新定稿</p><small>版本备注：更正说明占位</small></div>'+link('查看内容','data-version="V1"')+'</div><div class="ma-versionrow"><div><span class="ma-badge">已定稿 V0</span></div><div><p>上期周例会 · 首次定稿</p><small>保留原始结论与决定</small></div>'+link('查看内容','data-version="V0"')+'</div></div></section>';
+  }
+  function candidates(){
+    return '<div class="ma-steps"><b>选择候选</b><span>→</span><span>确认纳入</span><span>→</span><span>补充观察与行动</span></div><section class="ma-paper"><div class="ma-sectionhead"><div><h2>本期复盘候选</h2><p>2026-10-16—2026-10-22 · 确认后生成讨论卡片</p></div></div><div class="ma-tools" style="margin-bottom:16px"><label class="ma-check"><input type="checkbox" data-select-all>全选本期候选（5 项）</label><span data-selected-count>已选 '+state.candidate.length+' 项</span></div><div class="ma-tablewrap"><table><thead><tr><th>纳入</th><th>帖子</th><th>版本／分类</th><th>阶段</th><th>来源</th></tr></thead><tbody>'+posts.map(function(p){return '<tr><td><input type="checkbox" aria-label="纳入 '+esc(p.name)+'" data-candidate="'+p.id+'" '+(state.candidate.indexOf(p.id)>=0?'checked':'')+'></td><td><strong>'+p.name+'</strong></td><td>'+p.version+' · '+p.subject+'</td><td><span class="ma-badge ma-pending">'+p.stage+'</span></td><td>本期候选</td></tr>';}).join('')+'</tbody></table></div><details style="margin-top:18px"><summary>往期补充 · 单独选择</summary><p style="padding-top:12px;color:var(--ma-muted)">暂无往期补充</p></details></section><div class="ma-footer-actions"><span>确认前不生成讨论卡片</span>'+btn('返回总览','data-scene="overview"')+btn('确认纳入并生成卡片','data-confirm-candidates',true)+'</div>';
+  }
+  function cards(){
+    return '<div class="ma-tools"><div class="ma-steps"><span>候选已确认</span><span>→</span><b>补充观察与行动</b><span>→</span><span>核对并定稿</span></div>'+link('调整候选','data-adjust-candidates')+'</div><section><div class="ma-sectionhead"><div><h2>推广帖阶段复盘</h2><p>已纳入 '+state.selected.length+' 项 · 复盘证据截至 2026-10-22</p></div><span class="ma-badge">草稿 · 决定尚未生效</span></div>'+(state.selected.length?'<div class="ma-grid">'+posts.filter(function(p){return state.selected.indexOf(p.id)>=0;}).map(card).join('')+'</div>':'<div class="ma-paper ma-empty">尚未纳入复盘内容'+btn('选择候选','data-scene="candidates"',true)+'</div>')+'<small style="display:block;margin-top:10px">¹ 历史值为版式占位，正式接入后读取本帖真实历史；不同阶段分开标识。</small></section><section class="ma-paper"><div class="ma-sectionhead"><div><h2>非推广帖复盘</h2><p>应处理节点需补齐数据，或明确设为不复盘</p></div>'+link('录入或标记不复盘','data-non')+'</div><div class="ma-review-summary"><div><strong>本期应处理的非推广节点</strong><small>'+(state.nonDone?'已完成本次处理（演示）':'待补充指标与结论')+'</small></div><span class="ma-badge '+(state.nonDone?'ma-done':'ma-pending')+'">'+(state.nonDone?'已处理':'待处理')+'</span></div></section><section class="ma-paper" data-conclusions><div class="ma-sectionhead"><div><h2>本期结论与行动</h2></div></div><div class="ma-formgrid">'+field('衡量情况','situation',state.fields.situation)+field('本周具体动作','strategy',state.fields.strategy)+field('核心结论','conclusion',state.fields.conclusion)+field('下一步行动','next',state.fields.next)+'</div></section><div class="ma-error" data-gates hidden></div><div class="ma-footer-actions"><span>草稿允许暂缺；定稿后决定从次日生效</span>'+btn('保存草稿','data-save-draft')+btn('核对并定稿 V0','data-finalize',true)+'</div>';
+  }
+  function daily(){
+    var locked=state.phase!=='draft',v=state.phase==='v1final'?'V1':'V0',arr=state.override?state.override.target:state.phase==='v1final'?'测试转放量':'测试暂停';
+    return '<div class="ma-modebar"><span>查看验收状态</span><select aria-label="定稿版本状态" data-phase><option value="draft" '+(state.phase==='draft'?'selected':'')+'>例会草稿 · 尚未生效</option><option value="v0" '+(state.phase==='v0'?'selected':'')+'>V0 已定稿</option><option value="v1draft" '+(state.phase==='v1draft'?'selected':'')+'>V1 修订草稿 · 仍执行 V0</option><option value="v1final" '+(state.phase==='v1final'?'selected':'')+'>V1 已定稿</option></select></div><section class="ma-paper"><div class="ma-timeline"><div><small>2026-10-22</small><strong>复盘数据截止</strong><small>冻结本次复盘依据</small></div><div><small>2026-10-23</small><strong>召开例会，正常跑量</strong><small>'+(!locked?'草稿只记录拟议':'整份 '+v+' 定稿，确认次日决定')+'</small></div><div><small>2026-10-24</small><strong>'+(!locked?'尚无例会决定生效':arr+'生效')+'</strong><small>补录 23 号实际指标</small></div></div></section><section class="ma-paper"><div class="ma-sectionhead"><div><h2>补录 2026-10-23 数据</h2><p>填写日期：2026-10-24 · 指标仍按 23 号实际情况填写</p></div><span class="ma-badge">每日推广复盘</span></div><div class="ma-daily-row"><div><small>数据日期</small><strong>2026-10-23</strong></div><div><small>帖子</small><strong>面试课第二轮③</strong><small>V0 · 面试课</small></div><div><small>当日状态</small><strong>测试中</strong></div><div><small>当日指标</small><strong>真实跑量</strong></div><div><small>实际开口成本</small><strong>按实际计算</strong></div><div><small>实际留资成本</small><strong>按实际计算</strong></div></div><div class="ma-daily-metrics">'+['消耗（元）','平台开口（人）','实际开口（人）','平台留资（人）','实际留资（人）'].map(function(x,i){return '<label class="ma-field"><span>'+x+'</span><input type="number" min="0" step="'+(i===0?'0.01':'1')+'" aria-label="'+x+'" placeholder="填写真实值" data-daily="'+i+'"></label>';}).join('')+'</div><div class="ma-lock-area"><div><div class="ma-lockedlabel">'+(locked?icon('lock-keyhole'):'')+'<span>次日安排（2026-10-24）</span></div><select aria-label="次日安排（2026-10-24）" data-daily-decision '+(locked?'disabled':'')+'><option>'+(!locked?'请选择':arr)+'</option>'+(!locked?'<option>继续测试</option><option>测试暂停</option><option>测试转放量</option>':'')+'</select></div><div><strong>'+(!locked?'暂无已定稿的例会决定':state.override?'已更正（原例会决定）':'（例会决定）')+'</strong><p>'+(!locked?'草稿拟议不会锁定每日安排':'来源：2026-10-23 例会 · '+v+' · 2026-10-24 起生效')+'</p></div>'+(locked?link('修改安排（需理由）','data-change-arrangement'):'')+'</div><div class="ma-version-state" style="margin-top:16px">'+(state.phase==='v1draft'?'<strong>当前执行：已定稿 V0</strong><span>V1 尚为修订草稿，拟议变更不覆盖 V0。</span>':state.phase==='v1final'?'<strong>当前执行：已定稿 V1</strong><span>V0 原决定保留在版本历史中，新定稿不重复执行未变行动。</span>':state.phase==='v0'?'<strong>当前执行：已定稿 V0</strong><span>23 号状态和指标保持真实，24 号才按决定衔接。</span>':'<strong>当前：仅有草稿</strong><span>未写入推广状态，没有“例会决定”锁定。</span>')+'</div>'+(state.override?'<div class="ma-note" style="margin-top:14px"><div><strong>更正记录</strong><p>原安排 → '+esc(state.override.target)+'；理由：'+esc(state.override.reason)+'</p></div></div>':'')+'<div class="ma-actions" style="margin-top:20px">'+btn('完成复盘','data-daily-save',true)+'</div></section>';
+  }
+  function issues(){
+    return '<section class="ma-paper"><div class="ma-sectionhead"><div><h2>上周未完成事项</h2><p>按上次已定稿例会承接；无历史来源时显示“无”</p></div><label class="ma-check"><input type="checkbox" data-no-history '+(state.noHistory?'checked':'')+'>查看无历史状态</label></div>'+(state.noHistory?'<p style="color:var(--ma-muted)">无</p>':'<div class="ma-tablewrap"><table><thead><tr><th>问题</th><th>解决方案</th><th>进度</th><th>是否已解决</th></tr></thead><tbody><tr><td>上期遗留问题（占位）</td><td>沿用原事项继续补充</td><td>进行中</td><td>未解决</td></tr></tbody></table></div>')+'</section><section class="ma-paper"><div class="ma-sectionhead"><div><h2>本期事项</h2><p>草稿中勾选不提前关闭事项，定稿后更新跟进状态</p></div></div><div class="ma-tablewrap"><table class="ma-issues"><thead><tr><th style="width:30%">问题</th><th style="width:38%">解决方案</th><th>进度</th><th>是否已解决</th></tr></thead><tbody><tr><td><input aria-label="问题" placeholder="填写问题"></td><td><textarea aria-label="解决方案" placeholder="填写解决方案"></textarea></td><td><select aria-label="进度"><option>待解决</option><option>进行中</option><option>暂缓</option></select></td><td><input type="checkbox" aria-label="是否已解决" data-issue-resolved '+(state.issueResolved?'checked':'')+'></td></tr></tbody></table></div></section><section class="ma-paper"><div class="ma-sectionhead"><div><h2>下次例会承接预览</h2><p>仅在本次整份例会定稿后更新</p></div><span class="ma-badge">场景预览</span></div><div data-next-issue>'+(state.issueResolved?'<p style="color:var(--ma-muted)">该事项已勾选解决，定稿后不再进入下次待跟进列表。</p>':'<div class="ma-tablewrap"><table><thead><tr><th>问题</th><th>解决方案</th><th>进度</th><th>是否已解决</th></tr></thead><tbody><tr><td>本期事项（占位）</td><td>保留前次内容，继续补充</td><td>待解决</td><td>未解决</td></tr></tbody></table></div>')+'</div></section>';
+  }
+  function standards(){return '<section class="ma-paper"><div class="ma-sectionhead"><div><h2>视觉与行为验收清单</h2><p>勾选用于个人检查；原型演示不代表生产实现已通过</p></div><span class="ma-badge">桌面优先</span></div><div class="ma-standards">'+checks.map(function(c,i){return '<label class="ma-standard"><input type="checkbox" aria-label="检查 '+c[0]+'"><span><strong>'+c[0]+'</strong><span>'+c[1]+'</span></span></label>';}).join('')+'</div></section><section class="ma-paper"><div class="ma-sectionhead"><h2>统一视觉基准</h2></div><div class="ma-tablewrap"><table><tbody><tr><td>字体</td><td>MiSans · 正文／输入 14px，辅助 12px，页标题 24px</td></tr><tr><td>空间</td><td>三列卡片，列间距 16px；同规格跨行等高</td></tr><tr><td>控件</td><td>常规 40px、紧凑 36px；锁定字段浅底虚线，文字保持清晰</td></tr><tr><td>详情</td><td>固定头尾、单一正文滚动；进出 220ms，支持减少动态效果</td></tr><tr><td>证据</td><td>1920／1440／1280 桌面截图；候选、草稿、定稿、次日锁定和变更理由录屏</td></tr></tbody></table></div></section>';}
+  function render(){
+    main.dataset.view=state.scene;
+    var names={overview:'周例会与月例会 · 草稿、定稿与历史版本',candidates:'2026-10-16—2026-10-22 · 选择本期候选',cards:'2026-10-16—2026-10-22 · 编辑草稿',daily:'例会决定 · 次日生效与版本继承',issues:'本期事项 · 持续跟进',standards:'设计参考 · 待实施验收标准'};
+    root.querySelector('[data-context]').textContent=names[state.scene];
+    root.querySelector('[data-toolbar-center]').textContent=state.scene==='cards'?'周例会 · 数据截至 2026-10-22':'';
+    root.querySelector('[data-toolbar-actions]').innerHTML=state.scene==='overview'?btn('新建例会','data-scene="candidates"',true):state.scene==='cards'?btn('返回总览','data-scene="overview"')+btn('保存草稿','data-save-draft'):state.scene==='daily'?link('查看例会','data-scene="cards"'):btn('返回总览','data-scene="overview"');
+    root.querySelectorAll('.ma-reference [data-scene]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.scene===state.scene));});
+    main.innerHTML=({overview:overview,candidates:candidates,cards:cards,daily:daily,issues:issues,standards:standards}[state.scene]||cards)();
+    if(state.scene==='candidates'){var all=main.querySelector('[data-select-all]');all.checked=state.candidate.length===posts.length;all.indeterminate=state.candidate.length>0&&state.candidate.length<posts.length;}
+    if(state.scene==='daily'&&state.daily)main.querySelectorAll('[data-daily]').forEach(function(x){x.value=state.daily[x.dataset.daily]||'';});
+    if(state.scene==='issues'&&state.issueInputs)Object.keys(state.issueInputs).forEach(function(k){var field=main.querySelector('[aria-label="'+k+'"]');if(field)field.value=state.issueInputs[k];});
+    if(state.scene==='cards')main.querySelectorAll('[data-card]').forEach(function(el){el.querySelector('header strong').dataset.version=' · '+posts.find(function(p){return p.id===el.dataset.card;}).version;});
+    icons();
+  }
+  function scene(name){state.scene=name;panelHost.hidden=true;state.panelKey=null;modalHost.hidden=true;feedback('仅演示，不保存到网站');render();persist();}
+  function openPanel(key,focus){
+    var p=posts.find(function(x){return x.id===key;});if(!p)return;
+    state.returnFocus=document.activeElement;state.panelKey=key;
+    panelHost.innerHTML='<section class="ma-inspector" role="dialog" aria-modal="true" aria-label="'+esc(p.name)+'复盘详情"><header><div><h2>'+p.name+'</h2><p>'+p.version+' · '+p.subject+' · 数据截至 2026-10-22</p></div><button type="button" class="ma-close" aria-label="关闭详情" data-close-panel>×</button></header><div class="ma-inspector-body">'+result(p)+'<section><div class="ma-sectionhead" style="margin:0"><h3>例会补充</h3><span class="ma-badge">不改写推广日度指标</span></div><label class="ma-field"><span>点击率（%）<b class="ma-required">*</b></span><input type="number" min="0" max="100" step="0.01" data-inspector-ctr aria-label="点击率（%）" placeholder="待补充" value="'+esc(state.ctr[key]||'')+'"></label><label class="ma-field"><span>观察</span><textarea data-inspector-observation aria-label="观察" placeholder="补充对数据的观察">'+esc(state.observations[key]||'')+'</textarea></label><label class="ma-field"><span>行动</span><textarea data-inspector-action aria-label="行动" placeholder="补充具体动作">'+esc(state.actions[key]||'')+'</textarea></label></section><hr><section><h3>会后状态决定</h3><div><small>截至 2026-10-22 的状态</small><p>'+p.stage+'</p></div><label class="ma-field"><span>2026-10-24 的下一步</span><select data-inspector-decision aria-label="2026-10-24 的下一步">'+['继续待定','测试转放量','测试淘汰'].concat(key==='p1'?['测试暂停']:[]).map(function(x){return '<option '+(state.decisions[key]===x?'selected':'')+'>'+x+'</option>';}).join('')+'</select></label><div class="ma-note"><div>当前为拟议，整份例会定稿后才生效。23 号仍按实际情况记录。</div></div></section><section><h3>本帖历史对比</h3><div class="ma-subnav"><button type="button" data-own-mode="period" aria-pressed="true">本帖上期</button><button type="button" data-own-mode="total" aria-pressed="false">本帖历史累计</button></div><p data-history-caption>'+(!p.own?'暂无可对比样本':'历史指标使用占位符，正式展示应按测试／放量区分来源。')+'</p></section><section><h3>推广数据</h3><p style="font-size:13px;color:var(--ma-muted)">消耗、开口和留资在推广帖复盘入口补录。</p>'+link('查看推广专属入口','data-promotion-entry')+'</section><p class="ma-error" data-panel-error hidden></p></div><footer>'+btn('取消','data-close-panel')+btn('保存本卡草稿','data-save-panel',true)+'</footer></section>';
+    var options=p.stage==='测试中'?['继续测试','测试暂停','测试结束待定','测试转放量','测试淘汰']:['继续待定','测试转放量','测试淘汰'];
+    panelHost.querySelector('[data-inspector-decision]').innerHTML=options.map(function(x){return '<option '+(state.decisions[key]===x?'selected':'')+'>'+x+'</option>';}).join('');
+    panelHost.hidden=false;icons();fitOverlay('panel');
+    var target=focus==='observation'?'[data-inspector-observation]':focus==='action'?'[data-inspector-action]':focus==='decision'?'[data-inspector-decision]':'[data-inspector-ctr]';
+    panelHost.querySelector(target).focus({preventScroll:true});
+  }
+  function closePanel(force){
+    if(!force&&state.panelKey){
+      var k=state.panelKey,dirty=panelHost.querySelector('[data-inspector-ctr]').value!==String(state.ctr[k]||'')||panelHost.querySelector('[data-inspector-observation]').value!==(state.observations[k]||'')||panelHost.querySelector('[data-inspector-action]').value!==(state.actions[k]||'')||panelHost.querySelector('[data-inspector-decision]').value!==state.decisions[k];
+      if(dirty){modal('<h2>保留本卡修改？</h2><p>关闭将放弃这次尚未保存的修改。</p><div class="ma-actions">'+btn('放弃修改','data-discard-panel')+btn('继续编辑','data-close-modal',true)+'</div>');return;}
+    }
+    var panel=panelHost.querySelector('.ma-inspector'),closingKey=state.panelKey;if(!panel){panelHost.hidden=true;return;}
+    panel.classList.add('ma-exit');
+    setTimeout(function(){panelHost.hidden=true;state.panelKey=null;var target=state.returnFocus&&state.returnFocus.isConnected?state.returnFocus:main.querySelector('[data-open="'+closingKey+'"]');if(target)target.focus({preventScroll:true});},matchMedia('(prefers-reduced-motion: reduce)').matches?0:220);
+  }
+  function modal(html){state.modalReturnFocus=document.activeElement;modalHost.innerHTML='<section class="ma-modal" role="alertdialog" aria-modal="true" aria-label="确认操作">'+html+'</section>';modalHost.hidden=false;var b=modalHost.querySelector('textarea,input,[data-close-modal],button');if(b)b.focus({preventScroll:true});icons();fitOverlay('modal');}
+  function closeModal(){modalHost.hidden=true;if(state.modalReturnFocus&&state.modalReturnFocus.isConnected)state.modalReturnFocus.focus({preventScroll:true});}
+  function nonModal(){
+    modal('<h2>非推广首轮复盘</h2><label class="ma-field"><span>处理方式</span><select data-non-mode><option value="record">录入数据</option><option value="skip">不复盘</option></select></label><div data-non-record class="ma-formgrid"><label class="ma-field"><span>点击率（%）<b class="ma-required">*</b></span><input type="number" min="0" max="100" step="0.01" data-non-click placeholder="待补充"></label><label class="ma-field"><span>3 秒阅读率（%）<b class="ma-required">*</b></span><input type="number" min="0" max="100" step="0.01" data-non-read placeholder="待补充"></label><label class="ma-field"><span>数据截止日<b class="ma-required">*</b></span><input type="date" value="2026-10-22" data-non-through></label><label class="ma-field"><span>结论<b class="ma-required">*</b></span><textarea data-non-conclusion placeholder="填写复盘结论"></textarea></label></div><label class="ma-field" data-non-skip hidden><span>不复盘理由<b class="ma-required">*</b></span><textarea data-non-reason placeholder="填写理由"></textarea></label><p class="ma-error" data-non-error hidden></p><div class="ma-actions">'+btn('取消','data-close-modal')+btn('确认本次处理','data-save-non',true)+'</div>');
+  }
+  function gate(){
+    var missing=[];
+    state.selected.forEach(function(k){if(state.ctr[k]==null||state.ctr[k]==='')missing.push({label:posts.find(function(p){return p.id===k;}).name+'：点击率待补充',key:k});});
+    [['situation','衡量情况'],['strategy','本周具体动作'],['conclusion','核心结论'],['next','下一步行动']].forEach(function(x){if(!(state.fields[x[0]]||'').trim())missing.push({label:x[1]+'待补充',field:x[0]});});
+    if(!state.nonDone)missing.push({label:'非推广应处理节点尚未补齐或标记不复盘',non:true});
+    var out=main.querySelector('[data-gates]');
+    if(missing.length){out.hidden=false;out.innerHTML='<strong>还有 '+missing.length+' 项需要处理，当前可保存草稿</strong><div>'+missing.map(function(m){return link(m.label,m.key?'data-open="'+m.key+'" data-focus="ctr"':m.field?'data-gate-field="'+m.field+'"':'data-non');}).join('')+'</div>';feedback('已展示定稿缺项；草稿仍可保存');out.scrollIntoView({block:'nearest',behavior:'instant'});return;}
+    modal('<h2>确认定稿 V0？</h2><p>将冻结本次复盘内容，并确认从 2026-10-24 起执行的安排。23 号实际状态与指标保持原样。</p><div class="ma-actions">'+btn('继续编辑','data-close-modal')+btn('确认定稿','data-confirm-finalize',true)+'</div>');
+  }
+  root.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.dataset.field)state.fields[t.dataset.field]=t.value;
+    if(t.hasAttribute('data-daily')){state.daily=state.daily||{};state.daily[t.dataset.daily]=t.value;}
+    if(state.scene==='issues'&&['问题','解决方案','进度'].indexOf(t.getAttribute('aria-label'))>=0){state.issueInputs=state.issueInputs||{};state.issueInputs[t.getAttribute('aria-label')]=t.value;}
+  });
+  root.addEventListener('change',function(e){
+    var t=e.target;
+    if(state.scene==='issues'&&t.getAttribute('aria-label')==='进度'){state.issueInputs=state.issueInputs||{};state.issueInputs['进度']=t.value;}
+    if(t.hasAttribute('data-empty')){state.empty=t.checked;render();}
+    if(t.hasAttribute('data-no-history')){state.noHistory=t.checked;render();}
+    if(t.hasAttribute('data-phase')){state.phase=t.value;state.override=null;render();}
+    if(t.hasAttribute('data-non-mode')){modalHost.querySelector('[data-non-record]').hidden=t.value==='skip';modalHost.querySelector('[data-non-skip]').hidden=t.value!=='skip';}
+    if(t.hasAttribute('data-select-all')){state.candidate=t.checked?posts.map(function(p){return p.id;}):[];render();}
+    if(t.dataset.candidate){state.candidate=t.checked?Array.from(new Set(state.candidate.concat(t.dataset.candidate))):state.candidate.filter(function(x){return x!==t.dataset.candidate;});main.querySelector('[data-selected-count]').textContent='已选 '+state.candidate.length+' 项';var all=main.querySelector('[data-select-all]');all.checked=state.candidate.length===posts.length;all.indeterminate=state.candidate.length>0&&state.candidate.length<posts.length;}
+    if(t.hasAttribute('data-issue-resolved')){state.issueResolved=t.checked;render();}
+  });
+  root.addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;
+    if(b.dataset.scene){scene(b.dataset.scene);return;}
+    if(b.dataset.filter){state.filter=b.dataset.filter;render();return;}
+    if(b.hasAttribute('data-adjust-candidates')){state.candidate=state.selected.slice();scene('candidates');return;}
+    if(b.hasAttribute('data-confirm-candidates')){if(!state.candidate.length){feedback('请先选择至少一项候选');return;}state.selected=state.candidate.slice();scene('cards');feedback('已确认 '+state.selected.length+' 项，已生成对应复盘卡片');return;}
+    if(b.dataset.open){openPanel(b.dataset.open,b.dataset.focus);return;}
+    if(b.dataset.own){openPanel(b.dataset.own);return;}
+    if(b.dataset.ownMode){panelHost.querySelectorAll('[data-own-mode]').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});panelHost.querySelector('[data-history-caption]').textContent=b.dataset.ownMode==='total'?'本帖历史累计：测试与放量分开标识，重叠日期不重复相加。':'本帖上期：按上次已定稿例会的真实区间对比。';return;}
+    if(b.hasAttribute('data-close-panel')){closePanel(false);return;}
+    if(b.hasAttribute('data-save-panel')){
+      var k=state.panelKey,input=panelHost.querySelector('[data-inspector-ctr]');
+      if(input.value!==''&&(!Number.isFinite(Number(input.value))||Number(input.value)<0||Number(input.value)>100)){var error=panelHost.querySelector('[data-panel-error]');error.hidden=false;error.textContent='点击率应在 0%—100% 之间。';input.focus();return;}
+      state.ctr[k]=input.value;state.observations[k]=panelHost.querySelector('[data-inspector-observation]').value;state.actions[k]=panelHost.querySelector('[data-inspector-action]').value;state.decisions[k]=panelHost.querySelector('[data-inspector-decision]').value;
+      var cardEl=main.querySelector('[data-card="'+k+'"]');if(cardEl){var p=posts.find(function(x){return x.id===k;});cardEl.outerHTML=card(p);}
+      feedback('本卡草稿已保留在演示中，状态尚未生效');closePanel(true);return;
+    }
+    if(b.hasAttribute('data-discard-panel')){modalHost.hidden=true;closePanel(true);return;}
+    if(b.hasAttribute('data-close-modal')){closeModal();return;}
+    if(b.hasAttribute('data-save-draft')){scene('overview');feedback('演示：草稿保存后返回总览；尚未生效任何状态决定');return;}
+    if(b.hasAttribute('data-finalize')){gate();return;}
+    if(b.dataset.gateField){var f=main.querySelector('[data-field="'+b.dataset.gateField+'"]');f.setAttribute('aria-invalid','true');f.focus();return;}
+    if(b.hasAttribute('data-confirm-finalize')){state.phase='v0';scene('daily');feedback('演示：整份 V0 已定稿，安排从 24 号生效');return;}
+    if(b.hasAttribute('data-change-arrangement')){
+      modal('<h2>修改 2026-10-24 的安排</h2><p>原安排由例会 '+(state.phase==='v1final'?'V1':'V0')+' 确定，更正保留原决定与来源。</p><label class="ma-field"><span>修改为</span><select data-change-target><option>继续测试</option><option>测试暂停</option><option>测试转放量</option><option>测试淘汰</option></select></label><label class="ma-field"><span>修改理由<b class="ma-required">*</b></span><textarea data-change-reason placeholder="说明为什么需要更改例会决定"></textarea></label><p class="ma-error" data-reason-error hidden>请填写修改理由。</p><div class="ma-actions">'+btn('取消','data-close-modal')+btn('确认更正','data-save-change',true)+'</div>');return;
+    }
+    if(b.hasAttribute('data-save-change')){var reason=modalHost.querySelector('[data-change-reason]');if(!reason.value.trim()){modalHost.querySelector('[data-reason-error]').hidden=false;reason.setAttribute('aria-invalid','true');reason.focus();return;}state.override={target:modalHost.querySelector('[data-change-target]').value,reason:reason.value.trim()};modalHost.hidden=true;var values=Array.from(main.querySelectorAll('[data-daily]')).map(function(x){return x.value;});render();main.querySelectorAll('[data-daily]').forEach(function(x,i){x.value=values[i];});feedback('演示：已保存带理由的更正，原例会决定仍可追溯');return;}
+    if(b.hasAttribute('data-non')){nonModal();return;}
+    if(b.hasAttribute('data-save-non')){
+      var skip=modalHost.querySelector('[data-non-mode]').value==='skip',error=modalHost.querySelector('[data-non-error]');
+      if(skip&&!modalHost.querySelector('[data-non-reason]').value.trim()){error.hidden=false;error.textContent='请填写不复盘理由。';return;}
+      if(!skip){var fields=Array.from(modalHost.querySelectorAll('[data-non-record] input,[data-non-record] textarea'));if(fields.some(function(x){return !x.value.trim()||!x.checkValidity();})){error.hidden=false;error.textContent='请补齐两项指标、数据截止日与结论；百分比应在 0%—100% 之间。';return;}}
+      state.nonDone=true;state.nonSkipped=skip;modalHost.hidden=true;render();feedback(skip?'演示：非推广应处理节点已明确标记不复盘':'演示：非推广应处理节点已录入数据');return;
+    }
+    if(b.dataset.version){modal('<h2>上期周例会 · '+b.dataset.version+'</h2><p>这里展示对应版本冻结的数据、结论与决定。此记录为版式占位，不代表真实历史。</p><div class="ma-version-state"><strong>已定稿 '+b.dataset.version+'</strong><span>旧版本可查看，不被后续修订覆盖。</span></div><div class="ma-actions">'+btn('返回总览','data-close-modal',true)+'</div>');return;}
+    if(b.hasAttribute('data-monthly')){feedback('月例会沿用同一结构；本次参考以周例会演示编辑流程');scene('cards');return;}
+    if(b.hasAttribute('data-promotion-entry')){feedback('正式接入后前往推广专属入口，本参考不打开或改写网站');return;}
+    if(b.hasAttribute('data-daily-save')){feedback('演示：保存真实指标；次日安排沿用已定稿决定，不重复填写');}
+  });
+  root.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){if(!modalHost.hidden){closeModal();e.preventDefault();}else if(!panelHost.hidden){closePanel(false);e.preventDefault();}}
+    if(e.key==='Tab'&&(!modalHost.hidden||!panelHost.hidden)){var active=!modalHost.hidden?modalHost:panelHost;var focusables=Array.from(active.querySelectorAll('button,input,select,textarea')).filter(function(x){return !x.disabled&&!x.hidden&&x.getClientRects().length;});if(!focusables.length)return;var first=focusables[0],last=focusables[focusables.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
+  });
+  window.addEventListener('openai:set_globals',function(e){var w=e.detail&&e.detail.globals&&e.detail.globals.widgetState;if(w&&w.modelContent&&w.modelContent.kind==='meeting-reference'&&w.modelContent.scene!==state.scene)scene(w.modelContent.scene);});
+  render();
+})();
+</script>

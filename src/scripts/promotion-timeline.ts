@@ -73,6 +73,9 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
    live=old;
    for(const [key,value]of Object.entries(next.dataset))live.dataset[key]=value;
    const changed=oldForm.dataset.actualStatus!==nextForm.dataset.actualStatus;
+   const oldDecision=oldForm.querySelector('.review-decision'),nextDecision=nextForm.querySelector('.review-decision');
+   const meetingChanged=!!(nextDecision?.querySelector('[data-meeting-change]')||oldDecision?.querySelector('[data-meeting-change]'));
+   if(meetingChanged&&nextDecision)oldDecision?.replaceWith(nextDecision.cloneNode(true));
    for(const [key,value]of Object.entries(nextForm.dataset))if(!['dailyReady','dirty'].includes(key))oldForm.dataset[key]=value;
    for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field&&(input.name!=='platformNoteId'||input.value||!field.value))field.value=input.value;}
    if(changed){
@@ -84,7 +87,7 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
     if(decision&&newDecision){const value=decision.value;decision.replaceChildren(...Array.from(newDecision.options).map(option=>option.cloneNode(true)));decision.value=Array.from(decision.options).some(option=>option.value===value)?value:'';}
     else {const replacement=nextForm.querySelector('.review-decision');if(replacement)oldForm.querySelector('.review-decision')?.replaceWith(replacement.cloneNode(true));}
     oldForm.dispatchEvent(new Event('business:metric-context-updated'));
-   }
+   }else if(meetingChanged)oldForm.dispatchEvent(new Event('business:metric-context-updated'));
   }else if(old){live=replacePromotionRow(old,next);}else live=next.cloneNode(true) as HTMLElement;
   existing.delete(key);
   if(live.parentElement!==container)container.append(live);

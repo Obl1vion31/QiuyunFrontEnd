@@ -4,6 +4,7 @@ import type { Database } from './client';
 import { WorkflowError, type Transaction } from './schedule-workflow';
 import { shanghaiDateKey } from './promotion-rules.mjs';
 import { pauseIsActive } from './promotion-state.mjs';
+import {readMeetingDecisions} from './meeting-decisions';
 import { operationsPromotionPause as pauses, operationsPromotionPauseTarget as targets,
   operationsPromotionHold as holds, operationsPromotionCampaign as campaigns, operationsPromotionWaitRange as waitRanges, operationsPromotionDailyMetric as metrics, operationsPromotionDayDecision as decisions } from './schema';
 
@@ -16,7 +17,10 @@ export async function readPromotionContext(database: Database | Transaction) {
     database.select({ campaignId: metrics.campaignId, metricDate: metrics.metricDate, dailyStatus: metrics.dailyStatus, actualStatusSnapshot:metrics.actualStatusSnapshot,recordKind:metrics.recordKind,sourceStageStartedOn:metrics.sourceStageStartedOn, stageTypeSnapshot: metrics.stageTypeSnapshot, reviewDecision: metrics.reviewDecision }).from(metrics).orderBy(asc(metrics.metricDate)),
     database.select().from(decisions).orderBy(asc(decisions.businessDate)),
   ]);
-  return { stateChanges, pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };
+  const meetingDecisions=await readMeetingDecisions(database);
+  // 人工当日更正排在会议安排之后；不能用补指标覆盖会议来源。
+  const planned=meetingDecisions.map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,reason:'例会决定',meetingDecision:true}));
+  return { meetingDecisions,stateChanges:[...planned,...stateChanges] as Array<(typeof stateChanges)[number]&{meetingDecision?:boolean}>, pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };
 }
 
 export async function guardPromotionStart(transaction: Transaction, date: string, now = new Date()) {

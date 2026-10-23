@@ -62,7 +62,7 @@ const statusLabels = {...promotionLabels,none:'已转非推广'};
 let timelineRows:Awaited<ReturnType<typeof readPromotionTimeline>>=[];
 let databaseError = '';
 let timelineAudits:(typeof operationsPromotionTimelineAudit.$inferSelect)[]=[];
-let promotionContext: Awaited<ReturnType<typeof readPromotionContext>> = { stateChanges: [], pauses: [], targets: [], holds: [], waitRanges: [], campaigns: [], metrics: [] };
+let promotionContext: Awaited<ReturnType<typeof readPromotionContext>> = { meetingDecisions:[], stateChanges: [], pauses: [], targets: [], holds: [], waitRanges: [], campaigns: [], metrics: [] };
 
 
 let campaigns: Array<{

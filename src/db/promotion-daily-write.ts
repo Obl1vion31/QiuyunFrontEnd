@@ -1,5 +1,6 @@
 /** 单条与批量复盘共用同一事务写入，调用方持有推广工作流锁。 */
 import { asc, eq, sql } from 'drizzle-orm';
+import {meetingDecisionOn,meetingNextDecision} from './meeting-decision-rules.mjs';
 import type { z } from 'zod';
 import { promotionDailySchema } from './promotion-validation';
 import { normalizePromotionActualStatus, promotionNextOptions } from './promotion-successors.mjs';
@@ -65,6 +66,8 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     const expectedDate = firstMissingPromotionDate(allMetrics.filter(m => m.recordKind !== 'test_residual'), campaign.startedOn, windows);
     const dailyState = promotionStateOn(campaign, context, data.metricDate);
     const actualStatus = dailyState ? normalizePromotionActualStatus(dailyState.currentStatus, dailyState.currentStage) : null;
+    const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(data.metricDate));
+    if(meetingDecision&&data.reviewDecision!==meetingNextDecision(actualStatus,meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
     if (residual) {
         if (campaign.currentStatus !== 'test_discarded' || !campaign.endedOn || data.metricDate <= campaign.endedOn || data.stageTypeSnapshot !== 'testing' || data.reviewDecision !== 'test_discarded')
             return { kind: 'invalid-residual' as const };
@@ -72,7 +75,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     else {
         if (data.metricDate !== expectedDate)
             return { kind: 'out-of-order' as const, expectedDate };
-        const terminalToday = context.stateChanges.find(c => c.campaignId === campaign.id && c.businessDate === data.metricDate && c.actualStatus === actualStatus && ['test_discarded', 'formal_discarded', 'ended'].includes(c.actualStatus ?? ''));
+        const terminalToday = context.stateChanges.find(c => !c.meetingDecision && c.campaignId === campaign.id && c.businessDate === data.metricDate && c.actualStatus === actualStatus && ['test_discarded', 'formal_discarded', 'ended'].includes(c.actualStatus ?? ''));
         if (!dailyState?.currentStage && !terminalToday)
             return { kind: 'closed' as const };
         const expectedDailyStatus = ['testing', 'scaling'].includes(actualStatus!) ? 'active' : 'waiting_action';

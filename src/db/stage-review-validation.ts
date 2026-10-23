@@ -7,6 +7,7 @@ const optionalText = z.preprocess((value) => typeof value === 'string' && value.
 const rate = z.preprocess(value => value == null || (typeof value === 'string' && !value.trim()) ? Number.NaN : value, z.coerce.number().min(0, '不能小于 0').max(100, '不能大于 100'));
 
 export const meetingReviewSchema = z.object({
+  meetingType:z.enum(['weekly','monthly']).default('weekly'),
   name: z.string().trim().max(120, '会议名称过长').optional().default(''),
   periodStart: dateKey,
   periodEnd: dateKey,

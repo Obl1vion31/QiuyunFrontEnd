@@ -1,0 +1,28 @@
+{
+  "scope": "正式组件、隔离PGlite与虚构指标；桌面优先",
+  "unitTests": 171,
+  "passed": true,
+  "migrations": false,
+  "sharedDatabaseTestWrites": false,
+  "commands": [
+    "pnpm build (Node / Vercel adapters)",
+    "pnpm test",
+    "pnpm db:check",
+    "pnpm test:weekly (事务与冻结兼容；内联流程单独重跑通过)",
+    "pnpm test:review-workbench",
+    "pnpm test:ui",
+    "pnpm test:status-correction",
+    "pnpm test:timeline",
+    "pnpm test:reviews",
+    "pnpm test:non-promotion"
+  ],
+  "desktopWidths": [
+    1920,
+    1440,
+    1280,
+    1024
+  ],
+  "checks": "checks.json",
+  "video": "meeting-flow.webm",
+  "reviewed": "截图与录像关键帧已实际查看"
+}

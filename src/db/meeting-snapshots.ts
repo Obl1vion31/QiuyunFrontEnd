@@ -1,5 +1,5 @@
 /** 例会事实只由服务端读取；客户端只能传引用编号和人工文字。 */
-import { asc, desc, eq, inArray } from 'drizzle-orm';
+import { asc, desc, eq, ne, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import { WorkflowError } from './schedule-workflow';
@@ -7,14 +7,24 @@ import { readCheckpointEvents } from './non-promotion-workflow';
 import { addDays, shanghaiKey, sumPromotionMetrics } from './meeting-review-rules.mjs';
 import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsCategoryPolicyVersion as policies, operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics, operationsNonPromotionReview as nonPromotions, operationsPromotionStageReviewVersion as stageVersions, operationsReviewActionItem as issues, operationsMeetingAttachment as attachments, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, type WeeklyMeetingDraft } from './schema';
 import type { StageSnapshot } from './promotion-stage-reviews';
+import {operationsReviewActionProgress as progress} from './schema';
+export async function readOpenMeetingIssues(db:Database){
+  const [items,updates]=await Promise.all([db.select().from(issues).where(ne(issues.status,'resolved')),db.select().from(progress).orderBy(desc(progress.createdAt))]);
+  return items.map(item=>({id:item.id,problem:item.problem,conclusion:updates.find(p=>p.itemId===item.id)?.conclusion??'',status:item.status as 'pending'|'validating'|'paused'}));
+}
 const text = z.string().max(10000).default('');
 export const meetingDraftSchema = z.object({
+  workflowVersion:z.literal(5).optional(),candidatesConfirmed:z.boolean().default(false),
+  hasRevisionDraft:z.boolean().optional(),
+  finalizationStage:z.enum(['pre','post']).optional(),
+  promotionDecisions:z.record(z.string(),z.enum(['testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended'])).default({}),
+  nonPromotionInputs:z.record(z.string(),z.object({mode:z.enum(['record','skip']).optional(),editing:z.boolean().optional(),clickRate:z.string().max(100).optional(),threeSecondReadRate:z.string().max(100).optional(),recordedThrough:z.string().max(20).optional(),conclusion:text,platformNoteId:z.string().max(24).optional(),reason:z.string().max(500).optional()})).default({}),
   schemaVersion: z.union([z.literal(2), z.literal(3),z.literal(4)]), coreConclusion: text, nextAction: text,
   promotionSelections:z.array(z.string().min(1).max(200)).max(500).default([]),materialFingerprint:z.string().max(64).optional(),
   situation: text, strategy: text, temporaryNotes: text,
   promotionSnapshotIds: z.array(z.uuid()).max(20).default([]), attachmentIds: z.array(z.uuid()).max(20).default([]),
   temporaryLinks: z.array(z.object({ label: z.string().max(200), url: z.url().max(2000).refine(v => /^https?:\/\//i.test(v), '只支持 HTTP/HTTPS 链接') })).max(20).default([]),
-  promotionInputs: z.record(z.string(), z.object({ clickRate: z.number().min(0).max(100).nullable(), recordedThrough: z.string().max(20), currentSituation: text, activeAction: text })),
+  promotionInputs: z.record(z.string(), z.object({ confirmed:z.boolean().optional(), clickRate: z.number().min(0).max(100).nullable(), recordedThrough: z.string().max(20), currentSituation: text, activeAction: text })),
   issues: z.array(z.object({ id: z.uuid().optional(), problem: z.string().trim().min(1).max(2000), conclusion: text, status: z.enum(['pending','validating','resolved','paused']) })).max(100),
   nonPromotionSelections: z.array(z.object({ scheduleId: z.uuid(), checkpointType: z.enum(['day_7','day_15']) })).max(500),
 }).superRefine((v, ctx) => {

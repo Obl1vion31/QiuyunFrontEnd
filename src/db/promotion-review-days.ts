@@ -4,8 +4,11 @@ import {pendingPromotionPeriod} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
 import {campaignPauseWindows,campaignWaitWindows,dateInWindows,firstMissingPromotionDate,promotionStateOn,promotionDayStatusEdit} from './promotion-state.mjs';
 import {nextDateKey,previousDateKey,shanghaiDateKey} from './promotion-rules.mjs';
+import {meetingDecisionOn,meetingNextDecision} from './meeting-decision-rules.mjs';
+import type {MeetingDecision} from './meeting-decisions';
 
 export interface ReviewDay {
+ meetingDecision?:MeetingDecision;meetingNext?:string|null;
  date:string;campaignId?:string;kind:'metric'|'arrangement'|'preview';stage:string|null;status:string;
  actualStatus?:string;statusEditOptions?:Array<{value:string;label:string}>;defaultZero?:boolean;waitingThrough?:string;editable:boolean;blockedBy:string|null;opensAt:string;due:boolean;
 }
@@ -25,12 +28,13 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
    const expected=firstMissingPromotionDate(facts,campaign.startedOn,windows);
    for(let date=expected;date<=yesterday;date=nextDateKey(date)){
     if(facts.some(m=>m.metricDate===date)||dateInWindows(date,windows))continue;
-    const state=promotionStateOn(campaign,context,date);const terminal=(context.stateChanges??[]).find(c=>c.campaignId===campaign.id&&c.businessDate===date&&['test_discarded','formal_discarded','ended'].includes(c.actualStatus??''));if(!state||(!state.currentStage&&!terminal))continue;
+    const state=promotionStateOn(campaign,context,date);const terminal=(context.stateChanges??[]).find(c=>c.campaignId===campaign.id&&c.businessDate===date&&!c.meetingDecision&&['test_discarded','formal_discarded','ended'].includes(c.actualStatus??''));if(!state||(!state.currentStage&&!terminal))continue;
     days.push({date,campaignId:campaign.id,kind:'metric',stage:date===expected?(state.currentStage??terminal?.stageType??null):null,actualStatus:normalizePromotionActualStatus(state.currentStatus,state.currentStage),statusEditOptions:date===expected?promotionDayStatusEdit(campaign,context,date)?.options:undefined,defaultZero:['test_paused','test_pending','scaling_paused'].includes(normalizePromotionActualStatus(state.currentStatus,state.currentStage)),status:date===expected?(promotionActualLabels[normalizePromotionActualStatus(state.currentStatus,state.currentStage)]??'待安排'):'待安排',editable:date===expected,blockedBy:date===expected?null:expected,opensAt:`${nextDateKey(date)}T00:00:00+08:00`,due:true});
    }
   }
   days.sort((a,b)=>a.date.localeCompare(b.date));
   const firstDue=days.find(day=>day.due)?.date;
+  for(const day of days)if(day.kind==='metric'){const decision=meetingDecisionOn(context.meetingDecisions??[],day.campaignId,nextDateKey(day.date));if(decision){day.meetingDecision=decision;day.meetingNext=meetingNextDecision(day.actualStatus??'testing',decision.targetStatus);}}
   for(const day of days)if(day.kind==='metric'&&day.date!==firstDue){day.editable=false;day.blockedBy=firstDue??null;day.stage=null;day.status='待安排';}
   const state=campaign?promotionStateOn(campaign,context,today):null;
   const ended=!row.isPromoted||['ended','test_discarded','formal_discarded'].includes(state?.currentStatus??campaign?.currentStatus??row.promotionStatus);

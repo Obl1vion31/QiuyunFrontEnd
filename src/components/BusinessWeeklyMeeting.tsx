@@ -1,162 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
-import type { WeeklyMaterial, WeeklyNonPromotionCard } from '../db/meeting-weekly-material';
-import type { WeeklyMeetingDraft } from '../db/schema';
-import { PromotionCards, NonPromotionCards } from './WeeklyReviewCards';
+import {useEffect,useRef,useState} from 'react';
+import type {WeeklyMaterial} from '../db/meeting-weekly-material';
+import type {WeeklyMeetingDraft} from '../db/schema';
+import {PromotionCards,NonPromotionCards,NonPromotionEditor} from './WeeklyReviewCards';
 import '../styles/meeting-weekly.css';
-interface Props {
-    meeting: {
-        id: string;
-        name: string;
-        periodStart: string;
-        periodEnd: string;
-        updatedAt: string;
-        status: string;
-        currentVersionNumber: number;
-    };
-    draft: WeeklyMeetingDraft;
-    material: WeeklyMaterial;
-    images: Array<{
-        id: string;
-        name: string;
-    }>;
-    previousAction?: string;
-    previousName?: string;
-}
-const money = (v: number | null) => v == null ? '—' : `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-export default function BusinessWeeklyMeeting({ meeting, draft: initial, material: initialMaterial, images: initialImages, previousAction, previousName }: Props) {
-    const [draft, setDraft] = useState(initial), [material, setMaterial] = useState(initialMaterial), [range, setRange] = useState({ from: meeting.periodStart, to: meeting.periodEnd }), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [images, setImages] = useState(initialImages), [query, setQuery] = useState('');
-    const liveDraft = useRef(draft), liveRange = useRef(range);
-    liveDraft.current = draft;
-    liveRange.current = range;
-    const host = useRef<HTMLFormElement>(null), stamp = useRef(meeting.updatedAt), dirty = useRef(false), reading = useRef(false), writing = useRef(false), readToken = useRef(0);
-    const changed = (next: WeeklyMeetingDraft) => { setDraft(next); dirty.current = true; document.documentElement.dataset.unsaved = 'true'; };
-    const text = (field: keyof WeeklyMeetingDraft, value: string) => changed({ ...draft, [field]: value });
-    const setPromotion = (key: string, value: boolean) => changed({ ...draft, promotionSelections: value ? [...new Set([...(draft.promotionSelections ?? []), key])] : (draft.promotionSelections ?? []).filter(k => k !== key) });
-    const setNon = (key: string, value: boolean) => { const [scheduleId, checkpointType] = key.split(':'); changed({ ...draft, nonPromotionSelections: value ? [...draft.nonPromotionSelections, { scheduleId, checkpointType: checkpointType as 'day_7' | 'day_15' }] : draft.nonPromotionSelections.filter(s => `${s.scheduleId}:${s.checkpointType}` !== key) }); };
-    const updateInput = (key: string, field: string, value: string) => changed({ ...draft, promotionInputs: { ...draft.promotionInputs, [key]: { ...(draft.promotionInputs[key] ?? { clickRate: null, recordedThrough: '', currentSituation: '', activeAction: '' }), [field]: field === 'clickRate' ? value === '' ? null : Number(value) : value } } });
-    const selectedNon = draft.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`);
-    const refresh = async () => {
-        if (reading.current || writing.current)
-            return;
-        reading.current = true;
-        const token = ++readToken.current;
-        setMessage('');
-        try {
-            const { readBusiness } = await import('../scripts/business-read');
-            const result = await readBusiness(host.current!, async (task) => { const response = await fetch(`/api/meeting-reviews/${meeting.id}/material?from=${range.from}&to=${range.to}`, { signal: task.signal, cache: 'no-store' }); const json = await response.json(); if (!response.ok)
-                throw new Error(json.message); return json.material as WeeklyMaterial; }, { isCurrent: () => token === readToken.current });
-            if (!result)
-                return;
-            if (liveRange.current.from !== result.periodStart || liveRange.current.to !== result.periodEnd)
-                return;
-            const current = liveDraft.current;
-            const missingPromotion = (current.promotionSelections ?? []).filter(k => !result.promotions.some(p => p.key === k)), missingNon = current.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`).filter(k => !result.nonPromotions.some(p => p.key === k));
-            if ((missingPromotion.length || missingNon.length) && !await window.businessConfirm(`当前区间有 ${missingPromotion.length + missingNon.length} 项已选记录不再符合候选条件。刷新会取消这些勾选，文字保持不变。`, { title: '核对候选变化', confirmLabel: '刷新并取消失效勾选', cancelLabel: '保留当前数据' }))
-                return;
-            setMaterial(result);
-            changed({ ...current, promotionSelections: (current.promotionSelections ?? []).filter(k => !missingPromotion.includes(k)), nonPromotionSelections: current.nonPromotionSelections.filter(s => !missingNon.includes(`${s.scheduleId}:${s.checkpointType}`)), materialFingerprint: result.fingerprint });
-            setMessage('数据已刷新，请核对后保存。');
-        }
-        catch (error) {
-            setMessage(error instanceof Error ? error.message : '数据刷新失败，输入已保留。');
-        }
-        finally {
-            reading.current = false;
-        }
-    };
-    const save = async (action: 'save' | 'finalize') => {
-        if (writing.current || reading.current)
-            return;
-        if (!host.current?.reportValidity())
-            return;
-        if (range.from !== material.periodStart || range.to !== material.periodEnd) {
-            setMessage('区间已调整，请先刷新数据。');
-            return;
-        }
-        if (action === 'finalize' && !await window.businessConfirm('将保存勾选内容、比较样本、数据和结论为不可变版本。', { title: '周例会定稿', confirmLabel: '确认定稿', cancelLabel: '继续编辑' }))
-            return;
-        writing.current = true;
-        setBusy(true);
-        setMessage('正在保存…');
-        try {
-            const response = await fetch(`/api/meeting-reviews/${meeting.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, draft: { ...draft, schemaVersion: 4, materialSnapshot: undefined, materialFingerprint: material.fingerprint }, expectedUpdatedAt: stamp.current, periodStart: material.periodStart, periodEnd: material.periodEnd }) });
-            const result = await response.json();
-            if (!response.ok) {
-                setMessage(result.message ?? '保存失败，输入已保留。');
-                return;
-            }
-            stamp.current = result.updatedAt;
-            dirty.current = false;
-            document.documentElement.dataset.unsaved = 'false';
-            setMessage(action === 'finalize' ? '已定稿' : '草稿已保存');
-            if (action === 'finalize')
-                location.assign(`?meeting=${meeting.id}&version=${result.versionNumber}`);
-        }
-        catch {
-            setMessage('连接失败，输入已保留，可重试。');
-        }
-        finally {
-            writing.current = false;
-            setBusy(false);
-        }
-    };
-    useEffect(() => { const button = document.querySelector<HTMLButtonElement>('[data-weekly-save]'); const onSave = () => void save('save'); button?.addEventListener('click', onSave); return () => button?.removeEventListener('click', onSave); });
-    useEffect(() => () => { readToken.current++; }, []);
-    const selectAll = () => changed({ ...draft, promotionSelections: [...new Set([...(draft.promotionSelections ?? []), ...material.promotions.filter(p => p.kind === 'current').map(p => p.key)])], nonPromotionSelections: [...new Map([...draft.nonPromotionSelections, ...material.nonPromotions.filter(p => p.kind === 'current').map(p => ({ scheduleId: p.scheduleId, checkpointType: p.checkpointType }))].map(s => [`${s.scheduleId}:${s.checkpointType}`, s])).values()] });
-    const upload = async (files: File[]) => { if (writing.current || reading.current)
-        return; writing.current = true; setBusy(true); try {
-        for (const file of files) {
-            if (file.size > 3145728) {
-                setMessage('每张图片最多 3 MB。');
-                continue;
-            }
-            const data = new FormData();
-            data.set('meetingId', meeting.id);
-            data.set('image', file);
-            const res = await fetch('/api/meeting-attachments', { method: 'POST', body: data });
-            const result = await res.json();
-            if (!res.ok) {
-                setMessage(result.message ?? '上传失败');
-                continue;
-            }
-            setImages(list => [...list, { id: result.id, name: result.name }]);
-            setDraft(d => ({ ...d, attachmentIds: [...(d.attachmentIds ?? []), result.id] }));
-            dirty.current = true;
-            document.documentElement.dataset.unsaved = 'true';
-            setMessage('图片已上传，请保存草稿。');
-        }
-    }
-    catch {
-        setMessage('上传失败，输入已保留。');
-    }
-    finally {
-        writing.current = false;
-        setBusy(false);
-    } };
-    const nonGroup = (rows: WeeklyNonPromotionCard[]) => <NonPromotionCards rows={rows} query={query} context={material.nonPromotionContext} selected={selectedNon} onSelect={setNon}/>;
-    return <form ref={host} data-weekly-report data-report-v4 className="business-form weekly-report" onSubmit={e => e.preventDefault()}>
-  <fieldset className="weekly-fields" disabled={busy}><nav className="weekly-section-nav" aria-label="例会内容"><a href="#weekly-conclusion">结论与行动</a><a href="#weekly-promotion">推广阶段</a><a href="#weekly-non">非推广</a><a href="#weekly-other">其他事项</a></nav>
-  <section className="weekly-paper" id="weekly-conclusion"><header><div><h2>本期结论与行动</h2><p>{material.periodStart} — {material.periodEnd}</p></div><button type="button" className="business-action-secondary" onClick={selectAll} disabled={busy}>全选本期候选</button></header>
-   <div className="weekly-summary"><div><span>实际跑量帖子</span><strong>{material.summary.posts}<small>篇</small></strong></div><div><span>本期总消耗</span><strong>{money(material.summary.spend)}</strong></div><div><span>实际开口成本</span><strong>{money(material.summary.actualOpenCost)}</strong></div><div><span>实际留资成本</span><strong>{money(material.summary.actualLeadCost)}</strong></div></div>
-   <p className="weekly-summary-context">测试 {material.summary.testingPosts} 篇 · 放量 {material.summary.scalingPosts} 篇 · 开口 {material.summary.actualOpenCount ?? '—'} 人 · 留资 {material.summary.actualLeadCount ?? '—'} 人</p>
-   <div className="weekly-writing-grid">{([['situation', '跑量情况'], ['strategy', '本周具体动作'], ['coreConclusion', '核心结论与整体总结'], ['nextAction', '下一步行动']] as const).map(([key, label]) => <label key={key}>{label}<textarea rows={3} value={draft[key] ?? ''} onChange={e => text(key, e.target.value)}/></label>)}</div>
-   {previousAction && <details className="weekly-source"><summary>上期行动 · {previousName}</summary><p>{previousAction}</p></details>}
-   <details className="weekly-source"><summary>持续跟进事项（{draft.issues.length}）</summary><div className="weekly-issues">{draft.issues.map((issue, i) => <div key={issue.id ?? i}><label>问题<input value={issue.problem} onChange={e => changed({ ...draft, issues: draft.issues.map((s, j) => j === i ? { ...s, problem: e.target.value } : s) })}/></label><label>进展<textarea rows={2} value={issue.conclusion} onChange={e => changed({ ...draft, issues: draft.issues.map((s, j) => j === i ? { ...s, conclusion: e.target.value } : s) })}/></label><label>状态<select value={issue.status} onChange={e => changed({ ...draft, issues: draft.issues.map((s, j) => j === i ? { ...s, status: e.target.value as typeof s.status } : s) })}><option value="pending">待处理</option><option value="validating">验证中</option><option value="resolved">已解决</option><option value="paused">暂缓</option></select></label></div>)}</div><button type="button" className="business-action-secondary" onClick={() => changed({ ...draft, issues: [...draft.issues, { problem: '', conclusion: '', status: 'pending' }] })}>新增问题</button></details>
-  </section>
-  <section className="weekly-calendar-link"><div><strong>内容发布排期核对</strong><span>对照月历核对本期发布安排</span></div><a href={`/business/operations-schedule?month=${material.periodStart.slice(0, 7)}`} target="_blank" rel="noreferrer">查看月历 ↗</a></section>
-  <section className="weekly-material-tools"><div className="business-filter"><label>开始日<input type="date" aria-label="例会开始日" disabled={meeting.status === 'completed'} value={range.from} onChange={e => { setRange({ ...range, from: e.target.value }); dirty.current = true; document.documentElement.dataset.unsaved = 'true'; }}/></label><label>结束日<input type="date" aria-label="例会结束日" disabled={meeting.status === 'completed'} value={range.to} onChange={e => { setRange({ ...range, to: e.target.value }); dirty.current = true; document.documentElement.dataset.unsaved = 'true'; }}/></label><button type="button" className="business-action-secondary" onClick={() => void refresh()} disabled={busy}>刷新数据</button></div><label className="weekly-search">搜索候选<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="名称、学科或分类"/></label></section>
-  <section className="weekly-paper" id="weekly-promotion"><header><div><h2>推广帖阶段复盘</h2><p>已选 {(draft.promotionSelections ?? []).length} 项</p></div></header>
-   {(['testing', 'scaling'] as const).map(stage => <div className="weekly-card-section" key={stage}><h3>{stage === 'testing' ? '测试结果与阶段小结' : '本期放量'}</h3><PromotionCards rows={material.promotions.filter(p => p.kind === 'current' && p.stageType === stage)} query={query} selected={draft.promotionSelections} onSelect={setPromotion} inputs={draft.promotionInputs} onInput={updateInput}/>{!material.promotions.some(p => p.kind === 'current' && p.stageType === stage) && <p className="weekly-empty">本期暂无{stage === 'testing' ? '测试终止或暂停节点' : '已录入的放量数据'}</p>}</div>)}
-   {material.promotions.some(p => p.kind === 'supplement') && <details className="weekly-supplements"><summary>往期补充与更新（{material.promotions.filter(p => p.kind === 'supplement').length}）</summary><PromotionCards rows={material.promotions.filter(p => p.kind === 'supplement')} query={query} selected={draft.promotionSelections} onSelect={setPromotion} inputs={draft.promotionInputs} onInput={updateInput}/></details>}
-  </section>
-  <section className="weekly-paper" id="weekly-non"><header><div><h2>非推广帖复盘</h2><p>已选 {selectedNon.length} 个主复盘节点 · 二轮自动携带首轮对照</p></div></header>{nonGroup(material.nonPromotions.filter(p => p.kind === 'current'))}{!material.nonPromotions.some(p => p.kind === 'current') && <p className="weekly-empty">本期暂无实际数据截止日在区间内的复盘</p>}
-   {material.nonPromotions.some(p => p.kind === 'supplement') && <details className="weekly-supplements"><summary>往期补录与更新（{material.nonPromotions.filter(p => p.kind === 'supplement').length}）</summary>{nonGroup(material.nonPromotions.filter(p => p.kind === 'supplement'))}</details>}
-   {material.pending.length > 0 && <details className="weekly-source"><summary>待补数据（{material.pending.length}）</summary>{material.pending.map(p => <p key={p.key}>{p.contentName} · {p.checkpointType === 'day_7' ? '首轮' : '二轮'} · {p.reason}</p>)}</details>}
-  </section>
-  <section className="weekly-paper" id="weekly-other"><header><h2>其他事项</h2></header><div className="weekly-writing-grid"><label>临时事项<textarea rows={3} value={draft.temporaryNotes ?? ''} onChange={e => text('temporaryNotes', e.target.value)}/></label><label>相关链接（名称 | https://…）<textarea rows={3} defaultValue={(draft.temporaryLinks ?? []).map(l => `${l.label} | ${l.url}`).join('\n')} onChange={e => changed({ ...draft, temporaryLinks: e.target.value.split('\n').filter(l => l.trim()).map(l => { const i = l.indexOf('|'); return { label: i < 0 ? '' : l.slice(0, i).trim(), url: (i < 0 ? l : l.slice(i + 1)).trim() }; }) })}/></label></div><label className="weekly-upload" tabIndex={0} onPaste={e => { const files = [...e.clipboardData.items].filter(i => i.kind === 'file' && i.type.startsWith('image/')).map(i => i.getAsFile()).filter((v): v is File => !!v); if (files.length) {
-        e.preventDefault();
-        void upload(files);
-    } }}>上传或粘贴图片（每张最多 3 MB）<span className="weekly-upload-button">选择图片</span><input className="weekly-file" type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={busy} onChange={e => void upload([...e.target.files ?? []])}/></label><div className="weekly-images">{images.map(image => <label key={image.id}><input type="checkbox" checked={draft.attachmentIds?.includes(image.id) ?? false} onChange={e => changed({ ...draft, attachmentIds: e.target.checked ? [...draft.attachmentIds ?? [], image.id] : (draft.attachmentIds ?? []).filter(id => id !== image.id) })}/><img src={`/api/meeting-attachments/${image.id}`} alt={image.name}/></label>)}</div></section>
-  </fieldset><footer className="weekly-report-actions"><output role="status" aria-live="polite">{message}</output><button type="button" className="business-action-secondary" onClick={() => void save('save')} disabled={busy}>{busy ? '正在保存…' : '保存草稿'}</button><button type="button" className="business-action-primary" onClick={() => void save('finalize')} disabled={busy}>{meeting.status === 'completed' ? `定稿 V${meeting.currentVersionNumber + 1}` : '定稿 V0'}</button></footer>
- </form>;
+interface Props{meeting:{id:string;name:string;periodStart:string;periodEnd:string;updatedAt:string;status:string;currentVersionNumber:number;meetingType?:string};draft:WeeklyMeetingDraft;material:WeeklyMaterial;images:Array<{id:string;name:string}>;previousAction?:string;previousName?:string;effectiveOn?:string;carriedIssueIds?:string[];}
+export default function BusinessWeeklyMeeting({meeting,draft:initial,material:initialMaterial,effectiveOn,carriedIssueIds=[]}:Props){
+ const [draft,setDraft]=useState<WeeklyMeetingDraft>({...initial,workflowVersion:5}),[material,setMaterial]=useState(initialMaterial),[range,setRange]=useState({from:meeting.periodStart,to:meeting.periodEnd}),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[picking,setPicking]=useState(!initial.candidatesConfirmed),[query,setQuery]=useState('');
+ const live=useRef(draft),stamp=useRef(meeting.updatedAt),writing=useRef(false),host=useRef<HTMLFormElement>(null);live.current=draft;
+ function changed(next:WeeklyMeetingDraft){live.current=next;setDraft(next);document.documentElement.dataset.unsaved='true';}
+ function text(key:keyof WeeklyMeetingDraft,value:string){changed({...live.current,[key]:value});}
+ function select(key:string,checked:boolean,non=false){const d=live.current;if(non){const [scheduleId,checkpointType]=key.split(':');changed({...d,nonPromotionSelections:checked?[...d.nonPromotionSelections,{scheduleId,checkpointType:checkpointType as 'day_7'|'day_15'}]:d.nonPromotionSelections.filter(s=>`${s.scheduleId}:${s.checkpointType}`!==key)});}else changed({...d,promotionSelections:checked?[...new Set([...(d.promotionSelections??[]),key])]:(d.promotionSelections??[]).filter(k=>k!==key)});}
+ const refresh=async()=>{
+  if(writing.current||!host.current)return;
+  setBusy(true);
+  try{
+   const {readBusiness}=await import('../scripts/business-read');
+   const m=await readBusiness(host.current,async read=>{const res=await fetch(`/api/meeting-reviews/${meeting.id}/material?from=${range.from}&to=${range.to}`,{cache:'no-store',signal:read.signal}),json=await res.json();if(!res.ok)throw new Error(json.message);return json.material as WeeklyMaterial});
+   if(!m)return;
+   const invalid=(live.current.promotionSelections??[]).some(k=>!m.promotions.some(p=>p.key===k))||live.current.nonPromotionSelections.some(s=>!m.nonPromotions.some(p=>p.key===`${s.scheduleId}:${s.checkpointType}`));
+   if(invalid&&!await window.businessConfirm('部分已选内容不在当前区间，刷新将移除这些勾选，保留填写内容。',{title:'更新候选',confirmLabel:'更新候选',cancelLabel:'继续编辑'}))return;
+   setMaterial(m);
+   changed({...live.current,materialFingerprint:m.fingerprint,promotionSelections:(live.current.promotionSelections??[]).filter(k=>m.promotions.some(p=>p.key===k)),nonPromotionSelections:[...new Map([...live.current.nonPromotionSelections.filter(s=>m.nonPromotions.some(p=>p.key===`${s.scheduleId}:${s.checkpointType}`)),...m.nonPromotions.filter(p=>material.pending.some(old=>old.key===p.key)).map(p=>({scheduleId:p.scheduleId,checkpointType:p.checkpointType}))].map(s=>[`${s.scheduleId}:${s.checkpointType}`,s])).values()]});
+   setMessage('数据已刷新，已保留填写内容。');
+  }catch(e){setMessage(e instanceof Error?e.message:'刷新失败，输入已保留。');}finally{setBusy(false)}
+ };
+
+ const save=async(action='save',back=false):Promise<boolean>=>{if(writing.current)return false;if(action!=='save'&&!host.current?.reportValidity())return false;if(range.from!==material.periodStart||range.to!==material.periodEnd){setMessage('区间已调整，请先刷新数据。');return false;}if(action!=='save'&&!await window.businessConfirm(action==='finalize_pre'?'冻结本次会前材料，拟议安排暂不生效。':'确认会后结论、次日安排与事项结果。',{title:action==='finalize_pre'?'会前定稿':'会后定稿',confirmLabel:'确认定稿',cancelLabel:'继续编辑'}))return false;writing.current=true;setBusy(true);setMessage('正在保存…');try{const res=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,draft:{...live.current,workflowVersion:5,materialSnapshot:undefined,materialFingerprint:material.fingerprint,issues:live.current.issues.filter(i=>i.problem.trim())},expectedUpdatedAt:stamp.current,periodStart:material.periodStart,periodEnd:material.periodEnd})});const json=await res.json();if(!res.ok)throw new Error(json.message);stamp.current=json.updatedAt;document.documentElement.dataset.unsaved='false';setMessage('草稿已保存');if(action!=='save')location.assign(`?meeting=${meeting.id}&version=${json.versionNumber}`);else if(back)location.assign('/business/meeting-review');return true;}catch(e){setMessage(e instanceof Error?e.message:'保存失败，输入已保留。');return false;}finally{writing.current=false;setBusy(false)}};
+ useEffect(()=>{const button=document.querySelector('[data-weekly-save]'),handler=()=>void save('save',true);button?.addEventListener('click',handler);return()=>button?.removeEventListener('click',handler);});
+ const nonDraft=(key:string,value:NonNullable<WeeklyMeetingDraft['nonPromotionInputs']>[string])=>changed({...live.current,nonPromotionInputs:{...live.current.nonPromotionInputs,[key]:value}});
+ const nonSaved=async(key:string)=>{const next={...live.current.nonPromotionInputs};delete next[key];changed({...live.current,nonPromotionInputs:next});await refresh();};
+ const selectedNon=draft.nonPromotionSelections.map(s=>`${s.scheduleId}:${s.checkpointType}`);
+ const candidates=material.promotions.filter(p=>p.kind==='current'),nonCandidates=material.nonPromotions.filter(p=>p.kind==='current');
+ const filtered=(name:string)=>!query||name.toLowerCase().includes(query.toLowerCase());
+ return <form ref={host} data-weekly-report data-report-v4 className="business-form weekly-report" onSubmit={e=>e.preventDefault()}><fieldset className="weekly-fields" disabled={busy}>
+ <section className="weekly-material-tools"><div className="business-filter"><label>开始日<input type="date" value={range.from} disabled={meeting.status==='completed'} onChange={e=>{setRange({...range,from:e.target.value});document.documentElement.dataset.unsaved='true'}}/></label><label>结束日<input type="date" value={range.to} disabled={meeting.status==='completed'} onChange={e=>{setRange({...range,to:e.target.value});document.documentElement.dataset.unsaved='true'}}/></label><button type="button" className="business-action-secondary" onClick={()=>void refresh()}>刷新数据</button></div><label className="weekly-search">搜索候选<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="帖子名称"/></label></section>
+ {picking&&<section className="weekly-paper"><header><h2>选择本期候选</h2><button type="button" className="business-action-secondary" onClick={()=>changed({...live.current,promotionSelections:candidates.map(p=>p.key),nonPromotionSelections:nonCandidates.map(p=>({scheduleId:p.scheduleId,checkpointType:p.checkpointType}))})}>全选本期候选</button></header><div className="weekly-table-wrap"><table className="weekly-table"><thead><tr><th>纳入</th><th>帖子</th><th>类型／阶段</th><th>区间</th></tr></thead><tbody>{candidates.filter(p=>filtered(p.contentName)).map(p=><tr key={p.key}><td><input type="checkbox" aria-label={`纳入 ${p.contentName}`} checked={draft.promotionSelections?.includes(p.key)??false} onChange={e=>select(p.key,e.target.checked)}/></td><td>{p.contentName} V{p.versionNumber}</td><td>{p.label}</td><td>{p.startedOn}—{p.endedOn}</td></tr>)}{nonCandidates.filter(p=>filtered(p.contentName)).map(p=><tr key={p.key}><td><input type="checkbox" aria-label={`纳入 ${p.contentName}`} checked={selectedNon.includes(p.key)} onChange={e=>select(p.key,e.target.checked,true)}/></td><td>{p.contentName} V{p.versionNumber}</td><td>非推广 · {p.checkpointType==='day_7'?'首轮':'二轮'}</td><td>{p.recordedThrough}</td></tr>)}{!candidates.length&&!nonCandidates.length&&<tr><td colSpan={4}>本期暂无已录入候选，可继续填写结论及待处理的非推广节点。</td></tr>}</tbody></table></div>{material.promotions.some(p=>p.kind==='supplement')&&<details className="weekly-source"><summary>其他历史阶段</summary>{material.promotions.filter(p=>p.kind==='supplement').map(p=><label key={p.key}><input type="checkbox" checked={draft.promotionSelections?.includes(p.key)??false} onChange={e=>select(p.key,e.target.checked)}/>{p.contentName} · {p.label}</label>)}</details>}<div className="weekly-inline-actions"><span>已选 {(draft.promotionSelections?.length??0)+selectedNon.length} 项</span><button type="button" className="business-action-primary" onClick={()=>{changed({...live.current,candidatesConfirmed:true});setPicking(false)}}>确认纳入</button></div></section>}
+ {!picking&&<><section id="weekly-promotion"><header className="weekly-section-heading"><h2>推广帖阶段复盘</h2><button type="button" className="business-action-secondary" onClick={()=>setPicking(true)}>调整候选</button></header><PromotionCards rows={material.promotions.filter(p=>draft.promotionSelections?.includes(p.key))} inputs={draft.promotionInputs} query={query} onInput={(key,field,value)=>{const d=live.current;changed({...d,promotionInputs:{...d.promotionInputs,[key]:{...d.promotionInputs[key],clickRate:d.promotionInputs[key]?.clickRate??null,recordedThrough:material.periodEnd,currentSituation:d.promotionInputs[key]?.currentSituation??'',activeAction:d.promotionInputs[key]?.activeAction??'',confirmed:false,[field]:field==='clickRate'?(value===''?null:Number(value)):value}}})}} decisions={draft.promotionDecisions} onDecision={(id,value)=>changed({...live.current,promotionDecisions:{...live.current.promotionDecisions,[id]:value}})} effectiveOn={effectiveOn} onConfirm={key=>{const d=live.current;changed({...d,promotionInputs:{...d.promotionInputs,[key]:{...d.promotionInputs[key],confirmed:true}}});return save()}}/>{!draft.promotionSelections?.length&&<p className="weekly-empty">本次未纳入推广帖</p>}</section>
+ <section id="weekly-non"><header className="weekly-section-heading"><h2>非推广帖复盘</h2></header><NonPromotionCards rows={material.nonPromotions.filter(p=>selectedNon.includes(p.key))} context={material.nonPromotionContext} inputs={draft.nonPromotionInputs} onDraft={nonDraft} onSaved={nonSaved}/>{material.pending.length>0&&<div className="weekly-card-grid">{material.pending.map(p=><article className="weekly-stage-card" key={p.key}><header><div><strong>{p.contentName}</strong><small>{p.checkpointType==='day_7'?'首轮':'二轮'} · 待处理</small></div></header><NonPromotionEditor initial={draft.nonPromotionInputs?.[p.key]} onDraft={value=>nonDraft(p.key,value)} row={{scheduleId:p.scheduleId??p.key.split(':')[0],checkpointType:p.checkpointType,recordedThrough:p.recordedThrough??material.periodEnd}} onSaved={()=>nonSaved(p.key)}/></article>)}</div>}{!!material.excludedNonPromotions?.length&&<details className="weekly-source"><summary>本期不复盘（{material.excludedNonPromotions.length} 项）</summary>{material.excludedNonPromotions.map(n=><p key={n.key}>{n.contentName} · {n.checkpointType==='day_7'?'首轮':'二轮'} · {n.reason}</p>)}</details>}{!material.pending.length&&!selectedNon.length&&<p className="weekly-empty">本期无待处理非推广节点</p>}</section></>}
+ <section className="weekly-paper" id="weekly-conclusion"><header><h2>{draft.finalizationStage==='post'?'会后结论与行动':'初步结论与行动'}</h2></header><div className="weekly-writing-grid">{([['situation','衡量情况'],['strategy','本期具体动作'],['coreConclusion','核心结论'],['nextAction','下一步行动']] as const).map(([key,label])=><label key={key}>{label}<textarea rows={2} value={draft[key]??''} onChange={e=>text(key,e.target.value)}/></label>)}</div></section>
+ <section className="weekly-paper" id="weekly-other"><header><h2>事项跟进</h2></header><p className="weekly-empty">上期未完成事项：{draft.issues.filter(i=>i.id&&carriedIssueIds.includes(i.id)).length||'无'}</p><div className="weekly-table-wrap"><table className="weekly-table weekly-issues-table"><thead><tr><th>问题</th><th>解决方案</th><th>进度</th><th>是否已解决</th></tr></thead><tbody>{draft.issues.map((issue,i)=><tr key={issue.id??i}><td><input aria-label="问题" value={issue.problem} onChange={e=>changed({...live.current,issues:live.current.issues.map((x,j)=>j===i?{...x,problem:e.target.value}:x)})}/></td><td><textarea rows={2} aria-label="解决方案" value={issue.conclusion} onChange={e=>changed({...live.current,issues:live.current.issues.map((x,j)=>j===i?{...x,conclusion:e.target.value}:x)})}/></td><td><select aria-label="进度" value={issue.status==='resolved'?'validating':issue.status} onChange={e=>changed({...live.current,issues:live.current.issues.map((x,j)=>j===i?{...x,status:e.target.value as typeof x.status}:x)})}><option value="pending">待解决</option><option value="validating">进行中</option><option value="paused">暂缓</option></select></td><td><input type="checkbox" aria-label="是否已解决" checked={issue.status==='resolved'} onChange={e=>changed({...live.current,issues:live.current.issues.map((x,j)=>j===i?{...x,status:e.target.checked?'resolved':'validating'}:x)})}/></td></tr>)}</tbody></table></div><button type="button" className="business-action-secondary" onClick={()=>changed({...live.current,issues:[...live.current.issues,{problem:'',conclusion:'',status:'pending'}]})}>新增事项</button></section>
+ </fieldset><footer className="weekly-report-actions"><output role="status" aria-live="polite">{message}</output><button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save('save',true)}>保存草稿</button>{draft.finalizationStage!=='post'&&<button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save('finalize_pre')}>会前定稿 V{meeting.status==='completed'?meeting.currentVersionNumber+1:0}</button>}{meeting.status==='completed'&&<button type="button" className="business-action-primary" disabled={busy} onClick={()=>void save('finalize_post')}>会后定稿 V{meeting.currentVersionNumber+1}</button>}</footer></form>
 }

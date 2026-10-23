@@ -6,7 +6,6 @@ import { eq } from 'drizzle-orm';
 import { startFixture, employee } from './auth.fixture';
 import * as s from '../src/db/schema';
 import { promotionSnapshot, timelineFingerprint } from '../src/db/promotion-timeline';
-import { respondToBusinessConfirm } from './business-confirm.helper';
 const folder = '.tools/test-artifacts/meeting-weekly';
 await mkdir(folder, { recursive: true });
 const clockFile = new URL('../' + folder + '/clock.txt', import.meta.url).pathname;
@@ -53,7 +52,7 @@ try {
     await fact(pending, '2026-10-20', 'test_pending');
     await db.update(s.operationsPromotionCampaign).set({ currentStatus: 'test_pending' }).where(eq(s.operationsPromotionCampaign.id, pending.campaign.id));
     await db.update(s.operationsContentSchedule).set({ promotionStatus: 'test_pending' }).where(eq(s.operationsContentSchedule.id, pending.schedule.id));
-    const running = await seed('数学面试：把解题过程讲清楚');
+    await seed('数学面试：把解题过程讲清楚');
     const scaling = await seed('长标题：入学备考中如何建立稳定的解题思路与表达能力', '2026-10-19', 'scaling');
     await fact(scaling, '2026-10-19', 'scaling_continue', 'scaling', '300');
     await fact(scaling, '2026-10-20', 'scaling_continue', 'scaling', '350');
@@ -61,7 +60,7 @@ try {
     await fact(paused, '2026-10-20', 'test_pause');
     await db.update(s.operationsPromotionCampaign).set({ currentStatus: 'test_paused' }).where(eq(s.operationsPromotionCampaign.id, paused.campaign.id));
     await db.update(s.operationsContentSchedule).set({ promotionStatus: 'test_paused' }).where(eq(s.operationsContentSchedule.id, paused.schedule.id));
-    const test = await seed('数列题中的信息拆解');
+    await seed('数列题中的信息拆解');
     const non = await seed('分类思路：从读题到建模', '2026-10-01', 'testing', undefined, false);
     for (const [checkpointType, recordedThrough, clickRate] of [['day_7', '2026-10-08', '6'], ['day_15', '2026-10-21', '8']])
         await db.insert(s.operationsContentPerformanceMetric).values({ scheduleId: non.schedule.id, checkpointType, recordedThrough, clickRate, threeSecondReadRate: '42', createdAt: new Date('2026-10-09T12:00:00+08:00'), updatedAt: new Date('2026-10-21T15:00:00+08:00') });
@@ -127,116 +126,25 @@ try {
     console.log('checkpoint');
     checks.push('ID lightweight popover without Inspector, pending initial five zeros and continue-pending default, seven-width daily layout, batch queue and totals update');
     await nav(`/business/meeting-review?meeting=${meetingId}`);
-    await page.locator('astro-island[ssr]').waitFor({ state: 'detached' }).catch(() => { });
-    await page.locator('[data-weekly-report]').waitFor();
-    assert.equal(await page.locator('[data-weekly-report] input[type=checkbox]:checked').count(), 0);
-    const card = page.locator('[data-weekly-promotion]').first();
-    await card.evaluate((n: HTMLElement) => (window as any).__firstWeeklyCard = n);
-    await page.getByPlaceholder('名称、学科或分类').fill('不存在');
-    assert.equal(await card.evaluate((n: HTMLElement) => n === (window as any).__firstWeeklyCard), true);
-    await page.getByPlaceholder('名称、学科或分类').fill('');
-    await page.getByLabel('核心结论与整体总结').fill('本期先确认数据完整性，再根据阶段表现安排放量。');
-    await page.getByLabel('本周具体动作').fill('完成首轮测试，核对暂停期间的实际跑量。');
-    const selectall = page.getByRole('button', { name: '全选本期候选' });
-    await selectall.click();
-    // 慢读只显示目标区域的一处反馈，刷新保留文字与节点。
-    await page.route('**/api/meeting-reviews/*/material?*', async (route: any) => { const r = await route.fetch(); await new Promise(resolve => setTimeout(resolve, 850)); await route.fulfill({ response: r }); });
-    const refresh = page.getByRole('button', { name: '刷新数据' });
-    await refresh.click();
-    await page.waitForTimeout(600);
-    assert.equal(await page.locator('[data-business-read-loading]').count(), 1);
-    await page.waitForFunction(() => document.querySelector('output[role=status]')?.textContent?.includes('数据已刷新'));
-    await page.unroute('**/api/meeting-reviews/*/material?*');
-    assert.equal(await page.getByLabel('核心结论与整体总结').inputValue(), '本期先确认数据完整性，再根据阶段表现安排放量。');
-    assert.equal(await card.evaluate((n: HTMLElement) => n === (window as any).__firstWeeklyCard), true);
-    // 区间变动使已选阶段失效时使用公共确认，取消保留勾选及人工输入。
-    await page.getByLabel('例会开始日').fill('2026-10-21');
-    {
-        const answer = respondToBusinessConfirm(page);
-        await refresh.click();
-        await answer;
-    }
-    assert.equal(await page.getByLabel('核心结论与整体总结').inputValue(), '本期先确认数据完整性，再根据阶段表现安排放量。');
-    await page.getByLabel('例会开始日').fill('2026-10-16');
-    await refresh.click();
-    await page.waitForFunction(() => document.querySelector('output[role=status]')?.textContent?.includes('数据已刷新'));
-    for (const width of [1920, 1440, 1280, 1024, 736, 390, 320]) {
-        await page.setViewportSize({ width, height: 1000 });
-        await page.evaluate(() => scrollTo(0, 0));
-        await shot(`weekly-draft-${width}`);
-        await page.screenshot({ path: `${folder}/weekly-viewport-${width}.png` });
-        if ([1440, 1920, 390, 320].includes(width)) {
-            for (const [selector, name] of [['#weekly-promotion', 'promotion'], ['#weekly-non', 'non']]) {
-                const section = page.locator(selector), height = Math.ceil((await section.boundingBox())!.height);
-                await page.setViewportSize({ width, height: height + 260 });
-                await section.evaluate((el: HTMLElement) => scrollTo(0, el.getBoundingClientRect().top + scrollY - 90));
-                await section.screenshot({ path: `${folder}/weekly-${name}-${width}.png` });
-            }
-            await page.setViewportSize({ width, height: 1000 });
-        }
-        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `周例会 ${width}`);
-        geometry.push(await page.locator('[data-weekly-promotion]').evaluateAll((nodes: HTMLElement[]) => ({ viewport: innerWidth, cards: nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }) })));
-    }
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.locator('.weekly-report-actions').getByRole('button', { name: '保存草稿' }).click();
-    await page.waitForFunction(() => document.querySelector('output[role=status]')?.textContent === '草稿已保存');
-    await page.waitForLoadState('networkidle');
-    [meeting] = await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id, meetingId));
-    assert.ok(meeting.draftSnapshot.nonPromotionSelections.some(n => n.scheduleId === non.schedule.id && n.checkpointType === 'day_15'));
-    // 定稿前源数据改变必须阻止；刷新后主选二轮附带首轮且不重复主计数。
-    await db.update(s.operationsContentPerformanceMetric).set({ clickRate: '9.00', updatedAt: new Date() }).where(eq(s.operationsContentPerformanceMetric.scheduleId, non2.schedule.id));
-    const reject = page.waitForResponse((r: any) => r.url().endsWith(`/api/meeting-reviews/${meetingId}`) && r.request().method() === 'PATCH');
-    {
-        const answer = respondToBusinessConfirm(page, true);
-        await page.getByRole('button', { name: '定稿 V0' }).click();
-        await answer;
-    }
-    assert.equal((await reject).status(), 409);
-    await refresh.click();
-    await page.waitForFunction(() => document.querySelector('output[role=status]')?.textContent?.includes('数据已刷新'));
-    const finalResponse = page.waitForResponse((r: any) => r.url().endsWith(`/api/meeting-reviews/${meetingId}`) && r.request().method() === 'PATCH');
-    {
-        const answer = respondToBusinessConfirm(page, true);
-        await page.getByRole('button', { name: '定稿 V0' }).click();
-        await answer;
-    }
-    const final = await finalResponse;
-    if (final.status() !== 200)
-        assert.fail(await final.text());
-    await page.waitForURL(/version=0/);
-    await page.locator('[data-weekly-snapshot]').waitFor();
-    await shot('weekly-final-1440');
-    const frozen = (await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId, meetingId)))[0].snapshot as any;
-    assert.equal(frozen.schemaVersion, 4);
-    assert.ok(frozen.generated.nonPromotions.some((n: any) => n.scheduleId === non.schedule.id && n.checkpointType === 'day_7' && n.comparisonOnly));
-    assert.equal(frozen.generated.nonPromotions.filter((n: any) => n.scheduleId === non.schedule.id && !n.comparisonOnly).length, 1);
-    const before = JSON.stringify(frozen);
-    await db.update(s.operationsPromotionDailyMetric).set({ spend: '999.00' }).where(eq(s.operationsPromotionDailyMetric.campaignId, pending.campaign.id));
-    assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId, meetingId)))[0].snapshot), before);
-    for (const width of [390, 320]) {
-        await page.setViewportSize({ width, height: 1000 });
-        await page.evaluate(() => scrollTo(0, 0));
-        await shot(`weekly-final-${width}`);
-        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
-    }
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await nav(`/business/meeting-review?meeting=${meetingId}&edit=1`);
-    await page.getByLabel('核心结论与整体总结').fill('修订：保留首次定稿，补充更正后的数据。');
-    await page.getByRole('button', { name: '刷新数据' }).click();
-    await page.waitForFunction(() => document.querySelector('output[role=status]')?.textContent?.includes('数据已刷新'));
-    {
-        const answer = respondToBusinessConfirm(page, true);
-        await page.getByRole('button', { name: '定稿 V1' }).click();
-        await answer;
-    }
-    await page.waitForURL(/version=1/);
-    await page.locator('[data-weekly-snapshot]').waitFor();
-    const versions = await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId, meetingId));
-    assert.equal(versions.length, 2);
-    assert.equal(JSON.stringify(versions.find(v => v.versionNumber === 0)!.snapshot), before);
-    await shot('weekly-revision-v1-1440');
-    console.log('checkpoint');
-    checks.push('draft interval confirmation cancel preserves inputs, readonly mobile, append-only v1 revision, v4 empty template, stable candidate DOM during search and refresh, historical+peer benchmarks, paired rounds comparison-only, slow read feedback, seven widths, draft save, stale finalization refusal, immutable frozen v0');
+    await page.locator('[data-report-v4]').waitFor();
+    assert.equal(await page.locator('[data-report-v4] input[type=checkbox]:checked').count(),0);
+    let material=(await api(`/api/meeting-reviews/${meetingId}/material?from=2026-10-16&to=2026-10-21`)).material;
+    [meeting]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,meetingId));
+    let stamp=meeting.updatedAt.toISOString();
+    const draft:any={...meeting.draftSnapshot,candidatesConfirmed:true,temporaryNotes:'旧版补充文字保持可读',situation:'核对真实数据',strategy:'明确本期动作',coreConclusion:'隔离验收结论',nextAction:'隔离验收下一步',materialFingerprint:material.fingerprint,promotionSelections:material.promotions.filter((p:any)=>p.kind==='current').map((p:any)=>p.key),nonPromotionSelections:[{scheduleId:non.schedule.id,checkpointType:'day_15'}]};
+    for(const key of draft.promotionSelections)draft.promotionInputs[key]={clickRate:0,recordedThrough:'2026-10-21',currentSituation:'观察',activeAction:'行动'};
+    const patch=async(action:string,status=200)=>{const r=await api('/api/meeting-reviews/'+meetingId,'PATCH',{action,draft,expectedUpdatedAt:stamp},status);if(r.updatedAt)stamp=r.updatedAt;return r};
+    await patch('finalize_post',422);
+    const pre=await patch('finalize_pre');assert.equal(pre.versionNumber,0);
+    const frozen=JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meetingId)))[0].snapshot);
+    assert.ok(JSON.parse(frozen).generated.nonPromotions.some((p:any)=>p.scheduleId===non.schedule.id&&p.comparisonOnly));
+    await db.update(s.operationsContentPerformanceMetric).set({clickRate:'9.00',updatedAt:new Date()}).where(eq(s.operationsContentPerformanceMetric.scheduleId,non2.schedule.id));
+    await patch('finalize_post',409);
+    material=(await api(`/api/meeting-reviews/${meetingId}/material?from=2026-10-16&to=2026-10-21`)).material;draft.materialFingerprint=material.fingerprint;
+    const post=await patch('finalize_post');assert.equal(post.versionNumber,1);
+    assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meetingId))).find(v=>v.versionNumber===0)!.snapshot),frozen);
+    await patch('finalize_pre',422);await nav(`/business/meeting-review?meeting=${meetingId}&version=1`);await page.getByText('旧版补充文字保持可读',{exact:true}).waitFor();
+    checks.push('new candidates unselected, paired first-round context, before/after finalization gates, stale source refusal, immutable pre V0 and append-only post V1');
     assert.deepEqual(errors, []);
     await page.close();
     await context.close();

@@ -1,4 +1,5 @@
-import {normalizePromotionActualStatus,promotionNextOptions} from '../../../db/promotion-successors.mjs';
+import {promotionNextOptions} from '../../../db/promotion-successors.mjs';
+import {meetingDecisionOn,meetingNextDecision} from '../../../db/meeting-decision-rules.mjs';
 import {WorkflowError} from '../../../db/schedule-workflow';
 import type { APIRoute } from 'astro';
 import {randomUUID} from 'node:crypto';
@@ -79,12 +80,15 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
       const context = await readPromotionContext(transaction);
+      const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(existing.metricDate));
+      if(meetingDecision&&parsed.data.reviewDecision!==meetingNextDecision(existing.actualStatusSnapshot,meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
       const candidate=allMetrics.map(m=>m.id===existing.id?{...m,dailyStatus:parsed.data.dailyStatus,stageTypeSnapshot:parsed.data.stageTypeSnapshot,reviewDecision:parsed.data.reviewDecision}:m);
       let replayed=lifecycleChanged?replayPromotionHistory(campaign.startedOn,candidate,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(new Date())}):null;
       let later:typeof allMetrics=[];
       let affectedRanges:typeof context.waitRanges=[];
       let affectedDecisions:typeof context.stateChanges=[];
       if(lifecycleChanged&&!replayed){
+        if(context.meetingDecisions.some(d=>d.campaignId===campaign.id))throw new WorkflowError('更正涉及已定稿例会安排，请先核对并更正例会决定，保留现有指标。');
         affectedRanges=context.waitRanges.filter(r=>r.campaignId===campaign.id&&(!r.nextEffectiveOn||r.nextEffectiveOn>existing.metricDate));
         affectedDecisions=context.stateChanges.filter(r=>r.campaignId===campaign.id&&r.businessDate>existing.metricDate);
         context.waitRanges=context.waitRanges.filter(r=>!affectedRanges.some(a=>a.id===r.id));

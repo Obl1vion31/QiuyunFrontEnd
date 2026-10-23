@@ -10,6 +10,7 @@ import { businessDate } from './promotion-wait-ranges';
 import { nextDateKey, previousDateKey, shanghaiDateKey, replayPromotionHistory } from './promotion-rules.mjs';
 import { campaignPauseWindows, campaignWaitWindows, dateInWindows, fullPauseRange, firstMissingPromotionDate, promotionReplayOptions, promotionStateOn, promotionDayStatusEdit } from './promotion-state.mjs';
 import * as s from './schema';
+import {readMeetingDecisions} from './meeting-decisions';
 
 export const timelineSchema = z.object({
   scheduleId: z.uuid(), reviewDate: businessDate,
@@ -37,7 +38,8 @@ export async function promotionSnapshot(db: Reader, scheduleId: string) {
     ids.length?db.select().from(s.operationsPromotionDayDecision).where(inArray(s.operationsPromotionDayDecision.campaignId,ids)).orderBy(asc(s.operationsPromotionDayDecision.businessDate)):[],
     ids.length?db.select().from(s.operationsPromotionHold).where(inArray(s.operationsPromotionHold.campaignId,ids)).orderBy(asc(s.operationsPromotionHold.startedOn)):[],
   ]);
-  return {schedule,plan:plans[0]??null,campaigns,metrics,ranges,stages,decisions,holds};
+  const planned=(await readMeetingDecisions(db)).filter(d=>ids.includes(d.campaignId)).map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,reason:'例会决定',meetingDecision:true}));
+  return {schedule,plan:plans[0]??null,campaigns,metrics,ranges,stages,decisions:[...planned,...decisions],holds};
 }
 export const timelineFingerprint = (value: unknown) => createHash('sha256').update(JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)&&!(item instanceof Date)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item)).digest('hex');
 
@@ -193,6 +195,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       }
       const state=replayPromotionHistory(fresh.startedOn,kept,{...options,asOf:today});
       if(!state)throw new WorkflowError('修改与后续安排冲突，请先核对待定区间。');
+      if(removed.length&&context.meetingDecisions.some(d=>d.campaignId===fresh.id))throw new WorkflowError("修改与已定稿的例会安排冲突，请先核对例会及后续事实。",422);
       if(removed.length){requireAdmin(actor);if(!input.confirmImpact)throw new ImpactPreview({confirmationRequired:true,impact:{dailyMetrics:removed.length,dates:before.metrics.filter(m=>removed.includes(m.id)).map(m=>m.metricDate),message:'这些指标与更正后的状态冲突，将归档并重新开放补录。'}});
         await tx.delete(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.id,removed));}
       await tx.delete(s.operationsPromotionStage).where(eq(s.operationsPromotionStage.campaignId,fresh.id));
