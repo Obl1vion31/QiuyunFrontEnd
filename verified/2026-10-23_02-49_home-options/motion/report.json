@@ -1,0 +1,55 @@
+[
+  {
+    "variant": "a",
+    "video": "a-scroll.mp4",
+    "speed": 240,
+    "frames": 805,
+    "p95FrameMs": 16.799999999999272,
+    "longestFrameMs": 33.299999999999955,
+    "stages": [
+      "策划",
+      "内容",
+      "视觉",
+      "发布",
+      "触点",
+      "复盘"
+    ]
+  },
+  {
+    "variant": "b",
+    "video": "b-scroll.mp4",
+    "speed": 240,
+    "frames": 757,
+    "p95FrameMs": 16.799999999999272,
+    "longestFrameMs": 16.80000000000109,
+    "stages": [
+      "策划",
+      "内容",
+      "视觉",
+      "发布",
+      "触点",
+      "复盘"
+    ]
+  },
+  {
+    "variant": "c",
+    "video": "c-scroll.mp4",
+    "speed": 240,
+    "frames": 472,
+    "p95FrameMs": 16.700000000000728,
+    "longestFrameMs": 16.800000000000182,
+    "stages": [
+      "策划",
+      "内容",
+      "视觉",
+      "发布",
+      "触点",
+      "复盘"
+    ]
+  },
+  {
+    "variant": "reduced",
+    "video": "reduced-scroll.mp4",
+    "speed": 240
+  }
+]

@@ -1,0 +1,146 @@
+[
+  {
+    "t": 210.5,
+    "delta": 0,
+    "y": 0,
+    "progress": "0.000",
+    "stage": "策划",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  },
+  {
+    "t": 1543.7,
+    "delta": 16.700000000000045,
+    "y": 76,
+    "progress": "0.169",
+    "stage": "内容",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  },
+  {
+    "t": 1860.4,
+    "delta": 16.700000000000045,
+    "y": 152,
+    "progress": "0.338",
+    "stage": "视觉",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  },
+  {
+    "t": 2177.1,
+    "delta": 16.699999999999818,
+    "y": 228,
+    "progress": "0.507",
+    "stage": "发布",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  },
+  {
+    "t": 2477.1,
+    "delta": 16.699999999999818,
+    "y": 300,
+    "progress": "0.667",
+    "stage": "触点",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  },
+  {
+    "t": 2793.7,
+    "delta": 16.59999999999991,
+    "y": 376,
+    "progress": "0.836",
+    "stage": "复盘",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  },
+  {
+    "t": 3110.3,
+    "delta": 16.600000000000364,
+    "y": 452,
+    "progress": "1.000",
+    "stage": "复盘",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 800.5
+  },
+  {
+    "t": 12810,
+    "delta": 16.700000000000728,
+    "y": 0,
+    "progress": "0.000",
+    "stage": "策划",
+    "transforms": [
+      "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+      "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)"
+    ],
+    "railTop": 802.5
+  }
+]

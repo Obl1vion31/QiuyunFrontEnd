@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "desktopOnly": true,
+  "cases": [
+    {
+      "variant": "a",
+      "content": "全部文案、六阶段顺序、8张封面和3入口一致",
+      "keyboard": "跳到工作流可用",
+      "motion": "主运动职责与回退通过",
+      "writes": 0
+    },
+    {
+      "variant": "b",
+      "content": "全部文案、六阶段顺序、8张封面和3入口一致",
+      "keyboard": "跳到工作流可用",
+      "motion": "主运动职责与回退通过",
+      "writes": 0
+    },
+    {
+      "variant": "c",
+      "content": "全部文案、六阶段顺序、8张封面和3入口一致",
+      "keyboard": "跳到工作流可用",
+      "motion": "主运动职责与回退通过",
+      "writes": 0
+    }
+  ],
+  "galleryLinks": 13,
+  "offline": {
+    "motion": "true",
+    "images": true,
+    "font": true
+  }
+}

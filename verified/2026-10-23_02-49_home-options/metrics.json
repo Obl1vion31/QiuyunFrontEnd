@@ -1,0 +1,1129 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "baseline": {
+        "totalHeight": 4506,
+        "lowerHeight": 2010.34375,
+        "heroHeight": 2430,
+        "workflow": {
+          "x": 0,
+          "y": 2430,
+          "width": 1440,
+          "height": 996.921875,
+          "bottom": 3426.921875
+        },
+        "systems": {
+          "x": 130,
+          "y": 3426.921875,
+          "width": 1180,
+          "height": 1013.421875,
+          "bottom": 4440.34375
+        },
+        "firstAction": 3899.015625,
+        "overflow": 0,
+        "font": "\"Noto Sans CJK SC\", \"Source Han Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "coverCount": 8
+      },
+      "variants": {
+        "a": {
+          "totalHeight": 2608,
+          "lowerHeight": 923.953125,
+          "heroHeight": 1620,
+          "workflow": {
+            "x": 0,
+            "y": 1620,
+            "width": 1440,
+            "height": 481.953125,
+            "bottom": 2101.953125
+          },
+          "systems": {
+            "x": 0,
+            "y": 2101.953125,
+            "width": 1440,
+            "height": 442,
+            "bottom": 2543.953125
+          },
+          "firstAction": 2200.453125,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 479.921875,
+          "railTop": 806.5,
+          "covers": [
+            {
+              "transform": "translate3d(2.7px, 473px, 0px) rotate(-13deg) scale(0.71)",
+              "rect": {
+                "x": 139.72950744628906,
+                "y": 491.5372314453125,
+                "width": 133.5347137451172,
+                "height": 159.706787109375,
+                "bottom": 651.2440185546875
+              }
+            },
+            {
+              "transform": "translate3d(150.2px, 549.5px, 0px) rotate(-8deg) scale(0.93)",
+              "rect": {
+                "x": 273.29888916015625,
+                "y": 547.7262573242188,
+                "width": 161.39596557617188,
+                "height": 200.3287353515625,
+                "bottom": 748.0549926757812
+              }
+            },
+            {
+              "transform": "translate3d(297.7px, 477.5px, 0px) rotate(5deg) scale(0.79)",
+              "rect": {
+                "x": 436.64471435546875,
+                "y": 493.3766784667969,
+                "width": 129.704345703125,
+                "height": 165.02792358398438,
+                "bottom": 658.4046020507812
+              }
+            },
+            {
+              "transform": "translate3d(445.2px, 563px, 0px) rotate(-4deg) scale(1.03)",
+              "rect": {
+                "x": 566.1019897460938,
+                "y": 554.992919921875,
+                "width": 165.789794921875,
+                "height": 212.79541015625,
+                "bottom": 767.788330078125
+              }
+            },
+            {
+              "transform": "translate3d(592.7px, 477.5px, 0px) rotate(7deg) scale(0.82)",
+              "rect": {
+                "x": 726.60205078125,
+                "y": 488.43695068359375,
+                "width": 139.7896728515625,
+                "height": 174.9073486328125,
+                "bottom": 663.3442993164062
+              }
+            },
+            {
+              "transform": "translate3d(740.2px, 563px, 0px) rotate(-6deg) scale(0.96)",
+              "rect": {
+                "x": 863.666748046875,
+                "y": 560.0477294921875,
+                "width": 160.6602783203125,
+                "height": 202.685791015625,
+                "bottom": 762.7335205078125
+              }
+            },
+            {
+              "transform": "translate3d(887.7px, 486.5px, 0px) rotate(11deg) scale(0.74)",
+              "rect": {
+                "x": 1023.9979248046875,
+                "y": 502.9992370605469,
+                "width": 134.9979248046875,
+                "height": 163.78274536132812,
+                "bottom": 666.781982421875
+              }
+            },
+            {
+              "transform": "translate3d(1035.2px, 540.5px, 0px) rotate(6deg) scale(0.87)",
+              "rect": {
+                "x": 1166.1976318359375,
+                "y": 547.0486450195312,
+                "width": 145.598388671875,
+                "height": 183.6839599609375,
+                "bottom": 730.7326049804688
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 900,
+            "totalHeight": 1888
+          },
+          "keyboardFirst": "entry-action"
+        },
+        "b": {
+          "totalHeight": 2473,
+          "lowerHeight": 1059.125,
+          "heroHeight": 1350,
+          "workflow": {
+            "x": 0,
+            "y": 1350,
+            "width": 1440,
+            "height": 517.0625,
+            "bottom": 1867.0625
+          },
+          "systems": {
+            "x": 0,
+            "y": 1867.0625,
+            "width": 1440,
+            "height": 542.0625,
+            "bottom": 2409.125
+          },
+          "firstAction": 2082.65625,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 479.921875,
+          "railTop": 802.5,
+          "covers": [
+            {
+              "transform": "translate3d(2.7px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 150.4112548828125,
+                "y": 541.61376953125,
+                "width": 112.17123413085938,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(149.37px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 297.08123779296875,
+                "y": 541.61376953125,
+                "width": 112.1712646484375,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(296.05px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 443.76123046875,
+                "y": 541.61376953125,
+                "width": 112.1712646484375,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(442.72px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 590.4312133789062,
+                "y": 541.61376953125,
+                "width": 112.1712646484375,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(589.4px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 737.1112670898438,
+                "y": 541.61376953125,
+                "width": 112.1712646484375,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(736.07px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 883.78125,
+                "y": 541.61376953125,
+                "width": 112.1712646484375,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(882.74px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 1030.451171875,
+                "y": 541.61376953125,
+                "width": 112.17138671875,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            },
+            {
+              "transform": "translate3d(1029.42px, 518px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 1177.13134765625,
+                "y": 541.61376953125,
+                "width": 112.1712646484375,
+                "height": 149.5537109375,
+                "bottom": 691.16748046875
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 900,
+            "totalHeight": 2023
+          },
+          "keyboardFirst": "entry-action"
+        },
+        "c": {
+          "totalHeight": 1652,
+          "lowerHeight": 559.203125,
+          "heroHeight": 900,
+          "workflow": {
+            "x": 130,
+            "y": 965,
+            "width": 589.578125,
+            "height": 559.203125,
+            "bottom": 1524.203125
+          },
+          "systems": {
+            "x": 783.578125,
+            "y": 965,
+            "width": 526.421875,
+            "height": 559.203125,
+            "bottom": 1524.203125
+          },
+          "firstAction": 1163.921875,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 614.6875,
+          "railTop": 806.5,
+          "covers": [
+            {
+              "transform": "translate3d(655.7px, 239.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 800.4000244140625,
+                "y": 259.0989074707031,
+                "width": 110.5999755859375,
+                "height": 147.45843505859375,
+                "bottom": 406.5573425292969
+              }
+            },
+            {
+              "transform": "translate3d(779.6px, 239.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 924.2999877929688,
+                "y": 259.0989074707031,
+                "width": 110.60003662109375,
+                "height": 147.45843505859375,
+                "bottom": 406.5573425292969
+              }
+            },
+            {
+              "transform": "translate3d(903.5px, 239.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 1048.199951171875,
+                "y": 259.0989074707031,
+                "width": 110.60009765625,
+                "height": 147.45843505859375,
+                "bottom": 406.5573425292969
+              }
+            },
+            {
+              "transform": "translate3d(1027.4px, 239.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 1172.0999755859375,
+                "y": 259.0989074707031,
+                "width": 110.5999755859375,
+                "height": 147.45843505859375,
+                "bottom": 406.5573425292969
+              }
+            },
+            {
+              "transform": "translate3d(655.7px, 487px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 800.4000244140625,
+                "y": 506.5989074707031,
+                "width": 110.5999755859375,
+                "height": 147.45846557617188,
+                "bottom": 654.057373046875
+              }
+            },
+            {
+              "transform": "translate3d(779.6px, 487px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 924.2999877929688,
+                "y": 506.5989074707031,
+                "width": 110.60003662109375,
+                "height": 147.45846557617188,
+                "bottom": 654.057373046875
+              }
+            },
+            {
+              "transform": "translate3d(903.5px, 487px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 1048.199951171875,
+                "y": 506.5989074707031,
+                "width": 110.60009765625,
+                "height": 147.45846557617188,
+                "bottom": 654.057373046875
+              }
+            },
+            {
+              "transform": "translate3d(1027.4px, 487px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 1172.0999755859375,
+                "y": 506.5989074707031,
+                "width": 110.5999755859375,
+                "height": 147.45846557617188,
+                "bottom": 654.057373046875
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 900,
+            "totalHeight": 1652
+          },
+          "keyboardFirst": "entry-action"
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "baseline": {
+        "totalHeight": 4152,
+        "lowerHeight": 1926.984375,
+        "heroHeight": 2160,
+        "workflow": {
+          "x": 0,
+          "y": 2160,
+          "width": 1280,
+          "height": 960.875,
+          "bottom": 3120.875
+        },
+        "systems": {
+          "x": 50,
+          "y": 3120.875,
+          "width": 1180,
+          "height": 966.109375,
+          "bottom": 4086.984375
+        },
+        "firstAction": 3568.25,
+        "overflow": 0,
+        "font": "\"Noto Sans CJK SC\", \"Source Han Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "coverCount": 8
+      },
+      "variants": {
+        "a": {
+          "totalHeight": 2428,
+          "lowerHeight": 923.953125,
+          "heroHeight": 1440,
+          "workflow": {
+            "x": 0,
+            "y": 1440,
+            "width": 1280,
+            "height": 481.953125,
+            "bottom": 1921.953125
+          },
+          "systems": {
+            "x": 0,
+            "y": 1921.953125,
+            "width": 1280,
+            "height": 442,
+            "bottom": 2363.953125
+          },
+          "firstAction": 2020.453125,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 397.109375,
+          "railTop": 713.5,
+          "covers": [
+            {
+              "transform": "translate3d(11.2px, 420.5px, 0px) rotate(-13deg) scale(0.71)",
+              "rect": {
+                "x": 67.44821166992188,
+                "y": 436.97650146484375,
+                "width": 118.69107055664062,
+                "height": 141.9532470703125,
+                "bottom": 578.9297485351562
+              }
+            },
+            {
+              "transform": "translate3d(158.7px, 488.5px, 0px) rotate(-8deg) scale(0.93)",
+              "rect": {
+                "x": 202.5660858154297,
+                "y": 486.9233703613281,
+                "width": 143.45533752441406,
+                "height": 178.05953979492188,
+                "bottom": 664.98291015625
+              }
+            },
+            {
+              "transform": "translate3d(306.2px, 424.5px, 0px) rotate(5deg) scale(0.79)",
+              "rect": {
+                "x": 364.1504821777344,
+                "y": 438.6117248535156,
+                "width": 115.28656005859375,
+                "height": 146.68276977539062,
+                "bottom": 585.2944946289062
+              }
+            },
+            {
+              "transform": "translate3d(453.7px, 500.5px, 0px) rotate(-4deg) scale(1.03)",
+              "rect": {
+                "x": 495.61334228515625,
+                "y": 493.3829650878906,
+                "width": 147.36083984375,
+                "height": 189.14028930664062,
+                "bottom": 682.5232543945312
+              }
+            },
+            {
+              "transform": "translate3d(601.2px, 424.5px, 0px) rotate(7deg) scale(0.82)",
+              "rect": {
+                "x": 654.6683959960938,
+                "y": 434.22113037109375,
+                "width": 124.250732421875,
+                "height": 155.4639892578125,
+                "bottom": 589.6851196289062
+              }
+            },
+            {
+              "transform": "translate3d(748.7px, 500.5px, 0px) rotate(-6deg) scale(0.96)",
+              "rect": {
+                "x": 792.8930053710938,
+                "y": 497.8758850097656,
+                "width": 142.801513671875,
+                "height": 180.15451049804688,
+                "bottom": 678.0303955078125
+              }
+            },
+            {
+              "transform": "translate3d(896.2px, 432.5px, 0px) rotate(11deg) scale(0.74)",
+              "rect": {
+                "x": 951.7979125976562,
+                "y": 447.1650695800781,
+                "width": 119.99163818359375,
+                "height": 145.57614135742188,
+                "bottom": 592.7412109375
+              }
+            },
+            {
+              "transform": "translate3d(1043.7px, 480.5px, 0px) rotate(6deg) scale(0.87)",
+              "rect": {
+                "x": 1094.5867919921875,
+                "y": 486.32061767578125,
+                "width": 129.413818359375,
+                "height": 163.2650146484375,
+                "bottom": 649.5856323242188
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 800,
+            "totalHeight": 1788
+          },
+          "keyboardFirst": "entry-action"
+        },
+        "b": {
+          "totalHeight": 2323,
+          "lowerHeight": 1059.125,
+          "heroHeight": 1200,
+          "workflow": {
+            "x": 0,
+            "y": 1200,
+            "width": 1280,
+            "height": 517.0625,
+            "bottom": 1717.0625
+          },
+          "systems": {
+            "x": 0,
+            "y": 1717.0625,
+            "width": 1280,
+            "height": 542.0625,
+            "bottom": 2259.125
+          },
+          "firstAction": 1932.65625,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 397.109375,
+          "railTop": 702.5,
+          "covers": [
+            {
+              "transform": "translate3d(11.2px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 76.94249725341797,
+                "y": 481.48876953125,
+                "width": 99.7024917602539,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(157.87px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 223.61248779296875,
+                "y": 481.48876953125,
+                "width": 99.7025146484375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(304.55px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 370.29248046875,
+                "y": 481.48876953125,
+                "width": 99.7025146484375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(451.22px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 516.9624633789062,
+                "y": 481.48876953125,
+                "width": 99.7025146484375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(597.9px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 663.6425170898438,
+                "y": 481.48876953125,
+                "width": 99.7025146484375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(744.57px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 810.3125,
+                "y": 481.48876953125,
+                "width": 99.7025146484375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(891.24px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 956.9824829101562,
+                "y": 481.48876953125,
+                "width": 99.70257568359375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            },
+            {
+              "transform": "translate3d(1037.92px, 460.5px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 1103.66259765625,
+                "y": 481.48876953125,
+                "width": 99.7025146484375,
+                "height": 132.9287109375,
+                "bottom": 614.41748046875
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 800,
+            "totalHeight": 1923
+          },
+          "keyboardFirst": "entry-action"
+        },
+        "c": {
+          "totalHeight": 1552,
+          "lowerHeight": 559.203125,
+          "heroHeight": 800,
+          "workflow": {
+            "x": 50,
+            "y": 865,
+            "width": 589.578125,
+            "height": 559.203125,
+            "bottom": 1424.203125
+          },
+          "systems": {
+            "x": 703.578125,
+            "y": 865,
+            "width": 526.421875,
+            "height": 559.203125,
+            "bottom": 1424.203125
+          },
+          "firstAction": 1063.921875,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 509.703125,
+          "railTop": 715.5,
+          "covers": [
+            {
+              "transform": "translate3d(663.2px, 212.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 726.3709716796875,
+                "y": 230.06124877929688,
+                "width": 99.09564208984375,
+                "height": 132.12750244140625,
+                "bottom": 362.1887512207031
+              }
+            },
+            {
+              "transform": "translate3d(787.1px, 212.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 850.2709350585938,
+                "y": 230.06124877929688,
+                "width": 99.09564208984375,
+                "height": 132.12750244140625,
+                "bottom": 362.1887512207031
+              }
+            },
+            {
+              "transform": "translate3d(911px, 212.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 974.1709594726562,
+                "y": 230.06124877929688,
+                "width": 99.09564208984375,
+                "height": 132.12750244140625,
+                "bottom": 362.1887512207031
+              }
+            },
+            {
+              "transform": "translate3d(1034.9px, 212.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 1098.0709228515625,
+                "y": 230.06124877929688,
+                "width": 99.0955810546875,
+                "height": 132.12750244140625,
+                "bottom": 362.1887512207031
+              }
+            },
+            {
+              "transform": "translate3d(663.2px, 432.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 726.3709716796875,
+                "y": 450.0612487792969,
+                "width": 99.09564208984375,
+                "height": 132.12747192382812,
+                "bottom": 582.188720703125
+              }
+            },
+            {
+              "transform": "translate3d(787.1px, 432.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 850.2709350585938,
+                "y": 450.0612487792969,
+                "width": 99.09564208984375,
+                "height": 132.12747192382812,
+                "bottom": 582.188720703125
+              }
+            },
+            {
+              "transform": "translate3d(911px, 432.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 974.1709594726562,
+                "y": 450.0612487792969,
+                "width": 99.09564208984375,
+                "height": 132.12747192382812,
+                "bottom": 582.188720703125
+              }
+            },
+            {
+              "transform": "translate3d(1034.9px, 432.5px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 1098.0709228515625,
+                "y": 450.0612487792969,
+                "width": 99.0955810546875,
+                "height": 132.12747192382812,
+                "bottom": 582.188720703125
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 800,
+            "totalHeight": 1552
+          },
+          "keyboardFirst": "entry-action"
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "baseline": {
+        "totalHeight": 3871,
+        "lowerHeight": 1731.828125,
+        "heroHeight": 2073.59375,
+        "workflow": {
+          "x": 0,
+          "y": 2073.59375,
+          "width": 1024,
+          "height": 878.046875,
+          "bottom": 2951.640625
+        },
+        "systems": {
+          "x": 24,
+          "y": 2951.640625,
+          "width": 976,
+          "height": 853.78125,
+          "bottom": 3805.421875
+        },
+        "firstAction": 3342.46875,
+        "overflow": 0,
+        "font": "\"Noto Sans CJK SC\", \"Source Han Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+        "coverCount": 8
+      },
+      "variants": {
+        "a": {
+          "totalHeight": 2360,
+          "lowerHeight": 913.578125,
+          "heroHeight": 1382.390625,
+          "workflow": {
+            "x": 0,
+            "y": 1382.390625,
+            "width": 1024,
+            "height": 471.578125,
+            "bottom": 1853.96875
+          },
+          "systems": {
+            "x": 0,
+            "y": 1853.96875,
+            "width": 1024,
+            "height": 442,
+            "bottom": 2295.96875
+          },
+          "firstAction": 1952.46875,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 397.109375,
+          "railTop": 681.5,
+          "covers": [
+            {
+              "transform": "translate3d(2.32px, 410.18px, 0px) rotate(-13deg) scale(0.71)",
+              "rect": {
+                "x": 55.84496307373047,
+                "y": 424.74884033203125,
+                "width": 104.95008087158203,
+                "height": 125.5185546875,
+                "bottom": 550.2673950195312
+              }
+            },
+            {
+              "transform": "translate3d(118.32px, 475.46px, 0px) rotate(-8deg) scale(0.93)",
+              "rect": {
+                "x": 160.89630126953125,
+                "y": 474.0657958984375,
+                "width": 126.847412109375,
+                "height": 157.444580078125,
+                "bottom": 631.5103759765625
+              }
+            },
+            {
+              "transform": "translate3d(234.32px, 414.02px, 0px) rotate(5deg) scale(0.79)",
+              "rect": {
+                "x": 289.35009765625,
+                "y": 426.4978942871094,
+                "width": 101.9398193359375,
+                "height": 129.70046997070312,
+                "bottom": 556.1983642578125
+              }
+            },
+            {
+              "transform": "translate3d(350.32px, 486.98px, 0px) rotate(-4deg) scale(1.03)",
+              "rect": {
+                "x": 391.1695861816406,
+                "y": 480.6869201660156,
+                "width": 130.30087280273438,
+                "height": 167.24240112304688,
+                "bottom": 647.9293212890625
+              }
+            },
+            {
+              "transform": "translate3d(466.32px, 414.02px, 0px) rotate(7deg) scale(0.82)",
+              "rect": {
+                "x": 517.3869018554688,
+                "y": 422.6156005859375,
+                "width": 109.8662109375,
+                "height": 137.46502685546875,
+                "bottom": 560.0806274414062
+              }
+            },
+            {
+              "transform": "translate3d(582.32px, 486.98px, 0px) rotate(-6deg) scale(0.96)",
+              "rect": {
+                "x": 625.1853637695312,
+                "y": 484.6596374511719,
+                "width": 126.269287109375,
+                "height": 159.29696655273438,
+                "bottom": 643.9566040039062
+              }
+            },
+            {
+              "transform": "translate3d(698.32px, 421.7px, 0px) rotate(11deg) scale(0.74)",
+              "rect": {
+                "x": 751.2699584960938,
+                "y": 434.6671447753906,
+                "width": 106.10009765625,
+                "height": 128.72195434570312,
+                "bottom": 563.3890991210938
+              }
+            },
+            {
+              "transform": "translate3d(814.32px, 467.78px, 0px) rotate(6deg) scale(0.87)",
+              "rect": {
+                "x": 863.104248046875,
+                "y": 472.9267272949219,
+                "width": 114.4315185546875,
+                "height": 144.36288452148438,
+                "bottom": 617.2896118164062
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 768,
+            "totalHeight": 1746
+          },
+          "keyboardFirst": "entry-action"
+        },
+        "b": {
+          "totalHeight": 2271,
+          "lowerHeight": 1054.5,
+          "heroHeight": 1152,
+          "workflow": {
+            "x": 0,
+            "y": 1152,
+            "width": 1024,
+            "height": 519.828125,
+            "bottom": 1671.828125
+          },
+          "systems": {
+            "x": 0,
+            "y": 1671.828125,
+            "width": 1024,
+            "height": 534.671875,
+            "bottom": 2206.5
+          },
+          "firstAction": 1884.515625,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 397.109375,
+          "railTop": 670.5,
+          "covers": [
+            {
+              "transform": "translate3d(2.32px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 64.24000549316406,
+                "y": 467.1387023925781,
+                "width": 88.15998840332031,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(117.67px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 179.58999633789062,
+                "y": 467.1387023925781,
+                "width": 88.16000366210938,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(233.02px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 294.94000244140625,
+                "y": 467.1387023925781,
+                "width": 88.16000366210938,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(348.37px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 410.2900085449219,
+                "y": 467.1387023925781,
+                "width": 88.16000366210938,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(463.72px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 525.6400146484375,
+                "y": 467.1387023925781,
+                "width": 88.15997314453125,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(579.07px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 640.989990234375,
+                "y": 467.1387023925781,
+                "width": 88.15997314453125,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(694.42px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 756.3399658203125,
+                "y": 467.1387023925781,
+                "width": 88.15997314453125,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            },
+            {
+              "transform": "translate3d(809.77px, 448.58px, 0px) rotate(0deg) scale(0.76)",
+              "rect": {
+                "x": 871.6900024414062,
+                "y": 467.1387023925781,
+                "width": 88.15997314453125,
+                "height": 117.53872680664062,
+                "bottom": 584.6774291992188
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 768,
+            "totalHeight": 1887
+          },
+          "keyboardFirst": "entry-action"
+        },
+        "c": {
+          "totalHeight": 1602,
+          "lowerHeight": 640.875,
+          "heroHeight": 768,
+          "workflow": {
+            "x": 48,
+            "y": 833,
+            "width": 470.1875,
+            "height": 640.875,
+            "bottom": 1473.875
+          },
+          "systems": {
+            "x": 556.1875,
+            "y": 833,
+            "width": 419.8125,
+            "height": 640.875,
+            "bottom": 1473.875
+          },
+          "firstAction": 1057.109375,
+          "overflow": 0,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+          "coverCount": 8,
+          "layoutSafe": true,
+          "copyBottom": 561.53125,
+          "railTop": 683.5,
+          "covers": [
+            {
+              "transform": "translate3d(516.72px, 212.16px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 576.0599975585938,
+                "y": 227.27999877929688,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 341.0400085449219
+              }
+            },
+            {
+              "transform": "translate3d(614.16px, 212.16px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 673.5,
+                "y": 227.27999877929688,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 341.0400085449219
+              }
+            },
+            {
+              "transform": "translate3d(711.6px, 212.16px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 770.9400024414062,
+                "y": 227.27999877929688,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 341.0400085449219
+              }
+            },
+            {
+              "transform": "translate3d(809.04px, 212.16px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 868.3800048828125,
+                "y": 227.27999877929688,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 341.0400085449219
+              }
+            },
+            {
+              "transform": "translate3d(516.72px, 423.36px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 576.0599975585938,
+                "y": 438.47998046875,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 552.239990234375
+              }
+            },
+            {
+              "transform": "translate3d(614.16px, 423.36px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 673.5,
+                "y": 438.47998046875,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 552.239990234375
+              }
+            },
+            {
+              "transform": "translate3d(711.6px, 423.36px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 770.9400024414062,
+                "y": 438.47998046875,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 552.239990234375
+              }
+            },
+            {
+              "transform": "translate3d(809.04px, 423.36px, 0px) rotate(0deg) scale(0.79)",
+              "rect": {
+                "x": 868.3800048828125,
+                "y": 438.47998046875,
+                "width": 85.32000732421875,
+                "height": 113.760009765625,
+                "bottom": 552.239990234375
+              }
+            }
+          ],
+          "currentStage": "策划",
+          "fontLoaded": true,
+          "reduced": {
+            "heroHeight": 768,
+            "totalHeight": 1602
+          },
+          "keyboardFirst": "entry-action"
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "source": "src/data/home.ts; baseline current unchanged static build",
+  "desktopOnly": true
+}
