@@ -110,7 +110,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
         const response = await nativeFetch(...args);
         if (response.status === 401 || response.status === 403) {
           const result = await response.clone().json().catch(() => ({}));
-          showError(result.message || (response.status === 401 ? '登录已过期，请重新登录后重试。' : '这项操作需要管理员权限。'), response.status === 401);
+          showError(result.message || (response.status === 401 ? '登录已过期，请重新登录后重试。' : '提交被拒绝，请刷新页面后重试。'), response.status === 401);
         }
         return response;
       } catch (error) {

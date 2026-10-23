@@ -12,6 +12,8 @@ Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` �
 vercel deploy --prod
 ```
 
+本机使用 `--prebuilt` 发布时，构建必须带 `VERCEL=1 VERCEL_ENV=production`。`astro.config.mjs` 显式信任正式 HTTPS 域名，不依赖本机 `.env` 中的认证 URL；不得通过关闭 `security.checkOrigin` 或放开全部域名解决表单错误。发布前核对生成的 manifest 包含正式域名；发布后使用无登录的同源 `multipart/form-data`／URL 编码表单检查业务 API 返回 401，外站 Origin 仍返回 403。仅检查 JSON 请求会漏掉框架提前拒绝表单的问题。
+
 新增迁移时先运行 `pnpm db:backup` 保存私有数据备份，核对待执行迁移，再运行 `pnpm db:migrate`；确认既有业务事实保持一致后发布。构建不执行迁移，后续结构变更需兼容仍运行的旧版本。
 
 `.vercelignore` 排除环境配置、原始表格、参考截图和本机工具；私有资料使用根目录限定规则 `/data/`，使 `src/data/` 首页配置仍进入构建。备份位于被忽略的 `.tools/backups/`，不得公开。网站故障可通过 Vercel 回滚应用部署；应用回滚不自动恢复数据库，不删除新增表或历史事实。

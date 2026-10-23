@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { optionalPlatformNoteIdSchema } from './platform-note-id';
+import { shanghaiDateTime } from './validation';
 
 const checkpoint = z.enum(['day_7', 'day_15']);
 const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '请选择有效日期');
@@ -11,7 +12,7 @@ export const meetingReviewSchema = z.object({
   name: z.string().trim().max(120, '会议名称过长').optional().default(''),
   periodStart: dateKey,
   periodEnd: dateKey,
-  meetingAt: z.coerce.date({ error: '请选择会议时间' }),
+  meetingAt: z.union([shanghaiDateTime, z.iso.datetime({ offset: true }).transform(value => new Date(value))]),
 }).superRefine((value, context) => {
   if (value.periodEnd < value.periodStart) context.addIssue({ code: 'custom', path: ['periodEnd'], message: '结束日不能早于开始日' });
 });

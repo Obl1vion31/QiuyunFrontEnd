@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "非JSON 403显示真实状态而非连接失败；422沿用业务提示；断网保留输入；失败不创建会议",
+    "真实拆分表单成功创建并进入会议；连续提交仅写一次；23:00正确存为上海时间；空标题自动生成"
+  ],
+  "errors": [],
+  "requests": [
+    "POST http://127.0.0.1:40883/api/meeting-reviews",
+    "POST http://127.0.0.1:40883/api/meeting-reviews",
+    "POST http://127.0.0.1:40883/api/meeting-reviews",
+    "POST http://127.0.0.1:40883/api/meeting-reviews"
+  ],
+  "scope": "真实组件；隔离PGlite、虚构会议；桌面1440px"
+}
