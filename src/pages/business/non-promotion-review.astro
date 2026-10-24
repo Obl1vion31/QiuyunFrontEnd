@@ -55,7 +55,9 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
           const clickValue=item.metric?Number(item.metric.clickRate):null;const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
           const click=metricPresentation(clickValue,item.click.mean);const read=metricPresentation(readValue,item.read.mean);
           return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
-            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class:list={['date-cell',{'review-common-repeat':false}]} >{shanghaiDateKey(item.row.actualPublishAt)}</span>
+            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class="date-cell" title={`发布日期：${shanghaiDateKey(item.row.actualPublishAt)}；应复盘日期：${item.dueOn}`}>
+              <span class="review-date-range"><time datetime={shanghaiDateKey(item.row.actualPublishAt)} aria-label={`发布日期 ${shanghaiDateKey(item.row.actualPublishAt)}`}>{shanghaiDateKey(item.row.actualPublishAt)}</time><span><span class="review-date-separator" aria-hidden="true">至 </span><time datetime={item.dueOn} aria-label={`应复盘日期 ${item.dueOn}`}>{item.dueOn}</time></span></span>
+            </span>
             <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':false}]}  title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
               <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={'查看详情：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small></span>
             </span>
@@ -136,7 +138,8 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .table-head{position:sticky;top:0;z-index:2;min-height:42px;color:#53615a;background:#F8F9FB;font-size:var(--console-caption);line-height:var(--console-caption-leading);font-weight:500}
 .table-head>span:nth-child(4),.table-head>span:nth-child(5){text-align:left}.table-head button{display:inline-flex;align-items:center;gap:5px;margin:0;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head i{opacity:.5;font-size:var(--console-caption);font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
 .review-row:not(.table-head):hover,.review-row.selected{background:#F8F9FB}.review-row.selected{box-shadow:inset 3px 0 var(--console-blue)}.review-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
-.date-cell{font-variant-numeric:tabular-nums;white-space:nowrap}
+.date-cell{font:500 13px/20px var(--console-font);font-variant-numeric:tabular-nums;white-space:nowrap}
+.review-date-range{display:grid;gap:2px}.review-date-separator{color:var(--console-muted)}
 .post-cell{display:grid;gap:3px}.review-post-title{display:flex;align-items:baseline;gap:8px;min-width:0}.post-cell a{display:flex;align-items:center;gap:5px;min-width:0;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:var(--console-muted);font-size:var(--console-caption);font-style:normal}.post-cell strong{min-width:0;overflow:hidden;color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:500;text-overflow:ellipsis;white-space:nowrap}.post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.review-post-title small{flex:none}
 .review-row mark{display:inline-block;padding:2px 6px;border:1px solid #d9dfdb;border-radius:5px;color:#53615a;background:#f2f4f2;font-size:var(--console-caption);font-weight:500;line-height:var(--console-caption-leading);white-space:nowrap}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}
 .review-row .metric{text-align:left}.review-row[hidden]{display:none}.review-post-group{border-bottom:1px solid var(--console-line)}.review-row.missing-round{color:var(--console-muted);font-size:var(--console-caption)}.review-table button:disabled{cursor:default;opacity:.6}
@@ -148,7 +151,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .sort-read-short{display:none}
 /* A category spans both rounds. Data columns keep one shared header and the same anchors. */
 .review-table [hidden]{display:none!important}
-.review-table .review-row{grid-template-columns:116px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;gap:0 12px}
+.review-table .review-row{grid-template-columns:132px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;gap:0 12px}
 .review-table .review-category-column{display:none!important}
 .review-post-category{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}
 .review-table[data-grouped=true] .review-post-category{display:none}
@@ -182,7 +185,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 @media(max-width:900px){
  .review-workspace .review-table[data-grouped=true]{min-width:660px}
  .review-table[data-grouped=false]{min-width:0}
- .category-detail-body .review-row{width:100%;min-width:916px;grid-template-columns:116px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;grid-template-areas:none;gap:0 12px;align-items:center;padding:0}
+ .category-detail-body .review-row{width:100%;min-width:932px;grid-template-columns:132px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;grid-template-areas:none;gap:0 12px;align-items:center;padding:0}
  .category-detail-body .review-row>span{display:block!important;grid-area:auto;padding:8px 12px!important}
  .category-detail-body .review-row>.review-category-column{display:none!important}
  .category-detail-body .review-row .metric::before{display:none}
@@ -216,7 +219,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 /* Adapt to the remaining list width, including when a docked Inspector is open. */
 .review-table[data-grouped=false]{min-width:0}
 @container nonpromotion-table (min-width:601px) and (max-width:1000px){
- .review-table[data-grouped=false] .review-row{grid-template-columns:108px minmax(140px,1fr) 52px minmax(112px,1fr) minmax(112px,1fr) 88px;gap:0 8px}
+ .review-table[data-grouped=false] .review-row{grid-template-columns:124px minmax(140px,1fr) 52px minmax(112px,1fr) minmax(112px,1fr) 88px;gap:0 8px}
  .review-table[data-grouped=false] .review-row>span{padding:8px}
  .review-table[data-grouped=false] .metric-primary{display:grid;min-width:0;max-width:100%;gap:2px}
  .review-table[data-grouped=false] .review-title-button strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden}

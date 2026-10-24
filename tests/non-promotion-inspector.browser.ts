@@ -5,7 +5,7 @@ import { startFixture, admin } from './auth.fixture';
 import { respondToBusinessConfirm } from './business-confirm.helper';
 import * as s from '../src/db/schema';
 
-const folder = '.tools/test-artifacts/non-promotion-inspector';
+const folder = process.env.NON_PROMOTION_ARTIFACT_DIR || '.tools/test-artifacts/non-promotion-inspector';
 await mkdir(folder, { recursive:true });
 const clockFile = new URL('../' + folder + '/clock.txt', import.meta.url).pathname;
 await writeFile(clockFile, '2026-10-23T12:00:00+08:00');
@@ -63,6 +63,16 @@ try {
     await page.screenshot({path:folder+'/'+name+'.png',fullPage:false});
   };
   const row = (id:string,round='day_7')=>page.locator('[data-inspector-key="'+id+':'+round+'"]');
+  const assertDates = async(id:string,round='day_7')=>{
+    const cell = row(id,round).locator('.date-cell'), dates = cell.locator('time');
+    assert.deepEqual(await dates.allTextContents(),['2026-10-01',round==='day_7'?'2026-10-08':'2026-10-16']);
+    assert.deepEqual(await dates.evaluateAll((nodes:HTMLTimeElement[])=>nodes.map(n=>n.dateTime)),await dates.allTextContents());
+    assert.match(await dates.nth(1).getAttribute('aria-label')||'',/应复盘日期/);
+    assert.equal(await cell.evaluate((n:HTMLElement)=>n.scrollWidth<=n.clientWidth),true,'始末日期不溢出日期列');
+    const font=await dates.first().evaluate((n:HTMLElement)=>{const s=getComputedStyle(n);return {family:s.fontFamily,size:s.fontSize,weight:s.fontWeight};});
+    assert.ok(font.family.includes('MiSans'));assert.equal(font.weight,'500');
+    assert.ok(['12px','13px'].includes(font.size));
+  };
   const pane = page.locator('[data-inspector]');
   const close = async()=>{await pane.locator('[data-close-inspector]').click();await pane.waitFor({state:'hidden'});};
   const assertIdentity = async(id:string,round='day_7')=>{
@@ -71,11 +81,16 @@ try {
     assert.equal(await pane.locator('[name=checkpointType]').first().inputValue(),round);
   };
   await nav('/business/non-promotion-review');
+  for(const width of [1920,1280]){
+    await page.setViewportSize({width,height:1100});await assertDates(first.schedule.id);
+    await shot('pending-'+width);
+  }
   let documents = 0; page.on('request',(request:any)=>{if(request.resourceType()==='document'&&request.frame()===page.mainFrame())documents++;});
   await page.evaluate(()=>{(window as any).__reviewTable=document.querySelector('.review-table');});
   for (const width of [1440,1024,390,320]) {
     await page.setViewportSize({width,height:1100});
     const r = row(first.schedule.id), action = r.locator('.review-entry-button');
+    await assertDates(first.schedule.id);
     assert.equal(await action.innerText(),'点击录入');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'页面不横向溢出');
     if(width<=1440) {
@@ -84,6 +99,7 @@ try {
     await shot('pending-'+width);
     await action.click(); await pane.waitFor({state:'visible'}); await assertIdentity(first.schedule.id);
     await pane.evaluate(async(node:HTMLElement)=>{await Promise.allSettled(node.getAnimations().map(a=>a.finished));});
+    if(width>=1024)await assertDates(first.schedule.id);
     const resources = pane.locator('.review-resources');
     assert.match(await resources.innerText(),/2026-09-30 23:30/);
     assert.match(await resources.innerText(),/2026-10-01 00:15/);
@@ -99,7 +115,8 @@ try {
     await shot('inspector-'+width);
     geometry.push({width,button:await action.boundingBox(),pane:await pane.boundingBox()});
     await close();
-    assert.equal(await action.evaluate((n:HTMLElement)=>n===document.activeElement),true,'关闭返回触发按钮');
+    await page.waitForFunction((n:HTMLElement)=>n===document.activeElement,await action.elementHandle());
+    assert.equal(await action.evaluate((n:HTMLElement)=>n===document.activeElement),true,'退出动效完成后关闭返回触发按钮');
     for(const entry of ['title','row','keyboard-button','keyboard-row']) {
       if(entry==='title')await r.locator('.review-title-button').click();
       else if(entry==='row')await r.locator('[data-label=节点]').click();
@@ -159,6 +176,7 @@ try {
   await page.waitForURL((url:URL)=>url.searchParams.get('view')==='history');await page.waitForLoadState('networkidle');
   const group = page.locator('[data-category-group="tmua:innovation"]');
   await group.locator('summary').first().click();
+  await assertDates(history.schedule.id);await assertDates(history.schedule.id,'day_15');
   await row(first.schedule.id).locator('.review-entry-button').click();await assertIdentity(first.schedule.id);
   assert.equal(Number(await pane.locator('[name=clickRate]').inputValue()),7.25);
   assert.equal(await pane.locator('.review-resources a[target=_blank]').count(),3);
@@ -166,6 +184,7 @@ try {
   await row(history.schedule.id,'day_15').locator('.review-title-button').click();await assertIdentity(history.schedule.id,'day_15');
   await pane.locator('[name=conclusion]').fill('二轮输入不会随视图切换丢失');
   await page.getByRole('radio',{name:'历史数据总览',exact:true}).check();
+  await assertDates(history.schedule.id,'day_15');
   assert.equal(await pane.locator('[name=conclusion]').inputValue(),'二轮输入不会随视图切换丢失');
   await pane.locator('[data-review-form] button[type=submit]').click();await pane.getByText('已保存',{exact:true}).waitFor();
   await close();await row(history.schedule.id,'day_7').locator('.review-entry-button').click();await assertIdentity(history.schedule.id,'day_7');
@@ -183,11 +202,13 @@ try {
   checks.push('首次保存后资料仍可读，历史保存刷新、首二轮独立及分类/平铺共用节点');
 
   await nav('/business/non-promotion-review?view=skipped');
+  await assertDates(skipped.schedule.id);await assertDates(skipped.schedule.id,'day_15');
   await row(skipped.schedule.id).locator('.review-entry-button').click();
   assert.equal(await pane.locator('[data-review-form]').count(),0);
   assert.equal(await pane.locator('.review-resources a').count(),3);
   await shot('skipped-1440');await close();
   checks.push('不复盘记录提供资料与恢复入口，按钮文案为查看详情');
+  checks.push('实验日期原列展示上海实发日至7/15天应复盘日；待填、分类、历史、跳过和保存后日期一致；1920/1440/1280/1024px不溢出');
 
   await nav('/business/non-promotion-review?view=pending');
   await page.evaluate('(()=>{const frames=[];window.__entryFrames=frames;const start=performance.now();function tick(){const n=document.querySelector("[data-inspector]"),r=n.getBoundingClientRect();frames.push({time:performance.now()-start,hidden:n.hidden,width:r.width,opacity:Number(getComputedStyle(n).opacity)});if(performance.now()-start<350)requestAnimationFrame(tick);}tick();})()');
