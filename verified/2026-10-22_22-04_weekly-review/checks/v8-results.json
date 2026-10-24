@@ -1,0 +1,27 @@
+{
+  "source": "official components + isolated PGlite fictional facts",
+  "date": "2026-10-21",
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024,
+    736,
+    390,
+    320
+  ],
+  "checks": [
+    "five-testing-empty, overview-above-todo, upcoming-collapsed, count-actionable-only",
+    "desktop-125percent-equivalent-CSSviewport1152-DPR1.25-local-table-scroll",
+    "direct-inline-input, readonly-costs, state-popover-fixed-date, legal-successors, pending-new-zero, pending-zero-save, paused-traffic, original-stage-attribution, queue-refresh-preserves-other-drafts",
+    "missing-ID-popover, shared-draft-two-way, unsaved-cancel-and-discard, atomic-ID-and-fact-save",
+    "Shanghai-midnight-opens, keyed-node-input-focus-preserved, no-out-of-order-fill",
+    "residual-search-by-ID, explicit-version-campaign-date, terminal-no-next-action, residual-source-stage, no-resurrection, duplicate-date-rejected",
+    "untouched-testing-draft-to-paused-zero-only, terminal-actual-day-preserves-and-saves-real-metrics-without-next",
+    "concurrent-request-key-retry-produces-one-fact",
+    "nonpromotion-six-column-summary, stacked-rounds, full-category-label, local-view-keeps-real-record-nodes",
+    "100-and-450ms-quiet, 800ms-single-target-status, source-unchanged, close-cleans-read, toolbar-shared-navigation-progress",
+    "MiSans-computed-and-platform-fonts, trajectory-entry, local-no-replay, reduced-motion"
+  ],
+  "errors": []
+}

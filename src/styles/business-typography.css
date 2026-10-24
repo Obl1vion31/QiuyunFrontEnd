@@ -1,0 +1,23 @@
+/* 工作台与正文外的原生弹层都继承相同字体；组件仅按语义选择层级。 */
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) {
+  font-family:var(--console-font);
+  font-size:var(--console-text);
+  line-height:var(--console-text-leading);
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(button,input,select,textarea) {
+  font:400 var(--console-text)/var(--console-text-leading) var(--console-font);
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) button {
+  font-weight:500;
+}
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(h1,h2,h3,h4) {
+  font-weight:600;
+}
+
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) :is(strong,b) {font-weight:500;}
+
+/* 已确认的语义层级；正文不以整体加粗表达重点。 */
+:where(.business-console-frame,.business-form-sheet,.business-form-dialog) input {font-variant-numeric:tabular-nums;}
+
+.business-read-host {position:relative;}
+.business-read-feedback {position:absolute;z-index:8;top:12px;right:12px;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid var(--console-line);border-radius:8px;background:var(--console-surface);box-shadow:0 2px 8px #2028330a;color:var(--console-muted);font:400 13px/20px var(--console-font);pointer-events:none;}

@@ -1,0 +1,28 @@
+# 私有配置、维护资料与本机工具不进入远程构建。
+.env
+.env.*
+*.pem
+*.key
+.git/
+.aws/
+.agents/
+.codex/
+.tools/
+.vercel/
+node_modules/
+dist/
+.astro/
+coverage/
+*.log
+*.xlsx
+*.xls
+*.csv
+public/excel/
+/data/
+public/images/THE-PLAN/
+public/images/Daily/
+public/images/REVIEW/
+public/**/*.md
+
+# 视觉验收归档仅供项目内查看，不进入网站部署。
+/verified/

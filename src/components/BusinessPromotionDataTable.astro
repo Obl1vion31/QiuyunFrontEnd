@@ -1,0 +1,25 @@
+---
+import {promotionActualLabels,normalizePromotionActualStatus} from '../db/promotion-successors.mjs';
+import {promotionTotals,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
+interface Props {rows:Array<{entry:PromotionOverview;metric:PromotionFact}>;showPost?:boolean}
+const {rows,showPost=false}=Astro.props;
+const fields=['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount','actualOpenCost','actualLeadCost'] as const;
+const totals=promotionTotals(rows.map(row=>row.metric));
+const stages=['testing','scaling'].filter(stage=>rows.some(({metric})=>metric.dailyStatus==='active'&&metric.stageTypeSnapshot===stage)).map(stage=>stage==='testing'?'测试':'放量');
+const labels=['消耗','平台开口','实际开口','平台留资','实际留资','实际开口成本','实际留资成本'];
+---
+<div class="promotion-table-scroll" tabindex="0" aria-label="每日复盘数据表格">
+<table class:list={['promotion-data-table',{'has-post':showPost}]}>
+ <colgroup><col class="record-identity"/><col class="record-stage"/>{fields.map(key=><col class={key==='spend'?'record-spend':key.endsWith('Cost')?'record-cost':'record-number'}/>)}</colgroup>
+ <thead><tr><th scope="col">{showPost?'帖子':'数据日期'}</th><th scope="col">阶段</th>{labels.map(label=><th scope="col">{label}</th>)}</tr></thead>
+ <tbody>{rows.map(({entry,metric})=>{
+  const totals=promotionTotals([metric]);
+  return <tr tabindex="0" data-daily-record={metric.id} data-metric-id={metric.id} data-inspector-key={metric.id} data-history-row={showPost||undefined} data-history-schedule={entry.scheduleId} data-history-date={metric.metricDate} aria-label={`${entry.post.contentName} ${metric.metricDate} 复盘详情`}>
+   <th scope="row">{showPost?<><strong>{entry.post.contentName}</strong><small>V{entry.post.versionNumber} · {entry.post.subjectName}</small></>:<time datetime={metric.metricDate}>{metric.metricDate}</time>}</th>
+   <td><span class:list={['promotion-phase',metric.dailyStatus==='active'?metric.stageTypeSnapshot:'paused']}>{metric.recordKind==='test_residual'?'淘汰后残留':promotionActualLabels[metric.actualStatusSnapshot??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot)]}</span></td>
+   {fields.map(key=><td data-total={key}>{totals[key]==null?'—':key==='spend'||key.endsWith('Cost')?`¥${totals[key]!.toFixed(2)}`:totals[key]}</td>)}
+  </tr>;
+ })}</tbody>
+{rows.length>0&&<tfoot data-promotion-table-totals><tr><th scope="row">汇总</th><td>{stages.join('＋')||'—'}</td>{fields.map(key=><td data-total={key}>{totals[key]==null?'—':key==='spend'||key.endsWith('Cost')?`¥${totals[key]!.toFixed(2)}`:totals[key]}</td>)}</tr></tfoot>}
+</table>
+</div>

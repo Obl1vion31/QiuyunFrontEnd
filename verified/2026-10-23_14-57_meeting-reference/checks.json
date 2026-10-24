@@ -1,0 +1,187 @@
+{
+  "status": "独立设计参考已自检，非生产实现验收",
+  "data": "帖子名及部分指标沿用用户截图；历史值为占位；会议记录与决定为演示",
+  "viewports": [
+    {
+      "width": 1888,
+      "scrollWidth": 1888,
+      "rootWidth": 1888,
+      "cards": [
+        {
+          "x": 312,
+          "y": 260,
+          "width": 485.328125,
+          "height": 552
+        },
+        {
+          "x": 813.328125,
+          "y": 260,
+          "width": 485.328125,
+          "height": 552
+        },
+        {
+          "x": 1314.65625,
+          "y": 260,
+          "width": 485.34375,
+          "height": 552
+        },
+        {
+          "x": 312,
+          "y": 828,
+          "width": 485.328125,
+          "height": 552
+        },
+        {
+          "x": 813.328125,
+          "y": 828,
+          "width": 485.328125,
+          "height": 552
+        }
+      ],
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "fontSize": "15px",
+      "cssCols": "485.328px 485.328px 485.344px"
+    },
+    {
+      "width": 1408,
+      "scrollWidth": 1408,
+      "rootWidth": 1408,
+      "cards": [
+        {
+          "x": 249,
+          "y": 260,
+          "width": 367.328125,
+          "height": 552
+        },
+        {
+          "x": 632.328125,
+          "y": 260,
+          "width": 367.328125,
+          "height": 552
+        },
+        {
+          "x": 1015.65625,
+          "y": 260,
+          "width": 367.34375,
+          "height": 552
+        },
+        {
+          "x": 249,
+          "y": 828,
+          "width": 367.328125,
+          "height": 552
+        },
+        {
+          "x": 632.328125,
+          "y": 828,
+          "width": 367.328125,
+          "height": 552
+        }
+      ],
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "fontSize": "15px",
+      "cssCols": "367.328px 367.328px 367.344px"
+    },
+    {
+      "width": 1248,
+      "scrollWidth": 1248,
+      "rootWidth": 1248,
+      "cards": [
+        {
+          "x": 249,
+          "y": 260,
+          "width": 314,
+          "height": 552
+        },
+        {
+          "x": 579,
+          "y": 260,
+          "width": 314,
+          "height": 552
+        },
+        {
+          "x": 909,
+          "y": 260,
+          "width": 314,
+          "height": 552
+        },
+        {
+          "x": 249,
+          "y": 828,
+          "width": 314,
+          "height": 552
+        },
+        {
+          "x": 579,
+          "y": 828,
+          "width": 314,
+          "height": 552
+        }
+      ],
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "fontSize": "15px",
+      "cssCols": "314px 314px 314px"
+    },
+    {
+      "width": 992,
+      "scrollWidth": 992,
+      "rootWidth": 992,
+      "cards": [
+        {
+          "x": 243,
+          "y": 254,
+          "width": 232.65625,
+          "height": 600
+        },
+        {
+          "x": 491.65625,
+          "y": 254,
+          "width": 232.671875,
+          "height": 600
+        },
+        {
+          "x": 740.328125,
+          "y": 254,
+          "width": 232.671875,
+          "height": 600
+        },
+        {
+          "x": 243,
+          "y": 870,
+          "width": 232.65625,
+          "height": 600
+        },
+        {
+          "x": 491.65625,
+          "y": 870,
+          "width": 232.671875,
+          "height": 600
+        }
+      ],
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+      "fontSize": "14px",
+      "cssCols": "232.656px 232.672px 232.672px"
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "三列且跨行等高",
+    "无整页横向溢出",
+    "MiSans真实计算字体",
+    "比较层级与删除项",
+    "Inspector不改背景卡片几何",
+    "点击率真实零与缺失分开",
+    "未保存取消保留输入",
+    "定稿缺项可定位，非推广不可绕过",
+    "保存草稿返回表格",
+    "候选确认后生成5卡",
+    "草稿不锁定",
+    "V0锁定次日安排",
+    "V1草稿继续V0",
+    "V1定稿切换",
+    "修改理由必填",
+    "更正保留当天指标",
+    "事项解决与无历史状态",
+    "减少动态效果"
+  ]
+}

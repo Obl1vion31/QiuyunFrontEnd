@@ -1,0 +1,57 @@
+---
+interface Props { id: string; labelledby: string }
+const { id, labelledby } = Astro.props;
+---
+<dialog id={id} class="business-form-sheet" aria-labelledby={labelledby}><slot /></dialog>
+<style is:global>
+dialog.business-form-sheet,dialog.business-form-sheet *{box-sizing:border-box}
+dialog.business-form-sheet{position:fixed;inset:0 0 0 auto;width:min(680px,100%);max-width:100%;height:100dvh;max-height:100dvh;margin:0;padding:0;overflow:hidden;border:0;border-radius:20px 0 0 20px;background:var(--console-paper);color:var(--console-ink);box-shadow:-24px 0 80px #07111d42;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+dialog.business-form-sheet::backdrop{background:#07111d73;backdrop-filter:blur(4px)}
+dialog.business-form-sheet[open]{animation:business-sheet-in 220ms cubic-bezier(.2,.8,.2,1)}
+dialog.business-form-sheet>form{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%;min-height:0;margin:0}
+.business-form-sheet .dialog-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;margin:0;padding:16px 20px;border-radius:0;color:#fff;background:#10243ef0;backdrop-filter:blur(16px)}
+.business-form-sheet .dialog-head h2{margin:0;font:600 18px/24px var(--console-font)}
+.business-form-sheet .dialog-head-actions{display:flex;align-items:center;gap:12px}
+.business-form-sheet .dialog-head .dialog-version{padding:4px 8px;border:1px solid #ffffff4a;border-radius:8px;color:#fff;font:500 var(--console-caption)/var(--console-caption-leading) var(--console-font);letter-spacing:0}
+.business-form-sheet .close-button{display:grid;place-items:center;flex:none;width:32px;height:32px;margin:0;padding:0;border:0;color:#fff;background:transparent;font:28px/1 var(--console-font);cursor:pointer}
+.business-form-sheet .sheet-body{min-height:0;overflow:auto;overscroll-behavior:contain;padding:20px;scrollbar-gutter:stable}
+.business-form-sheet .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:0}
+.business-form-sheet .field{min-width:0;margin:0}
+.business-form-sheet .field-wide{grid-column:1/-1}
+.business-form-sheet .field>label,.business-form-sheet .publication-reason-day label{display:block;margin:0 0 6px;color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.business-form-sheet .publication-reason-day label{display:grid;gap:6px}
+.business-form-sheet .field b{color:var(--orange)}
+.business-form-sheet .field :is(input:not([type=checkbox]):not([type=hidden]),select,textarea),.business-form-sheet .publication-reason-day :is(select,textarea){width:100%;min-width:0;min-height:var(--console-control-height);margin:0;border:1px solid #abb5af;border-radius:var(--console-control-radius);padding:9px 10px;color:var(--console-ink);background:var(--console-surface);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.business-form-sheet .field :is(input:not([type=checkbox]):not([type=hidden]),select),.business-form-sheet .publication-reason-day select{height:var(--console-control-height)}
+.business-form-sheet .field textarea{min-height:80px;resize:vertical}
+.business-form-sheet .field :is(input,select,textarea):disabled,.business-form-sheet .field input:read-only{color:#53615a;background:var(--console-surface-subtle);border-style:dashed;opacity:1}
+.business-form-sheet .field :is(small,em){display:block;min-height:0;margin:4px 0 0;font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
+.business-form-sheet .field small{color:#a13b28}.business-form-sheet .field em{color:var(--console-muted)}
+.business-form-sheet [data-publication-link-preview]{font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.business-form-sheet :is(.field small,.field em,.form-message,[data-publication-link-preview]):empty{display:none}
+.business-form-sheet .field-options{display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;min-height:40px}
+.business-form-sheet .field-options .promotion-field{display:contents}
+.business-form-sheet .promotion-preview{color:var(--console-muted);font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
+.business-form-sheet .field-options label,.business-form-sheet .field .time-correction-toggle{display:flex;align-items:center;gap:8px;margin:0;color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.business-form-sheet input[type=checkbox]{width:18px!important;height:18px;min-height:0;margin:0;accent-color:var(--console-blue)}
+.business-form-sheet .field-options :is([data-error],[data-promotion-help]){flex-basis:100%}
+.business-form-sheet .field .time-correction-toggle{margin-top:8px}
+.business-form-sheet .status-preview{display:flex;align-items:center;height:var(--console-control-height);min-height:var(--console-control-height);padding:0 10px;border:1px solid #abb5af;border-radius:var(--console-control-radius);background:#e5e9e6;font-size:var(--console-text);font-weight:500}
+.business-form-sheet .source-preview,.business-form-sheet .publication-context{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 0 16px;padding:12px;border:1px solid var(--console-line);border-radius:var(--console-control-radius);font-size:var(--console-text);line-height:var(--console-text-leading)}
+.business-form-sheet .publication-context strong{flex-basis:100%;font-size:var(--console-emphasis)}
+.business-form-sheet .publication-context span{color:var(--console-muted);font-size:var(--console-caption)}
+.business-form-sheet .revision-fields{margin:0;padding:12px;border:1px solid var(--console-line);border-radius:var(--console-control-radius)}
+.business-form-sheet .revision-fields legend{font-size:var(--console-text)}
+.business-form-sheet .form-message{margin:12px 0 0;color:#a13b28;font-size:var(--console-text);line-height:var(--console-text-leading)}
+.business-form-sheet .dialog-actions{position:relative;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;min-height:72px;margin:0;padding:12px 20px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--console-line);background:var(--console-paper)}
+.business-form-sheet .dialog-actions button{display:inline-flex;align-items:center;justify-content:center;min-width:80px;min-height:var(--console-control-height);margin:0;padding:0 16px;border:1px solid #abb5af;border-radius:var(--console-control-radius);color:var(--console-ink);background:#fff;font:500 var(--console-text)/var(--console-text-leading) var(--console-font);cursor:pointer}
+.business-form-sheet .dialog-actions .save-button{min-width:120px;border-color:var(--console-blue);color:#fff;background:var(--console-blue)}
+.business-form-sheet button:disabled{opacity:.6;cursor:default}
+.business-form-sheet :is(button,input,select,textarea):focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+.business-form-sheet [hidden]{display:none!important}
+@keyframes business-sheet-in{from{opacity:var(--business-enter-opacity,0);transform:var(--business-enter-transform,translateX(28px))}to{opacity:1;transform:none}}
+@media(max-width:900px){dialog.business-form-sheet{width:100%;border-radius:0}.business-form-sheet .sheet-body{padding:16px}.business-form-sheet .dialog-head,.business-form-sheet .dialog-actions{padding-left:16px;padding-right:16px}.business-form-sheet .form-grid{gap:16px 12px}}
+@media(max-width:480px){.business-form-sheet .publication-time-field,.business-form-sheet .publication-status-field{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){dialog.business-form-sheet[open]{animation:none}}
+@media(prefers-reduced-transparency:reduce){.business-form-sheet .dialog-head{background:#10243e;backdrop-filter:none}dialog.business-form-sheet::backdrop{backdrop-filter:none}}
+</style>

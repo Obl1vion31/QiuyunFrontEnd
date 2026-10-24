@@ -1,0 +1,8 @@
+---
+import type {ChangeDiff} from '../scripts/business-change-diff';
+interface Props {changes:ChangeDiff[]}
+const {changes}=Astro.props;
+---
+<div class="business-change-diff">
+ {changes.map(change=><section class="business-change-field"><h4>{change.label}</h4><dl><div><dt>原内容</dt><dd>{change.before}</dd></div><div><dt>申请修改为</dt><dd>{change.after}</dd></div></dl></section>)}
+</div>

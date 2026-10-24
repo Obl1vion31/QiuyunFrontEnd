@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "仅推广可勾选和全选；非推广必处理提示与数量；全部本期已录数据保留；统一紧凑三列卡片与7/15天默认日期",
+    "资料悬停预览、点击保持、键盘与外点关闭；链接对应且新标签保留输入；缺失不生成空链接；开关不跳动",
+    "草稿已填日期保留；全量非推广门槛不可通过清空选择绕过；完成和不复盘后可定稿；冻结不变且资料实时读取"
+  ],
+  "errors": [],
+  "computed": {
+    "fontFamily": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+    "fontSize": "14px",
+    "height": 40
+  },
+  "video": "references-flow.mp4",
+  "scope": "真实组件、隔离PGlite和虚构业务数据；1920/1440/1280/1024px"
+}

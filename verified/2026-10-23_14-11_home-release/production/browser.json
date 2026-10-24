@@ -1,0 +1,44 @@
+{
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "hero": {
+        "height": 1620,
+        "phase": 0,
+        "distance": 720
+      },
+      "flatPhaseAdvance": 0.462,
+      "pauseAndKeyboard": true,
+      "reduced": true,
+      "video": "/home/obl1vion/projects/qiuyunFrontend/.tools/test-artifacts/home-release/production/page@60451161298bfe557ca4a20c4493d519.webm"
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "hero": {
+        "height": 1440,
+        "phase": 0,
+        "distance": 640
+      },
+      "flatPhaseAdvance": 0.476652,
+      "pauseAndKeyboard": true,
+      "reduced": true
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "hero": {
+        "height": 1382,
+        "phase": 0,
+        "distance": 614
+      },
+      "flatPhaseAdvance": 0.46563,
+      "pauseAndKeyboard": true,
+      "reduced": true
+    }
+  ],
+  "errors": [],
+  "writes": []
+}

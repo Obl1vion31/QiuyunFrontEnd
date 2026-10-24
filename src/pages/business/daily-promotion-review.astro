@@ -1,0 +1,364 @@
+---
+import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
+import BusinessPromotionDataTable from '../../components/BusinessPromotionDataTable.astro';
+import BusinessPromotionSummary from '../../components/BusinessPromotionSummary.astro';
+import BusinessPromotionDetails from '../../components/BusinessPromotionDetails.astro';
+import {promotionOverview,promotionTotals} from '../../db/promotion-overview';
+import '../../styles/promotion-overview.css';
+import BusinessPromotionStageView from '../../components/BusinessPromotionStageView.astro';
+import BusinessPromotionToolbar from '../../components/BusinessPromotionToolbar.astro';
+import BusinessInspector from '../../components/BusinessInspector.astro';
+import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
+import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
+import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
+import '../../styles/promotion-pending.css';
+import {readPromotionTimeline} from '../../db/promotion-timeline';
+
+import BusinessPromotionDailyPosts from '../../components/BusinessPromotionDailyPosts.astro';
+import {promotionReviewDays} from '../../db/promotion-review-days';
+import { readPromotionContext } from '../../db/promotion-pauses';
+import {promotionStateOn,promotionLabels} from '../../db/promotion-state.mjs';
+import { asc, desc, eq } from 'drizzle-orm';
+import { getDb } from '../../db/client';
+import {
+  operationsCategory,
+  operationsContent,
+  operationsContentSchedule,
+  operationsContentVersion,
+  operationsPromotionCampaign,
+  operationsPromotionDailyMetric,
+  operationsPromotionStage,
+  operationsPromotionTimelineAudit,
+  operationsSubject,
+} from '../../db/schema';
+import {
+  shanghaiDateKey,
+} from '../../db/promotion-rules.mjs';
+
+export const prerender = false;
+
+const addDays = (dateKey: string, amount: number) => {
+  const date = new Date(`${dateKey}T00:00:00+08:00`);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return shanghaiDateKey(date);
+};
+const now=new Date();
+const today = shanghaiDateKey(now);
+const yesterday = addDays(today, -1);
+if(Astro.url.searchParams.get('view')==='stage'&&!Astro.url.searchParams.has('review')&&!Astro.url.searchParams.has('snapshot')){const target=new URL('/business/meeting-review',Astro.url);for(const key of ['from','to']){const value=Astro.url.searchParams.get(key);if(value)target.searchParams.set(key,value);}return Astro.redirect(target.pathname+target.search,302);}
+const activeView = ['history','stage'].includes(Astro.url.searchParams.get('view') ?? '') ? Astro.url.searchParams.get('view')! : 'daily';
+const isDateKey = (value: string | null): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+const requestedHistoryFrom = Astro.url.searchParams.get('from');
+const requestedHistoryTo = Astro.url.searchParams.get('to');
+const historyTo = isDateKey(requestedHistoryTo) && requestedHistoryTo <= today ? requestedHistoryTo : '';
+const historyFrom = isDateKey(requestedHistoryFrom) && requestedHistoryFrom <= (historyTo||today)
+  ? requestedHistoryFrom
+  : '';
+const historyQuery = (Astro.url.searchParams.get('q') ?? '').trim();
+const historyStatus = Astro.url.searchParams.get('status') ?? '';
+const historyMode = Astro.url.searchParams.get('mode') === 'day' ? 'day' : 'post';
+const selectedCampaignId = Astro.url.searchParams.get('campaign');
+const statusLabels = {...promotionLabels,none:'已转非推广'};
+let timelineRows:Awaited<ReturnType<typeof readPromotionTimeline>>=[];
+let databaseError = '';
+let timelineAudits:(typeof operationsPromotionTimelineAudit.$inferSelect)[]=[];
+let promotionContext: Awaited<ReturnType<typeof readPromotionContext>> = { meetingDecisions:[], stateChanges: [], pauses: [], targets: [], holds: [], waitRanges: [], campaigns: [], metrics: [] };
+
+
+let campaigns: Array<{
+  id: string;
+  scheduleId: string;
+  startedOn: string;
+  initialStage: string;
+  endedOn: string | null;
+  currentStage: string | null;
+  currentStatus: string;
+  contentName: string;
+  versionNumber: number;
+  subjectName: string;
+  categoryName: string | null;
+  contentId: string;
+  platformNoteId: string | null;
+}> = [];
+let stages: Array<{
+  id: string;
+  campaignId: string;
+  stageType: string;
+  startedOn: string;
+  endedOn: string | null;
+  outcome: string | null;
+}> = [];
+let metrics: Array<{
+  id: string;
+  campaignId: string;
+  metricDate: string;
+  dailyStatus: string;
+  stageTypeSnapshot: string;
+  actualStatusSnapshot: string | null;
+  recordKind: string;
+  sourceStageStartedOn: string | null;
+  spend: string;
+  clickRate: string | null;
+  platformOpenCount: number;
+  actualOpenCount: number;
+  platformLeadCount: number;
+  actualLeadCount: number;
+  reviewDecision: string;
+  note: string | null;
+}> = [];
+
+const databaseStartedAt = performance.now();
+try {
+  if (activeView !== 'stage') {
+  const database = getDb();
+  [campaigns, stages, metrics, promotionContext,timelineAudits] = await Promise.all([database.select({
+    id: operationsPromotionCampaign.id,
+    scheduleId: operationsPromotionCampaign.scheduleId,
+    startedOn: operationsPromotionCampaign.startedOn,
+    initialStage: operationsPromotionCampaign.initialStage,
+    endedOn: operationsPromotionCampaign.endedOn,
+    currentStage: operationsPromotionCampaign.currentStage,
+    currentStatus: operationsPromotionCampaign.currentStatus,
+    contentName: operationsContentVersion.contentName,
+    versionNumber: operationsContentVersion.versionNumber,
+    subjectName: operationsSubject.name,
+    categoryName: operationsCategory.name,
+    contentId: operationsContent.id,
+    platformNoteId: operationsContent.platformNoteId,
+  }).from(operationsPromotionCampaign)
+    .innerJoin(operationsContentSchedule, eq(operationsPromotionCampaign.scheduleId, operationsContentSchedule.id))
+    .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+    .innerJoin(operationsContent, eq(operationsContentVersion.contentId, operationsContent.id))
+    .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
+    .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
+    .orderBy(asc(operationsPromotionCampaign.startedOn), asc(operationsContentVersion.contentName)),
+  database.select({
+    id: operationsPromotionStage.id,
+    campaignId: operationsPromotionStage.campaignId,
+    stageType: operationsPromotionStage.stageType,
+    startedOn: operationsPromotionStage.startedOn,
+    endedOn: operationsPromotionStage.endedOn,
+    outcome: operationsPromotionStage.outcome,
+  }).from(operationsPromotionStage)
+    .innerJoin(operationsPromotionCampaign, eq(operationsPromotionStage.campaignId, operationsPromotionCampaign.id))
+    .orderBy(asc(operationsPromotionStage.startedOn)),
+  database.select({
+    id: operationsPromotionDailyMetric.id,
+    campaignId: operationsPromotionDailyMetric.campaignId,
+    metricDate: operationsPromotionDailyMetric.metricDate,
+    dailyStatus: operationsPromotionDailyMetric.dailyStatus,
+    stageTypeSnapshot: operationsPromotionDailyMetric.stageTypeSnapshot,
+    actualStatusSnapshot: operationsPromotionDailyMetric.actualStatusSnapshot,
+    recordKind: operationsPromotionDailyMetric.recordKind,
+    sourceStageStartedOn: operationsPromotionDailyMetric.sourceStageStartedOn,
+    spend: operationsPromotionDailyMetric.spend,
+    clickRate: operationsPromotionDailyMetric.clickRate,
+    platformOpenCount: operationsPromotionDailyMetric.platformOpenCount,
+    actualOpenCount: operationsPromotionDailyMetric.actualOpenCount,
+    platformLeadCount: operationsPromotionDailyMetric.platformLeadCount,
+    actualLeadCount: operationsPromotionDailyMetric.actualLeadCount,
+    reviewDecision: operationsPromotionDailyMetric.reviewDecision,
+    note: operationsPromotionDailyMetric.note,
+  }).from(operationsPromotionDailyMetric)
+    .innerJoin(operationsPromotionCampaign, eq(operationsPromotionDailyMetric.campaignId, operationsPromotionCampaign.id))
+    .orderBy(asc(operationsPromotionDailyMetric.metricDate)),
+  readPromotionContext(database),
+  database.select().from(operationsPromotionTimelineAudit).orderBy(desc(operationsPromotionTimelineAudit.createdAt)),
+  ]) as [typeof campaigns, typeof stages, typeof metrics, typeof promotionContext,typeof timelineAudits];
+  timelineRows=await readPromotionTimeline(database,now);
+  campaigns = campaigns.map(campaign => {
+    if (!promotionContext.waitRanges.some(range => range.campaignId === campaign.id)) return campaign;
+    const state = promotionStateOn(campaign, promotionContext, today);
+    if (!state) return campaign;
+    stages = [...stages.filter(stage => stage.campaignId !== campaign.id), ...state.stages.map(stage => ({ ...stage, campaignId: campaign.id, id: `${campaign.id}:${stage.stageType}:${stage.startedOn}` }))];
+    return { ...campaign, currentStage: state.currentStage, currentStatus: state.currentStatus, endedOn: state.endedOn };
+  });
+
+} } catch (error) {
+  console.error('daily promotion review query failed', error);
+  databaseError = '推广日度数据暂时不可用。请确认开发库已经执行最新迁移。';
+}
+Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
+
+const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now);
+const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='metric'&&day.editable).length,0);
+const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId});
+const lifecycleRows=overview.filter(row=>!row.closed&&row.latest);
+const historyRows=overview.filter(row=>(!historyTo||row.startedOn<=historyTo)&&(!row.endedOn||row.endedOn>=historyFrom)&&(!historyQuery||row.post.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&(!historyStatus||row.status===historyStatus));
+const activeHistoryRows=historyRows.filter(row=>!row.closed),endedHistoryRows=historyRows.filter(row=>row.closed);
+const templateRows=overview.filter(row=>(activeView==='daily'?lifecycleRows:historyRows).includes(row)||activeView==='daily'&&reviewPosts.some(pending=>pending.row.scheduleId===row.scheduleId)||row.key===selectedCampaignId||row.metrics.some(metric=>metric.id===selectedCampaignId));
+const historyDayGroups=[...new Set(historyRows.flatMap(row=>row.metrics).filter(m=>m.metricDate>=historyFrom&&m.metricDate<=(historyTo||yesterday)).map(m=>m.metricDate))].sort().reverse().map(metricDate=>{
+ const rows=historyRows.flatMap(entry=>entry.metrics.filter(metric=>metric.metricDate===metricDate).map(metric=>({entry,metric})));
+ return {metricDate,rows,totals:promotionTotals(rows.map(r=>r.metric))};
+});
+const historyHref = (overrides: Record<string, string>) => {
+  const params = new URLSearchParams({
+    view: 'history',
+    mode: historyMode,
+    from: historyFrom,
+    to: historyTo,
+    ...(historyQuery ? { q: historyQuery } : {}),
+    ...(historyStatus ? { status: historyStatus } : {}),
+    ...overrides,
+  });
+  return `?${params.toString()}`;
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="description" content="填写推广帖日度数据，查看测试与放量生命周期。" />
+    <title>Daily Promotion Review · 内容发布控制台</title>
+  </head>
+  <body>
+    <BusinessConsoleFrame active="daily-promotion">
+        <BusinessPromotionToolbar history={activeView==='history'} />
+
+        <main class="business-console-content">
+
+          {activeView === 'stage' && <BusinessPromotionStageView />}
+          {databaseError && <p class="notice" role="alert">{databaseError}</p>}
+
+          {activeView === 'daily' && <>
+          <section class="calendar-section" aria-labelledby="calendar-title">
+            <BusinessSectionHeader title="推广生命周期" headingId="calendar-title" contained/>
+            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
+          </section>
+          <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
+            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><Fragment slot="end"><button type="button" class="business-action-primary" data-save-all disabled={!pendingCount}>一键保存（{pendingCount}）</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
+            <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
+          </section>
+
+          </>}
+
+          {activeView === 'history' && <section class="history-workspace" aria-labelledby="history-title">
+            <div class="history-head"><a class="history-back" href="?view=daily">← 返回每日复盘</a>
+              <BusinessPageHeader title="推广历史总览" headingId="history-title" />
+              <form class="history-filters business-filter" method="get">
+                <input type="hidden" name="view" value="history" />
+                <input type="hidden" name="mode" value={historyMode} />
+                <label><span>开始日期</span><input type="date" name="from" value={historyFrom} max={historyTo||today} /></label>
+                <label><span>结束日期</span><input type="date" name="to" value={historyTo} max={today} /></label>
+                <label class="history-search"><span>帖子</span><input type="search" name="q" value={historyQuery} placeholder="搜索帖子名称" /></label>
+                <label><span>状态</span><select name="status">
+                  <option value="">全部状态</option>
+                  {Object.entries(statusLabels).map(([value, label]) => <option value={value} selected={historyStatus === value}>{label}</option>)}
+                </select></label>
+                <button type="submit" class="business-action-primary">查看</button>
+                <a href={`?view=history&mode=${historyMode}`}>重置范围</a>
+              </form>
+            </div>
+            <form class="history-mode-switch" method="get" data-history-mode-form>
+              <input type="hidden" name="view" value="history"/><input type="hidden" name="from" value={historyFrom}/><input type="hidden" name="to" value={historyTo}/><input type="hidden" name="q" value={historyQuery}/><input type="hidden" name="status" value={historyStatus}/>
+              <BusinessViewSwitch label="历史总览粒度" name="mode" value={historyMode} items={[{label:'帖子视角',value:'post'},{label:'日视角',value:'day'}]}/>
+            </form>
+            <div class="history-layout" data-inspector-host>
+              {historyMode==='post'?<div class="history-list">
+                <div class="promotion-history-active" data-history-group="unfinished">
+                  {activeHistoryRows.length?activeHistoryRows.map(entry=><BusinessPromotionSummary entry={entry} href={historyHref({campaign:entry.key})}/>):<p class="promotion-group-empty">当前筛选范围内没有尚未结束的帖子。</p>}
+                </div>
+                <details class="promotion-history-group" data-history-group="ended">
+                  <summary><h2>已结束推广<small>{endedHistoryRows.length} 篇</small></h2></summary>
+                  {endedHistoryRows.length?endedHistoryRows.map(entry=><BusinessPromotionSummary entry={entry} href={historyHref({campaign:entry.key})}/>):<p class="promotion-group-empty">当前筛选范围内没有已结束的帖子。</p>}
+                </details>
+              </div>:<div class="day-history">
+                {historyDayGroups.length>0&&<p class="promotion-table-hint">左右滑动查看全部指标</p>}
+                {!historyDayGroups.length&&<div class="empty-state">该范围内没有日度记录。</div>}
+                {historyDayGroups.map(group=><details class="day-group" data-day-group={group.metricDate}>
+                  <summary><h2>{group.metricDate}</h2><span>{group.rows.length} 条记录</span></summary>
+                  <BusinessPromotionDataTable rows={group.rows} showPost/>
+                </details>)}
+              </div>}
+              <BusinessInspector class="history-inspector" parameter="campaign" templates data-promotion-inspector />
+            </div>
+          </section>}
+          {activeView==='daily'&&<BusinessInspector parameter="campaign" templates data-inspector-overlay data-promotion-inspector/>}
+          {activeView!=='stage'&&templateRows.map(entry=><>
+            <template data-history-schedule={entry.scheduleId} data-inspector-template={entry.key}><BusinessPromotionDetails entry={entry} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>
+            {entry.metrics.map(metric=><template data-history-schedule={entry.scheduleId} data-inspector-template={metric.id}><BusinessPromotionDetails entry={entry} metric={metric} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId&&a.businessDate===metric.metricDate)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>)}
+          </>)}
+        </main>
+    </BusinessConsoleFrame>
+
+    <script>
+      import { getInspector } from '../../scripts/business-inspector';
+      import {businessConfirm} from '../../scripts/business-dialog';
+      const cleanInspector = (form:HTMLFormElement) => { const pane=form.closest<HTMLElement>('[data-inspector]'); if(pane)getInspector(pane).setClean(); };
+      import '../../scripts/promotion-daily-form';
+      const initializeHistoryEditors = () => {
+        document.querySelectorAll<HTMLButtonElement>('[data-edit-trigger]:not([data-history-edit-ready])').forEach((trigger) => {
+          const dialog = document.querySelector<HTMLDialogElement>(`[data-edit-dialog="${trigger.dataset.editTrigger}"]`);
+          if (!dialog) return;
+          trigger.dataset.historyEditReady = 'true';
+          trigger.addEventListener('click', () => dialog.showModal());
+          dialog.querySelectorAll<HTMLButtonElement>('[data-close-edit]').forEach((button) => button.addEventListener('click', () => dialog.close()));
+        });
+        document.querySelectorAll<HTMLFormElement>('[data-history-edit-form]:not([data-history-edit-ready])').forEach((form) => {
+          const message = form.querySelector<HTMLElement>('[data-edit-message]');
+          const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+          if (!message || !submit) return;
+          form.dataset.historyEditReady = 'true';
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const data = new FormData(form);
+            const decision = form.querySelector<HTMLSelectElement>('select[name="reviewDecision"]');
+            if (decision?.disabled) data.set('reviewDecision', decision.value);
+            const metricId = String(data.get('metricId'));
+            submit.disabled = true;
+            message.textContent = '正在保存修改…';
+            try {
+              let response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
+              let result = await response.json();
+              if (response.status === 409 && result.correctionRequired) {
+                if (!await businessConfirm(`${result.message}\n\n确认后，后续日期会重新回到待填队列。是否继续？`,{title:'确认历史影响',confirmLabel:'确认更正'})) {
+                  message.textContent = '已取消修改，原数据未变化。';
+                  return;
+                }
+                data.set('confirmCascade', 'true');
+                response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
+                result = await response.json();
+              }
+              if (response.ok) { cleanInspector(form); return window.location.reload(); }
+              message.textContent = result.message ?? '保存失败，请重试。';
+            } catch {
+              message.textContent = '无法连接服务，请稍后重试。';
+            } finally {
+              submit.disabled = false;
+            }
+          });
+        });
+      };
+      initializeHistoryEditors();
+      document.addEventListener('astro:page-load', initializeHistoryEditors);
+      document.addEventListener('business:inspector-render', initializeHistoryEditors);
+      const initializeCorrections = () => {
+      document.querySelectorAll<HTMLFormElement>('[data-note-id-correction]:not([data-correction-ready])').forEach((form) => { form.dataset.correctionReady='true'; form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const oldValue = form.querySelector<HTMLInputElement>('[data-old-note-id]')!.value;
+        const newValue = String(new FormData(form).get('platformNoteId') ?? '').trim().toLowerCase();
+        if (!await businessConfirm(`旧值：${oldValue}\n新值：${newValue}\n\n该帖子的全部版本与复盘都会同步。`,{title:'更正笔记 ID',confirmLabel:'确认更正',cancelLabel:'继续编辑'})) return;
+        const output = form.querySelector<HTMLOutputElement>('output')!; output.textContent = '正在更正…';
+        const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+        const result = await response.json();
+        if (response.ok) { cleanInspector(form); window.location.reload(); } else output.textContent = result.message ?? '更正失败。';
+      }); });
+      };
+      initializeCorrections();
+      document.addEventListener('astro:page-load', initializeCorrections);
+      document.addEventListener('business:inspector-render', initializeCorrections);
+    </script>
+  </body>
+</html>
+
+<style>
+.business-console-content{max-width:1488px;margin-inline:auto}
+
+.calendar-section :global(.business-section-header),.daily-section :global(.business-section-header){min-height:48px;box-sizing:border-box;padding:11px 16px;border-bottom:0}.review-residual-trigger{border:0;padding:0;margin-right:16px;background:none;color:var(--console-blue);font:400 13px/20px var(--console-font);cursor:pointer}
+
+.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);overflow:clip;container-type:inline-size}.daily-section{margin-top:24px}.calendar-section{margin-top:0}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-filters>a{padding:10px 0}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
+@media(max-width:600px){.history-head{padding:14px}.history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-search{grid-column:1/-1}.history-layout{padding:12px}.history-mode-switch{padding-inline:14px}}
+</style>

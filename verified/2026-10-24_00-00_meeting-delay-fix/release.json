@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "cf4c9912c191a06b2dd9f34037cc61c444bb8c0b",
+  "deploymentId": "dpl_HHMZb5vGJsqVnhyuJb1c5sBWuWCt",
+  "deploymentUrl": "https://qiuyun-frontend-npg6ij21m-opgobl1v-5358.vercel.app",
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "status": "READY",
+  "aliases": [
+    "qiuyun-frontend.vercel.app",
+    "qiuyun-frontend-opgobl1v-5358.vercel.app"
+  ],
+  "previousDeploymentId": "dpl_C1rv4b4Nk33kcpTsqShrxGHkdZzC",
+  "publicChecks": 76,
+  "matchingAssets": 55,
+  "databaseSchemaMigration": false,
+  "authorizedDelayCleanup": true,
+  "fictionalProductionWrites": false
+}

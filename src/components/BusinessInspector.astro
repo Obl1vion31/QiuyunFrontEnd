@@ -1,0 +1,36 @@
+---
+interface Props { class?: string; label?: string; parameter?: string; templates?: boolean; [key: string]: unknown }
+const { class: className = '', label = '帖子详情', parameter, templates = false, ...attributes } = Astro.props;
+---
+<aside {...attributes} class:list={['business-inspector', className]} data-inspector data-inspector-parameter={parameter} data-inspector-templates={templates || undefined} tabindex="-1" aria-label={label} hidden><slot /></aside>
+<script>import '../scripts/business-inspector';</script>
+<style is:global>
+.business-inspector[data-inspector]{box-sizing:border-box;position:sticky;top:calc(var(--console-toolbar-height) + 20px);inset-inline-end:auto;align-self:start;flex:none;display:flex;flex-direction:column;width:0;height:var(--inspector-height,calc(100dvh - var(--console-toolbar-height) - 40px));max-height:calc(100dvh - var(--console-toolbar-height) - 40px);margin:0;overflow:hidden;border:0;border-radius:15px;background:#f9faf8;opacity:0;transform:translateX(18px);z-index:16;font-family:var(--console-font);line-height:1.4}
+.business-inspector[data-inspector][hidden],.business-inspector[data-inspector] [hidden]{display:none!important}
+.business-inspector[data-inspector].is-open{width:338px;overflow:hidden;opacity:1;transform:none;box-shadow:inset 0 0 0 1px #d0d6d2,0 14px 42px #10243e13}
+.business-inspector[data-inspector][data-closing]{pointer-events:none}
+@media(min-width:1241px){[data-inspector-host]>.business-inspector[data-inspector]:not([data-inspector-overlay]).is-open>:is(header,[data-inspector-body],footer){box-sizing:border-box;width:338px;min-width:338px}}
+.business-inspector[data-inspector]>header{position:relative;flex:none;top:auto;z-index:2;display:flex;justify-content:space-between;align-items:start;gap:12px;margin:0;padding:16px 17px;border-bottom:1px solid #dce1de;background:#f9faf8}
+.business-inspector[data-inspector]>header h1,.business-inspector[data-inspector]>header h2{margin:5px 0;font-size:18px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.business-inspector[data-inspector]>header p{margin:5px 0;color:#68736d;font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.business-inspector[data-inspector]>header [data-close-inspector]{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:8px;color:#53615a;background:#e4e9e6;font:22px/1 var(--console-font);text-decoration:none;cursor:pointer}
+[data-inspector-host][data-inspector-host]{display:flex;align-items:start;gap:16px;min-width:0}[data-inspector-host]>:first-child{flex:1;min-width:0}
+[data-inspector-host]:not(.inspecting){gap:0}
+.business-inspector[data-inspector]>[data-inspector-body]{flex:1 1 auto;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.business-inspector [data-inspector-loading]{position:absolute;inset:70px 0 0;z-index:8;display:flex;align-items:center;justify-content:center;gap:10px;background:#f9faf8f2;font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.business-inspector [data-inspector-error]{padding:12px;color:#9a3e32;font-size:12px}
+.business-inspector[data-inspector] :is(p,small,summary){font-family:var(--console-font);font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.business-inspector[data-inspector] :is(.identity-panel>label,.correction summary,.full-id button,.note-id-correction summary){font-family:var(--console-font);font-size:var(--console-caption);line-height:var(--console-caption-leading)}
+.business-inspector[data-inspector] .business-form label{font-size:var(--console-text);line-height:var(--console-text-leading)}
+.business-inspector[data-inspector]>footer.business-inspector-actions{position:relative;flex:none;bottom:auto;display:grid;gap:8px;margin:0;padding:12px 17px;border-top:1px solid var(--console-line);background:#f9faf8f2;backdrop-filter:blur(14px)}
+.business-inspector-actions>div{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px}
+.business-inspector[data-inspector] :is(.business-action-primary,.business-action-secondary),.business-inspector[data-inspector] :where(.business-inspector-actions) button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;height:var(--console-control-height);min-height:var(--console-control-height);margin:0;padding:0 12px;border:1px solid var(--console-line);border-radius:var(--console-control-radius);color:var(--console-ink);background:var(--console-surface);font:500 var(--console-text)/var(--console-text-leading) var(--console-font);cursor:pointer}
+.business-inspector[data-inspector] .business-action-primary{border-color:var(--console-blue);color:#fff;background:var(--console-blue)}
+.business-inspector[data-inspector] .business-inspector-actions button:disabled{opacity:.6;cursor:default}
+.business-inspector[data-inspector] .business-inspector-actions button:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+.business-inspector-actions>span{color:var(--console-muted);font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font);text-align:center}
+.business-inspector[data-inspector][data-inspector-overlay].is-open{position:fixed;inset:calc(var(--console-toolbar-height) + 20px) 24px 20px auto;width:338px;height:calc(100dvh - var(--console-toolbar-height) - 40px);max-height:calc(100dvh - var(--console-toolbar-height) - 40px)}
+@media(max-width:1240px){.business-inspector[data-inspector].is-open,.business-inspector[data-inspector][data-inspector-overlay].is-open{position:fixed;inset:var(--console-toolbar-height) 0 0 auto;width:min(380px,100%);max-height:none;height:calc(100dvh - var(--console-toolbar-height));max-height:calc(100dvh - var(--console-toolbar-height));border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}}
+@media(max-width:900px){.business-inspector[data-inspector].is-open,.business-inspector[data-inspector][data-inspector-overlay].is-open{inset:var(--console-toolbar-height) 0 66px;width:100%;height:calc(100dvh - var(--console-toolbar-height) - 66px);max-height:calc(100dvh - var(--console-toolbar-height) - 66px);border:0;border-radius:0}}
+@media(prefers-reduced-motion:reduce){.business-inspector[data-inspector]{transition:none;transform:none}}
+</style>

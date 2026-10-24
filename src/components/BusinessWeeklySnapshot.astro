@@ -1,0 +1,35 @@
+---
+import {PromotionCards,NonPromotionCards} from './WeeklyReviewCards';
+import '../styles/meeting-weekly.css';
+const {snapshot,postReferences={}}=Astro.props;
+const {generated={},draft={},meeting={}}=snapshot;
+const summary=generated.summary??{};
+const stage=snapshot.finalizationStage;
+const decisions={...draft.promotionDecisions,...Object.fromEntries((generated.meetingDecisions??[]).map((d:any)=>[d.campaignId,d.targetStatus]))};
+const money=(v:number|null)=>v==null?'—':`¥${Number(v).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+---
+<article class="weekly-frozen" data-meeting-snapshot data-weekly-snapshot>
+ <section class="weekly-paper weekly-results" aria-label="本期结果">
+  <header><div><h2>本期结果</h2><p>本期全部实际跑量</p></div><span class:list={['weekly-final-stage',{post:stage==='post'}]}>{stage==='pre'?'会前定稿':stage==='post'?'会后定稿':'历史定稿'}</span></header>
+  <div class="weekly-summary"><div><span>实际跑量帖子</span><strong>{summary.posts??'—'}<small>篇</small></strong></div><div><span>本期总消耗</span><strong>{money(summary.spend)}</strong></div><div><span>实际开口成本</span><strong>{money(summary.actualOpenCost)}</strong></div><div><span>实际留资成本</span><strong>{money(summary.actualLeadCost)}</strong></div></div>
+  <div class="weekly-takeaways"><div class="weekly-core-conclusion"><h3>核心结论</h3><p>{draft.coreConclusion||'尚未填写'}</p></div><div class="weekly-next-action"><h3>下一步行动</h3><p>{draft.nextAction||(stage==='pre'?'待会中确定':'尚未填写')}</p>{stage==='pre'?<small>拟议安排 · 尚未生效</small>:stage==='post'&&snapshot.decisionEffectiveOn&&<small>已定安排 · 从 {snapshot.decisionEffectiveOn} 起</small>}</div></div>
+ </section>
+ <section class="weekly-frozen-cards" aria-label="推广帖阶段复盘">
+  <header class="weekly-section-heading"><h2>推广帖阶段复盘</h2><span>{generated.promotions?.length??0} 个阶段</span></header>
+  <PromotionCards rows={generated.promotions??[]} inputs={draft.promotionInputs??{}} decisions={decisions} effectiveOn={snapshot.decisionEffectiveOn} decisionStage={stage} postReferences={postReferences} readonly/>
+  {!generated.promotions?.length&&<p class="weekly-empty">本次未选推广阶段</p>}
+ </section>
+ <section class="weekly-frozen-cards" aria-label="非推广帖复盘">
+  <header class="weekly-section-heading"><h2>非推广帖复盘</h2><span>{(generated.nonPromotions??[]).filter((r:any)=>!r.comparisonOnly).length} 个节点</span></header>
+  <NonPromotionCards rows={generated.nonPromotions??[]} postReferences={postReferences} readonly/>
+  {generated.excludedNonPromotions?.length>0&&<details class="weekly-source"><summary>本期不复盘（{generated.excludedNonPromotions.length} 项）</summary>{generated.excludedNonPromotions.map((n:any)=><p>{n.contentName} · {n.checkpointType==='day_7'?'首轮':'二轮'} · {n.reason}</p>)}</details>}
+  {!generated.nonPromotions?.length&&<p class="weekly-empty">本次未选非推广节点</p>}
+ </section>
+ <section class="weekly-paper weekly-support" aria-label="补充分析与事项">
+  <header><h2>补充分析与事项</h2></header>
+  <div class="weekly-writing-grid">{[['衡量情况',draft.situation],['本期具体动作',draft.strategy]].map(([title,value])=><div><h3>{title}</h3><p>{value||'尚未填写'}</p></div>)}</div>
+  <h3>事项跟进</h3><div class="weekly-table-wrap"><table class="weekly-table"><thead><tr><th>问题</th><th>解决方案</th><th>进度</th><th>是否已解决</th></tr></thead><tbody>{draft.issues?.map((i:any)=><tr><td>{i.problem}</td><td>{i.conclusion||'—'}</td><td>{{pending:'待解决',validating:'进行中',resolved:'已解决',paused:'暂缓'}[i.status as string]}</td><td>{i.status==='resolved'?'是':'否'}</td></tr>)}{!draft.issues?.length&&<tr><td colspan="4">本期无跟进事项</td></tr>}</tbody></table></div>
+ </section>
+ {!!(draft.temporaryNotes||draft.temporaryLinks?.length||generated.attachments?.length)&&<section class="weekly-paper"><header><h2>历史补充材料</h2></header><p>{draft.temporaryNotes||'尚未填写'}</p>{draft.temporaryLinks?.map((l:any)=><p><a href={l.url} target="_blank" rel="noreferrer">{l.label||l.url}</a></p>)}<div class="weekly-images">{generated.attachments?.map((a:any)=><a href={`/api/meeting-attachments/${a.id}`}><img src={`/api/meeting-attachments/${a.id}`} alt={a.name}/></a>)}</div></section>}
+ <div class="weekly-frozen-links"><a href={`/business/operations-schedule?month=${meeting.periodStart?.slice(0,7)}`}>查看内容发布排期 ↗</a></div>
+</article>

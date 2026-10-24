@@ -1,0 +1,42 @@
+# `src/db/` 数据库层
+
+- `schema.ts`：学科分类、年度规划、帖子、内容版本和发布排期的表、字段、关系与索引。
+- `client.ts`：服务端惰性 PostgreSQL 连接；不得被客户端脚本导入。
+- `validation.ts`：新增与编辑共用的枚举、上海时区时间解析和 2 小时延期规则。
+- `schedule-rules.mjs`：2 小时催登记、新旧统一判定延期、逐日边界与发布状态的共享纯规则。
+- `schedule-workflow.ts`：改期申请、审批、历史计时段、逐日理由、历史补齐与团队提醒；所有写入共用排期事务锁。
+- `non-promotion-workflow.ts`：节点跳过／恢复事件及并发检查，复用真实复盘顺序，不生成指标占位。
+- `promotion-state.mjs`：排期、日度、历史共用的业务状态、整日暂停窗口、复盘日期与阶段天数。
+- `promotion-pauses.ts`：共用上下文、事务锁及旧团队暂停历史兼容；团队暂停写入已移除。
+- `annual-plan.ts`：年度分区规划行、时间块、行级链接、快照和差异校验。
+- `annual-plan-storage.ts`：年度写入事务锁与批量跨年复制，保护已有目标配置。
+- `annual-plan-rules.mjs`：半月范围、旧快照兼容、深浅分段和自动总规划汇总，可由 Node 测试直接复用。
+
+迁移由根目录 `drizzle.config.ts` 和 `drizzle/` 管理。新做帖建立 V0，改帖从来源版本派生 V1/V2；排期关联具体内容版本。总周期规划独立保存年度说明、细致规划行、多时间块和不可变版本快照，不自动生成排期；自动总规划在查询时由启用细致规划计算，不另存为可编辑事实。年度规划初始化为 V0，第一次真实业务修改进入 V1。月份从 `planned_publish_at` 按 `Asia/Shanghai` 推导，不重复落库。推广状态独立保存，非推广帖必须保持 `none`；完成状态只由应发、实发时间与 2 小时阈值归一化为 `pending`、`on_time` 或 `delayed`。任何连接串、密码或真实员工隐私数据都不得写入本目录。
+
+账号表使用 `auth_` 前缀，用户角色、会话和限流与业务事实分开保存。`client.ts` 提供本机／Neon 共用的可关闭连接与惰性共享连接，调整单地址连接尝试时限，测试通过显式连接串使用隔离库。
+
+- `promotion-wait-ranges.ts`：逐帖待定区间、次日生效计划、并发版本与历史级联保护。
+- `promotion-stage-reviews.ts`：自选区间测试／放量聚合、缺口和来源事实、不可变 V0/V1+ 快照。
+- `meeting-snapshots.ts`：旧 v2/v3 例会兼容与通用草稿校验；`meeting-weekly-material.ts`：v4 周例会的实际日期候选、跨期阶段、基准、来源指纹及二轮首轮对照。
+- `promotion-daily-write.ts`：单条／批量共用事务写入，批量入口统一先验指纹和共享 ID，任何错误整批回滚。
+
+- `publication-workflow.ts`：统一发布登记、帖子链接和按操作授权的时间更正事务；`publication-rules.mjs` 维护发布状态及历史空链接边界，旧预约只保留历史。
+
+`publication-link.mjs` 在前后端共用分享文案识别，不请求小红书；旧预约表保留只读历史，写入接口已停用。
+
+- `business-approvals.ts`：逐操作授权、待审变更、原入口事务预检与原子审核；`proposal-diff.ts` 输出业务字段差异，不公开账号凭据。
+
+- `promotion-timeline.ts`：首次待定、首次测试／直接放量、实际当日暂停和历史开始日／阶段更正；以业务日期回放，指纹、幂等与事务锁保护，冲突指标归档在前后快照中。`schedule-approvals.ts` 统一排期待审的新旧申请读模型。
+
+`promotion-pending.ts` 是无数据库依赖的待办展示模型：从已有首次计划／暂停区间推导连续状态、含当天的截止日及 T+1 目标日与是否到期；不写库、不延长截止日、不创建零指标。
+
+`promotion-overview.ts` 仅从既有活动、阶段、暂停窗口与日度事实生成生命周期读模型，不另存汇总。按排期版本去重、按阶段快照计算五项累计与两项成本，缺失不补零；不改变阶段复盘的不可变快照口径。
+
+`promotion-audit-view.ts` 只读分类初始化／首次安排、业务更正、技术维护与未确认类别，生成具体前后状态。技术和未确认类别不自动进入业务历史，原始审计不删改；新增不明确类别须先确认。
+
+`promotion-review-days.ts` 负责未完成日期与今天预览、T+1 开放和顺序锁；不写入指标。
+
+`promotion-successors.mjs` 为前后端共享的实际状态／次日安排目录；`promotion-replay.mjs` 分离精确状态事件与指标事实，残留不推动生命周期。日度事实以 `recordKind` 和 `sourceStageStartedOn` 关联稳定原阶段，旧行仍可读取；新暂停／待定逐日规则从活动的 `dailyReviewEnabledOn` 启用，不补造历史零值。迁移 `0036` 只在隔离库验证，发布时另行授权执行。
+
+`schedule-delay-cleanup.ts` 在改期／实发更正的原事务内清理失效原因与结构化副本；最新排期之外不计延期。`meeting-note-ids.ts` 独立读取逻辑帖子 ID，不进入例会材料或冻结快照。

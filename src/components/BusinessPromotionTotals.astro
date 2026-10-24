@@ -1,0 +1,7 @@
+---
+import type {PromotionTotals} from '../db/promotion-overview';
+interface Props {totals:PromotionTotals}
+const {totals}=Astro.props;
+const fields=[['spend','消耗',true],['platformOpenCount','平台开口',false],['actualOpenCount','实际开口',false],['platformLeadCount','平台留资',false],['actualLeadCount','实际留资',false],['actualOpenCost','实际开口成本',true],['actualLeadCost','实际留资成本',true]] as const;
+---
+<dl class="promotion-totals">{fields.map(([key,label,money])=><div data-total={key}><dt>{label}</dt><dd>{totals[key]==null?'—':money?`¥${totals[key]!.toFixed(2)}`:totals[key]}</dd></div>)}</dl>

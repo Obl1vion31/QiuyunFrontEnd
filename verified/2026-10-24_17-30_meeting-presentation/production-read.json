@@ -1,0 +1,22 @@
+{
+  "draft": true,
+  "frozen": false,
+  "nonPromotionCards": 7,
+  "overflow": false,
+  "promotionCards": 5,
+  "saveButtons": 1,
+  "titleReferences": 12,
+  "url": "https://qiuyun-frontend.vercel.app/business/meeting-review?meeting=fcf8c102-8e50-44b0-8e70-717a4b258acf",
+  "viewport": {
+    "height": 983,
+    "width": 1728
+  },
+  "reference": {
+    "insideCard": true,
+    "labels": [
+      "项目文档 ↗",
+      "小红书帖子 ↗"
+    ],
+    "visible": true
+  }
+}

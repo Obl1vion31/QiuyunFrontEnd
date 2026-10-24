@@ -1,0 +1,266 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/misans@5.0.0/lib/Normal/MiSansVF.min.css">
+<div id="rv-proposal" class="viz-dotted-background" aria-label="复盘页面视觉方向示意">
+  <div class="rv-fonts" aria-label="字体对照">
+    <section class="rv-font-sample rv-system">
+      <div class="rv-sample-label">系统界面字体</div>
+      <h2>推广生命周期</h2>
+      <p class="rv-sample-name">内容名称 <small>V1 · 帖子分类</small></p>
+      <p>测试第 2 天 · 消耗 ¥200.00</p>
+      <p class="rv-helper">数据日期 2026-10-20　尚无复盘</p>
+      <button class="rv-primary" type="button">完成复盘</button>
+    </section>
+    <section class="rv-font-sample rv-misans">
+      <div class="rv-sample-label">MiSans <span data-font-status>字体加载中</span></div>
+      <h2>推广生命周期</h2>
+      <p class="rv-sample-name">内容名称 <small>V1 · 帖子分类</small></p>
+      <p>测试第 2 天 · 消耗 ¥200.00</p>
+      <p class="rv-helper">数据日期 2026-10-20　尚无复盘</p>
+      <button class="rv-primary" type="button">完成复盘</button>
+    </section>
+  </div>
+
+  <div class="rv-product" aria-label="推广复盘排版">
+    <header class="rv-toolbar"><h1>推广帖复盘</h1><span>布局示例</span></header>
+    <div class="rv-canvas">
+      <section class="rv-panel" aria-label="推广生命周期">
+        <header class="rv-section-head"><h2>推广生命周期</h2><span class="rv-helper" data-stage-count>5 篇 · 测试 3 · 放量 1 · 暂停 1</span></header>
+        <div class="rv-overview-labels rv-overview-grid" aria-hidden="true"><span>内容名称</span><span>阶段轨迹</span><span>当前状态</span><span>详情</span></div>
+        <div data-overview-rows></div>
+      </section>
+      <section class="rv-panel" aria-label="每日复盘">
+        <header class="rv-section-head"><h2>每日复盘</h2><span class="rv-helper" data-ready-count>待填写 3 项</span></header>
+        <div class="rv-empty" data-empty hidden>今日暂无待填写复盘</div>
+        <div data-ready-rows></div>
+        <details class="rv-upcoming">
+          <summary><span>待开放 5 项</span><span class="rv-helper">最早于 10/22 00:00 开放</span><span class="rv-link rv-summary-action">查看</span></summary>
+          <div class="rv-open-group"><div class="rv-opening-time">10/22 00:00 开放</div><div data-upcoming-rows></div></div>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <div class="rv-product rv-non" aria-label="非推广复盘汇总排版">
+    <header class="rv-toolbar"><h1>非推广复盘</h1><span>分类汇总示例</span></header>
+    <div class="rv-canvas">
+      <div class="rv-filter-row">
+        <label>学科<select data-subject><option value="all">全部学科</option><option value="a">示例学科 A</option><option value="b">示例学科 B</option></select></label>
+        <label>帖子分类<select data-category><option>全部帖子分类</option><option>示例长名称帖子分类</option></select></label>
+        <div class="rv-view-control"><span>展示方式</span><div class="rv-segment" role="group" aria-label="展示方式"><button type="button" aria-pressed="true" data-display="group">按帖子分类</button><button type="button" aria-pressed="false" data-display="flat">平铺</button></div></div>
+      </div>
+      <section class="rv-panel rv-result-panel" aria-label="分类汇总结果" aria-busy="false">
+        <div class="rv-reading" hidden role="status"><span class="rv-spinner"></span>正在更新</div>
+        <div data-category-table></div>
+      </section>
+    </div>
+  </div>
+</div>
+<style>
+#rv-proposal{--rv-font:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif;--rv-selected-font:var(--rv-font);--rv-ink:#242a34;--rv-muted:#667080;--rv-line:#e5e7eb;--rv-blue:#315fd6;--rv-bg:#f6f7f9;--rv-paper:#fff;--rv-test:#c18d16;--rv-test-bg:#fff6dc;--rv-scale:#348866;--rv-scale-bg:#e9f5ee;--rv-pause:#88919e;--rv-pause-bg:#edf0f3;display:grid;gap:24px;padding:0;font:400 14px/1.55 var(--rv-font);color:var(--rv-ink);color-scheme:light}
+#rv-proposal *{box-sizing:border-box}
+#rv-proposal [hidden]{display:none!important}
+#rv-proposal :is(button,input,select){font-family:inherit;font-size:14px;line-height:20px}
+#rv-proposal :is(button,select){cursor:pointer}
+#rv-proposal button{font-weight:500}
+#rv-proposal h1,#rv-proposal h2,#rv-proposal p{margin:0}
+#rv-proposal h1{font-size:24px;font-weight:600;line-height:32px;letter-spacing:0}
+#rv-proposal h2{font-size:18px;font-weight:600;line-height:26px}
+#rv-proposal .rv-helper,#rv-proposal small{font-size:12px;font-weight:400;color:var(--rv-muted);line-height:18px}
+#rv-proposal .rv-fonts{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#rv-proposal .rv-font-sample{padding:20px;border:1px solid var(--rv-line);border-radius:10px;background:var(--rv-paper);font-variant-numeric:tabular-nums}
+#rv-proposal .rv-system{font-family:var(--rv-font)}
+#rv-proposal .rv-misans{font-family:"MiSans VF",var(--rv-font)}
+#rv-proposal .rv-sample-label{font-size:12px;color:var(--rv-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+#rv-proposal [data-font-status]{font-size:11px}
+#rv-proposal .rv-font-sample h2{font-size:24px;line-height:32px}
+#rv-proposal .rv-font-sample p{margin-top:8px}
+#rv-proposal .rv-font-sample .rv-sample-name{font-size:15px;font-weight:500;margin-top:14px}
+#rv-proposal .rv-font-sample .rv-primary{margin-top:16px}
+#rv-proposal .rv-product{background:var(--rv-bg);border:1px solid var(--rv-line);border-radius:10px;min-width:0;overflow:clip;font-family:var(--rv-selected-font)}
+#rv-proposal .rv-toolbar{min-height:68px;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--rv-paper);border-bottom:1px solid var(--rv-line)}
+#rv-proposal .rv-toolbar>span{font-size:12px;color:var(--rv-muted);white-space:nowrap}
+#rv-proposal .rv-canvas{padding:24px;display:grid;gap:24px;min-width:0}
+#rv-proposal .rv-panel{background:var(--rv-paper);border:1px solid var(--rv-line);border-radius:10px;min-width:0;overflow:clip;container-type:inline-size}
+#rv-proposal .rv-section-head{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#rv-proposal .rv-overview-grid{display:grid;grid-template-columns:minmax(140px,220px) minmax(160px,1fr) 128px 72px;gap:12px;align-items:center;padding:0 16px}
+#rv-proposal .rv-overview-labels{height:28px;font-size:12px;color:var(--rv-muted);border-bottom:1px solid var(--rv-line)}
+#rv-proposal .rv-overview-labels>span:last-child{text-align:right}
+#rv-proposal .rv-overview-row{min-height:60px;border-bottom:1px solid var(--rv-line)}
+#rv-proposal .rv-overview-item:last-child .rv-overview-row{border-bottom:0}
+#rv-proposal .rv-overview-row strong{display:block;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rv-proposal .rv-overview-name{min-width:0}
+#rv-proposal .rv-overview-name small{display:block}
+#rv-proposal .rv-track{display:flex;align-items:center;gap:0;white-space:nowrap;font-size:12px;min-width:0}
+#rv-proposal .rv-track-stage{display:flex;align-items:center;gap:4px;color:var(--rv-muted)}
+#rv-proposal .rv-dot{width:6px;height:6px;border-radius:50%;display:inline-block;background:var(--rv-phase);opacity:.55;flex:none}
+#rv-proposal .rv-track-stage.current{color:var(--rv-ink)}
+#rv-proposal .rv-track-stage.current .rv-dot{width:8px;height:8px;opacity:1}
+#rv-proposal .rv-line{width:16px;min-width:8px;height:1px;background:#d9dee5;margin:0 5px}
+#rv-proposal .rv-test{--rv-phase:var(--rv-test);--rv-phase-bg:var(--rv-test-bg);--rv-phase-ink:#765609}
+#rv-proposal .rv-scale{--rv-phase:var(--rv-scale);--rv-phase-bg:var(--rv-scale-bg);--rv-phase-ink:#25694f}
+#rv-proposal .rv-pause{--rv-phase:var(--rv-pause);--rv-phase-bg:var(--rv-pause-bg);--rv-phase-ink:#5c6572}
+#rv-proposal .rv-state{font-size:13px;font-weight:500;white-space:nowrap}
+#rv-proposal .rv-state small{display:block;font-size:12px}
+#rv-proposal .rv-link{border:0;padding:0;background:transparent;color:var(--rv-blue);font-size:13px;font-weight:400;white-space:nowrap;text-align:right}
+#rv-proposal .rv-stage-flash{animation:rv-stage-emphasis .3s ease-out}
+@keyframes rv-stage-emphasis{from{box-shadow:0 0 0 5px var(--rv-test-bg)}to{box-shadow:0 0 0 0 transparent}}
+#rv-proposal .rv-history{padding:0 16px 16px}
+#rv-proposal .rv-history-table,#rv-proposal .rv-flat-table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+#rv-proposal :is(.rv-history-table,.rv-flat-table) :is(th,td){text-align:right;padding:8px;border-bottom:1px solid var(--rv-line);font-weight:400}
+#rv-proposal :is(.rv-history-table,.rv-flat-table) th{font-size:12px;color:var(--rv-muted);background:var(--rv-bg)}
+#rv-proposal :is(.rv-history-table,.rv-flat-table) :is(th,td):first-child{text-align:left}
+#rv-proposal .rv-review-record{border-top:1px solid var(--rv-line)}
+#rv-proposal .rv-record-summary{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:56px;padding:6px 16px;list-style:none;cursor:pointer}
+#rv-proposal summary::-webkit-details-marker{display:none}
+#rv-proposal .rv-date-block{display:flex;flex-direction:column;justify-content:center;align-items:center;width:44px;height:44px;border-radius:6px;background:var(--rv-phase-bg);color:var(--rv-phase-ink);font-size:12px;line-height:17px;font-variant-numeric:tabular-nums}
+#rv-proposal .rv-record-name{font-size:15px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rv-proposal .rv-record-name small{margin-left:8px}
+#rv-proposal .rv-record-body{padding:8px 16px 16px 72px}
+#rv-proposal .rv-metric-fields{display:grid;grid-template-columns:minmax(88px,1fr) minmax(174px,2fr) minmax(174px,2fr);gap:16px;align-items:start}
+#rv-proposal .rv-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0}
+#rv-proposal label{display:grid;gap:6px;font-size:13px;font-weight:400;min-width:0}
+#rv-proposal .rv-metric-fields label{white-space:nowrap;font-size:12px}
+#rv-proposal input,#rv-proposal select{height:38px;border:1px solid #d2d7de;border-radius:6px;background:#fff;color:var(--rv-ink);padding:8px 10px;min-width:0;max-width:100%}
+#rv-proposal input{width:100%;text-align:right;font-variant-numeric:tabular-nums}
+#rv-proposal .rv-cost-bar{display:flex;gap:12px 24px;flex-wrap:wrap;margin-top:12px;background:var(--rv-bg);padding:9px 12px;border-radius:6px;font-size:12px;color:#555f6d;font-variant-numeric:tabular-nums}
+#rv-proposal .rv-cost-bar b{font-weight:500;color:var(--rv-ink);font-size:14px;margin-left:8px}
+#rv-proposal .rv-form-footer{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:14px}
+#rv-proposal .rv-followup{display:flex;align-items:center;gap:8px;min-width:0;font-size:13px}
+#rv-proposal .rv-followup select{width:116px}
+#rv-proposal .rv-form-actions{display:flex;align-items:center;gap:16px}
+#rv-proposal .rv-primary{min-height:38px;padding:8px 16px;border:1px solid var(--rv-blue);border-radius:6px;background:var(--rv-blue);color:white;white-space:nowrap}
+#rv-proposal .rv-primary:disabled{opacity:.7;cursor:wait}
+#rv-proposal .rv-empty{padding:0 16px 8px;font-size:14px}
+#rv-proposal .rv-upcoming{border-top:1px solid var(--rv-line)}
+#rv-proposal .rv-upcoming>summary{display:flex;align-items:center;gap:10px;padding:12px 16px;list-style:none;font-size:13px;cursor:pointer;flex-wrap:wrap}
+#rv-proposal .rv-summary-action{margin-left:auto}
+#rv-proposal .rv-opening-time{padding:10px 16px;font-size:12px;color:var(--rv-muted);background:var(--rv-bg)}
+#rv-proposal .rv-upcoming-row{min-height:44px;padding:10px 16px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--rv-line);font-size:13px}
+#rv-proposal .rv-upcoming-row small{margin-left:auto}
+#rv-proposal .rv-filter-row{display:flex;align-items:end;flex-wrap:wrap;gap:12px 16px}
+#rv-proposal .rv-filter-row label:first-child select{width:142px}
+#rv-proposal .rv-filter-row label:nth-child(2) select{width:190px}
+#rv-proposal .rv-filter-row select{height:36px;padding:6px 30px 6px 10px}
+#rv-proposal .rv-view-control{display:grid;gap:6px;font-size:13px;margin-left:auto}
+#rv-proposal .rv-segment{display:flex;padding:3px;border-radius:7px;background:#e9edf3;min-height:36px}
+#rv-proposal .rv-segment button{border:0;background:transparent;color:var(--rv-muted);border-radius:5px;padding:3px 10px;font-size:13px;white-space:nowrap}
+#rv-proposal .rv-segment button[aria-pressed=true]{color:var(--rv-blue);background:#fff}
+#rv-proposal .rv-result-panel{position:relative;padding:0 16px}
+#rv-proposal .rv-category-row{display:grid;grid-template-columns:minmax(150px,1.15fr) minmax(200px,1fr) minmax(200px,1fr) 48px;gap:12px;align-items:center;min-height:56px;border-top:1px solid var(--rv-line);font-variant-numeric:tabular-nums}
+#rv-proposal .rv-category-row>strong{font-size:14px;font-weight:500;line-height:20px}
+#rv-proposal .rv-category-head{border-top:0;min-height:62px;font-size:12px;color:var(--rv-muted)}
+#rv-proposal .rv-round{display:grid;grid-template-columns:40px 1fr 1fr;gap:8px;align-items:center;text-align:right;min-width:0}
+#rv-proposal .rv-round-heading{display:grid;gap:6px}
+#rv-proposal .rv-round-heading>b{font-size:13px;font-weight:500;text-align:center;color:var(--rv-ink)}
+#rv-proposal .rv-round-heading .rv-round{font-size:12px;white-space:nowrap}
+#rv-proposal .rv-rate{font-size:15px;font-weight:500}
+#rv-proposal .rv-category-detail{padding:8px 0 14px}
+#rv-proposal .rv-reading{position:absolute;left:0;right:0;top:0;height:3px;overflow:hidden;background:#e4eafb;padding:0;border:0;font-size:0;z-index:2}
+#rv-proposal .rv-spinner{display:block;width:35%;height:3px;background:var(--rv-blue);animation:rv-load 1s ease-in-out infinite}
+@keyframes rv-load{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+#rv-proposal .rv-transition-body{animation:rv-expand .2s ease-out}
+@keyframes rv-expand{from{opacity:.25;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+@container(max-width:600px){#rv-proposal .rv-overview-grid{grid-template-columns:minmax(125px,1fr) minmax(145px,1.1fr) 105px 56px;gap:8px}#rv-proposal .rv-line{width:10px;margin:0 3px}#rv-proposal .rv-category-row{grid-template-columns:minmax(118px,1fr) 174px 174px 42px;gap:8px}#rv-proposal .rv-round{grid-template-columns:32px 1fr 1fr;gap:5px}#rv-proposal .rv-rate{font-size:14px}}
+@container(max-width:520px){#rv-proposal .rv-overview-labels{display:none}#rv-proposal .rv-overview-row{grid-template-columns:minmax(0,1fr) 105px 56px;gap:4px 10px;padding-top:10px;padding-bottom:10px}#rv-proposal .rv-overview-name{grid-column:1}#rv-proposal .rv-track{grid-column:1;grid-row:2}#rv-proposal .rv-state{grid-column:2;grid-row:1/3}#rv-proposal .rv-overview-row>.rv-link{grid-column:3;grid-row:1/3}#rv-proposal .rv-record-body{padding-left:16px}#rv-proposal .rv-metric-fields{grid-template-columns:1fr 1fr}#rv-proposal .rv-spend{grid-column:1/-1;max-width:180px}#rv-proposal .rv-form-footer{flex-wrap:wrap}#rv-proposal .rv-form-actions{flex:1;justify-content:flex-end}#rv-proposal .rv-category-row{grid-template-columns:minmax(0,1fr) 1fr;gap:10px;padding:10px 0}#rv-proposal .rv-category-row>strong{grid-column:1}#rv-proposal .rv-category-row>.rv-round{grid-row:2}#rv-proposal .rv-category-row>.rv-link{grid-column:2;grid-row:1}#rv-proposal .rv-category-head>span:first-child{grid-column:1/-1}#rv-proposal .rv-category-head .rv-round-heading{grid-row:2}#rv-proposal .rv-category-head>span:last-child{display:none}}
+@container(max-width:400px){#rv-proposal .rv-metric-fields{grid-template-columns:1fr}#rv-proposal .rv-spend{max-width:none}#rv-proposal .rv-pair{gap:12px}#rv-proposal .rv-round{grid-template-columns:30px 1fr 1fr;gap:4px}#rv-proposal .rv-category-row>.rv-round{font-size:12px}#rv-proposal .rv-rate{font-size:13px}}
+@media(max-width:540px){#rv-proposal .rv-fonts{grid-template-columns:1fr}#rv-proposal .rv-toolbar{padding:14px 16px}#rv-proposal .rv-toolbar h1{font-size:22px}#rv-proposal .rv-canvas{padding:12px;gap:16px}#rv-proposal .rv-filter-row label{flex:1;min-width:130px}#rv-proposal .rv-filter-row label select{width:100%!important}#rv-proposal .rv-view-control{margin-left:0}#rv-proposal .rv-font-sample{padding:16px}#rv-proposal input{font-size:16px}}
+@media(max-width:370px){#rv-proposal .rv-toolbar>span{display:none}#rv-proposal .rv-state{font-size:12px}#rv-proposal .rv-overview-row{grid-template-columns:minmax(0,1fr) 88px 52px}#rv-proposal .rv-metric-fields{grid-template-columns:1fr}#rv-proposal .rv-spend{max-width:none}#rv-proposal .rv-record-name small{display:block;margin:0}#rv-proposal .rv-form-actions{gap:10px}#rv-proposal .rv-form-footer{gap:12px}#rv-proposal .rv-category-row{grid-template-columns:1fr}#rv-proposal .rv-category-row>.rv-round{grid-row:auto}#rv-proposal .rv-category-row>.rv-link{grid-column:1}#rv-proposal .rv-category-head .rv-round-heading{grid-row:auto}}
+@media(prefers-reduced-motion:reduce){#rv-proposal *,#rv-proposal *::before,#rv-proposal *::after{animation:none!important;transition:none!important}}
+</style>
+<script>
+(() => {
+  const root=document.getElementById('rv-proposal');
+  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const settings={font:'system',scenario:'ready',phase:'test'};
+  const stages={test:{label:'测试',day:'测试第 2 天'},scale:{label:'放量',day:'放量第 1 天'},pause:{label:'暂停',day:'暂停第 1 天'}};
+  const names=['示例内容 A','示例内容 B','示例内容 C','示例内容 D','示例内容 E'];
+  let completed=new Set(),subjectTimer,loadingTimer,requestVersion=0;
+  const escape=(v)=>String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
+  const overview=root.querySelector('[data-overview-rows]');
+  function renderOverview(animate=false){
+    const allTest=settings.scenario==='empty';
+    const histories=allTest?[['test'],['test'],['test'],['test'],['test']]:[[...(settings.phase==='test'?['test']:settings.phase==='scale'?['test','scale']:['test','scale','pause'])],['test'],['test'],['test','scale'],['test','scale','pause']];
+    const counts={test:0,scale:0,pause:0};
+    overview.innerHTML=histories.map((history,i)=>{
+      const last=history.at(-1);counts[last]++;
+      const track=history.map((stage,index)=>`${index?'<span class="rv-line" aria-hidden="true"></span>':''}<span class="rv-track-stage rv-${stage} ${index===history.length-1?'current':''}"><i class="rv-dot ${animate&&i===0&&index===history.length-1?'rv-stage-flash':''}" aria-hidden="true"></i>${stages[stage].label}</span>`).join('');
+      return `<div class="rv-overview-item"><div class="rv-overview-grid rv-overview-row"><div class="rv-overview-name"><strong>${names[i]}</strong><small>V${i%2} · 示例分类</small></div><div class="rv-track" aria-label="${history.map(s=>stages[s].label).join('转为')}">${track}</div><div class="rv-state">${allTest?'测试第 1 天':stages[last].day}<small>${allTest||i===0?'尚无复盘':i===4?'已登记 3 天':'已登记 1 天'}</small></div><button type="button" class="rv-link" aria-expanded="false" data-detail="${i}">查看详情</button></div><div class="rv-history" hidden><table class="rv-history-table"><thead><tr><th>数据日期</th><th>当日状态</th><th>消耗</th><th>实际开口</th><th>实际留资</th></tr></thead><tbody><tr><td>2026-10-20</td><td>${stages[last].label}</td><td>—</td><td>—</td><td>—</td></tr></tbody></table></div></div>`;
+    }).join('');
+    root.querySelector('[data-stage-count]').textContent=`5 篇 · 测试 ${counts.test} · 放量 ${counts.scale} · 暂停 ${counts.pause}`;
+  }
+  function updateReadyCount(){const count=root.querySelectorAll('[data-ready-record]:not([hidden])').length;root.querySelector('[data-ready-count]').textContent=`待填写 ${count} 项`;root.querySelector('[data-empty]').hidden=count>0;}
+  function renderReady(){
+    const records=settings.scenario==='empty'?[]:[0,1,2].filter(i=>!completed.has(i));
+    root.querySelector('[data-ready-rows]').innerHTML=records.map((i,j)=>`<details class="rv-review-record" data-ready-record="${i}" ${j===0?'open':''}><summary class="rv-record-summary"><span class="rv-date-block rv-test"><span>10/20</span><span>测试</span></span><span class="rv-record-name">${names[i]}<small>V${i%2}</small></span><span class="rv-link" data-summary-label>${j===0?'收起':'展开填写'}</span></summary><form class="rv-record-body" data-metric-demo="${i}"><div class="rv-metric-fields"><label class="rv-spend">消耗（元）<input aria-label="消耗（元）" name="spend" type="number" min="0" step="0.01" placeholder="0.00" required></label><div class="rv-pair"><label>平台开口（人）<input aria-label="平台开口（人）" name="platformOpen" type="number" min="0" step="1" required></label><label>实际开口（人）<input aria-label="实际开口（人）" name="actualOpen" type="number" min="0" step="1" required></label></div><div class="rv-pair"><label>平台留资（人）<input aria-label="平台留资（人）" name="platformLead" type="number" min="0" step="1" required></label><label>实际留资（人）<input aria-label="实际留资（人）" name="actualLead" type="number" min="0" step="1" required></label></div></div><div class="rv-cost-bar" aria-live="polite"><span>实际开口成本<b data-open-cost>—</b></span><span>实际留资成本<b data-lead-cost>—</b></span></div><div class="rv-form-footer"><label class="rv-followup">后续动作<select aria-label="后续动作" required><option value="">请选择</option><option>继续测试</option><option>开始放量</option><option>暂停</option></select></label><div class="rv-form-actions"><button type="button" class="rv-link" data-edit-state>修改当日状态</button><button type="submit" class="rv-primary">完成复盘</button></div></div><div data-state-editor hidden><label class="rv-followup" style="margin-top:12px">当日状态<select aria-label="当日状态"><option>测试</option><option>暂停</option></select></label></div></form></details>`).join('');
+    const first=root.querySelector('[data-metric-demo]');
+    if(first){for(const [name,value]of Object.entries({spend:'200.00',platformOpen:'12',actualOpen:'10',platformLead:'6',actualLead:'5'}))first.querySelector(`[name=${name}]`).value=value;first.querySelector('[data-open-cost]').textContent='¥20.00／人';first.querySelector('[data-lead-cost]').textContent='¥40.00／人';}
+    updateReadyCount();
+  }
+  function renderUpcoming(){root.querySelector('[data-upcoming-rows]').innerHTML=names.map((name,i)=>`<div class="rv-upcoming-row"><span>${name}</span><small>V${i%2} · 数据日期 10/21</small></div>`).join('');}
+  function renderCategories(){
+    const subject=root.querySelector('[data-subject]').value;
+    const flat=root.querySelector('[data-display="flat"]').getAttribute('aria-pressed')==='true';
+    const categories=subject==='all'?['示例学科 A · 分类一','示例学科 A · 分类二','示例学科 B · 分类一']:[`示例学科 ${subject.toUpperCase()} · 分类一`,`示例学科 ${subject.toUpperCase()} · 分类二`];
+    const round=(head=false)=>head?'<div class="rv-round"><span>样本</span><span>点击率</span><span>3 秒阅读率</span></div>':'<div class="rv-round"><span>2 篇</span><span class="rv-rate">9.25%</span><span class="rv-rate">34.75%</span></div>';
+    root.querySelector('[data-category-table]').innerHTML=flat?`<table class="rv-flat-table"><thead><tr><th>帖子</th><th>轮次</th><th>点击率</th><th>3 秒阅读率</th></tr></thead><tbody>${names.slice(0,3).map(n=>`<tr><td>${n}</td><td>首轮</td><td>—</td><td>—</td></tr>`).join('')}</tbody></table>`:`<div class="rv-category-row rv-category-head"><span>帖子分类</span><div class="rv-round-heading"><b>首轮平均</b>${round(true)}</div><div class="rv-round-heading"><b>二轮平均</b>${round(true)}</div><span></span></div>${categories.map(name=>`<div><div class="rv-category-row"><strong>${name}</strong>${round()}${round()}<button type="button" class="rv-link" aria-expanded="false" data-category-detail>明细</button></div><div class="rv-category-detail" hidden><table class="rv-flat-table"><thead><tr><th>帖子</th><th>轮次</th><th>点击率</th><th>3 秒阅读率</th></tr></thead><tbody><tr><td>示例内容 A</td><td>首轮</td><td>—</td><td>—</td></tr></tbody></table></div></div>`).join('')}`;
+  }
+  function loadCategories(){
+    const version=++requestVersion;clearTimeout(subjectTimer);clearTimeout(loadingTimer);
+    const panel=root.querySelector('.rv-result-panel');panel.setAttribute('aria-busy','true');root.querySelector('.rv-reading').hidden=true;
+    loadingTimer=setTimeout(()=>{if(version===requestVersion)root.querySelector('.rv-reading').hidden=false;},300);
+    subjectTimer=setTimeout(()=>{if(version!==requestVersion)return;clearTimeout(loadingTimer);renderCategories();panel.setAttribute('aria-busy','false');root.querySelector('.rv-reading').hidden=true;},1000);
+  }
+  root.addEventListener('click',e=>{
+    const summary=e.target.closest('.rv-record-summary,.rv-upcoming>summary');
+    if(summary){
+      e.preventDefault();const details=summary.parentElement,body=summary.nextElementSibling;
+      const opening=!details.open||details.dataset.closing==='true';
+      const start=details.open?body.getBoundingClientRect().height:0;body.getAnimations().forEach(animation=>animation.cancel());
+      delete details.dataset.closing;
+      const label=summary.querySelector('[data-summary-label],.rv-summary-action');if(label)label.textContent=opening?'收起':summary.matches('.rv-record-summary')?'展开填写':'查看';
+      if(reduced()){details.open=opening;return;}
+      if(opening)details.open=true;else details.dataset.closing='true';
+      body.style.overflow='hidden';
+      const animation=body.animate([{height:start+'px',opacity:opening?.3:1},{height:opening?body.scrollHeight+'px':'0px',opacity:opening?1:0}],{duration:200,easing:'ease-out'});
+      animation.onfinish=()=>{if(!opening)details.open=false;delete details.dataset.closing;body.style.overflow='';};return;
+    }
+    const target=e.target.closest('button');if(!target)return;
+    if(target.matches('[data-detail]')){const body=target.closest('.rv-overview-item').querySelector('.rv-history'),open=target.getAttribute('aria-expanded')==='true';target.setAttribute('aria-expanded',String(!open));target.textContent=open?'查看详情':'收起详情';reveal(body,!open);}
+    if(target.matches('[data-category-detail]')){const body=target.closest('.rv-category-row').nextElementSibling,open=target.getAttribute('aria-expanded')==='true';target.setAttribute('aria-expanded',String(!open));target.textContent=open?'明细':'收起';reveal(body,!open);}
+    if(target.matches('[data-display]')){root.querySelectorAll('[data-display]').forEach(button=>button.setAttribute('aria-pressed',String(button===target)));renderCategories();}
+    if(target.matches('[data-edit-state]')){const editor=target.closest('form').querySelector('[data-state-editor]');reveal(editor,editor.hidden);}
+  });
+  function reveal(body,open){
+    if(reduced()){body.hidden=!open;return;}
+    const prior=body._animation;if(prior)prior.cancel();
+    if(open){body.hidden=false;body._animation=body.animate([{height:'0px',opacity:0},{height:body.scrollHeight+'px',opacity:1}],{duration:200,easing:'ease-out'});}
+    else {const animation=body.animate([{height:body.scrollHeight+'px',opacity:1},{height:'0px',opacity:0}],{duration:200,easing:'ease-in'});body._animation=animation;animation.onfinish=()=>{body.hidden=true;};}
+  }
+  root.addEventListener('input',e=>{
+    const form=e.target.closest('[data-metric-demo]');if(!form)return;
+    const spend=form.querySelector('[name=spend]'),opens=form.querySelector('[name=actualOpen]'),leads=form.querySelector('[name=actualLead]');
+    const cost=(input)=>spend.value!==''&&input.value!==''&&Number(input.value)>0?`¥${(Number(spend.value)/Number(input.value)).toFixed(2)}／人`:'—';
+    form.querySelector('[data-open-cost]').textContent=cost(opens);form.querySelector('[data-lead-cost]').textContent=cost(leads);
+  });
+  root.addEventListener('change',e=>{if(e.target.matches('[data-subject],[data-category]'))loadCategories();});
+  root.addEventListener('submit',e=>{
+    const form=e.target.closest('[data-metric-demo]');if(!form)return;e.preventDefault();
+    const button=form.querySelector('[type=submit]');button.disabled=true;button.textContent='正在保存';
+    setTimeout(()=>{button.textContent='已完成';button.style.background='#348866';button.style.borderColor='#348866';completed.add(Number(form.dataset.metricDemo));const count=root.querySelectorAll('[data-ready-record]:not([hidden])').length-1;root.querySelector('[data-ready-count]').textContent=`待填写 ${count} 项`;setTimeout(()=>{form.closest('[data-ready-record]').hidden=true;updateReadyCount();},900);},700);
+  });
+  root.querySelector('[data-ready-rows]').addEventListener('toggle',e=>{const details=e.target;if(!details.matches('[data-ready-record]'))return;details.querySelector('[data-summary-label]').textContent=details.open?'收起':'展开填写';},true);
+  renderOverview();renderReady();renderUpcoming();renderCategories();
+  document.fonts.load('400 14px "MiSans VF"','推广生命周期').then(fonts=>{root.querySelector('[data-font-status]').textContent=fonts.length?'已加载':'回退字体';}).catch(()=>{root.querySelector('[data-font-status]').textContent='未加载，使用回退字体';});
+  if(globalThis.Tweak){
+    let previous={...settings};
+    const tweak=new Tweak({container:root,onChange:()=>{
+      root.style.setProperty('--rv-selected-font',settings.font==='misans'?'"MiSans VF",var(--rv-font)':'var(--rv-font)');
+      if(settings.scenario!==previous.scenario){completed=new Set();renderOverview();renderReady();}
+      else if(settings.phase!==previous.phase)renderOverview(true);
+      previous={...settings};
+    }});
+    tweak.addSelect(settings,'font',{label:'页面字体',options:[{label:'系统界面字体',value:'system'},{label:'MiSans',value:'misans'}]});
+    tweak.addSelect(settings,'scenario',{label:'推广场景',options:[{label:'多条待填写',value:'ready'},{label:'五篇测试，暂无待填写',value:'empty'}]});
+    tweak.addSelect(settings,'phase',{label:'首篇阶段变化',options:[{label:'测试',value:'test'},{label:'放量',value:'scale'},{label:'暂停',value:'pause'}]});
+  }
+})();
+</script>

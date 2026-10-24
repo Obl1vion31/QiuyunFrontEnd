@@ -8,3 +8,12 @@
  */
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
+
+declare namespace App {
+  interface Locals {
+    operationsUser?: string;
+    user: import('./auth/permissions').OperationsUser | null;
+    session: import('better-auth').Session | null;
+    businessPermissions?: import('./auth/business-capabilities').BusinessPermissions;
+  }
+}

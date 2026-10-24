@@ -1,0 +1,1808 @@
+[
+  {
+    "t": 571.6,
+    "dt": 0,
+    "y": 0,
+    "phase": 0,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      }
+    ]
+  },
+  {
+    "t": 1088.2,
+    "dt": 16.700000000000045,
+    "y": 0,
+    "phase": 0,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      }
+    ]
+  },
+  {
+    "t": 1588.2,
+    "dt": 16.600000000000136,
+    "y": 0,
+    "phase": 0,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      }
+    ]
+  },
+  {
+    "t": 2088.2,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 0,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      }
+    ]
+  },
+  {
+    "t": 2588.2,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 0,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      }
+    ]
+  },
+  {
+    "t": 3204.8,
+    "dt": 33.30000000000018,
+    "y": 0,
+    "phase": 0.05653,
+    "progress": 0,
+    "playback": "advance",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-91.61px, 457.08px, 0px) perspective(1100px) rotateY(30.57deg) rotate(6.72deg) scale(0.7591)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(103.09px, 488.78px, 0px) perspective(1100px) rotateY(20.57deg) rotate(4.52deg) scale(0.8641)",
+        "opacity": 0.2686
+      },
+      {
+        "transform": "translate3d(297.79px, 508.08px, 0px) perspective(1100px) rotateY(10.57deg) rotate(2.32deg) scale(0.9691)",
+        "opacity": 0.9755
+      },
+      {
+        "transform": "translate3d(492.49px, 514.98px, 0px) perspective(1100px) rotateY(0.57deg) rotate(0.12deg) scale(1.0741)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(687.19px, 509.48px, 0px) perspective(1100px) rotateY(-9.43deg) rotate(-2.08deg) scale(0.9809)",
+        "opacity": 0.998
+      },
+      {
+        "transform": "translate3d(881.89px, 491.58px, 0px) perspective(1100px) rotateY(-19.43deg) rotate(-4.28deg) scale(0.8759)",
+        "opacity": 0.3492
+      },
+      {
+        "transform": "translate3d(1076.59px, 461.28px, 0px) perspective(1100px) rotateY(-29.43deg) rotate(-6.48deg) scale(0.7709)",
+        "opacity": 0.0007
+      },
+      {
+        "transform": "translate3d(1271.29px, 425.47px, 0px) perspective(1100px) rotateY(-39.43deg) rotate(-8.68deg) scale(0.681)",
+        "opacity": 0
+      }
+    ]
+  },
+  {
+    "t": 4338.1,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 1,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      }
+    ]
+  },
+  {
+    "t": 4838.1,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 1,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      }
+    ]
+  },
+  {
+    "t": 5338.1,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 1,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      }
+    ]
+  },
+  {
+    "t": 5838,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 1,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      }
+    ]
+  },
+  {
+    "t": 6354.6,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 1,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      }
+    ]
+  },
+  {
+    "t": 6921.3,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 1.03546,
+    "progress": 0,
+    "playback": "advance",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1275.4px, 425.47px, 0px) perspective(1100px) rotateY(-39.65deg) rotate(-8.72deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-87.5px, 457.87px, 0px) perspective(1100px) rotateY(30.35deg) rotate(6.68deg) scale(0.7613)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(107.2px, 489.31px, 0px) perspective(1100px) rotateY(20.35deg) rotate(4.48deg) scale(0.8663)",
+        "opacity": 0.2829
+      },
+      {
+        "transform": "translate3d(301.9px, 508.35px, 0px) perspective(1100px) rotateY(10.35deg) rotate(2.28deg) scale(0.9713)",
+        "opacity": 0.9815
+      },
+      {
+        "transform": "translate3d(496.6px, 514.99px, 0px) perspective(1100px) rotateY(0.35deg) rotate(0.08deg) scale(1.0763)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(691.3px, 509.23px, 0px) perspective(1100px) rotateY(-9.65deg) rotate(-2.12deg) scale(0.9787)",
+        "opacity": 0.9957
+      },
+      {
+        "transform": "translate3d(886px, 491.07px, 0px) perspective(1100px) rotateY(-19.65deg) rotate(-4.32deg) scale(0.8737)",
+        "opacity": 0.3335
+      },
+      {
+        "transform": "translate3d(1080.7px, 460.51px, 0px) perspective(1100px) rotateY(-29.65deg) rotate(-6.52deg) scale(0.7687)",
+        "opacity": 0.0005
+      }
+    ]
+  },
+  {
+    "t": 8004.6,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 2,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      }
+    ]
+  },
+  {
+    "t": 8504.6,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 2,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      }
+    ]
+  },
+  {
+    "t": 9004.5,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 2,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      }
+    ]
+  },
+  {
+    "t": 9504.5,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 2,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      }
+    ]
+  },
+  {
+    "t": 10004.5,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 2,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      }
+    ]
+  },
+  {
+    "t": 10504.5,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 2,
+    "progress": 0,
+    "playback": "advance",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(1282.3px, 425.47px, 0px) perspective(1100px) rotateY(-40deg) rotate(-8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      }
+    ]
+  },
+  {
+    "t": 11554.5,
+    "dt": 33.399999999999636,
+    "y": 0,
+    "phase": 2.99381,
+    "progress": 0,
+    "playback": "advance",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(894.1px, 490.05px, 0px) perspective(1100px) rotateY(-20.06deg) rotate(-4.41deg) scale(0.8694)",
+        "opacity": 0.3034
+      },
+      {
+        "transform": "translate3d(1088.8px, 458.97px, 0px) perspective(1100px) rotateY(-30.06deg) rotate(-6.61deg) scale(0.7644)",
+        "opacity": 0.0001
+      },
+      {
+        "transform": "translate3d(-274.1px, 425.47px, 0px) perspective(1100px) rotateY(39.94deg) rotate(8.79deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-79.4px, 459.43px, 0px) perspective(1100px) rotateY(29.94deg) rotate(6.59deg) scale(0.7656)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(115.3px, 490.35px, 0px) perspective(1100px) rotateY(19.94deg) rotate(4.39deg) scale(0.8706)",
+        "opacity": 0.3122
+      },
+      {
+        "transform": "translate3d(310px, 508.88px, 0px) perspective(1100px) rotateY(9.94deg) rotate(2.19deg) scale(0.9756)",
+        "opacity": 0.991
+      },
+      {
+        "transform": "translate3d(504.7px, 515px, 0px) perspective(1100px) rotateY(-0.06deg) rotate(-0.01deg) scale(1.0794)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(699.4px, 508.72px, 0px) perspective(1100px) rotateY(-10.06deg) rotate(-2.21deg) scale(0.9744)",
+        "opacity": 0.9885
+      }
+    ]
+  },
+  {
+    "t": 12137.7,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 3,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      }
+    ]
+  },
+  {
+    "t": 12687.8,
+    "dt": 16.799999999999272,
+    "y": 72,
+    "phase": 3,
+    "progress": 0.1,
+    "playback": "scroll",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      }
+    ]
+  },
+  {
+    "t": 13421.1,
+    "dt": 16.700000000000728,
+    "y": 285,
+    "phase": 3,
+    "progress": 0.3958,
+    "playback": "scroll",
+    "stage": "视觉",
+    "cards": [
+      {
+        "transform": "translate3d(886.33px, 494.78px, 0px) perspective(1100px) rotateY(-14.2deg) rotate(-3.12deg) scale(0.8206)",
+        "opacity": 0.5086
+      },
+      {
+        "transform": "translate3d(1067.1px, 472.77px, 0px) perspective(1100px) rotateY(-21.3deg) rotate(-4.69deg) scale(0.746)",
+        "opacity": 0.2902
+      },
+      {
+        "transform": "translate3d(-198.29px, 448.83px, 0px) perspective(1100px) rotateY(28.4deg) rotate(6.25deg) scale(0.6864)",
+        "opacity": 0.2901
+      },
+      {
+        "transform": "translate3d(-17.52px, 472.77px, 0px) perspective(1100px) rotateY(21.3deg) rotate(4.69deg) scale(0.746)",
+        "opacity": 0.2902
+      },
+      {
+        "transform": "translate3d(163.25px, 494.78px, 0px) perspective(1100px) rotateY(14.2deg) rotate(3.12deg) scale(0.8206)",
+        "opacity": 0.5086
+      },
+      {
+        "transform": "translate3d(344.02px, 507.99px, 0px) perspective(1100px) rotateY(7.1deg) rotate(1.56deg) scale(0.8951)",
+        "opacity": 0.9928
+      },
+      {
+        "transform": "translate3d(524.79px, 512.39px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.9697)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(705.56px, 507.99px, 0px) perspective(1100px) rotateY(-7.1deg) rotate(-1.56deg) scale(0.8951)",
+        "opacity": 0.9928
+      }
+    ]
+  },
+  {
+    "t": 14137.7,
+    "dt": 16.700000000000728,
+    "y": 493,
+    "phase": 3,
+    "progress": 0.6847,
+    "playback": "scroll",
+    "stage": "触点",
+    "cards": [
+      {
+        "transform": "translate3d(871.13px, 505.39px, 0px) perspective(1100px) rotateY(-0.78deg) rotate(-0.17deg) scale(0.7062)",
+        "opacity": 0.9731
+      },
+      {
+        "transform": "translate3d(1019.67px, 504.18px, 0px) perspective(1100px) rotateY(-1.17deg) rotate(-0.26deg) scale(0.7022)",
+        "opacity": 0.9611
+      },
+      {
+        "transform": "translate3d(-20.13px, 502.87px, 0px) perspective(1100px) rotateY(1.56deg) rotate(0.34deg) scale(0.6989)",
+        "opacity": 0.9611
+      },
+      {
+        "transform": "translate3d(128.41px, 504.18px, 0px) perspective(1100px) rotateY(1.17deg) rotate(0.26deg) scale(0.7022)",
+        "opacity": 0.9611
+      },
+      {
+        "transform": "translate3d(276.95px, 505.39px, 0px) perspective(1100px) rotateY(0.78deg) rotate(0.17deg) scale(0.7062)",
+        "opacity": 0.9731
+      },
+      {
+        "transform": "translate3d(425.5px, 506.11px, 0px) perspective(1100px) rotateY(0.39deg) rotate(0.09deg) scale(0.7103)",
+        "opacity": 0.9996
+      },
+      {
+        "transform": "translate3d(574.04px, 506.35px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.7144)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(722.58px, 506.11px, 0px) perspective(1100px) rotateY(-0.39deg) rotate(-0.09deg) scale(0.7103)",
+        "opacity": 0.9996
+      }
+    ]
+  },
+  {
+    "t": 14937.7,
+    "dt": 33.400000000001455,
+    "y": 720,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 15687.7,
+    "dt": 16.700000000000728,
+    "y": 942,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 16220.9,
+    "dt": 16.600000000000364,
+    "y": 1097,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 16720.9,
+    "dt": 16.600000000002183,
+    "y": 1242,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 17320.9,
+    "dt": 16.700000000000728,
+    "y": 1416,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 17954.2,
+    "dt": 16.700000000000728,
+    "y": 1600,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 18504.2,
+    "dt": 16.700000000000728,
+    "y": 1708,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 19004.2,
+    "dt": 16.700000000000728,
+    "y": 1708,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 19504.2,
+    "dt": 16.700000000000728,
+    "y": 1388,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 20037.4,
+    "dt": 16.600000000002183,
+    "y": 961,
+    "phase": 3,
+    "progress": 1,
+    "playback": "scroll",
+    "stage": "复盘",
+    "cards": [
+      {
+        "transform": "translate3d(870.24px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(1016.92px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(-9.8px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(136.87px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(283.55px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(430.22px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(576.9px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(723.57px, 506px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.6996)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 20637.4,
+    "dt": 33.30000000000291,
+    "y": 495,
+    "phase": 3,
+    "progress": 0.6875,
+    "playback": "scroll",
+    "stage": "触点",
+    "cards": [
+      {
+        "transform": "translate3d(871.06px, 505.43px, 0px) perspective(1100px) rotateY(-0.72deg) rotate(-0.16deg) scale(0.7057)",
+        "opacity": 0.9752
+      },
+      {
+        "transform": "translate3d(1019.45px, 504.32px, 0px) perspective(1100px) rotateY(-1.07deg) rotate(-0.24deg) scale(0.7019)",
+        "opacity": 0.9642
+      },
+      {
+        "transform": "translate3d(-19.31px, 503.12px, 0px) perspective(1100px) rotateY(1.43deg) rotate(0.32deg) scale(0.6989)",
+        "opacity": 0.9642
+      },
+      {
+        "transform": "translate3d(129.09px, 504.32px, 0px) perspective(1100px) rotateY(1.07deg) rotate(0.24deg) scale(0.7019)",
+        "opacity": 0.9642
+      },
+      {
+        "transform": "translate3d(277.48px, 505.43px, 0px) perspective(1100px) rotateY(0.72deg) rotate(0.16deg) scale(0.7057)",
+        "opacity": 0.9752
+      },
+      {
+        "transform": "translate3d(425.87px, 506.1px, 0px) perspective(1100px) rotateY(0.36deg) rotate(0.08deg) scale(0.7095)",
+        "opacity": 0.9996
+      },
+      {
+        "transform": "translate3d(574.27px, 506.32px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(0.7132)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(722.66px, 506.1px, 0px) perspective(1100px) rotateY(-0.36deg) rotate(-0.08deg) scale(0.7095)",
+        "opacity": 0.9996
+      }
+    ]
+  },
+  {
+    "t": 21304.1,
+    "dt": 16.69999999999709,
+    "y": 0,
+    "phase": 3,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      }
+    ]
+  },
+  {
+    "t": 21804,
+    "dt": 16.599999999998545,
+    "y": 0,
+    "phase": 3,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      }
+    ]
+  },
+  {
+    "t": 22304,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 3,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      }
+    ]
+  },
+  {
+    "t": 22804,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 3,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      }
+    ]
+  },
+  {
+    "t": 23404,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 3.14691,
+    "progress": 0,
+    "playback": "advance",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(864.3px, 493.71px, 0px) perspective(1100px) rotateY(-18.53deg) rotate(-4.08deg) scale(0.8854)",
+        "opacity": 0.4191
+      },
+      {
+        "transform": "translate3d(1059px, 464.53px, 0px) perspective(1100px) rotateY(-28.53deg) rotate(-6.28deg) scale(0.7804)",
+        "opacity": 0.0033
+      },
+      {
+        "transform": "translate3d(1253.7px, 425.47px, 0px) perspective(1100px) rotateY(-38.53deg) rotate(-8.48deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-109.2px, 453.6px, 0px) perspective(1100px) rotateY(31.47deg) rotate(6.92deg) scale(0.7496)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(85.5px, 486.42px, 0px) perspective(1100px) rotateY(21.47deg) rotate(4.72deg) scale(0.8546)",
+        "opacity": 0.211
+      },
+      {
+        "transform": "translate3d(280.2px, 506.84px, 0px) perspective(1100px) rotateY(11.47deg) rotate(2.52deg) scale(0.9596)",
+        "opacity": 0.9413
+      },
+      {
+        "transform": "translate3d(474.9px, 514.87px, 0px) perspective(1100px) rotateY(1.47deg) rotate(0.32deg) scale(1.0646)",
+        "opacity": 1
+      },
+      {
+        "transform": "translate3d(669.6px, 510.49px, 0px) perspective(1100px) rotateY(-8.53deg) rotate(-1.88deg) scale(0.9904)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 24053.9,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 3.97464,
+    "progress": 0,
+    "playback": "advance",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(703.14px, 508.48px, 0px) perspective(1100px) rotateY(-10.25deg) rotate(-2.26deg) scale(0.9723)",
+        "opacity": 0.9841
+      },
+      {
+        "transform": "translate3d(897.84px, 489.57px, 0px) perspective(1100px) rotateY(-20.25deg) rotate(-4.46deg) scale(0.8673)",
+        "opacity": 0.2899
+      },
+      {
+        "transform": "translate3d(1092.54px, 458.25px, 0px) perspective(1100px) rotateY(-30.25deg) rotate(-6.66deg) scale(0.7623)",
+        "opacity": 0.0001
+      },
+      {
+        "transform": "translate3d(-270.36px, 425.47px, 0px) perspective(1100px) rotateY(39.75deg) rotate(8.74deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-75.66px, 460.14px, 0px) perspective(1100px) rotateY(29.75deg) rotate(6.54deg) scale(0.7677)",
+        "opacity": 0.0004
+      },
+      {
+        "transform": "translate3d(119.04px, 490.82px, 0px) perspective(1100px) rotateY(19.75deg) rotate(4.34deg) scale(0.8727)",
+        "opacity": 0.3261
+      },
+      {
+        "transform": "translate3d(313.74px, 509.11px, 0px) perspective(1100px) rotateY(9.75deg) rotate(2.14deg) scale(0.9777)",
+        "opacity": 0.9943
+      },
+      {
+        "transform": "translate3d(508.44px, 515px, 0px) perspective(1100px) rotateY(-0.25deg) rotate(-0.06deg) scale(1.0773)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 24604,
+    "dt": 16.799999999999272,
+    "y": 0,
+    "phase": 4,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      }
+    ]
+  },
+  {
+    "t": 25103.9,
+    "dt": 16.600000000002183,
+    "y": 0,
+    "phase": 4,
+    "progress": 0,
+    "playback": "hold",
+    "stage": "策划",
+    "cards": [
+      {
+        "transform": "translate3d(698.2px, 508.8px, 0px) perspective(1100px) rotateY(-10deg) rotate(-2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(892.9px, 490.2px, 0px) perspective(1100px) rotateY(-20deg) rotate(-4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(1087.6px, 459.2px, 0px) perspective(1100px) rotateY(-30deg) rotate(-6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(-275.3px, 425.47px, 0px) perspective(1100px) rotateY(40deg) rotate(8.8deg) scale(0.681)",
+        "opacity": 0
+      },
+      {
+        "transform": "translate3d(-80.6px, 459.2px, 0px) perspective(1100px) rotateY(30deg) rotate(6.6deg) scale(0.765)",
+        "opacity": 0.0002
+      },
+      {
+        "transform": "translate3d(114.1px, 490.2px, 0px) perspective(1100px) rotateY(20deg) rotate(4.4deg) scale(0.87)",
+        "opacity": 0.3078
+      },
+      {
+        "transform": "translate3d(308.8px, 508.8px, 0px) perspective(1100px) rotateY(10deg) rotate(2.2deg) scale(0.975)",
+        "opacity": 0.9898
+      },
+      {
+        "transform": "translate3d(503.5px, 515px, 0px) perspective(1100px) rotateY(0deg) rotate(0deg) scale(1.08)",
+        "opacity": 1
+      }
+    ]
+  }
+]

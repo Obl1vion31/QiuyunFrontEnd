@@ -1,0 +1,38 @@
+import { z } from 'zod';
+import { optionalPlatformNoteIdSchema } from './platform-note-id';
+import { shanghaiDateTime } from './validation';
+
+const checkpoint = z.enum(['day_7', 'day_15']);
+const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '请选择有效日期');
+const optionalText = z.preprocess((value) => typeof value === 'string' && value.trim() === '' ? null : value, z.string().trim().max(2000, '内容过长').nullable());
+const rate = z.preprocess(value => value == null || (typeof value === 'string' && !value.trim()) ? Number.NaN : value, z.coerce.number().min(0, '不能小于 0').max(100, '不能大于 100'));
+
+export const meetingReviewSchema = z.object({
+  meetingType:z.enum(['weekly','monthly']).default('weekly'),
+  name: z.string().trim().max(120, '会议名称过长').optional().default(''),
+  periodStart: dateKey,
+  periodEnd: dateKey,
+  meetingAt: z.union([shanghaiDateTime, z.iso.datetime({ offset: true }).transform(value => new Date(value))]),
+}).superRefine((value, context) => {
+  if (value.periodEnd < value.periodStart) context.addIssue({ code: 'custom', path: ['periodEnd'], message: '结束日不能早于开始日' });
+});
+
+export const stageReviewMeetingSchema = meetingReviewSchema;
+
+export const stageReviewItemSchema = z.object({
+  scheduleId: z.uuid('排期编号无效'),
+  checkpointType: checkpoint,
+  recordedThrough: dateKey,
+  clickRate: rate,
+  threeSecondReadRate: rate,
+  conclusion: optionalText,
+  platformNoteId: optionalPlatformNoteIdSchema.optional(),
+});
+
+export const formObject = (form: FormData) => Object.fromEntries(form.entries());
+
+export const issuesByField = (issues: z.core.$ZodIssue[]) => {
+  const fields: Record<string, string[]> = {};
+  for (const issue of issues) (fields[String(issue.path[0] ?? 'form')] ??= []).push(issue.message);
+  return fields;
+};

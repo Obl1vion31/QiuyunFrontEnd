@@ -1,0 +1,12 @@
+---
+import BusinessPromotionDataTable from './BusinessPromotionDataTable.astro';
+import type {PromotionOverview} from '../db/promotion-overview';
+interface Props {entry:PromotionOverview}
+const {entry}=Astro.props;
+---
+<div class="promotion-expanded-data">
+ <section aria-label="全部每日复盘">
+  <div class="promotion-data-heading"><h3>每日复盘</h3><span>{entry.metrics.length} 条记录</span>{entry.metrics.length>0&&<span class="promotion-table-hint">左右滑动查看全部指标</span>}</div>
+  {entry.metrics.length?<BusinessPromotionDataTable rows={entry.metrics.map(metric=>({entry,metric}))}/>:<p class="promotion-no-data">尚无已登记数据。</p>}
+ </section>
+</div>

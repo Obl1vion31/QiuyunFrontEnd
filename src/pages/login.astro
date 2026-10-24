@@ -1,0 +1,64 @@
+---
+import { safeReturnTo } from '../auth/permissions';
+export const prerender = false;
+const next = safeReturnTo(Astro.url.searchParams.get('next'), Astro.url.origin);
+if (Astro.locals.user) return Astro.redirect(next);
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" /><meta name="theme-color" content="#0B1B2B" />
+    <title>登录 · 内容工作台</title>
+  </head>
+  <body>
+    <header><a href="/">FRONTEND <span>内容工作台</span></a><a class="back" href="/">返回总枢纽 <span aria-hidden="true">↗</span></a></header>
+    <main>
+      <section aria-labelledby="login-title">
+        <p class="eyebrow">CONTENT WORKSPACE</p><h1 id="login-title">登录内容工作台</h1><p class="intro">使用团队账号，继续规划、发布与复盘。</p>
+        <form data-login-form data-next={next} aria-label="账号登录">
+          <label for="username">账号</label><input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="30" />
+          <label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128" />
+          <p data-login-message role="alert" hidden></p>
+          <button type="submit">登录工作台 <span aria-hidden="true">→</span></button>
+          <p class="pending" data-login-pending role="status" aria-live="polite" hidden>正在验证账号，请稍候…</p>
+        </form>
+        <p class="help">账号由管理员提供。遇到登录问题，请联系管理员。</p>
+      </section>
+    </main>
+    <script>
+      import { signIn } from '../auth/client';
+      const form = document.querySelector<HTMLFormElement>('[data-login-form]');
+      if (form) {
+        let submitting = false;
+        form.addEventListener('submit', async event => {
+          event.preventDefault(); if (submitting || !form.reportValidity()) return;
+          submitting = true;
+          const username = form.querySelector<HTMLInputElement>('#username')!;
+          const password = form.querySelector<HTMLInputElement>('#password')!;
+          const button = form.querySelector<HTMLButtonElement>('button')!;
+          const message = form.querySelector<HTMLElement>('[data-login-message]')!;
+          const pending = form.querySelector<HTMLElement>('[data-login-pending]')!;
+          message.hidden = true; form.setAttribute('aria-busy', 'true');
+          button.textContent = '正在验证…'; button.disabled = true;
+          username.disabled = true; password.disabled = true;
+          const timer = window.setTimeout(() => { pending.hidden = false; }, 200);
+          const result = await signIn(username.value, password.value);
+          window.clearTimeout(timer); pending.hidden = true;
+          if (result.ok) { window.location.replace(form.dataset.next!); return; }
+          message.textContent = result.message; message.hidden = false;
+          button.textContent = '登录工作台 →'; button.disabled = false;
+          username.disabled = false; password.disabled = false;
+          form.removeAttribute('aria-busy'); submitting = false;
+          password.focus();
+        });
+      }
+    </script>
+  </body>
+</html>
+<style>
+  :global(*){box-sizing:border-box}:global(body){margin:0;color:#17211c;background:#e9eff2;font:16px/1.6 system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
+  header{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 32px;background:#0b1b2b;color:#f5f7f4}header a{color:inherit;text-decoration:none;font:750 13px/1.4 ui-monospace,monospace;letter-spacing:.06em}header a span{margin-left:12px;font:500 14px/1.4 system-ui,sans-serif;letter-spacing:0}.back{color:#c4d2df!important;font-family:system-ui,sans-serif!important;font-weight:500!important;letter-spacing:0!important}
+  main{display:grid;place-items:center;min-height:calc(100svh - 76px);padding:56px 24px}section{width:min(100%,460px);padding:38px 36px;background:#f5f7f4;border-top:3px solid #5b8cff;border-radius:0 0 12px 12px;box-shadow:0 12px 36px #0b1b2b0c}.eyebrow{margin:0 0 12px;color:#456789;font:750 11px/1.3 ui-monospace,monospace;letter-spacing:.12em}h1{margin:0;font-size:28px;line-height:1.3;letter-spacing:-.04em}.intro{margin:12px 0 28px;color:#68736d;font-size:14px}form{display:grid;gap:8px}label{font-size:13px;font-weight:650}input{height:46px;width:100%;margin-bottom:12px;border:1px solid #bbc8cf;border-radius:7px;padding:0 12px;color:#17211c;background:#fff;font:inherit}input:focus-visible{outline:2px solid #5b8cff;outline-offset:2px}button{display:flex;align-items:center;justify-content:space-between;min-height:46px;margin-top:4px;border:0;border-radius:7px;padding:0 14px;background:#0b1b2b;color:#f5f7f4;font:650 14px/1.4 system-ui,sans-serif;cursor:pointer}button:hover{background:#19334c}button:focus-visible,a:focus-visible{outline:2px solid #5b8cff;outline-offset:4px}button:disabled{cursor:wait;opacity:.7}input:disabled{opacity:.8}[data-login-message]{margin:0 0 8px;color:#a63b32;font-size:13px}.pending{margin:6px 0 0;color:#456789;font-size:13px}.help{margin:24px 0 0;padding-top:18px;border-top:1px solid #d5dde0;color:#68736d;font-size:12px}[hidden]{display:none!important}
+  @media(max-width:520px){header{height:64px;padding:0 20px}header a span{margin-left:6px;font-size:12px}.back{font-size:12px!important}main{min-height:calc(100svh - 64px);padding:28px 20px}section{padding:28px 24px}h1{font-size:25px}}
+</style>

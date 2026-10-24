@@ -1,0 +1,30 @@
+export const promotionReviewDecisions: Record<'testing' | 'scaling', string[]>;
+export const waitingReviewDecisions: Record<'testing' | 'scaling', string[]>;
+export const shanghaiDateKey: (date: Date) => string;
+export const nextDateKey: (dateKey: string) => string;
+export const previousDateKey: (dateKey: string) => string;
+export const inclusivePromotionDays: (startedOn: string, endedOn: string) => number;
+export const promotionStageShares: (days: number[]) => number[];
+export const isDecisionAllowed: (stage: string, decision: string) => boolean;
+export const nextPromotionState: (
+  stage: string,
+  decision: string,
+) => { status: string; stage: string | null; outcome: string } | null;
+export const replayPromotionHistory: (
+  campaignStartedOn: string,
+  metrics: Array<{ metricDate: string; dailyStatus?: string; actualStatusSnapshot?:string|null;recordKind?:string;sourceStageStartedOn?:string|null;stageTypeSnapshot: string; reviewDecision: string }>,
+  options?: { initialStage?: string; asOf?: string; stateChanges?: Array<{businessDate:string;stageType:string;actualStatus?:string|null}>; waitRanges?: Array<{ startedOn: string; stageType: string; nextDecision?: string | null; nextEffectiveOn?: string | null }>; holds?: Array<{ startedOn: string; endedOn: string; resumeStage?: string | null; preserveWaiting?: boolean }> },
+) => {
+  stages: Array<{ stageType: string; startedOn: string; endedOn: string | null; outcome: string | null }>;
+  currentStage: string | null;
+  currentStatus: string;
+  endedOn: string | null;
+} | null;
+export const calculateActualPromotionCosts: (input: {
+  spend: number;
+  actualOpenCount: number;
+  actualLeadCount: number;
+}) => {
+  actualOpenCost: number | null;
+  actualLeadCost: number | null;
+};

@@ -1,0 +1,32 @@
+{
+  "sourceCommit": "02decf6dfd3cb3f2b3a97c1920c42ec5577c3e0e",
+  "deploymentId": "dpl_ErYoavUyNqV6yPEPn82JgGF1nJd9",
+  "readyState": "READY",
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "deploymentUrl": "https://qiuyun-frontend-dy3zfm5qv-opgobl1v-5358.vercel.app",
+  "aliases": [
+    "qiuyun-frontend.vercel.app",
+    "qiuyun-frontend-opgobl1v-5358.vercel.app"
+  ],
+  "tests": 182,
+  "publicChecks": 85,
+  "matchingAssets": 57,
+  "databaseMigrations": false,
+  "businessWrites": false,
+  "browserChecks": [
+    "meeting-create",
+    "meeting-weekly",
+    "meeting-inline",
+    "meeting-non-promotion",
+    "non-promotion-inspector",
+    "business-ui",
+    "review-intervals"
+  ],
+  "visualViewports": [
+    1920,
+    1440,
+    1280,
+    1024
+  ],
+  "productionScope": "正式例会空态、认证与表单来源校验、全部新构建资源及现有非推广材料只读核对；正式库无例会记录，未新建验收数据。"
+}

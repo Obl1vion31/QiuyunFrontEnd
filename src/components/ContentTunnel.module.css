@@ -1,498 +1,472 @@
-/**
- * 文件：ContentTunnel.module.css
- *
- * 【实现需求】
- * 为 ContentTunnel.tsx 提供首屏 3D 封面场景、统一遮罩、信息排版、流程轨道和响应式样式。
- *
- * 【关联】
- * - ContentTunnel.tsx 通过 styles.xxx 使用本文件类名；
- * - React 会写入 --scene-progress、--scene-scale 和每张封面的内联 transform/filter/opacity；
- * - pages/index.astro 只负责后半段全局样式，不应重复覆盖这里的首屏规则。
- *
- * 【修改入口】
- * - 场景滚动空间：.scene / .sticky；
- * - 透视和封面尺寸：.stage / .cover；
- * - 遮罩强度：.screenShade；
- * - 首屏文案：.copy / .purpose / .statement；
- * - 01–06 轨道：.rail；
- * - 平板与手机：文件末尾的 Media Query。
- *
- * 【安全边界】
- * 保持统一全屏遮罩、可读文字层级、移动端布局和 prefers-reduced-motion 支持。
- */
-
-/*
- * 1. Hero 滚动容器
- * 【需求】scene 提供 270vh 滚动距离，sticky 让首屏在动画期间固定一屏。
- * 【关联】ContentTunnel.tsx 根据 scene 的位置计算 progress。
- */
-.scene {
-  --scene-progress: 0;
-  --scene-scale: 1;
-  position: relative;
-  height: 270vh;
-  background: #10243e;
+/* 浅弧封面带与首屏排版。动画只写当前 Island 的 data-home-* 节点。 */
+.hero {
+  height:180vh;
+  position:relative;
+  background:var(--night);
+  --progress:0
 }
-
-.sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  min-height: 640px;
-  overflow: hidden;
-  color: #f5f8f2;
-  background: #10243e;
-  isolation: isolate;
+.frame {
+  position:sticky;
+  top:0;
+  height:100vh;
+  min-height:720px;
+  overflow:clip;
+  color:var(--paper);
+  isolation:isolate;
+  background:var(--night)
 }
-
-/*
- * 2. 氛围背景
- * 【需求】建立深色工作台空间和轻微水平网格，不承担内容信息。
- */
-.atmosphere {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(53, 104, 224, 0.32), transparent 31%),
-    linear-gradient(100deg, rgba(10, 26, 47, 0.97) 0%, rgba(16, 36, 62, 0.72) 50%, rgba(10, 26, 47, 0.96) 100%),
-    #10243e;
+.ambient {
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background:radial-gradient(ellipse at 68% 63%,#395b7845,transparent 58%),linear-gradient(118deg,#081724,#10263b 63%,#0b1b2b)
 }
-
-.atmosphere::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.18;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 100% 7vh;
-  mask-image: linear-gradient(to bottom, transparent, black 20%, black 84%, transparent);
+.ambient:after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:linear-gradient(#dae5ee08 1px,transparent 1px),linear-gradient(90deg,#dae5ee08 1px,transparent 1px);
+  background-size:80px 80px;
+  mask-image:linear-gradient(transparent,#000 35%,#000 80%,transparent)
 }
-
-/*
- * 3. 3D 封面层与统一遮罩
- * 【关联】stage 接收 --scene-scale；cover 的具体位置和滤镜由 React 逐帧写入。
- * 【层级】stage 在最底层，screenShade 在封面之上、全部文字之下。
- */
-.stage {
-  position: absolute;
-  inset: 0;
-  perspective: 900px;
-  perspective-origin: 50% 50%;
-  transform: scale(var(--scene-scale));
-  transform-origin: 50% 50%;
-  transform-style: preserve-3d;
-  z-index: -1;
+.masthead {
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #ffffff18;
+  position:relative;
+  z-index:4;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.13em
 }
-
-.screenShade {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: rgba(7, 20, 36, 0.54);
+.wordmark {
+  text-decoration:none;
+  white-space:nowrap
 }
-
-.cover {
-  position: absolute;
-  top: calc(50% - 179px);
-  left: calc(50% - 134px);
-  width: 268px;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: #f2f4ef;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
-  will-change: transform, opacity, filter;
-  backface-visibility: hidden;
+.wordmark span {
+  color:var(--coral);
+  padding:0 8px
 }
-
-.cover img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
+.context {
+  color:#f5f7f480;
+  font-size:10px;
+  letter-spacing:.14em
 }
-
-/*
- * 4. 无图片时的备用封面
- * 【需求】CoverItem 未提供 image 时仍能看见可辨认的占位视觉。
- * 【关联】颜色由 tone_blue 等 tone 类设置 CSS 变量。
- */
-.coverArtwork {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 10%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  color: var(--cover-ink);
-  background:
-    linear-gradient(145deg, transparent 0 48%, var(--cover-soft) 48% 72%, transparent 72%),
-    var(--cover-bg);
+.login {
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:0;
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:24px;
+  height:38px;
+  padding:0 16px;
+  border:1px solid #f5f7f44d;
+  border-radius:6px;
+  background:#ffffff06;
+  transition:background 180ms
 }
-
-.coverArtwork::before {
-  content: '';
-  position: absolute;
-  inset: 8% 9% auto auto;
-  width: 35%;
-  aspect-ratio: 1;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-  opacity: 0.7;
+.login:hover {
+  background:#ffffff16
 }
-
-.coverSignal {
-  position: absolute;
-  top: 14%;
-  left: 10%;
-  width: 12%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--cover-accent);
+.login span {
+  color:var(--coral)
 }
-
-.coverLine {
-  position: absolute;
-  top: 32%;
-  left: -8%;
-  width: 82%;
-  height: 4px;
-  background: var(--cover-ink);
-  transform: rotate(-14deg);
-  transform-origin: left center;
-}
-
-.coverBlock {
-  position: absolute;
-  top: 42%;
-  right: 10%;
-  width: 38%;
-  height: 20%;
-  border: 1px solid currentColor;
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.coverArtwork small {
-  position: relative;
-  margin-bottom: 4%;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: clamp(0.52rem, 1.1vw, 0.72rem);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.coverArtwork strong {
-  position: relative;
-  max-width: 92%;
-  font-family: 'Arial Narrow', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: clamp(1rem, 2.55vw, 1.85rem);
-  line-height: 1.18;
-  letter-spacing: -0.015em;
-}
-
-/* 【修改入口】备用封面的六套 tone 与 data/home.ts 中 CoverItem.tone 一一对应。 */
-.tone_blue { --cover-bg: #dbe7ff; --cover-soft: #7398f4; --cover-ink: #173f9b; --cover-accent: #ff6a3d; }
-.tone_orange { --cover-bg: #ffe1d1; --cover-soft: #ff885d; --cover-ink: #792812; --cover-accent: #2454d3; }
-.tone_mint { --cover-bg: #d7f1e8; --cover-soft: #80ceb5; --cover-ink: #184c42; --cover-accent: #ff6a3d; }
-.tone_yellow { --cover-bg: #fff0ad; --cover-soft: #f8d24d; --cover-ink: #3f3512; --cover-accent: #2454d3; }
-.tone_coral { --cover-bg: #ffd8d5; --cover-soft: #f27d72; --cover-ink: #6e2422; --cover-accent: #173f9b; }
-.tone_ink { --cover-bg: #cbd6df; --cover-soft: #8194a5; --cover-ink: #172b3d; --cover-accent: #ff6a3d; }
-
-/*
- * 5. 首屏信息层
- * 【需求】平台定位与 WHY WE EXIST 同屏，用户行动路径横跨两栏。
- * 【安全边界】z-index 必须高于 screenShade，保证中文文案清晰可读。
- */
-.topbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 24px clamp(20px, 4vw, 64px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(245, 248, 242, 0.64);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  z-index: 4;
-}
-
 .copy {
-  position: absolute;
-  top: 13vh;
-  left: clamp(20px, 7vw, 112px);
-  right: clamp(20px, 7vw, 112px);
-  z-index: 2;
-  display: grid;
-  grid-template-columns: minmax(360px, 1.08fr) minmax(320px, 0.92fr);
-  gap: clamp(28px, 6vw, 96px);
-  align-items: center;
-  padding: 28px 0 30px;
-  text-shadow: 0 3px 30px rgba(5, 17, 32, 0.76);
+  position:absolute;
+  top:clamp(108px,14vh,142px);
+  left:0;
+  right:0;
+  z-index:2;
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  column-gap:100px;
+  row-gap:30px;
+  align-items:center
 }
-
-.eyebrow {
-  margin: 0;
-  color: #85aafa;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+.intro>:global(.eyebrow) {
+  color:#a6beec;
+  margin-bottom:18px
 }
-
-.copy h1 {
-  max-width: 620px;
-  margin: 18px 0 0;
-  font-family: 'Arial Narrow', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: clamp(3.8rem, 6.8vw, 6.8rem);
-  font-stretch: condensed;
-  font-weight: 900;
-  line-height: 0.98;
-  letter-spacing: -0.015em;
-  text-wrap: balance;
+.intro h1 {
+  font-size:clamp(64px,6.2vw,88px);
+  line-height:1.05;
+  letter-spacing:-.055em;
+  font-weight:700
 }
-
-.copy h1 span { display: block; }
-
+.intro h1 span {
+  display:block
+}
 .note {
-  max-width: 560px;
-  margin: 22px 0 0;
-  color: rgba(245, 248, 242, 0.76);
-  font-size: clamp(0.95rem, 1.35vw, 1.08rem);
-  text-wrap: pretty;
+  margin-top:22px;
+  max-width:540px;
+  color:#c1cbd2;
+  font-size:15px;
+  line-height:1.8
 }
-
 .purpose {
-  max-width: 520px;
-  padding: 8px 0 8px clamp(22px, 3vw, 42px);
-  border-left: 3px solid #ff6a3d;
+  padding-left:30px;
+  border-left:1px solid #ff8a686b
 }
-
-.purposeEyebrow {
-  margin: 0;
-  color: #ff9a7a;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+.purpose>:global(.eyebrow) {
+  color:var(--coral);
+  margin-bottom:16px
 }
-
 .purpose h2 {
-  margin: 18px 0 0;
-  font-family: 'Arial Narrow', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  font-size: clamp(1.8rem, 3vw, 2.85rem);
-  font-weight: 850;
-  line-height: 1.3;
-  letter-spacing: -0.015em;
-  text-wrap: pretty;
+  font-size:clamp(25px,2.25vw,32px);
+  line-height:1.5;
+  font-weight:600;
+  letter-spacing:-.035em;
+  text-wrap:pretty
 }
-
-.statement {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.25fr);
-  gap: clamp(10px, 2vw, 28px);
-  align-items: center;
-  margin-top: clamp(2px, 1vh, 12px);
-  padding-block: 17px;
-  border-block: 1px solid rgba(255, 255, 255, 0.2);
+.boundary {
+  color:#a3b2be;
+  font-size:13px;
+  line-height:1.9;
+  margin-top:20px
 }
-
-.statement strong {
-  color: #f6f8f1;
-  font-size: clamp(1rem, 1.55vw, 1.22rem);
-  text-align: center;
+.goals {
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:.9fr 1.1fr 1.25fr;
+  align-items:center;
+  border-top:1px solid #ffffff26;
+  padding-top:20px;
+  gap:20px
 }
-
-.statementArrow {
-  color: #ff8058;
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  font-weight: 800;
-  line-height: 1;
+.goals strong {
+  display:flex;
+  align-items:center;
+  gap:28px;
+  font-size:15px;
+  font-weight:500;
+  letter-spacing:-.025em
 }
-
-.purposeBoundary {
-  max-width: 500px;
-  margin: 22px 0 0;
-  color: rgba(245, 248, 242, 0.58);
-  font-size: clamp(0.78rem, 1vw, 0.9rem);
-  line-height: 1.65;
+.arrow {
+  color:var(--coral);
+  font-size:21px;
+  font-weight:400
 }
-
-/*
- * 6. 当前流程轨道
- * 【关联】ContentTunnel.tsx 的 activeStage 决定哪个 li 获得 active 类。
- * 【需求】这里只表达当前环节，详细说明位于 index.astro 的 workflow 区域。
- */
+.scene {
+  height:100%;
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none
+}
+.cover {
+  position:absolute;
+  left:0;
+  top:0;
+  width:clamp(116px,10.25vw,148px);
+  aspect-ratio:3/4;
+  will-change:transform;
+  transform-origin:center;
+  border-radius:7px;
+  isolation:isolate;
+  border:1px solid #f5f7f436;
+  box-shadow:0 18px 36px #020a165c;
+  background:#d7e3e8
+}
+.cover img {
+  display:block;
+  width:100%;
+  height:100%;
+  border-radius:6px;
+  object-fit:cover;
+  opacity:.9
+}
+.cover:after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:6px;
+  background:linear-gradient(150deg,#6b9cb212,transparent 58%,#07172635);
+  pointer-events:none
+}
+.cover figcaption {
+  position:absolute;
+  bottom:-28px;
+  left:0;
+  right:0;
+  color:#a9bdcc;
+  font-size:11px;
+  letter-spacing:.08em;
+  text-align:center;
+  opacity:0
+}
+.fallback {
+  display:none;
+  position:absolute;
+  inset:0;
+  padding:14px;
+  color:#14344c;
+  background:linear-gradient(145deg,#d9e8f3,#a8c4de);
+  font-size:11px
+}
+.fallback strong {
+  display:block;
+  margin-top:36px;
+  font-size:20px;
+  line-height:1.4
+}
+.cover[data-image-failed="true"] img {
+  visibility:hidden
+}
+.cover[data-image-failed="true"] .fallback {
+  display:block
+}
 .rail {
-  position: absolute;
-  left: clamp(20px, 4vw, 64px);
-  right: clamp(20px, 4vw, 64px);
-  bottom: 48px;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 24px;
-  align-items: end;
+  position:absolute;
+  bottom:31px;
+  left:0;
+  right:0;
+  display:grid;
+  grid-template-columns:132px 1fr;
+  gap:30px;
+  z-index:3
 }
-
 .railMeta {
-  display: grid;
-  gap: 4px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  justify-content:end
 }
-
-.railMeta span {
-  color: rgba(245, 248, 242, 0.56);
-  font-size: 0.72rem;
+.railMeta>span {
+  font-size:11px;
+  color:#9fadb9
 }
-
-.railMeta strong {
-  color: #ff8058;
-  font-size: 1.35rem;
+.railMeta>strong {
+  color:var(--coral);
+  font-size:22px;
+  font-weight:600;
+  line-height:1.3
 }
-
 .rail ol {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:12px
 }
-
+.railLine {
+  position:absolute;
+  left:5px;
+  right:5px;
+  top:7px;
+  height:1px;
+  background:#f5f7f42b
+}
+.railLine i {
+  display:block;
+  width:100%;
+  height:1px;
+  background:var(--coral);
+  transform:scaleX(var(--progress));
+  transform-origin:left
+}
 .rail li {
-  position: relative;
-  display: grid;
-  gap: 6px;
-  padding: 14px 8px 0;
-  border-top: 2px solid rgba(255, 255, 255, 0.18);
-  color: rgba(245, 248, 242, 0.48);
-  transition: color 180ms ease, border-color 180ms ease;
+  position:relative;
+  padding-top:24px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  color:#96a7b4
 }
-
-.rail li::before {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
+.rail li>i {
+  position:absolute;
+  top:3px;
+  left:1px;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#658092
 }
-
-.rail li span {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.65rem;
+.rail li>span {
+  font-size:10px;
+  line-height:1.4;
+  font-variant-numeric:tabular-nums;
+  opacity:.75
 }
-
-.rail li strong {
-  font-size: 0.83rem;
+.rail li>strong {
+  font-size:13px;
+  line-height:1.5;
+  font-weight:500
 }
-
-.rail li.active {
-  border-color: #ff6a3d;
-  color: #f6f8f1;
+.rail li[aria-current] {
+  color:#f5f7f4
 }
-
-.rail li.active::before {
-  width: 12px;
-  height: 12px;
-  top: -7px;
-  background: #ff6a3d;
-  box-shadow: 0 0 0 6px rgba(255, 106, 61, 0.16);
+.rail li[aria-current]>i {
+  background:var(--coral);
+  box-shadow:0 0 0 5px #ff8a681b
 }
-
-/* 7. 滚动提示：只提示正常滚动，不锁定滚轮或强制翻页。 */
+.rail li[data-past="true"]>i {
+  background:#a97d6f
+}
 .scrollHint {
-  position: absolute;
-  right: clamp(20px, 4vw, 64px);
-  top: 92px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: rgba(245, 248, 242, 0.58);
-  font-size: 0.72rem;
-  z-index: 4;
+  position:absolute;
+  right:max(48px,calc((100% - 1180px)/2));
+  top:92px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#a2b0bb;
+  font-size:10px;
+  letter-spacing:.02em
+}
+.scrollHint i {
+  height:18px;
+  width:11px;
+  border:1px solid #a2b0bb88;
+  border-radius:8px;
+  position:relative
+}
+.scrollHint i:after {
+  content:"";
+  position:absolute;
+  width:1px;
+  height:4px;
+  background:var(--coral);
+  top:4px;
+  left:4px
+}
+@media(max-width:1180px) {
+.copy {
+  column-gap:48px
+}
+.purpose {
+  padding-left:24px
+}
+}
+@media(max-height:800px) {
+.copy {
+  top:104px;
+  row-gap:23px
+}
+.intro h1 {
+  font-size:68px
+}
+.note {
+  margin-top:17px;
+  font-size:14px
+}
+.purpose h2 {
+  font-size:27px
+}
+.boundary {
+  margin-top:14px;
+  font-size:12px
+}
+.goals {
+  padding-top:15px
+}
+.goals strong {
+  font-size:13px
+}
+.rail {
+  bottom:24px
+}
+}
+@media(prefers-reduced-motion:reduce) {
+.hero {
+  height:auto;
+  min-height:100vh
+}
+.frame {
+  position:relative
+}
+.cover {
+  will-change:auto
+}
+.railLine i {
+  transform:scaleX(0)
+}
+}
+.scene {
+  --edge-start:19%;
+  --edge-end:81%;
+  mask-image:linear-gradient(90deg,transparent,#000 var(--edge-start),#000 var(--edge-end),transparent);
+  overflow:clip
+}
+.cover {
+  width:clamp(142px,12vw,174px);
+  border-radius:8px;
+  box-shadow:0 22px 42px #0005;
+  will-change:transform,opacity;
+  border-color:#f5f7f447
+}
+.cover img {
+  opacity:1;
+  border-radius:7px
+}
+.cover:after {
+  background:linear-gradient(145deg,#c6e0ff0a,transparent 65%,#0717261c)
+}
+.ambient:after {
+  opacity:.35
+}
+.ambient {
+  background:radial-gradient(ellipse at 50% 71%,#365a7854,transparent 53%),linear-gradient(118deg,#081724,#10263b 63%,#0b1b2b)
+}
+.controls {
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:138px;
+  display:flex;
+  justify-content:flex-end;
+  pointer-events:none;
+  z-index:4
+}
+.controls[hidden] {
+  display:none
+}
+.toggle {
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  height:30px;
+  padding:0 10px;
+  border:1px solid #a8c2d126;
+  border-radius:5px;
+  background:#0c2033b3;
+  color:#a4b6c5;
+  font:400 12px/1 var(--font);
+  cursor:pointer;
+  pointer-events:auto
+}
+.toggle:hover {
+  color:#f5f7f4;
+  background:#1b354b
+}
+.toggle:focus-visible {
+  outline:2px solid var(--coral);
+  outline-offset:4px
+}
+.toggle>span:first-child {
+  font-size:12px;
+  width:12px;
+  text-align:center
+}
+@media(prefers-reduced-motion:reduce) {
+.cover {
+  will-change:auto
+}
+.controls {
+  display:none
+}
+}
+.cover img {
+  object-fit:contain
+}
+.cover {
+  background:#f6f3e9
+}
+.controls {
+  bottom:120px
 }
 
-.scrollHint span {
-  width: 22px;
-  height: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 99px;
-}
-
-.scrollHint span::after {
-  content: '';
-  display: block;
-  width: 3px;
-  height: 7px;
-  margin: 7px auto;
-  border-radius: 9px;
-  background: #ff6a3d;
-  animation: scrollCue 1.8s ease-in-out infinite;
-}
-
-@keyframes scrollCue {
-  0%, 100% { transform: translateY(0); opacity: 0.45; }
-  55% { transform: translateY(10px); opacity: 1; }
-}
-
-/*
- * 8. 平板与手机
- * 【需求】820px 以下停用桌面基准画布缩放，改用移动端尺寸和单栏文案。
- * 【关联】mobileBreakpoint 必须与 ContentTunnel.tsx 中的 820 保持一致。
- */
-@media (max-width: 820px) {
-  .scene { height: 240vh; }
-  .sticky { min-height: 560px; }
-  .copy { top: 11vh; grid-template-columns: 1fr; gap: 24px; }
-  .copy h1 { max-width: 620px; font-size: clamp(3.5rem, 12vw, 5.5rem); line-height: 1; }
-  .note { max-width: 500px; }
-  .purpose { max-width: 620px; }
-  .purpose h2 { max-width: 580px; }
-  .cover { width: min(42vw, 260px); left: calc(50% - min(21vw, 130px)); top: calc(50% - min(28vw, 174px)); }
-  .rail { grid-template-columns: 1fr; gap: 12px; bottom: 24px; }
-  .railMeta { grid-template-columns: auto 1fr; align-items: baseline; gap: 12px; }
-  .rail ol { overflow: hidden; }
-  .rail li { padding-left: 4px; }
-  .rail li strong { font-size: 0.72rem; }
-  .scrollHint { display: none; }
-}
-
-@media (max-width: 560px) {
-  .topbar span:last-child { display: none; }
-  .copy { top: 9vh; left: 20px; right: 20px; gap: 16px; padding-right: 12px; }
-  .copy h1 { font-size: clamp(3.2rem, 15vw, 4.4rem); }
-  .note { max-width: 94%; margin-top: 12px; font-size: 0.86rem; }
-  .purpose { padding-left: 18px; }
-  .purpose h2 { margin-top: 10px; font-size: clamp(1.35rem, 6.5vw, 1.8rem); }
-  .purposeBoundary { display: none; }
-  .statement {
-    grid-template-columns: 1fr;
-    justify-items: start;
-    gap: 7px;
-    margin-top: 2px;
-    padding-block: 10px;
-  }
-  .statement strong { text-align: left; }
-  .statementArrow { margin-left: 28px; transform: rotate(90deg); }
-  .cover { width: 52vw; left: 24vw; top: calc(50% - 34.7vw); }
-  .rail li span { display: none; }
-  .rail li strong { writing-mode: vertical-rl; max-height: 60px; }
-}
-
-/*
- * 9. 减少动态效果
- * 【安全边界】尊重操作系统设置，停用非必要提示动画和状态过渡。
- */
-@media (prefers-reduced-motion: reduce) {
-  .scrollHint span::after { animation: none; }
-  .rail li { transition: none; }
-}
+.railSteps { position: relative; }

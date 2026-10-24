@@ -1,0 +1,346 @@
+{
+  "entry": {
+    "count": 26,
+    "entries": [
+      {
+        "target": "promotion-stage-node test_pending is-current",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 160,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node testing is-current",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 160,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node testing is-current",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 160,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node test_paused is-current",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 160,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node scaling",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node scaling_paused is-current",
+        "timing": {
+          "delay": 360,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-connector",
+        "timing": {
+          "delay": 100,
+          "direction": "normal",
+          "duration": 120,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 440,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node testing",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node test_pending",
+        "timing": {
+          "delay": 180,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node scaling is-current",
+        "timing": {
+          "delay": 360,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-connector",
+        "timing": {
+          "delay": 100,
+          "direction": "normal",
+          "duration": 120,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-connector",
+        "timing": {
+          "delay": 280,
+          "direction": "normal",
+          "duration": 120,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 440,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node testing",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node test_paused is-current",
+        "timing": {
+          "delay": 360,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-connector",
+        "timing": {
+          "delay": 100,
+          "direction": "normal",
+          "duration": 120,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 440,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node testing",
+        "timing": {
+          "delay": 0,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-node test_pending is-current",
+        "timing": {
+          "delay": 360,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "promotion-stage-connector",
+        "timing": {
+          "delay": 100,
+          "direction": "normal",
+          "duration": 120,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "backwards",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      },
+      {
+        "target": "",
+        "timing": {
+          "delay": 440,
+          "direction": "normal",
+          "duration": 160,
+          "easing": "ease-out",
+          "endDelay": 0,
+          "fill": "auto",
+          "iterationStart": 0,
+          "iterations": 1
+        }
+      }
+    ]
+  },
+  "reducedAnimations": 0
+}

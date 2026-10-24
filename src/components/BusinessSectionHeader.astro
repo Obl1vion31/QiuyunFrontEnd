@@ -1,0 +1,15 @@
+---
+interface Props { title: string; description?: string; headingId?: string; level?: 2 | 3; contained?: boolean; wrap?: boolean }
+const { title, description, headingId, level = 2, contained = false, wrap = false } = Astro.props;
+---
+
+<header class:list={["business-section-header", { "business-section-header--contained": contained, "business-section-header--wrap":wrap }]}>
+  <div><div class="business-section-header__heading">{level === 3 ? <h3 id={headingId}>{title}</h3> : <h2 id={headingId}>{title}</h2>}<slot name="heading-end"/></div>{description && <p>{description}</p>}</div>
+  {Astro.slots.has('end') && <div class="business-section-header__end"><slot name="end" /></div>}
+</header>
+
+<style>
+  .business-section-header{display:flex;align-items:end;justify-content:space-between;gap:18px}.business-section-header--contained{padding:16px 18px;border-bottom:1px solid var(--console-line)}.business-section-header h2,.business-section-header h3{margin:0;color:var(--console-ink);font-size:18px;line-height:26px;letter-spacing:-.015em}.business-section-header h3{font-size:14px}.business-section-header p{margin:4px 0 0;color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.business-section-header__end{flex:none;color:var(--console-muted);font-size:var(--console-caption)}
+  .business-section-header__heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 12px}.business-section-header--wrap{align-items:center;flex-wrap:wrap}.business-section-header--wrap .business-section-header__end{margin-left:auto;min-width:0;max-width:100%}
+  @media(max-width:620px){.business-section-header{display:block}.business-section-header__end{margin-top:7px}.business-section-header--wrap{display:flex}.business-section-header--wrap .business-section-header__end{margin-left:0;width:100%}}
+</style>

@@ -1,0 +1,24 @@
+{
+  "origin": "http://127.0.0.1:4333",
+  "originalImagesMatch": true,
+  "ssr": {
+    "cards": 9,
+    "ready": null,
+    "clear": 3,
+    "controlsHidden": true
+  },
+  "keyboard": {
+    "skipLink": true,
+    "headingFocused": true
+  },
+  "history": {
+    "playbackAfterBack": true,
+    "bfcache": false
+  },
+  "errors": [],
+  "buttonFont": {
+    "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+    "size": "12px",
+    "weight": "400"
+  }
+}

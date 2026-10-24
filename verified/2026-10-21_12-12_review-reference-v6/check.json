@@ -1,0 +1,421 @@
+{
+  "scope": "独立视觉参考，调整每日复盘比例与状态后继选项；无业务API或数据库调用",
+  "geometries": [
+    {
+      "width": 1920,
+      "pageWidth": 1920,
+      "columns": "84px 233.109px 96px 96px 80px 80px 80px 80px 166.5px 166.516px 80px",
+      "columnGap": "17.2px",
+      "dateNameGap": 25.1875,
+      "stateWidth": 96,
+      "stateCenter": 768.484375,
+      "textCenter": 768.484375,
+      "gapToSpend": 26.1875,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 1438,
+        "width": 1438
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 1440,
+      "pageWidth": 1440,
+      "columns": "84px 138px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 551,
+      "textCenter": 551,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 1158,
+        "width": 1158
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 1280,
+      "pageWidth": 1280,
+      "columns": "84px 138px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 551,
+      "textCenter": 551,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 998,
+        "width": 1158
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 1024,
+      "pageWidth": 1024,
+      "columns": "84px 138px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 551,
+      "textCenter": 551,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 742,
+        "width": 1158
+      },
+      "rowHeight": 72,
+      "overviewHeight": 396
+    },
+    {
+      "width": 736,
+      "pageWidth": 736,
+      "columns": "84px 138px 96px 96px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 311,
+      "textCenter": 311,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 96,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 702,
+        "width": 1158
+      },
+      "rowHeight": 72,
+      "overviewHeight": 591.5
+    },
+    {
+      "width": 390,
+      "pageWidth": 390,
+      "columns": "84px 138px 96px 104px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 305,
+      "textCenter": 305,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 104,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 368,
+        "width": 1166
+      },
+      "rowHeight": 72,
+      "overviewHeight": 604
+    },
+    {
+      "width": 320,
+      "pageWidth": 320,
+      "columns": "84px 138px 96px 104px 80px 80px 80px 80px 128px 132px 80px",
+      "columnGap": "6px",
+      "dateNameGap": 14,
+      "stateWidth": 96,
+      "stateCenter": 305,
+      "textCenter": 305,
+      "gapToSpend": 15,
+      "inputs": [
+        {
+          "field": "spend",
+          "width": 104,
+          "font": "",
+          "needed": 69
+        },
+        {
+          "field": "po",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "ao",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "pl",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        },
+        {
+          "field": "al",
+          "width": 80,
+          "font": "",
+          "needed": 54
+        }
+      ],
+      "scroll": {
+        "client": 298,
+        "width": 1166
+      },
+      "rowHeight": 72,
+      "overviewHeight": 604
+    }
+  ],
+  "transitionChecks": [
+    {
+      "source": "测试中",
+      "options": [
+        {
+          "value": "test_pause",
+          "label": "测试暂停"
+        },
+        {
+          "value": "pending",
+          "label": "测试结果待定"
+        },
+        {
+          "value": "scale",
+          "label": "测试转放量"
+        },
+        {
+          "value": "test_discarded",
+          "label": "测试淘汰"
+        }
+      ]
+    },
+    {
+      "source": "测试结果待定",
+      "options": [
+        {
+          "value": "scale",
+          "label": "测试转放量"
+        },
+        {
+          "value": "test_discarded",
+          "label": "测试淘汰"
+        }
+      ]
+    },
+    {
+      "source": "测试暂停",
+      "options": [
+        {
+          "value": "test",
+          "label": "恢复测试"
+        },
+        {
+          "value": "pending",
+          "label": "测试结果待定"
+        },
+        {
+          "value": "scale",
+          "label": "测试转放量"
+        },
+        {
+          "value": "test_discarded",
+          "label": "测试淘汰"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "测试中仅四种后继，无当前状态/继续测试",
+    "待定只可转放量或淘汰",
+    "暂停可恢复；放量遵循自身后继",
+    "初始与再次修改均空选，不代选",
+    "必选状态与非空原因",
+    "终态无次日必填，保留当日指标并可完成",
+    "数字框固定宽，内容/成本/次日自适应",
+    "长金额与六位数量可见",
+    "七种视口无整页横溢",
+    "状态文字居中，与数字保留间距",
+    "桌面五条概览小于400px",
+    "气泡不增行，不更改数值与输入DOM",
+    "保存回执/草稿/取消/Esc/减少动态效果"
+  ]
+}

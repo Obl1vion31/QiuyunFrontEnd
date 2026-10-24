@@ -1,0 +1,470 @@
+[
+  {
+    "t": 324.5,
+    "dt": 0,
+    "y": 0,
+    "phase": 0,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 824.4,
+    "dt": 16.600000000000023,
+    "y": 0,
+    "phase": 0,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 1324.4,
+    "dt": 16.700000000000045,
+    "y": 0,
+    "phase": 0,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 1824.4,
+    "dt": 16.600000000000136,
+    "y": 0,
+    "phase": 0,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 2324.3,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 0,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 2824.4,
+    "dt": 16.700000000000273,
+    "y": 0,
+    "phase": 0.000029,
+    "settle": 0,
+    "playback": "advance",
+    "stage": "策划"
+  },
+  {
+    "t": 3507.7,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 0.697326,
+    "settle": 0,
+    "playback": "advance",
+    "stage": "策划"
+  },
+  {
+    "t": 4107.6,
+    "dt": 16.700000000000273,
+    "y": 0,
+    "phase": 1,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 4607.6,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 1,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 5107.6,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 1,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 5607.5,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 1,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 6107.5,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 1,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 6624.2,
+    "dt": 33.30000000000018,
+    "y": 0,
+    "phase": 1.001762,
+    "settle": 0,
+    "playback": "advance",
+    "stage": "策划"
+  },
+  {
+    "t": 7257.5,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 1.69703,
+    "settle": 0,
+    "playback": "advance",
+    "stage": "策划"
+  },
+  {
+    "t": 7890.9,
+    "dt": 16.699999999999818,
+    "y": 0,
+    "phase": 2,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 8390.7,
+    "dt": 16.600000000000364,
+    "y": 0,
+    "phase": 2,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 8957.4,
+    "dt": 16.600000000000364,
+    "y": 107,
+    "phase": 2,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 9690.7,
+    "dt": 33.30000000000109,
+    "y": 308,
+    "phase": 2.019068,
+    "settle": 0.37248,
+    "playback": "unfolding",
+    "stage": "视觉"
+  },
+  {
+    "t": 10440.7,
+    "dt": 16.600000000000364,
+    "y": 523,
+    "phase": 2.142635,
+    "settle": 0.99463,
+    "playback": "unfolding",
+    "stage": "触点"
+  },
+  {
+    "t": 11007.4,
+    "dt": 16.69999999999891,
+    "y": 598,
+    "phase": 2.267318,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 11524,
+    "dt": 16.700000000000728,
+    "y": 598,
+    "phase": 2.38097,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 12040.6,
+    "dt": 16.700000000000728,
+    "y": 598,
+    "phase": 2.494622,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 12607.2,
+    "dt": 16.5,
+    "y": 598,
+    "phase": 2.619274,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 13157.2,
+    "dt": 49.900000000001455,
+    "y": 598,
+    "phase": 2.740274,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 13673.9,
+    "dt": 16.600000000000364,
+    "y": 598,
+    "phase": 2.853948,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 14257.2,
+    "dt": 16.600000000000364,
+    "y": 598,
+    "phase": 2.982274,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 14773.8,
+    "dt": 16.599999999998545,
+    "y": 598,
+    "phase": 3.095926,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 15323.9,
+    "dt": 16.69999999999891,
+    "y": 598,
+    "phase": 3.216948,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 15890.5,
+    "dt": 16.700000000000728,
+    "y": 598,
+    "phase": 3.3416,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 16423.8,
+    "dt": 16.700000000000728,
+    "y": 598,
+    "phase": 3.458926,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 16990.4,
+    "dt": 16.600000000002183,
+    "y": 598,
+    "phase": 3.583578,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 17507.1,
+    "dt": 16.599999999998545,
+    "y": 598,
+    "phase": 3.697252,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 18023.8,
+    "dt": 16.700000000000728,
+    "y": 598,
+    "phase": 3.810926,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 18557,
+    "dt": 16.599999999998545,
+    "y": 598,
+    "phase": 3.92823,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "触点"
+  },
+  {
+    "t": 19123.7,
+    "dt": 16.600000000002183,
+    "y": 721,
+    "phase": 4.052904,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 19723.7,
+    "dt": 16.700000000000728,
+    "y": 930,
+    "phase": 4.184904,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 20240.3,
+    "dt": 16.700000000000728,
+    "y": 1111,
+    "phase": 4.298556,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 20773.6,
+    "dt": 16.599999999998545,
+    "y": 1298,
+    "phase": 4.415882,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 21273.6,
+    "dt": 16.69999999999709,
+    "y": 1473,
+    "phase": 4.525882,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 21773.6,
+    "dt": 16.599999999998545,
+    "y": 1648,
+    "phase": 4.617534,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 22273.6,
+    "dt": 16.69999999999709,
+    "y": 1708,
+    "phase": 4.617534,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 22773.5,
+    "dt": 16.700000000000728,
+    "y": 1648,
+    "phase": 4.617534,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 23273.6,
+    "dt": 16.69999999999709,
+    "y": 1198,
+    "phase": 4.716534,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 23790.2,
+    "dt": 33.29999999999927,
+    "y": 748,
+    "phase": 4.826534,
+    "settle": 1,
+    "playback": "flat-loop",
+    "stage": "复盘"
+  },
+  {
+    "t": 24473.5,
+    "dt": 16.700000000000728,
+    "y": 118,
+    "phase": 4.922728,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 25006.8,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 4.922728,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 25506.8,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 4.922728,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 26006.7,
+    "dt": 16.600000000002183,
+    "y": 0,
+    "phase": 4.922728,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 26523.4,
+    "dt": 16.600000000002183,
+    "y": 0,
+    "phase": 4.926011,
+    "settle": 0,
+    "playback": "advance",
+    "stage": "策划"
+  },
+  {
+    "t": 27206.7,
+    "dt": 33.29999999999927,
+    "y": 0,
+    "phase": 5.689445,
+    "settle": 0,
+    "playback": "advance",
+    "stage": "策划"
+  },
+  {
+    "t": 27806.7,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 5.922728,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  },
+  {
+    "t": 28306.7,
+    "dt": 16.700000000000728,
+    "y": 0,
+    "phase": 5.922728,
+    "settle": 0,
+    "playback": "hold",
+    "stage": "策划"
+  }
+]

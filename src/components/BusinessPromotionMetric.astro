@@ -1,0 +1,43 @@
+---
+import {promotionActualLabels,normalizePromotionActualStatus,promotionNextOptions} from '../db/promotion-successors.mjs';
+import BusinessFormDialog from './BusinessFormDialog.astro';
+import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
+import {nextDateKey} from '../db/promotion-rules.mjs';
+import {promotionTotals,promotionDecisionLabels,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
+interface Props {metric:PromotionFact;entry:PromotionOverview}
+const {metric,entry}=Astro.props;
+const formatFullDate=(date:string)=>date;
+const actualStatus=metric.actualStatusSnapshot??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot);
+const residual=metric.recordKind==='test_residual',stateLabel=residual?'淘汰后残留':promotionActualLabels[actualStatus]??actualStatus;
+const decisionOptions=promotionNextOptions(actualStatus);
+if(!metric.actualStatusSnapshot&&!decisionOptions.some(option=>option.value===metric.reviewDecision))decisionOptions.push({value:metric.reviewDecision,label:promotionDecisionLabels[metric.reviewDecision]??metric.reviewDecision});
+const hasNext=!residual&&decisionOptions.length>0;
+---
+<article class="promotion-day" data-metric-card={metric.id}>
+ <header><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{stateLabel}</span></header>
+ <BusinessPromotionTotals totals={promotionTotals([metric])}/>
+ {hasNext&&<p class="promotion-day-decision">{nextDateKey(metric.metricDate)} 的安排：{decisionOptions.find(option=>option.value===metric.reviewDecision)?.label??promotionDecisionLabels[metric.reviewDecision]??metric.reviewDecision}</p>}
+ {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
+ <button type="button" class="business-action-secondary" data-edit-trigger={metric.id}>编辑这一天</button>
+                          <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
+                            <form class="business-form" data-history-edit-form>
+                              <header class="dialog-head"><div><h3 id={`history-edit-${metric.id}`}>{formatFullDate(metric.metricDate)}</h3><p>{entry.post.contentName} · {metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
+                              <input type="hidden" name="metricId" value={metric.id} />
+                              <input type="hidden" name="dailyStatus" value={metric.dailyStatus} />
+                              <input type="hidden" name="stageTypeSnapshot" value={metric.stageTypeSnapshot} /><input type="hidden" name="recordKind" value={metric.recordKind??'regular'}/><input type="hidden" name="actualStatusSnapshot" value={metric.actualStatusSnapshot??''}/>
+                              <div class="form-dialog-body"><div class="edit-fields">
+                                <p class="edit-system-state"><span>当日状态</span><strong>{stateLabel}</strong></p>
+                                <label>消耗（元）<input name="spend" type="number" min="0" step="0.01" value={Number(metric.spend).toFixed(2)} required /></label>
+                                <label>平台开口（人）<input name="platformOpenCount" type="number" min="0" step="1" value={metric.platformOpenCount} required /></label>
+                                <label>实际开口（人）<input name="actualOpenCount" type="number" min="0" step="1" value={metric.actualOpenCount} required /></label>
+                                <label>平台留资（人）<input name="platformLeadCount" type="number" min="0" step="1" value={metric.platformLeadCount} required /></label>
+                                <label>实际留资（人）<input name="actualLeadCount" type="number" min="0" step="1" value={metric.actualLeadCount} required /></label>
+                                {hasNext?<label>次日安排<select name="reviewDecision" data-history-decision required disabled={Astro.locals.user?.role !== 'admin'}>{decisionOptions.map(option=><option value={option.value} selected={metric.reviewDecision===option.value}>{option.label}</option>)}</select></label>:<input type="hidden" name="reviewDecision" value={metric.reviewDecision}/>}
+
+                                <label class="edit-note">备注<textarea name="note" maxlength="500" rows="3">{metric.note ?? ''}</textarea></label>
+                              </div>
+                              <p class="edit-impact" data-edit-message role="alert"></p></div>
+                              <footer class="dialog-actions"><button type="button" data-close-edit>取消</button><button type="submit">保存修改</button></footer>
+                            </form>
+                          </BusinessFormDialog>
+</article>

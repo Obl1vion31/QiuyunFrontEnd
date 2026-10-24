@@ -1,0 +1,22 @@
+{
+  "createdAt": "2026-10-21T11:51:00+08:00",
+  "type": "independent-visual-reference",
+  "scope": "状态气泡和相关列间距",
+  "businessHead": "55b6ff6",
+  "sourceHash": "8990870683cab75ea29ab5050954f96ccc522d0c102cfcd35f6d3d8f81b905bf",
+  "files": [
+    "check.json",
+    "nonpromotion-unchanged-1440.png",
+    "promotion-default-1440.png",
+    "promotion-empty-1440.png",
+    "promotion-ready-1440.png",
+    "state-bubble-review.webm",
+    "state-change-saved-1440.png",
+    "state-change-unsaved-1280.png",
+    "state-change-unsaved-1440.png",
+    "state-change-unsaved-1920.png",
+    "state-change-unsaved-320.png",
+    "state-change-unsaved-390.png"
+  ],
+  "status": "已自检，待用户确认"
+}

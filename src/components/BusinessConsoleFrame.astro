@@ -1,0 +1,186 @@
+---
+import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
+import '../styles/business-forms.css';
+import '../styles/business-typography.css';
+import '../styles/business-changes.css';
+import {getDb} from '../db/client';
+import {effectiveBusinessPermissions} from '../auth/business-permissions';
+import {defaultBusinessPermissions} from '../auth/business-capabilities';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
+interface Props { active: ModuleId }
+const { active } = Astro.props;
+let permissions=defaultBusinessPermissions();
+try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await effectiveBusinessPermissions(getDb(),Astro.locals.user);}catch{for(const key of Object.keys(permissions))permissions[key as keyof typeof permissions]='disabled';}
+---
+
+<!-- 在 ClientRouter 模块启动前接管仅改变详情选择的历史，保留同一个列表 DOM。 -->
+<script is:inline>
+(() => {
+  if (window.__businessInspectorHistoryReady) return;
+  window.__businessInspectorHistoryReady = true;
+  window.addEventListener('popstate', event => {
+    if(window.__businessHistoryPop?.(event))return;
+    const pane = document.querySelector('[data-inspector-ready="true"]');
+    const parameter = pane?.dataset.inspectorParameter;
+    if (!parameter || !pane.dataset.inspectorHistoryBase) return;
+    const destination = new URL(location.href);
+    destination.searchParams.delete(parameter); destination.hash = '';
+    for (const name of pane.dataset.inspectorLocalParameters?.split(',').filter(Boolean) ?? []) destination.searchParams.delete(name);
+    if (destination.href !== pane.dataset.inspectorHistoryBase && pane.dataset.dirty !== 'true') return;
+    event.stopImmediatePropagation();
+    pane.dispatchEvent(new CustomEvent('business:inspector-popstate'));
+  }, true);
+})();
+</script>
+<div class="app-shell business-console-frame" data-user-role={Astro.locals.user?.role}>
+  <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
+  <BusinessConsoleSidebar active={active} />
+  <section class="workspace business-console-workspace"><slot /></section>
+  <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
+    <span class="business-operation-feedback__spinner" aria-hidden="true"></span>
+    <span data-operation-label>正在处理…</span>
+  </div>
+  <div class="business-session-notice" data-session-notice role="alert" hidden><span data-session-message></span><a href="/login" target="_blank" rel="noopener" data-session-login hidden>重新登录 ↗</a><button type="button" data-session-dismiss aria-label="关闭提示">×</button></div>
+  <dialog class="business-form-dialog business-confirm" data-business-confirm aria-labelledby="business-confirm-title" aria-describedby="business-confirm-message">
+    <header class="dialog-head"><h2 id="business-confirm-title" data-confirm-title>未保存的修改</h2></header>
+    <p id="business-confirm-message" class="form-dialog-body" data-confirm-message></p>
+    <footer class="dialog-actions"><button type="button" data-confirm-cancel autofocus>继续编辑</button><button type="button" class="primary" data-confirm-accept>放弃修改</button></footer>
+  </dialog>
+</div>
+<script>import '../scripts/business-dialog';import '../scripts/business-permissions';import '../scripts/business-read';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
+<link rel="stylesheet" href="/fonts/misans-5.0.0/MiSansVF.css" />
+
+<script is:inline>
+  (() => {
+    if (window.__businessOperationFeedbackReady) return;
+    window.__businessOperationFeedbackReady = true;
+    const nativeFetch = window.fetch.bind(window);
+    const tasks = new Map();
+    const triggers = new WeakMap();
+    let timer = 0;
+    let recentTrigger = null;
+    let recentTriggerAt = 0;
+    const remember = node => {
+      recentTrigger = node instanceof Element ? node.closest('button, input[type="submit"], input[type="button"], [role="button"], a') : null;
+      recentTriggerAt = performance.now();
+    };
+    document.addEventListener('pointerdown', event => remember(event.target), true);
+    document.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') remember(event.target); }, true);
+    document.addEventListener('submit', event => remember(event.submitter || event.target?.querySelector?.('[type="submit"]')), true);
+    document.addEventListener('click', event => { if (event.target.closest?.('[data-session-dismiss]')) document.querySelector('[data-session-notice]').hidden = true; });
+    const defaultLabel = method => method === 'DELETE' ? '正在删除…' : ['GET', 'HEAD'].includes(method) ? '正在加载…' : '正在保存…';
+    const update = () => {
+      const feedback = document.querySelector('[data-operation-feedback]');
+      if (feedback && tasks.size) feedback.querySelector('[data-operation-label]').textContent = [...tasks.values()].at(-1);
+      document.querySelector('.business-console-workspace')?.setAttribute('aria-busy', tasks.size ? 'true' : 'false');
+      if (!tasks.size) {
+        clearTimeout(timer); timer = 0;
+        feedback?.setAttribute('aria-hidden', 'true');
+      } else if (!timer) {
+        timer = setTimeout(() => { if (tasks.size) document.querySelector('[data-operation-feedback]')?.setAttribute('aria-hidden', 'false'); }, 200);
+      }
+    };
+    const showError = (message, login = false) => {
+      const notice = document.querySelector('[data-session-notice]');
+      if (!notice) return;
+      notice.querySelector('[data-session-message]').textContent = message;
+      notice.querySelector('[data-session-login]').hidden = !login;
+      notice.hidden = false;
+    };
+    window.fetch = async (...args) => {
+      const [input, init] = args;
+      const target = new URL(input instanceof Request ? input.url : String(input), location.href);
+      if (target.origin !== location.origin || !target.pathname.startsWith('/api/')) return nativeFetch(...args);
+      const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+      const write = !['GET', 'HEAD'].includes(method);
+      // 读取由具体容器提供延迟反馈，永不改写最近点击的卡片或链接。
+      const trigger = write && performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
+      recentTrigger = null; recentTriggerAt = 0;
+      const id = Symbol('business-operation');
+      const label = trigger?.dataset?.loadingLabel || trigger?.closest?.('form')?.dataset?.loadingLabel || defaultLabel(method);
+      if(write)tasks.set(id, label);
+      if (trigger && !trigger.matches('a')) {
+        const state = triggers.get(trigger) || { count: 0, wasDisabled: trigger.disabled, markup: trigger.innerHTML, changedLabel: !trigger.textContent.includes('正在') };
+        state.count += 1; triggers.set(trigger, state);
+        trigger.disabled = true; trigger.setAttribute('aria-busy', 'true');
+        if (state.changedLabel && trigger.matches('button')) trigger.textContent = label;
+      }
+      if(write)update();
+      try {
+        const response = await nativeFetch(...args);
+        if (response.status === 401 || response.status === 403) {
+          const result = await response.clone().json().catch(() => ({}));
+          showError(result.message || (response.status === 401 ? '登录已过期，请重新登录后重试。' : '提交被拒绝，请刷新页面后重试。'), response.status === 401);
+        }
+        return response;
+      } catch (error) {
+        if(write)showError('连接失败，请检查网络后重试。当前输入已保留。');
+        throw error;
+      } finally {
+        tasks.delete(id);
+        if (trigger && triggers.has(trigger)) {
+          const state = triggers.get(trigger); state.count -= 1;
+          if (!state.count) {
+            trigger.disabled = state.wasDisabled; trigger.removeAttribute('aria-busy');
+            if (state.changedLabel && trigger.textContent === label) trigger.innerHTML = state.markup;
+            triggers.delete(trigger);
+          }
+        }
+        if(write)update();
+      }
+    };
+  })();
+</script>
+
+<style is:global>
+  :root{
+    --console-content-x:24px;
+    --console-content-top:22px;
+    --console-toolbar-height:72px;
+    --console-canvas:#F6F7F9;
+    --console-paper:#F6F7F9;
+    --console-surface:#fff;
+    --console-surface-subtle:#F8F9FB;
+    --console-ink:#202833;
+    --console-muted:#667080;
+    --console-line:#E5E7EB;
+    --console-blue:#315fd6;
+    --console-blue-soft:#dce5ff;
+    --console-font:"MiSans VF","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
+    --console-text:14px;
+    --console-text-leading:22px;
+    --console-caption:12px;
+    --console-caption-leading:18px;
+    --console-emphasis:16px;
+    --console-control-height:40px;
+    --console-control-compact:36px;
+    --console-control-radius:8px;
+  }
+  .business-console-frame,.business-console-frame *{box-sizing:border-box}
+  html,body{min-height:100%;background:var(--console-canvas)}
+  html{scrollbar-gutter:stable}
+  html[data-business-scroll-locked]{overflow:hidden;overscroll-behavior:none}
+  /* Clip horizontal overflow without creating an ancestor scroll container for sticky toolbars. */
+  body{margin:0;overflow-x:clip}
+  .business-console-frame{width:100%;font-family:var(--console-font);font-size:var(--console-text);line-height:var(--console-text-leading)}
+  .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
+  .business-console-content{box-sizing:border-box;width:auto;max-width:none;margin:0;padding:var(--console-content-top) var(--console-content-x) 46px;min-width:0}
+  @media(max-width:900px){:root{--console-content-x:10px;--console-content-top:12px;--console-toolbar-height:62px}.business-console-content{padding-bottom:28px}}
+  .business-console-frame[data-user-role="employee"] [data-admin-only]{display:none!important}
+  .business-console-frame [data-business-operation][hidden]{display:none!important}
+  .business-operation-feedback{position:fixed;z-index:1200;right:20px;bottom:20px;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 14px;border:1px solid rgba(23,33,28,.14);border-radius:10px;background:rgba(247,248,245,.96);box-shadow:0 10px 28px rgba(23,33,28,.14);color:var(--console-ink);font-size:13px;font-weight:500;opacity:1;transform:translateY(0);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
+  .business-operation-feedback[aria-hidden="true"]{opacity:0;transform:translateY(6px)}
+  .business-operation-feedback__spinner{width:15px;height:15px;border:2px solid var(--console-blue-soft);border-top-color:var(--console-blue);border-radius:50%;animation:business-operation-spin .72s linear infinite}
+  .business-console-frame button[aria-busy="true"]{cursor:wait;opacity:.72}
+  @keyframes business-operation-spin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){
+    .business-operation-feedback{transition:none}
+    .business-operation-feedback__spinner{animation:none;border-color:var(--console-blue);background:var(--console-blue-soft)}
+  }
+  @media(max-width:900px){.business-console-workspace{padding-bottom:66px}}
+  @media(max-width:900px){.business-operation-feedback{right:12px;bottom:78px}}
+</style>
+
+<style is:global>
+.business-session-notice{position:fixed;z-index:1300;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);padding:12px 16px;border:1px solid #c9d1cc;border-radius:10px;color:#17211c;background:#f7f8f5;box-shadow:0 10px 28px #17211c22;font:13px/1.4 var(--console-font)}.business-session-notice[hidden],.business-session-notice [hidden]{display:none!important}.business-session-notice a{flex:none;color:#315fd6}.business-session-notice button{border:0;background:transparent;font-size:18px;cursor:pointer}@media(max-width:900px){.business-session-notice{bottom:78px;width:calc(100vw - 24px);flex-wrap:wrap}}
+</style>

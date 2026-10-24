@@ -1,0 +1,210 @@
+{
+  "geometries": [
+    {
+      "width": 1280,
+      "pageWidth": 1280,
+      "overviewHeight": 396,
+      "rows": [
+        78,
+        78,
+        78
+      ],
+      "inputWidths": [
+        120.71875,
+        102.328125,
+        102.3125,
+        102.3125,
+        102.328125
+      ],
+      "inputY": [
+        602.5,
+        602.5,
+        602.5,
+        602.5,
+        602.5
+      ],
+      "actionY": [
+        602.5,
+        602.5,
+        602.5
+      ],
+      "scroll": {
+        "client": 1086,
+        "width": 1086
+      }
+    },
+    {
+      "width": 1024,
+      "pageWidth": 1024,
+      "overviewHeight": 396,
+      "rows": [
+        78,
+        78,
+        78
+      ],
+      "inputWidths": [
+        104,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputY": [
+        602.5,
+        602.5,
+        602.5,
+        602.5,
+        602.5
+      ],
+      "actionY": [
+        602.5,
+        602.5,
+        602.5
+      ],
+      "scroll": {
+        "client": 988,
+        "width": 988
+      }
+    },
+    {
+      "width": 736,
+      "pageWidth": 736,
+      "overviewHeight": 396,
+      "rows": [
+        78,
+        78,
+        78
+      ],
+      "inputWidths": [
+        104,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputY": [
+        238.5,
+        238.5,
+        238.5,
+        238.5,
+        238.5
+      ],
+      "actionY": [
+        238.5,
+        238.5,
+        238.5
+      ],
+      "scroll": {
+        "client": 700,
+        "width": 982
+      }
+    },
+    {
+      "width": 390,
+      "pageWidth": 390,
+      "overviewHeight": 581,
+      "rows": [
+        78,
+        78,
+        78
+      ],
+      "inputWidths": [
+        104,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputY": [
+        403.5,
+        403.5,
+        403.5,
+        403.5,
+        403.5
+      ],
+      "actionY": [
+        403.5,
+        403.5,
+        403.5
+      ],
+      "scroll": {
+        "client": 366,
+        "width": 982
+      }
+    },
+    {
+      "width": 320,
+      "pageWidth": 320,
+      "overviewHeight": 605,
+      "rows": [
+        78,
+        78,
+        78
+      ],
+      "inputWidths": [
+        104,
+        88,
+        88,
+        88,
+        88
+      ],
+      "inputY": [
+        791.5,
+        791.5,
+        791.5,
+        791.5,
+        791.5
+      ],
+      "actionY": [
+        791.5,
+        791.5,
+        791.5
+      ],
+      "scroll": {
+        "client": 296,
+        "width": 982
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "selector": "h1",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 5
+        }
+      ]
+    },
+    {
+      "selector": "[name=spend]",
+      "fonts": []
+    },
+    {
+      "selector": ".rd-submit",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 4
+        }
+      ]
+    },
+    {
+      "selector": ".rd-rate",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "scope": "独立方案示意，非业务应用验收"
+}

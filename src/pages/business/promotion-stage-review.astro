@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+const target = new URL('/business/daily-promotion-review', Astro.url);
+target.searchParams.set('view','stage');
+for (const key of ['from','to','review','snapshot']) {
+  const value = Astro.url.searchParams.get(key);
+  if (value) target.searchParams.set(key,value);
+}
+return Astro.redirect(target.pathname + target.search, 302);
+---

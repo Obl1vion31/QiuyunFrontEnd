@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {before,after,test} from 'node:test';
+import {PGlite} from '@electric-sql/pglite';
+import {drizzle} from 'drizzle-orm/pglite';
+import {migrateFixture} from './migrate-fixture';
+import * as s from '../src/db/schema';
+import {readScheduleApprovals} from '../src/db/schedule-approvals';
+const pg=new PGlite(),db=drizzle(pg,{schema:s});
+const employee={id:randomUUID(),username:'fictional_approval_owner',role:'employee' as const},admin={id:randomUUID(),username:'fictional_approval_admin',role:'admin' as const};
+before(async()=>{await migrateFixture(pg);for(const user of [employee,admin])await db.insert(s.authUser).values({...user,name:user.username,email:user.id+'@fixture.test'});});
+after(()=>pg.close());
+test('尚未创建排期的申请保留独立行和完整日期摘要，不提前创建业务记录',async()=>{
+ const versionId=randomUUID(),scheduleId=randomUUID(),date='2026-10-17T10:00:00.000Z';
+ const after={schedule:{id:scheduleId,contentVersionId:versionId,plannedPublishAt:date,isPromoted:false},versions:[{id:versionId,contentName:'虚构待创建申请',versionNumber:0,subjectId:'tmua'}]};
+ const [proposal]=await db.insert(s.operationsChangeProposal).values({module:'schedule',target:'new',requestedById:employee.id,requestedByLabel:employee.username,operations:['schedule.create'],path:'/api/operations-content',method:'POST',contentType:'application/json',body:JSON.stringify({contentName:'虚构待创建申请',plannedPublishAt:'2026-10-17T18:00',subjectId:'tmua',promotionStatus:'none'}),fingerprint:'fictional',requestKey:randomUUID(),before:{},after}).returning();
+ const rows=await readScheduleApprovals(db,admin),row=rows.find(row=>row.key==='proposal:'+proposal.id)!;
+ assert.equal(row.scheduleId,null);assert.equal(row.statusLabel,'尚未创建');assert.equal(row.name,'虚构待创建申请');assert.equal(row.plannedPublishAt,date);assert.equal(row.subjectName,'TMUA');assert.equal(row.isPromoted,false);assert.equal(row.diff.find(change=>change.label==='应发时间')?.after,'2026-10-17 18:00');
+ assert.equal((await db.select().from(s.operationsContentSchedule)).length,0);
+ assert.equal((await readScheduleApprovals(db,{...employee,id:randomUUID()})).length,0);
+});
+test('旧改期申请沿用当前排期摘要及新旧时间，不混入其他员工队列',async()=>{
+ const [content]=await db.insert(s.operationsContent).values({}).returning();
+ const [version]=await db.insert(s.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:'虚构旧改期申请',subjectId:'tmua',categoryId:'temporary'}).returning();
+ const [schedule]=await db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date('2026-10-17T10:00Z'),completionStatus:'pending'}).returning();
+ const [request]=await db.insert(s.operationsScheduleChangeRequest).values({scheduleId:schedule.id,planRevision:0,originalPlannedPublishAt:schedule.plannedPublishAt,requestedPublishAt:new Date('2026-10-18T11:00Z'),reason:'虚构调整理由',requestedById:employee.id,requestedByLabel:employee.username}).returning();
+ const [row]=await readScheduleApprovals(db,admin,schedule.id);
+ assert.equal(row.key,'legacy:'+request.id);assert.equal(row.statusLabel,'尚未登记');assert.equal(row.name,version.contentName);assert.equal(row.isPromoted,false);assert.equal(row.promotionStatus,'none');assert.deepEqual(row.diff,[{label:'应发时间',before:'2026-10-17 18:00',after:'2026-10-18 19:00'}]);
+ assert.equal((await readScheduleApprovals(db,{...employee,id:randomUUID()},schedule.id)).length,0);
+});

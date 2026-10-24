@@ -1,0 +1,96 @@
+{
+  "sameBusinessContentAndLowerMarkup": true,
+  "sameFonts": true,
+  "userImages": [
+    {
+      "file": "cover-1.png",
+      "hash": "b1493d05beaf473377a391ce78fad802e6ce7379121e9f0b0396bf70196dfec4",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-2.png",
+      "hash": "8ece03193a13873c39d492f5cd1034ecf9c03bd564994a1512f0075983af3472",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-3.png",
+      "hash": "093ec85ed5bcc5a401970ed9d4b31cb537d8d7ad82b510f9106e4c159e5bcd1b",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-4.png",
+      "hash": "caa31b6d08f39fa6e1d0fb04031128cc4fd5ed774ab07f0572bd9c8ffe62862b",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-5.png",
+      "hash": "6af033a7a987f531bc8ab9f18d1b65787e5db3a0745ca57c06b3eb84ebb8f793",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-6.png",
+      "hash": "2caac496179ea0c747dac6a89c9f4ba2def851dde77f8d9ebd3b24b7e4a5d3f2",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-7.png",
+      "hash": "04b8e0148e2c6e37576e6049cab7f62c0eba22eb82dffebfecac0df415c4e024",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-8.png",
+      "hash": "84f41a5613207314f16afd585989700a69a73e437398eb99df2a1991dfa93309",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    },
+    {
+      "file": "cover-9.png",
+      "hash": "3678a333e88e62478743a1ac7c491a7b700cfd60364e82e718949cc9f7249c3b",
+      "originalAvailable": true,
+      "originalMatch": true,
+      "width": 1080,
+      "height": 1443
+    }
+  ],
+  "history": {
+    "bfcacheRestored": false,
+    "flatPlaybackAfterBack": true
+  },
+  "pause": {
+    "flatFrozenBeyondFullIdleCycle": true,
+    "keyboardResume": true
+  },
+  "offline": {
+    "fonts": true,
+    "covers": true,
+    "count": 9
+  },
+  "unexpectedWrites": [],
+  "compactDesktopControl": {
+    "buttonTop": 570,
+    "maxCardBottom": 568.220703125
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "overviewHeight": 388,
+  "geometries": [
+    {
+      "width": 1000,
+      "scroll": 1000,
+      "outside": [],
+      "fieldOverflow": [
+        {
+          "scroll": 860,
+          "client": 860
+        },
+        {
+          "scroll": 860,
+          "client": 860
+        },
+        {
+          "scroll": 860,
+          "client": 860
+        }
+      ]
+    },
+    {
+      "width": 736,
+      "scroll": 736,
+      "outside": [],
+      "fieldOverflow": [
+        {
+          "scroll": 596,
+          "client": 596
+        },
+        {
+          "scroll": 596,
+          "client": 596
+        },
+        {
+          "scroll": 596,
+          "client": 596
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "scroll": 390,
+      "outside": [],
+      "fieldOverflow": [
+        {
+          "scroll": 330,
+          "client": 330
+        },
+        {
+          "scroll": 330,
+          "client": 330
+        },
+        {
+          "scroll": 330,
+          "client": 330
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "scroll": 320,
+      "outside": [],
+      "fieldOverflow": [
+        {
+          "scroll": 260,
+          "client": 260
+        },
+        {
+          "scroll": 260,
+          "client": 260
+        },
+        {
+          "scroll": 260,
+          "client": 260
+        }
+      ]
+    }
+  ],
+  "fonts": [
+    {
+      "selector": ".rv-misans h2",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    },
+    {
+      "selector": ".rv-system h2",
+      "fonts": [
+        {
+          "familyName": "Noto Sans CJK SC",
+          "postScriptName": "NotoSansCJKsc-Bold",
+          "isCustomFont": false,
+          "glyphCount": 6
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "scope": "仅视觉方案示意，非业务页面验收"
+}

@@ -1,0 +1,27 @@
+---
+import BusinessPromotionData from './BusinessPromotionData.astro';
+import type {PromotionOverview} from '../db/promotion-overview';
+interface Props {entry:PromotionOverview;daily?:boolean;href:string}
+const {entry,daily=false,href}=Astro.props;
+type Event={key:string;campaignId:string;effectiveOn:string;kind:string;label:string;isCurrent:boolean};
+const events:Event[]=(entry as PromotionOverview & {events?:Event[]}).events??entry.nodes.map((node,index)=>({key:`${node.campaignId}:${node.startedOn}:${node.stageType}`,campaignId:node.campaignId,effectiveOn:node.startedOn,kind:node.stageType==='scaling'?'scaling':'testing',label:node.stageType==='scaling'?'开始放量':'开始测试',isCurrent:index===entry.nodes.length-1}));
+const money=(value:number|null)=>value==null?'—':`¥${value.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const totals=[{label:'总消耗',value:entry.totals.spend,unit:''},{label:'实际开口成本',value:entry.totals.actualOpenCost,unit:'/人'},{label:'实际留资成本',value:entry.totals.actualLeadCost,unit:'/人'}];
+---
+<article class:list={['promotion-summary',daily?'lifecycle-card':'history-record']} data-lifecycle-schedule={daily?entry.scheduleId:undefined} data-history-schedule={daily?undefined:entry.scheduleId} data-history-row={daily?undefined:true}>
+ <header><a href={href} data-inspector-key={entry.key}><strong title={entry.post.contentName}>{entry.post.contentName}</strong></a><span>V{entry.post.versionNumber} · {entry.post.subjectName}</span></header>
+ <div class="promotion-stage-overview">
+  {events.length?<ol class="promotion-stage-nodes" aria-label="推广阶段历程" tabindex="0">{events.map((event,index)=><>
+   {index>0&&<li class="promotion-stage-connector" aria-hidden="true" data-stage-connector/>}
+   <li class:list={['promotion-stage-node',event.kind,{'is-current':event.isCurrent}]} data-stage-node={event.key}><i aria-hidden="true"/><time datetime={event.effectiveOn}>{event.effectiveOn.slice(5).replace('-','/')}</time><span>{event.label}</span></li>
+  </>)}</ol>:<span class="promotion-stage-empty">尚未开始推广</span>}
+ </div>
+ <div class="lifecycle-overview-totals">{totals.map(total=><div><span class="lifecycle-total-label">{total.label}</span><strong>{money(total.value)}</strong>{total.value!=null&&total.unit&&<small>{total.unit}</small>}</div>)}</div>
+ <div class:list={['promotion-current-state',entry.currentStage??'paused']}><strong>{entry.statusLabel}</strong><small>{entry.currentLabel}</small>{!entry.metrics.length&&<span>尚无复盘</span>}</div>
+ <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}>
+  <summary class="lifecycle-expand"><span class="lifecycle-data-action"><span class="when-closed">查看详情</span><span class="when-open">收起详情</span></span></summary>
+  <BusinessPromotionData entry={entry}/>
+  {!entry.metrics.length&&<a class="promotion-empty-detail-link" href={href} data-inspector-key={entry.key}>查看推广安排与业务详情 ↗</a>}
+ </details>
+</article>
+<script>import '../scripts/promotion-disclosure';</script>

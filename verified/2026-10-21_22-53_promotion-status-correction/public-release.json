@@ -1,0 +1,170 @@
+{
+  "checkedAt": "2026-10-21T14:55:53.633Z",
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "passed": true,
+  "codeCommit": "3111c28",
+  "checks": 36,
+  "matchingAssets": 15,
+  "businessWrites": false,
+  "details": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/business/operations-schedule",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?status=approvals",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review?view=history",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review?view=stage",
+      "status": 302
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "status": 302
+    },
+    {
+      "path": "/business/annual-plan",
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "status": 302
+    },
+    {
+      "path": "/api/promotion-daily",
+      "status": 401
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "status": 401
+    },
+    {
+      "path": "/api/non-promotion-reviews",
+      "status": 401
+    },
+    {
+      "path": "/api/business-notifications",
+      "status": 401
+    },
+    {
+      "path": "/.env",
+      "status": 404
+    },
+    {
+      "path": "/.tools/review-v8-release-production.env",
+      "status": 404
+    },
+    {
+      "path": "/.tools/backups/review-v8-0036-before.json",
+      "status": 404
+    },
+    {
+      "path": "/verified/2026-10-21_22-15_review-workbench-v8/README.md",
+      "status": 404
+    },
+    {
+      "path": "/data/imports/private.xlsx",
+      "status": 404
+    },
+    {
+      "path": "/src/db/schema.ts",
+      "status": 404
+    },
+    {
+      "path": "/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.DNDulJem.js",
+      "status": 200,
+      "sha256": "c873ddf6dd4d2370e55a5846fcc1a7f479ce8e015bfd7675eb2e8834267fc5f0"
+    },
+    {
+      "path": "/_astro/BusinessConsoleSidebar.astro_astro_type_script_index_0_lang.Bp6p43BI.js",
+      "status": 200,
+      "sha256": "73a07dfd2a7b328f3f7725c566cb8836830cf3ff49b5da3ad8b8ae8dbd2561ed"
+    },
+    {
+      "path": "/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.C5_MrDYT.js",
+      "status": 200,
+      "sha256": "f976e93adfda0ea18be222dbf7088797e6cffda1ef9fc34e7339e3779c78fb6c"
+    },
+    {
+      "path": "/_astro/non-promotion-review.astro_astro_type_script_index_0_lang.BbDY2mSz.js",
+      "status": 200,
+      "sha256": "69078933298b2c95c0eac27f503ddd557ab6b04d5e221058e8b1f344db9d1fc0"
+    },
+    {
+      "path": "/_astro/annual-plan.astro_astro_type_script_index_0_lang.D3a1WV-b.js",
+      "status": 200,
+      "sha256": "32dc711a04dc7ae0157248ccfb579cc13606cb5abdc85ca6384a08c953e61efa"
+    },
+    {
+      "path": "/_astro/operations-schedule.astro_astro_type_script_index_0_lang.DaGL16O7.js",
+      "status": 200,
+      "sha256": "7ad699a3a6f3a8f7f02fe1880e810092e6d8333142294efec6e70afca3edb230"
+    },
+    {
+      "path": "/_astro/business-dialog.LGSPe8mJ.js",
+      "status": 200,
+      "sha256": "be4fcc88ad630b41f0fa4bad1320347dcc5a8b2217cbb9859144334f6ddd50d9"
+    },
+    {
+      "path": "/_astro/daily-promotion-review.DKEPV245.css",
+      "status": 200,
+      "sha256": "fab89f51b57da700360a102a1e9551b84fc358378bacbe2c5a8a28ac20d6a9c4"
+    },
+    {
+      "path": "/_astro/non-promotion-review.DVs11JUS.css",
+      "status": 200,
+      "sha256": "6a14549ae78af5fa19aa90364c9ddce137c0da0a6b2b2527350e4ab223873f17"
+    },
+    {
+      "path": "/_astro/annual-plan.CWgXhboC.css",
+      "status": 200,
+      "sha256": "a68d5d644d026a04dda1389ce9cd1a78fd631bb781f62de120df68b280f33030"
+    },
+    {
+      "path": "/fonts/misans-5.0.0/MiSansVF.css",
+      "status": 200,
+      "sha256": "d6ad24b3cecbb0b520fa3a9a330fc64301d2228db8ae456c64b725636250a221"
+    },
+    {
+      "path": "/fonts/misans-5.0.0/MiSansVF.00d0682c24b9e852.15.woff2",
+      "status": 200,
+      "sha256": "00d0682c24b9e85262ce9ce423720d10b245aa06c2174cd750f46a9842c4a8fa"
+    },
+    {
+      "path": "/fonts/misans-5.0.0/MiSansVF.00ed8f01da81647e.47.woff2",
+      "status": 200,
+      "sha256": "00ed8f01da81647ebcb2a688fe8c6776ba7ca9fd738e2ed18b1d49b5b2ac28eb"
+    },
+    {
+      "path": "/fonts/misans-5.0.0/MiSansVF.081b771213563eae.33.woff2",
+      "status": 200,
+      "sha256": "081b771213563eae63f34fd867c1980aebb4e77f77275154d934c3fd81774699"
+    },
+    {
+      "path": "/fonts/misans-5.0.0/LICENSE-MiSans.pdf",
+      "status": 200,
+      "sha256": "4a93a27cd2bd81b3b5ecfd0a853144a876fa26938a93a68443c67d74172fcb86"
+    }
+  ]
+}

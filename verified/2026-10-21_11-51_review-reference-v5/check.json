@@ -1,0 +1,368 @@
+{
+  "scope": "独立视觉参考；仅调整状态列间距与气泡，无业务API/数据库写入",
+  "geometries": [
+    {
+      "width": 1920,
+      "pageWidth": 1920,
+      "placement": "right",
+      "bubble": {
+        "left": 700.03125,
+        "right": 1040.03125,
+        "top": 491.5,
+        "bottom": 875.5,
+        "width": 340
+      },
+      "stateWidth": 112,
+      "stateCenter": 632.03125,
+      "textCenter": 632.03125,
+      "gapToSpend": 23,
+      "inputWidths": [
+        143.78125,
+        143.796875,
+        143.796875,
+        143.796875,
+        143.796875
+      ],
+      "scroll": {
+        "client": 1438,
+        "width": 1438
+      },
+      "items": [
+        {
+          "left": 991.03125,
+          "right": 1023.03125
+        },
+        {
+          "left": 717.03125,
+          "right": 1023.03125
+        },
+        {
+          "left": 717.03125,
+          "right": 1023.03125
+        },
+        {
+          "left": 885.03125,
+          "right": 941.03125
+        },
+        {
+          "left": 949.03125,
+          "right": 1023.03125
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "pageWidth": 1440,
+      "placement": "right",
+      "bubble": {
+        "left": 597,
+        "right": 937,
+        "top": 491.5,
+        "bottom": 875.5,
+        "width": 340
+      },
+      "stateWidth": 112,
+      "stateCenter": 529,
+      "textCenter": 529,
+      "gapToSpend": 23,
+      "inputWidths": [
+        88.390625,
+        88.40625,
+        88.390625,
+        88.40625,
+        88.40625
+      ],
+      "scroll": {
+        "client": 1158,
+        "width": 1158
+      },
+      "items": [
+        {
+          "left": 888,
+          "right": 920
+        },
+        {
+          "left": 614,
+          "right": 920
+        },
+        {
+          "left": 614,
+          "right": 920
+        },
+        {
+          "left": 782,
+          "right": 838
+        },
+        {
+          "left": 846,
+          "right": 920
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "pageWidth": 1280,
+      "placement": "right",
+      "bubble": {
+        "left": 597,
+        "right": 937,
+        "top": 491.5,
+        "bottom": 875.5,
+        "width": 340
+      },
+      "stateWidth": 112,
+      "stateCenter": 529,
+      "textCenter": 529,
+      "gapToSpend": 23,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scroll": {
+        "client": 998,
+        "width": 1156
+      },
+      "items": [
+        {
+          "left": 888,
+          "right": 920
+        },
+        {
+          "left": 614,
+          "right": 920
+        },
+        {
+          "left": 614,
+          "right": 920
+        },
+        {
+          "left": 782,
+          "right": 838
+        },
+        {
+          "left": 846,
+          "right": 920
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "pageWidth": 1024,
+      "placement": "right",
+      "bubble": {
+        "left": 597,
+        "right": 937,
+        "top": 491.5,
+        "bottom": 875.5,
+        "width": 340
+      },
+      "stateWidth": 112,
+      "stateCenter": 529,
+      "textCenter": 529,
+      "gapToSpend": 23,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scroll": {
+        "client": 742,
+        "width": 1156
+      },
+      "items": [
+        {
+          "left": 888,
+          "right": 920
+        },
+        {
+          "left": 614,
+          "right": 920
+        },
+        {
+          "left": 614,
+          "right": 920
+        },
+        {
+          "left": 782,
+          "right": 838
+        },
+        {
+          "left": 846,
+          "right": 920
+        }
+      ]
+    },
+    {
+      "width": 736,
+      "pageWidth": 736,
+      "placement": "right",
+      "bubble": {
+        "left": 357,
+        "right": 697,
+        "top": 669,
+        "bottom": 1053,
+        "width": 340
+      },
+      "stateWidth": 112,
+      "stateCenter": 289,
+      "textCenter": 289,
+      "gapToSpend": 23,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scroll": {
+        "client": 702,
+        "width": 1156
+      },
+      "items": [
+        {
+          "left": 648,
+          "right": 680
+        },
+        {
+          "left": 374,
+          "right": 680
+        },
+        {
+          "left": 374,
+          "right": 680
+        },
+        {
+          "left": 542,
+          "right": 598
+        },
+        {
+          "left": 606,
+          "right": 680
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "pageWidth": 390,
+      "placement": "above",
+      "bubble": {
+        "left": 38,
+        "right": 378,
+        "top": 505.5,
+        "bottom": 889.5,
+        "width": 340
+      },
+      "stateWidth": 112,
+      "stateCenter": 283,
+      "textCenter": 283,
+      "gapToSpend": 23,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scroll": {
+        "client": 368,
+        "width": 1156
+      },
+      "items": [
+        {
+          "left": 329,
+          "right": 361
+        },
+        {
+          "left": 55,
+          "right": 361
+        },
+        {
+          "left": 55,
+          "right": 361
+        },
+        {
+          "left": 223,
+          "right": 279
+        },
+        {
+          "left": 287,
+          "right": 361
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "pageWidth": 320,
+      "placement": "above",
+      "bubble": {
+        "left": 12,
+        "right": 308,
+        "top": 537,
+        "bottom": 921,
+        "width": 296
+      },
+      "stateWidth": 112,
+      "stateCenter": 253,
+      "textCenter": 253,
+      "gapToSpend": 23,
+      "inputWidths": [
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scroll": {
+        "client": 298,
+        "width": 1156
+      },
+      "items": [
+        {
+          "left": 259,
+          "right": 291
+        },
+        {
+          "left": 29,
+          "right": 291
+        },
+        {
+          "left": 29,
+          "right": 291
+        },
+        {
+          "left": 153,
+          "right": 209
+        },
+        {
+          "left": 217,
+          "right": 291
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "状态112px且名称/修改居中",
+    "五项输入至少88px",
+    "长状态距消耗输入至少20px",
+    "气泡不增加行或遮罩",
+    "无日期选择",
+    "原状态与修改为预览",
+    "未保存不改实际状态",
+    "保存后原→新与原因只读回执",
+    "关闭再查看已保存变更",
+    "再次修改",
+    "取消不改数据",
+    "Esc保留草稿并返回焦点",
+    "保留数值/合法次日安排/输入DOM",
+    "失效次日选项明确提示",
+    "桌面及窄屏避让边缘",
+    "无页面横向溢出",
+    "减少动态效果"
+  ]
+}

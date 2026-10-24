@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-23T16:10:13.142Z",
+  "readOnlyVerification": true,
+  "reportedPost": {
+    "plannedPublishAt": "2026-10-22 18:00",
+    "actualPublishAt": "2026-10-23 18:00",
+    "currentReasonCount": 1,
+    "delayLabel": "较最新排期晚发布 1 天",
+    "planChangePreserved": true,
+    "missingReasonReminder": false
+  },
+  "remainingOldRevisionReasons": 0,
+  "legacyFields": 0,
+  "obsoleteProposalCopies": 0,
+  "legacyAuditCopies": 0,
+  "cleanup": {
+    "oldReasonsDeleted": 202,
+    "invalidCurrentReasonsDeleted": 6,
+    "deleted": 208,
+    "legacyFieldsCleared": 15,
+    "snapshotsCleaned": 35,
+    "secondPassChanges": 0,
+    "protectedTables": 39,
+    "protectedFactsUnchanged": true
+  },
+  "databaseSchemaMigration": false,
+  "fictionalProductionWrites": false
+}

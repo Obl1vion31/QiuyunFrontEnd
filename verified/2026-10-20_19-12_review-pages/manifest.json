@@ -1,0 +1,465 @@
+{
+  "archivedAt": "2026-10-20T19:12:55+08:00",
+  "timezone": "Asia/Shanghai",
+  "appRevision": "aa1c45c",
+  "dataSource": "isolated-test-fixtures",
+  "status": "self-reviewed-awaiting-user-feedback",
+  "images": [
+    {
+      "file": "promotion-pending/page-desktop-1440.png",
+      "state": "页面上下文（生命周期＋待完成复盘）",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1440,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/promotion-daily-ui-1440.png",
+      "capturedAt": "2026-10-20T15:45:24+08:00",
+      "sha256": "c3ea2a4642eb00759da7c465dfd0e0688f6e97b1dcef6895ed7eab870dccb839"
+    },
+    {
+      "file": "promotion-pending/page-desktop-1280.png",
+      "state": "页面上下文（生命周期＋待完成复盘）",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 1280,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/promotion-daily-ui-1280.png",
+      "capturedAt": "2026-10-20T15:45:33+08:00",
+      "sha256": "302f18f839d019e36f37b17586952ac93f532cf8fb19c2eabeee06a2c9fe0996"
+    },
+    {
+      "file": "promotion-pending/page-mobile-390.png",
+      "state": "页面上下文（生命周期＋待完成复盘）",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 390,
+        "height": 1146
+      },
+      "source": ".tools/test-artifacts/promotion-daily-ui-390.png",
+      "capturedAt": "2026-10-20T15:45:38+08:00",
+      "sha256": "e04ab3e933bfd3cbf13c7fc6da9c31a167a193e8e13129eaac45e3eaacb8f726"
+    },
+    {
+      "file": "promotion-pending/page-mobile-320.png",
+      "state": "页面上下文（生命周期＋待完成复盘）",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 320,
+        "height": 1218
+      },
+      "source": ".tools/test-artifacts/promotion-daily-ui-320.png",
+      "capturedAt": "2026-10-20T15:45:38+08:00",
+      "sha256": "faef3c99f2e4e3130608a4c93f422f4d674a06c19ebf0fe4c925a5997cc13868"
+    },
+    {
+      "file": "promotion-pending/pending-states-desktop-1440.png",
+      "state": "首次安排、待定／暂停与待完成复盘",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1143,
+        "height": 585
+      },
+      "source": ".tools/test-artifacts/promotion-pending-1440.png",
+      "capturedAt": "2026-10-20T15:51:09+08:00",
+      "sha256": "00e9975243013721c721ab8b17cf0f6482c80bf83576630a52770207fa2d04c2"
+    },
+    {
+      "file": "promotion-pending/pending-states-desktop-1280.png",
+      "state": "首次安排、待定／暂停与待完成复盘",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 983,
+        "height": 693
+      },
+      "source": ".tools/test-artifacts/promotion-pending-1280.png",
+      "capturedAt": "2026-10-20T15:51:10+08:00",
+      "sha256": "aaa7379b7d07e27d575029e6a7215df3718c8c71c67373aad43967fe06c8da5e"
+    },
+    {
+      "file": "promotion-pending/pending-states-mobile-390.png",
+      "state": "首次安排、待定／暂停与待完成复盘",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 353,
+        "height": 1579
+      },
+      "source": ".tools/test-artifacts/promotion-pending-390.png",
+      "capturedAt": "2026-10-20T15:51:10+08:00",
+      "sha256": "654c80f019ac58c8250cfd1894221bfef7c9d063dbadd27840df4f8e5a0f53ac"
+    },
+    {
+      "file": "promotion-pending/pending-states-mobile-320.png",
+      "state": "首次安排、待定／暂停与待完成复盘",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 283,
+        "height": 1599
+      },
+      "source": ".tools/test-artifacts/promotion-pending-320.png",
+      "capturedAt": "2026-10-20T15:51:11+08:00",
+      "sha256": "78dd32a6e0c0c498754909a82ff5925889758821a9550a82971216c1c69931ef"
+    },
+    {
+      "file": "promotion-pending/card-known-id-desktop-1440.png",
+      "state": "单帖卡片：已有笔记 ID、填入长数值",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1119,
+        "height": 161
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/1440-known-id.png",
+      "capturedAt": "2026-10-20T15:47:37+08:00",
+      "sha256": "875539b68ef2229ee7cdd74b5e6442f641e8796149b258f9bff448ab0580aa4e"
+    },
+    {
+      "file": "promotion-pending/card-known-id-desktop-1280.png",
+      "state": "单帖卡片：已有笔记 ID、填入长数值",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 959,
+        "height": 287
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/1280-known-id.png",
+      "capturedAt": "2026-10-20T15:47:37+08:00",
+      "sha256": "33d4aa7f572563cd498479721c67709948697db9d2cdb784f00e407272a14387"
+    },
+    {
+      "file": "promotion-pending/card-known-id-mobile-390.png",
+      "state": "单帖卡片：已有笔记 ID、填入长数值",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 333,
+        "height": 603
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/390-known-id.png",
+      "capturedAt": "2026-10-20T15:47:39+08:00",
+      "sha256": "fbb18f69f55458ea0364bb80e2a804f3312a307f60a4682afa1b0a0bf76ac2e6"
+    },
+    {
+      "file": "promotion-pending/card-known-id-mobile-320.png",
+      "state": "单帖卡片：已有笔记 ID、填入长数值",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 263,
+        "height": 603
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/320-known-id.png",
+      "capturedAt": "2026-10-20T15:47:39+08:00",
+      "sha256": "9fc97763c175959efaf4f3592257218809f4b6c4b54110cbc986942ffe3ac2c3"
+    },
+    {
+      "file": "promotion-pending/card-missing-id-desktop-1440.png",
+      "state": "单帖卡片：首次补填笔记 ID",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1119,
+        "height": 161
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/1440-missing-id.png",
+      "capturedAt": "2026-10-20T15:47:37+08:00",
+      "sha256": "1a767e23456c8a0bb17be51ea7e43c903c946e68170fc51a605beb4d5fd878e5"
+    },
+    {
+      "file": "promotion-pending/card-missing-id-desktop-1280.png",
+      "state": "单帖卡片：首次补填笔记 ID",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 959,
+        "height": 287
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/1280-missing-id.png",
+      "capturedAt": "2026-10-20T15:47:38+08:00",
+      "sha256": "95b1e9bd75c402c9ee20cbaf76819b086c1c9a751678970def4256b6a83e03c0"
+    },
+    {
+      "file": "promotion-pending/card-missing-id-mobile-390.png",
+      "state": "单帖卡片：首次补填笔记 ID",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 333,
+        "height": 603
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/390-missing-id.png",
+      "capturedAt": "2026-10-20T15:47:39+08:00",
+      "sha256": "a2bc415f86578000bad7b9da4ab8434ed5a1941ae2ac8b80b7570f4ba1d671fa"
+    },
+    {
+      "file": "promotion-pending/card-missing-id-mobile-320.png",
+      "state": "单帖卡片：首次补填笔记 ID",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 263,
+        "height": 603
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/320-missing-id.png",
+      "capturedAt": "2026-10-20T15:47:39+08:00",
+      "sha256": "141ef08ae4195236efb68b07c8f5dc8d7e84bbd44ff1dbfed67870ff71e55807"
+    },
+    {
+      "file": "promotion-pending/inspector-desktop-1440.png",
+      "state": "名称打开的覆盖式 Inspector",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 338,
+        "height": 988
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/inspector-1440.png",
+      "capturedAt": "2026-10-20T15:47:39+08:00",
+      "sha256": "513ffbaf04095018fd09a2ed8d4e8f01d4bafac90120f9590a6787b1296a6ba8"
+    },
+    {
+      "file": "promotion-pending/inspector-desktop-1280.png",
+      "state": "名称打开的覆盖式 Inspector",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 338,
+        "height": 988
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/inspector-1280.png",
+      "capturedAt": "2026-10-20T15:47:39+08:00",
+      "sha256": "1637a0f4162db9226bbb25c40c66d23fc52aa7caef16c65d477f691343238710"
+    },
+    {
+      "file": "promotion-pending/inspector-mobile-390.png",
+      "state": "名称打开的覆盖式 Inspector",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 375,
+        "height": 972
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/inspector-390.png",
+      "capturedAt": "2026-10-20T15:47:40+08:00",
+      "sha256": "873129fe359c68d591a7466ff4299a161456411fbf23675509a1371c66a3993b"
+    },
+    {
+      "file": "promotion-pending/inspector-mobile-320.png",
+      "state": "名称打开的覆盖式 Inspector",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 305,
+        "height": 972
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/inspector-320.png",
+      "capturedAt": "2026-10-20T15:47:40+08:00",
+      "sha256": "996ddfb3590084e410e99fcd956ac3d6b6ec825e251d47a1988a44b4529c57af"
+    },
+    {
+      "file": "non-promotion-review/categories-all-desktop-1440.png",
+      "state": "按帖子分类：全部分类汇总",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1440,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-all-categories-1440.png",
+      "capturedAt": "2026-10-20T15:45:25+08:00",
+      "sha256": "9270bf69a4ed4fd2cb8151b52b2477843d0bea263d52b859b09c283590bd49db"
+    },
+    {
+      "file": "non-promotion-review/categories-all-desktop-1280.png",
+      "state": "按帖子分类：全部分类汇总",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 1280,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-all-categories-1280.png",
+      "capturedAt": "2026-10-20T15:45:33+08:00",
+      "sha256": "5906123d1e3652609b86883070b9c7a18c7862e4c5fd98cce3fbc0a2e58be13b"
+    },
+    {
+      "file": "non-promotion-review/categories-all-mobile-390.png",
+      "state": "按帖子分类：全部分类汇总",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 390,
+        "height": 981
+      },
+      "source": ".tools/test-artifacts/review-all-categories-390.png",
+      "capturedAt": "2026-10-20T15:45:38+08:00",
+      "sha256": "6d1239aa833a4701e11a4bc6f6c7de091fcf89dfe1e12fa4d7c1a41d74b0f313"
+    },
+    {
+      "file": "non-promotion-review/categories-all-mobile-320.png",
+      "state": "按帖子分类：全部分类汇总",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 320,
+        "height": 981
+      },
+      "source": ".tools/test-artifacts/review-all-categories-320.png",
+      "capturedAt": "2026-10-20T15:45:39+08:00",
+      "sha256": "5dbf372fa85772c7b1e8e5c8d3e948679156b23364ed4c49cac2610f32653d80"
+    },
+    {
+      "file": "non-promotion-review/category-filtered-desktop-1440.png",
+      "state": "按帖子分类：TMUA · 创新帖",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1440,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-grouped-1440.png",
+      "capturedAt": "2026-10-20T15:45:25+08:00",
+      "sha256": "7fa4c9b7a23d0a9855b1054098bfa22c0546bc87039e970256e33d9293ee1d1c"
+    },
+    {
+      "file": "non-promotion-review/category-filtered-desktop-1280.png",
+      "state": "按帖子分类：TMUA · 创新帖",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 1280,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-grouped-1280.png",
+      "capturedAt": "2026-10-20T15:45:34+08:00",
+      "sha256": "9a30c3d007be1781ae61ff3ed2471ba632c934fcee3ee299e61b650fd4f2215c"
+    },
+    {
+      "file": "non-promotion-review/category-filtered-mobile-390.png",
+      "state": "按帖子分类：TMUA · 创新帖",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 390,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-grouped-390.png",
+      "capturedAt": "2026-10-20T15:45:34+08:00",
+      "sha256": "3f0b7e7b765607d6f38d80b3db9bdb2a905d0220c663293e9bfa96c98dc64ba7"
+    },
+    {
+      "file": "non-promotion-review/category-filtered-mobile-320.png",
+      "state": "按帖子分类：TMUA · 创新帖",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 320,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-grouped-320.png",
+      "capturedAt": "2026-10-20T15:45:39+08:00",
+      "sha256": "9ff7e8209214b00494c4510b674150f469503a25254a9a32c3d8f4bce6bdfb54"
+    },
+    {
+      "file": "non-promotion-review/category-detail-desktop-1440.png",
+      "state": "进入分类：TMUA · 创新帖明细",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1440,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-category-detail-1440.png",
+      "capturedAt": "2026-10-20T15:45:25+08:00",
+      "sha256": "8df61fa63db8a12f25a516cf7ea33ad3b5c6c51258aa4d32a45a8c5800290433"
+    },
+    {
+      "file": "non-promotion-review/category-detail-desktop-1280.png",
+      "state": "进入分类：TMUA · 创新帖明细",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 1280,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-category-detail-1280.png",
+      "capturedAt": "2026-10-20T15:45:34+08:00",
+      "sha256": "f9e6ce202170547a0ac22739e0314092d215be8d39af0221fdf66a5fbd9f1d2b"
+    },
+    {
+      "file": "non-promotion-review/category-detail-mobile-390.png",
+      "state": "进入分类：TMUA · 创新帖明细",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 390,
+        "height": 1447
+      },
+      "source": ".tools/test-artifacts/review-category-detail-390.png",
+      "capturedAt": "2026-10-20T15:45:34+08:00",
+      "sha256": "002e682310fc98a77fa66a6a7acdc34897cfd3dbe3bdc757242e33bfb78c252e"
+    },
+    {
+      "file": "non-promotion-review/category-detail-mobile-320.png",
+      "state": "进入分类：TMUA · 创新帖明细",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 320,
+        "height": 1447
+      },
+      "source": ".tools/test-artifacts/review-category-detail-320.png",
+      "capturedAt": "2026-10-20T15:45:39+08:00",
+      "sha256": "115f31580b50929602da94d8b0b1b175143009f2773f331c6cd753ffb2a3408b"
+    },
+    {
+      "file": "non-promotion-review/flat-desktop-1440.png",
+      "state": "平铺：TMUA · 创新帖的独立轮次",
+      "viewportWidth": 1440,
+      "imageSize": {
+        "width": 1440,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-ungrouped-1440.png",
+      "capturedAt": "2026-10-20T15:45:25+08:00",
+      "sha256": "357316379215e43b1208aa2591273394dec733fc478150186aae317ca7f512bf"
+    },
+    {
+      "file": "non-promotion-review/flat-desktop-1280.png",
+      "state": "平铺：TMUA · 创新帖的独立轮次",
+      "viewportWidth": 1280,
+      "imageSize": {
+        "width": 1280,
+        "height": 900
+      },
+      "source": ".tools/test-artifacts/review-ungrouped-1280.png",
+      "capturedAt": "2026-10-20T15:45:34+08:00",
+      "sha256": "7b6e5a07f9993a322997acf277ce2d90129cca6c3e25b642dc88dfbad90932ea"
+    },
+    {
+      "file": "non-promotion-review/flat-mobile-390.png",
+      "state": "平铺：TMUA · 创新帖的独立轮次",
+      "viewportWidth": 390,
+      "imageSize": {
+        "width": 390,
+        "height": 1399
+      },
+      "source": ".tools/test-artifacts/review-ungrouped-390.png",
+      "capturedAt": "2026-10-20T15:45:35+08:00",
+      "sha256": "56dc7a00d5bf57835caae3a8806e2cea5f69f9864e5c9f2312acb8ea628be4f9"
+    },
+    {
+      "file": "non-promotion-review/flat-mobile-320.png",
+      "state": "平铺：TMUA · 创新帖的独立轮次",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 320,
+        "height": 1399
+      },
+      "source": ".tools/test-artifacts/review-ungrouped-320.png",
+      "capturedAt": "2026-10-20T15:45:40+08:00",
+      "sha256": "2ae51e332a50b93bd33b6b12d4e5f63b243d27b2ed9e7b22f5a59b6e44488769"
+    },
+    {
+      "file": "promotion-pending/paused-mobile-320.png",
+      "state": "当日暂停草稿",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 263,
+        "height": 523
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/320-paused.png",
+      "capturedAt": "2026-10-20T15:47:40+08:00",
+      "sha256": "246c555abb5f5fb9500cd64dd5ba7f82d23bf98f88a1a5f7529831b3bf6195a9"
+    },
+    {
+      "file": "promotion-pending/save-error-mobile-320.png",
+      "state": "保存失败时保留输入与反馈",
+      "viewportWidth": 320,
+      "imageSize": {
+        "width": 263,
+        "height": 707
+      },
+      "source": ".tools/test-artifacts/review-cards-verified/320-save-error.png",
+      "capturedAt": "2026-10-20T15:47:40+08:00",
+      "sha256": "5be00e92a676926faf2d4195a1d130d8a7159d956a7e1ff409290cadc9c8d186"
+    }
+  ]
+}
