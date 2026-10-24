@@ -57,7 +57,7 @@ flowchart LR
 
 - `/business/daily-promotion-review`：每日与历史共用顶栏。`?view=stage` 无快照时带日期转入周例会；已有 review／snapshot 只读，聚合与保存接口保留旧业务兼容。
 - `src/db/promotion-wait-ranges.ts` 与 `/api/promotion-wait-ranges`：逐帖区间、次日动作和历史保护；每日和历史的状态入口由 `BusinessPromotionTimeline` 按场景呈现，共用原读写与回放规则。共用时序推导在 `promotion-rules.mjs` 与 `promotion-state.mjs`。
-- `src/db/meeting-snapshots.ts` 保留 v2/v3 校验装配；`meeting-weekly-material.ts` 生成 v4 周／月例会候选、区间总量、本帖历史／历史同类与来源指纹，`BusinessWeeklyMeeting`／`WeeklyReviewCards` 承载编辑，`BusinessWeeklySnapshot` 同结构显示冻结结果。`GET /api/meeting-reviews/:id/material` 显式刷新，PATCH 保存／定稿只接收选择与人工内容；图片继续走认证接口。
+- `src/db/meeting-snapshots.ts` 保留 v2/v3 校验装配；`meeting-weekly-material.ts` 生成 v4 周／月例会候选、区间总量、本帖历史／历史同类与来源指纹，`BusinessWeeklyMeeting`／`WeeklyReviewCards` 承载编辑，`BusinessWeeklySnapshot` 按结果／核心结论优先的阅读层级显示冻结结果，草稿填写顺序保留。`GET /api/meeting-reviews/:id/material` 显式刷新，PATCH 保存／定稿只接收选择与人工内容；图片继续走认证接口。
 
 ## 共享界面接入
 
@@ -134,10 +134,10 @@ flowchart LR
 
 周例会 React 岛复用 Frame、Toolbar、BusinessDateTimeFields、表单变量与 `businessConfirm`；异步候选调用公共 `readBusiness`，保留当前人工输入和勾选，区间变动使旧响应失效。条件筛选仅设置卡片 hidden，完整事实／比较来源由服务端保存到 v4 JSON，不增加表结构。新模式用 `tests/meeting-weekly.browser.ts` 验证正式组件和隔离业务数据，旧 v2/v3 与旧阶段只读兼容继续由 `test:reviews` 验证。
 
-例会内联模式：`WeeklyReviewCards` 在卡片确认／修改，`BusinessWeeklyMeeting` 保存未确认草稿并使用公共读取与确认反馈；`meeting-layout.ts` 同步所有可见卡片高度。`PATCH /api/meeting-reviews/:id` 的 `finalize_pre`／`finalize_post` 分别冻结材料和发布次日决定，`meeting-decisions.ts` 按生效日合并不可变版本；`promotion-review-days.ts` 将决定接入每日表单，`meeting-decision.ts` 只在填写理由后更正并保留数字输入。`tests/meeting-inline.browser.ts` 验证正式组件、跨日、内联草稿与锁定，`meeting-decisions.test.ts` 验证版本优先级及终态日期。
+例会内联模式：`WeeklyReviewCards` 在卡片确认／修改，`BusinessWeeklyMeeting` 保存未确认草稿并使用公共读取与确认反馈；CSS Grid 保持同组同行卡片等高。`PATCH /api/meeting-reviews/:id` 的 `finalize_pre`／`finalize_post` 分别冻结材料和发布次日决定，`meeting-decisions.ts` 按生效日合并不可变版本；`promotion-review-days.ts` 将决定接入每日表单，`meeting-decision.ts` 只在填写理由后更正并保留数字输入。`tests/meeting-inline.browser.ts` 验证正式组件、跨日、内联草稿与锁定，`meeting-decisions.test.ts` 验证版本优先级及终态日期。
 
 例会明细使用 `WeeklyCardDetails`＋`meeting-layout` 的原生非模态 popover，编辑与无 hydration 的冻结卡共用；触发按钮留在原位，不测全页卡高。Toolbar 的 `layout="title"` 为没有居中控件的对象页保留完整标题宽度，不改变公共高度。`meeting-note-ids` 通过 SSR 与 material GET 的独立 `noteIds` 返回实时主体 ID，不进入材料、指纹或新冻结快照。
 
 最新延期计算仅接收当前排期；改期与实发更正共用 `pruneScheduleDelayReasons`，在原事务锁内删除失效原因及审批／推广快照中的结构化副本。旧排期提交被拒绝，审批快照只读取当前修订；请求清理按 Content-Type 解析，兼容 multipart。改期理由和其他业务事实保留，不能整条删除审计或改写自由文字。
 
-例会非推广的日期使用共享 `checkpointsForPublishDate`，待填与二轮前置首轮均取各自到期日，不使用会议结束日。`meeting-non-promotion.ts` 同供浏览器与事务确定本期必纳入引用；服务端仍检查全部 pending。`readWeeklyPostDetails` 在 SSR／材料刷新中批量读取笔记 ID 与当前资料，和指标指纹分开；冻结视图只读获取当前链接，不回写快照。`WeeklyCardDetails variant="info"` 接入标题右侧资料气泡，底部明细保留原触发方式，定位、悬停／聚焦、点击保持与关闭统一由 `meeting-layout` 管理。
+例会非推广的日期使用共享 `checkpointsForPublishDate`，待填与二轮前置首轮均取各自到期日，不使用会议结束日。`meeting-non-promotion.ts` 同供浏览器与事务确定本期必纳入引用；服务端仍检查全部 pending。`readWeeklyPostDetails` 在 SSR／材料刷新中批量读取推广、非推广与待处理节点的笔记 ID 与当前资料，和指标指纹分开；冻结视图只读获取当前链接，不回写快照。`WeeklyCardDetails variant="info"` 由两类卡片共用标题文字后的资料气泡，底部明细保留原触发方式，定位、悬停／聚焦、点击保持与关闭统一由 `meeting-layout` 管理。

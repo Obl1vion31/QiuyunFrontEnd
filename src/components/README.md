@@ -81,4 +81,4 @@ ContentTunnel.module.css
 
 `BusinessWeeklyMeeting.tsx` 使用共享框架中的 v4 周例会编辑，`WeeklyReviewCards.tsx` 共用候选／冻结卡片，`BusinessWeeklySnapshot.astro` 显示定稿；旧 `BusinessMeetingSnapshot` 保留 v2/v3 分支。新增 UI 仍遵循公共控件、加载和未保存保护。
 
-`WeeklyCardDetails` 为例会编辑与冻结卡共用的非模态明细气泡；`variant="info"` 为非推广标题右侧资料入口；`meeting-layout` 统一定位、悬停／聚焦预览、点击保持和退出，不统一测高。`BusinessConsoleToolbar layout="title"` 为对象页提供单标题与右侧动作。
+`WeeklyCardDetails` 为例会编辑与冻结卡共用的非模态明细气泡；`variant="info"` 为推广／非推广标题文字后的资料入口；`meeting-layout` 统一定位、悬停／聚焦预览、点击保持和退出，不统一测高。`BusinessConsoleToolbar layout="title"` 为对象页提供单标题与右侧动作。

@@ -14,6 +14,8 @@
 
 `deployment-origin.test.mjs` 使用真实 Astro 请求构造与来源中间件，覆盖本机配置下正式 HTTPS 域名的同源表单、伪造转发域名及外站拒绝；公网发布还须按部署指南检查真实表单请求。`test:weekly` 包含 `meeting-create.browser.ts`，从新建弹窗实际填写和提交，覆盖上海时间保存、空标题、失败保留输入、非 JSON 错误、断网与连续提交防重复，再运行候选、草稿及会前／会后流程。
 
+`meeting-presentation.browser.ts` 纳入 `test:weekly`，检查定稿结果与结论优先、两类标题资料入口、草稿布局与输入保留、四档桌面同行等高、长文字完整、汇总包含未选入的本期实际跑量、实时资料与不可变快照分离、会前／会后及跨日生效日、月例会空态。使用隔离PGlite；原始截图与录像位于 `.tools/test-artifacts/meeting-presentation/`，可通过 `MEETING_PRESENTATION_DIR` 指定新目录。
+
 历史迁移含特定导入批次断言，隔离测试从当前 schema 建立业务结构，再执行本次认证 SQL；不会修改已共享的历史迁移，也不会使用真实业务数据补足断言。Chromium 系统库与中文字体可在 `.tools/system/` 解压，并用 `LD_LIBRARY_PATH`、`FONTCONFIG_FILE` 提供，避免修改系统配置。
 
 年度规划测试覆盖半月边界、付费子区间汇总、自由备注、旧快照恢复、乐观锁、管理员权限、年度复制和并发防覆盖。追加迁移从上一个完整结构快照在隔离 PostgreSQL 验证，浏览器同时检查桌面全年对齐、跨页初始化和手机编辑。

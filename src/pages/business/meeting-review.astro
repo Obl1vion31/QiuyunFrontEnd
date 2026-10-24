@@ -40,7 +40,7 @@ try {
   ]);
   if(selected?.draftSnapshot.schemaVersion===4){
     const cached=selected.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
-    ({noteIds,postReferences}=await readWeeklyPostDetails(db,{nonPromotions:[...(cached?.nonPromotions??[]),...versions.flatMap(v=>(v.snapshot as any)?.generated?.nonPromotions??[])],pending:cached?.pending}));
+    ({noteIds,postReferences}=await readWeeklyPostDetails(db,{promotions:[...(cached?.promotions??[]),...versions.flatMap(v=>(v.snapshot as any)?.generated?.promotions??[])],nonPromotions:[...(cached?.nonPromotions??[]),...versions.flatMap(v=>(v.snapshot as any)?.generated?.nonPromotions??[])],pending:cached?.pending}));
   }
 } catch (e) { console.error('meeting review query failed', e); error = '例会数据暂时不可用，请稍后重试。'; }
 const selectedVersion = versions.find(v => String(v.versionNumber) === Astro.url.searchParams.get('version')) ?? versions[0];

@@ -10,10 +10,11 @@ function initialize(){
     const anchor=trigger.getBoundingClientRect(),card=trigger.closest('.weekly-stage-card')!.getBoundingClientRect();
     if(anchor.bottom<0||anchor.top>innerHeight||!trigger.getClientRects().length){active.hidePopover();return;}
     const info=!!trigger.closest('.weekly-card-reference');
-    const width=Math.min(info?Math.max(260,Math.min(340,card.width-32)):card.width-32,innerWidth-24),below=innerHeight-anchor.bottom-20,above=anchor.top-20;
+    const width=Math.min(info?Math.min(340,card.width-32):card.width-32,innerWidth-24),below=innerHeight-anchor.bottom-20,above=anchor.top-20;
     const up=below<160&&above>below,available=Math.max(0,up?above:below);
     active.style.width=width+'px';active.style.maxHeight=Math.min(360,available)+'px';
-    active.style.left=Math.max(12,Math.min(info?anchor.right-width:card.left+16,innerWidth-width-12))+'px';
+    const left=info?Math.max(card.left+16,Math.min(anchor.left,card.right-16-width)):card.left+16;
+    active.style.left=Math.max(12,Math.min(left,innerWidth-width-12))+'px';
     active.style.top=(up?Math.max(12,anchor.top-8-active.getBoundingClientRect().height):anchor.bottom+8)+'px';
   };
   const follow=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(position);};
