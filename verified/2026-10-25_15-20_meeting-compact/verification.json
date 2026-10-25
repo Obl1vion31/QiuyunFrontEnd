@@ -1,0 +1,38 @@
+{
+  "sourceCommit": "724f9174caf0524727f799ca5249edeff115f087",
+  "deploymentId": "dpl_BM8xEtVxqgELmd7k9aveuSKzrjde",
+  "deploymentUrl": "https://qiuyun-frontend-7ng0hjcrx-opgobl1v-5358.vercel.app",
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "status": "READY",
+  "unitTests": 187,
+  "unitPassed": 187,
+  "typeCheck": "passed",
+  "nodeBuild": "passed",
+  "vercelBuild": "passed",
+  "databaseCheck": "passed",
+  "browserSuites": [
+    "meeting-create",
+    "meeting-weekly",
+    "meeting-inline",
+    "meeting-non-promotion",
+    "meeting-presentation",
+    "meeting-finalization",
+    "meeting-compact",
+    "review-intervals",
+    "business-ui"
+  ],
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024
+  ],
+  "states": [
+    "draft",
+    "pre-V0",
+    "post-V1"
+  ],
+  "fixture": "isolated PGlite",
+  "productionBusinessWrites": false,
+  "databaseMigrations": false
+}

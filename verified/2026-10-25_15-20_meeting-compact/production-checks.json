@@ -1,0 +1,108 @@
+{
+  "checkedAt": "2026-10-25T07:29:21.483Z",
+  "sourceCommit": "724f9174caf0524727f799ca5249edeff115f087",
+  "scope": "正式真实草稿只读；仅验收标签GET刷新材料，未保存或定稿",
+  "fonts": [
+    {
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "height": 20,
+      "kind": "STRONG",
+      "size": "15px",
+      "weight": "500"
+    },
+    {
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "height": 24,
+      "kind": "SPAN",
+      "size": "12px",
+      "weight": "400"
+    },
+    {
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "height": 24,
+      "kind": "BUTTON",
+      "size": "16px",
+      "weight": "400"
+    },
+    {
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "height": 20,
+      "kind": "STRONG",
+      "size": "15px",
+      "weight": "500"
+    },
+    {
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "height": 24,
+      "kind": "SPAN",
+      "size": "12px",
+      "weight": "400"
+    },
+    {
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "height": 24,
+      "kind": "BUTTON",
+      "size": "16px",
+      "weight": "400"
+    }
+  ],
+  "nonCount": 9,
+  "overflow": false,
+  "promotionCount": 5,
+  "range": [
+    "2026-10-16",
+    "2026-10-24"
+  ],
+  "url": "https://qiuyun-frontend.vercel.app/business/meeting-review?meeting=50bb51e4-7ac4-40dd-923b-cd4dc25c2746",
+  "viewport": {
+    "height": 983,
+    "width": 1728
+  },
+  "documentTitle": "2026.10.16—10.24 周度业务复盘 · 内容发布控制台",
+  "nonPublishOrder": [
+    "首轮（7 天） · 发布于 2026-10-14",
+    "首轮（7 天） · 发布于 2026-10-14",
+    "首轮（7 天） · 发布于 2026-10-15",
+    "首轮（7 天） · 发布于 2026-10-15",
+    "首轮（7 天） · 发布于 2026-10-16",
+    "首轮（7 天） · 发布于 2026-10-16",
+    "首轮（7 天） · 发布于 2026-10-16",
+    "首轮（7 天） · 发布于 2026-10-17",
+    "首轮（7 天） · 发布于 2026-10-17"
+  ],
+  "promotionRanges": [
+    "数据 2026-10-18—2026-10-20",
+    "数据 2026-10-20—2026-10-21",
+    "数据 2026-10-18—2026-10-20",
+    "数据 2026-10-18—2026-10-21",
+    "数据 2026-10-18—2026-10-20"
+  ],
+  "title": "2026.10.16—10.24 周度业务复盘",
+  "popup": {
+    "before": {
+      "h": 558.4874877929688,
+      "scroll": 0,
+      "x": 256,
+      "y": 242
+    },
+    "after": {
+      "centerDelta": 0.399993896484375,
+      "h": 558.4874877929688,
+      "iconHeight": 16,
+      "iconWidth": 16,
+      "scroll": 0,
+      "x": 256,
+      "y": 242
+    }
+  },
+  "dailyRowsAfterRefresh": [
+    "2026-10-18测试中¥167.0410",
+    "2026-10-19测试中¥45.3600",
+    "2026-10-20测试中¥300.5200",
+    "2026-10-21测试结束待定¥0.0000",
+    "2026-10-22测试结束待定¥0.0000",
+    "2026-10-23测试结束待定¥0.0000",
+    "2026-10-24测试结束待定¥0.0000"
+  ],
+  "businessWrites": false
+}
