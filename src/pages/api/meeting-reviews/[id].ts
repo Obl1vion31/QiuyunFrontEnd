@@ -1,6 +1,7 @@
 import {readWeeklyMaterial,selectWeeklyMaterial,type WeeklyMaterial} from '../../../db/meeting-weekly-material';
 import {meetingNonPromotionSelections} from '../../../db/meeting-non-promotion';
 import {meetingFinalizationIssue} from '../../../db/meeting-finalization';
+import {reconcileClickRateRanges,refreshedMeetingName,hasMeetingIssueContent} from '../../../db/meeting-card-rules';
 import {lockPromotionWorkflow} from '../../../db/promotion-pauses';
 import {shanghaiDateKey} from '../../../db/promotion-rules.mjs';
 import {nextDateKey} from '../../../db/promotion-rules.mjs';
@@ -29,6 +30,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   const parsed = meetingDraftSchema.safeParse(payload.draft ?? emptyDraft);
   if (!parsed.success) return Response.json({ message: parsed.error.issues[0].message }, { status: 422 });
   const draft:WeeklyMeetingDraft = parsed.data;
+  draft.issues=draft.issues.filter(hasMeetingIssueContent);
   const stage=payload.action==='finalize_pre'?'pre':payload.action==='finalize_post'?'post':null;
   if(stage&&draft.workflowVersion!==5)return Response.json({message:'请刷新例会编辑器。'},{status:422});
   if(draft.workflowVersion===5&&payload.action==='finalize')return Response.json({message:'请选择会前或会后定稿。'},{status:422});
@@ -48,7 +50,8 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       const range={periodStart:payload.periodStart??meeting.periodStart,periodEnd:payload.periodEnd??meeting.periodEnd};
       if(v4&&(!businessDate.safeParse(range.periodStart).success||!businessDate.safeParse(range.periodEnd).success||range.periodStart>range.periodEnd||range.periodEnd>=shanghaiDateKey(new Date())))throw new WorkflowError('请选择有效的历史数据区间。',422);
       if(meeting.status==='completed'&&(range.periodStart!==meeting.periodStart||range.periodEnd!==meeting.periodEnd))throw new WorkflowError('定稿后保留原区间，请另建会议。',422);
-      const target={...meeting,...(v4?range:{})};
+      const target={...meeting,...(v4?{...range,name:refreshedMeetingName(meeting,range.periodStart,range.periodEnd)}:{})};
+      const meetingUpdate=v4?{...range,name:target.name}:{};
       let snapshot:Record<string,unknown>;
       if(v4){
        const fresh=await readWeeklyMaterial(transaction,target);
@@ -56,6 +59,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new WorkflowError('来源数据已变化，请刷新数据并核对后再定稿。');
        const material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
        if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');
+       draft.promotionInputs=reconcileClickRateRanges(draft.promotionInputs,cached?.promotions??material.promotions,material.promotions,meeting.draftSnapshot.promotionInputs);
        if((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType)))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
        if(draft.workflowVersion===5)draft.nonPromotionSelections=meetingNonPromotionSelections(material,draft.nonPromotionSelections);
        if(finalizing&&draft.nonPromotionInputs)draft.nonPromotionInputs=Object.fromEntries(Object.entries(draft.nonPromotionInputs).map(([key,input])=>{const {platformNoteId:_id,...rest}=input;return [key,rest]}));
@@ -85,7 +89,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
           if(context.metrics.some(m=>m.campaignId===card.campaignId&&m.metricDate>=effectiveOn))throw new WorkflowError('生效日期已有指标，请通过历史更正入口处理。');
           const conflict=context.meetingDecisions.find(d=>d.campaignId===card.campaignId&&d.effectiveOn===effectiveOn&&d.meetingId!==meeting.id);
           if(conflict)throw new WorkflowError('该日已有其他例会决定，请核对来源后更正。');
-          decisions.push({id:meeting.id+':'+card.campaignId+':'+effectiveOn,campaignId:card.campaignId,scheduleId:card.scheduleId,effectiveOn,targetStatus,stageType:state.currentStage as 'testing'|'scaling',meetingId:meeting.id,versionNumber:meeting.status==='completed'?meeting.currentVersionNumber+1:0,label:meeting.name});
+          decisions.push({id:meeting.id+':'+card.campaignId+':'+effectiveOn,campaignId:card.campaignId,scheduleId:card.scheduleId,effectiveOn,targetStatus,stageType:state.currentStage as 'testing'|'scaling',meetingId:meeting.id,versionNumber:meeting.status==='completed'?meeting.currentVersionNumber+1:0,label:target.name});
          }
          (snapshot.generated as any).meetingDecisions=decisions;
         }
@@ -94,10 +98,11 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
 
       const updatedAt = new Date();
       if (payload.action === 'save') {
-        await transaction.update(operationsReviewMeeting).set({ draftSnapshot: draft,...(v4?range:{}), updatedAt }).where(eq(operationsReviewMeeting.id, meeting.id));
+        await transaction.update(operationsReviewMeeting).set({ draftSnapshot: draft,...meetingUpdate, updatedAt }).where(eq(operationsReviewMeeting.id, meeting.id));
         return { versionNumber: meeting.currentVersionNumber, updatedAt: updatedAt.toISOString() };
       }
       if (!finalizing) throw new Error('unsupported-action');
+      if(draft.issues.some(i=>!i.problem.trim()))throw new WorkflowError('请补充事项的问题，或删除该新增行。',422);
       const versionNumber = meeting.status === 'completed' ? meeting.currentVersionNumber + 1 : 0;
       await transaction.insert(operationsReviewMeetingVersion).values({ meetingId: meeting.id, versionNumber, snapshot: snapshot as unknown as Record<string, unknown>, changeSummary: payload.changeSummary?.trim() || (stage==='pre'?'会前定稿':stage==='post'?'会后定稿':versionNumber?'更正例会复盘':'首次定稿'), finalizedByLabel: locals.operationsUser || 'unknown' });
       const persistedIssues: WeeklyMeetingDraft['issues'] = [];
@@ -116,7 +121,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         await transaction.insert(operationsReviewActionProgress).values({ itemId, meetingId: meeting.id, conclusion: issue.conclusion.trim() || '本周暂无新进展', statusSnapshot: issue.status, recordedByLabel: locals.operationsUser || 'unknown' }).onConflictDoUpdate({ target: [operationsReviewActionProgress.itemId, operationsReviewActionProgress.meetingId], set: { conclusion: issue.conclusion.trim() || '本周暂无新进展', statusSnapshot: issue.status, recordedByLabel: locals.operationsUser || 'unknown' } });
         persistedIssues.push({ ...issue, id: itemId });
       }
-      await transaction.update(operationsReviewMeeting).set({ ...(v4?range:{}),status: 'completed', currentVersionNumber: versionNumber, draftSnapshot: { ...draft, issues: stage==='pre'?draft.issues:persistedIssues }, finalizedAt: new Date(), updatedAt: new Date() }).where(and(eq(operationsReviewMeeting.id, meeting.id)));
+      await transaction.update(operationsReviewMeeting).set({ ...meetingUpdate,status: 'completed', currentVersionNumber: versionNumber, draftSnapshot: { ...draft, issues: stage==='pre'?draft.issues:persistedIssues }, finalizedAt: new Date(), updatedAt: new Date() }).where(and(eq(operationsReviewMeeting.id, meeting.id)));
       return { versionNumber, updatedAt: updatedAt.toISOString() };
     },{isolationLevel:'repeatable read'});
     if (!result) return Response.json({ message: '没有找到这场会议。' }, { status: 404 });

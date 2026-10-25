@@ -1,4 +1,5 @@
 import {readWeeklyMaterial} from '../../db/meeting-weekly-material';
+import {defaultMeetingName} from '../../db/meeting-card-rules';
 import {readOpenMeetingIssues} from '../../db/meeting-snapshots';
 import {businessDate} from '../../db/promotion-wait-ranges';
 import {shanghaiDateKey} from '../../db/promotion-rules.mjs';
@@ -11,11 +12,6 @@ import { formObject, issuesByField, meetingReviewSchema } from '../../db/stage-r
 
 export const prerender = false;
 
-const shortDate = (key: string, includeYear = false) => {
-  const [year, month, day] = key.split('-');
-  return includeYear ? `${year}.${month}.${day}` : `${month}.${day}`;
-};
-
 export const POST: APIRoute = async ({ request, url, locals }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
   let form: FormData;
@@ -23,7 +19,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
   const result = meetingReviewSchema.safeParse(formObject(form));
   if (!result.success) return Response.json({ message: '请检查会议信息。', fields: issuesByField(result.error.issues) }, { status: 422 });
   if(!businessDate.safeParse(result.data.periodStart).success||!businessDate.safeParse(result.data.periodEnd).success||result.data.periodEnd>=shanghaiDateKey(new Date()))return Response.json({message:'例会只汇总今天以前的数据。'},{status:422});
-  const name = result.data.name || `${shortDate(result.data.periodStart, true)}—${shortDate(result.data.periodEnd)} ${result.data.meetingType==='monthly'?'月度':'周度'}业务复盘`;
+  const name = result.data.name || defaultMeetingName(result.data.periodStart,result.data.periodEnd,result.data.meetingType);
   try {
     const meeting = await getDb().transaction(async tx => { const carried=await readOpenMeetingIssues(tx);const [created] = await tx.insert(operationsReviewMeeting).values({
       ...result.data, name, meetingType: result.data.meetingType, draftSnapshot: { schemaVersion: 4, workflowVersion:5, candidatesConfirmed:false, promotionSelections: [], coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: carried, nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',

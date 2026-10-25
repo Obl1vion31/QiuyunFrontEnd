@@ -48,7 +48,7 @@ const editing = selected?.status === 'draft' || Astro.url.searchParams.get('edit
 const previousMeeting = meetings.find(m => m.status === 'completed' && (!selected || m.meetingAt < selected.meetingAt));
 const draft: WeeklyMeetingDraft = { schemaVersion: 3, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [], nonPromotionSelections: [], situation: '', strategy: '', temporaryNotes: '', temporaryLinks: [], promotionSnapshotIds: [], attachmentIds: [], ...(selected?.draftSnapshot ?? {}) };
 const isWeeklyV4=draft.schemaVersion===4;
-if (!selected?.draftSnapshot?.issues?.length && selected?.status === 'draft') draft.issues = openIssues.map(i => ({ id: i.id, problem: i.problem, conclusion: '', status: i.status as 'pending'|'validating'|'paused' }));
+if (!selected?.draftSnapshot?.issues?.length && selected?.status === 'draft' && selected.draftSnapshot.workflowVersion!==5) draft.issues = openIssues.map(i => ({ id: i.id, problem: i.problem, conclusion: '', status: i.status as 'pending'|'validating'|'paused' }));
 const selectedKeys = new Set(draft.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`));
 const refs = stageSnapshots.filter(s => draft.promotionSnapshotIds?.includes(s.id));
 const promotionRows = [...new Map<string, { campaignId: string; contentName: string; versionNumber: number }>([...material.activity.map(a => [a.campaignId, a] as const), ...refs.flatMap(ref => (ref.snapshot as unknown as StageSnapshot).rows.map(row => [row.campaignId, row] as const))]).values()];

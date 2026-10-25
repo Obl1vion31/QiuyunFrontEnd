@@ -8,6 +8,7 @@ import { nextDateKey, previousDateKey, shanghaiDateKey } from './promotion-rules
 import { promotionTotals, type PromotionFact } from './promotion-overview';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import {checkpointsForPublishDate} from './stage-review-rules.mjs';
+import {actualDataRange,type ActualDataRange} from './meeting-card-rules';
 import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages, operationsCategoryPolicyVersion as policies } from './schema';
 export const sourceHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v)).digest('hex');
 export type MeetingRecord = typeof meetings.$inferSelect;
@@ -31,6 +32,8 @@ export interface Benchmark {
     samples?: Array<Record<string, unknown>>;
 }
 export interface WeeklyPromotionCard {
+    dataRange?:ActualDataRange;
+    dailyStates?:Record<string,string>;
     currentStatus?:string;
     key: string;
     originKey: string;
@@ -73,6 +76,7 @@ export interface WeeklyPromotionCard {
     }>;
 }
 export interface WeeklyNonPromotionCard {
+    actualPublishAt?:Date|string|null;
     key: string;
     scheduleId: string;
     contentId: string;
@@ -122,6 +126,7 @@ export interface WeeklyMaterial {
     nonPromotionContext: WeeklyNonPromotionCard[];
     excludedNonPromotions?:Array<{key:string;contentName:string;checkpointType:string;reason:string;eventId:string}>;
     pending: Array<{
+        actualPublishAt?:Date|string|null;
         scheduleId?:string;
         recordedThrough?:string;
         publishedOn?:string;
@@ -219,6 +224,8 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const last = nodes.filter(n => n.lastTestingOn <= end).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
             const eligible = current || supplement;
             const card: WeeklyPromotionCard = { ...post, key: originKey, originKey, sourceHash: sourceHash({ facts: cardFacts, nodes }), campaignId: campaign.id, stageType, startedOn: supplement && added.length ? added[0].metricDate : stageType === 'testing' ? origin : [origin, start].sort().at(-1)!, endedOn: supplement && added.length ? added.at(-1)!.metricDate : stageType === 'testing' ? (cutoff ?? end) : end, kind: current ? 'current' : 'supplement', label: stageType === 'scaling' ? (supplement ? '往期放量补录' : '本期放量') : supplement ? '往期补充与更新' : matchingNodes.some(n => n.label === '测试暂停') && !matchingNodes.some(n => ['测试结束待定', '测试淘汰', '开始放量'].includes(n.label)) ? '测试阶段小结' : last?.label ?? '测试结果', events: [...new Map(nodes.map(n => [`${n.date}:${n.label}`, n])).values()].sort((a, b) => a.date.localeCompare(b.date) || a.label.localeCompare(b.label)), facts: cardFacts, total: totals(cardFacts), periodTotal: totals(periodFacts), changes: totals(changes), missingDates: [...new Set(missingDates)], previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
+            card.dataRange=actualDataRange(cardFacts);
+            card.dailyStates=Object.fromEntries(cardFacts.map(f=>[f.metricDate,f.actualStatusSnapshot??promotionStateOn(campaign,context,f.metricDate)?.currentStatus??'']));
             (card as any)._eligible = eligible;
             card.currentStatus=promotionStateOn(campaign,context,shanghaiDateKey(new Date()))?.currentStatus??state.currentStatus;
             (card as any)._historicalFacts = relevant.filter(f => f.metricDate < start);
@@ -248,7 +255,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             if(skipped&&between(dueOn,start,end)){const event=events.get(key)!;excludedNonPromotions.push({key,contentName:post.contentName,checkpointType,reason:event.reason,eventId:event.id});}
             if (!metric) {
                 if (!skipped && policy?.requiresNonPromotionReview !== false && dueOn >= start && dueOn <= end)
-                    pending.push({ key,scheduleId:post.scheduleId,versionNumber:post.versionNumber,publishedOn,dueOn,recordedThrough:dueOn, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
+                    pending.push({ key,scheduleId:post.scheduleId,actualPublishAt:post.actualPublishAt,versionNumber:post.versionNumber,publishedOn,dueOn,recordedThrough:dueOn, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
                 continue;
             }
             if (metric.recordedThrough > end)

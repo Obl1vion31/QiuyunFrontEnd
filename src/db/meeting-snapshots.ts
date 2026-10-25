@@ -24,8 +24,8 @@ export const meetingDraftSchema = z.object({
   situation: text, strategy: text, temporaryNotes: text,
   promotionSnapshotIds: z.array(z.uuid()).max(20).default([]), attachmentIds: z.array(z.uuid()).max(20).default([]),
   temporaryLinks: z.array(z.object({ label: z.string().max(200), url: z.url().max(2000).refine(v => /^https?:\/\//i.test(v), '只支持 HTTP/HTTPS 链接') })).max(20).default([]),
-  promotionInputs: z.record(z.string(), z.object({ confirmed:z.boolean().optional(), clickRate: z.number().min(0).max(100).nullable(), recordedThrough: z.string().max(20), currentSituation: text, activeAction: text })),
-  issues: z.array(z.object({ id: z.uuid().optional(), problem: z.string().trim().min(1).max(2000), conclusion: text, status: z.enum(['pending','validating','resolved','paused']) })).max(100),
+  promotionInputs: z.record(z.string(), z.object({ confirmed:z.boolean().optional(), rateRange:z.object({from:z.iso.date(),through:z.iso.date()}).nullable().optional(),rateNeedsReview:z.boolean().optional(),clickRate: z.number().min(0).max(100).nullable(), recordedThrough: z.string().max(20), currentSituation: text, activeAction: text })),
+  issues: z.array(z.object({ id: z.uuid().optional(), problem: z.string().trim().max(2000), conclusion: text, status: z.enum(['pending','validating','resolved','paused']) })).max(100),
   nonPromotionSelections: z.array(z.object({ scheduleId: z.uuid(), checkpointType: z.enum(['day_7','day_15']) })).max(500),
 }).superRefine((v, ctx) => {
   for (const values of [v.promotionSelections, v.promotionSnapshotIds, v.attachmentIds, v.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`), v.issues.flatMap(i => i.id ? [i.id] : [])]) if (values.length !== new Set(values).size) ctx.addIssue({ code: 'custom', message: '引用或勾选重复' });

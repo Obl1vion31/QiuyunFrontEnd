@@ -685,7 +685,7 @@ export interface WeeklyMeetingDraft {
   attachmentIds?: string[];
   coreConclusion: string;
   nextAction: string;
-  promotionInputs: Record<string, { confirmed?:boolean; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
+  promotionInputs: Record<string, { confirmed?:boolean; rateRange?:{from:string;through:string}|null; rateNeedsReview?:boolean; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
   issues: Array<{ id?: string; problem: string; conclusion: string; status: 'pending' | 'validating' | 'resolved' | 'paused' }>;
   nonPromotionSelections: Array<{ scheduleId: string; checkpointType: 'day_7' | 'day_15' }>;
 }

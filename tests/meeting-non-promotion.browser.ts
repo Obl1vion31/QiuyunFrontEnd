@@ -38,7 +38,7 @@ try{
  await page.screenshot({path:folder+'/candidates-1440.png'});
  await page.getByRole('button',{name:'确认纳入',exact:true}).click();await card(first).waitFor();assert.equal(await page.locator('#weekly-non .weekly-card-grid').count(),1);assert.equal(await page.locator('[data-weekly-non]').count(),5);
  assert.equal(await card(first).getByLabel('数据截止日',{exact:true}).inputValue(),'2026-10-21');assert.equal(await card(second).getByLabel('数据截止日',{exact:true}).inputValue(),'2026-10-14');assert.equal(await card(second,'day_15').getByLabel('数据截止日',{exact:true}).inputValue(),'2026-10-22');
- await card(first).getByText('发布于 2026-10-14',{exact:true}).waitFor();
+ await card(first).locator('header small').filter({hasText:'发布于 2026-10-14'}).waitFor();
  const computed=await card(first).getByLabel('数据截止日',{exact:true}).evaluate((el:HTMLElement)=>{const style=getComputedStyle(el);return {fontFamily:style.fontFamily,fontSize:style.fontSize,height:el.getBoundingClientRect().height};});assert.match(computed.fontFamily,/MiSans/);assert.equal(computed.fontSize,'14px');assert.equal(computed.height,40);
  for(const width of [1920,1440,1280,1024]){
   await page.setViewportSize({width,height:1000});await page.locator('#weekly-non').evaluate((el:HTMLElement)=>scrollTo(0,el.getBoundingClientRect().top+scrollY-100));await page.waitForTimeout(180);

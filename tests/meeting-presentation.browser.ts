@@ -52,6 +52,8 @@ try{
  const shot=async(name:string)=>{await page.screenshot({path:folder+'/'+name+'.png',fullPage:false});};
  const scrollToCard=async(c:any)=>{await c.evaluate((n:HTMLElement)=>scrollTo(0,n.getBoundingClientRect().top+scrollY-110));};
  async function infoCheck(c:any,expected:string|null){
+  // 卡片顺序由稳定业务键决定，先将本次目标标题放入视口，再检查气泡本身不滚动。
+  await scrollToCard(c);
   const button=c.locator('.weekly-card-title .weekly-detail-trigger'),panel=c.locator('.weekly-card-reference .weekly-detail-popover');
   assert.equal(await button.count(),1,'资料入口在标题内');
   const measure=()=>c.evaluate((n:HTMLElement)=>({scrollY,rect:n.getBoundingClientRect().toJSON()}));const before=await measure();
