@@ -23,6 +23,7 @@
 .weekly-file{position:absolute;width:1px!important;height:1px!important;clip-path:inset(50%);overflow:hidden}.weekly-upload-button{align-self:start;justify-self:start;padding:8px 12px;border:1px solid #d2d9e4;border-radius:6px;background:#fff;color:var(--console-ink);cursor:pointer}.weekly-upload:focus-within{outline:2px solid var(--console-blue);outline-offset:2px}
 
 .weekly-fields{display:contents;border:0;padding:0;margin:0;min-width:0}.weekly-fields:disabled{opacity:.85}
+.weekly-report-actions output[data-error]{color:var(--console-red,#913c35);font-weight:500}.weekly-report-actions output{min-width:0}.weekly-report-actions>button{flex-shrink:0}
 /* 例会内联录入：摘要卡片共用三列与同行等高，明细单独展开。 */
 .weekly-card-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;margin-bottom:16px}
 .weekly-stage-card{align-self:stretch;position:relative;gap:14px;height:100%}

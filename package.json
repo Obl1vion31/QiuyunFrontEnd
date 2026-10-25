@@ -36,7 +36,7 @@
     "test:cards": "node --import tsx tests/promotion-card.browser.ts",
     "test:review-workbench": "node --import tsx tests/review-workbench.browser.ts",
     "test:status-correction": "node --import tsx tests/promotion-status-correction.browser.ts",
-    "test:weekly": "node --import tsx tests/meeting-create.browser.ts && node --import tsx tests/meeting-weekly.browser.ts && node --import tsx tests/meeting-inline.browser.ts && node --import tsx tests/meeting-non-promotion.browser.ts && node --import tsx tests/meeting-presentation.browser.ts",
+    "test:weekly": "node --import tsx tests/meeting-create.browser.ts && node --import tsx tests/meeting-weekly.browser.ts && node --import tsx tests/meeting-inline.browser.ts && node --import tsx tests/meeting-non-promotion.browser.ts && node --import tsx tests/meeting-presentation.browser.ts && node --import tsx tests/meeting-finalization.browser.ts",
     "test:non-promotion": "node --import tsx tests/non-promotion-inspector.browser.ts"
   },
   "dependencies": {

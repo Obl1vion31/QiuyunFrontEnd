@@ -1,5 +1,6 @@
 import {readWeeklyMaterial,selectWeeklyMaterial,type WeeklyMaterial} from '../../../db/meeting-weekly-material';
 import {meetingNonPromotionSelections} from '../../../db/meeting-non-promotion';
+import {meetingFinalizationIssue} from '../../../db/meeting-finalization';
 import {lockPromotionWorkflow} from '../../../db/promotion-pauses';
 import {shanghaiDateKey} from '../../../db/promotion-rules.mjs';
 import {nextDateKey} from '../../../db/promotion-rules.mjs';
@@ -52,7 +53,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if(v4){
        const fresh=await readWeeklyMaterial(transaction,target);
        const cached=meeting.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
-       if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new WorkflowError('来源数据已变化，请点击“刷新数据”核对候选和比较值后再定稿。');
+       if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new WorkflowError('来源数据已变化，请刷新数据并核对后再定稿。');
        const material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
        if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');
        if((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType)))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
@@ -62,12 +63,8 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        draft.materialSnapshot=material as unknown as Record<string,unknown>;
        snapshot={schemaVersion:4,meeting:common.meeting,draft,generated:{...selectWeeklyMaterial(material,draft.promotionSelections??[],draft.nonPromotionSelections),summary:material.summary,attachments:common.generated.attachments}};
        if(stage){
-        if(!draft.candidatesConfirmed)throw new WorkflowError('请先确认纳入本期候选。',422);
-        const fields=[['situation','衡量情况'],['strategy','本期具体动作'],['coreConclusion','核心结论'],...(stage==='post'?[['nextAction','下一步行动']]:[])] as const;
-        for(const [key,label] of fields)if(!String(draft[key as keyof WeeklyMeetingDraft]??'').trim())throw new WorkflowError('请补充'+label+'。',422);
-        for(const key of draft.promotionSelections??[])if(draft.promotionInputs[key]?.clickRate==null)throw new WorkflowError('请补齐已纳入推广卡片的点击率。',422);
-        if(Object.values(draft.nonPromotionInputs??{}).some(input=>input.editing))throw new WorkflowError('请先确认非推广卡片内的修改。',422);
-        if(material.pending.length)throw new WorkflowError('请补齐本期应处理的非推广数据，或明确标记不复盘。',422);
+        const issue=meetingFinalizationIssue(draft,stage,material.pending.map(p=>p.key));
+        if(issue)throw new WorkflowError(issue.message,422);
         const [prior]=await transaction.select().from(operationsReviewMeetingVersion).where(eq(operationsReviewMeetingVersion.meetingId,meeting.id)).orderBy(operationsReviewMeetingVersion.versionNumber);
         if(stage==='post'&&!prior)throw new WorkflowError('请先完成会前定稿。',422);
         const priorRows=await transaction.select().from(operationsReviewMeetingVersion).where(eq(operationsReviewMeetingVersion.meetingId,meeting.id));

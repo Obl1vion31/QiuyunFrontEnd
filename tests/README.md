@@ -16,6 +16,8 @@
 
 `meeting-presentation.browser.ts` 纳入 `test:weekly`，检查定稿结果与结论优先、两类标题资料入口、草稿布局与输入保留、四档桌面同行等高、长文字完整、汇总包含未选入的本期实际跑量、实时资料与不可变快照分离、会前／会后及跨日生效日、月例会空态。使用隔离PGlite；原始截图与录像位于 `.tools/test-artifacts/meeting-presentation/`，可通过 `MEETING_PRESENTATION_DIR` 指定新目录。
 
+`meeting-finalization.browser.ts` 纳入 `test:weekly`，覆盖定稿缺项定位、原生指标范围错误、已确认隐藏字段的精度、来源指纹冲突、非JSON错误与断网保留、取消和重复提交，以及真实按钮生成并跳转会前V0／会后V1。全部写入隔离PGlite，`MEETING_FINALIZATION_DIR` 可指定产物目录。
+
 历史迁移含特定导入批次断言，隔离测试从当前 schema 建立业务结构，再执行本次认证 SQL；不会修改已共享的历史迁移，也不会使用真实业务数据补足断言。Chromium 系统库与中文字体可在 `.tools/system/` 解压，并用 `LD_LIBRARY_PATH`、`FONTCONFIG_FILE` 提供，避免修改系统配置。
 
 年度规划测试覆盖半月边界、付费子区间汇总、自由备注、旧快照恢复、乐观锁、管理员权限、年度复制和并发防覆盖。追加迁移从上一个完整结构快照在隔离 PostgreSQL 验证，浏览器同时检查桌面全年对齐、跨页初始化和手机编辑。
