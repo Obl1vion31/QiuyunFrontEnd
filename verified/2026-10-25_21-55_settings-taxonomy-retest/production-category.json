@@ -1,0 +1,21 @@
+{
+  "category": {
+    "id": "interview-non-promotional-handout",
+    "name": "面试课非推广讲义帖",
+    "sortOrder": 1009
+  },
+  "mappings": [
+    {
+      "subjectId": "interview",
+      "categoryId": "interview-non-promotional-handout"
+    }
+  ],
+  "migrations": [
+    {
+      "applied": 38
+    }
+  ],
+  "written": true,
+  "created": true,
+  "checkedAt": "2026-10-25T14:03:41.859Z"
+}

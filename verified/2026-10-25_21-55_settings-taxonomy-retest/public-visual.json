@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "cc7e22201d0dcfcaadbf1cf0e5178cc9a4347b77",
+  "publicViewport": {
+    "width": 1728,
+    "height": 927
+  },
+  "checks": [
+    "旧规则地址进入账号权限",
+    "新增学科和分类按钮与名称示例正确",
+    "指定分类在面试课可选且仅关联面试课",
+    "空规划选择后放弃，无新增规划或帖子",
+    "推广真实累计与原阶段轨迹保持，无横向溢出"
+  ],
+  "productionBusinessWrites": "仅已授权指定分类及映射；未修改真实指标、推广决定或会议",
+  "visualState": "已自检，待用户反馈"
+}
