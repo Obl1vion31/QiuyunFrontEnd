@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-10-25T12:53:01.351Z",
+  "sourceCommit": "0b1fec1275426de76c1cb27c221f514e795cff2b",
+  "scope": "真实会议当前已为会后V2；只读查看定稿与修订编辑入口，未点击刷新材料、保存或定稿",
+  "frozen": {
+    "rows": [
+      "2026-10-18测试中¥167.0410",
+      "2026-10-19测试中¥45.3600",
+      "2026-10-20测试中¥300.5200",
+      "2026-10-21测试结束待定¥0.0000",
+      "2026-10-22测试结束待定¥0.0000",
+      "2026-10-23测试结束待定¥0.0000",
+      "2026-10-24测试结束待定¥0.0000"
+    ],
+    "stage": "",
+    "url": "https://qiuyun-frontend.vercel.app/business/meeting-review?meeting=50bb51e4-7ac4-40dd-923b-cd4dc25c2746"
+  },
+  "editable": {
+    "overflow": false,
+    "refreshFeedback": "",
+    "rows": [
+      "2026-10-18测试中¥167.0410",
+      "2026-10-19测试中¥45.3600",
+      "2026-10-20测试中¥300.5200",
+      "2026-10-21测试结束待定¥0.0000",
+      "2026-10-22测试结束待定¥0.0000",
+      "2026-10-23测试结束待定¥0.0000",
+      "2026-10-24测试结束待定¥0.0000"
+    ],
+    "url": "https://qiuyun-frontend.vercel.app/business/meeting-review?meeting=50bb51e4-7ac4-40dd-923b-cd4dc25c2746&edit=1",
+    "viewport": {
+      "height": 983,
+      "width": 1728
+    }
+  },
+  "businessWrites": false
+}
