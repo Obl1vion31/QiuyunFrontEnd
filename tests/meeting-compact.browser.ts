@@ -33,7 +33,8 @@ try{
  await metric(d,20,'99',3,1,false,'test_continue');
  const n14=await seed('14号发布：最早待处理','2026-10-14'),n15=await seed('15号发布：已有首轮','2026-10-15',false,true),n16=await seed('16号发布：待填写首轮','2026-10-16'),n17=await seed('17号发布：已有首轮','2026-10-17',false,true);
  const prior=await create('2026-09-01','2026-09-30','monthly');const[carried]=await db.insert(s.operationsReviewActionItem).values({problem:'上期遗留：继续核对素材',status:'pending',createdMeetingId:prior}).returning();
- const id=await create(),pw=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
+ const id=await create();await db.update(s.operationsReviewMeeting).set({name:'2026.10.18—10.24 周度业务复盘'}).where(eq(s.operationsReviewMeeting.id,id));
+ const pw=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});await context.addCookies(cookie.split('; ').map(v=>({name:v.slice(0,v.indexOf('=')),value:v.slice(v.indexOf('=')+1),url:baseURL})));
  page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
  const nav=async(path:string)=>{await page.evaluate(()=>document.documentElement.dataset.unsaved='false').catch(()=>{});await page.goto(baseURL+path);await page.locator('.business-toolbar').waitFor();await page.evaluate(()=>document.fonts.ready);};
@@ -42,7 +43,7 @@ try{
  const shot=async(name:string)=>{await page.locator('textarea').evaluateAll((nodes:HTMLTextAreaElement[])=>nodes.forEach(n=>n.scrollTop=0));await page.screenshot({path:folder+'/'+name+'.png'});};
  const refresh=async()=>{await page.getByRole('button',{name:'刷新数据',exact:true}).click();await page.locator('.weekly-report-actions output').filter({hasText:'数据已刷新'}).waitFor();};
  const record=async()=> (await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id)))[0];
- await nav('/business/meeting-review?meeting='+id);await page.getByRole('button',{name:'全选推广帖',exact:true}).click();await page.getByRole('button',{name:'确认纳入',exact:true}).click();
+ await nav('/business/meeting-review?meeting='+id);await page.getByRole('button',{name:'全选推广帖',exact:true}).click();assert.equal(await page.locator('.business-toolbar__title strong').innerText(),'2026.10.16—10.24 周度业务复盘');await page.getByRole('button',{name:'确认纳入',exact:true}).click();
  assert.match(await post(a).locator('.weekly-data-range').innerText(),/2026-10-16—2026-10-18/);assert.match(await post(b).locator('.weekly-data-range').innerText(),/2026-10-19—2026-10-19/);assert.equal(await post(c).locator('.weekly-data-range').innerText(),'暂无非零数据');
  const order=()=>page.locator('#weekly-non [data-weekly-non]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.dataset.weeklyNon));
  assert.deepEqual(await order(),[n14.p.id,n15.p.id,n16.p.id,n17.p.id]);

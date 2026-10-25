@@ -30,6 +30,8 @@ test('自动名称随区间变化，自定义保留且跨年明确两端年份',
  const meeting={name:defaultMeetingName('2026-10-17','2026-10-23'),periodStart:'2026-10-17',periodEnd:'2026-10-23',meetingType:'weekly'};
  assert.equal(refreshedMeetingName(meeting,'2026-10-16','2026-10-24'),'2026.10.16—10.24 周度业务复盘');
  assert.equal(refreshedMeetingName({...meeting,name:'面试课专题会'},'2026-10-16','2026-10-24'),'面试课专题会');
+ assert.equal(refreshedMeetingName({...meeting,name:'2026.10.18—10.24 周度业务复盘',periodStart:'2026-10-16',periodEnd:'2026-10-24'},'2026-10-16','2026-10-24'),'2026.10.16—10.24 周度业务复盘');
+ assert.equal(refreshedMeetingName({...meeting,name:'2026.10.18—10.24 周度业务复盘 · 专题'},'2026-10-16','2026-10-24'),'2026.10.18—10.24 周度业务复盘 · 专题');
  assert.equal(defaultMeetingName('2026-12-28','2027-01-03'),'2026.12.28—2027.01.03 周度业务复盘');
 });
 test('半填写事项允许草稿保存，定稿定位缺少的问题',()=>{

@@ -59,7 +59,7 @@ flowchart LR
 - `src/db/promotion-wait-ranges.ts` 与 `/api/promotion-wait-ranges`：逐帖区间、次日动作和历史保护；每日和历史的状态入口由 `BusinessPromotionTimeline` 按场景呈现，共用原读写与回放规则。共用时序推导在 `promotion-rules.mjs` 与 `promotion-state.mjs`。
 - `src/db/meeting-snapshots.ts` 保留 v2/v3 校验装配；`meeting-weekly-material.ts` 生成 v4 周／月例会候选、区间总量、本帖历史／历史同类与来源指纹，`BusinessWeeklyMeeting`／`WeeklyReviewCards` 承载编辑，`BusinessWeeklySnapshot` 按结果／核心结论优先的阅读层级显示冻结结果，草稿填写顺序保留。`GET /api/meeting-reviews/:id/material` 显式刷新，PATCH 保存／定稿只接收选择与人工内容；图片继续走认证接口。
 - `meeting-finalization.ts` 共用会前／会后缺项规则；编辑器先提示并定位，事务内再次核对。来源冲突定位刷新入口，失败保留输入且支持重试；已确认非推广的隐藏字段禁用，不参与整表原生校验。
-- `meeting-card-rules.ts` 共用非零事实区间、点击率区间复核、非推广排序、自动标题及半填写事项判断。材料只新增展示区间和冻结当日状态映射，不改原事实；编辑器刷新和保存事务均核对点击率区间，确认后绑定新区间。自动标题只在刷新成功后预览，持久化与区间同事务。
+- `meeting-card-rules.ts` 共用非零事实区间、点击率区间复核、非推广排序、自动标题及半填写事项判断。材料只新增展示区间和冻结当日状态映射，不改原事实；编辑器刷新和保存事务均核对点击率区间，确认后绑定新区间。标准格式的自动标题随成功读取的区间预览，兼容旧草稿标题未同步的情况；自定义名称保留，刷新失败不改名，持久化与区间同事务。
 
 ## 共享界面接入
 

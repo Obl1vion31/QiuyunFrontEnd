@@ -34,6 +34,9 @@ export function defaultMeetingName(from:string,to:string,type='weekly'){
  return `${short(from,true)}—${short(to,from.slice(0,4)!==to.slice(0,4))} ${type==='monthly'?'月度':'周度'}业务复盘`;
 }
 export function refreshedMeetingName(meeting:NamedMeeting,from:string,to:string){
- return meeting.name===defaultMeetingName(meeting.periodStart,meeting.periodEnd,meeting.meetingType)?defaultMeetingName(from,to,meeting.meetingType):meeting.name;
+ // 兼容旧编辑器只保存区间、未同步标题的草稿；完整标准标题仍属于自动名称。
+ const suffix=meeting.meetingType==='monthly'?'月度':'周度';
+ const generated=new RegExp(`^\\d{4}\\.\\d{2}\\.\\d{2}—(?:\\d{4}\\.)?\\d{2}\\.\\d{2} ${suffix}业务复盘$`).test(meeting.name);
+ return generated?defaultMeetingName(from,to,meeting.meetingType):meeting.name;
 }
 export function hasMeetingIssueContent(issue:WeeklyMeetingDraft['issues'][number]){return !!(issue.id||issue.problem.trim()||issue.conclusion.trim()||issue.status!=='pending');}
