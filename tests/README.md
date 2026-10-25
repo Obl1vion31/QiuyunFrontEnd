@@ -28,6 +28,8 @@
 
 `pnpm test:reviews` 在构建后使用隔离账号验收待定区间、次日计划、阶段快照版本、服务端例会引用、私有图片和桌面／390／320px 跨页布局。`promotion-intervals-snapshots.test.ts` 覆盖时间边界、手动恢复、历史影响确认、节假日交叠、任意时间段聚合、成本、缺失与快照不变；`review-intervals-migration.test.ts` 从上一结构验证追加迁移与旧会议保留。
 
+`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证例会次日安排单行、来源链接、原位更正及列表／Inspector 草稿共用；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
+
 ## 界面一致性验收
 
 先 `pnpm build`，再运行 `pnpm test:ui`；使用同一隔离库和虚构账号。测试覆盖 1440、390、320px，检查六个业务页的工具栏坐标／尺寸、标题起点和正文留白；公共误差不超过 1 CSS px。推广每日与历史连续切换时同时比较顶栏、按钮的 DOM 身份与坐标，不能只检查页面截图或高度。
@@ -103,3 +105,6 @@ pnpm test:annual-plan
 `test:weekly` 同时运行 `meeting-non-promotion.browser.ts`：仅推广勾选与非推广必处理提示、已填／待填同网格、实发日加7／15天默认、前置首轮、草稿日期保留、资料气泡悬停／点击／键盘／新标签与缺失、定稿全量门槛及冻结不变。1920／1440／1280／1024px 截图和实际气泡录像需查看；`MEETING_NON_EVIDENCE_DIR` 可指定产物目录。
 
 `pnpm test:retest` 在构建后运行设置／全站字典／复测专项，使用隔离PGlite，覆盖权限、旧规则停用、内联新增及失败保留、全站选择、旧规则样本仍复盘、日度真实写入、会前／会后及锁定继承。`RETEST_EVIDENCE_DIR` 可指定四档桌面截图目录；截图仍须实际审阅。规则与0037兼容迁移验证纳入 `pnpm test`。
+
+`pnpm test:meeting-discussion` 使用隔离PGlite检查最新会前直接讨论、冻结指标／非推广、保存时继续输入、定稿取消、白名单与并发拒绝、同一期9份样本、推广人工率版本去重、会后PDF自动生成／上传／下载及旧版本只读。`MEETING_DISCUSSION_DIR` 可指定四档桌面、录像和PDF产物目录。PDF必须逐页渲染并查看，不以文件生成成功代替验收；`meeting-pdf.test.ts` 验证失败／中断／并发重试与0038兼容迁移。
+

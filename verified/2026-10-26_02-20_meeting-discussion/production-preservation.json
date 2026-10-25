@@ -1,0 +1,36 @@
+{
+  "migration": "0038_meeting_pdf_archive",
+  "checks": [
+    {
+      "table": "operations_review_meeting_version",
+      "existingRows": 3,
+      "preserved": true
+    },
+    {
+      "table": "operations_promotion_daily_metric",
+      "existingRows": 263,
+      "preserved": true
+    },
+    {
+      "table": "operations_content_performance_metric",
+      "existingRows": 57,
+      "preserved": true
+    },
+    {
+      "table": "operations_non_promotion_review",
+      "existingRows": 57,
+      "preserved": true
+    },
+    {
+      "table": "operations_review_action_item",
+      "existingRows": 1,
+      "preserved": true
+    }
+  ],
+  "realMeetingVersion": 2,
+  "nonPromotionSampleCounts": [
+    9
+  ],
+  "readOnly": true,
+  "checkedAt": "2026-10-25T18:19:20.632Z"
+}

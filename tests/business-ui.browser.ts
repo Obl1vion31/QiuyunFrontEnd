@@ -59,7 +59,7 @@ try {
       assert.equal(await page.locator('.business-page-header__copy>span').count(),0,'页面标题没有装饰性英文眉题');
       const controlFonts=await page.locator('button:visible,input:visible,select:visible,textarea:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({label:node.getAttribute('aria-label')||node.textContent?.slice(0,18),family:getComputedStyle(node).fontFamily})));assert.ok(controlFonts.every((item:any)=>item.family.includes('system-ui')&&!item.family.includes('monospace')),`${path} 控件字体统一 ${JSON.stringify(controlFonts.filter((item:any)=>!item.family.includes('system-ui')||item.family.includes('monospace')))}`);
       if(path==='settings') {
-        const controls=await page.locator('.business-form input:not([type=checkbox]),.business-form select').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
+        const controls=await page.locator('.business-form input:not([type=checkbox]):not([type=hidden]):visible,.business-form select:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
         const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'系统设置接入公共表单规格');
         await page.screenshot({path:`.tools/test-artifacts/settings-ui-${width}.png`,fullPage:true});
       }

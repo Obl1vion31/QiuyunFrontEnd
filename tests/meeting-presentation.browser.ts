@@ -74,10 +74,10 @@ try{
  const [pre]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,id));const beforeSnapshot=JSON.stringify(pre.snapshot);
  assert.equal((await db.select().from(s.operationsReviewActionItem)).length,0);
  await nav('/business/meeting-review?meeting='+id+'&version=0');
- assert.equal(await page.locator('.weekly-frozen input,.weekly-frozen textarea,.weekly-frozen select').count(),0);
+ assert.equal(await page.locator('.weekly-metrics input,.weekly-non-card textarea,.weekly-non-card input').count(),0);assert.equal(await page.locator('.weekly-discussion-host').count(),1);
  assert.deepEqual(await page.locator('.weekly-frozen>section[aria-label]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.getAttribute('aria-label'))),['本期结果','推广帖阶段复盘','非推广帖复盘','补充分析与事项']);
  assert.match(await page.locator('.weekly-summary').innerText(),/¥600.00/);assert.match(await card(posts[0]).innerText(),/拟议安排 · 尚未生效/);
- assert.equal(await page.locator('.weekly-card-writing p').filter({hasText:longObservation}).innerText(),longObservation);
+ assert.match(await page.locator('.weekly-card-writing label').filter({hasText:longObservation}).innerText(),/完整记录长条件/);
  for(const width of [1920,1440,1280,1024]){
   await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await shot('pre-overview-'+width);
   await scrollToCard(card(posts[0]));
@@ -95,7 +95,7 @@ try{
  const referenceAfter=await api('/api/meeting-reviews/'+id+'/material');assert.equal(referenceBefore.material.fingerprint,referenceAfter.material.fingerprint);assert.equal(referenceAfter.postReferences[posts[0].schedule.id].projectDocUrl,'https://example.test/corrected-promotion');
  await nav('/business/meeting-review?meeting='+id+'&version=0');await scrollToCard(card(posts[0]));await infoCheck(card(posts[0]),'https://example.test/corrected-promotion');
  assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,pre.id)))[0].snapshot),beforeSnapshot);
- checks.push('四档桌面三列/两列同行等高；定稿无表单、长观察完整；汇总包含未选入阶段的真实跑量；历史内容保留；两类资料实时读取且快照/指纹不变');
+ checks.push('四档桌面三列/两列同行等高；冻结指标无录入控件、长观察完整；汇总包含未选入阶段的真实跑量；历史内容保留；两类资料实时读取且快照/指纹不变');
  [record]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));
  await api('/api/meeting-reviews/'+id,{action:'finalize_post',draft:record.draftSnapshot,expectedUpdatedAt:record.updatedAt.toISOString()});
  await writeFile(clockFile,'2026-10-27T18:00:00+08:00');await nav('/business/meeting-review?meeting='+id+'&version=1');

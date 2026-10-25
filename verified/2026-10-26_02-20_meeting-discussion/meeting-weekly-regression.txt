@@ -1,0 +1,15 @@
+
+> qiuyun-frontend-system@0.1.0 test:weekly /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/meeting-create.browser.ts && node --import tsx tests/meeting-weekly.browser.ts && node --import tsx tests/meeting-inline.browser.ts && node --import tsx tests/meeting-non-promotion.browser.ts && node --import tsx tests/meeting-presentation.browser.ts && node --import tsx tests/meeting-finalization.browser.ts && node --import tsx tests/meeting-compact.browser.ts
+
+{"checks":["非JSON 403显示真实状态而非连接失败；422沿用业务提示；断网保留输入；失败不创建会议","真实拆分表单成功创建并进入会议；连续提交仅写一次；23:00正确存为上海时间；空标题自动生成"],"folder":".tools/test-artifacts/meeting-create"}
+checkpoint
+checkpoint
+employee batch, whole-transaction rollback including first ID, stale fingerprint, duplicate ID refusal, idempotent retry, payload-bound request key, anonymous refusal
+ID lightweight popover without Inspector, pending initial five zeros and continue-pending default, seven-width daily layout, batch queue and totals update
+new candidates unselected, paired first-round context, before/after finalization gates, stale source refusal, immutable pre V0 and append-only post V1
+{"checks":["会议内单标题单保存、总览互斥、明细原位气泡开关与Esc外点、上下边界不跳动","总览默认表格、原位候选与三列等高、点击率零值内联确认及刷新后修改、非推广立即保存、草稿返回、会前冻结不流转事项、会后追加V1并流转事项","跨上海午夜后23日事实与24日安排区分、会后来源锁定、修改理由必填、更正保留数字","9份历史样本及本帖历史优先、未完成非推广草稿保留、慢读单处反馈、普通日度不能改例会决定、月例会类型、未完成事项保留解决方案且会后解决、已录日度次日安排同步更正"],"folder":".tools/test-artifacts/meeting-inline"}
+{"checks":["仅推广可勾选和全选；非推广必处理提示与数量；全部本期已录数据保留；统一紧凑三列卡片与7/15天默认日期","资料悬停预览、点击保持、键盘与外点关闭；链接对应且新标签保留输入；缺失不生成空链接；开关不跳动","草稿已填日期保留；全量非推广门槛不可通过清空选择绕过；完成和不复盘后可定稿；冻结不变且资料实时读取"],"folder":".tools/test-artifacts/meeting-non"}
+{"checks":["草稿仍按日期、推广、非推广、结论、事项填写；标题资料悬停/点击/键盘/外点不跳动且保留输入","四档桌面三列/两列同行等高；定稿无表单、长观察完整；汇总包含未选入阶段的真实跑量；历史内容保留；两类资料实时读取且快照/指纹不变","会前不执行事项；会后追加V1并执行；跨日查看保持冻结生效日；月例会及无卡片/无事项有明确空态"],"folder":".tools/test-artifacts/meeting-presentation"}
+{"checks":["候选、结论、点击率范围及非推广缺项在确认前提示并定位，不发定稿请求","真实来源指纹冲突不产生版本，明确提示并定位刷新，四档桌面错误反馈可读且无溢出","取消、非JSON服务错误和断网均保留输入并可重试，不生成版本","连续点击仅提交一次，会前V0和会后V1真实写入并自动打开对应只读版本"],"folder":".tools/test-artifacts/meeting-finalization"}
+{"checks":["四档桌面紧凑卡片三列/两列、同行等高、64px事项文本框与顶部基线、混合非推广发布时间排序","旧草稿不手动刷新即可还原有记录日期的状态，GET不写库，保存保留补齐状态且不改指标/输入/指纹；缺日度记录不猜测","半填事项保存回显、删除新增行不丢其他输入、区间16至25包含中间零值和晚转化、点击率保留/跨保存复核且前后端阻止绕过、每日当日状态不误用次日安排、非推广完成后位置稳定","会前V0与会后V1四档桌面和完整页面；事项会后解决退出下场；自动标题预览与持久化、自定义保留、失败不改名；旧冻结不回写且缺状态不补造"],"folder":".tools/test-artifacts/meeting-compact"}

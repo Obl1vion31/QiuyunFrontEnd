@@ -38,7 +38,8 @@
     "test:review-workbench": "node --import tsx tests/review-workbench.browser.ts",
     "test:status-correction": "node --import tsx tests/promotion-status-correction.browser.ts",
     "test:weekly": "node --import tsx tests/meeting-create.browser.ts && node --import tsx tests/meeting-weekly.browser.ts && node --import tsx tests/meeting-inline.browser.ts && node --import tsx tests/meeting-non-promotion.browser.ts && node --import tsx tests/meeting-presentation.browser.ts && node --import tsx tests/meeting-finalization.browser.ts && node --import tsx tests/meeting-compact.browser.ts",
-    "test:non-promotion": "node --import tsx tests/non-promotion-inspector.browser.ts"
+    "test:non-promotion": "node --import tsx tests/non-promotion-inspector.browser.ts",
+    "test:meeting-discussion": "node --import tsx tests/meeting-discussion.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",
@@ -50,6 +51,7 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
+    "pdfkit": "0.17.2",
     "postgres": "^3.4.9",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -60,10 +62,11 @@
     "@electric-sql/pglite": "0.5.8",
     "@electric-sql/pglite-socket": "0.2.11",
     "@types/node": "22.19.15",
+    "@types/pdfkit": "0.17.3",
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "drizzle-kit": "^0.31.10",
-    "typescript": "5.8.3",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "typescript": "5.8.3"
   }
 }

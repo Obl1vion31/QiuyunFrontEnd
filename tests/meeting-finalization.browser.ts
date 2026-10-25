@@ -59,6 +59,6 @@ try{
  await page.goto(baseURL+'/business/meeting-review?meeting='+id+'&edit=1');await page.locator('[data-report-v4]').waitFor();
  await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await alert.filter({hasText:'请补充下一步行动'}).waitFor();assert.equal(await page.locator('[data-meeting-field=nextAction]').evaluate((n:Element)=>n===document.activeElement),true);
  await page.getByRole('textbox',{name:'下一步行动',exact:true}).fill('继续核对素材与有效留资。');await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=1');await page.screenshot({path:folder+'/post-v1-success-1440.png'});
- checks.push('连续点击仅提交一次，会前V0和会后V1真实写入并自动打开对应只读版本');
+ checks.push('连续点击仅提交一次，会前V0和会后V1真实写入并自动打开对应展示版本');
  assert.deepEqual(errors,[]);await context.close();await writeFile(folder+'/checks.json',JSON.stringify({scope:'正式组件、隔离PGlite、虚构业务数据',checks,errors},null,2));console.log(JSON.stringify({checks,folder}));
 }catch(error){if(page){await page.screenshot({path:folder+'/failure.png'});console.error(JSON.stringify({errors,url:page.url(),body:(await page.locator('body').innerText()).slice(-3500)}));}console.error(fixture.logs());throw error;}finally{await browser?.close();await fixture.stop();}

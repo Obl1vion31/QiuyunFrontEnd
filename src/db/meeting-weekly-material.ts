@@ -1,3 +1,4 @@
+import {rateComparison,type RateSample,type RateComparison} from './meeting-rate-comparison';
 import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 /** 周例会 v4：实际日期候选、可核对的比较样本与不可变来源。 */
 import { createHash } from 'node:crypto';
@@ -9,7 +10,7 @@ import { nextDateKey, previousDateKey, shanghaiDateKey } from './promotion-rules
 import { promotionTotals, type PromotionFact } from './promotion-overview';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import {checkpointsForPublishDate} from './stage-review-rules.mjs';
-import {actualDataRange,type ActualDataRange} from './meeting-card-rules';
+import {actualDataRange,cardDataRange,type ActualDataRange} from './meeting-card-rules';
 import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages } from './schema';
 export const sourceHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v)).digest('hex');
 export type MeetingRecord = typeof meetings.$inferSelect;
@@ -33,6 +34,7 @@ export interface Benchmark {
     samples?: Array<Record<string, unknown>>;
 }
 export interface WeeklyPromotionCard {
+    rateSamples?:RateSample[];rateAsOf?:string;rateComparison?:RateComparison;
     testCycleNumber?:number;
     testCycleEndedOn?:string|null;
     dataRange?:ActualDataRange;
@@ -79,6 +81,7 @@ export interface WeeklyPromotionCard {
     }>;
 }
 export interface WeeklyNonPromotionCard {
+    rateComparison?:RateComparison;
     actualPublishAt?:Date|string|null;
     key: string;
     scheduleId: string;
@@ -239,7 +242,20 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             pool.push(card);
         }
     }
+    // 同一轮次跨会议与会前／会后版本只保留最新的有效人工点击率。
+    const rateSources=new Map<string,{card:WeeklyPromotionCard;sample:RateSample}>();
+    for(const version of [...allVersions].sort((a,b)=>a.createdAt.getTime()-b.createdAt.getTime()||a.versionNumber-b.versionNumber)){
+      const snapshot=version.snapshot as any;
+      if(version.meetingId===meeting.id||snapshot.meeting?.periodEnd>end)continue;
+      for(const card of snapshot.generated?.promotions??[]){
+        const input=snapshot.draft?.promotionInputs?.[card.key],range=cardDataRange(card);
+        if(!range||range.through>end||!input?.confirmed||input.rateNeedsReview||input.clickRate==null||!Number.isFinite(input.clickRate)||input.rateRange&&(input.rateRange.from!==range.from||input.rateRange.through!==range.through))continue;
+        rateSources.set(card.originKey??card.key,{card,sample:{key:card.originKey??card.key,clickRate:input.clickRate,through:range.through,sourceVersionId:version.id,sourceHash:card.sourceHash}});
+      }
+    }
     for (const card of pool) {
+        card.rateAsOf=end;
+        card.rateSamples=[...rateSources.values()].filter(s=>s.card.subjectId===card.subjectId&&s.card.categoryId===card.categoryId&&s.card.stageType===card.stageType).map(s=>s.sample);
         const same = pool.filter(p => p.stageType === card.stageType && p.subjectId === card.subjectId && p.categoryId === card.categoryId);
         card.historical = benchPromotion(same.filter(p => (p as any)._cutoff && ((p as any)._cutoff < start)).map(p => ({ key: p.key, facts: (p as any)._historicalFacts as Fact[] })), card.key);
         card.peers = benchPromotion(same.filter(p => (p as any)._eligible && p.kind === 'current').map(p => ({ key: p.key, facts: p.facts })), card.key);
@@ -287,6 +303,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
         const same = nonPool.filter(p => p.subjectId === card.subjectId && p.categoryId === card.categoryId && p.checkpointType === card.checkpointType && !p.skipped);
         card.historical = benchNon(same.filter(p => p.recordedThrough! < start), card.key);
         card.peers = benchNon(same.filter(p => p.recordedThrough! >= start && p.recordedThrough! <= end), card.key);
+        card.rateComparison=rateComparison(same.map(p=>({key:p.key,clickRate:p.clickRate!,threeSecondReadRate:p.threeSecondReadRate!,through:p.recordedThrough!,sourceHash:p.sourceHash})),end);
     }
     const promotions = pool.filter(p => (p as any)._eligible).sort((a, b) => a.key.localeCompare(b.key));
     for (const p of promotions) {

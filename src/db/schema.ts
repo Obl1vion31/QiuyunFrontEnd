@@ -667,6 +667,7 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 ]);
 
 export interface WeeklyMeetingDraft {
+  discussionSourceVersionId?:string;
   workflowVersion?:5;
   hasRevisionDraft?:boolean;
   candidatesConfirmed?:boolean;
@@ -717,6 +718,8 @@ export const operationsReviewMeeting = pgTable(
 );
 
 export const operationsReviewMeetingVersion = pgTable('operations_review_meeting_version', {
+  pdfStatus: text('pdf_status'),
+  pdfStartedAt: timestamp('pdf_started_at', { withTimezone: true }),
   id: uuid('id').defaultRandom().primaryKey(),
   meetingId: uuid('meeting_id').notNull().references(() => operationsReviewMeeting.id, { onDelete: 'restrict' }),
   versionNumber: integer('version_number').notNull(),
@@ -726,6 +729,7 @@ export const operationsReviewMeetingVersion = pgTable('operations_review_meeting
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex('operations_review_meeting_version_idx').on(table.meetingId, table.versionNumber),
+  check('operations_review_meeting_pdf_status_check', sql`${table.pdfStatus} IS NULL OR ${table.pdfStatus} IN ('pending','ready','failed')`),
   check('operations_review_meeting_version_number_check', sql`${table.versionNumber} >= 0`),
 ]);
 
@@ -908,6 +912,8 @@ export const operationsPromotionStageReviewVersion = pgTable('operations_promoti
 
 /** 图片私有存储，仅经登录保护接口读取；不将二进制加载进例会列表。 */
 export const operationsMeetingAttachment = pgTable('operations_meeting_attachment', {
+  meetingVersionId: uuid('meeting_version_id').references(() => operationsReviewMeetingVersion.id, { onDelete: 'restrict' }),
+  source: text('source').notNull().default('image'),
   id: uuid('id').defaultRandom().primaryKey(),
   meetingId: uuid('meeting_id').notNull().references(() => operationsReviewMeeting.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
@@ -916,4 +922,4 @@ export const operationsMeetingAttachment = pgTable('operations_meeting_attachmen
   base64: text('base64').notNull(),
   createdByLabel: text('created_by_label').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, table => [check('operations_meeting_attachment_size_check', sql`${table.byteLength} > 0 AND ${table.byteLength} <= 3145728`), check('operations_meeting_attachment_type_check', sql`${table.mimeType} IN ('image/png','image/jpeg','image/webp')`)]);
+}, table => [uniqueIndex('operations_meeting_generated_pdf_idx').on(table.meetingVersionId).where(sql`${table.source} = 'generated'`),check('operations_meeting_attachment_source_check',sql`${table.source} IN ('image','manual','generated') AND (${table.source} = 'image' OR (${table.mimeType} = 'application/pdf' AND ${table.meetingVersionId} IS NOT NULL))`),check('operations_meeting_attachment_size_check', sql`${table.byteLength} > 0 AND ${table.byteLength} <= 3145728`), check('operations_meeting_attachment_type_check', sql`${table.mimeType} IN ('image/png','image/jpeg','image/webp','application/pdf')`)]);

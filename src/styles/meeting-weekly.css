@@ -126,9 +126,27 @@
 .weekly-issues-table{min-width:680px}
 .weekly-issues-table :is(th,td){padding:10px 8px;vertical-align:top}
 .weekly-issues-table th:nth-child(1){width:30%}.weekly-issues-table th:nth-child(2){width:auto}.weekly-issues-table th:nth-child(3){width:112px}.weekly-issues-table th:nth-child(4){width:100px}.weekly-issues-table th:nth-child(5){width:40px}
-.weekly-report .weekly-issues-table textarea{height:64px;min-height:64px;margin:0;display:block}
+.weekly-report.business-form .weekly-issues-table textarea{height:64px;min-height:64px;margin:0;display:block}
 .weekly-issue-check{height:40px;display:flex;align-items:center;justify-content:center}
 .weekly-issue-remove{display:grid;place-items:center;width:24px;height:24px;padding:0;margin-top:8px;border:0;border-radius:4px;background:none;color:var(--console-muted);font:400 20px/1 var(--console-font);cursor:pointer}
 .weekly-issue-remove:hover{background:var(--console-blue-soft);color:var(--console-ink)}.weekly-issue-remove:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .weekly-issue-empty{color:var(--console-muted)}
 .weekly-visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+/* 会前展示直接讨论：文字入口与正文共用字阶，不将冻结指标变成表单。 */
+.weekly-rate-comparison{display:grid!important;gap:3px;margin-top:4px;color:var(--console-muted);font:400 12px/19px var(--console-font)}
+.weekly-rate-comparison b{font-weight:500;color:var(--console-ink)}.weekly-rate-comparison small{font-size:12px;line-height:19px}
+.weekly-frozen .weekly-stage-card .weekly-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.weekly-frozen .weekly-stage-card .weekly-metrics.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.weekly-writing-empty{margin:0;color:var(--console-muted);font-size:13px;line-height:22px}
+.weekly-discussion-text{display:block;width:100%;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;border:0;border-radius:4px;background:transparent;color:var(--console-ink);padding:0;font:inherit;cursor:text;min-height:24px}
+.weekly-discussion-text>span{display:inline-block;margin-left:8px;color:var(--console-blue);font:400 12px/20px var(--console-font)}
+.weekly-discussion-text:hover{background:var(--console-surface-subtle)}.weekly-discussion-text:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
+.weekly-discussion textarea{font:400 14px/24px var(--console-font);width:100%;min-height:64px;resize:vertical}
+.weekly-discussion .weekly-card-writing textarea{height:80px;min-height:64px}.weekly-discussion .weekly-card-writing label{font-size:13px}
+.weekly-discussion-issues{table-layout:fixed}.weekly-discussion-issues th:first-child{width:30%}.weekly-discussion-issues th:nth-child(2){width:auto}.weekly-discussion-issues th:nth-child(3){width:118px}.weekly-discussion-issues th:nth-child(4){width:100px}.weekly-discussion-issues th:nth-child(5){width:40px}
+.weekly-discussion-issues td{vertical-align:top}.weekly-discussion-issues .weekly-discussion-text{font:400 14px/24px var(--console-font)}.weekly-discussion-issues input[type=checkbox]{margin:10px 0}
+.weekly-discussion-host>.weekly-report-actions{margin-top:24px}
+
+.weekly-rate-difference{display:block;white-space:nowrap}.weekly-rate-comparison b>span{font:inherit;color:inherit}
+
+.weekly-rate-comparison small>span{display:block;white-space:nowrap;font:inherit;color:inherit}

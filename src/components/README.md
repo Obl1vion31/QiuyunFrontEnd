@@ -71,7 +71,7 @@ ContentTunnel.module.css
 
 `BusinessPromotionTimeline.astro` 每日委托 `BusinessPromotionPendingRows.astro` 表达首次安排和持续区间，历史和排期 Inspector 按需展开更正，共用业务日期、写入控制器与审计；`BusinessScheduleApprovals.astro` 沿用排期台账与共享 Inspector。`BusinessChangeDiff.astro` 与 `src/scripts/business-change-diff.ts` 为 SSR／异步详情提供相同的纵向字段对照，不另建详情开关或横向对比表。
 
-`BusinessPromotionDailyPosts.astro` 按活动与日期组织可填写、待开放与前日未完成分组；`BusinessPromotionMetricForm.astro` 是主列表与 Inspector 共用的填写表单，日期色块、居中状态、五项输入、只读成本、次日安排共用稳定列；状态编辑使用独立气泡。可见日期与指标可填写条件由 `src/db/promotion-review-days.ts` 统一计算，客户端只负责原位更新与草稿保留。
+`BusinessPromotionDailyPosts.astro` 按活动与日期组织可填写、待开放与前日未完成分组；`BusinessPromotionMetricForm.astro` 是主列表与 Inspector 共用的填写表单，日期色块、居中状态、五项输入、只读成本、次日安排共用稳定列；状态编辑使用独立气泡；例会次日安排以结果、来源链接、修改按钮同行显示，原位气泡与 Inspector 共用草稿，保存独立于指标。可见日期与指标可填写条件由 `src/db/promotion-review-days.ts` 统一计算，客户端只负责原位更新与草稿保留。
 
 `BusinessPromotionSummary` 在每日与历史共用真实日期的黄绿阶段节点，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格及表尾汇总，`BusinessPromotionTotals` 继续用于 Inspector 的单日指标。记录点击交给公共 Inspector，`BusinessPromotionDetails / BusinessPromotionMetric` 负责所选记录、业务安排与原编辑表单，不在页面复制详情开关或重复维护汇总。
 
@@ -84,3 +84,7 @@ ContentTunnel.module.css
 `WeeklyCardDetails` 为例会编辑与冻结卡共用的非模态明细气泡；`variant="info"` 为推广／非推广标题文字后的资料入口；`meeting-layout` 统一定位、悬停／聚焦预览、点击保持和退出，不统一测高。`BusinessConsoleToolbar layout="title"` 为对象页提供单标题与右侧动作。
 
 `WeeklyReviewCards` 共用标题、版本与16px SVG资料图标；非推广已填／待填在同一网格按发布时间排列。推广数据区间取参与当前卡汇总的非零事实边界，明细保留零值和冻结的当日状态；点击率区间变化保留原值并待重新确认。`BusinessWeeklyMeeting` 在现有Toolbar更新自动标题预览，事项使用稳定的本地行键、半填草稿和仅新增行移除；不复制公共标题或新增详情控制器。
+
+- `WeeklyMeetingPresentation.tsx`：冻结阅读布局；`BusinessMeetingDiscussion.tsx`：最新会前版的正文内联讨论、保存和会后定稿；`MeetingDiscussionText.tsx`：共用正文编辑入口。
+- `MeetingPdfArchive.tsx`：当前版本、总览与历史共用的私有PDF查看、下载、生成重试和补充上传。
+

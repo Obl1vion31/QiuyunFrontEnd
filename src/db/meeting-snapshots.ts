@@ -14,6 +14,7 @@ export async function readOpenMeetingIssues(db:Database){
 }
 const text = z.string().max(10000).default('');
 export const meetingDraftSchema = z.object({
+  discussionSourceVersionId:z.uuid().optional(),
   workflowVersion:z.literal(5).optional(),candidatesConfirmed:z.boolean().default(false),
   hasRevisionDraft:z.boolean().optional(),
   finalizationStage:z.enum(['pre','post']).optional(),

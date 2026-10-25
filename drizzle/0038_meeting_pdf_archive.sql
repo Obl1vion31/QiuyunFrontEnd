@@ -1,0 +1,10 @@
+ALTER TABLE "operations_meeting_attachment" DROP CONSTRAINT "operations_meeting_attachment_type_check";--> statement-breakpoint
+ALTER TABLE "operations_meeting_attachment" ADD COLUMN "meeting_version_id" uuid;--> statement-breakpoint
+ALTER TABLE "operations_meeting_attachment" ADD COLUMN "source" text DEFAULT 'image' NOT NULL;--> statement-breakpoint
+ALTER TABLE "operations_review_meeting_version" ADD COLUMN "pdf_status" text;--> statement-breakpoint
+ALTER TABLE "operations_review_meeting_version" ADD COLUMN "pdf_started_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "operations_meeting_attachment" ADD CONSTRAINT "operations_meeting_attachment_meeting_version_id_operations_review_meeting_version_id_fk" FOREIGN KEY ("meeting_version_id") REFERENCES "public"."operations_review_meeting_version"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "operations_meeting_generated_pdf_idx" ON "operations_meeting_attachment" USING btree ("meeting_version_id") WHERE "operations_meeting_attachment"."source" = 'generated';--> statement-breakpoint
+ALTER TABLE "operations_meeting_attachment" ADD CONSTRAINT "operations_meeting_attachment_source_check" CHECK ("operations_meeting_attachment"."source" IN ('image','manual','generated') AND ("operations_meeting_attachment"."source" = 'image' OR ("operations_meeting_attachment"."mime_type" = 'application/pdf' AND "operations_meeting_attachment"."meeting_version_id" IS NOT NULL)));--> statement-breakpoint
+ALTER TABLE "operations_meeting_attachment" ADD CONSTRAINT "operations_meeting_attachment_type_check" CHECK ("operations_meeting_attachment"."mime_type" IN ('image/png','image/jpeg','image/webp','application/pdf'));--> statement-breakpoint
+ALTER TABLE "operations_review_meeting_version" ADD CONSTRAINT "operations_review_meeting_pdf_status_check" CHECK ("operations_review_meeting_version"."pdf_status" IS NULL OR "operations_review_meeting_version"."pdf_status" IN ('pending','ready','failed'));
