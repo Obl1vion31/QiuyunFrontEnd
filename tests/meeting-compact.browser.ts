@@ -6,6 +6,7 @@ import {eq} from 'drizzle-orm';
 import {startFixture,employee} from './auth.fixture';
 import {respondToBusinessConfirm} from './business-confirm.helper';
 import * as s from '../src/db/schema';
+import {readWeeklyDraftStates,type WeeklyMaterial} from '../src/db/meeting-weekly-material';
 const folder=process.env.MEETING_COMPACT_DIR||'.tools/test-artifacts/meeting-compact';await mkdir(folder,{recursive:true});
 const clockFile=new URL('../'+folder+'/clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-10-27T18:00:00+08:00');
 const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;let browser:any,page:any;const checks:string[]=[],errors:string[]=[],geometry:any[]=[];
@@ -24,7 +25,7 @@ try{
   const[campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:p.id,startedOn:day,dailyReviewEnabledOn:day,initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();await db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,startedOn:day,stageType:'testing'});return {p,campaign};
  }
  async function metric(post:any,day:number,spend='0',opens=0,leads=0,pending=false,decision='wait_continue'){
-  await db.insert(s.operationsPromotionDailyMetric).values({campaignId:post.campaign.id,metricDate:'2026-10-'+day,dailyStatus:pending?'waiting_action':'active',actualStatusSnapshot:pending?'test_pending':'testing',stageTypeSnapshot:'testing',recordKind:'regular',sourceStageStartedOn:post.campaign.startedOn,spend,platformOpenCount:opens,actualOpenCount:opens,platformLeadCount:leads,actualLeadCount:leads,reviewDecision:decision});
+  await db.insert(s.operationsPromotionDailyMetric).values({campaignId:post.campaign.id,metricDate:'2026-10-'+day,dailyStatus:pending?'waiting_action':'active',actualStatusSnapshot:day===16||day===17?null:pending?'test_pending':'testing',stageTypeSnapshot:'testing',recordKind:'regular',sourceStageStartedOn:post.campaign.startedOn,spend,platformOpenCount:opens,actualOpenCount:opens,platformLeadCount:leads,actualLeadCount:leads,reviewDecision:decision});
  }
  const a=await seed('暂停后的转化仍计入区间','2026-10-16',true),b=await seed('尾部零值不延长区间','2026-10-19',true),c=await seed('全部指标为零的阶段','2026-10-21',true),d=await seed('长标题：从题目条件、函数图像与逻辑关系建立完整的解题过程并核对表达','2026-10-20',true);
  for(let day=16;day<=25;day++)await metric(a,day,day===16?'100':day===18?'40':'0',day===16?2:day===25?1:0,day===25?1:0,day>=19,day===18?'test_pending':day>=19?'wait_continue':'test_continue');
@@ -65,6 +66,20 @@ try{
  checks.push('四档桌面紧凑卡片三列/两列、同行等高、64px事项文本框与顶部基线、混合非推广发布时间排序');
  await page.setViewportSize({width:1440,height:1000});await post(a).getByRole('button',{name:'确认',exact:true}).click();await post(a).getByRole('button',{name:'修改',exact:true}).waitFor();
  await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');assert.ok((await record()).draftSnapshot.issues.some(i=>!i.problem&&i.conclusion==='先写方案，问题稍后补齐'));
+ // 模拟升级前保存的材料：前两天已有真实记录，但没有 actualStatusSnapshot/dailyStates。
+ const legacyDraft=structuredClone((await record()).draftSnapshot),legacyMaterial=legacyDraft.materialSnapshot as unknown as WeeklyMaterial;
+ const legacyCard=legacyMaterial.promotions.find(row=>row.campaignId===a.campaign!.id)!;delete legacyCard.dailyStates;legacyMaterial.fingerprint='0'.repeat(64);legacyDraft.materialFingerprint=legacyMaterial.fingerprint;
+ await db.update(s.operationsReviewMeeting).set({draftSnapshot:legacyDraft}).where(eq(s.operationsReviewMeeting.id,id));const beforeRead=JSON.stringify(await record());
+ await nav('/business/meeting-review?meeting='+id);await scroll(post(a));await post(a).getByRole('button',{name:'查看明细',exact:true}).click();
+ for(const day of['2026-10-16','2026-10-17'])assert.match(await post(a).locator(':popover-open .weekly-daily-facts tbody tr').filter({hasText:day}).innerText(),/测试中/);
+ assert.equal(JSON.stringify(await record()),beforeRead);assert.equal(await page.getByRole('button',{name:'刷新数据',exact:true}).isEnabled(),true);await shot('legacy-draft-states-1440');await page.keyboard.press('Escape');
+ await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');const savedLegacy=(await record()).draftSnapshot;
+ assert.equal((savedLegacy.materialSnapshot as any).promotions.find((row:any)=>row.key===legacyCard.key).dailyStates['2026-10-16'],'testing');
+ assert.equal(savedLegacy.materialFingerprint,legacyDraft.materialFingerprint);assert.deepEqual(savedLegacy.promotionInputs,legacyDraft.promotionInputs);assert.deepEqual((savedLegacy.materialSnapshot as any).summary,legacyMaterial.summary);
+ assert.deepEqual((savedLegacy.materialSnapshot as any).promotions.find((row:any)=>row.key===legacyCard.key).facts,legacyCard.facts);
+ const unknown=structuredClone(legacyMaterial),unknownCard=unknown.promotions.find(row=>row.key===legacyCard.key)!;unknownCard.facts.push({...unknownCard.facts[0],id:randomUUID(),metricDate:'2026-10-15'});
+ assert.equal((await readWeeklyDraftStates(db,unknown)).promotions.find(row=>row.key===legacyCard.key)!.dailyStates?.['2026-10-15'],undefined);
+ checks.push('旧草稿不手动刷新即可还原有记录日期的状态，GET不写库，保存保留补齐状态且不改指标/输入/指纹；缺日度记录不猜测');
  await nav('/business/meeting-review?meeting='+id);await page.locator('[data-report-v4]').waitFor();await page.getByRole('textbox',{name:'结束日',exact:true}).count();
  await page.locator('.weekly-material-tools input[type=date]').last().fill('2026-10-25');await refresh();
  assert.equal(await page.locator('.business-toolbar__title strong').innerText(),'2026.10.16—10.25 周度业务复盘');assert.match(await page.title(),/10.25/);assert.match(await post(a).locator('.weekly-data-range').innerText(),/2026-10-16—2026-10-25/);assert.equal(await post(a).locator('input[type=number]').inputValue(),'4.62');await post(a).getByText('数据区间已变化，点击率待核对',{exact:true}).waitFor();

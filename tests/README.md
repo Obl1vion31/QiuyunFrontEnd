@@ -18,7 +18,7 @@
 
 `meeting-finalization.browser.ts` 纳入 `test:weekly`，覆盖定稿缺项定位、原生指标范围错误、已确认隐藏字段的精度、来源指纹冲突、非JSON错误与断网保留、取消和重复提交，以及真实按钮生成并跳转会前V0／会后V1。全部写入隔离PGlite，`MEETING_FINALIZATION_DIR` 可指定产物目录。
 
-`meeting-card-rules.test.ts` 与 `meeting-compact.browser.ts` 覆盖非零首末日、暂停后转化和中间零值、点击率区间保留复核、逐日当日状态、已填／待填统一排序、自动标题持久化及自定义保留、半填写事项、稳定行删除和会后流转。专项检查四档桌面草稿／V0／V1及完整页面，旧快照缺状态不补造；`MEETING_COMPACT_DIR` 可指定隔离产物目录。
+`meeting-card-rules.test.ts` 与 `meeting-compact.browser.ts` 覆盖非零首末日、暂停后转化和中间零值、点击率区间保留复核、逐日当日状态、已填／待填统一排序、自动标题持久化及自定义保留、半填写事项、稳定行删除和会后流转。专项检查四档桌面草稿／V0／V1及完整页面；旧草稿缺状态字段时，无需手动刷新即按真实日度补齐，验证读取不写库、保存保留且不改指标／输入／指纹、无日度记录不猜测；旧定稿缺状态不补造；`MEETING_COMPACT_DIR` 可指定隔离产物目录。
 
 历史迁移含特定导入批次断言，隔离测试从当前 schema 建立业务结构，再执行本次认证 SQL；不会修改已共享的历史迁移，也不会使用真实业务数据补足断言。Chromium 系统库与中文字体可在 `.tools/system/` 解压，并用 `LD_LIBRARY_PATH`、`FONTCONFIG_FILE` 提供，避免修改系统配置。
 

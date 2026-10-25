@@ -18,7 +18,7 @@
 
 - `promotion-wait-ranges.ts`：逐帖待定区间、次日生效计划、并发版本与历史级联保护。
 - `promotion-stage-reviews.ts`：自选区间测试／放量聚合、缺口和来源事实、不可变 V0/V1+ 快照。
-- `meeting-snapshots.ts`：旧 v2/v3 例会兼容与通用草稿校验；`meeting-weekly-material.ts`：v4 周例会的实际日期候选、跨期阶段、基准、来源指纹及二轮首轮对照。
+- `meeting-snapshots.ts`：旧 v2/v3 例会兼容与通用草稿校验；`meeting-weekly-material.ts`：v4 周例会的实际日期候选、跨期阶段、基准、来源指纹及二轮首轮对照；可编辑旧草稿缺失的日度状态按真实记录只读补齐，冻结视图不补。
 - `meeting-finalization.ts`：会前／会后必填与非推广处理门槛的共享纯规则，前端定位缺项，服务端事务复核；不限制草稿保存。
 - `meeting-card-rules.ts`：非零日期边界、手填点击率区间复核、非推广发布时间排序、自动会议名和草稿事项内容判断；新增信息进入原JSON，不增加表或改写旧定稿。
 - `promotion-daily-write.ts`：单条／批量共用事务写入，批量入口统一先验指纹和共享 ID，任何错误整批回滚。

@@ -305,3 +305,25 @@ export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: st
     const comparison = primary.filter(p => p.checkpointType === 'day_15' && !keys.has(`${p.scheduleId}:day_7`)).flatMap(p => { const first = material.nonPromotionContext.find(c => c.scheduleId === p.scheduleId && c.checkpointType === 'day_7'); return first ? [{ ...first, comparisonOnly: true }] : []; });
     return { promotions, nonPromotions: [...primary, ...comparison],excludedNonPromotions:material.excludedNonPromotions??[] };
 }
+
+/** 仅供可编辑草稿兼容：补齐缺失的当日状态，不刷新指标、来源指纹或人工输入。 */
+export async function readWeeklyDraftStates(db: Database, material: WeeklyMaterial): Promise<WeeklyMaterial> {
+    const missing = (card: WeeklyPromotionCard, fact: Fact) => !fact.actualStatusSnapshot && !card.dailyStates?.[fact.metricDate];
+    if (!material.promotions.some(card => card.facts.some(fact => missing(card, fact)))) return material;
+    const context = await readPromotionContext(db);
+    const metrics = new Map(context.metrics.map(fact => [`${fact.campaignId}:${fact.metricDate}`, fact]));
+    return { ...material, promotions: material.promotions.map(card => {
+        const campaign = context.campaigns.find(c => c.id === card.campaignId && c.scheduleId === card.scheduleId);
+        if (!campaign) return card;
+        const dailyStates = { ...card.dailyStates };
+        for (const fact of card.facts) {
+            if (!missing(card, fact)) continue;
+            const recorded = metrics.get(`${card.campaignId}:${fact.metricDate}`);
+            // 必须有同一活动同一天的真实记录；不能由当前状态推断删除或缺失的日度事实。
+            if (!recorded) continue;
+            const state = recorded.actualStatusSnapshot ?? promotionStateOn(campaign, context, fact.metricDate)?.currentStatus;
+            if (state) dailyStates[fact.metricDate] = state;
+        }
+        return { ...card, dailyStates };
+    }) };
+}
