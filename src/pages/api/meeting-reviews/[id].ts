@@ -81,7 +81,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
          const context=await readPromotionContext(transaction),today=shanghaiDateKey(new Date()),effectiveOn=nextDateKey(today);
          const decisions:MeetingDecision[]=[];
          for(const card of (snapshot.generated as any).promotions as WeeklyMaterial['promotions']){
-          if(decisions.some(d=>d.campaignId===card.campaignId))continue;
+          if(card.testCycleEndedOn||decisions.some(d=>d.campaignId===card.campaignId))continue;
           const campaign=context.campaigns.find(c=>c.id===card.campaignId)!;
           const state=promotionStateOn(campaign,context,today);
           if(!state?.currentStage)continue;
@@ -90,7 +90,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
           if(context.metrics.some(m=>m.campaignId===card.campaignId&&m.metricDate>=effectiveOn))throw new WorkflowError('生效日期已有指标，请通过历史更正入口处理。');
           const conflict=context.meetingDecisions.find(d=>d.campaignId===card.campaignId&&d.effectiveOn===effectiveOn&&d.meetingId!==meeting.id);
           if(conflict)throw new WorkflowError('该日已有其他例会决定，请核对来源后更正。');
-          decisions.push({id:meeting.id+':'+card.campaignId+':'+effectiveOn,campaignId:card.campaignId,scheduleId:card.scheduleId,effectiveOn,targetStatus,stageType:state.currentStage as 'testing'|'scaling',meetingId:meeting.id,versionNumber:meeting.status==='completed'?meeting.currentVersionNumber+1:0,label:target.name});
+          decisions.push({id:meeting.id+':'+card.campaignId+':'+effectiveOn,campaignId:card.campaignId,scheduleId:card.scheduleId,effectiveOn,targetStatus:targetStatus==='restart_testing'?'testing':targetStatus,...(targetStatus==='restart_testing'?{action:'restart_testing' as const}:{}),stageType:state.currentStage as 'testing'|'scaling',meetingId:meeting.id,versionNumber:meeting.status==='completed'?meeting.currentVersionNumber+1:0,label:target.name});
          }
          (snapshot.generated as any).meetingDecisions=decisions;
         }

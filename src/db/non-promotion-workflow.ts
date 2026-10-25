@@ -1,11 +1,11 @@
-import { and, desc, eq, lte } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import type { OperationsUser } from '../auth/permissions';
 import { nextReviewCheckpoint, shanghaiDateKey } from './stage-review-rules.mjs';
 import { lockSchedule, WorkflowError, type Transaction } from './schedule-workflow';
 import { operationsNonPromotionCheckpointEvent as events, operationsNonPromotionReview as reviews,
-  operationsContentVersion as versions, operationsCategoryPolicyVersion as policies, operationsContentPerformanceMetric as metrics } from './schema';
+  operationsContentPerformanceMetric as metrics } from './schema';
 
 export const checkpointActionSchema = z.object({
   scheduleId: z.uuid(), checkpointType: z.enum(['day_7', 'day_15']), action: z.enum(['skip', 'restore']),
@@ -33,12 +33,6 @@ export async function changeCheckpointState(database: Database, input: Omit<z.in
   return database.transaction(async transaction => {
     const schedule = await lockSchedule(transaction, input.scheduleId);
     if (!schedule.actualPublishAt || schedule.isPromoted) throw new WorkflowError('只能处理已实发的非推广帖子。');
-    const [version] = await transaction.select().from(versions).where(eq(versions.id, schedule.contentVersionId)).limit(1);
-    if (version.categoryId) {
-      const [policy] = await transaction.select().from(policies).where(and(eq(policies.categoryId, version.categoryId), lte(policies.effectiveOn, shanghaiDateKey(now))))
-        .orderBy(desc(policies.versionNumber)).limit(1);
-      if (policy?.requiresNonPromotionReview === false) throw new WorkflowError('当前分类未开放非推广复盘。');
-    }
     const latest = await readCheckpointEvents(transaction, schedule.id);
     const key = `${schedule.id}:${input.checkpointType}`;
     const current = latest.get(key);

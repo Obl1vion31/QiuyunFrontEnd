@@ -34,7 +34,7 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
   }
   days.sort((a,b)=>a.date.localeCompare(b.date));
   const firstDue=days.find(day=>day.due)?.date;
-  for(const day of days)if(day.kind==='metric'){const decision=meetingDecisionOn(context.meetingDecisions??[],day.campaignId,nextDateKey(day.date));if(decision){day.meetingDecision=decision;day.meetingNext=meetingNextDecision(day.actualStatus??'testing',decision.targetStatus);}}
+  for(const day of days)if(day.kind==='metric'){const decision=meetingDecisionOn(context.meetingDecisions??[],day.campaignId,nextDateKey(day.date));if(decision){day.meetingDecision=decision;day.meetingNext=meetingNextDecision(day.actualStatus??'testing',decision.action==='restart_testing'?'restart_testing':decision.targetStatus);}}
   for(const day of days)if(day.kind==='metric'&&day.date!==firstDue){day.editable=false;day.blockedBy=firstDue??null;day.stage=null;day.status='待安排';}
   const state=campaign?promotionStateOn(campaign,context,today):null;
   const ended=!row.isPromoted||['ended','test_discarded','formal_discarded'].includes(state?.currentStatus??campaign?.currentStatus??row.promotionStatus);

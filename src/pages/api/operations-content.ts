@@ -1,3 +1,4 @@
+import {readPostSchemas} from '../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
 import { getDb } from '../../db/client';
 import {
@@ -8,7 +9,6 @@ import {
 import {
   issuesByField,
   newPostInputFromForm,
-  newPostSchema,
 } from '../../db/validation';
 
 export const prerender = false;
@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
   } catch {
     return Response.json({ message: '请求必须使用有效的表单格式。' }, { status: 400 });
   }
-  const result = newPostSchema.safeParse(newPostInputFromForm(form));
+  const result = (await readPostSchemas(getDb())).newPostSchema.safeParse(newPostInputFromForm(form));
   const wantsJson = request.headers.get('accept')?.includes('application/json');
   if (!result.success) {
     return Response.json({ message: '请检查标记的字段。', fields: issuesByField(result.error.issues) }, { status: 422 });

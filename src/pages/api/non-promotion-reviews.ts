@@ -1,6 +1,6 @@
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import type { APIRoute } from 'astro';
-import { and, desc, eq, isNull, lte } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { lockSchedule } from '../../db/schedule-workflow';
 import { readCheckpointEvents } from '../../db/non-promotion-workflow';
 import { workflowErrorResponse } from '../../db/workflow-api';
@@ -13,7 +13,6 @@ import {
   operationsContentVersion,
   operationsNonPromotionReview,
   operationsNonPromotionReviewVersion,
-  operationsCategoryPolicyVersion,
   operationsSubject,
 } from '../../db/schema';
 import { nextReviewCheckpoint, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
@@ -56,16 +55,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         return { kind: 'invalid-schedule' as const };
       }
 
-      if (identity.categoryId) {
-        const [policy] = await transaction.select({ requires: operationsCategoryPolicyVersion.requiresNonPromotionReview })
-          .from(operationsCategoryPolicyVersion)
-          .where(and(
-            eq(operationsCategoryPolicyVersion.categoryId, identity.categoryId),
-            lte(operationsCategoryPolicyVersion.effectiveOn, shanghaiDateKey(new Date())),
-          ))
-          .orderBy(desc(operationsCategoryPolicyVersion.versionNumber)).limit(1);
-        if (policy?.requires === false) return { kind: 'invalid-schedule' as const };
-      }
+
 
       const completed = await transaction.select({ type: operationsNonPromotionReview.checkpointType })
         .from(operationsNonPromotionReview).where(eq(operationsNonPromotionReview.scheduleId, result.data.scheduleId));

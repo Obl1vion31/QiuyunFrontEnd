@@ -16,7 +16,7 @@ const promotionDailyMetricFields = {
   platformLeadCount: nonNegativeInteger,
   actualLeadCount: nonNegativeInteger,
   reviewDecision: z.enum([
-    'test_continue',
+    'test_continue', 'restart_testing',
     'test_discarded',
     'start_scaling',
     'scaling_continue',

@@ -10,7 +10,7 @@ interface Props {
 }
 const { campaigns, ranges, context, historical = false } = Astro.props;
 const today = shanghaiDateKey(new Date());
-const options = (stage: string) => stage === 'testing' ? [['test_continue','恢复测试'],['start_scaling','开始放量'],['test_discarded','测试淘汰']] : [['scaling_continue','恢复推广'],['formal_discarded','放量淘汰'],['ended','推广结束']];
+const options = (stage: string) => stage === 'testing' ? [['restart_testing','重新开始测试'],['test_continue','恢复测试'],['start_scaling','开始放量'],['test_discarded','测试淘汰']] : [['scaling_continue','恢复推广'],['formal_discarded','放量淘汰'],['ended','推广结束']];
 const candidates = campaigns.filter(c => !context.campaigns?.find(item=>item.id===c.id)?.dailyReviewEnabledOn&&(historical || promotionStateOn(c, context, today)?.currentStage));
 const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaignId));
 ---

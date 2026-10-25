@@ -361,11 +361,9 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
         <input type="hidden" name="sectionLabel" />
         <div class="form-content form-dialog-body">
           <div class="form-grid business-field-grid">
-            <label class="business-field-wide">规划项目名称<input name="rowName" maxlength="200" required placeholder="例如：TMUA 发帖周期" /></label>
-            <label>所属分区<select name="sectionChoice" required>
-              {sectionInfo.map((section) => <option value={section.key}>{section.label}</option>)}
-            </select></label>
-            <label>帖子分类（可选）<select name="categoryId"><option value="">不关联分类</option></select></label>
+            <label class="business-field-wide">规划项目名称<input name="rowName" maxlength="200" required placeholder="例如：TMUA 小班课、TMUA 一对一" /></label>
+            <div class="taxonomy-field"><div class="taxonomy-field-heading"><label for="annual-section-choice">所属分区</label>{Astro.locals.user?.role==='admin'&&<button type="button" class="quiet-button" data-open-taxonomy="subject">新建学科</button>}</div><select id="annual-section-choice" name="sectionChoice" required>{sectionInfo.map(section=><option value={section.key}>{section.label}</option>)}</select>{Astro.locals.user?.role==='admin'&&<><div data-taxonomy-editor="subject" hidden><label>学科名称<input data-taxonomy-name maxlength="80"/></label><small>创建后可在整个工作台使用。</small><div class="business-action-group"><button type="button" class="business-action-secondary" data-create-taxonomy="subject">创建学科</button><button type="button" class="quiet-button" data-cancel-taxonomy>取消</button></div><output role="status"/></div></>}</div>
+            <div class="taxonomy-field"><div class="taxonomy-field-heading"><label for="annual-category-choice">帖子分类（可选）</label>{Astro.locals.user?.role==='admin'&&<button type="button" class="quiet-button" data-open-taxonomy="category">新建分类</button>}</div><select id="annual-category-choice" name="categoryId"><option value="">不关联分类</option></select>{Astro.locals.user?.role==='admin'&&<><div data-taxonomy-editor="category" hidden><label>分类名称<input data-taxonomy-name maxlength="80"/></label><small>关联当前学科，创建后可在整个工作台使用。</small><div class="business-action-group"><button type="button" class="business-action-secondary" data-create-taxonomy="category">创建分类</button><button type="button" class="quiet-button" data-cancel-taxonomy>取消</button></div><output role="status"/></div></>}</div>
             <label class="check-label business-field-wide"><input name="isActive" type="checkbox" checked /> <span><b>参与本年度规划</b><small>关闭后默认隐藏，不参与总规划汇总，但保留历史。</small></span></label>
             <label class="wide">行备注<textarea name="note" rows="2" maxlength="1000"></textarea></label>
           </div>
@@ -463,3 +461,5 @@ section.annual-version-history .snapshot-view{display:block;overflow-wrap:anywhe
 section.annual-version-history .snapshot-view strong{font-size:var(--console-emphasis);line-height:var(--console-text-leading)}
 section.annual-version-history .snapshot-view p,section.annual-version-history .snapshot-view ul,section.annual-version-history .snapshot-view a{font-size:var(--console-text);line-height:var(--console-text-leading)}
 </style>
+
+<style>.taxonomy-field{display:grid;align-content:start;gap:6px}.taxonomy-field>label{display:grid;gap:6px}.taxonomy-field-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px}.taxonomy-field-heading>.quiet-button{min-height:36px;padding:4px 10px}.taxonomy-field-heading>label{margin:0}.taxonomy-field [data-taxonomy-editor]{display:grid;gap:8px;padding:12px;border:1px solid var(--console-line);border-radius:8px;background:var(--console-surface)}.taxonomy-field [hidden]{display:none!important}.taxonomy-field small{font:400 12px/20px var(--console-font);color:var(--console-muted)}</style>

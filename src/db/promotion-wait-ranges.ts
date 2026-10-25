@@ -5,6 +5,7 @@ import { requireAdmin, type OperationsUser } from '../auth/permissions';
 import { WorkflowError } from './schedule-workflow';
 import { lockPromotionWorkflow, readPromotionContext, guardPromotionStart } from './promotion-pauses';
 import { nextDateKey, replayPromotionHistory, shanghaiDateKey } from './promotion-rules.mjs';
+import {testingCycleOn} from './promotion-cycles.mjs';
 import { promotionReplayOptions, promotionStateOn } from './promotion-state.mjs';
 import { operationsPromotionWaitRange as ranges, operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics, operationsPromotionStage as stages, operationsContentSchedule as schedules } from './schema';
 
@@ -15,11 +16,11 @@ export const businessDate = z.string().regex(/^20\d{2}-\d{2}-\d{2}$/).refine(v =
 export const waitRangeSchema = z.object({
   campaignId: z.uuid(), requestKey: z.uuid(), startedOn: businessDate, endedOn: businessDate,
   stageType: z.enum(['testing','scaling']), reason: z.string().trim().min(1, '请填写原因').max(2000),
-  nextDecision: z.enum(['test_continue','start_scaling','test_discarded','scaling_continue','formal_discarded','ended']).nullable().default(null),
+  nextDecision: z.enum(['test_continue','restart_testing','start_scaling','test_discarded','scaling_continue','formal_discarded','ended']).nullable().default(null),
   nextEffectiveOn: businessDate.nullable().default(null), expectedRevision: z.number().int().min(0).optional(), confirmCascade: z.boolean().default(false),
 }).superRefine((v, ctx) => {
   if (v.endedOn < v.startedOn) ctx.addIssue({ code: 'custom', path: ['endedOn'], message: '结束日不能早于开始日' });
-  if (v.nextDecision && !(v.stageType === 'testing' ? ['test_continue','start_scaling','test_discarded'] : ['scaling_continue','formal_discarded','ended']).includes(v.nextDecision)) ctx.addIssue({ code: 'custom', path: ['nextDecision'], message: '下一步与阶段不匹配' });
+  if (v.nextDecision && !(v.stageType === 'testing' ? ['test_continue','restart_testing','start_scaling','test_discarded'] : ['scaling_continue','formal_discarded','ended']).includes(v.nextDecision)) ctx.addIssue({ code: 'custom', path: ['nextDecision'], message: '下一步与阶段不匹配' });
   if (Boolean(v.nextDecision) !== Boolean(v.nextEffectiveOn) || (v.nextEffectiveOn && v.nextEffectiveOn <= v.endedOn)) ctx.addIssue({ code: 'custom', path: ['nextEffectiveOn'], message: '下一步须在区间结束后的日期生效' });
 });
 
@@ -44,17 +45,18 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
     if (historical) requireAdmin(actor);
     if (input.startedOn < campaign.startedOn) throw new WorkflowError('区间不能早于推广开始日。', 422);
     if (input.nextDecision && input.endedOn > today) throw new WorkflowError('请在区间最后一天安排下一步，或先延长待定区间。', 422);
-    if (input.nextDecision && ['test_continue','start_scaling','scaling_continue'].includes(input.nextDecision)) await guardPromotionStart(tx, input.nextEffectiveOn!, now);
+    if (input.nextDecision && ['test_continue','restart_testing','start_scaling','scaling_continue'].includes(input.nextDecision)) await guardPromotionStart(tx, input.nextEffectiveOn!, now);
     const stop = input.nextEffectiveOn ?? '9999-12-31';
     if (context.waitRanges.some(r => r.campaignId === campaign.id && r.startedOn < stop && input.startedOn < (r.nextEffectiveOn ?? '9999-12-31'))) throw new WorkflowError('该日期与已有待定区间重叠，请编辑原区间。');
     if (context.holds.some(r => r.campaignId === campaign.id && r.startedOn < stop && r.endedOn >= input.startedOn)) throw new WorkflowError('该日期已有历史待定安排，请选择其他日期。');
+    if((input.nextDecision==='restart_testing'||existing?.nextDecision==='restart_testing')&&(existing?.nextDecision!==input.nextDecision||existing?.nextEffectiveOn!==input.nextEffectiveOn)&&actual.some(m=>m.metricDate>=[input.nextEffectiveOn,existing?.nextEffectiveOn].filter(Boolean).sort()[0]!))throw new WorkflowError('复测生效日已有指标，请通过历史更正入口处理。',422);
     const value = { campaignId: campaign.id, requestKey: existing?.requestKey ?? input.requestKey, startedOn: input.startedOn, endedOn: input.endedOn, stageType: input.stageType, reason: input.reason, nextDecision: input.nextDecision, nextEffectiveOn: input.nextEffectiveOn };
     const rangeContext = { ...context, waitRanges: [...context.waitRanges, { ...value, id: existing?.id ?? input.requestKey, revision: 0, history: [], updatedByLabel: actor.username, updatedAt: now }] };
     // 区间改变状态归属，但不能删除其中真实发生的消耗与人数。
     const targetStatus=input.stageType==='testing'?'test_pending':'scaling_paused';
     // 启用日前的旧区间没有精确状态事实，不将其补写为已结束的测试待定。
     const statusFor=(metric:typeof actual[number])=>metric.actualStatusSnapshot||metric.metricDate>=campaign.dailyReviewEnabledOn?targetStatus:null;
-    const sourceOrigin=input.stageType==='testing'||campaign.initialStage==='scaling'?campaign.startedOn:actual.find(m=>m.stageTypeSnapshot==='scaling')?.sourceStageStartedOn??actual.find(m=>m.stageTypeSnapshot==='scaling')?.metricDate??input.startedOn;
+    const sourceOrigin=input.stageType==='testing'?testingCycleOn(campaign,context,input.startedOn)!.startedOn:campaign.initialStage==='scaling'?campaign.startedOn:actual.find(m=>m.stageTypeSnapshot==='scaling')?.sourceStageStartedOn??actual.find(m=>m.stageTypeSnapshot==='scaling')?.metricDate??input.startedOn;
     const changedFacts=actual.filter(m=>m.recordKind!=='test_residual'&&m.metricDate>=input.startedOn&&m.metricDate<stop&&(m.dailyStatus!=='waiting_action'||m.actualStatusSnapshot!==statusFor(m)||m.stageTypeSnapshot!==input.stageType||m.reviewDecision!=='wait_continue'||!m.sourceStageStartedOn));
     const retained=actual.map(m=>changedFacts.some(c=>c.id===m.id)?{...m,dailyStatus:'waiting_action',actualStatusSnapshot:statusFor(m),sourceStageStartedOn:sourceOrigin,stageTypeSnapshot:input.stageType,reviewDecision:'wait_continue'}:m);
     const through = [today, nextDateKey(input.endedOn), input.nextEffectiveOn ?? today, ...retained.filter(m=>m.recordKind!=='test_residual').map(m => nextDateKey(m.metricDate))].sort().at(-1)!;

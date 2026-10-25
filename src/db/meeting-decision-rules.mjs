@@ -1,5 +1,5 @@
 import {nextActualPromotionState,promotionNextOptions} from './promotion-successors.mjs';
-export const meetingNextDecision=(status,target)=>promotionNextOptions(status).find(o=>nextActualPromotionState(status,o.value)===target)?.value??null;
+export const meetingNextDecision=(status,target)=>target==='restart_testing'?(status==='test_pending'?'restart_testing':null):promotionNextOptions(status).find(o=>o.value!=='restart_testing'&&nextActualPromotionState(status,o.value)===target)?.value??null;
 export function meetingDecisionOn(decisions,campaignId,date){
  return decisions.filter(d=>d.campaignId===campaignId&&d.effectiveOn===date).at(-1)??null;
 }

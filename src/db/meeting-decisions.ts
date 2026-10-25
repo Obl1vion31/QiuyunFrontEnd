@@ -4,7 +4,7 @@ import type { Database } from './client';
 import { operationsReviewMeetingVersion as versions, operationsPromotionTimelineAudit as audits } from './schema';
 import { resolveMeetingDecisions } from './meeting-decision-rules.mjs';
 export interface MeetingDecision {
-  id:string; campaignId:string; scheduleId:string; effectiveOn:string; targetStatus:string;
+  action?:'restart_testing'; id:string; campaignId:string; scheduleId:string; effectiveOn:string; targetStatus:string;
   stageType:'testing'|'scaling'; meetingId:string; versionNumber:number; label:string;
 }
 export async function readMeetingDecisions(db:Database) {

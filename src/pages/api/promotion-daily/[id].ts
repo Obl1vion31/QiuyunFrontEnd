@@ -1,3 +1,4 @@
+import {testingCycleOn} from '../../../db/promotion-cycles.mjs';
 import {promotionNextOptions} from '../../../db/promotion-successors.mjs';
 import {meetingDecisionOn,meetingNextDecision} from '../../../db/meeting-decision-rules.mjs';
 import {WorkflowError} from '../../../db/schedule-workflow';
@@ -5,7 +6,7 @@ import type { APIRoute } from 'astro';
 import {randomUUID} from 'node:crypto';
 import {promotionSnapshot} from '../../../db/promotion-timeline';
 import { requireAdmin, permissionErrorResponse } from '../../../auth/permissions';
-import { asc, eq, inArray,sql } from 'drizzle-orm';
+import { and, asc, eq, inArray,sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
   operationsContentSchedule,
@@ -81,7 +82,10 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         .orderBy(asc(operationsPromotionDailyMetric.metricDate));
       const context = await readPromotionContext(transaction);
       const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(existing.metricDate));
-      if(meetingDecision&&parsed.data.reviewDecision!==meetingNextDecision(existing.actualStatusSnapshot,meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
+      if(meetingDecision&&parsed.data.reviewDecision!==meetingNextDecision(existing.actualStatusSnapshot,meetingDecision.action==='restart_testing'?'restart_testing':meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
+      const boundaryChanged=lifecycleChanged&&[existing.reviewDecision,parsed.data.reviewDecision].includes('restart_testing')&&allMetrics.some(m=>m.metricDate>existing.metricDate);
+      if(boundaryChanged&&!parsed.data.confirmCascade)return {kind:'confirmation' as const,dailyMetrics:allMetrics.filter(m=>m.metricDate>existing.metricDate).length,stages:0,waitRanges:0,dayDecisions:0};
+      if(boundaryChanged&&!parsed.data.note?.trim())throw new WorkflowError('更正复测边界必须在备注填写修改理由。',422);
       const candidate=allMetrics.map(m=>m.id===existing.id?{...m,dailyStatus:parsed.data.dailyStatus,stageTypeSnapshot:parsed.data.stageTypeSnapshot,reviewDecision:parsed.data.reviewDecision}:m);
       let replayed=lifecycleChanged?replayPromotionHistory(campaign.startedOn,candidate,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(new Date())}):null;
       let later:typeof allMetrics=[];
@@ -121,6 +125,8 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
 
       if (!lifecycleChanged) return { kind: 'saved' as const, deleted: 0 };
 
+      const freshContext=await readPromotionContext(transaction);
+      for(const fact of freshContext.metrics.filter(m=>m.campaignId===campaign.id&&m.stageTypeSnapshot==='testing')){const origin=testingCycleOn(campaign,freshContext,fact.metricDate)!.startedOn;if(fact.sourceStageStartedOn!==origin)await transaction.update(operationsPromotionDailyMetric).set({sourceStageStartedOn:origin,updatedAt:new Date()}).where(and(eq(operationsPromotionDailyMetric.campaignId,campaign.id),eq(operationsPromotionDailyMetric.metricDate,fact.metricDate)));}
       await transaction.delete(operationsPromotionStage)
         .where(eq(operationsPromotionStage.campaignId, existing.campaignId));
       for (const stage of replayed!.stages) {

@@ -1,3 +1,4 @@
+import {readPostSchemas} from '../../../../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { getDb } from '../../../../../db/client';
@@ -15,7 +16,6 @@ import { shanghaiDateKey } from '../../../../../db/promotion-rules.mjs';
 import {
   issuesByField,
   revisionInputFromForm,
-  revisionSchema,
 } from '../../../../../db/validation';
 
 export const prerender = false;
@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
   } catch {
     return Response.json({ message: '请求必须使用有效的表单格式。' }, { status: 400 });
   }
-  const result = revisionSchema.safeParse(revisionInputFromForm(form));
+  const result = (await readPostSchemas(getDb())).revisionSchema.safeParse(revisionInputFromForm(form));
   if (!result.success) {
     return Response.json({ message: '请检查标记的字段。', fields: issuesByField(result.error.issues) }, { status: 422 });
   }

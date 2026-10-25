@@ -17,9 +17,9 @@ import {changePromotionTimeline,promotionSnapshot,timelineSchema,timelineFingerp
 import {readPromotionContext} from '../src/db/promotion-pauses';
 import {promotionReviewDays,promotionReviewQueue} from '../src/db/promotion-review-days';
 const metric=(date:string,status:string,decision:string,extra:Record<string,unknown>={})=>({id:randomUUID(),campaignId:randomUUID(),metricDate:date,dailyStatus:['testing','scaling'].includes(status)?'active':'waiting_action',actualStatusSnapshot:status,stageTypeSnapshot:status.startsWith('scaling')?'scaling':'testing',recordKind:'regular',sourceStageStartedOn:'2026-10-17',spend:'40.00',platformOpenCount:5,actualOpenCount:4,platformLeadCount:2,actualLeadCount:2,reviewDecision:decision,note:null,...extra});
-test('实际修改只允许后继；结束待定不得恢复测试；次日允许继续当前状态',()=>{
+test('实际修改只允许后继；结束待定只能用独立复测动作重新测试；次日允许继续当前状态',()=>{
  assert.deepEqual(promotionSuccessorOptions('testing').map(x=>x.value),['test_paused','test_pending','scaling','test_discarded']);
- assert.deepEqual(promotionNextOptions('test_pending').map(x=>x.value),['wait_continue','start_scaling','test_discarded']);
+ assert.deepEqual(promotionNextOptions('test_pending').map(x=>x.value),['wait_continue','start_scaling','test_discarded','restart_testing']);
  assert.ok(!promotionSuccessorOptions('testing').some(x=>x.value==='testing'));
  assert.deepEqual(promotionNextOptions('test_discarded'),[]);
 });

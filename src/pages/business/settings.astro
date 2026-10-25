@@ -1,58 +1,25 @@
 ---
-import { desc } from 'drizzle-orm';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
-import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import { getDb } from '../../db/client';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import {businessOperations,permissionModes} from '../../auth/business-capabilities';
 import {authUser} from '../../db/schema';
-import { operationsCategoryPolicyVersion } from '../../db/schema';
-import { postCategories } from '../../db/taxonomy';
-import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
-
 export const prerender = false;
-let policies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
-let loadError = '';
-const view=Astro.url.searchParams.get('view')??'rules';
+const view=Astro.url.searchParams.get('view')==='approvals'?'approvals':'permissions';
 const accounts=await getDb().select({id:authUser.id,username:authUser.username,role:authUser.role}).from(authUser).orderBy(authUser.username);
 const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
-
-const databaseStartedAt = performance.now();
-try {
-  policies = await getDb().select().from(operationsCategoryPolicyVersion).orderBy(desc(operationsCategoryPolicyVersion.createdAt));
-} catch (error) {
-  console.error('settings query failed', error);
-  loadError = '系统设置暂时不可用。请检查数据库连接和最新迁移。';
-}
-Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 ---
 <!doctype html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>系统设置 · 内容发布控制台</title></head>
 <body>
 <BusinessConsoleFrame active="settings">
-  <BusinessConsoleToolbar title="系统设置" subtitle="影响新建内容的全局业务规则" />
+  <BusinessConsoleToolbar title="系统设置" subtitle="账号权限与操作授权" />
   <main class="business-console-content">
-    <nav class="settings-tabs" aria-label="设置视角">{[['rules','业务规则'],['permissions','账号权限']].map(([key,label])=><a href={`?view=${key}`} aria-current={view===key?'page':undefined}>{label}</a>)}</nav>
-    <BusinessPageHeader title={view==='permissions'?'账号权限':view==='approvals'?'待审核变更':'分类与默认用途'} description={view==='rules'?'新规则从生效日应用，历史内容与复盘快照保留原规则。':undefined} />
-    {loadError && <p class="error">{loadError}</p>}
-    {view==='rules'&&<div class="settings-layout">
-      <form data-form class="business-form">
-        <label>稳定分类<select name="categoryId" required><option value="">请选择</option>{postCategories.map((category) => <option value={category.id}>{category.name}</option>)}</select></label>
-        <label>新显示名称<input name="displayName" required/></label>
-        <div class="checks business-options"><label><input type="checkbox" name="defaultIsPromoted"/> 新建时默认推广</label><label><input type="checkbox" name="isSelectable" checked/> 允许新建选择</label><label><input type="checkbox" name="requiresNonPromotionReview" checked/> 需要非推广首轮 / 二轮复盘</label></div>
-        <label>生效日期<input type="date" name="effectiveOn" value={shanghaiDateKey(new Date())} required/></label>
-        <label>变更说明<textarea name="changeSummary" required></textarea></label>
-        <output></output><button>保存新规则版本</button>
-      </form>
-      <section class="history">
-        <BusinessSectionHeader title="规则版本历史" contained><span slot="end">{policies.length} 个版本</span></BusinessSectionHeader>
-        {policies.length ? policies.map((policy) => <article><div><strong>{policy.displayName}</strong><small>{policy.categoryId} · V{policy.versionNumber}</small></div><p>{policy.effectiveOn} 生效 · {policy.defaultIsPromoted ? '默认推广' : '默认非推广'}{policy.isSelectable ? '' : ' · 停止新选'} · {policy.requiresNonPromotionReview ? '需非推广复盘' : '不进入非推广复盘'}</p><span>{policy.changeSummary}</span></article>) : <p class="empty">尚未建立分类规则版本。</p>}
-      </section>
-    </div>}
+    <BusinessPageHeader title={view==='approvals'?'待审核变更':'账号权限'} />
     {view==='permissions'&&<section class="account-permissions business-form">
       <label>账号<select data-permission-account>{grants.map(user=><option value={user.id}>{user.username} · {user.role==='admin'?'管理员':'员工'}</option>)}</select></label>
       {grants.map(user=><form data-account-permissions={user.id} data-permissions={JSON.stringify(user.permissions)} hidden={user.id!==grants[0]?.id}>
@@ -64,24 +31,11 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
     {view==='approvals'&&<>
       <BusinessPendingChanges module="annual" all/>
     </>}
-  <script is:inline type="application/json" id="category-policy-values" set:html={JSON.stringify({policies,categories:postCategories,today:shanghaiDateKey(new Date())}).replaceAll('<','\\u003c')}/>
   </main>
 </BusinessConsoleFrame>
 <script>
 function initializeSettings(){
-const tabs=document.querySelector<HTMLElement>('.settings-tabs');if(!tabs||tabs.dataset.bound)return;tabs.dataset.bound='true';
-const categoryForm=document.querySelector<HTMLFormElement>('[data-form]');
-if(categoryForm){const state=JSON.parse(document.querySelector('#category-policy-values')!.textContent!);const select=categoryForm.elements.namedItem('categoryId') as HTMLSelectElement;
- categoryForm.addEventListener('input',event=>{if(event.target!==select){categoryForm.dataset.dirty='true';document.documentElement.dataset.unsaved='true';}});
- select.addEventListener('change',async()=>{const previous=select.dataset.previous??'';
-  if(categoryForm.dataset.dirty==='true'&&!await window.businessConfirm('有尚未保存的规则修改，是否放弃？')){select.value=previous;return;}
-  const current=state.policies.filter((row:{categoryId:string;effectiveOn:string})=>row.categoryId===select.value&&row.effectiveOn<=state.today).sort((a:{versionNumber:number},b:{versionNumber:number})=>b.versionNumber-a.versionNumber)[0];
-  (categoryForm.elements.namedItem('displayName') as HTMLInputElement).value=current?.displayName??state.categories.find((row:{id:string})=>row.id===select.value)?.name??'';
-  for(const name of ['defaultIsPromoted','isSelectable','requiresNonPromotionReview'])(categoryForm.elements.namedItem(name) as HTMLInputElement).checked=current?.[name]??(name!=='defaultIsPromoted');
-  select.dataset.previous=select.value;delete categoryForm.dataset.dirty;document.documentElement.dataset.unsaved='false';
- });
-}
-document.querySelector<HTMLFormElement>('[data-form]')?.addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget as HTMLFormElement;const output=form.querySelector('output');const response=await fetch('/api/business-settings/category-policies',{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const result=await response.json();if(!response.ok){if(output)output.textContent=result.message||'保存失败';return}document.documentElement.dataset.unsaved='false';location.reload()});
+const root=document.querySelector<HTMLElement>('.account-permissions')??document.querySelector<HTMLElement>('main');if(!root||root.dataset.settingsBound)return;root.dataset.settingsBound='true';
 document.querySelector('[data-permission-account]')?.addEventListener('change',async event=>{
  const select=event.target as HTMLSelectElement;const previous=document.querySelector<HTMLFormElement>('[data-account-permissions]:not([hidden])');
  if(previous?.dataset.dirty==='true'&&!await window.businessConfirm('有尚未保存的权限修改，是否放弃？')){select.value=previous.dataset.accountPermissions!;return;}
@@ -107,10 +61,8 @@ initializeSettings();document.addEventListener('astro:page-load',initializeSetti
 </script>
 </body></html>
 
-<style>
-  *{box-sizing:border-box}.settings-layout{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-top:22px}form,.history{border:1px solid var(--console-line);border-radius:14px;background:var(--console-surface)}.history{align-self:start}form{align-self:start;display:grid;gap:13px;padding:20px}label{color:var(--console-muted);font-size:var(--console-caption);font-weight:500}input,select,textarea{width:100%;margin-top:4px;padding:9px;border:1px solid #aeb8b2;border-radius:7px;background:#fff}textarea{min-height:80px}.checks{display:grid;gap:8px}.checks label{display:flex;align-items:center;gap:7px}form button{padding:10px;border:0;border-radius:8px;color:#fff;background:var(--console-blue);font-weight:500}.history :global(.business-section-header){padding:16px 18px;border-bottom:1px solid var(--console-line)}.history article{display:grid;grid-template-columns:1fr auto;gap:4px 18px;padding:14px 18px;border-bottom:1px solid #e1e5e2}.history article div{display:grid}.history article strong{font-size:var(--console-emphasis)}.history article p{margin:0;font-size:var(--console-caption)}.history article>span,.history small{color:var(--console-muted);font-size:var(--console-caption)}.history article>span{grid-column:1/-1}.empty,.error{padding:18px;color:var(--console-muted);font-size:var(--console-caption)}.error{background:#ffe5dc}@media(max-width:900px){.settings-layout{grid-template-columns:1fr}}
-</style>
+
 
 <style>
-.settings-tabs{display:flex;gap:8px;margin-bottom:18px}.settings-tabs a{padding:8px 14px;border:1px solid var(--console-line);border-radius:8px;color:var(--console-ink);text-decoration:none;background:var(--console-surface)}.settings-tabs [aria-current=page]{background:var(--console-blue);border-color:var(--console-blue);color:#fff}.account-permissions{max-width:920px;margin-top:20px}.account-permissions>label{display:grid;gap:6px;max-width:360px}.account-permissions>form{margin-top:16px;padding:20px}.account-permissions [hidden]{display:none!important}.account-permissions section{margin:12px 0}.account-permissions header{display:flex;align-items:center;justify-content:space-between;gap:12px}.account-permissions h2{font-size:14px;margin:0}.permissions-table{overflow:auto}.permissions-table table{width:100%;border-collapse:collapse;text-align:left}.permissions-table th,.permissions-table td{padding:8px;border-bottom:1px solid var(--console-line)}.permissions-table th{width:60%}.permissions-table select{min-width:130px;margin:0}.permission-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}.permission-actions output{flex:1}
+.account-permissions{max-width:920px;margin-top:20px}.account-permissions>label{display:grid;gap:6px;max-width:360px}.account-permissions>form{margin-top:16px;padding:20px}.account-permissions [hidden]{display:none!important}.account-permissions section{margin:12px 0}.account-permissions header{display:flex;align-items:center;justify-content:space-between;gap:12px}.account-permissions h2{font-size:14px;margin:0}.permissions-table{overflow:auto}.permissions-table table{width:100%;border-collapse:collapse;text-align:left}.permissions-table th,.permissions-table td{padding:8px;border-bottom:1px solid var(--console-line)}.permissions-table th{width:60%}.permissions-table select{min-width:130px;margin:0}.permission-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}.permission-actions output{flex:1}
 </style>

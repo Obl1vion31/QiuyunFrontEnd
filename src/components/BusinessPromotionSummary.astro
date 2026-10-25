@@ -18,10 +18,14 @@ const totals=[{label:'总消耗',value:entry.totals.spend,unit:''},{label:'实�
  </div>
  <div class="lifecycle-overview-totals">{totals.map(total=><div><span class="lifecycle-total-label">{total.label}</span><strong>{money(total.value)}</strong>{total.value!=null&&total.unit&&<small>{total.unit}</small>}</div>)}</div>
  <div class:list={['promotion-current-state',entry.currentStage??'paused']}><strong>{entry.statusLabel}</strong><small>{entry.currentLabel}</small>{!entry.metrics.length&&<span>尚无复盘</span>}</div>
+
  <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}>
   <summary class="lifecycle-expand"><span class="lifecycle-data-action"><span class="when-closed">查看详情</span><span class="when-open">收起详情</span></span></summary>
+ {entry.testCycles.length>1&&<div class="promotion-cycle-summary">{entry.testCycles.map(cycle=><div><strong>测试第{cycle.number}轮</strong><span>{cycle.startedOn}—{cycle.endedOn??'进行中'}</span><span>本轮消耗 {money(cycle.totals.spend)} · 开口 {cycle.totals.actualOpenCount??0} · 留资 {cycle.totals.actualLeadCount??0}</span><span>实际开口成本 {money(cycle.totals.actualOpenCost)} · 留资成本 {money(cycle.totals.actualLeadCost)} · 测试 {cycle.totals.recordedDays} 天</span></div>)}</div>}
   <BusinessPromotionData entry={entry}/>
   {!entry.metrics.length&&<a class="promotion-empty-detail-link" href={href} data-inspector-key={entry.key}>查看推广安排与业务详情 ↗</a>}
  </details>
 </article>
 <script>import '../scripts/promotion-disclosure';</script>
+
+<style>.promotion-cycle-summary{display:grid;gap:8px;margin:12px 0}.promotion-cycle-summary>div{display:flex;align-items:baseline;gap:6px 12px;flex-wrap:wrap;padding:10px;border-top:1px solid var(--console-line);font:400 12px/20px var(--console-font)}.promotion-cycle-summary strong{font-weight:500}.promotion-cycle-summary span{color:var(--console-muted)}</style>

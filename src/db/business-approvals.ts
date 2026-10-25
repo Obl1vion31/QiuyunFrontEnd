@@ -1,3 +1,4 @@
+import {readPostSchemas} from './taxonomy-store';
 import {createHash} from 'node:crypto';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import type {APIContext,APIRoute} from 'astro';
@@ -12,7 +13,7 @@ import {workflowErrorResponse} from './workflow-api';
 import {lockPromotionWorkflow} from './promotion-pauses';
 import {extractPublicationLink} from './publication-link.mjs';
 import {updateAnnualPlanSchema} from './annual-plan';
-import {editScheduleSchema,editScheduleInputFromForm,publicationSchema,publicationInputFromForm} from './validation';
+import {editScheduleInputFromForm,publicationSchema,publicationInputFromForm} from './validation';
 type Context=Pick<APIContext,'request'|'url'|'locals'>;
 type Write={module:'annual'|'schedule';target:string;operations:BusinessOperation[];values:Record<string,unknown>};
 const stable=(value:unknown):string=>JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item);
@@ -52,7 +53,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
   if(!current)throw new Error('没有找到排期。');
   const operations:BusinessOperation[]=[];
   if(form&&method==='PATCH'){
-    const normalized=parts[3]==='publication'?publicationSchema.safeParse(publicationInputFromForm(form)):editScheduleSchema.safeParse(editScheduleInputFromForm(form));
+    const normalized=parts[3]==='publication'?publicationSchema.safeParse(publicationInputFromForm(form)):(await readPostSchemas(db)).editScheduleSchema.safeParse(editScheduleInputFromForm(form));
     if(normalized.success)values={...values,...normalized.data};
   }
   const checked=(value:unknown)=>value===true||value==='on';

@@ -19,7 +19,7 @@ export const timelineSchema = z.object({
   targetStatus:z.enum(['testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended']).optional(),
   target: z.enum(['initial','day']).default('day'),
   waitingThrough: businessDate.optional(), rangeId: z.uuid().optional(),
-  nextDecision: z.enum(['test_continue','start_testing','start_scaling','test_discarded','scaling_continue','formal_discarded','ended','wait_continue']).optional(),
+  nextDecision: z.enum(['test_continue','restart_testing','start_testing','start_scaling','test_discarded','scaling_continue','formal_discarded','ended','wait_continue']).optional(),
   reason: z.string().trim().max(2000).default(''),
   requestKey: z.uuid().default(() => randomUUID()), fingerprint: z.string().optional(), confirmImpact: z.boolean().default(false),
 });
@@ -39,7 +39,7 @@ export async function promotionSnapshot(db: Reader, scheduleId: string) {
     ids.length?db.select().from(s.operationsPromotionDayDecision).where(inArray(s.operationsPromotionDayDecision.campaignId,ids)).orderBy(asc(s.operationsPromotionDayDecision.businessDate)):[],
     ids.length?db.select().from(s.operationsPromotionHold).where(inArray(s.operationsPromotionHold.campaignId,ids)).orderBy(asc(s.operationsPromotionHold.startedOn)):[],
   ]);
-  const planned=(await readMeetingDecisions(db)).filter(d=>ids.includes(d.campaignId)).map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,reason:'例会决定',meetingDecision:true}));
+  const planned=(await readMeetingDecisions(db)).filter(d=>ids.includes(d.campaignId)).map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,action:d.action,reason:'例会决定',meetingDecision:true}));
   return {schedule:withoutLegacyDelay(schedule),plan:plans[0]??null,campaigns,metrics,ranges,stages,decisions:[...planned,...decisions],holds};
 }
 export const timelineFingerprint = (value: unknown) => createHash('sha256').update(JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)&&!(item instanceof Date)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item)).digest('hex');
@@ -167,19 +167,19 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
         const end=input.waitingThrough??date;if(end<date)throw new WorkflowError('暂停截止日无效。',422);
         if(before.ranges.some(r=>r.campaignId===campaign!.id&&r.startedOn<=end&&(!r.nextEffectiveOn||r.nextEffectiveOn>date)))throw new WorkflowError('该日期已有待定安排，请编辑原区间。');
         const next=input.nextDecision&&input.nextDecision!=='wait_continue'?input.nextDecision:null;
-        if(next&&!(state.currentStage==='testing'?['test_continue','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与原阶段不匹配。',422);
-        if(next&&['test_continue','start_scaling','scaling_continue'].includes(next))await guardPromotionStart(tx,nextDateKey(end),now);
+        if(next&&!(state.currentStage==='testing'?['test_continue','restart_testing','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与原阶段不匹配。',422);
+        if(next&&['test_continue','restart_testing','start_scaling','scaling_continue'].includes(next))await guardPromotionStart(tx,nextDateKey(end),now);
         await tx.insert(s.operationsPromotionWaitRange).values({campaignId:campaign.id,requestKey:input.requestKey,startedOn:date,endedOn:end,stageType:state.currentStage,reason:input.reason,nextDecision:next,nextEffectiveOn:next?nextDateKey(end):null,updatedByLabel:actor.username,updatedAt:now});
       }else{
         const range=before.ranges.find(r=>r.id===input.rangeId&&r.campaignId===campaign!.id);
         if(!range||date!==range.endedOn)throw new WorkflowError('请在待定末日处理下一步。');
-        const next=input.nextDecision;if(!next)throw new WorkflowError('请选择下一步。',422);
+        const next=input.nextDecision;if((next==='restart_testing'||range.nextDecision==='restart_testing')&&(next!==range.nextDecision||range.nextEffectiveOn!==nextDateKey(date))&&facts.some(m=>m.metricDate>date))throw new WorkflowError('复测生效日已有指标，请通过历史更正入口处理。',422);if(!next)throw new WorkflowError('请选择下一步。',422);
         if(next==='wait_continue'){
           if(!input.waitingThrough||input.waitingThrough<range.startedOn)throw new WorkflowError('截止日不能早于暂停开始日。',422);
           await tx.update(s.operationsPromotionWaitRange).set({endedOn:input.waitingThrough,nextDecision:null,nextEffectiveOn:null,revision:range.revision+1,updatedByLabel:actor.username,updatedAt:now}).where(eq(s.operationsPromotionWaitRange.id,range.id));
         }else{
-          if(!(range.stageType==='testing'?['test_continue','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与阶段不匹配。',422);
-          if(['test_continue','start_scaling','scaling_continue'].includes(next))await guardPromotionStart(tx,nextDateKey(date),now);
+          if(!(range.stageType==='testing'?['test_continue','restart_testing','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与阶段不匹配。',422);
+          if(['test_continue','restart_testing','start_scaling','scaling_continue'].includes(next))await guardPromotionStart(tx,nextDateKey(date),now);
           await tx.update(s.operationsPromotionWaitRange).set({nextDecision:next,nextEffectiveOn:nextDateKey(date),revision:range.revision+1,updatedByLabel:actor.username,updatedAt:now}).where(eq(s.operationsPromotionWaitRange.id,range.id));
         }
       }

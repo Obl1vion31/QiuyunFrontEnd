@@ -101,3 +101,5 @@ pnpm test:annual-plan
 `test:workflows` 同时运行 `latest-delay.browser.ts`，用隔离帖子复现20日→22日排期、23日18时实发；核对旧原因实际删除、最新一条原因与晚发布1天、改期理由保留，并保存桌面截图和录像。
 
 `test:weekly` 同时运行 `meeting-non-promotion.browser.ts`：仅推广勾选与非推广必处理提示、已填／待填同网格、实发日加7／15天默认、前置首轮、草稿日期保留、资料气泡悬停／点击／键盘／新标签与缺失、定稿全量门槛及冻结不变。1920／1440／1280／1024px 截图和实际气泡录像需查看；`MEETING_NON_EVIDENCE_DIR` 可指定产物目录。
+
+`pnpm test:retest` 在构建后运行设置／全站字典／复测专项，使用隔离PGlite，覆盖权限、旧规则停用、内联新增及失败保留、全站选择、旧规则样本仍复盘、日度真实写入、会前／会后及锁定继承。`RETEST_EVIDENCE_DIR` 可指定四档桌面截图目录；截图仍须实际审阅。规则与0037兼容迁移验证纳入 `pnpm test`。

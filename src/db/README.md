@@ -42,3 +42,6 @@
 `promotion-successors.mjs` 为前后端共享的实际状态／次日安排目录；`promotion-replay.mjs` 分离精确状态事件与指标事实，残留不推动生命周期。日度事实以 `recordKind` 和 `sourceStageStartedOn` 关联稳定原阶段，旧行仍可读取；新暂停／待定逐日规则从活动的 `dailyReviewEnabledOn` 启用，不补造历史零值。迁移 `0036` 只在隔离库验证，发布时另行授权执行。
 
 `schedule-delay-cleanup.ts` 在改期／实发更正的原事务内清理失效原因与结构化副本；最新排期之外不计延期。`meeting-note-ids.ts` 独立读取逻辑帖子 ID，不进入例会材料或冻结快照。
+
+- `taxonomy-store.ts`：数据库字典读取、管理员追加与重名复用关联，`validation.ts` 的运行时排期校验依赖此字典；旧分类规则仅保留技术历史。
+- `promotion-cycles.mjs`：复测边界与轮次读取，日度事实通过原阶段起点归属；`promotion-replay.mjs` 将restart_testing作为独立动作回放，同日例会与日度去重。兼容迁移只扩展约束，旧指标及冻结版本不重建。

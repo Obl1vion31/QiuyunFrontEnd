@@ -1,3 +1,4 @@
+import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 import {normalizePromotionActualStatus,promotionActualLabels} from './promotion-successors.mjs';
 import {promotionStateOn} from './promotion-state.mjs';
 /** 生命周期只从现有日度事实计算；缺失、暂停与归档记录不补成投放零值。 */
@@ -78,12 +79,13 @@ export function promotionOverview(input:{posts:PromotionTimelineRow[];campaigns:
    for(const effectiveOn of [...dates].filter(d=>d<=input.today).sort()){
     const state=promotionStateOn(campaign,input.context,effectiveOn);if(!state)continue;
     const kind=normalizePromotionActualStatus(state.currentStatus,state.currentStage);if(kind===previous)continue;const preceding=previous;previous=kind;
-    const label=kind==='testing'?(preceding?'恢复测试':'开始测试'):kind==='scaling'?(preceding==='scaling_paused'?'恢复放量':'开始放量'):promotionActualLabels[kind]??promotionLabels[kind]??kind;
+    const cycle=testingCycleOn(campaign,input.context,effectiveOn);const label=kind==='testing'?(cycle&&cycle.number>1&&cycle.startedOn===effectiveOn?`重新测试 · 第${cycle.number}轮`:preceding?'恢复测试':'开始测试'):kind==='scaling'?(preceding==='scaling_paused'?'恢复放量':'开始放量'):promotionActualLabels[kind]??promotionLabels[kind]??kind;
     events.push({key:`${campaign.id}:${effectiveOn}:${kind}`,campaignId:campaign.id,effectiveOn,kind,label,isCurrent:false});
    }
   }
   if(events.length)events.at(-1)!.isCurrent=true;
   const currentStage=latest?.currentStage??null,currentNode=nodes.at(-1);
+  const testCycles=campaigns.flatMap(c=>testingCycles(c,input.context,input.today).map(cycle=>{const facts=metrics.filter(m=>m.campaignId===c.id&&m.stageTypeSnapshot==='testing'&&(m.sourceStageStartedOn??testingCycleOn(c,input.context,m.metricDate)?.startedOn)===cycle.startedOn);return {...cycle,campaignId:c.id,totals:promotionTotals(facts)};}));
   const currentRange=(post.ranges??[]).filter(range=>range.startedOn<=input.today&&range.endedOn>=input.today&&(!range.nextEffectiveOn||range.nextEffectiveOn>input.today)).at(-1);
   const paused=['waiting_action','test_pending','test_paused','scaling_paused','promotion_paused'].includes(status);
   const currentSince=events.at(-1)?.effectiveOn??(paused?(currentRange?.startedOn??input.context.holds.find(h=>h.campaignId===latest?.id&&h.startedOn<=input.today&&h.endedOn>=input.today)?.startedOn??currentNode?.startedOn):currentNode?.startedOn);
@@ -91,8 +93,8 @@ export function promotionOverview(input:{posts:PromotionTimelineRow[];campaigns:
   const currentLabel=closed?(promotionLabels[status]??'已结束'):paused?`${status==='test_pending'?'待定':'暂停'}第 ${duration||1} 天`:currentStage?`${currentStage==='scaling'?'放量':'测试'}第 ${duration||1} 天`:promotionLabels[status]??'待安排';
   const currentKey=latest?`${latest.id}:${status}:${currentSince??latest.startedOn}`:`unstarted:${post.scheduleId}`;
   const key=campaigns.some(c=>c.id===input.selected)?input.selected!:latest?.id??`unstarted:${post.scheduleId}`;
-  return {key,events,nodes,trace,currentLabel,currentKey,currentSince,currentStage:paused?'paused':currentStage,scheduleId:post.scheduleId,post,campaigns,latest,status,statusLabel:status==='none'?'已转非推广':status==='scaling'?'放量中':promotionActualLabels[normalizePromotionActualStatus(status,currentStage)]??promotionLabels[status]??status,closed,stages,timeline:timeline.map((stage,index)=>({...stage,share:shares[index]})),cutoff,metrics,totals:promotionTotals(metrics),startedOn:campaigns[0]?.startedOn??post.publishedOn,endedOn:closed?latest?.endedOn??metrics.at(-1)?.metricDate??post.publishedOn:null};
+  return {key,testCycles,events,nodes,trace,currentLabel,currentKey,currentSince,currentStage:paused?'paused':currentStage,scheduleId:post.scheduleId,post,campaigns,latest,status,statusLabel:status==='none'?'已转非推广':status==='scaling'?'放量中':promotionActualLabels[normalizePromotionActualStatus(status,currentStage)]??promotionLabels[status]??status,closed,stages,timeline:timeline.map((stage,index)=>({...stage,share:shares[index]})),cutoff,metrics,totals:promotionTotals(metrics),startedOn:campaigns[0]?.startedOn??post.publishedOn,endedOn:closed?latest?.endedOn??metrics.at(-1)?.metricDate??post.publishedOn:null};
  }).sort((a,b)=>Number(a.closed)-Number(b.closed)||b.startedOn.localeCompare(a.startedOn)||a.post.contentName.localeCompare(b.post.contentName,'zh-CN'));
 }
 export type PromotionOverview=ReturnType<typeof promotionOverview>[number];
-export const promotionDecisionLabels:Record<string,string>={test_continue:'测试继续',test_discarded:'测试淘汰',start_scaling:'测试接放量',scaling_continue:'放量继续',formal_discarded:'放量淘汰',ended:'推广周期结束',wait_continue:'继续当前状态',test_pause:'测试暂停',test_pending:'测试结束待定',scaling_pause:'放量暂停'};
+export const promotionDecisionLabels:Record<string,string>={restart_testing:'重新开始测试',test_continue:'测试继续',test_discarded:'测试淘汰',start_scaling:'测试接放量',scaling_continue:'放量继续',formal_discarded:'放量淘汰',ended:'推广周期结束',wait_continue:'继续当前状态',test_pause:'测试暂停',test_pending:'测试结束待定',scaling_pause:'放量暂停'};

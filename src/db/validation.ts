@@ -1,9 +1,8 @@
 import { z } from 'zod';
 import { extractPublicationLink } from './publication-link.mjs';
 import {
-  categoryBelongsToSubject,
+  subjectCategoryMappings,
   postCategories,
-  subjectRequiresCategory,
   subjects,
 } from './taxonomy';
 
@@ -20,9 +19,6 @@ export const promotionStatuses = [
 ] as const;
 export { delayThresholdMs } from './schedule-rules.mjs';
 import { completionStatus } from './schedule-rules.mjs';
-const subjectIds = subjects.map((subject) => subject.id) as [string, ...string[]];
-const categoryIds = postCategories.map((category) => category.id) as [string, ...string[]];
-
 const emptyToNull = (value: unknown) => typeof value === 'string' && value.trim() === '' ? null : value;
 export const shanghaiDateTime = z.string().trim().min(1, '请选择时间').transform((value, context) => {
   const date = new Date(`${value}:00+08:00`);
@@ -42,41 +38,15 @@ export const publicationUrlSchema = z.string().trim().min(1,'请粘贴对应的�
   return result.url;
 });
 
-const versionFields = {
-  contentName: z.string().trim().min(1, '请填写内容名称').max(200),
-  subjectId: z.enum(subjectIds, { message: '请选择有效学科' }),
-  categoryId: z.preprocess(emptyToNull, z.enum(categoryIds, { message: '请选择有效帖子分类' }).nullable()),
-  projectDocUrl: optionalHttpUrl,
-};
-
-const scheduleFields = {
-  syncToMoments: z.boolean(),
-  isPromoted: z.boolean(),
-  promotionStatus: z.enum(promotionStatuses, { message: '请选择有效推广状态' }),
-  plannedPublishAt: shanghaiDateTime,
-};
-
-const withBusinessRules = <T extends z.ZodRawShape>(shape: T) => z.object(shape).superRefine((data, context) => {
-  const values = data as {
-    subjectId?: string; categoryId?: string | null;
-    plannedPublishAt?: Date; actualPublishAt?: Date | null; delayReason?: string | null;
-  };
-  if (values.subjectId && subjectRequiresCategory(values.subjectId) && !values.categoryId) {
-    context.addIssue({ code: 'custom', path: ['categoryId'], message: '请选择帖子分类' });
-  } else if (values.subjectId && values.categoryId && !categoryBelongsToSubject(values.categoryId, values.subjectId)) {
-    context.addIssue({ code: 'custom', path: ['categoryId'], message: '帖子分类不属于所选学科' });
-  }
-
-});
-
-export const newPostSchema = withBusinessRules({ ...versionFields, ...scheduleFields });
-export const editScheduleSchema = withBusinessRules({ ...versionFields, ...scheduleFields });
-export const revisionSchema = withBusinessRules({
-  ...versionFields,
-  ...scheduleFields,
-  sourceScheduleId: z.uuid('来源排期无效'),
-  revisionSummary: z.string().trim().min(1, '请填写具体改动说明').max(1000),
-});
+export function createPostSchemas(taxonomy:{subjects:ReadonlyArray<{id:string}>;postCategories:ReadonlyArray<{id:string}>;subjectCategoryMappings:ReadonlyArray<{subjectId:string;categoryId:string}>}){
+ const subjectIds=taxonomy.subjects.map(row=>row.id) as [string,...string[]],categoryIds=taxonomy.postCategories.map(row=>row.id) as [string,...string[]];
+ const versionFields={contentName:z.string().trim().min(1,'请填写内容名称').max(200),subjectId:z.enum(subjectIds,{message:'请选择有效学科'}),categoryId:z.preprocess(emptyToNull,z.enum(categoryIds,{message:'请选择有效帖子分类'}).nullable()),projectDocUrl:optionalHttpUrl};
+ const scheduleFields={syncToMoments:z.boolean(),isPromoted:z.boolean(),promotionStatus:z.enum(promotionStatuses,{message:'请选择有效推广状态'}),plannedPublishAt:shanghaiDateTime};
+ const rules=<T extends z.ZodRawShape>(shape:T)=>z.object(shape).superRefine((data,context)=>{const v=data as {subjectId?:string;categoryId?:string|null};if(v.subjectId&&!v.categoryId)context.addIssue({code:'custom',path:['categoryId'],message:'请选择帖子分类'});else if(v.subjectId&&v.categoryId&&!taxonomy.subjectCategoryMappings.some(m=>m.subjectId===v.subjectId&&m.categoryId===v.categoryId))context.addIssue({code:'custom',path:['categoryId'],message:'帖子分类不属于所选学科'});});
+ return {newPostSchema:rules({...versionFields,...scheduleFields}),editScheduleSchema:rules({...versionFields,...scheduleFields}),revisionSchema:rules({...versionFields,...scheduleFields,sourceScheduleId:z.uuid('来源排期无效'),revisionSummary:z.string().trim().min(1,'请填写具体改动说明').max(1000)})};
+}
+// 静态导出仅供旧种子与纯规则测试；业务接口按数据库字典创建校验器。
+export const {newPostSchema,editScheduleSchema,revisionSchema}=createPostSchemas({subjects,postCategories,subjectCategoryMappings});
 
 export const publicationSchema = z.object({
   actualPublishAt: z.preprocess(emptyToNull,shanghaiDateTime.nullable().optional()),

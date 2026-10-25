@@ -19,8 +19,8 @@ export async function readPromotionContext(database: Database | Transaction) {
   ]);
   const meetingDecisions=await readMeetingDecisions(database);
   // 人工当日更正排在会议安排之后；不能用补指标覆盖会议来源。
-  const planned=meetingDecisions.map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,reason:'例会决定',meetingDecision:true}));
-  return { meetingDecisions,stateChanges:[...planned,...stateChanges] as Array<(typeof stateChanges)[number]&{meetingDecision?:boolean}>, pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };
+  const planned=meetingDecisions.map(d=>({id:d.id,campaignId:d.campaignId,businessDate:d.effectiveOn,stageType:d.stageType,actualStatus:d.targetStatus,action:d.action,reason:'例会决定',meetingDecision:true}));
+  return { meetingDecisions,stateChanges:[...planned,...stateChanges] as Array<(typeof stateChanges)[number]&{meetingDecision?:boolean;action?:string}>, pauses: pauseRows, targets: targetRows, holds: holdRows, waitRanges: rangeRows, campaigns: campaignRows, metrics: metricRows };
 }
 
 export async function guardPromotionStart(transaction: Transaction, date: string, now = new Date()) {

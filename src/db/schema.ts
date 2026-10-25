@@ -533,7 +533,7 @@ export const operationsPromotionStage = pgTable(
     check('operations_promotion_stage_type_check', sql`${table.stageType} IN ('testing', 'scaling')`),
     check(
       'operations_promotion_stage_outcome_check',
-      sql`${table.outcome} IS NULL OR ${table.outcome} IN ('continued', 'paused', 'start_scaling', 'test_discarded', 'scaling_continued', 'ended', 'formal_discarded')`,
+      sql`${table.outcome} IS NULL OR ${table.outcome} IN ('continued', 'paused', 'restarted', 'start_scaling', 'test_discarded', 'scaling_continued', 'ended', 'formal_discarded')`,
     ),
     check(
       'operations_promotion_stage_dates_check',
@@ -616,7 +616,7 @@ export const operationsPromotionDailyMetric = pgTable(
         AND ${table.platformLeadCount} >= 0
         AND ${table.actualLeadCount} >= 0`,
     ),
-    check('operations_promotion_daily_decision_check', sql`${table.reviewDecision} IN ('test_continue','wait_continue','test_discarded','start_scaling','scaling_continue','formal_discarded','ended','test_pause','test_pending','scaling_pause')`),
+    check('operations_promotion_daily_decision_check', sql`${table.reviewDecision} IN ('test_continue','restart_testing','wait_continue','test_discarded','start_scaling','scaling_continue','formal_discarded','ended','test_pause','test_pending','scaling_pause')`),
     check('operations_promotion_daily_kind_check', sql`${table.recordKind} IN ('regular','test_residual') AND (${table.recordKind} <> 'test_residual' OR (${table.stageTypeSnapshot}='testing' AND ${table.sourceStageStartedOn} IS NOT NULL AND ${table.reviewDecision}='test_discarded'))`),
     check('operations_promotion_daily_actual_status_check', sql`${table.actualStatusSnapshot} IS NULL OR ${table.actualStatusSnapshot} IN ('testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended')`),
   ],
@@ -884,7 +884,7 @@ export const operationsPromotionWaitRange = pgTable('operations_promotion_wait_r
   uniqueIndex('operations_promotion_wait_start_idx').on(table.campaignId, table.startedOn),
   check('operations_promotion_wait_dates_check', sql`${table.endedOn} >= ${table.startedOn} AND (${table.nextEffectiveOn} IS NULL OR ${table.nextEffectiveOn} > ${table.endedOn})`),
   check('operations_promotion_wait_stage_check', sql`${table.stageType} IN ('testing','scaling')`),
-  check('operations_promotion_wait_decision_check', sql`(${table.nextDecision} IS NULL AND ${table.nextEffectiveOn} IS NULL) OR (${table.nextDecision} IS NOT NULL AND ${table.nextEffectiveOn} IS NOT NULL AND ((${table.stageType} = 'testing' AND ${table.nextDecision} IN ('test_continue','start_scaling','test_discarded')) OR (${table.stageType} = 'scaling' AND ${table.nextDecision} IN ('scaling_continue','formal_discarded','ended'))))`),
+  check('operations_promotion_wait_decision_check', sql`(${table.nextDecision} IS NULL AND ${table.nextEffectiveOn} IS NULL) OR (${table.nextDecision} IS NOT NULL AND ${table.nextEffectiveOn} IS NOT NULL AND ((${table.stageType} = 'testing' AND ${table.nextDecision} IN ('test_continue','restart_testing','start_scaling','test_discarded')) OR (${table.stageType} = 'scaling' AND ${table.nextDecision} IN ('scaling_continue','formal_discarded','ended'))))`),
 ]);
 
 export const operationsPromotionStageReview = pgTable('operations_promotion_stage_review', {

@@ -1,3 +1,4 @@
+import {readPostSchemas} from '../../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
 import { lockPromotionWorkflow } from '../../../db/promotion-pauses';
 import {promotionSnapshot} from '../../../db/promotion-timeline';
@@ -26,7 +27,6 @@ import {
 } from '../../../db/schema';
 import {
   editScheduleInputFromForm,
-  editScheduleSchema,
   issuesByField,
 } from '../../../db/validation';
 
@@ -128,7 +128,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
     return Response.json({ message: '请求必须使用有效的表单格式。' }, { status: 400 });
   }
 
-  const result = editScheduleSchema.safeParse(editScheduleInputFromForm(form));
+  const result = (await readPostSchemas(getDb())).editScheduleSchema.safeParse(editScheduleInputFromForm(form));
   if (!result.success) {
     return Response.json({ message: '请检查标记的字段。', fields: issuesByField(result.error.issues) }, { status: 422 });
   }

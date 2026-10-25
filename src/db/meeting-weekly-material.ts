@@ -1,3 +1,4 @@
+import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 /** 周例会 v4：实际日期候选、可核对的比较样本与不可变来源。 */
 import { createHash } from 'node:crypto';
 import { eq, asc, desc } from 'drizzle-orm';
@@ -9,7 +10,7 @@ import { promotionTotals, type PromotionFact } from './promotion-overview';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import {checkpointsForPublishDate} from './stage-review-rules.mjs';
 import {actualDataRange,type ActualDataRange} from './meeting-card-rules';
-import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages, operationsCategoryPolicyVersion as policies } from './schema';
+import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages } from './schema';
 export const sourceHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v)).digest('hex');
 export type MeetingRecord = typeof meetings.$inferSelect;
 type Fact = typeof daily.$inferSelect;
@@ -32,6 +33,8 @@ export interface Benchmark {
     samples?: Array<Record<string, unknown>>;
 }
 export interface WeeklyPromotionCard {
+    testCycleNumber?:number;
+    testCycleEndedOn?:string|null;
     dataRange?:ActualDataRange;
     dailyStates?:Record<string,string>;
     currentStatus?:string;
@@ -150,10 +153,10 @@ const benchNon = (rows: WeeklyNonPromotionCard[], excluded: string): Benchmark =
 /** 实际状态 D 日变化；待定／放量／暂停从 D 日起，终止前一日测试。 */
 export function testingCheckpointDate(status: string, effectiveOn: string, previousActive: boolean, lastActive: string | null) { return status === 'test_discarded' && previousActive ? effectiveOn : previousActive ? previousDateKey(effectiveOn) : lastActive; }
 export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): Promise<WeeklyMaterial> {
-    const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersions, stageRows, policyRows] = await Promise.all([
+    const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersions, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
         db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
-        db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages), db.select().from(policies).orderBy(desc(policies.versionNumber)),
+        db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages),
     ]);
     const start = meeting.periodStart, end = meeting.periodEnd;
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
@@ -192,19 +195,21 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
         for (const i of testIntervals)
             if (i.endedOn && i.endedOn <= end && !nodes.some(n => n.lastTestingOn === i.endedOn))
                 nodes.push({ date: nextDateKey(i.endedOn), lastTestingOn: i.endedOn, label: i.outcome ? promotionLabels[i.outcome] ?? '测试阶段小结' : '测试阶段小结' });
-        for (const stageType of ['testing', 'scaling'] as const) {
-            const relevant = related.filter(f => f.stageTypeSnapshot === stageType), phase = intervals.filter(s => s.stageType === stageType);
-            const origin = stageType === 'testing' ? campaign.startedOn : [...phase.map(s => s.startedOn), ...relevant.flatMap(f => f.sourceStageStartedOn ? [f.sourceStageStartedOn] : [])].sort()[0];
+        for (const {stageType,cycle} of [...testingCycles(campaign,context,end).map(cycle=>({stageType:'testing' as const,cycle})),{stageType:'scaling' as const,cycle:null}]) {
+            const cycleStart=cycle?.startedOn??campaign.startedOn,cycleEnd=cycle?.endedOn;
+            const cycleNodes=nodes.filter(n=>!cycle||(n.lastTestingOn>=cycleStart&&(!cycleEnd||n.lastTestingOn<=cycleEnd)));
+            const relevant = related.filter(f => f.stageTypeSnapshot === stageType&&(!cycle||(f.sourceStageStartedOn??testingCycleOn(campaign,context,f.metricDate)?.startedOn)===cycleStart)), phase = intervals.filter(s => s.stageType === stageType&&(!cycle||(s.startedOn>=cycleStart&&(!cycleEnd||s.startedOn<=cycleEnd))));
+            const origin = stageType === 'testing' ? cycleStart : [...phase.map(s => s.startedOn), ...relevant.flatMap(f => f.sourceStageStartedOn ? [f.sourceStageStartedOn] : [])].sort()[0];
             if (!origin)
                 continue;
             const originKey = `${campaign.id}:${stageType}:${origin}`, prior = priorCards(originKey, 'promotions', true);
-            const matchingNodes = nodes.filter(n => between(n.lastTestingOn, start, end));
-            const changedNodes = nodes.filter(n => between(n.date, start, end));
+            const matchingNodes = cycleNodes.filter(n => between(n.lastTestingOn, start, end));
+            const changedNodes = cycleNodes.filter(n => between(n.date, start, end));
             const periodFacts = relevant.filter(f => between(f.metricDate, start, end));
             const late = relevant.filter(f => f.metricDate < start && lastFinalized && f.updatedAt > lastFinalized && !prior.some(p => p.card.facts?.some((old: any) => old.id === f.id && sourceHash(old) === sourceHash(f))));
-            const current = stageType === 'scaling' ? periodFacts.length > 0 : matchingNodes.length > 0 || state.currentStatus==='testing' && periodFacts.some(f=>f.dailyStatus==='active'&&f.recordKind!=='test_residual');
+            const current = stageType === 'scaling' ? periodFacts.length > 0 : matchingNodes.length > 0 || state.currentStatus==='testing' && (!cycleEnd||cycleEnd>=end) && periodFacts.some(f=>f.dailyStatus==='active'&&f.recordKind!=='test_residual');
             const supplement = !current && (late.length > 0 || stageType === 'testing' && periodFacts.length > 0 || prior.length > 0 && changedNodes.length > 0);
-            const cutoff = stageType === 'testing' ? nodes.map(n => n.lastTestingOn).sort().at(-1) ?? null : end;
+            const cutoff = stageType === 'testing' ? cycleNodes.map(n => n.lastTestingOn).sort().at(-1) ?? null : end;
             const added = [...new Map([...periodFacts, ...late].map(f => [f.id, f])).values()].sort((a, b) => a.metricDate.localeCompare(b.metricDate));
             const cardFacts = supplement && added.length ? added : stageType === 'testing' ? relevant : periodFacts;
             const missingDates: string[] = [];
@@ -221,9 +226,10 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
                     if (!knownIds.has(f.id))
                         knownIds.set(f.id, sourceHash(f));
             const changes = cardFacts.filter(f => !knownIds.has(f.id) || knownIds.get(f.id) !== sourceHash(f));
-            const last = nodes.filter(n => n.lastTestingOn <= end).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+            const last = cycleNodes.filter(n => n.lastTestingOn <= end).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
             const eligible = current || supplement;
-            const card: WeeklyPromotionCard = { ...post, key: originKey, originKey, sourceHash: sourceHash({ facts: cardFacts, nodes }), campaignId: campaign.id, stageType, startedOn: supplement && added.length ? added[0].metricDate : stageType === 'testing' ? origin : [origin, start].sort().at(-1)!, endedOn: supplement && added.length ? added.at(-1)!.metricDate : stageType === 'testing' ? (cutoff ?? end) : end, kind: current ? 'current' : 'supplement', label: stageType === 'scaling' ? (supplement ? '往期放量补录' : '本期放量') : supplement ? '往期补充与更新' : matchingNodes.some(n => n.label === '测试暂停') && !matchingNodes.some(n => ['测试结束待定', '测试淘汰', '开始放量'].includes(n.label)) ? '测试阶段小结' : last?.label ?? '测试结果', events: [...new Map(nodes.map(n => [`${n.date}:${n.label}`, n])).values()].sort((a, b) => a.date.localeCompare(b.date) || a.label.localeCompare(b.label)), facts: cardFacts, total: totals(cardFacts), periodTotal: totals(periodFacts), changes: totals(changes), missingDates: [...new Set(missingDates)], previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
+            const card: WeeklyPromotionCard = { ...post, key: originKey, originKey, sourceHash: sourceHash({ facts: cardFacts, nodes:cycleNodes }), campaignId: campaign.id, stageType, startedOn: supplement && added.length ? added[0].metricDate : stageType === 'testing' ? origin : [origin, start].sort().at(-1)!, endedOn: supplement && added.length ? added.at(-1)!.metricDate : stageType === 'testing' ? (cutoff ?? end) : end, kind: current ? 'current' : 'supplement', label: stageType === 'scaling' ? (supplement ? '往期放量补录' : '本期放量') : supplement ? '往期补充与更新' : matchingNodes.some(n => n.label === '测试暂停') && !matchingNodes.some(n => ['测试结束待定', '测试淘汰', '开始放量'].includes(n.label)) ? '测试阶段小结' : last?.label ?? '测试结果', events: [...new Map(cycleNodes.map(n => [`${n.date}:${n.label}`, n])).values()].sort((a, b) => a.date.localeCompare(b.date) || a.label.localeCompare(b.label)), facts: cardFacts, total: totals(cardFacts), periodTotal: totals(periodFacts), changes: totals(changes), missingDates: [...new Set(missingDates)], previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
+            if(cycle){card.testCycleNumber=cycle.number;card.testCycleEndedOn=testingCycles(campaign,context,shanghaiDateKey(new Date())).find(c=>c.startedOn===cycle.startedOn)?.endedOn??cycle.endedOn;}
             card.dataRange=actualDataRange(cardFacts);
             card.dailyStates=Object.fromEntries(cardFacts.map(f=>[f.metricDate,f.actualStatusSnapshot??promotionStateOn(campaign,context,f.metricDate)?.currentStatus??'']));
             (card as any)._eligible = eligible;
@@ -238,23 +244,23 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
         card.historical = benchPromotion(same.filter(p => (p as any)._cutoff && ((p as any)._cutoff < start)).map(p => ({ key: p.key, facts: (p as any)._historicalFacts as Fact[] })), card.key);
         card.peers = benchPromotion(same.filter(p => (p as any)._eligible && p.kind === 'current').map(p => ({ key: p.key, facts: p.facts })), card.key);
         const owned=new Set(context.campaigns.filter(c=>content.find(p=>p.scheduleId===c.scheduleId)?.contentId===card.contentId).map(c=>c.id));
-        card.ownHistory = (['testing','scaling'] as const).flatMap(stageType=>{
+        const earlierCycles=pool.filter(p=>p.contentId===card.contentId&&p.campaignId===card.campaignId&&p.stageType==='testing'&&p.startedOn<card.startedOn).map(p=>({name:p.contentName,versionNumber:p.versionNumber,stageType:p.stageType,periodLabel:`测试第${p.testCycleNumber??1}轮 · ${p.dataRange?.from??p.startedOn}—${p.dataRange?.through??p.testCycleEndedOn??p.endedOn}`,spend:p.total.spend,actualOpenCost:p.total.actualOpenCost,actualLeadCost:p.total.actualLeadCost}));
+        card.ownHistory = [...earlierCycles,...(['testing','scaling'] as const).flatMap(stageType=>{
           const before=facts.filter(f=>owned.has(f.campaignId)&&f.metricDate<start&&f.stageTypeSnapshot===stageType);
           if(!before.length)return [];
           const t=totals(before);
           return [{name:card.contentName,versionNumber:card.versionNumber,stageType,periodLabel:before[0].metricDate+'—'+before.at(-1)!.metricDate,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost}];
-        });
+        })];
     }
     for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total;card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
     const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [], excludedNonPromotions:NonNullable<WeeklyMaterial['excludedNonPromotions']>=[];
     for (const post of content.filter(p => !p.isPromoted && p.actualPublishAt))
         for (const checkpointType of ['day_7', 'day_15'] as const) {
             const key = `${post.scheduleId}:${checkpointType}`, metric = performanceRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), review = reviewRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), skipped = events.get(key)?.action === 'skip';
-            const policy = policyRows.find(p => p.categoryId === post.categoryId && p.effectiveOn <= end);
             const {publishedOn,dueOn}=checkpointsForPublishDate(post.actualPublishAt!).find(row=>row.type===checkpointType)!;
             if(skipped&&between(dueOn,start,end)){const event=events.get(key)!;excludedNonPromotions.push({key,contentName:post.contentName,checkpointType,reason:event.reason,eventId:event.id});}
             if (!metric) {
-                if (!skipped && policy?.requiresNonPromotionReview !== false && dueOn >= start && dueOn <= end)
+                if (!skipped && dueOn >= start && dueOn <= end)
                     pending.push({ key,scheduleId:post.scheduleId,actualPublishAt:post.actualPublishAt,versionNumber:post.versionNumber,publishedOn,dueOn,recordedThrough:dueOn, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
                 continue;
             }

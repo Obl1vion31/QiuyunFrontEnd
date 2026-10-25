@@ -14,7 +14,6 @@ import { asc, desc, eq } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
-  operationsCategoryPolicyVersion,
   operationsContentSchedule,
   operationsContentVersion,
   operationsSubject,
@@ -22,7 +21,8 @@ import {
 import { readPromotionContext } from '../../db/promotion-pauses';
 import { effectivePromotionStatus, promotionLabels, type PromotionContext } from '../../db/promotion-state.mjs';
 import { operationsPromotionCampaign } from '../../db/schema';
-import { postCategories, subjectCategoryMappings, subjects } from '../../db/taxonomy';
+import {readTaxonomy} from '../../db/taxonomy-store';
+const {postCategories,subjectCategoryMappings,subjects}=await readTaxonomy(getDb());
 import { publicationLabels,publicationState,mayKeepEmptyPublicationLink } from '../../db/publication-rules.mjs';
 import { teamScheduleNotifications } from '../../db/schedule-workflow';
 import { businessDateTime } from '../../scripts/business-date';
@@ -97,7 +97,6 @@ const rowStatus = (row: { id: string; promotionStatus: string }) => {
   return effectivePromotionStatus(row.promotionStatus, campaign?.currentStage ?? null, campaign?.id ?? null, promotionContext);
 };
 const publishingState=(row:typeof rows[number])=>publicationState(row);
-let categoryPolicies: Array<typeof operationsCategoryPolicyVersion.$inferSelect> = [];
 let rows: Array<{
   id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
@@ -108,7 +107,7 @@ let rows: Array<{
 const databaseStartedAt = performance.now();
 try {
   const database = getDb();
-  [rows, categoryPolicies, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
+  [rows, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
     id: operationsContentSchedule.id,
     versionId: operationsContentVersion.id,
     contentId: operationsContentVersion.contentId,
@@ -136,12 +135,10 @@ try {
     .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt)),
-  database.select().from(operationsCategoryPolicyVersion)
-    .orderBy(asc(operationsCategoryPolicyVersion.categoryId), desc(operationsCategoryPolicyVersion.versionNumber)),
   teamScheduleNotifications(database),
   database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),
   readPromotionContext(database),
-  ]) as [typeof rows, typeof categoryPolicies, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext ];
+  ]) as [typeof rows, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext ];
 } catch (error) {
   console.error('operations schedule query failed', error);
   databaseError = '数据库暂时不可用。请检查开发库连接和最新迁移后重试。';
@@ -205,22 +202,7 @@ const actorRole = Astro.locals.user?.role;
 const requestedRow = Astro.url.searchParams.get('row') || Astro.url.hash.slice(1);
 const queueView = ['overdue','approvals','reasons'].includes(selectedStatus ?? '');
 const queueLabel = selectedStatus === 'overdue' ? '尚未登记' : selectedStatus === 'approvals' ? '待审批排期' : '待补延期理由';
-const todayKey = dayKey(now);
-const currentPolicies = new Map<string, typeof categoryPolicies[number]>();
-for (const policy of categoryPolicies) {
-  if (policy.effectiveOn <= todayKey && !currentPolicies.has(policy.categoryId)) currentPolicies.set(policy.categoryId, policy);
-}
-const clientCategories = subjectCategoryMappings.flatMap((mapping) => {
-  const category = postCategories.find((candidate) => candidate.id === mapping.categoryId)!;
-  const policy = currentPolicies.get(mapping.categoryId);
-  if (policy && !policy.isSelectable) return [];
-  return [{
-    subjectId: mapping.subjectId,
-    id: category.id,
-    name: policy?.displayName ?? category.name,
-    defaultIsPromoted: policy?.defaultIsPromoted ?? false,
-  }];
-});
+const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.subjectId,id:mapping.categoryId,name:postCategories.find(c=>c.id===mapping.categoryId)!.name,defaultIsPromoted:false}));
 ---
 
 <!doctype html>

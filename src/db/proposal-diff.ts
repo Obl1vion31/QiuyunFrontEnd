@@ -4,7 +4,8 @@ import {subjects,postCategories} from './taxonomy';
 import {formatSlotRange,blockPromotionLabel,type PlanBlock} from './annual-plan-rules.mjs';
 type Snapshot=Record<string,unknown>;
 const display=(value:unknown)=>value==null||value===''?'—':typeof value==='boolean'?value?'是':'否':String(value);
-function fields(snapshot:Snapshot):Record<string,string>{
+function fields(snapshot:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;name:string}>;postCategories:ReadonlyArray<{id:string;name:string}>}):Record<string,string>{
+  const {subjects,postCategories}=taxonomy;
   const result:Record<string,string>={};
   const schedule=snapshot.schedule as Record<string,unknown>|undefined;
   const versions=snapshot.versions as Array<Record<string,unknown>>|undefined;
@@ -26,8 +27,8 @@ function fields(snapshot:Snapshot):Record<string,string>{
   for(const [key,label] of [['campaigns','推广活动'],['metrics','推广日度记录'],['reviews','非推广复盘']] as const)if(snapshot[key])result[label]=`${(snapshot[key] as unknown[]).length} 条`;
   return result;
 }
-export function proposalDiff(before:Snapshot,after:Snapshot){
-  const left=fields(before),right=fields(after);
+export function proposalDiff(before:Snapshot,after:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;name:string}>;postCategories:ReadonlyArray<{id:string;name:string}>}={subjects,postCategories}){
+  const left=fields(before,taxonomy),right=fields(after,taxonomy);
   return [...new Set([...Object.keys(left),...Object.keys(right)])].filter(key=>left[key]!==right[key]).map(label=>({label,before:left[label]??'—',after:right[label]??'—'}));
 }
 export const proposalTitle=(operations:string[])=>operations.map(key=>operationLabels[key as BusinessOperation]??key).join('、');

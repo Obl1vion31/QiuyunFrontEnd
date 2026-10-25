@@ -1,0 +1,934 @@
+{
+  "checks": [
+    "旧规则链接进入权限，旧规则接口410，员工/跨站字典写入403；权限真实保存",
+    "规划内联新增学科/分类、失败重试、取消、已填内容保留；重名复用补映射；排期可选择新增字典",
+    "旧规则requiresReview=false不再阻断首轮7天待办与真实录入；动态学科筛选生效",
+    "真实日度100/30、例会按轮分卡、草稿/会前不生效、会后动作保留且次日生效、日度继承锁定和同日去重、冻结V0不变；四档桌面截图"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "name": "settings-permissions",
+      "width": 1920,
+      "controls": []
+    },
+    {
+      "name": "settings-permissions",
+      "width": 1440,
+      "controls": []
+    },
+    {
+      "name": "settings-permissions",
+      "width": 1280,
+      "controls": []
+    },
+    {
+      "name": "settings-permissions",
+      "width": 1024,
+      "controls": []
+    },
+    {
+      "name": "annual-subject-editor",
+      "width": 1920,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 1023,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 503.5,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 477.5,
+          "height": 40
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 54,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "name": "annual-subject-editor",
+      "width": 1440,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 1023,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 503.5,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 477.5,
+          "height": 40
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 54,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "name": "annual-subject-editor",
+      "width": 1280,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 1023,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 503.5,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 477.5,
+          "height": 40
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 54,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "name": "annual-subject-editor",
+      "width": 1024,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 928,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 456,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 430,
+          "height": 40
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 54,
+          "height": 40
+        }
+      ]
+    },
+    {
+      "name": "annual-category-editor",
+      "width": 1920,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 1023,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 503.5,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        }
+      ]
+    },
+    {
+      "name": "annual-category-editor",
+      "width": 1440,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 1023,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 503.5,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        }
+      ]
+    },
+    {
+      "name": "annual-category-editor",
+      "width": 1280,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 1023,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 503.5,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        }
+      ]
+    },
+    {
+      "name": "annual-category-editor",
+      "width": 1024,
+      "controls": [
+        {
+          "text": "×",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "28px",
+          "weight": "400",
+          "width": 32,
+          "height": 32
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 928,
+          "height": 40
+        },
+        {
+          "text": "新建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 82,
+          "height": 40
+        },
+        {
+          "text": "TMUA 细致规划STEP 细致规划面试",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 456,
+          "height": 40
+        },
+        {
+          "text": "",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "400",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "创建学科",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        },
+        {
+          "text": "取消",
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "14px",
+          "weight": "500",
+          "width": 0,
+          "height": 0
+        }
+      ]
+    },
+    {
+      "name": "promotion-retest",
+      "width": 1920,
+      "controls": []
+    },
+    {
+      "name": "promotion-retest",
+      "width": 1440,
+      "controls": []
+    },
+    {
+      "name": "promotion-retest",
+      "width": 1280,
+      "controls": []
+    },
+    {
+      "name": "promotion-retest",
+      "width": 1024,
+      "controls": []
+    },
+    {
+      "name": "meeting-draft-retest",
+      "width": 1920,
+      "controls": []
+    },
+    {
+      "name": "meeting-draft-retest",
+      "width": 1440,
+      "controls": []
+    },
+    {
+      "name": "meeting-draft-retest",
+      "width": 1280,
+      "controls": []
+    },
+    {
+      "name": "meeting-draft-retest",
+      "width": 1024,
+      "controls": []
+    },
+    {
+      "name": "meeting-pre-retest",
+      "width": 1920,
+      "controls": []
+    },
+    {
+      "name": "meeting-pre-retest",
+      "width": 1440,
+      "controls": []
+    },
+    {
+      "name": "meeting-pre-retest",
+      "width": 1280,
+      "controls": []
+    },
+    {
+      "name": "meeting-pre-retest",
+      "width": 1024,
+      "controls": []
+    },
+    {
+      "name": "meeting-post-retest",
+      "width": 1920,
+      "controls": []
+    },
+    {
+      "name": "meeting-post-retest",
+      "width": 1440,
+      "controls": []
+    },
+    {
+      "name": "meeting-post-retest",
+      "width": 1280,
+      "controls": []
+    },
+    {
+      "name": "meeting-post-retest",
+      "width": 1024,
+      "controls": []
+    }
+  ],
+  "data": "隔离PGlite，虚构业务样本",
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024
+  ]
+}

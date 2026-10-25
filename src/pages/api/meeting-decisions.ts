@@ -18,10 +18,10 @@ export const POST:APIRoute=async({request,url,locals})=>{
  try{await getDb().transaction(async tx=>{
   await lockPromotionWorkflow(tx);
   const [repeat]=await tx.select().from(audits).where(eq(audits.requestKey,parsed.data.requestKey));
-  if(repeat){if(repeat.changedById!==locals.user!.id||repeat.reason!==parsed.data.reason||(repeat.after as any).meetingDecision?.targetStatus!==parsed.data.targetStatus||(repeat.after as any).meetingDecision?.id!==parsed.data.id)throw new WorkflowError('请求已被使用。');return;}
+  if(repeat){if(repeat.changedById!==locals.user!.id||repeat.reason!==parsed.data.reason||((repeat.after as any).meetingDecision?.action==='restart_testing'?'restart_testing':(repeat.after as any).meetingDecision?.targetStatus)!==parsed.data.targetStatus||(repeat.after as any).meetingDecision?.id!==parsed.data.id)throw new WorkflowError('请求已被使用。');return;}
   const context=await readPromotionContext(tx),decision=context.meetingDecisions.find(d=>d.id===parsed.data.id);
   if(!decision)throw new WorkflowError('例会决定已变化，请刷新后核对。');
-  if(decision.targetStatus!==parsed.data.expectedTargetStatus||decision.versionNumber!==parsed.data.expectedVersionNumber)throw new WorkflowError('例会安排已被更新，请刷新后核对。');
+  if((decision.action==='restart_testing'?'restart_testing':decision.targetStatus)!==parsed.data.expectedTargetStatus||decision.versionNumber!==parsed.data.expectedVersionNumber)throw new WorkflowError('例会安排已被更新，请刷新后核对。');
   const today=shanghaiDateKey(new Date());
   if(decision.effectiveOn<today||context.metrics.some(m=>m.campaignId===decision.campaignId&&m.metricDate>=decision.effectiveOn))throw new WorkflowError('该安排已有历史事实，请通过历史更正入口核对，不能覆盖指标。',422);
   const campaign=context.campaigns.find(c=>c.id===decision.campaignId)!;
@@ -31,7 +31,7 @@ export const POST:APIRoute=async({request,url,locals})=>{
   if(!next)throw new WorkflowError('请选择当前阶段允许的下一步。',422);
   const [priorMetric]=await tx.select().from(metrics).where(and(eq(metrics.campaignId,decision.campaignId),eq(metrics.metricDate,day.toISOString().slice(0,10))));
   if(priorMetric)await tx.update(metrics).set({reviewDecision:next,updatedAt:new Date()}).where(eq(metrics.id,priorMetric.id));
-  await tx.insert(audits).values({scheduleId:decision.scheduleId,requestKey:parsed.data.requestKey,businessDate:decision.effectiveOn,action:'meeting_decision_correction',reason:parsed.data.reason,before:{meetingDecision:decision,previousDayPlan:priorMetric?{id:priorMetric.id,reviewDecision:priorMetric.reviewDecision}:null},after:{meetingDecision:{...decision,targetStatus:parsed.data.targetStatus},previousDayPlan:priorMetric?{id:priorMetric.id,reviewDecision:next}:null},changedById:locals.user!.id,changedByLabel:locals.operationsUser||'unknown'});
+  await tx.insert(audits).values({scheduleId:decision.scheduleId,requestKey:parsed.data.requestKey,businessDate:decision.effectiveOn,action:'meeting_decision_correction',reason:parsed.data.reason,before:{meetingDecision:decision,previousDayPlan:priorMetric?{id:priorMetric.id,reviewDecision:priorMetric.reviewDecision}:null},after:{meetingDecision:{...decision,targetStatus:parsed.data.targetStatus==='restart_testing'?'testing':parsed.data.targetStatus,action:parsed.data.targetStatus==='restart_testing'?'restart_testing':undefined},previousDayPlan:priorMetric?{id:priorMetric.id,reviewDecision:next}:null},changedById:locals.user!.id,changedByLabel:locals.operationsUser||'unknown'});
   // 次日安排是状态事件，更正后同步派生状态；原始指标保留。
   const fresh=await readPromotionContext(tx);
   const replayed=replayPromotionHistory(campaign.startedOn,fresh.metrics.filter(m=>m.campaignId===campaign.id),{...promotionReplayOptions(campaign,fresh),asOf:today});

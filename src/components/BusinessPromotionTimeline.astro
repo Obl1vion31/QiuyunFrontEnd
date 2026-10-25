@@ -57,7 +57,7 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
    </details>}
    {nextDue&&<form class="business-form timeline-next-form" data-timeline-form data-fingerprint={row.fingerprint}>
     <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={end!}/><input type="hidden" name="action" value={range?'next':'plan'}/>{range&&<input type="hidden" name="rangeId" value={range.id}/>}
-    <label>{end} 的下一步<select name="nextDecision" required><option value="">请选择</option>{!range?<><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
+    <label>{end} 的下一步<select name="nextDecision" required><option value="">请选择</option>{!range?<><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="restart_testing">重新开始测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
     <button type="submit" class="business-action-primary">保存下一步</button><output role="alert"/>
    </form>}
    {waiting&&editable&&<details><summary>调整待定截止日</summary><form class="business-form timeline-next-form" data-timeline-form data-fingerprint={row.fingerprint}>

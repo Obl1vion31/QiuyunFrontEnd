@@ -5,7 +5,7 @@ import type { Database } from './client';
 import { WorkflowError } from './schedule-workflow';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import { addDays, shanghaiKey, sumPromotionMetrics } from './meeting-review-rules.mjs';
-import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsCategoryPolicyVersion as policies, operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics, operationsNonPromotionReview as nonPromotions, operationsPromotionStageReviewVersion as stageVersions, operationsReviewActionItem as issues, operationsMeetingAttachment as attachments, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, type WeeklyMeetingDraft } from './schema';
+import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics, operationsNonPromotionReview as nonPromotions, operationsPromotionStageReviewVersion as stageVersions, operationsReviewActionItem as issues, operationsMeetingAttachment as attachments, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, type WeeklyMeetingDraft } from './schema';
 import type { StageSnapshot } from './promotion-stage-reviews';
 import {operationsReviewActionProgress as progress} from './schema';
 export async function readOpenMeetingIssues(db:Database){
@@ -17,7 +17,7 @@ export const meetingDraftSchema = z.object({
   workflowVersion:z.literal(5).optional(),candidatesConfirmed:z.boolean().default(false),
   hasRevisionDraft:z.boolean().optional(),
   finalizationStage:z.enum(['pre','post']).optional(),
-  promotionDecisions:z.record(z.string(),z.enum(['testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended'])).default({}),
+  promotionDecisions:z.record(z.string(),z.enum(['restart_testing','testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended'])).default({}),
   nonPromotionInputs:z.record(z.string(),z.object({mode:z.enum(['record','skip']).optional(),editing:z.boolean().optional(),clickRate:z.string().max(100).optional(),threeSecondReadRate:z.string().max(100).optional(),recordedThrough:z.string().max(20).optional(),conclusion:text,platformNoteId:z.string().max(24).optional(),reason:z.string().max(500).optional()})).default({}),
   schemaVersion: z.union([z.literal(2), z.literal(3),z.literal(4)]), coreConclusion: text, nextAction: text,
   promotionSelections:z.array(z.string().min(1).max(200)).max(500).default([]),materialFingerprint:z.string().max(64).optional(),
@@ -31,9 +31,9 @@ export const meetingDraftSchema = z.object({
   for (const values of [v.promotionSelections, v.promotionSnapshotIds, v.attachmentIds, v.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`), v.issues.flatMap(i => i.id ? [i.id] : [])]) if (values.length !== new Set(values).size) ctx.addIssue({ code: 'custom', message: '引用或勾选重复' });
 });
 export async function readMeetingMaterial(db: Database, meeting: typeof meetings.$inferSelect) {
-  const [content, campaignRows, daily, reviews, policyRows, checkpointEvents, priorVersions, meetingRows] = await Promise.all([
+  const [content, campaignRows, daily, reviews, checkpointEvents, priorVersions, meetingRows] = await Promise.all([
     db.select({ scheduleId: schedules.id, contentVersionId: versions.id, contentId: versions.contentId, versionNumber: versions.versionNumber, contentName: versions.contentName, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, projectDocUrl: versions.projectDocUrl, isPromoted: schedules.isPromoted, plannedPublishAt: schedules.plannedPublishAt, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
-    db.select().from(campaigns), db.select().from(metrics).orderBy(asc(metrics.metricDate)), db.select().from(nonPromotions), db.select().from(policies).orderBy(desc(policies.versionNumber)), readCheckpointEvents(db), db.select().from(meetingVersions), db.select().from(meetings),
+    db.select().from(campaigns), db.select().from(metrics).orderBy(asc(metrics.metricDate)), db.select().from(nonPromotions), readCheckpointEvents(db), db.select().from(meetingVersions), db.select().from(meetings),
   ]);
   const previousCounts = new Map<string, number>();
   for (const m of meetingRows.filter(m => m.status === 'completed' && m.id !== meeting.id)) {
@@ -48,8 +48,6 @@ export async function readMeetingMaterial(db: Database, meeting: typeof meetings
     return [{ campaignId: c.id, contentId: post.contentId, contentVersionId: post.contentVersionId, contentName: post.contentName, versionNumber: post.versionNumber, testingDays: active.filter(m => m.dailyStatus==='active'&&m.recordKind!=='test_residual'&&m.stageTypeSnapshot === 'testing').length, scalingDays: active.filter(m => m.dailyStatus==='active'&&m.recordKind!=='test_residual'&&m.stageTypeSnapshot === 'scaling').length, total: sumPromotionMetrics(active), metricIds: active.map(m => m.id) }];
   });
   const candidates = content.filter(p => !p.isPromoted && p.actualPublishAt).flatMap(p => {
-    const policy = policyRows.find(policy => policy.categoryId === p.categoryId && policy.effectiveOn <= meeting.periodEnd);
-    if (policy?.requiresNonPromotionReview === false) return [];
     return (['day_7','day_15'] as const).flatMap(checkpointType => {
       const dueOn = addDays(shanghaiKey(p.actualPublishAt!), checkpointType === 'day_7' ? 7 : 15);
       if (dueOn > meeting.periodEnd || checkpointEvents.get(`${p.scheduleId}:${checkpointType}`)?.action === 'skip') return [];

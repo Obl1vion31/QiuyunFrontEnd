@@ -44,8 +44,9 @@ function aggregateAttributedStageRows(input:Parameters<typeof aggregateStageRows
  for(const stage of input.stages){const origin=input.metrics.find(m=>m.stageTypeSnapshot===stage.stageType&&m.sourceStageStartedOn)?.sourceStageStartedOn??input.stages.find(s=>s.stageType===stage.stageType)!.startedOn;origins.set(`${stage.stageType}:${origin}`,{stageType:stage.stageType,startedOn:origin});}
  for(const fact of input.metrics)if(fact.sourceStageStartedOn)origins.set(`${fact.stageTypeSnapshot}:${fact.sourceStageStartedOn}`,{stageType:fact.stageTypeSnapshot,startedOn:fact.sourceStageStartedOn});
  return [...origins.values()].flatMap(origin=>{
-  const intervals=input.stages.filter(s=>s.stageType===origin.stageType);
-  const lifecycleFacts=input.metrics.filter(m=>m.recordKind!=='test_residual'&&m.stageTypeSnapshot===origin.stageType&&m.metricDate<=input.periodEnd);
+  const nextOrigin=[...origins.values()].filter(o=>o.stageType===origin.stageType&&o.startedOn>origin.startedOn).map(o=>o.startedOn).sort()[0];
+  const intervals=input.stages.filter(s=>s.stageType===origin.stageType&&s.startedOn>=origin.startedOn&&(!nextOrigin||s.startedOn<nextOrigin));
+  const lifecycleFacts=input.metrics.filter(m=>m.recordKind!=='test_residual'&&m.stageTypeSnapshot===origin.stageType&&(m.sourceStageStartedOn??origin.startedOn)===origin.startedOn&&m.metricDate<=input.periodEnd);
   const factEnds=lifecycleFacts.flatMap(m=>origin.stageType==='testing'?[...(['test_pending','test_discarded','start_scaling'].includes(m.reviewDecision)?[m.metricDate]:[]),...(m.actualStatusSnapshot==='test_pending'?[previousDateKey(m.metricDate)]:[]),...(m.actualStatusSnapshot==='test_discarded'?[m.metricDate]:[])]:['ended','formal_discarded'].includes(m.reviewDecision)?[m.metricDate]:[]);
   const ended=input.phaseEnds?.[origin.stageType as 'testing'|'scaling']??factEnds.sort()[0]??(origin.stageType==='scaling'&&!intervals.some(s=>!s.endedOn)?intervals.map(s=>s.endedOn!).sort().at(-1)??null:null);
   const completedInPeriod=origin.stageType==='testing'&&ended&&ended>=input.periodStart&&ended<=input.periodEnd;

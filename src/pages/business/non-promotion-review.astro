@@ -11,10 +11,10 @@ import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
 import { businessDateTime } from '../../scripts/business-date';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
-import { subjects } from '../../db/taxonomy';
+
 export const prerender = false;
 const databaseStartedAt=performance.now();
-const { checkpointEvents, today, names, loadError, latestPolicy, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
+const {subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
 const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 ---
@@ -34,7 +34,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
     <form class="review-filters business-filter" method="get" data-review-filters aria-label="复盘筛选">
       <input type="hidden" name="view" value={activeView}/>
       <label>学科<select name="subject"><option value="">全部学科</option>{subjects.map(subject=><option value={subject.id} selected={subject.id===selectedSubject}>{subject.name}</option>)}</select></label>
-      <label>帖子分类<select name="category" disabled={!selectedSubject}><option value="">{selectedSubject?'全部分类':'请先选择学科'}</option>{categoryOptions.map(category=><option value={category.id} selected={category.id===selectedCategory}>{latestPolicy.get(category.id)?.displayName||category.name}</option>)}</select></label>
+      <label>帖子分类<select name="category" disabled={!selectedSubject}><option value="">{selectedSubject?'全部分类':'请先选择学科'}</option>{categoryOptions.map(category=><option value={category.id} selected={category.id===selectedCategory}>{category.name}</option>)}</select></label>
       {activeView === 'history' && <input type="hidden" name="group" value={grouped?'1':'0'}/>}
       {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}`}>清除筛选</a>}
     </form>

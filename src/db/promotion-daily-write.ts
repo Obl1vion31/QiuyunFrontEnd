@@ -1,3 +1,4 @@
+import {testingCycleOn} from './promotion-cycles.mjs';
 /** 单条与批量复盘共用同一事务写入，调用方持有推广工作流锁。 */
 import { asc, eq, sql } from 'drizzle-orm';
 import {meetingDecisionOn,meetingNextDecision} from './meeting-decision-rules.mjs';
@@ -67,7 +68,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     const dailyState = promotionStateOn(campaign, context, data.metricDate);
     const actualStatus = dailyState ? normalizePromotionActualStatus(dailyState.currentStatus, dailyState.currentStage) : null;
     const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(data.metricDate));
-    if(meetingDecision&&data.reviewDecision!==meetingNextDecision(actualStatus,meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
+    if(meetingDecision&&data.reviewDecision!==meetingNextDecision(actualStatus,meetingDecision.action==='restart_testing'?'restart_testing':meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
     if (residual) {
         if (campaign.currentStatus !== 'test_discarded' || !campaign.endedOn || data.metricDate <= campaign.endedOn || data.stageTypeSnapshot !== 'testing' || data.reviewDecision !== 'test_discarded')
             return { kind: 'invalid-residual' as const };
@@ -83,7 +84,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
             return { kind: 'invalid-decision' as const };
     }
     const sourceStages = await transaction.select().from(operationsPromotionStage).where(eq(operationsPromotionStage.campaignId, campaign.id)).orderBy(asc(operationsPromotionStage.startedOn));
-    const sourceStageStartedOn = data.stageTypeSnapshot === 'testing' ? campaign.startedOn : [...sourceStages.filter(s => s.stageType === 'scaling').map(s => s.startedOn), ...context.stateChanges.filter(c => c.campaignId === campaign.id && c.stageType === 'scaling').map(c => c.businessDate), ...allMetrics.filter(m => m.reviewDecision === 'start_scaling').map(m => nextDateKey(m.metricDate)), ...(campaign.initialStage === 'scaling' ? [campaign.startedOn] : [])].sort()[0] ?? data.metricDate;
+    const sourceStageStartedOn = data.stageTypeSnapshot === 'testing' ? testingCycleOn(campaign,context,data.metricDate)!.startedOn : [...sourceStages.filter(s => s.stageType === 'scaling').map(s => s.startedOn), ...context.stateChanges.filter(c => c.campaignId === campaign.id && c.stageType === 'scaling').map(c => c.businessDate), ...allMetrics.filter(m => m.reviewDecision === 'start_scaling').map(m => nextDateKey(m.metricDate)), ...(campaign.initialStage === 'scaling' ? [campaign.startedOn] : [])].sort()[0] ?? data.metricDate;
     const newFact = { ...data, actualStatusSnapshot: residual ? 'test_discarded' : actualStatus, sourceStageStartedOn };
     const replayed = residual ? null : replayPromotionHistory(campaign.startedOn, [...allMetrics, newFact].sort((a, b) => a.metricDate.localeCompare(b.metricDate)), { ...promotionReplayOptions(campaign, context), asOf: today });
     if (!residual && !replayed)

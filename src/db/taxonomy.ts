@@ -20,6 +20,7 @@ export const postCategories = [
   { id: 'exam-guide', name: '备考须知' },
   { id: 'innovation', name: '创新帖' },
   { id: 'interview-course', name: '面试课' },
+  { id: 'interview-non-promotional-handout', name: '面试课非推广讲义帖' },
   { id: 'interview-information', name: '面试信息' },
   { id: 'interview-preparation-guide', name: '面试准备须知' },
   { id: 'temporary', name: '临时帖' },
@@ -34,6 +35,7 @@ export const subjectCategoryMappings = [
     .map((category) => ({ subjectId: 'step' as const, categoryId: category.id })),
   ...[
     'interview-course',
+    'interview-non-promotional-handout',
     'promotional-handout',
     'success-story',
     'score-release-celebration',

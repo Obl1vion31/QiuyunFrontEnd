@@ -231,6 +231,6 @@ export const calculateActualPromotionCosts = ({
 
 export const replayPromotionHistory = (startedOn, metrics, options={}) => {
  const ordered=metrics.filter(metric=>metric.recordKind!=='test_residual').sort((a,b)=>a.metricDate.localeCompare(b.metricDate));
- const precise=ordered.some(metric=>metric.actualStatusSnapshot)||options.stateChanges?.some(change=>change.actualStatus);
+ const precise=ordered.some(metric=>metric.actualStatusSnapshot||metric.reviewDecision==='restart_testing')||options.stateChanges?.some(change=>change.actualStatus)||options.waitRanges?.some(range=>range.nextDecision==='restart_testing');
  return precise?replayPrecisePromotionHistory(startedOn,ordered,options):replayLegacyPromotionHistory(startedOn,ordered,options);
 };

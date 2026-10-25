@@ -26,7 +26,7 @@ export function effectivePromotionStatus(status, stage, campaignId, context, now
   }
   if (['testing','scaling'].includes(status) && context.pauses.some(pause => pauseIsActive(pause, now) && (
     context.targets.some(target => target.campaignId === campaignId && target.pauseId === pause.id)
-    || (context.waitRanges ?? []).some(r => r.campaignId === campaignId && r.nextEffectiveOn && r.nextEffectiveOn >= shanghaiDateKey(new Date(pause.startsAt)) && r.nextEffectiveOn <= shanghaiDateKey(now) && ['test_continue','start_scaling','scaling_continue'].includes(r.nextDecision))
+    || (context.waitRanges ?? []).some(r => r.campaignId === campaignId && r.nextEffectiveOn && r.nextEffectiveOn >= shanghaiDateKey(new Date(pause.startsAt)) && r.nextEffectiveOn <= shanghaiDateKey(now) && ['test_continue','restart_testing','start_scaling','scaling_continue'].includes(r.nextDecision))
   ))) return 'promotion_paused';
   return status === 'waiting_action' ? (stage === 'testing' ? 'test_pending' : 'promotion_paused') : status;
 }
