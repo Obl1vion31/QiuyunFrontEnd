@@ -154,4 +154,3 @@ flowchart LR
 `WeeklyMeetingPresentation` 共用会前／会后阅读布局，Astro只读包装与 `BusinessMeetingDiscussion` 的 React 编辑入口使用同一组件；`MeetingDiscussionText` 支持正文原位编辑。讨论通过 `save_discussion`／`finalize_discussion` 提交白名单，`meeting-discussion` 在事务内将文字与安排合并到服务端最新会前快照，保留冻结指标和非推广；更新时间防止多窗口覆盖。
 
 `meeting-rate-comparison` 共用百分点计算、同键去重及新快照冻结。`meeting-pdf-render` 用PDFKit和本地Noto静态字体生成版本报告；`meeting-pdf` 在会议事务提交后取得版本租约并私有归档，独立重试入口 `/api/meeting-versions/:id/pdf` 不执行会议业务。`MeetingPdfArchive` 在当前版本、总览和折叠历史中提供同一查看／下载／上传交互。
-

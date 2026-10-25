@@ -1,4 +1,3 @@
-
 > qiuyun-frontend-system@0.1.0 test:weekly /home/obl1vion/projects/qiuyunFrontend
 > node --import tsx tests/meeting-create.browser.ts && node --import tsx tests/meeting-weekly.browser.ts && node --import tsx tests/meeting-inline.browser.ts && node --import tsx tests/meeting-non-promotion.browser.ts && node --import tsx tests/meeting-presentation.browser.ts && node --import tsx tests/meeting-finalization.browser.ts && node --import tsx tests/meeting-compact.browser.ts
 

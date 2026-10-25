@@ -84,4 +84,3 @@ try{
  checks.push('9份历史样本及本帖历史优先、未完成非推广草稿保留、慢读单处反馈、普通日度不能改例会决定、月例会类型、未完成事项保留解决方案且会后解决、已录日度次日安排同步更正');
  await nav('/business/meeting-review');assert.equal(await page.locator('.meeting-history').count(),2);await page.locator('.meeting-history-overview>summary').click();for(const item of await page.locator('.meeting-history summary').all())await item.click();assert.equal(await page.getByRole('link',{name:'V0',exact:true}).count(),2);await shot('overview-versions-1440');assert.ok(await page.getByText('月例会',{exact:false}).count());await context.close();await writeFile(folder+'/checks.json',JSON.stringify({checks,errors,geometry,baseURL,scope:'正式组件、隔离PGlite和虚构业务数据'},null,2));console.log(JSON.stringify({checks,folder}));
 }catch(e){console.error(fixture.logs());throw e;}finally{await browser?.close();await fixture.stop();}
-

@@ -1,4 +1,3 @@
-
 > qiuyun-frontend-system@0.1.0 test:ui /home/obl1vion/projects/qiuyunFrontend
 > node --import tsx tests/business-ui.browser.ts
 
