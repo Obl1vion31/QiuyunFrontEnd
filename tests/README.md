@@ -28,9 +28,11 @@
 
 `pnpm test:reviews` 在构建后使用隔离账号验收待定区间、次日计划、阶段快照版本、服务端例会引用、私有图片和桌面／390／320px 跨页布局。`promotion-intervals-snapshots.test.ts` 覆盖时间边界、手动恢复、历史影响确认、节假日交叠、任意时间段聚合、成本、缺失与快照不变；`review-intervals-migration.test.ts` 从上一结构验证追加迁移与旧会议保留。
 
-`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证仅例会次日安排采用状态／修改两行、普通下拉分支保留、表头来源链接、原位更正及列表／Inspector 草稿共用；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
+`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证居中表头与例会状态上标、仅例会次日安排采用状态／修改两行、普通下拉分支保留、表头来源链接、原位更正及列表／Inspector 草稿共用；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
 
 ## 界面一致性验收
+
+表格对齐按 DESIGN 的类型规则验收：录入表的实际表头文字或标题／单位／说明整组应与所在列中心一致（误差不超过 1 CSS px），正文按语义对齐；阅读型表格核对对应阅读锚点，不统一强制居中。推广专项同时测量例会上标与主文字位置、行高、普通安排无上标，以及浮层原安排不含展示标记。
 
 先 `pnpm build`，再运行 `pnpm test:ui`；使用同一隔离库和虚构账号。测试覆盖 1440、390、320px，检查六个业务页的工具栏坐标／尺寸、标题起点和正文留白；公共误差不超过 1 CSS px。推广每日与历史连续切换时同时比较顶栏、按钮的 DOM 身份与坐标，不能只检查页面截图或高度。
 

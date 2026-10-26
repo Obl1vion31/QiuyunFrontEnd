@@ -4,7 +4,7 @@
 .review-entry-scroll{min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
 .review-entry-grid{--review-spend-width:96px;box-sizing:border-box;display:grid;grid-template-columns:84px var(--review-name-width,112px) 96px minmax(var(--review-spend-width),1.1fr) repeat(4,minmax(80px,1fr)) minmax(128px,1.6fr) minmax(192px,1.6fr) 80px;column-gap:clamp(6px,calc(6px + (100cqw - 1192px)*.014),10px);align-items:center;padding:0 12px;min-width:calc(1080px + var(--review-name-width,112px));width:100%}
 .review-entry-head{height:36px;border-block:1px solid var(--console-line);background:#fafbfc;color:var(--console-muted);font:400 12px/18px var(--console-font);white-space:nowrap}
-.review-entry-head>span:nth-child(n+4):nth-child(-n+8){text-align:right;padding-right:8px}.review-entry-head>span:first-child,.review-entry-head>span:nth-child(3){text-align:center}.review-entry-head>span:nth-child(2){padding-left:8px}
+.review-entry-head>span{display:flex;align-items:center;justify-content:center;min-width:0;text-align:center}
 .review-record{min-width:0}.review-metric-row{position:relative;min-height:72px;margin:0;border:0;border-bottom:1px solid var(--console-line);background:#fff;--day-color:#D49A12;--day-soft:#fff8df;--day-ink:#795b0d;font:400 14px/22px var(--console-font)}
 .review-metric-row.scaling{--day-color:#3f9272;--day-soft:#edf8f2;--day-ink:#28684f}.review-metric-row:is(.paused,.residual){--day-color:#99a1ad;--day-soft:#f1f3f6;--day-ink:#5d6673}.review-metric-row.pending{--day-soft:#fcf9ee}
 .review-date-block{position:sticky;left:0;z-index:2;display:flex;align-self:stretch;align-items:center;justify-content:center;text-align:center;white-space:nowrap;background:var(--day-soft);color:var(--day-ink);font:500 13px/20px var(--console-font);box-shadow:inset 3px 0 var(--day-color)}
@@ -48,6 +48,7 @@
 
 /* 只有例会固定安排复用状态两行；普通安排继续使用下拉框。 */
 .review-meeting-arrangement{min-height:40px}
+.review-meeting-value{position:relative}.review-meeting-mark{position:absolute;left:calc(100% + 2px);top:-2px;font:500 12px/12px var(--console-font);color:inherit;pointer-events:none}
 .review-decision-heading{white-space:nowrap}.review-decision-heading small{margin-left:4px;font:400 12px/18px var(--console-font);color:var(--console-muted)}
 .review-meeting-source{padding:4px 0;color:var(--console-blue);text-decoration:underline;text-underline-offset:2px;font:inherit}
 .review-meeting-source:hover{color:#244fc8}.review-meeting-source:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px;border-radius:2px}
