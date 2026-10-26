@@ -135,7 +135,7 @@ try{
  const stateOptions=await bubble.locator('select[name=targetStatus] option').evaluateAll((options:HTMLOptionElement[])=>options.map(option=>({value:option.value,label:option.textContent})));assert.equal(stateOptions.filter((option:{value:string})=>option.value==='testing').length,0);assert.equal(stateOptions.filter((option:{label:string})=>/继续测试/.test(option.label)).length,0);assert.equal(stateOptions.filter((option:{value:string})=>option.value).length,4);
  await bubble.locator('[name=targetStatus]').selectOption('test_pending');await bubble.locator('[name=reason]').fill('虚构验收：已测试完毕，等待放量结论');
  assert.match(await active.locator('[data-day-status]').innerText(),/测试中/);await capture('promotion-state-popover-1440',false);
- await page.keyboard.press('Escape');assert.equal(await bubble.count(),0);assert.equal(await active.locator('[name=spend]').inputValue(),'200');
+ {const answer=respondToBusinessConfirm(page);await page.keyboard.press('Escape');await answer;}assert.equal(await bubble.count(),1);assert.equal(await bubble.locator('[name=reason]').inputValue(),'虚构验收：已测试完毕，等待放量结论');{const answer=respondToBusinessConfirm(page,true);await page.keyboard.press('Escape');await answer;}assert.equal(await bubble.count(),0);assert.equal(await active.locator('[name=spend]').inputValue(),'200');
  await cleanForNavigation();
 
  // 真实已发生节点和非投放状态；原阶段累计包含待定跑量。

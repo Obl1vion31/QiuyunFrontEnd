@@ -1,3 +1,4 @@
+import {preparePromotionEditor,registerPromotionEditor} from './promotion-editor-lifecycle';
 import { businessConfirm } from './business-dialog';
 let popup: HTMLFormElement | null = null;
 let source: HTMLFormElement | null = null;
@@ -5,9 +6,11 @@ let opener: HTMLButtonElement | null = null;
 const position = () => { if (!popup || !opener)
     return; const r = opener.getBoundingClientRect(); popup.style.left = `${Math.max(12, Math.min(r.left, innerWidth - 332))}px`; popup.style.top = `${Math.max(12, Math.min(r.bottom + 8, innerHeight - popup.offsetHeight - 12))}px`; };
 async function close() { if (popup?.dataset.dirty === 'true' && !await businessConfirm('笔记 ID 尚未确认，是否放弃此次输入？', { title: '保留 ID 输入', confirmLabel: '放弃输入', cancelLabel: '继续编辑' }))
-    return; popup?.remove(); popup = null; opener?.focus({ preventScroll: true }); opener?.setAttribute('aria-expanded', 'false'); document.documentElement.dataset.unsaved = String(!!document.querySelector('form[data-dirty=true]')); }
+    return false; popup?.remove(); popup = null; opener?.focus({ preventScroll: true }); opener?.setAttribute('aria-expanded', 'false'); document.documentElement.dataset.unsaved = String(!!document.querySelector('form[data-dirty=true]')); return true; }
 export const dismissNoteId = () => close();
-export function openNoteId(form: HTMLFormElement, errorMessage = '') {
+registerPromotionEditor('note',close);
+export async function openNoteId(form: HTMLFormElement, errorMessage = '') {
+    if(!await preparePromotionEditor('note'))return;
     if (popup) {
         if (source === form) {
             popup.querySelector('input')?.focus();

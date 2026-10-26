@@ -2,7 +2,7 @@
 :is(#daily-table,[data-pending-review-pane]) [hidden],.review-state-bubble[hidden]{display:none!important}
 .promotion-pending-content{container:review-queue/inline-size;min-width:0;background:#fff;--review-name-width:112px}
 .review-entry-scroll{min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
-.review-entry-grid{--review-spend-width:96px;box-sizing:border-box;display:grid;grid-template-columns:84px var(--review-name-width,112px) 96px minmax(var(--review-spend-width),1.1fr) repeat(4,minmax(80px,1fr)) minmax(128px,1.6fr) minmax(132px,1.6fr) 80px;column-gap:clamp(6px,calc(6px + (100cqw - 1132px)*.014),10px);align-items:center;padding:0 12px;min-width:calc(1020px + var(--review-name-width,112px));width:100%}
+.review-entry-grid{--review-spend-width:96px;box-sizing:border-box;display:grid;grid-template-columns:84px var(--review-name-width,112px) 96px minmax(var(--review-spend-width),1.1fr) repeat(4,minmax(80px,1fr)) minmax(128px,1.6fr) minmax(192px,1.6fr) 80px;column-gap:clamp(6px,calc(6px + (100cqw - 1192px)*.014),10px);align-items:center;padding:0 12px;min-width:calc(1080px + var(--review-name-width,112px));width:100%}
 .review-entry-head{height:36px;border-block:1px solid var(--console-line);background:#fafbfc;color:var(--console-muted);font:400 12px/18px var(--console-font);white-space:nowrap}
 .review-entry-head>span:nth-child(n+4):nth-child(-n+8){text-align:right;padding-right:8px}.review-entry-head>span:first-child,.review-entry-head>span:nth-child(3){text-align:center}.review-entry-head>span:nth-child(2){padding-left:8px}
 .review-record{min-width:0}.review-metric-row{position:relative;min-height:72px;margin:0;border:0;border-bottom:1px solid var(--console-line);background:#fff;--day-color:#D49A12;--day-soft:#fff8df;--day-ink:#795b0d;font:400 14px/22px var(--console-font)}
@@ -45,3 +45,13 @@
 .review-version-line{display:flex;align-items:center;gap:6px;min-width:0}.review-version-line small{min-width:0}.review-note-trigger{flex:none;border:0;background:transparent;color:var(--console-blue);padding:0 2px;font:400 12px/20px var(--console-font);cursor:pointer}.review-note-trigger:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}.review-note-bubble{width:320px}.review-note-bubble input{width:100%;box-sizing:border-box;height:40px;padding:8px;border:1px solid #d2d9e4;border-radius:6px;font:400 14px/22px var(--console-font)}.review-note-hint{margin:0;color:var(--console-muted);font-size:12px}.review-note-bubble output{font-size:13px;color:#913c35}.review-note-bubble output:empty{display:none}
 
 .pending-heading .business-section-header__end{display:flex;align-items:center;gap:12px}.pending-heading [data-save-all]{min-height:36px;box-sizing:border-box;padding:6px 12px;border:1px solid #244fc8;border-radius:6px;background:linear-gradient(#4272e3,#315fd6);box-shadow:0 1px 2px #2449a328,inset 0 1px #ffffff30;color:#fff;font:500 13px/22px var(--console-font);cursor:pointer;white-space:nowrap}.pending-heading [data-save-all]:disabled{opacity:.5;cursor:default}
+
+/* 例会安排同一行展示结果、来源与动作。 */
+.review-meeting-arrangement{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;min-height:40px;white-space:nowrap}
+.review-meeting-arrangement>[data-meeting-result]{font:400 14px/22px var(--console-font);color:var(--console-ink)}
+.review-meeting-source{display:inline-flex;align-items:center;min-height:40px;font:400 12px/20px var(--console-font);color:var(--console-muted);text-decoration:none}
+.review-meeting-edit{display:inline-flex;align-items:center;justify-content:center;min-height:40px;min-width:40px;box-sizing:border-box;padding:0 4px;border:0;background:transparent;color:var(--console-blue);font:400 13px/22px var(--console-font);cursor:pointer}
+.review-meeting-source:hover{text-decoration:underline;color:var(--console-blue)}.review-meeting-edit:hover{text-decoration:underline}
+:is(.review-meeting-source,.review-meeting-edit):focus-visible{outline:2px solid var(--console-blue);outline-offset:3px;border-radius:2px}
+.review-arrangement-bubble output{display:block}.review-arrangement-bubble [data-meeting-refresh][hidden],.review-arrangement-bubble [data-meeting-again][hidden]{display:none}
+@media(max-width:600px){.review-entry-grid{grid-template-columns:84px var(--review-name-width,112px) 96px minmax(var(--review-spend-width),1.1fr) repeat(4,minmax(80px,1fr)) minmax(128px,1.6fr) 192px 72px;padding-inline:6px;min-width:calc(1068px + var(--review-name-width,112px))}.review-entry-scroll .review-date-block{position:static}}

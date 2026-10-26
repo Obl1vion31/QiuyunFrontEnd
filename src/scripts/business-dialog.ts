@@ -39,7 +39,7 @@ window.__businessHistoryPop=event=>{
   if(restoringHistory){restoringHistory=false;event.stopImmediatePropagation();return true;}
   const pane=document.querySelector<HTMLElement>('[data-inspector-ready=true]');
   const localOnly=()=>{
-    if(!pane?.dataset.inspectorParameter)return false;
+    if(!pane?.dataset.inspectorParameter||document.querySelector('[data-meeting-change-form][data-dirty=true]'))return false;
     // 只读详情选择可保留页内草稿；已打开的编辑弹层仍由原离开保护接管。
     if(document.querySelector('dialog[open]:not([data-business-confirm])'))return false;
     const previous=new URL(historyLocation),next=new URL(destination);
@@ -57,11 +57,11 @@ window.__businessHistoryPop=event=>{
     restoringHistory=true;history.go(distance);
     // history.go 异步恢复地址；确认完成前不触发页面或详情切换。
     void businessConfirm('有尚未保存的修改，是否放弃？').then(accepted=>{
-      if(!accepted)return;document.documentElement.dataset.unsaved='false';if(pane)pane.dataset.dirty='false';history.go(-distance);
+      if(!accepted)return;document.dispatchEvent(new Event('business:navigation-discard'));document.documentElement.dataset.unsaved='false';if(pane)pane.dataset.dirty='false';history.go(-distance);
     });
   }else{
     pushHistory({...history.state,businessPosition:historyPosition},'',historyLocation);
-    void businessConfirm('有尚未保存的修改，是否放弃？').then(accepted=>{if(accepted){document.documentElement.dataset.unsaved='false';if(pane)pane.dataset.dirty='false';void navigate(destination.href,{history:'replace'});}});
+    void businessConfirm('有尚未保存的修改，是否放弃？').then(accepted=>{if(accepted){document.dispatchEvent(new Event('business:navigation-discard'));document.documentElement.dataset.unsaved='false';if(pane)pane.dataset.dirty='false';void navigate(destination.href,{history:'replace'});}});
   }
   return true;
 };
@@ -124,12 +124,12 @@ document.addEventListener('click',async event=>{
   const link=(event.target as Element).closest<HTMLAnchorElement>('a[href]');
   if(!link||link.target==='_blank'||link.hasAttribute('download')||link.hasAttribute('data-inspector-key')||link.hasAttribute('data-close-inspector'))return;
   event.preventDefault();event.stopImmediatePropagation();
-  if(await businessConfirm('有尚未保存的修改，是否放弃？')){document.documentElement.dataset.unsaved='false';void navigate(link.href);}
+  if(await businessConfirm('有尚未保存的修改，是否放弃？')){document.dispatchEvent(new Event('business:navigation-discard'));document.documentElement.dataset.unsaved='false';void navigate(link.href);}
 },true);
 document.addEventListener('submit',async event=>{
   const form=event.target;
   if(!(form instanceof HTMLFormElement)||form.getAttribute('method')?.toLowerCase()!=='get'||document.documentElement.dataset.unsaved!=='true'||document.querySelector('[data-inspector][data-dirty=true]'))return;
   event.preventDefault();event.stopImmediatePropagation();
-  if(await businessConfirm('有尚未保存的修改，是否放弃？')){document.documentElement.dataset.unsaved='false';form.requestSubmit();}
+  if(await businessConfirm('有尚未保存的修改，是否放弃？')){document.dispatchEvent(new Event('business:navigation-discard'));document.documentElement.dataset.unsaved='false';form.requestSubmit();}
 },true);
 window.addEventListener('beforeunload',event=>{if(document.documentElement.dataset.unsaved==='true')event.preventDefault();});

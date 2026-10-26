@@ -1,4 +1,6 @@
-import {openNoteId,dismissNoteId} from './promotion-note-id';
+import {openNoteId} from './promotion-note-id';
+import {guardMeetingDecisionSubmission,discardMeetingDecision} from './meeting-decision';
+import {preparePromotionEditor,registerPromotionEditor} from './promotion-editor-lifecycle';
 import {readBusiness} from './business-read';
 import {getInspector} from './business-inspector';
 import {businessConfirm} from './business-dialog';
@@ -41,12 +43,12 @@ function updateBubble(state:StateDraft){
  setUnsaved();
 }
 async function openStateBubble(owner:HTMLFormElement){
- if(document.querySelector('.review-note-bubble')){await dismissNoteId();if(document.querySelector('.review-note-bubble'))return;}
+ if(!await preparePromotionEditor('state'))return;
  const key=formKey(owner),trigger=owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;
- for(const state of stateDrafts.values())if(state.key!==key)state.form.hidden=true;
+ for(const state of stateDrafts.values())if(state.key!==key&&!state.form.hidden&&!await dismissStateBubble(state))return;
  let state=stateDrafts.get(key);
  if(state?.saved){state.form.remove();stateDrafts.delete(key);state=undefined;}
- if(state){state.owner=owner;state.trigger=trigger;state.form.hidden=!state.form.hidden;trigger.setAttribute('aria-expanded',String(!state.form.hidden));if(!state.form.hidden){positionBubble(state);state.form.querySelector<HTMLSelectElement>('select')?.focus({preventScroll:true});}return;}
+ if(state){state.owner=owner;state.trigger=trigger;if(!state.form.hidden){await dismissStateBubble(state);return;}state.form.hidden=false;trigger.setAttribute('aria-expanded',String(!state.form.hidden));if(!state.form.hidden){positionBubble(state);state.form.querySelector<HTMLSelectElement>('select')?.focus({preventScroll:true});}return;}
  const form=document.createElement('form');form.className='business-form review-state-bubble';form.dataset.dayStateForm=key;form.setAttribute('aria-label','修改当日状态');
  const header=document.createElement('header'),heading=document.createElement('strong'),close=document.createElement('button');heading.textContent='修改当日状态';close.type='button';close.className='review-state-close';close.setAttribute('aria-label','关闭状态气泡');close.textContent='×';header.append(heading,close);
  const body=document.createElement('div');body.className='review-bubble-body';
@@ -58,9 +60,9 @@ async function openStateBubble(owner:HTMLFormElement){
  const footer=document.createElement('footer'),cancel=document.createElement('button'),submit=document.createElement('button');cancel.type='button';cancel.dataset.stateCancel='';cancel.className='business-action-secondary';cancel.textContent='取消';submit.type='submit';submit.className='business-action-primary';submit.textContent='保存变更';const again=document.createElement('button');again.type='button';again.className='business-action-secondary';again.dataset.stateAgain='';again.textContent='再次修改';again.hidden=true;footer.append(cancel,again,submit);form.append(header,body,footer);document.body.append(form);
  const current:StateDraft={key,form,owner,trigger,original,target:'',reason:'',saved:false,busy:false,requestKey:randomRequestKey()};stateDrafts.set(key,current);
  again.addEventListener('click',()=>{const owner=current.owner;current.form.remove();stateDrafts.delete(key);openStateBubble(owner);});
- close.addEventListener('click',()=>hideBubble(current));
- cancel.addEventListener('click',()=>{if(current.busy)return;if(!current.saved){current.target='';current.reason='';select.value='';reason.value='';updateBubble(current);}hideBubble(current);});
- form.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();hideBubble(current);}});
+ close.addEventListener('click',()=>void dismissStateBubble(current));
+ cancel.addEventListener('click',()=>void dismissStateBubble(current));
+ form.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();void dismissStateBubble(current);}});
  const changed=()=>{current.target=select.value;current.reason=reason.value;message.textContent='';updateBubble(current);};form.addEventListener('input',changed);form.addEventListener('change',changed);
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(current.busy||current.saved||!form.reportValidity())return;current.busy=true;updateBubble(current);message.textContent='正在保存…';
@@ -76,8 +78,13 @@ async function openStateBubble(owner:HTMLFormElement){
   }catch{message.textContent=current.saved?'状态已保存，列表更新失败，可关闭后重试刷新。':'连接失败，输入已保留。';}finally{current.busy=false;updateBubble(current);}
  });updateBubble(current);trigger.setAttribute('aria-expanded','true');positionBubble(current);select.focus({preventScroll:true});
 }
-document.addEventListener('business:note-id-open',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)hideBubble(state);});
-window.addEventListener('keydown',event=>{if(event.key!=='Escape'||document.querySelector('dialog[open]'))return;const state=[...stateDrafts.values()].find(state=>!state.form.hidden);if(!state)return;event.preventDefault();event.stopImmediatePropagation();hideBubble(state);},{capture:true});
+async function dismissStateBubble(state:StateDraft){
+ if(state.busy)return false;
+ if(!state.saved&&(state.target||state.reason)&&!await businessConfirm('当日状态修改尚未保存，是否放弃？'))return false;
+ if(!state.saved){state.target='';state.reason='';updateBubble(state);}hideBubble(state);state.form.remove();stateDrafts.delete(state.key);setUnsaved();return true;
+}
+registerPromotionEditor('state',async()=>{for(const state of stateDrafts.values())if(!state.form.hidden&&!await dismissStateBubble(state))return false;return true;});
+window.addEventListener('keydown',event=>{if(event.key!=='Escape'||document.querySelector('dialog[open]'))return;const state=[...stateDrafts.values()].find(state=>!state.form.hidden);if(!state)return;event.preventDefault();event.stopImmediatePropagation();void dismissStateBubble(state);},{capture:true});
 window.addEventListener('resize',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)positionBubble(state);});
 window.addEventListener('scroll',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)positionBubble(state);},true);
 document.addEventListener('astro:before-swap',()=>{for(const state of stateDrafts.values())state.form.remove();stateDrafts.clear();});
@@ -119,7 +126,7 @@ function initialize(){
    sync(state);
   });
   form.addEventListener('submit',async event=>{
-   event.preventDefault();if(state.busy)return;
+   event.preventDefault();if(state.busy||!await guardMeetingDecisionSubmission([form]))return;
    const pending=stateDrafts.get(key);if(pending&&!pending.saved&&(pending.target||pending.reason)){state.message='请先保存或取消当日状态变更。';sync(state);pending.form.hidden=false;positionBubble(pending);return;}
    const note=form.querySelector<HTMLInputElement>('[data-note-id-required]');
    if(note&&!/^[0-9a-fA-F]{24}$/.test(note.value.trim())){
@@ -150,6 +157,7 @@ function initialize(){
   const forms=[...document.querySelectorAll<HTMLFormElement>('#daily-table [data-review-container="ready"] [data-metric-form]')];
   if(!forms.length||forms.some(form=>drafts.get(formKey(form))?.busy))return;
   let invalid=false;
+  if(!await guardMeetingDecisionSubmission(forms))return;
   for(const form of forms){const draft=drafts.get(formKey(form))!;const state=stateDrafts.get(formKey(form));
    if(state&&!state.saved&&(state.target||state.reason)){draft.message='请先保存或取消当日状态变更。';sync(draft);if(!invalid){state.form.hidden=false;positionBubble(state);}invalid=true;continue;}
    const note=draft.values.platformNoteId??'';
@@ -179,7 +187,7 @@ function initialize(){
 
  // 内容列依据实际字体测量，同时限制最大宽度，所有行使用相同锚点。
  const host=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
- const measureNames=()=>{if(host?.isConnected){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(ctx){let width=112;for(const name of host.querySelectorAll<HTMLElement>('.review-entry-identity strong')){ctx.font=getComputedStyle(name).font;width=Math.max(width,Math.ceil(ctx.measureText(name.textContent??'').width)+16);}host.style.setProperty('--review-name-width',`${Math.min(176,Math.max(112,host.clientWidth-1020),width)}px`);}}};measureNames();void document.fonts.ready.then(measureNames);if(host&&!host.dataset.nameMeasureReady){host.dataset.nameMeasureReady='true';const observer=new ResizeObserver(measureNames);observer.observe(host);document.addEventListener('astro:before-swap',()=>observer.disconnect(),{once:true});}
+ const measureNames=()=>{if(host?.isConnected){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(ctx){let width=112;for(const name of host.querySelectorAll<HTMLElement>('.review-entry-identity strong')){ctx.font=getComputedStyle(name).font;width=Math.max(width,Math.ceil(ctx.measureText(name.textContent??'').width)+16);}host.style.setProperty('--review-name-width',`${Math.min(176,Math.max(112,host.clientWidth-1080),width)}px`);}}};measureNames();void document.fonts.ready.then(measureNames);if(host&&!host.dataset.nameMeasureReady){host.dataset.nameMeasureReady='true';const observer=new ResizeObserver(measureNames);observer.observe(host);document.addEventListener('astro:before-swap',()=>observer.disconnect(),{once:true});}
  document.querySelectorAll<HTMLFormElement>('[data-history-mode-form]:not([data-ready])').forEach(form=>{form.dataset.ready='true';form.addEventListener('change',()=>form.requestSubmit());});
  if(!pane)return;
  // 公共模板负责开合，业务适配器仅提供同一草稿的另一份视图。
@@ -199,7 +207,7 @@ function initialize(){
  const listeners=new AbortController();document.addEventListener('astro:before-swap',()=>listeners.abort(),{once:true});
  document.addEventListener('business:promotion-arrangement-saving',event=>{const {scheduleId}=(event as CustomEvent).detail;if(getInspector(pane).selected?.startsWith(`review:${scheduleId}:`))getInspector(pane).setClean();},{signal:listeners.signal});
  document.addEventListener('business:promotion-arrangement-saved',event=>{const {scheduleId}=(event as CustomEvent).detail;const controller=getInspector(pane);if(!controller.selected?.startsWith(`review:${scheduleId}:`))return;const template=document.querySelector<HTMLTemplateElement>(`template[data-history-schedule="${CSS.escape(scheduleId)}"]`);if(template){controller.setClean();controller.open(template.dataset.inspectorTemplate!,null,true);}},{signal:listeners.signal});
- getInspector(pane).configure({discard:()=>{restore?.();document.dispatchEvent(new Event('business:promotion-draft-restored'));}});
+ getInspector(pane).configure({discard:()=>{discardMeetingDecision(pane);restore?.();document.dispatchEvent(new Event('business:promotion-draft-restored'));}});
  pane.addEventListener('business:inspector-render',()=>{
   restore=undefined;
   const slot=pane.querySelector<HTMLElement>('[data-pending-review-pane]');if(!slot)return;
