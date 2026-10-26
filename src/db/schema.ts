@@ -684,6 +684,7 @@ export interface WeeklyMeetingDraft {
   temporaryNotes?: string;
   temporaryLinks?: Array<{ label: string; url: string }>;
   attachmentIds?: string[];
+  nonPromotionNotes?: Record<string,string>;
   coreConclusion: string;
   nextAction: string;
   promotionInputs: Record<string, { confirmed?:boolean; rateRange?:{from:string;through:string}|null; rateNeedsReview?:boolean; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
@@ -718,6 +719,12 @@ export const operationsReviewMeeting = pgTable(
 );
 
 export const operationsReviewMeetingVersion = pgTable('operations_review_meeting_version', {
+  sourceVersionId: uuid('source_version_id'),
+  versionKind: text('version_kind').notNull().default('finalization'),
+  invalidatedAt: timestamp('invalidated_at', { withTimezone: true }),
+  invalidatedByVersionId: uuid('invalidated_by_version_id'),
+  businessEffects: jsonb('business_effects').$type<Array<Record<string, any>>>(),
+  pdfFingerprint: text('pdf_fingerprint'),
   pdfStatus: text('pdf_status'),
   pdfStartedAt: timestamp('pdf_started_at', { withTimezone: true }),
   id: uuid('id').defaultRandom().primaryKey(),
@@ -912,6 +919,7 @@ export const operationsPromotionStageReviewVersion = pgTable('operations_promoti
 
 /** 图片私有存储，仅经登录保护接口读取；不将二进制加载进例会列表。 */
 export const operationsMeetingAttachment = pgTable('operations_meeting_attachment', {
+  renderFingerprint: text('render_fingerprint'),
   meetingVersionId: uuid('meeting_version_id').references(() => operationsReviewMeetingVersion.id, { onDelete: 'restrict' }),
   source: text('source').notNull().default('image'),
   id: uuid('id').defaultRandom().primaryKey(),

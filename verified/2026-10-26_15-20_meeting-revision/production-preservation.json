@@ -1,0 +1,32 @@
+{
+  "migration": "0039_meeting_version_revisions",
+  "readOnly": true,
+  "checks": [
+    {
+      "table": "operations_review_meeting_version",
+      "oldRecords": 3,
+      "preserved": true
+    },
+    {
+      "table": "operations_promotion_daily_metric",
+      "oldRecords": 264,
+      "preserved": true
+    },
+    {
+      "table": "operations_content_performance_metric",
+      "oldRecords": 57,
+      "preserved": true
+    },
+    {
+      "table": "operations_non_promotion_review",
+      "oldRecords": 57,
+      "preserved": true
+    },
+    {
+      "table": "operations_review_action_item",
+      "oldRecords": 1,
+      "preserved": true
+    }
+  ],
+  "checkedAt": "2026-10-26T07:22:14.296Z"
+}

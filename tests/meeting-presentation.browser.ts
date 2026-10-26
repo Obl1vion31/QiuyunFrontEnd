@@ -1,6 +1,7 @@
+import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 /** 定稿阅读结构、标题资料与冻结边界；仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {eq} from 'drizzle-orm';
 import {startFixture,employee} from './auth.fixture';
@@ -46,7 +47,7 @@ try{
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});
  await context.addCookies(cookie.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:baseURL})));
  await context.route('https://example.test/**',(r:any)=>r.fulfill({contentType:'text/html',body:'<h1>隔离项目资料</h1>'}));
- const page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
+ const page=await context.newPage();await page.clock.install({time:new Date(await readFile(clockFile,'utf8'))});page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
  const nav=async(path:string)=>{await page.evaluate(()=>document.documentElement.dataset.unsaved='false').catch(()=>{});await page.goto(baseURL+path);await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);};
  const card=(post:typeof posts[number])=>page.locator(`[data-weekly-promotion^="${selected.find((r:any)=>r.scheduleId===post.schedule.id).campaignId}:"]`);
  const shot=async(name:string)=>{await page.screenshot({path:folder+'/'+name+'.png',fullPage:false});};
@@ -97,7 +98,7 @@ try{
  assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,pre.id)))[0].snapshot),beforeSnapshot);
  checks.push('四档桌面三列/两列同行等高；冻结指标无录入控件、长观察完整；汇总包含未选入阶段的真实跑量；历史内容保留；两类资料实时读取且快照/指纹不变');
  [record]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));
- await api('/api/meeting-reviews/'+id,{action:'finalize_post',draft:record.draftSnapshot,expectedUpdatedAt:record.updatedAt.toISOString()});
+ await api('/api/meeting-reviews/'+id,{action:'finalize_version',sourceVersionId:pre.id,discussion:discussionFromDraft(record.draftSnapshot),expectedUpdatedAt:record.updatedAt.toISOString()});
  await writeFile(clockFile,'2026-10-27T18:00:00+08:00');await nav('/business/meeting-review?meeting='+id+'&version=1');
  assert.match(await card(posts[0]).innerText(),/已定安排/);assert.match(await card(posts[0]).innerText(),/2026-10-25/);assert.doesNotMatch(await card(posts[0]).innerText(),/2026-10-28/);
  assert.match(await page.locator('.weekly-next-action').innerText(),/2026-10-25/);assert.equal((await db.select().from(s.operationsReviewActionItem)).length,1);

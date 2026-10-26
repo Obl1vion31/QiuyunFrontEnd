@@ -1,3 +1,4 @@
+import {reviseMeetingVersion,persistMeetingIssues} from '../../../db/meeting-version-workflow';
 import {discussionSchema,mergeDiscussion} from '../../../db/meeting-discussion';
 import {freezeRateComparisons} from '../../../db/meeting-rate-comparison';
 import {ensureMeetingPdf} from '../../../db/meeting-pdf';
@@ -19,7 +20,7 @@ import { assembleMeetingSnapshot, meetingDraftSchema } from '../../../db/meeting
 import { lockSchedule, WorkflowError } from '../../../db/schedule-workflow';
 import { workflowErrorResponse } from '../../../db/workflow-api';
 import { getDb } from '../../../db/client';
-import { operationsReviewActionItem, operationsReviewActionProgress, operationsReviewMeeting, operationsReviewMeetingVersion, type WeeklyMeetingDraft } from '../../../db/schema';
+import { operationsReviewMeeting, operationsReviewMeetingVersion, type WeeklyMeetingDraft } from '../../../db/schema';
 
 export const prerender = false;
 
@@ -30,6 +31,11 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   if (!params.id) return Response.json({ message: '缺少会议编号。' }, { status: 400 });
   let payload: { action?: string; draft?: WeeklyMeetingDraft; expectedUpdatedAt?: string; changeSummary?: string;periodStart?:string;periodEnd?:string;sourceVersionId?:string;discussion?:unknown };
   try { payload = await request.json(); } catch { return Response.json({ message: '请求格式无效。' }, { status: 400 }); }
+  if(payload.action==='save_discussion')payload.action='save_version_revision';
+  if(payload.action==='finalize_discussion')payload.action='finalize_version';
+  if(['save_version_revision','finalize_version','rollback_version'].includes(payload.action??'')){
+    try{const result=await reviseMeetingVersion(getDb(),params.id,payload,locals.operationsUser||'unknown');let pdfStatus:string|undefined;if(result.stage==='post')pdfStatus=(await ensureMeetingPdf(getDb(),result.versionId,locals.operationsUser||'unknown')).status;return Response.json({ok:true,...result,pdfStatus});}catch(error){return workflowErrorResponse(error);}
+  }
   const parsed = meetingDraftSchema.safeParse(payload.draft ?? emptyDraft);
   if (!parsed.success) return Response.json({ message: parsed.error.issues[0].message }, { status: 422 });
   let draft:WeeklyMeetingDraft = parsed.data;
@@ -53,6 +59,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        baseline=structuredClone(source.snapshot);
        draft=mergeDiscussion(baseline,discussion!.data!,source.id);
       }
+      if(meeting.status==='completed'&&!discussionMode)throw new WorkflowError('请通过最新版本的编辑模式保存修订。',422);
       if(draft.workflowVersion===5)draft.hasRevisionDraft=(payload.action==='save'||payload.action==='save_discussion')&&meeting.status==='completed';
       if(meeting.draftSnapshot.workflowVersion===5&&draft.workflowVersion!==5)throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
       if (payload.expectedUpdatedAt && payload.expectedUpdatedAt !== meeting.updatedAt.toISOString()) throw new WorkflowError('会议已被更新，请刷新后再保存。');
@@ -123,22 +130,9 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if(draft.issues.some(i=>!i.problem.trim()))throw new WorkflowError('请补充事项的问题，或删除该新增行。',422);
       const versionNumber = meeting.status === 'completed' ? meeting.currentVersionNumber + 1 : 0;
       const [frozenVersion]=await transaction.insert(operationsReviewMeetingVersion).values({ pdfStatus:stage==='post'?'pending':null, meetingId: meeting.id, versionNumber, snapshot: snapshot as unknown as Record<string, unknown>, changeSummary: payload.changeSummary?.trim() || (stage==='pre'?'会前定稿':stage==='post'?'会后定稿':versionNumber?'更正例会复盘':'首次定稿'), finalizedByLabel: locals.operationsUser || 'unknown' }).returning({id:operationsReviewMeetingVersion.id});
-      const persistedIssues: WeeklyMeetingDraft['issues'] = [];
-      for (const issue of stage==='pre'?[]:draft.issues) {
-        let itemId = issue.id;
-        if (itemId) {
-          const [existing] = await transaction.select({ id: operationsReviewActionItem.id }).from(operationsReviewActionItem).where(eq(operationsReviewActionItem.id, itemId)).limit(1);
-          if (!existing) itemId = undefined;
-        }
-        if (!itemId) {
-          const [created] = await transaction.insert(operationsReviewActionItem).values({ problem: issue.problem.trim(), status: issue.status, createdMeetingId: meeting.id, resolvedMeetingId: issue.status === 'resolved' ? meeting.id : null }).returning({ id: operationsReviewActionItem.id });
-          itemId = created.id;
-        } else {
-          await transaction.update(operationsReviewActionItem).set({ problem: issue.problem.trim(), status: issue.status, resolvedMeetingId: issue.status === 'resolved' ? meeting.id : null, updatedAt: new Date() }).where(eq(operationsReviewActionItem.id, itemId));
-        }
-        await transaction.insert(operationsReviewActionProgress).values({ itemId, meetingId: meeting.id, conclusion: issue.conclusion.trim() || '本周暂无新进展', statusSnapshot: issue.status, recordedByLabel: locals.operationsUser || 'unknown' }).onConflictDoUpdate({ target: [operationsReviewActionProgress.itemId, operationsReviewActionProgress.meetingId], set: { conclusion: issue.conclusion.trim() || '本周暂无新进展', statusSnapshot: issue.status, recordedByLabel: locals.operationsUser || 'unknown' } });
-        persistedIssues.push({ ...issue, id: itemId });
-      }
+      const issueResult=stage==='pre'?{persisted:draft.issues,effects:[]}:await persistMeetingIssues(transaction,meeting.id,draft.issues,[],locals.operationsUser||'unknown');
+      const persistedIssues=issueResult.persisted;
+      await transaction.update(operationsReviewMeetingVersion).set({businessEffects:issueResult.effects}).where(eq(operationsReviewMeetingVersion.id,frozenVersion.id));
       await transaction.update(operationsReviewMeeting).set({ ...meetingUpdate,status: 'completed', currentVersionNumber: versionNumber, draftSnapshot: { ...draft, issues: stage==='pre'?draft.issues:persistedIssues }, finalizedAt: new Date(), updatedAt }).where(and(eq(operationsReviewMeeting.id, meeting.id)));
       return { versionNumber,versionId:frozenVersion.id, updatedAt: updatedAt.toISOString() };
     },{isolationLevel:'repeatable read'});

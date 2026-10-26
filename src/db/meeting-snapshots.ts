@@ -38,7 +38,7 @@ export async function readMeetingMaterial(db: Database, meeting: typeof meetings
   ]);
   const previousCounts = new Map<string, number>();
   for (const m of meetingRows.filter(m => m.status === 'completed' && m.id !== meeting.id)) {
-    const v = priorVersions.find(v => v.meetingId === m.id && v.versionNumber === m.currentVersionNumber);
+    const v = priorVersions.find(v => !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber);
     const selected = ((v?.snapshot as any)?.generated?.nonPromotions ?? []) as Array<{ scheduleId: string; checkpointType?: string; checkpoint?: number }>;
     for (const row of selected) { const key = `${row.scheduleId}:${row.checkpointType ?? `day_${row.checkpoint}`}`; previousCounts.set(key, (previousCounts.get(key) ?? 0) + 1); }
   }

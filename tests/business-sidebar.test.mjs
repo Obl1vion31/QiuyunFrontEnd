@@ -26,8 +26,10 @@ test('控制台壳层集中装配侧栏并提供统一视觉变量', async () =>
   const source = await readFile(new URL('../src/components/BusinessConsoleFrame.astro', import.meta.url), 'utf8');
   assert.match(source, /<BusinessConsoleSidebar active=/);
   assert.match(source, /class="app-shell business-console-frame"/);
-  assert.match(source, /--console-canvas:/);
-  assert.match(source, /--console-blue:/);
+  const tokens=await readFile(new URL('../src/styles/business-tokens.css',import.meta.url),'utf8');
+  assert.match(source,/business-tokens\.css/);
+  assert.match(tokens, /--console-canvas:/);
+  assert.match(tokens, /--console-blue:/);
   assert.match(source, /\.business-console-frame\{width:100%;font-family:var\(--console-font\)/);
   assert.match(source, /\.business-console-workspace\{width:100%;min-width:0/);
 });

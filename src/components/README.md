@@ -85,5 +85,5 @@ ContentTunnel.module.css
 
 `WeeklyReviewCards` 共用标题、版本与16px SVG资料图标；非推广已填／待填在同一网格按发布时间排列。推广数据区间取参与当前卡汇总的非零事实边界，明细保留零值和冻结的当日状态；点击率区间变化保留原值并待重新确认。`BusinessWeeklyMeeting` 在现有Toolbar更新自动标题预览，事项使用稳定的本地行键、半填草稿和仅新增行移除；不复制公共标题或新增详情控制器。
 
-- `WeeklyMeetingPresentation.tsx`：冻结阅读布局；`BusinessMeetingDiscussion.tsx`：最新会前版的正文内联讨论、保存和会后定稿；`MeetingDiscussionText.tsx`：共用正文编辑入口。
+- `WeeklyMeetingPresentation.tsx`：冻结阅读布局；`BusinessMeetingDiscussion.tsx`：最新有效版本的模式切换、追加修订、限时回溯和会后定稿；`MeetingDiscussionText.tsx`：共用正文编辑入口。
 - `MeetingPdfArchive.tsx`：当前版本、总览与历史共用的私有PDF查看、下载、生成重试和补充上传。

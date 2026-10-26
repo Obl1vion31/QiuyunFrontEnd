@@ -11,6 +11,34 @@ export function rateComparison(samples:RateSample[],asOf:string):RateComparison{
 export function rateDifference(value:number|null|undefined,comparison:RateComparison|undefined,field:'clickRate'|'threeSecondReadRate'='clickRate'){
  const mean=comparison?.[field];return value==null||mean==null||comparison!.n<2?null:value-mean;
 }
+
+/** 旧定稿仅从自身冻结样本补展示，不读取实时业务，也不修改传入快照。 */
+export function withFrozenRateComparisons<T extends Record<string,any>>(snapshot:T):T{
+ if(snapshot.schemaVersion!==4)return snapshot;
+ const result=structuredClone(snapshot),generated=result.generated??{},draft=result.draft??{};
+ const asOf=result.meeting?.periodEnd??draft.materialSnapshot?.periodEnd;
+ if(!asOf)return result;
+ generated.promotions=(generated.promotions??[]).map((row:any)=>{
+  if(row.rateComparison)return row;
+  const samples:RateSample[]=[...(row.rateSamples??[])];
+  for(const peer of generated.promotions??[]){
+   if(peer.subjectId!==row.subjectId||peer.categoryId!==row.categoryId||peer.stageType!==row.stageType)continue;
+   const input=draft.promotionInputs?.[peer.key],range=cardDataRange(peer);
+   if(input?.confirmed!==false&&input?.clickRate!=null&&!input.rateNeedsReview&&range&&(input.rateRange===undefined||sameDataRange(input.rateRange,range)))samples.push({key:peer.originKey??peer.key,clickRate:input.clickRate,through:range.through});
+  }
+  return {...row,rateComparison:rateComparison(samples,asOf)};
+ });
+ generated.nonPromotions=(generated.nonPromotions??[]).map((row:any)=>{
+  if(row.rateComparison)return row;
+  const samples:RateSample[]=[...(row.historical?.samples??[]),...(row.peers?.samples??[])].map((s:any)=>({...s,through:s.recordedThrough??s.through}));
+  for(const peer of generated.nonPromotions??[]){
+   if(peer.subjectId!==row.subjectId||peer.categoryId!==row.categoryId||peer.checkpointType!==row.checkpointType||peer.clickRate==null||peer.threeSecondReadRate==null)continue;
+   samples.push({key:peer.key,clickRate:peer.clickRate,threeSecondReadRate:peer.threeSecondReadRate,through:peer.recordedThrough});
+  }
+  return {...row,rateComparison:rateComparison(samples,asOf)};
+ });
+ return result;
+}
 export function promotionRateComparison(row:any,input:WeeklyMeetingDraft['promotionInputs'][string]|undefined):RateComparison|undefined{
  if(row.rateComparison)return row.rateComparison;
  if(!row.rateSamples)return undefined;
