@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "8f53a63",
+  "featureCommit": "ed932c5",
+  "deploymentId": "dpl_CwoW42dpYjogGjGXczA3voxfXfpW",
+  "deploymentUrl": "https://qiuyun-frontend-qacndk63x-opgobl1v-5358.vercel.app",
+  "formalOrigin": "https://qiuyun-frontend.vercel.app",
+  "status": "published_verified",
+  "ruleTests": 206,
+  "publicChecks": 95,
+  "matchingStaticAssets": 61,
+  "desktopWidths": [
+    1920,
+    1440,
+    1280,
+    1024
+  ],
+  "productionModes": [
+    "read",
+    "edit",
+    "historical_read",
+    "expired_arrangements"
+  ],
+  "generatedProductionPdf": {
+    "versionNumber": 2,
+    "pages": 3,
+    "bytes": 539233,
+    "originalSnapshotsUnchanged": true
+  },
+  "isolatedPdfPages": 3,
+  "isolatedLongPdfPages": 5,
+  "migration": "0039_meeting_version_revisions",
+  "privateBackupPrepared": true,
+  "fictionalProductionBusinessWrites": false,
+  "mainMerged": false,
+  "privateArtifacts": ".tools/test-artifacts/meeting-discussion/",
+  "checkedAt": "2026-10-26T12:04:12.420539+00:00"
+}
