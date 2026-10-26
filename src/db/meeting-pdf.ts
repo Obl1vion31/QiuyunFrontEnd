@@ -7,7 +7,7 @@ import {WorkflowError} from './schedule-workflow';
 export async function ensureMeetingPdf(db:Database,versionId:string,actor:string,render?:(snapshot:any,versionNumber:number)=>Promise<Buffer>){
  const [version]=await db.select().from(versions).where(eq(versions.id,versionId));
  if(!version||version.lifecycleStatus==='draft'||(version.snapshot as any).finalizationStage!=='post')throw new WorkflowError('只有会后定稿可生成PDF。',422);
- const fingerprint=createHash('sha256').update('meeting-html-landscape-v3:'+!!version.invalidatedAt+':'+JSON.stringify(version.snapshot)).digest('hex');
+ const fingerprint=createHash('sha256').update('meeting-html-landscape-v4:'+!!version.invalidatedAt+':'+JSON.stringify(version.snapshot)).digest('hex');
  const [existing]=await db.select({id:attachments.id,renderFingerprint:attachments.renderFingerprint}).from(attachments).where(and(eq(attachments.meetingVersionId,versionId),eq(attachments.source,'generated')));
  if(existing?.renderFingerprint===fingerprint)return {status:'ready',id:existing.id};
  const startedAt=new Date();

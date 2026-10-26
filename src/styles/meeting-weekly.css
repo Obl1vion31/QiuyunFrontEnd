@@ -164,7 +164,8 @@
 .weekly-rate-value .weekly-rate-comparison[data-direction=neutral]{color:var(--console-muted)}
 .weekly-stage-card{container-type:inline-size}
 @container (max-width:420px){.weekly-frozen .weekly-stage-card .weekly-metrics:not(.two){grid-template-columns:repeat(2,minmax(0,1fr))}.weekly-metrics:not(.two)>label{grid-column:1/-1}}
-.weekly-issues-editing{min-width:680px}
+@container (max-width:300px){.weekly-frozen .weekly-stage-card .weekly-metrics.two{grid-template-columns:1fr;gap:8px}.weekly-metrics.two>div{grid-template-columns:88px minmax(0,1fr);align-items:baseline}.weekly-metrics.two>div>span{white-space:nowrap}}
+.weekly-issues-editing{min-width:640px}
 .weekly-issues-editing th{text-align:center}
 .weekly-issues-editing td{vertical-align:middle}
 .weekly-issues-editing td:nth-child(n+3){text-align:center}
