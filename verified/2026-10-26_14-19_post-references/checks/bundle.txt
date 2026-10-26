@@ -1,0 +1,1 @@
+{"bundledReact":true,"bundledPdfKit":true,"bundledBuiltinFonts":true,"chinesePdfBytes":128362}
