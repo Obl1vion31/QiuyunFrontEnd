@@ -188,10 +188,10 @@
 
 /* 连续打印以卡片而非整个帖子分区分页；缩排与字号同时适用于浏览器打印。 */
 @media print{
- body{zoom:.9}.weekly-frozen-cards{display:contents}.weekly-section-heading,h2,h3{break-after:auto}.weekly-frozen .weekly-card-grid{break-inside:auto;orphans:1;widows:1}
+ body{zoom:.9}.weekly-frozen-cards{display:contents}h2,h3{break-after:auto}.weekly-section-heading,.weekly-support>h3{break-after:avoid}.weekly-frozen .weekly-card-grid{break-inside:auto;orphans:1;widows:1}
  .weekly-frozen .weekly-stage-card{gap:6px;padding:10px}.weekly-frozen .weekly-metrics{padding:6px 0}.weekly-frozen .weekly-own-history>div{padding-top:4px}
  .weekly-frozen .weekly-decision-result{grid-template-columns:minmax(0,1fr) auto;padding:6px 8px}.weekly-frozen .weekly-decision-result small{grid-column:auto;font-size:11px}
  .weekly-frozen .weekly-summary{padding-bottom:8px}.weekly-frozen .weekly-takeaways{padding-top:8px}
- .weekly-frozen .weekly-card-grid{margin-bottom:12px}.weekly-support{break-inside:avoid}.weekly-support .weekly-writing-grid{margin-bottom:10px;gap:16px}.weekly-support>header{margin-bottom:10px}
+ .weekly-frozen .weekly-card-grid{margin-bottom:12px}.weekly-frozen>.weekly-support{break-inside:avoid}.weekly-support .weekly-writing-grid{margin-bottom:10px;gap:16px}.weekly-support>header{margin-bottom:10px}
  .weekly-support .weekly-table{font-size:12px;line-height:19px}.weekly-support .weekly-table :is(th,td){padding:7px 10px}.weekly-discussion-issues th:nth-child(4){width:95px}
 }
