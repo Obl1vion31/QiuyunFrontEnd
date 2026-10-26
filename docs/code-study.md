@@ -151,6 +151,8 @@ flowchart LR
 
 推广轮次由 `promotion-cycles.mjs` 从已确认复测动作计算，日度以 `sourceStageStartedOn` 记录所属轮次；`promotion-replay.mjs` 分离复测动作与实际状态。例会决定保留可选action，不能把复测压成普通testing；`settings-taxonomy-retest.test.ts` 与浏览器专项覆盖100/30、暂停恢复、次日生效、同日去重及冻结版本。
 
-`WeeklyMeetingPresentation` 共用会前／会后阅读布局，Astro只读包装与 `BusinessMeetingDiscussion` 的 React 编辑入口使用同一组件；`MeetingDiscussionText` 支持正文原位编辑。讨论通过 `save_discussion`／`finalize_discussion` 提交白名单，`meeting-discussion` 在事务内将文字与安排合并到服务端最新会前快照，保留冻结指标和非推广；更新时间防止多窗口覆盖。
+`WeeklyMeetingPresentation` 共用会前／会后阅读、最新版本编辑与打印布局。`BusinessMeetingDiscussion` 监听公共 `BusinessViewSwitch`，默认只读，保存 `save_version_revision` 追加版本，`finalize_version` 发布会后结果。`meeting-version-workflow` 事务锁定来源版本与更新时间，合并白名单、固定生效日、记录事项前后值；`rollback_version` 仅生效日前确认回溯，保留失效版本并创建待重新定稿的会前恢复版本。`meeting-decision-rules` 跳过失效版本与纯文字继承事件，防止重复执行或盖掉日度更正。
 
-`meeting-rate-comparison` 共用百分点计算、同键去重及新快照冻结。`meeting-pdf-render` 用PDFKit和本地Noto静态字体生成版本报告；`meeting-pdf` 在会议事务提交后取得版本租约并私有归档，独立重试入口 `/api/meeting-versions/:id/pdf` 不执行会议业务。`MeetingPdfArchive` 在当前版本、总览和折叠历史中提供同一查看／下载／上传交互。
+`meeting-rate-comparison.withFrozenRateComparisons` 只从旧定稿自身材料补齐缺失比较信息，页面和PDF共用，不查询实时指标或写快照。卡片显示pp和一处样本数。
+
+`meeting-pdf-render.tsx` 将同一React展示组件、共享视觉变量、打印样式及MiSans内联，以本地serverless Chromium打印A4横向三列。禁止外网请求，不复制登录会话；`meeting-pdf` 按内容／模板指纹和版本租约生成，成功替换旧自动文件，独立上传保留。`MeetingPdfArchive` 仅在总览和折叠历史中提供操作。`tests/meeting-discussion.browser.ts` 与 `meeting-version-workflow.test.ts` 覆盖新模式、冻结、期限、回溯和打印流程。

@@ -1,3 +1,4 @@
+import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 /** 正式组件与真实写入接口；全部使用独立 PGlite 和虚构资料。 */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -91,7 +92,7 @@ try {
     assert.equal(await pf.locator('[name=reviewDecision]').inputValue(), 'wait_continue');
     for (const name of ['spend', 'platformOpenCount', 'actualOpenCount', 'platformLeadCount', 'actualLeadCount'])
         assert.equal(await pf.locator(`[name=${name}]`).inputValue(), '0');
-    await pf.locator('[data-note-id-trigger]').click();
+    await pf.locator('[data-reference-trigger]').click();await pf.locator('[data-note-id-trigger]').click();
     const pop = page.locator('.review-note-bubble');
     await pop.waitFor();
     assert.equal(await page.locator('[data-promotion-inspector].is-open').count(), 0);
@@ -139,9 +140,9 @@ try {
     const frozen=JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meetingId)))[0].snapshot);
     assert.ok(JSON.parse(frozen).generated.nonPromotions.some((p:any)=>p.scheduleId===non.schedule.id&&p.comparisonOnly));
     await db.update(s.operationsContentPerformanceMetric).set({clickRate:'9.00',updatedAt:new Date()}).where(eq(s.operationsContentPerformanceMetric.scheduleId,non2.schedule.id));
-    await patch('finalize_post',409);
-    material=(await api(`/api/meeting-reviews/${meetingId}/material?from=2026-10-16&to=2026-10-21`)).material;draft.materialFingerprint=material.fingerprint;
-    const post=await patch('finalize_post');assert.equal(post.versionNumber,1);
+    const source=(await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meetingId)))[0];
+    const post=await api('/api/meeting-reviews/'+meetingId,'PATCH',{action:'finalize_version',sourceVersionId:source.id,discussion:discussionFromDraft(draft),expectedUpdatedAt:stamp});stamp=post.updatedAt;assert.equal(post.versionNumber,1);
+    assert.deepEqual(((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,post.versionId)))[0].snapshot as any).generated.nonPromotions,JSON.parse(frozen).generated.nonPromotions);
     assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meetingId))).find(v=>v.versionNumber===0)!.snapshot),frozen);
     await patch('finalize_pre',422);await nav(`/business/meeting-review?meeting=${meetingId}&version=1`);await page.getByText('旧版补充文字保持可读',{exact:true}).waitFor();
     checks.push('new candidates unselected, paired first-round context, before/after finalization gates, stale source refusal, immutable pre V0 and append-only post V1');

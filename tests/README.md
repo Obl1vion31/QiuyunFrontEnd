@@ -108,4 +108,6 @@ pnpm test:annual-plan
 
 `pnpm test:retest` 在构建后运行设置／全站字典／复测专项，使用隔离PGlite，覆盖权限、旧规则停用、内联新增及失败保留、全站选择、旧规则样本仍复盘、日度真实写入、会前／会后及锁定继承。`RETEST_EVIDENCE_DIR` 可指定四档桌面截图目录；截图仍须实际审阅。规则与0037兼容迁移验证纳入 `pnpm test`。
 
-`pnpm test:meeting-discussion` 使用隔离PGlite检查最新会前直接讨论、冻结指标／非推广、保存时继续输入、定稿取消、白名单与并发拒绝、同一期9份样本、推广人工率版本去重、会后PDF自动生成／上传／下载及旧版本只读。`MEETING_DISCUSSION_DIR` 可指定四档桌面、录像和PDF产物目录。PDF必须逐页渲染并查看，不以文件生成成功代替验收；`meeting-pdf.test.ts` 验证失败／中断／并发重试与0038兼容迁移。
+`pnpm test:meeting-discussion` 使用隔离PGlite检查最新版本只读／编辑、冻结指标、另存版本、定稿取消、白名单与并发拒绝、同一期9份样本、推广人工率版本去重、会后PDF自动生成／上传／下载及旧版本只读。`MEETING_DISCUSSION_DIR` 可指定四档桌面、录像和PDF产物目录。PDF必须逐页渲染并查看，不以文件生成成功代替验收；`meeting-pdf.test.ts` 验证失败／中断／并发重试与0038兼容迁移。
+
+例会版本编辑专项 `test:meeting-discussion` 覆盖默认只读、最新版本原位修订与追加V号、冻结指标、pp与单处样本、模式退出保护、历史回溯确认及生效日锁定；实际生成网页同款与浏览器打印PDF。`meeting-version-workflow.test.ts` 验证冻结补展示不改原JSON、并发与白名单、事项撤销冲突及版本失效。旧编辑器入口不得作为定稿修订路径。

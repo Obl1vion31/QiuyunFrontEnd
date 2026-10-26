@@ -10,8 +10,10 @@ export function resolveMeetingDecisions(versions, corrections) {
  const active=new Map();
  for(const event of events){
   if(event.row){
+   if(event.row.invalidatedAt)continue;
    const snapshot=event.row.snapshot;
-   if(snapshot.finalizationStage!=='post')continue;
+   if(snapshot.decisionPolicy==='reset'){for(const [key,d] of active)if(d.meetingId===event.row.meetingId&&d.effectiveOn===snapshot.decisionEffectiveOn)active.delete(key);continue;}
+   if(snapshot.finalizationStage!=='post'||snapshot.decisionPolicy==='inherit')continue;
    const effectiveOn=snapshot.decisionEffectiveOn;
    if(effectiveOn)for(const [key,decision] of active)if(decision.meetingId===event.row.meetingId&&decision.effectiveOn===effectiveOn)active.delete(key);
    for(const decision of snapshot.generated?.meetingDecisions??[])active.set(decision.id,decision);

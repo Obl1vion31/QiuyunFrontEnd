@@ -46,6 +46,7 @@
 - `taxonomy-store.ts`：数据库字典读取、管理员追加与重名复用关联，`validation.ts` 的运行时排期校验依赖此字典；旧分类规则仅保留技术历史。
 - `promotion-cycles.mjs`：复测边界与轮次读取，日度事实通过原阶段起点归属；`promotion-replay.mjs` 将restart_testing作为独立动作回放，同日例会与日度去重。兼容迁移只扩展约束，旧指标及冻结版本不重建。
 
-- `meeting-discussion.ts`：最新会前版本的讨论白名单与冻结底稿合并；`meeting-discussion-values.ts` 只提供浏览器安全的载荷提取。
-- `meeting-rate-comparison.ts`：截止日内同类率基准、稳定键去重和百分点差；新快照冻结，旧快照不回算。
-- `meeting-pdf.ts`／`meeting-pdf-render.ts`：会后版本的私有PDF、生成租约和失败重试；字体位于 `src/assets/report-fonts/`，不依赖运行时网络。
+- `meeting-discussion.ts`：定稿修订白名单；`meeting-discussion-values.ts` 为浏览器安全载荷提取。
+- `meeting-version-rules.ts`／`meeting-version-workflow.ts`：固定生效日、最新版本修订、限时回溯及事项前后值恢复，来源和更新时间共同防并发覆盖。
+- `meeting-rate-comparison.ts`：冻结同类样本、稳定键去重、pp差值及旧定稿纯展示兼容，不用实时数据回填历史。
+- `meeting-pdf.ts`／`meeting-pdf-render.tsx`：版本级私有PDF、指纹缓存与生成租约；复用网页组件和MiSans内联打印，不依赖外部渲染服务。

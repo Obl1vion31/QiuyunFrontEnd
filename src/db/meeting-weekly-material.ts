@@ -156,11 +156,12 @@ const benchNon = (rows: WeeklyNonPromotionCard[], excluded: string): Benchmark =
 /** 实际状态 D 日变化；待定／放量／暂停从 D 日起，终止前一日测试。 */
 export function testingCheckpointDate(status: string, effectiveOn: string, previousActive: boolean, lastActive: string | null) { return status === 'test_discarded' && previousActive ? effectiveOn : previousActive ? previousDateKey(effectiveOn) : lastActive; }
 export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): Promise<WeeklyMaterial> {
-    const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersions, stageRows] = await Promise.all([
+    const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersionsIncludingInvalid, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
         db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
         db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages),
     ]);
+    const allVersions=allVersionsIncludingInvalid.filter(v=>!v.invalidatedAt);
     const start = meeting.periodStart, end = meeting.periodEnd;
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
     const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);

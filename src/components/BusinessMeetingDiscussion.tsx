@@ -1,31 +1,50 @@
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import WeeklyMeetingPresentation from './WeeklyMeetingPresentation';
 import {discussionFromDraft} from '../db/meeting-discussion-values';
 import {meetingFinalizationIssue} from '../db/meeting-finalization';
 import type {WeeklyMeetingDraft} from '../db/schema';
 import type {WeeklyPostReference} from '../db/meeting-note-ids';
 import '../styles/meeting-weekly.css';
-export default function BusinessMeetingDiscussion({snapshot,draft:initial,sourceVersionId,meeting,postReferences}:{snapshot:any;draft:WeeklyMeetingDraft;sourceVersionId:string;meeting:{id:string;updatedAt:string;currentVersionNumber:number};postReferences:Record<string,WeeklyPostReference>}){
- const [draft,setDraft]=useState(initial),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(false);
- const live=useRef(draft),stamp=useRef(meeting.updatedAt),writing=useRef(false),revision=useRef(0);
- const changed=(next:WeeklyMeetingDraft)=>{revision.current++;live.current=next;setDraft(next);document.documentElement.dataset.unsaved='true';};
+export default function BusinessMeetingDiscussion({snapshot,draft:initial,sourceVersionId,meeting,postReferences,canEdit=true,effectiveOn,expired:initialExpired=false,rollback}:{snapshot:any;draft:WeeklyMeetingDraft;sourceVersionId:string;meeting:{id:string;updatedAt:string;currentVersionNumber:number};postReferences:Record<string,WeeklyPostReference>;canEdit?:boolean;effectiveOn:string;expired?:boolean;rollback?:{allowed:boolean;versions:number[];arrangements:number;reason?:string}}){
+ const [draft,setDraft]=useState(initial),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(false),[editing,setEditing]=useState(false),[expired,setExpired]=useState(initialExpired);
+ const live=useRef(draft),writing=useRef(false);
+ const changed=(next:WeeklyMeetingDraft)=>{live.current=next;setDraft(next);document.documentElement.dataset.unsaved='true';};
+ useEffect(()=>{
+  const controls=document.querySelector('[data-meeting-mode]');
+  const switchMode=async(event:Event)=>{
+   const target=event.target as HTMLInputElement;if(target.type!=='radio')return;
+   const next=target.value==='edit';
+   if(writing.current||next&&!canEdit){target.checked=false;return;}
+   if(!next&&document.documentElement.dataset.unsaved==='true'&&!await window.businessConfirm('未保存的修改将被放弃。',{title:'退出编辑',confirmLabel:'放弃修改',cancelLabel:'继续编辑'})){(controls?.querySelector('[value="edit"]') as HTMLInputElement).checked=true;return;}
+   if(!next){live.current=initial;setDraft(initial);document.documentElement.dataset.unsaved='false';}
+   setEditing(next);setMessage('');
+  };
+  controls?.addEventListener('change',switchMode);
+  const update=()=>setExpired(Date.now()>=Date.parse(effectiveOn+'T00:00:00+08:00'));
+  const timer=setInterval(update,1000);update();
+  if(new URL(location.href).searchParams.get('mode')==='edit'&&canEdit){setEditing(true);const radio=controls?.querySelector('[value="edit"]') as HTMLInputElement;if(radio)radio.checked=true;}
+  return ()=>{controls?.removeEventListener('change',switchMode);clearInterval(timer);};
+ },[]);
  const save=async(finalize=false)=>{
   if(writing.current)return;
-  const issue=finalize?meetingFinalizationIssue(live.current,'post',[]):undefined;
-  if(issue){setError(true);setMessage(issue.message);return;}
-  if(finalize&&!await window.businessConfirm('会后定稿将保存本次讨论结论，并从明天执行安排。',{title:`会后定稿 V${meeting.currentVersionNumber+1}`,confirmLabel:'确认定稿',cancelLabel:'继续讨论'}))return;
-  writing.current=true;setBusy(true);setError(false);setMessage('');const submitted=revision.current;
+  if(finalize){const issue=meetingFinalizationIssue(live.current,'post',[]);if(issue){setError(true);setMessage(issue.message);if(issue.target.kind==='conclusion'){const label=({situation:'衡量情况',strategy:'本期具体动作',coreConclusion:'核心结论',nextAction:'下一步行动'})[issue.target.field];(document.querySelector(`button[aria-label="修改${label}"]`) as HTMLButtonElement)?.click();}return;}if(!await window.businessConfirm(`确认会后定稿，安排从 ${effectiveOn} 起生效。`,{title:'会后定稿',confirmLabel:'确认定稿',cancelLabel:'继续编辑'}))return;}
+  writing.current=true;setBusy(true);setError(false);setMessage('');
   try{
    const values=discussionFromDraft(live.current);
    values.promotionInputs=Object.fromEntries(Object.entries(values.promotionInputs).filter(([key])=>snapshot.generated.promotions.some((c:any)=>c.key===key)));
    values.promotionDecisions=Object.fromEntries(Object.entries(values.promotionDecisions).filter(([key])=>snapshot.generated.promotions.some((c:any)=>c.campaignId===key&&!c.testCycleEndedOn)));
-   const response=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:finalize?'finalize_discussion':'save_discussion',sourceVersionId,expectedUpdatedAt:stamp.current,discussion:values})});
+   const response=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:finalize?'finalize_version':'save_version_revision',sourceVersionId,expectedUpdatedAt:meeting.updatedAt,discussion:values})});
    const result=await response.json().catch(()=>null);
    if(!response.ok)throw new Error(result?.message||`保存失败（${response.status}），输入已保留。`);
-   stamp.current=result.updatedAt;
-   if(finalize){document.documentElement.dataset.unsaved='false';location.assign(`?meeting=${meeting.id}&version=${result.versionNumber}`);return;}
-   if(revision.current===submitted){document.documentElement.dataset.unsaved='false';setMessage('讨论稿已保存，安排尚未生效。');}else setMessage('已保存提交时的内容，后续修改仍待保存。');
+   document.documentElement.dataset.unsaved='false';location.assign(`?meeting=${meeting.id}&version=${result.versionNumber}`);
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:'连接失败，输入已保留。');}finally{writing.current=false;setBusy(false);}
  };
- return <div className="weekly-discussion-host business-form"><WeeklyMeetingPresentation snapshot={{...snapshot,draft}} postReferences={postReferences} discussion onChange={changed}/><footer className="weekly-report-actions"><output role={error?'alert':'status'} data-error={error||undefined}>{message||'会中讨论 · 指标已冻结'}</output><button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save()}>{busy?'保存中…':'保存讨论稿'}</button><button type="button" className="business-action-primary" disabled={busy} onClick={()=>void save(true)}>会后定稿 V{meeting.currentVersionNumber+1}</button></footer></div>;
+ const restore=async()=>{
+  if(!rollback?.allowed||expired||writing.current)return;
+  if(!await window.businessConfirm(`将从 V${snapshot.versionNumber??''} 恢复材料；V${rollback.versions.join('、V')} 将失效，并撤销 ${rollback.arrangements} 项未生效安排。恢复后必须重新确认并会后定稿。`,{title:'确认回溯历史版本',confirmLabel:'确认回溯',cancelLabel:'取消'}))return;
+  writing.current=true;setBusy(true);setError(false);
+  try{const res=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'rollback_version',sourceVersionId,expectedUpdatedAt:meeting.updatedAt,confirmed:true})}),result=await res.json();if(!res.ok)throw new Error(result.message||'回溯失败');location.assign(`?meeting=${meeting.id}&version=${result.versionNumber}&mode=edit`);}catch(e){setError(true);setMessage(e instanceof Error?e.message:'回溯失败，请重试');}finally{writing.current=false;setBusy(false);}
+ };
+ const rollbackControl=rollback&&<div className="weekly-rollback"><span title={expired?'已过可编辑时间':rollback.reason}><button type="button" className="business-action-secondary" disabled={busy||expired||!rollback.allowed} onClick={()=>void restore()}>回溯到此版本</button></span><small>{expired?'已过可编辑时间':rollback.reason??'回溯后需重新会后定稿'}</small><output role={error?'alert':'status'}>{message}</output></div>;
+ return <div className="weekly-discussion-host business-form">{!canEdit&&rollbackControl}<fieldset className="weekly-fields" disabled={busy}><WeeklyMeetingPresentation snapshot={{...snapshot,draft}} postReferences={postReferences} discussion={editing&&canEdit} arrangementsLocked={expired} effectiveOn={effectiveOn} onChange={changed}/></fieldset>{editing&&canEdit?<footer className="weekly-report-actions"><output role={error?'alert':'status'} data-error={error||undefined}>{message||`指标已冻结 · 保存为 V${meeting.currentVersionNumber+1}`}</output><button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save()}>{busy?'保存中…':`保存为 V${meeting.currentVersionNumber+1}`}</button>{snapshot.finalizationStage==='pre'&&<button type="button" className="business-action-primary" disabled={busy||expired} title={expired?'已过可编辑时间':undefined} onClick={()=>void save(true)}>会后定稿 V{meeting.currentVersionNumber+1}</button>}</footer>:null}</div>;
 }

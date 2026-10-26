@@ -1,6 +1,7 @@
+import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 /** 紧凑卡片、真实非零日期、点击率复核、排序和事项；全部业务写入在隔离 PGlite。 */
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {eq} from 'drizzle-orm';
 import {startFixture,employee} from './auth.fixture';
@@ -37,7 +38,7 @@ try{
  const id=await create();await db.update(s.operationsReviewMeeting).set({name:'2026.10.18—10.24 周度业务复盘'}).where(eq(s.operationsReviewMeeting.id,id));
  const pw=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});await context.addCookies(cookie.split('; ').map(v=>({name:v.slice(0,v.indexOf('=')),value:v.slice(v.indexOf('=')+1),url:baseURL})));
- page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
+ page=await context.newPage();await page.clock.install({time:new Date(await readFile(clockFile,'utf8'))});page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
  const nav=async(path:string)=>{await page.evaluate(()=>document.documentElement.dataset.unsaved='false').catch(()=>{});await page.goto(baseURL+path);await page.locator('.business-toolbar').waitFor();await page.evaluate(()=>document.fonts.ready);};
  const post=(p:any)=>page.locator(`[data-weekly-promotion^="${p.campaign.id}:"]`),non=(p:any)=>page.locator(`[data-weekly-non="${p.p.id}"]`);
  const scroll=async(node:any)=>{await node.evaluate((n:HTMLElement)=>scrollTo(0,n.getBoundingClientRect().top+scrollY-100));};
@@ -97,7 +98,7 @@ try{
  await page.getByRole('button',{name:'会前定稿 V0',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=0');const[version0]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,id));const frozen=JSON.stringify(version0.snapshot);
  for(const width of[1920,1440,1280,1024]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await shot('pre-overview-'+width);await scroll(page.locator('[aria-label="推广帖阶段复盘"]'));await shot('pre-cards-'+width);}
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:folder+'/pre-full-1440.png',fullPage:true});assert.equal(await page.locator('.weekly-metrics input,.weekly-non-card input,.weekly-non-card textarea').count(),0);assert.match(await post(a).innerText(),/拟议安排 · 尚未生效/);
- await nav('/business/meeting-review?meeting='+id+'&edit=1');await page.getByRole('textbox',{name:'下一步行动',exact:true}).fill('按会后结论执行，并持续核对真实转化。');await page.locator('[data-meeting-issue]').first().getByRole('checkbox',{name:'是否已解决',exact:true}).check();await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=1');
+ await nav('/business/meeting-review?meeting='+id+'&mode=edit');await page.getByRole('button',{name:'修改下一步行动',exact:true}).click();await page.getByRole('textbox',{name:'下一步行动',exact:true}).fill('按会后结论执行，并持续核对真实转化。');await page.getByRole('heading',{name:'核心结论',exact:true}).click();await page.getByRole('checkbox',{name:'事项1已解决',exact:true}).check();await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=1');
  for(const width of[1920,1440,1280,1024]){await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await shot('post-overview-'+width);await scroll(page.locator('[aria-label="推广帖阶段复盘"]'));await shot('post-cards-'+width);}
  await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:folder+'/post-full-1440.png',fullPage:true});await scroll(page.locator('.weekly-support'));await shot('post-issues-1440');assert.match(await post(a).innerText(),/已定安排/);assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,version0.id)))[0].snapshot),frozen);
  assert.equal((await db.select().from(s.operationsReviewActionItem).where(eq(s.operationsReviewActionItem.id,carried.id)))[0].status,'resolved');const next=await create('2026-10-26','2026-10-26');assert.equal((await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,next)))[0].draftSnapshot.issues.some(i=>i.id===carried.id),false);

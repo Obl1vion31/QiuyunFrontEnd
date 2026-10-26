@@ -145,3 +145,43 @@
 .weekly-rate-difference{display:block;white-space:nowrap}.weekly-rate-comparison b>span{font:inherit;color:inherit}
 
 .weekly-rate-comparison small>span{display:block;white-space:nowrap;font:inherit;color:inherit}
+
+.weekly-rate-comparison{display:inline-flex!important;margin-top:4px;white-space:nowrap;font-variant-numeric:tabular-nums}.weekly-rate-comparison b{font-size:12px;font-weight:500;color:var(--console-muted)}
+.weekly-rate-samples{margin:0;color:var(--console-muted);font:400 12px/20px var(--console-font)}
+.weekly-expired{color:var(--console-muted);font:400 12px/20px var(--console-font)}
+.weekly-promotion-arrangement select{width:100%}.weekly-rollback{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:20px}.weekly-rollback small{color:var(--console-muted)}
+.version-nav>[data-meeting-mode]{margin-left:auto}
+
+/* 网页与服务端PDF共用的打印覆盖必须位于普通样式之后。 */
+@page{size:A4 landscape;margin:10mm 10mm 13mm}
+@media print{
+ html,body{background:#fff!important;overflow:visible!important;height:auto!important;color:#202833;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ body{margin:0!important}.business-console-frame{display:block!important}.business-console-sidebar,.business-toolbar,.business-console-toolbar,.version-nav,.weekly-report-actions,.weekly-rollback,.weekly-frozen-links,.business-operation-feedback,.business-session-notice,dialog,[data-meeting-mode],.business-console-frame>aside,.business-console-frame nav{display:none!important}
+ .business-console-workspace{margin:0!important;width:100%!important}.business-console-content:has(.weekly-frozen){margin:0!important;padding:0!important;max-width:none!important}
+ .meeting-print-heading{display:block!important;margin:0 0 18px}.meeting-print-heading h1{font:600 22px/30px var(--console-font);margin:0 0 5px}.meeting-print-heading p{margin:0;color:var(--console-muted);font:400 12px/20px var(--console-font)}
+ .weekly-frozen{gap:20px;display:block}.weekly-frozen>section{margin-bottom:20px}.weekly-frozen .weekly-paper{padding:18px;box-shadow:none}.weekly-frozen .weekly-card-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:stretch}
+ .weekly-frozen .weekly-stage-card{height:auto!important;padding:14px;break-inside:avoid;box-shadow:none}.weekly-frozen .weekly-card-writing{grid-template-columns:1fr 1fr;gap:12px}.weekly-frozen .weekly-metrics strong{font-size:19px;line-height:26px}
+ .weekly-card-source,.weekly-card-reference,.weekly-own-history:not([open]),.weekly-source,.weekly-discussion-text>span{display:none!important}.weekly-own-history[open]{break-inside:avoid}.weekly-stage-card>header{break-after:avoid}.weekly-card-grid{break-before:auto}.weekly-section-heading,h2,h3{break-after:avoid}
+ .weekly-takeaways{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}.weekly-summary{grid-template-columns:repeat(4,minmax(0,1fr))}.weekly-table-wrap{overflow:visible}.weekly-table{width:100%;min-width:0!important}.weekly-table thead{display:table-header-group}.weekly-table tr{break-inside:avoid}.weekly-table td{white-space:pre-wrap;overflow-wrap:anywhere}.weekly-images{break-inside:avoid}.weekly-images img{max-height:160px}.weekly-frozen a{color:inherit;text-decoration:none}
+}
+@media print{
+ .meeting-print-heading{margin-bottom:10px}.weekly-frozen .weekly-results>header{display:none!important}.weekly-frozen .weekly-results{padding:12px}.weekly-frozen .weekly-results .weekly-summary{padding-bottom:10px}
+ .weekly-frozen{font-size:12px;line-height:19px}.weekly-frozen>section{margin-bottom:16px}.weekly-frozen .weekly-paper{padding:14px}.weekly-frozen .weekly-results>header{margin-bottom:10px}.weekly-frozen .weekly-summary{padding-bottom:12px}.weekly-frozen .weekly-summary strong{font-size:22px;line-height:30px}.weekly-frozen .weekly-takeaways{padding-top:12px}.weekly-takeaways p{font-size:13px;line-height:21px}.weekly-next-action small{margin-top:6px}
+ .weekly-frozen .weekly-stage-card{gap:8px;padding:12px}.weekly-frozen .weekly-stage-card>header .weekly-card-title strong{font-size:14px;line-height:22px}.weekly-frozen .weekly-data-context p{font-size:11px;line-height:18px}.weekly-frozen .weekly-metrics{padding:9px 0;gap:8px}.weekly-frozen .weekly-metrics strong{font-size:18px;line-height:24px}.weekly-frozen .weekly-card-writing p{font-size:12px;line-height:19px}.weekly-frozen .weekly-decision-result{padding:8px 10px;gap:2px 8px}.weekly-frozen .weekly-section-heading{margin-bottom:10px}.weekly-frozen h2{font-size:17px;line-height:24px}
+}
+.meeting-print-heading{display:none}
+
+@media print{
+ .weekly-frozen .weekly-stage-card[data-print-long=true]{grid-column:1/-1;break-inside:auto}.weekly-frozen .weekly-stage-card[data-print-long=true] .weekly-card-writing{display:block}.weekly-frozen .weekly-stage-card[data-print-long=true] .weekly-card-writing>label{margin-bottom:10px}
+ .weekly-results[data-print-long=true] .weekly-takeaways{display:block}.weekly-results[data-print-long=true] .weekly-next-action{border-left:0;padding:12px 0 0;margin-top:12px;border-top:1px solid var(--console-line)}
+ .weekly-discussion-issues th:first-child{width:20%}.weekly-discussion-issues th:nth-child(3){width:85px}.weekly-discussion-issues th:nth-child(4){width:75px}
+}
+
+@media print{
+ .weekly-frozen .weekly-card-grid:has([data-print-long=true]){display:block!important}
+ .weekly-card-grid:has([data-print-long=true])>.weekly-stage-card{display:inline-flex;width:calc((100% - 28px)/3);vertical-align:top;margin:0 10px 14px 0}
+ .weekly-card-grid:has([data-print-long=true])>.weekly-stage-card[data-print-long=true]{display:block;width:100%;margin-right:0}
+ .weekly-card-grid:has([data-print-long=true])>.weekly-stage-card[data-print-long=true]>*+*{margin-top:8px}
+}
+
+@media print{body .app-shell.business-console-frame{display:block!important;grid-template-columns:none!important;min-height:0!important}body .app-shell .business-console-workspace{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}}

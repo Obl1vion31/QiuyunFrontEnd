@@ -17,7 +17,7 @@ const allowedDomains = [
 // 其余页面结构继续由 Astro 静态输出。
 export default defineConfig({
   output: 'server',
-  adapter: process.env.VERCEL === '1' ? vercel() : node({ mode: 'standalone' }),
+  adapter: process.env.VERCEL === '1' ? vercel({includeFiles:['chromium.br','fonts.tar.br','al2023.tar.br','swiftshader.tar.br'].map(name=>'node_modules/@sparticuz/chromium/bin/'+name)}) : node({ mode: 'standalone' }),
   integrations: [react()],
   security: { allowedDomains },
   // 控制台只在用户表达导航意图时预取，避免首屏并发触发全部动态页面查询。

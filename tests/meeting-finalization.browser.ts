@@ -1,6 +1,7 @@
+import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 /** 定稿失败必须可见、可定位、可重试；业务写入只使用隔离 PGlite。 */
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {eq} from 'drizzle-orm';
 import {startFixture,employee} from './auth.fixture';
 import {respondToBusinessConfirm} from './business-confirm.helper';
@@ -23,7 +24,7 @@ try{
  const create=await fetch(baseURL+'/api/meeting-reviews',{method:'POST',headers:{Cookie:cookie,Origin:baseURL},body:form});assert.equal(create.status,201);const{id}=await create.json();
  const pw=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});await context.addCookies(cookie.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:baseURL})));
- page=await context.newPage();page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
+ page=await context.newPage();await page.clock.install({time:new Date(await readFile(clockFile,'utf8'))});page.setDefaultTimeout(15000);page.on('pageerror',(e:Error)=>errors.push(e.message));
  let writes=0;page.on('request',(r:any)=>{if(r.method()==='PATCH'&&r.url().endsWith('/api/meeting-reviews/'+id))writes++});
  await page.goto(baseURL+'/business/meeting-review?meeting='+id);await page.locator('[data-report-v4]').waitFor();await page.evaluate(()=>document.fonts.ready);
  const pre=()=>page.getByRole('button',{name:'会前定稿 V0',exact:true});const alert=page.locator('.weekly-report-actions [role=alert]');
@@ -56,9 +57,9 @@ try{
  await page.route(pattern,(r:any)=>r.abort('internetdisconnected'));await pre().click();await respondToBusinessConfirm(page,true);await alert.filter({hasText:'连接失败'}).waitFor();assert.equal(await clickRate.inputValue(),'4.62');await page.unroute(pattern);
  checks.push('取消、非JSON服务错误和断网均保留输入并可重试，不生成版本');
  const before=writes;await pre().dblclick();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=0');assert.equal(writes,before+1);await page.locator('.weekly-final-stage').filter({hasText:'会前定稿'}).waitFor();await page.screenshot({path:folder+'/pre-v0-success-1440.png'});assert.equal((await db.select().from(s.operationsReviewMeetingVersion)).length,1);
- await page.goto(baseURL+'/business/meeting-review?meeting='+id+'&edit=1');await page.locator('[data-report-v4]').waitFor();
- await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await alert.filter({hasText:'请补充下一步行动'}).waitFor();assert.equal(await page.locator('[data-meeting-field=nextAction]').evaluate((n:Element)=>n===document.activeElement),true);
- await page.getByRole('textbox',{name:'下一步行动',exact:true}).fill('继续核对素材与有效留资。');await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=1');await page.screenshot({path:folder+'/post-v1-success-1440.png'});
+ await page.goto(baseURL+'/business/meeting-review?meeting='+id+'&mode=edit');await page.locator('.weekly-discussion-host').waitFor();
+ await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await alert.filter({hasText:'请补充下一步行动'}).waitFor();assert.equal(await page.getByRole('textbox',{name:'下一步行动',exact:true}).evaluate((n:Element)=>n===document.activeElement),true);
+ await page.getByRole('textbox',{name:'下一步行动',exact:true}).fill('继续核对素材与有效留资。');await page.getByRole('heading',{name:'核心结论',exact:true}).click();await page.getByRole('button',{name:'会后定稿 V1',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=1');await page.screenshot({path:folder+'/post-v1-success-1440.png'});
  checks.push('连续点击仅提交一次，会前V0和会后V1真实写入并自动打开对应展示版本');
  assert.deepEqual(errors,[]);await context.close();await writeFile(folder+'/checks.json',JSON.stringify({scope:'正式组件、隔离PGlite、虚构业务数据',checks,errors},null,2));console.log(JSON.stringify({checks,folder}));
 }catch(error){if(page){await page.screenshot({path:folder+'/failure.png'});console.error(JSON.stringify({errors,url:page.url(),body:(await page.locator('body').innerText()).slice(-3500)}));}console.error(fixture.logs());throw error;}finally{await browser?.close();await fixture.stop();}

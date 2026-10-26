@@ -1,5 +1,6 @@
 ---
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
+import '../styles/business-tokens.css';
 import '../styles/business-forms.css';
 import '../styles/business-typography.css';
 import '../styles/business-changes.css';
@@ -134,29 +135,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
 </script>
 
 <style is:global>
-  :root{
-    --console-content-x:24px;
-    --console-content-top:22px;
-    --console-toolbar-height:72px;
-    --console-canvas:#F6F7F9;
-    --console-paper:#F6F7F9;
-    --console-surface:#fff;
-    --console-surface-subtle:#F8F9FB;
-    --console-ink:#202833;
-    --console-muted:#667080;
-    --console-line:#E5E7EB;
-    --console-blue:#315fd6;
-    --console-blue-soft:#dce5ff;
-    --console-font:"MiSans VF","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
-    --console-text:14px;
-    --console-text-leading:22px;
-    --console-caption:12px;
-    --console-caption-leading:18px;
-    --console-emphasis:16px;
-    --console-control-height:40px;
-    --console-control-compact:36px;
-    --console-control-radius:8px;
-  }
+
   .business-console-frame,.business-console-frame *{box-sizing:border-box}
   html,body{min-height:100%;background:var(--console-canvas)}
   html{scrollbar-gutter:stable}

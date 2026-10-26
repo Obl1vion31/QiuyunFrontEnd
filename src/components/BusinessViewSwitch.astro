@@ -3,14 +3,14 @@ interface Props {
   label: string;
   name: string;
   value: string;
-  items: Array<{ label: string; value: string }>;
+  items: Array<{ label: string; value: string; disabled?: boolean; title?: string }>;
   [key: string]: unknown;
 }
 const { label, name, value, items, ...attributes } = Astro.props;
 ---
 <fieldset {...attributes} class="business-view-switch">
   <legend>{label}</legend>
-  {items.map(item => <label><input type="radio" name={name} value={item.value} checked={item.value===value}/><span>{item.label}</span></label>)}
+  {items.map(item => <label title={item.title}><input disabled={item.disabled} type="radio" name={name} value={item.value} checked={item.value===value}/><span>{item.label}</span></label>)}
 </fieldset>
 <style>
 .business-view-switch,.business-view-switch *{box-sizing:border-box}
@@ -21,5 +21,6 @@ const { label, name, value, items, ...attributes } = Astro.props;
 .business-view-switch span{display:flex;align-items:center;justify-content:center;padding:0 12px;border-radius:5px;color:#35423b;white-space:nowrap}
 .business-view-switch input:hover+span{background:#eef1ef}
 .business-view-switch input:checked+span{color:#fff;background:#17211c}
+.business-view-switch input:disabled{cursor:not-allowed}.business-view-switch input:disabled+span{color:var(--console-muted);opacity:.55}
 .business-view-switch input:focus-visible+span{outline:2px solid var(--console-blue);outline-offset:1px}
 </style>

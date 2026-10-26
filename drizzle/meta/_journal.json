@@ -274,6 +274,13 @@
       "when": 1792940482325,
       "tag": "0038_meeting_pdf_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792994626897,
+      "tag": "0039_meeting_version_revisions",
+      "breakpoints": true
     }
   ]
 }

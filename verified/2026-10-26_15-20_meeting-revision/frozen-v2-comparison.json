@@ -1,0 +1,10 @@
+{
+  "comparison": {
+    "promotion": "+0.99 pp",
+    "nonClick": "-0.53 pp",
+    "nonRead": "-8.65 pp",
+    "nonSample": 9
+  },
+  "readOnly": true,
+  "originalVersions": 3
+}
