@@ -154,6 +154,29 @@
 
 /* 网页与服务端PDF共用的打印覆盖必须位于普通样式之后。 */
 @page{size:A4 landscape;margin:10mm 10mm 13mm}
+/* The metric value and delta form one readable unit in every meeting mode. */
+.weekly-rate-value{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
+.weekly-rate-value>input{min-width:0;width:100%}
+.weekly-rate-value .weekly-rate-comparison{display:inline-flex!important;margin:0;line-height:20px;flex:none}
+.weekly-rate-value .weekly-rate-comparison b{color:inherit;font-size:12px;line-height:20px}
+.weekly-rate-value .weekly-rate-comparison[data-direction=positive]{color:#4f7d68}
+.weekly-rate-value .weekly-rate-comparison[data-direction=negative]{color:#a35f59}
+.weekly-rate-value .weekly-rate-comparison[data-direction=neutral]{color:var(--console-muted)}
+.weekly-stage-card{container-type:inline-size}
+@container (max-width:420px){.weekly-frozen .weekly-stage-card .weekly-metrics:not(.two){grid-template-columns:repeat(2,minmax(0,1fr))}.weekly-metrics:not(.two)>label{grid-column:1/-1}}
+.weekly-issues-editing{min-width:680px}
+.weekly-issues-editing th{text-align:center}
+.weekly-issues-editing td{vertical-align:middle}
+.weekly-issues-editing td:nth-child(n+3){text-align:center}
+.business-form .weekly-frozen .weekly-issues-editing textarea{display:block;min-height:64px;height:64px;margin:0;text-align:left}
+.weekly-issues-editing select{height:40px;margin:0;width:100%}
+.weekly-issues-editing .weekly-issue-check{display:flex;align-items:center;justify-content:center;height:40px}
+.weekly-issues-editing input[type=checkbox]{margin:0}
+.weekly-issues-editing .weekly-issue-remove{display:inline-flex;align-items:center;justify-content:center;margin:0;vertical-align:middle}
+.weekly-takeaways textarea,.weekly-support>.weekly-writing-grid textarea{width:100%;min-height:64px;resize:vertical}
+.weekly-rate-legend{font:400 12px/20px var(--console-font);color:var(--console-muted);margin:0}
+.weekly-rate-legend .positive{color:#4f7d68}.weekly-rate-legend .negative{color:#a35f59}
+
 @media print{
  html,body{background:#fff!important;overflow:visible!important;height:auto!important;color:#202833;print-color-adjust:exact;-webkit-print-color-adjust:exact}
  body{margin:0!important}.business-console-frame{display:block!important}.business-console-sidebar,.business-toolbar,.business-console-toolbar,.version-nav,.weekly-report-actions,.weekly-rollback,.weekly-frozen-links,.business-operation-feedback,.business-session-notice,dialog,[data-meeting-mode],.business-console-frame>aside,.business-console-frame nav{display:none!important}
@@ -195,3 +218,5 @@
  .weekly-frozen .weekly-card-grid{margin-bottom:12px}.weekly-frozen>.weekly-support{break-inside:avoid}.weekly-support .weekly-writing-grid{margin-bottom:10px;gap:16px}.weekly-support>header{margin-bottom:10px}
  .weekly-support .weekly-table{font-size:12px;line-height:19px}.weekly-support .weekly-table :is(th,td){padding:7px 10px}.weekly-discussion-issues th:nth-child(4){width:95px}
 }
+
+@media print{.weekly-next-action{break-inside:avoid}}

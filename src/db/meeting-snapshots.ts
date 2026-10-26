@@ -15,7 +15,8 @@ export async function readOpenMeetingIssues(db:Database){
 const text = z.string().max(10000).default('');
 export const meetingDraftSchema = z.object({
   discussionSourceVersionId:z.uuid().optional(),
-  workflowVersion:z.literal(5).optional(),candidatesConfirmed:z.boolean().default(false),
+  workflowVersion:z.union([z.literal(5),z.literal(6)]).optional(),candidatesConfirmed:z.boolean().default(false),
+  nonPromotionNotes:z.record(z.string(),text).optional(),
   hasRevisionDraft:z.boolean().optional(),
   finalizationStage:z.enum(['pre','post']).optional(),
   promotionDecisions:z.record(z.string(),z.enum(['restart_testing','testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended'])).default({}),
@@ -38,7 +39,7 @@ export async function readMeetingMaterial(db: Database, meeting: typeof meetings
   ]);
   const previousCounts = new Map<string, number>();
   for (const m of meetingRows.filter(m => m.status === 'completed' && m.id !== meeting.id)) {
-    const v = priorVersions.find(v => !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber);
+    const v = priorVersions.find(v => !v.invalidatedAt && v.lifecycleStatus!=='draft' && v.lifecycleStatus!=='draft' && !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber);
     const selected = ((v?.snapshot as any)?.generated?.nonPromotions ?? []) as Array<{ scheduleId: string; checkpointType?: string; checkpoint?: number }>;
     for (const row of selected) { const key = `${row.scheduleId}:${row.checkpointType ?? `day_${row.checkpoint}`}`; previousCounts.set(key, (previousCounts.get(key) ?? 0) + 1); }
   }

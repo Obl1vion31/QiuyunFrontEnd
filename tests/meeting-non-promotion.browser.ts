@@ -1,3 +1,4 @@
+import {versionDraftPayload} from './meeting-write.helper';
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
@@ -64,7 +65,7 @@ try{
  await card(first).getByLabel('数据截止日',{exact:true}).fill('2026-10-22');await card(first).getByLabel('结论',{exact:true}).fill('隔离验收：手动截止日保留');
  await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');await nav('/business/meeting-review?meeting='+id);assert.equal(await card(first).getByLabel('数据截止日',{exact:true}).inputValue(),'2026-10-22');
  let [record]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));
- const blocked=await fetch(baseURL+'/api/meeting-reviews/'+id,{method:'PATCH',headers:{Cookie:cookie,Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify({action:'finalize_pre',expectedUpdatedAt:record.updatedAt.toISOString(),draft:{...record.draftSnapshot,promotionSelections:[],nonPromotionSelections:[],nonPromotionInputs:{},candidatesConfirmed:true,situation:'已核对',strategy:'推进',coreConclusion:'观察'}})});
+ const blocked=await fetch(baseURL+'/api/meeting-reviews/'+id,{method:'PATCH',headers:{Cookie:cookie,Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(await versionDraftPayload(db,'/api/meeting-reviews/'+id,{action:'finalize_pre',expectedUpdatedAt:record.updatedAt.toISOString(),draft:{...record.draftSnapshot,promotionSelections:[],nonPromotionSelections:[],nonPromotionInputs:{},candidatesConfirmed:true,situation:'已核对',strategy:'推进',coreConclusion:'观察'}}))});
  assert.equal(blocked.status,422);assert.match((await blocked.json()).message,/非推广数据/);
  let response=page.waitForResponse((r:any)=>r.url().endsWith('/api/non-promotion-reviews')&&r.request().method()==='POST');await card(first).getByRole('button',{name:'确认',exact:true}).click();assert.equal((await response).status(),201);await card(first).getByRole('button',{name:'修改',exact:true}).waitFor();assert.equal(await card(first).count(),1);assert.ok(await card(completed).count());
  for(const [post,checkpoint]of [[second,'day_7'],[second,'day_15'],[missing,'day_7']] as const){const c=card(post,checkpoint);await c.locator('select').selectOption('skip');await c.getByLabel('不复盘理由',{exact:true}).fill('隔离验收：明确不复盘');response=page.waitForResponse((r:any)=>r.url().endsWith('/api/non-promotion-checkpoints')&&r.request().method()==='POST');await c.getByRole('button',{name:'确认',exact:true}).click();assert.equal((await response).status(),200);await page.waitForTimeout(350);}

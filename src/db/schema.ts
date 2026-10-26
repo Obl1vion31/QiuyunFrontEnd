@@ -668,7 +668,7 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 
 export interface WeeklyMeetingDraft {
   discussionSourceVersionId?:string;
-  workflowVersion?:5;
+  workflowVersion?:5|6;
   hasRevisionDraft?:boolean;
   candidatesConfirmed?:boolean;
   finalizationStage?:'pre'|'post';
@@ -719,6 +719,9 @@ export const operationsReviewMeeting = pgTable(
 );
 
 export const operationsReviewMeetingVersion = pgTable('operations_review_meeting_version', {
+  lifecycleStatus: text('lifecycle_status').notNull().default('finalized'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  finalizedAt: timestamp('finalized_at', { withTimezone: true }),
   sourceVersionId: uuid('source_version_id'),
   versionKind: text('version_kind').notNull().default('finalization'),
   invalidatedAt: timestamp('invalidated_at', { withTimezone: true }),
@@ -732,10 +735,12 @@ export const operationsReviewMeetingVersion = pgTable('operations_review_meeting
   versionNumber: integer('version_number').notNull(),
   snapshot: jsonb('snapshot').$type<Record<string, unknown>>().notNull(),
   changeSummary: text('change_summary').notNull(),
-  finalizedByLabel: text('finalized_by_label').notNull(),
+  finalizedByLabel: text('finalized_by_label'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex('operations_review_meeting_version_idx').on(table.meetingId, table.versionNumber),
+  uniqueIndex('operations_review_meeting_one_draft_idx').on(table.meetingId).where(sql`${table.lifecycleStatus} = 'draft' AND ${table.invalidatedAt} IS NULL`),
+  check('operations_review_meeting_version_lifecycle_check', sql`${table.lifecycleStatus} IN ('draft','finalized')`),
   check('operations_review_meeting_pdf_status_check', sql`${table.pdfStatus} IS NULL OR ${table.pdfStatus} IN ('pending','ready','failed')`),
   check('operations_review_meeting_version_number_check', sql`${table.versionNumber} >= 0`),
 ]);

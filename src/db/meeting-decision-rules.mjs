@@ -6,11 +6,12 @@ export function meetingDecisionOn(decisions,campaignId,date){
 
 /** 同日会后修订整体替换；不同生效日保留。更正仅影响发生时的版本。 */
 export function resolveMeetingDecisions(versions, corrections) {
- const events=[...versions.map(row=>({at:new Date(row.createdAt).getTime(),order:0,row})),...corrections.map(row=>({at:new Date(row.createdAt).getTime(),order:1,correction:row}))].sort((a,b)=>a.at-b.at||a.order-b.order);
+ const events=[...versions.map(row=>({at:new Date(row.finalizedAt??row.createdAt).getTime(),order:0,row})),...corrections.map(row=>({at:new Date(row.createdAt).getTime(),order:1,correction:row}))].sort((a,b)=>a.at-b.at||a.order-b.order);
  const active=new Map();
  for(const event of events){
   if(event.row){
-   if(event.row.invalidatedAt)continue;
+   for(const reset of event.row.businessEffects??[])if(reset.type==='meeting_decisions_reset')for(const [key,d] of active)if(d.meetingId===event.row.meetingId&&d.effectiveOn===reset.effectiveOn)active.delete(key);
+   if(event.row.invalidatedAt||event.row.lifecycleStatus==='draft')continue;
    const snapshot=event.row.snapshot;
    if(snapshot.decisionPolicy==='reset'){for(const [key,d] of active)if(d.meetingId===event.row.meetingId&&d.effectiveOn===snapshot.decisionEffectiveOn)active.delete(key);continue;}
    if(snapshot.finalizationStage!=='post'||snapshot.decisionPolicy==='inherit')continue;

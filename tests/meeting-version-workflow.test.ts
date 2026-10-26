@@ -6,11 +6,18 @@ import {drizzle} from 'drizzle-orm/pglite';
 import {eq} from 'drizzle-orm';
 import {migrateFixture} from './migrate-fixture';
 import * as s from '../src/db/schema';
-import {reviseMeetingVersion} from '../src/db/meeting-version-workflow';
+import {reviseMeetingVersion as writeVersion} from '../src/db/meeting-version-workflow';
 import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 import {withFrozenRateComparisons} from '../src/db/meeting-rate-comparison';
 import {meetingArrangementsExpired} from '../src/db/meeting-version-rules';
 import {resolveMeetingDecisions} from '../src/db/meeting-decision-rules.mjs';
+async function reviseMeetingVersion(db:any,id:string,payload:any,actor:string,at?:Date){
+ if(payload.action==='save_version_revision')payload={...payload,action:'finalize_version_draft',stage:'pre'};
+ if(payload.action==='finalize_version')payload={...payload,action:'finalize_version_draft',stage:'post'};
+ const [source]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,payload.sourceVersionId));
+ if(payload.stage==='pre'&&(source?.snapshot as any)?.finalizationStage==='post')payload.stage='post';
+ return writeVersion(db,id,payload,actor,at);
+}
 const before=new Date('2026-10-25T18:00:00+08:00'),after=new Date('2026-10-26T00:00:00+08:00');
 async function fixture(run:(db:any,m:any,v:any)=>Promise<void>){const pg=new PGlite(),db=drizzle(pg,{schema:s});try{await migrateFixture(pg);const draft={schemaVersion:4,workflowVersion:5,candidatesConfirmed:true,coreConclusion:'核心结论',nextAction:'下一步',situation:'衡量情况',strategy:'具体动作',promotionInputs:{},promotionDecisions:{},nonPromotionSelections:[],issues:[{problem:'跟进问题',conclusion:'解决方案',status:'pending'}]};const[m]=await db.insert(s.operationsReviewMeeting).values({name:'隔离例会',periodStart:'2026-10-16',periodEnd:'2026-10-24',meetingAt:before,status:'completed',draftSnapshot:draft as any,createdByLabel:'fixture'}).returning();const[v]=await db.insert(s.operationsReviewMeetingVersion).values({meetingId:m.id,versionNumber:0,finalizedByLabel:'fixture',changeSummary:'会前',snapshot:{schemaVersion:4,meeting:{name:m.name,periodEnd:m.periodEnd},draft,finalizationStage:'pre',decisionEffectiveOn:'2026-10-26',generated:{promotions:[],nonPromotions:[],summary:{}}},businessEffects:[]}).returning();await run(db,m,v);}finally{await pg.close();}}
 test('旧冻结样本补出带本帖均值，源快照不变；零值与截止日保留',()=>{const rows=[10,20,0].map((clickRate,i)=>({key:'p'+i,subjectId:'tmua',categoryId:'解析',checkpointType:'day_7',recordedThrough:'2026-10-24',clickRate,threeSecondReadRate:40+i,peers:{samples:[]},historical:{samples:[]}}));const source={schemaVersion:4,meeting:{periodEnd:'2026-10-24'},draft:{promotionInputs:{}},generated:{nonPromotions:rows,promotions:[]}},original=JSON.stringify(source);const shown:any=withFrozenRateComparisons(source);assert.equal(shown.generated.nonPromotions[0].rateComparison.n,3);assert.equal(shown.generated.nonPromotions[0].rateComparison.clickRate,10);assert.equal(JSON.stringify(source),original);assert.equal(meetingArrangementsExpired('2026-10-26',new Date('2026-10-25T23:59:59+08:00')),false);assert.equal(meetingArrangementsExpired('2026-10-26',after),true);});
@@ -24,3 +31,32 @@ test('纯文字修订继承执行来源，不盖掉日度更正；失效版本�
 test('回溯至旧会后也撤销本场安排，重新会后定稿前不沿用目标安排',()=>{const d={id:'m:c',meetingId:'m',campaignId:'c',versionNumber:1,effectiveOn:'2026-10-26',targetStatus:'testing'};const old={meetingId:'m',createdAt:'2026-10-25T10:00:00Z',snapshot:{finalizationStage:'post',decisionEffectiveOn:d.effectiveOn,generated:{meetingDecisions:[d]}}};const reset={meetingId:'m',createdAt:'2026-10-25T12:00:00Z',snapshot:{finalizationStage:'pre',decisionPolicy:'reset',decisionEffectiveOn:d.effectiveOn,generated:{meetingDecisions:[]}}};assert.deepEqual(resolveMeetingDecisions([old,reset],[]),[]);});
 
 test('0039追加迁移保留原快照与附件，旧写入默认仍有效',async()=>{const pg=new PGlite();try{await pg.exec(`CREATE TABLE operations_meeting_attachment (id int primary key); CREATE TABLE operations_review_meeting_version(id int primary key,snapshot jsonb NOT NULL); INSERT INTO operations_review_meeting_version VALUES(1,'{"frozen":true,"value":12.34}')`);await pg.exec((await readFile(new URL('../drizzle/0039_meeting_version_revisions.sql',import.meta.url),'utf8')).replaceAll('--> statement-breakpoint',''));const result=await pg.query<any>('select snapshot,version_kind,invalidated_at from operations_review_meeting_version');assert.deepEqual(result.rows[0],{snapshot:{frozen:true,value:12.34},version_kind:'finalization',invalidated_at:null});await pg.exec(`INSERT INTO operations_review_meeting_version(id,snapshot) VALUES(2,'{"legacyWrite":true}')`);assert.equal((await pg.query<any>('select version_kind from operations_review_meeting_version where id=2')).rows[0].version_kind,'finalization');}finally{await pg.close();}});
+
+test('每版草稿反复保存与定稿同号；草稿不执行事项、安排，不允许旧客户端写入',()=>fixture(async(db,m,v)=>{
+ const input=discussionFromDraft(v.snapshot.draft as any);input.issues=[{problem:'',conclusion:'半填写不丢失',status:'pending'}];
+ let result=await writeVersion(db,m.id,{action:'save_version_draft',sourceVersionId:v.id,expectedUpdatedAt:m.updatedAt.toISOString(),discussion:input},'fixture',before);
+ const draftId=result.versionId;assert.equal(result.versionNumber,1);assert.equal(result.lifecycleStatus,'draft');
+ assert.equal((await db.select().from(s.operationsReviewActionItem)).length,0);
+ assert.equal((await db.select().from(s.operationsReviewMeeting))[0].currentVersionNumber,0);
+ await assert.rejects(()=>writeVersion(db,m.id,{action:'save_version_revision',sourceVersionId:v.id,expectedUpdatedAt:result.updatedAt,discussion:input},'fixture',before),/刷新/);
+ await assert.rejects(()=>writeVersion(db,m.id,{action:'save_version_draft',sourceVersionId:v.id,expectedUpdatedAt:result.updatedAt,discussion:input},'fixture',before),/已有版本草稿/);
+ input.issues[0].problem='补全问题';input.coreConclusion='第二次保存';
+ result=await writeVersion(db,m.id,{action:'save_version_draft',sourceVersionId:v.id,draftVersionId:draftId,expectedUpdatedAt:result.updatedAt,discussion:input},'fixture',before);
+ assert.equal(result.versionId,draftId);assert.equal(result.versionNumber,1);assert.equal((await db.select().from(s.operationsReviewMeetingVersion)).length,2);
+ await assert.rejects(()=>writeVersion(db,m.id,{action:'finalize_version_draft',stage:'post',sourceVersionId:v.id,draftVersionId:draftId,expectedUpdatedAt:m.updatedAt.toISOString(),discussion:input},'fixture',before),/已更新/);
+ result=await writeVersion(db,m.id,{action:'finalize_version_draft',stage:'post',sourceVersionId:v.id,draftVersionId:draftId,expectedUpdatedAt:result.updatedAt,discussion:input},'fixture',before);
+ assert.equal(result.versionId,draftId);assert.equal(result.versionNumber,1);assert.equal(result.lifecycleStatus,'finalized');assert.equal((await db.select().from(s.operationsReviewActionItem)).length,1);
+ const rows=await db.select().from(s.operationsReviewMeetingVersion);assert.deepEqual(rows.find((r:any)=>r.id===v.id).snapshot,v.snapshot);
+ const current=rows.find((r:any)=>r.id===draftId),next=discussionFromDraft(current.snapshot.draft);next.coreConclusion='过期仅改文字';
+ const saved=await writeVersion(db,m.id,{action:'save_version_draft',sourceVersionId:draftId,expectedUpdatedAt:result.updatedAt,discussion:next},'fixture',after);
+ await writeVersion(db,m.id,{action:'finalize_version_draft',stage:'post',sourceVersionId:draftId,draftVersionId:saved.versionId,expectedUpdatedAt:saved.updatedAt,discussion:next},'fixture',after);
+ assert.equal((await db.select().from(s.operationsReviewActionProgress)).length,1);
+}));
+
+test('草稿中伪造的安排不执行；回溯撤销凭独立日志且不依赖可编辑快照',()=>{
+ const decision={id:'m:c',meetingId:'m',campaignId:'c',versionNumber:1,effectiveOn:'2026-10-26',targetStatus:'testing'};
+ const old={meetingId:'m',createdAt:'2026-10-25T10:00:00Z',snapshot:{finalizationStage:'post',decisionEffectiveOn:decision.effectiveOn,generated:{meetingDecisions:[decision]}}};
+ const draft={...old,lifecycleStatus:'draft',createdAt:'2026-10-25T12:00:00Z',snapshot:{...old.snapshot,generated:{meetingDecisions:[{...decision,targetStatus:'scaling'}]}}};
+ assert.equal(resolveMeetingDecisions([old,draft],[])[0].targetStatus,'testing');
+ assert.deepEqual(resolveMeetingDecisions([old,{...draft,businessEffects:[{type:'meeting_decisions_reset',effectiveOn:decision.effectiveOn}]}],[]),[]);
+});

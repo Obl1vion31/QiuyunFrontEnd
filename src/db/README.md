@@ -50,3 +50,5 @@
 - `meeting-version-rules.ts`／`meeting-version-workflow.ts`：固定生效日、最新版本修订、限时回溯及事项前后值恢复，来源和更新时间共同防并发覆盖。
 - `meeting-rate-comparison.ts`：冻结同类样本、稳定键去重、pp差值及旧定稿纯展示兼容，不用实时数据回填历史。
 - `meeting-pdf.ts`／`meeting-pdf-render.tsx`：版本级私有PDF、指纹缓存与生成租约；复用网页组件和MiSans内联打印，不依赖外部渲染服务。
+
+例会版本的 `lifecycleStatus` 区分草稿／定稿，`finalizationStage` 独立区分会前／会后；同场仅一份活动草稿，保存和定稿更新同一版本行。`meeting-version-workflow.ts` 保护来源、更新时间及生效日，草稿不参与比较样本、安排回放、事项或PDF；恢复草稿的撤销事实使用独立业务效果日志。

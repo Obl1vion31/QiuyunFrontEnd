@@ -1,4 +1,4 @@
-import {readWeeklyMaterial} from '../../db/meeting-weekly-material';
+import {readWeeklyMaterial,selectWeeklyMaterial} from '../../db/meeting-weekly-material';
 import {defaultMeetingName} from '../../db/meeting-card-rules';
 import {readOpenMeetingIssues} from '../../db/meeting-snapshots';
 import {businessDate} from '../../db/promotion-wait-ranges';
@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 import type { APIRoute } from 'astro';
 import { inArray } from 'drizzle-orm';
 import { getDb } from '../../db/client';
-import { operationsReviewMeeting } from '../../db/schema';
+import { operationsReviewMeeting,operationsReviewMeetingVersion as versions } from '../../db/schema';
 import { formObject, issuesByField, meetingReviewSchema } from '../../db/stage-review-validation';
 
 export const prerender = false;
@@ -22,10 +22,12 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
   const name = result.data.name || defaultMeetingName(result.data.periodStart,result.data.periodEnd,result.data.meetingType);
   try {
     const meeting = await getDb().transaction(async tx => { const carried=await readOpenMeetingIssues(tx);const [created] = await tx.insert(operationsReviewMeeting).values({
-      ...result.data, name, meetingType: result.data.meetingType, draftSnapshot: { schemaVersion: 4, workflowVersion:5, candidatesConfirmed:false, promotionSelections: [], coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: carried, nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',
+      ...result.data, name, meetingType: result.data.meetingType, draftSnapshot: { schemaVersion: 4, workflowVersion:6, finalizationStage:'pre', candidatesConfirmed:false, promotionSelections: [], coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: carried, nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',
     }).returning();
       const material = await readWeeklyMaterial(tx, created);
-      await tx.update(operationsReviewMeeting).set({ draftSnapshot: { ...created.draftSnapshot, materialFingerprint:material.fingerprint,materialSnapshot:material as unknown as Record<string,unknown> } }).where(eq(operationsReviewMeeting.id, created.id));
+      const draft={ ...created.draftSnapshot, materialFingerprint:material.fingerprint,materialSnapshot:material as unknown as Record<string,unknown> };
+      await tx.update(operationsReviewMeeting).set({draftSnapshot:draft}).where(eq(operationsReviewMeeting.id, created.id));
+      await tx.insert(versions).values({meetingId:created.id,versionNumber:0,lifecycleStatus:'draft',changeSummary:'会前 V0 草稿',snapshot:{schemaVersion:4,finalizationStage:'pre',meeting:{name,periodStart:created.periodStart,periodEnd:created.periodEnd},draft,generated:{...selectWeeklyMaterial(material,[],[]),summary:material.summary}}});
       return created;
     });
     return Response.json({ ok: true, id: meeting.id }, { status: 201 });
@@ -47,6 +49,9 @@ export const DELETE: APIRoute = async ({ request, url }) => {
         .from(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids));
       if (meetings.length !== ids.length) throw new Error('meeting-missing');
       if (meetings.some((meeting) => meeting.status !== 'draft')) throw new Error('finalized-meeting');
+      const existing=await transaction.select().from(versions).where(inArray(versions.meetingId,ids));
+      if(existing.some(v=>v.lifecycleStatus!=='draft'))throw new Error('finalized-meeting');
+      await transaction.delete(versions).where(inArray(versions.meetingId,ids));
       return transaction.delete(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids)).returning({ id: operationsReviewMeeting.id });
     });
     return Response.json({ ok: true, deleted: deleted.length });

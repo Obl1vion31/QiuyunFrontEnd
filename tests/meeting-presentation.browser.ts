@@ -1,3 +1,4 @@
+import {versionDraftPayload} from './meeting-write.helper';
 import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 /** 定稿阅读结构、标题资料与冻结边界；仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
@@ -31,7 +32,7 @@ try{
  const non=[await seed('首轮复盘：把例题转化为方法','2026-10-14'),await seed('完整论证与常见误区','2026-10-14'),await seed('尚未登记项目资料的复盘','2026-10-14',false,undefined,false)];
  const login=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(employee)});assert.equal(login.status,200);
  const cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
- const api=async(path:string,values?:any)=>{const res=await fetch(baseURL+path,{method:values?'PATCH':'GET',headers:{Origin:baseURL,Cookie:cookie,'Content-Type':'application/json'},body:values?JSON.stringify(values):undefined});const json=await res.json();assert.ok(res.ok,JSON.stringify(json));return json;};
+ const api=async(path:string,values?:any)=>{const res=await fetch(baseURL+path,{method:values?'PATCH':'GET',headers:{Origin:baseURL,Cookie:cookie,'Content-Type':'application/json'},body:values?JSON.stringify(await versionDraftPayload(db,path,values)):undefined});const json=await res.json();assert.ok(res.ok,JSON.stringify(json));return json;};
  async function create(type='weekly',from='2026-10-17',to='2026-10-22'){
   const f=new FormData();for(const [k,v]of Object.entries({meetingType:type,meetingAt:'2026-10-24T18:00',periodStart:from,periodEnd:to}))f.set(k,v);
   const res=await fetch(baseURL+'/api/meeting-reviews',{method:'POST',headers:{Origin:baseURL,Cookie:cookie},body:f});assert.equal(res.status,201);return(await res.json()).id;
@@ -41,7 +42,7 @@ try{
  assert.equal(material.summary.posts,5);assert.equal(material.summary.spend,600);
  let [record]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));
  const longObservation='观察：核心开口稳定，需结合实际留资继续判断。\n完整记录长条件、图像与反例的阅读表现，不因展示截断原始结论。';
- const draft={...record.draftSnapshot,workflowVersion:5,candidatesConfirmed:true,materialFingerprint:material.fingerprint,promotionSelections:selected.map((r:any)=>r.key),nonPromotionSelections:[],promotionInputs:Object.fromEntries(selected.map((r:any,i:number)=>[r.key,{clickRate:i?7.25:0,recordedThrough:'2026-10-22',currentSituation:i===1?longObservation:'开口成本稳定，继续核对留资质量。',activeAction:'保留主内容，补充关键条件的表达。',confirmed:true}])),promotionDecisions:{[selected[0].campaignId]:'test_paused'},situation:'结合实际开口与留资核对投放效果，不用点击率替代最终结果。',strategy:'补充图像与反例，持续跟进有效咨询。',coreConclusion:'本期先稳定有效开口，再核对留资质量。\n已完成内容保留，下一轮集中验证关键条件的表达。',nextAction:'核对下一轮素材；按会后确定的安排执行。',issues:[{problem:'确认后续素材中的关键条件',conclusion:'整理反例与图像对照后复查',status:'pending'}]};
+ const draft={...record.draftSnapshot,workflowVersion:6,candidatesConfirmed:true,materialFingerprint:material.fingerprint,promotionSelections:selected.map((r:any)=>r.key),nonPromotionSelections:[],promotionInputs:Object.fromEntries(selected.map((r:any,i:number)=>[r.key,{clickRate:i?7.25:0,recordedThrough:'2026-10-22',currentSituation:i===1?longObservation:'开口成本稳定，继续核对留资质量。',activeAction:'保留主内容，补充关键条件的表达。',confirmed:true}])),promotionDecisions:{[selected[0].campaignId]:'test_paused'},situation:'结合实际开口与留资核对投放效果，不用点击率替代最终结果。',strategy:'补充图像与反例，持续跟进有效咨询。',coreConclusion:'本期先稳定有效开口，再核对留资质量。\n已完成内容保留，下一轮集中验证关键条件的表达。',nextAction:'核对下一轮素材；按会后确定的安排执行。',issues:[{problem:'确认后续素材中的关键条件',conclusion:'整理反例与图像对照后复查',status:'pending'}]};
  await api('/api/meeting-reviews/'+id,{action:'save',draft,expectedUpdatedAt:record.updatedAt.toISOString()});
  const pw=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});
@@ -66,10 +67,10 @@ try{
   await button.focus();await page.keyboard.press('Enter');await panel.waitFor();await page.mouse.click(250,90);assert.equal(await panel.isVisible(),false);
  }
  await nav('/business/meeting-review?meeting='+id);
- assert.equal(await page.locator('.weekly-results').count(),0);assert.equal(await page.locator('#weekly-promotion').count(),1);assert.equal(await page.getByRole('button',{name:'保存草稿',exact:true}).count(),1);
+ assert.equal(await page.locator('.weekly-results').count(),1);assert.deepEqual(await page.locator('.weekly-frozen>section[aria-label]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.getAttribute('aria-label'))),['本期结果','推广帖阶段复盘','非推广帖复盘','补充分析与事项']);assert.equal(await page.locator('#weekly-promotion').count(),1);assert.equal(await page.getByRole('button',{name:'保存草稿',exact:true}).count(),1);
  await scrollToCard(card(posts[0]));await infoCheck(card(posts[0]),posts[0].version.projectDocUrl);
  await card(posts[0]).getByRole('button',{name:'修改',exact:true}).click();await card(posts[0]).locator('textarea').first().fill('保留尚未保存的观察');await infoCheck(card(posts[0]),posts[0].version.projectDocUrl);assert.equal(await card(posts[0]).locator('textarea').first().inputValue(),'保留尚未保存的观察');await shot('draft-1440');
- checks.push('草稿仍按日期、推广、非推广、结论、事项填写；标题资料悬停/点击/键盘/外点不跳动且保留输入');
+ checks.push('草稿与定稿共用结果/结论、推广、非推广、分析/事项顺序；标题资料悬停/点击/键盘/外点不跳动且保留输入');
  [record]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));
  await api('/api/meeting-reviews/'+id,{action:'finalize_pre',draft:record.draftSnapshot,expectedUpdatedAt:record.updatedAt.toISOString()});
  const [pre]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,id));const beforeSnapshot=JSON.stringify(pre.snapshot);

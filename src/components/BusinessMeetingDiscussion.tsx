@@ -5,7 +5,7 @@ import {meetingFinalizationIssue} from '../db/meeting-finalization';
 import type {WeeklyMeetingDraft} from '../db/schema';
 import type {WeeklyPostReference} from '../db/meeting-note-ids';
 import '../styles/meeting-weekly.css';
-export default function BusinessMeetingDiscussion({snapshot,draft:initial,sourceVersionId,meeting,postReferences,canEdit=true,effectiveOn,expired:initialExpired=false,rollback}:{snapshot:any;draft:WeeklyMeetingDraft;sourceVersionId:string;meeting:{id:string;updatedAt:string;currentVersionNumber:number};postReferences:Record<string,WeeklyPostReference>;canEdit?:boolean;effectiveOn:string;expired?:boolean;rollback?:{allowed:boolean;versions:number[];arrangements:number;reason?:string}}){
+export default function BusinessMeetingDiscussion({snapshot,draft:initial,sourceVersionId,draftVersionId,targetVersionNumber,versionDraft=false,meeting,postReferences,canEdit=true,effectiveOn,expired:initialExpired=false,rollback}:{snapshot:any;draft:WeeklyMeetingDraft;sourceVersionId:string;draftVersionId?:string;targetVersionNumber:number;versionDraft?:boolean;meeting:{id:string;updatedAt:string;currentVersionNumber:number};postReferences:Record<string,WeeklyPostReference>;canEdit?:boolean;effectiveOn:string;expired?:boolean;rollback?:{allowed:boolean;versions:number[];arrangements:number;reason?:string}}){
  const [draft,setDraft]=useState(initial),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState(false),[editing,setEditing]=useState(false),[expired,setExpired]=useState(initialExpired);
  const live=useRef(draft),writing=useRef(false);
  const changed=(next:WeeklyMeetingDraft)=>{live.current=next;setDraft(next);document.documentElement.dataset.unsaved='true';};
@@ -22,21 +22,21 @@ export default function BusinessMeetingDiscussion({snapshot,draft:initial,source
   controls?.addEventListener('change',switchMode);
   const update=()=>setExpired(Date.now()>=Date.parse(effectiveOn+'T00:00:00+08:00'));
   const timer=setInterval(update,1000);update();
-  if(new URL(location.href).searchParams.get('mode')==='edit'&&canEdit){setEditing(true);const radio=controls?.querySelector('[value="edit"]') as HTMLInputElement;if(radio)radio.checked=true;}
+  if((versionDraft||new URL(location.href).searchParams.get('mode')==='edit')&&canEdit){setEditing(true);const radio=controls?.querySelector('[value="edit"]') as HTMLInputElement;if(radio)radio.checked=true;}
   return ()=>{controls?.removeEventListener('change',switchMode);clearInterval(timer);};
  },[]);
- const save=async(finalize=false)=>{
+ const save=async(stage?:'pre'|'post')=>{
   if(writing.current)return;
-  if(finalize){const issue=meetingFinalizationIssue(live.current,'post',[]);if(issue){setError(true);setMessage(issue.message);if(issue.target.kind==='conclusion'){const label=({situation:'衡量情况',strategy:'本期具体动作',coreConclusion:'核心结论',nextAction:'下一步行动'})[issue.target.field];(document.querySelector(`button[aria-label="修改${label}"]`) as HTMLButtonElement)?.click();}return;}if(!await window.businessConfirm(`确认会后定稿，安排从 ${effectiveOn} 起生效。`,{title:'会后定稿',confirmLabel:'确认定稿',cancelLabel:'继续编辑'}))return;}
+  if(stage){const issue=meetingFinalizationIssue(live.current,stage,[]);if(issue){setError(true);setMessage(issue.message);if(issue.target.kind==='conclusion'){const label=({situation:'衡量情况',strategy:'本期具体动作',coreConclusion:'核心结论',nextAction:'下一步行动'})[issue.target.field];(document.querySelector(`button[aria-label="修改${label}"]`) as HTMLButtonElement)?.click();}return;}if(!await window.businessConfirm(stage==='pre'?'冻结本版会前材料，拟议安排尚未生效。':`确认会后定稿，沿用生效日 ${effectiveOn}。`,{title:stage==='pre'?'会前定稿':'会后定稿',confirmLabel:'确认定稿',cancelLabel:'继续编辑'}))return;}
   writing.current=true;setBusy(true);setError(false);setMessage('');
   try{
    const values=discussionFromDraft(live.current);
    values.promotionInputs=Object.fromEntries(Object.entries(values.promotionInputs).filter(([key])=>snapshot.generated.promotions.some((c:any)=>c.key===key)));
    values.promotionDecisions=Object.fromEntries(Object.entries(values.promotionDecisions).filter(([key])=>snapshot.generated.promotions.some((c:any)=>c.campaignId===key&&!c.testCycleEndedOn)));
-   const response=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:finalize?'finalize_version':'save_version_revision',sourceVersionId,expectedUpdatedAt:meeting.updatedAt,discussion:values})});
+   const response=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:stage?'finalize_version_draft':'save_version_draft',stage,sourceVersionId,draftVersionId,expectedUpdatedAt:meeting.updatedAt,discussion:values})});
    const result=await response.json().catch(()=>null);
    if(!response.ok)throw new Error(result?.message||`保存失败（${response.status}），输入已保留。`);
-   document.documentElement.dataset.unsaved='false';location.assign(`?meeting=${meeting.id}&version=${result.versionNumber}`);
+   document.documentElement.dataset.unsaved='false';location.assign(stage?`?meeting=${meeting.id}&version=${result.versionNumber}`:'/business/meeting-review');
   }catch(e){setError(true);setMessage(e instanceof Error?e.message:'连接失败，输入已保留。');}finally{writing.current=false;setBusy(false);}
  };
  const restore=async()=>{
@@ -46,5 +46,5 @@ export default function BusinessMeetingDiscussion({snapshot,draft:initial,source
   try{const res=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'rollback_version',sourceVersionId,expectedUpdatedAt:meeting.updatedAt,confirmed:true})}),result=await res.json();if(!res.ok)throw new Error(result.message||'回溯失败');location.assign(`?meeting=${meeting.id}&version=${result.versionNumber}&mode=edit`);}catch(e){setError(true);setMessage(e instanceof Error?e.message:'回溯失败，请重试');}finally{writing.current=false;setBusy(false);}
  };
  const rollbackControl=rollback&&<div className="weekly-rollback"><span title={expired?'已过可编辑时间':rollback.reason}><button type="button" className="business-action-secondary" disabled={busy||expired||!rollback.allowed} onClick={()=>void restore()}>回溯到此版本</button></span><small>{expired?'已过可编辑时间':rollback.reason??'回溯后需重新会后定稿'}</small><output role={error?'alert':'status'}>{message}</output></div>;
- return <div className="weekly-discussion-host business-form">{!canEdit&&rollbackControl}<fieldset className="weekly-fields" disabled={busy}><WeeklyMeetingPresentation snapshot={{...snapshot,draft}} postReferences={postReferences} discussion={editing&&canEdit} arrangementsLocked={expired} effectiveOn={effectiveOn} onChange={changed}/></fieldset>{editing&&canEdit?<footer className="weekly-report-actions"><output role={error?'alert':'status'} data-error={error||undefined}>{message||`指标已冻结 · 保存为 V${meeting.currentVersionNumber+1}`}</output><button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save()}>{busy?'保存中…':`保存为 V${meeting.currentVersionNumber+1}`}</button>{snapshot.finalizationStage==='pre'&&<button type="button" className="business-action-primary" disabled={busy||expired} title={expired?'已过可编辑时间':undefined} onClick={()=>void save(true)}>会后定稿 V{meeting.currentVersionNumber+1}</button>}</footer>:null}</div>;
+ return <div className="weekly-discussion-host business-form">{!canEdit&&rollbackControl}<fieldset className="weekly-fields" disabled={busy}><WeeklyMeetingPresentation snapshot={{...snapshot,draft}} versionDraft={versionDraft} postReferences={postReferences} discussion={editing&&canEdit} arrangementsLocked={expired} effectiveOn={effectiveOn} onChange={changed}/></fieldset>{editing&&canEdit?<footer className="weekly-report-actions"><output role={error?'alert':'status'} data-error={error||undefined}>{message||`V${targetVersionNumber} · 指标已冻结`}</output><button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save()}>{busy?'保存中…':'保存草稿'}</button>{snapshot.finalizationStage==='pre'&&<button type="button" className="business-action-secondary" disabled={busy} onClick={()=>void save('pre')}>会前定稿 V{targetVersionNumber}</button>}<button type="button" className="business-action-primary" disabled={busy||snapshot.finalizationStage==='pre'&&expired} title={snapshot.finalizationStage==='pre'&&expired?'已过可编辑时间':undefined} onClick={()=>void save('post')}>会后定稿 V{targetVersionNumber}</button></footer>:null}</div>;
 }

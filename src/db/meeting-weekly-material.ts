@@ -164,7 +164,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
     const allVersions=allVersionsIncludingInvalid.filter(v=>!v.invalidatedAt);
     const start = meeting.periodStart, end = meeting.periodEnd;
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
-    const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
+    const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.lifecycleStatus!=='draft' && !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
     const priorCards = (key: string, type: 'promotions' | 'nonPromotions', origin = false) => previous.flatMap(p => { const g = (p.version!.snapshot as any)?.generated; const cards = (type === 'promotions' ? [...(g?.promotions ?? []), ...(g?.promotionSnapshots ?? []).flatMap((ref: any) => (ref.snapshot?.rows ?? []).map((r: any) => ({ ...r, originKey: `${r.campaignId}:${r.stageType}:${r.originalStageStartedOn ?? r.startedOn}` })))] : g?.nonPromotions ?? []) as Array<any>; return cards.map(c => ({ ...c, key: c.key ?? `${c.scheduleId}:${c.checkpointType ?? `day_${c.checkpoint}`}` })).filter(c => (origin ? c.originKey : c.key) === key && !c.comparisonOnly).map(card => ({ card, savedAt: p.version!.createdAt, ref: { meetingId: p.meeting.id, name: p.meeting.name, versionNumber: p.version!.versionNumber, periodEnd: p.meeting.periodEnd } })); });
     const lastFinalized = previous[0]?.version?.createdAt;
     const pool: WeeklyPromotionCard[] = [];
@@ -247,7 +247,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
     const rateSources=new Map<string,{card:WeeklyPromotionCard;sample:RateSample}>();
     for(const version of [...allVersions].sort((a,b)=>a.createdAt.getTime()-b.createdAt.getTime()||a.versionNumber-b.versionNumber)){
       const snapshot=version.snapshot as any;
-      if(version.meetingId===meeting.id||snapshot.meeting?.periodEnd>end)continue;
+      if(version.lifecycleStatus==='draft'||version.invalidatedAt||version.meetingId===meeting.id||snapshot.meeting?.periodEnd>end)continue;
       for(const card of snapshot.generated?.promotions??[]){
         const input=snapshot.draft?.promotionInputs?.[card.key],range=cardDataRange(card);
         if(!range||range.through>end||!input?.confirmed||input.rateNeedsReview||input.clickRate==null||!Number.isFinite(input.clickRate)||input.rateRange&&(input.rateRange.from!==range.from||input.rateRange.through!==range.through))continue;

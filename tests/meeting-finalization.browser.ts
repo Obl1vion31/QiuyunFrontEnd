@@ -47,7 +47,7 @@ try{
  // 请求前后来源发生变化，真实事务应拒绝，界面将原因及刷新入口留在可见位置。
  await db.update(s.operationsPromotionDailyMetric).set({spend:'150',updatedAt:new Date('2026-10-25T10:00:00Z')}).where(eq(s.operationsPromotionDailyMetric.id,metric.id));
  await pre().click();await respondToBusinessConfirm(page,true);await alert.filter({hasText:'来源数据已变化'}).waitFor();
- assert.equal(await page.locator('[data-refresh-material]').evaluate((n:Element)=>n===document.activeElement),true);assert.equal((await db.select().from(s.operationsReviewMeetingVersion)).length,0);
+ assert.equal(await page.locator('[data-refresh-material]').evaluate((n:Element)=>n===document.activeElement),true);assert.equal((await db.select().from(s.operationsReviewMeetingVersion)).filter(v=>v.lifecycleStatus==='finalized').length,0);
  for(const width of [1920,1440,1280,1024]){await page.setViewportSize({width,height:1000});await page.screenshot({path:folder+`/source-changed-${width}.png`});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);assert.ok(await alert.isVisible());}
  checks.push('真实来源指纹冲突不产生版本，明确提示并定位刷新，四档桌面错误反馈可读且无溢出');
  await page.setViewportSize({width:1440,height:1000});await page.getByRole('button',{name:'刷新数据',exact:true}).click();await page.locator('.weekly-report-actions output').filter({hasText:'数据已刷新'}).waitFor();

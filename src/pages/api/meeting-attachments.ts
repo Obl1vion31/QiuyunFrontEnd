@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
      const parsed=z.uuid().safeParse(form.get('versionId'));
      if(!parsed.success)return Response.json({message:'请选择会后定稿版本。'},{status:422});
      const [version]=await db.select().from(versions).where(and(eq(versions.id,parsed.data),eq(versions.meetingId,meeting.id)));
-     if(!version||(version.snapshot as any).finalizationStage!=='post')return Response.json({message:'PDF只归档至会后定稿版本。'},{status:422});
+     if(!version||version.lifecycleStatus==='draft'||(version.snapshot as any).finalizationStage!=='post')return Response.json({message:'PDF只归档至会后定稿版本。'},{status:422});
      meetingVersionId=version.id;
     }
     const [saved] = await db.insert(attachments).values({ meetingId: meeting.id,meetingVersionId,source:mimeType==='application/pdf'?'manual':'image', name: file.name.slice(0,200), mimeType, byteLength: bytes.length, base64: bytes.toString('base64'), createdByLabel: locals.user!.username }).returning({ id: attachments.id, name: attachments.name,source:attachments.source });

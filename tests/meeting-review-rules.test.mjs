@@ -27,7 +27,7 @@ test('会议草稿支持单条和批量删除，并在服务端保护已定稿�
   const page = await readFile(new URL('../src/pages/business/meeting-review.astro', import.meta.url), 'utf8');
   assert.match(collection, /export const DELETE/);
   assert.match(collection, /meetings\.some\(\(meeting\) => meeting\.status !== 'draft'\)/);
-  assert.match(item, /eq\(operationsReviewMeeting\.status, 'draft'\)/);
+  assert.match(item, /m.status!=='draft'/);
   assert.match(page, /data-delete-selected/);
   assert.match(page, /data-delete-one/);
 });

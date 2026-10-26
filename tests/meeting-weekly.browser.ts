@@ -1,3 +1,4 @@
+import {versionDraftPayload} from './meeting-write.helper';
 import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 /** 正式组件与真实写入接口；全部使用独立 PGlite 和虚构资料。 */
 import assert from 'node:assert/strict';
@@ -18,7 +19,7 @@ try {
     const login = await fetch(baseURL + '/api/auth/sign-in/username', { method: 'POST', headers: { Origin: baseURL, 'Content-Type': 'application/json' }, body: JSON.stringify(employee) });
     assert.equal(login.status, 200);
     const cookie = login.headers.getSetCookie().map(v => v.split(';')[0]).join('; ');
-    const api = async (path: string, method = 'GET', body?: unknown, status = 200) => { const r = await fetch(baseURL + path, { method, headers: { Cookie: cookie, Origin: baseURL, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined }); const json = await r.json(); assert.equal(r.status, status, JSON.stringify(json)); return json; };
+    const api = async (path: string, method = 'GET', body?: unknown, status = 200) => { const r = await fetch(baseURL + path, { method, headers: { Cookie: cookie, Origin: baseURL, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(await versionDraftPayload(db,path,body)) : undefined }); const json = await r.json(); assert.equal(r.status, status, JSON.stringify(json)); return json; };
     const seed = async (name: string, start = '2026-10-21', stage = 'testing', id: string | null = randomUUID().replaceAll('-', '').slice(0, 24), promoted = true) => { const [c] = await db.insert(s.operationsContent).values({ platformNoteId: id }).returning(); const [v] = await db.insert(s.operationsContentVersion).values({ contentId: c.id, contentName: name, versionNumber: 1, workType: 'new', subjectId: 'tmua', categoryId: 'temporary' }).returning(); const [schedule] = await db.insert(s.operationsContentSchedule).values({ contentVersionId: v.id, completionStatus: 'on_time', plannedPublishAt: new Date(`${start}T10:00:00+08:00`), actualPublishAt: new Date(`${start}T10:00:00+08:00`), isPromoted: promoted, promotionStatus: promoted ? stage : 'none' }).returning(); if (!promoted)
         return { c, v, schedule, campaign: null! }; const [campaign] = await db.insert(s.operationsPromotionCampaign).values({ scheduleId: schedule.id, startedOn: start, dailyReviewEnabledOn: start, initialStage: stage, currentStage: stage, currentStatus: stage }).returning(); await db.insert(s.operationsPromotionStage).values({ campaignId: campaign.id, startedOn: start, stageType: stage }); return { c, v, schedule, campaign }; };
     const fact = async (post: Awaited<ReturnType<typeof seed>>, date: string, decision: string, status = 'testing', spend = '200.00') => (await db.insert(s.operationsPromotionDailyMetric).values({ campaignId: post.campaign.id, metricDate: date, dailyStatus: ['testing', 'scaling'].includes(status) ? 'active' : 'waiting_action', actualStatusSnapshot: status, stageTypeSnapshot: status.startsWith('scaling') ? 'scaling' : 'testing', sourceStageStartedOn: post.campaign.startedOn, spend, platformOpenCount: 20, actualOpenCount: 10, platformLeadCount: 8, actualLeadCount: 5, reviewDecision: decision }).returning())[0];
@@ -144,7 +145,7 @@ try {
     const post=await api('/api/meeting-reviews/'+meetingId,'PATCH',{action:'finalize_version',sourceVersionId:source.id,discussion:discussionFromDraft(draft),expectedUpdatedAt:stamp});stamp=post.updatedAt;assert.equal(post.versionNumber,1);
     assert.deepEqual(((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,post.versionId)))[0].snapshot as any).generated.nonPromotions,JSON.parse(frozen).generated.nonPromotions);
     assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meetingId))).find(v=>v.versionNumber===0)!.snapshot),frozen);
-    await patch('finalize_pre',422);await nav(`/business/meeting-review?meeting=${meetingId}&version=1`);await page.getByText('旧版补充文字保持可读',{exact:true}).waitFor();
+    await patch('finalize_pre',409);await nav(`/business/meeting-review?meeting=${meetingId}&version=1`);await page.getByText('旧版补充文字保持可读',{exact:true}).waitFor();
     checks.push('new candidates unselected, paired first-round context, before/after finalization gates, stale source refusal, immutable pre V0 and append-only post V1');
     assert.deepEqual(errors, []);
     await page.close();
