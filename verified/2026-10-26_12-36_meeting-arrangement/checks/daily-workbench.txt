@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:review-workbench /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/review-workbench.browser.ts
+
+review-v8 browser passed

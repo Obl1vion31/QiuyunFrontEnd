@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:motion /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/panel-motion.browser.ts
+
+通过：1440/1280/390/320px 详情、发布、编辑、改帖进出逐帧几何、遮罩终帧、背景日历、非零滚动位置、滚动锁、快速重开、嵌套确认和减少动态效果。

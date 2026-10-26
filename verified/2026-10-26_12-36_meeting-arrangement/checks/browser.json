@@ -1,0 +1,407 @@
+{
+  "checks": [
+    "1920/1440/1024/390/320px单行、最长复测文案、完整来源链接、指标宽度、字体、边缘避让及Esc焦点",
+    "理由必填、未保存取消、换记录确认、批量互锁、断网保留与重试、同对象列表/Inspector共享草稿、保存后指标/节点/滚动连续",
+    "版本冲突不丢输入、后退取消、保存成功刷新失败与重新读取、减少动态效果、独立接口仅写安排审计且未提交指标"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "width": 192,
+      "rect": {
+        "x": 1494.046875,
+        "y": 848.5,
+        "width": 192,
+        "height": 40,
+        "top": 848.5,
+        "right": 1686.046875,
+        "bottom": 888.5,
+        "left": 1494.046875
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 1494.046875,
+            "y": 857.5,
+            "width": 88,
+            "height": 22,
+            "top": 857.5,
+            "right": 1582.046875,
+            "bottom": 879.5,
+            "left": 1494.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "14px"
+        },
+        {
+          "text": "例会决定",
+          "rect": {
+            "x": 1590.046875,
+            "y": 848.5,
+            "width": 48,
+            "height": 40,
+            "top": 848.5,
+            "right": 1638.046875,
+            "bottom": 888.5,
+            "left": 1590.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "12px"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 1646.046875,
+            "y": 848.5,
+            "width": 40,
+            "height": 40,
+            "top": 848.5,
+            "right": 1686.046875,
+            "bottom": 888.5,
+            "left": 1646.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px"
+        }
+      ],
+      "inputs": [
+        113.546875,
+        103.21875,
+        103.234375,
+        103.21875,
+        103.234375
+      ],
+      "scrollRect": {
+        "x": 349.5,
+        "y": 509,
+        "width": 1438,
+        "height": 396,
+        "top": 509,
+        "right": 1787.5,
+        "bottom": 905,
+        "left": 349.5
+      },
+      "documentWidth": 1905,
+      "viewport": 1920
+    },
+    {
+      "width": 192,
+      "rect": {
+        "x": 1159,
+        "y": 848.5,
+        "width": 192,
+        "height": 40,
+        "top": 848.5,
+        "right": 1351,
+        "bottom": 888.5,
+        "left": 1159
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 1159,
+            "y": 857.5,
+            "width": 88,
+            "height": 22,
+            "top": 857.5,
+            "right": 1247,
+            "bottom": 879.5,
+            "left": 1159
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "14px"
+        },
+        {
+          "text": "例会决定",
+          "rect": {
+            "x": 1255,
+            "y": 848.5,
+            "width": 48,
+            "height": 40,
+            "top": 848.5,
+            "right": 1303,
+            "bottom": 888.5,
+            "left": 1255
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "12px"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 1311,
+            "y": 848.5,
+            "width": 40,
+            "height": 40,
+            "top": 848.5,
+            "right": 1351,
+            "bottom": 888.5,
+            "left": 1311
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px"
+        }
+      ],
+      "inputs": [
+        96,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 257,
+        "y": 509,
+        "width": 1143,
+        "height": 396,
+        "top": 509,
+        "right": 1400,
+        "bottom": 905,
+        "left": 257
+      },
+      "documentWidth": 1425,
+      "viewport": 1440
+    },
+    {
+      "width": 192,
+      "rect": {
+        "x": 694,
+        "y": 855.5,
+        "width": 192,
+        "height": 40,
+        "top": 855.5,
+        "right": 886,
+        "bottom": 895.5,
+        "left": 694
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 694,
+            "y": 864.5,
+            "width": 88,
+            "height": 22,
+            "top": 864.5,
+            "right": 782,
+            "bottom": 886.5,
+            "left": 694
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "14px"
+        },
+        {
+          "text": "例会决定",
+          "rect": {
+            "x": 790,
+            "y": 855.5,
+            "width": 48,
+            "height": 40,
+            "top": 855.5,
+            "right": 838,
+            "bottom": 895.5,
+            "left": 790
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "12px"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 846,
+            "y": 855.5,
+            "width": 40,
+            "height": 40,
+            "top": 855.5,
+            "right": 886,
+            "bottom": 895.5,
+            "left": 846
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px"
+        }
+      ],
+      "inputs": [
+        96,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 257,
+        "y": 516,
+        "width": 727,
+        "height": 396,
+        "top": 516,
+        "right": 984,
+        "bottom": 912,
+        "left": 257
+      },
+      "documentWidth": 1009,
+      "viewport": 1024
+    },
+    {
+      "width": 192,
+      "rect": {
+        "x": 88,
+        "y": 838.5,
+        "width": 192,
+        "height": 40,
+        "top": 838.5,
+        "right": 280,
+        "bottom": 878.5,
+        "left": 88
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 88,
+            "y": 847.5,
+            "width": 88,
+            "height": 22,
+            "top": 847.5,
+            "right": 176,
+            "bottom": 869.5,
+            "left": 88
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "14px"
+        },
+        {
+          "text": "例会决定",
+          "rect": {
+            "x": 184,
+            "y": 838.5,
+            "width": 48,
+            "height": 40,
+            "top": 838.5,
+            "right": 232,
+            "bottom": 878.5,
+            "left": 184
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "12px"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 240,
+            "y": 838.5,
+            "width": 40,
+            "height": 40,
+            "top": 838.5,
+            "right": 280,
+            "bottom": 878.5,
+            "left": 240
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px"
+        }
+      ],
+      "inputs": [
+        104,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 11,
+        "y": 499,
+        "width": 353,
+        "height": 396,
+        "top": 499,
+        "right": 364,
+        "bottom": 895,
+        "left": 11
+      },
+      "documentWidth": 375,
+      "viewport": 390
+    },
+    {
+      "width": 192,
+      "rect": {
+        "x": 88,
+        "y": 959.5,
+        "width": 192,
+        "height": 40,
+        "top": 959.5,
+        "right": 280,
+        "bottom": 999.5,
+        "left": 88
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 88,
+            "y": 968.5,
+            "width": 88,
+            "height": 22,
+            "top": 968.5,
+            "right": 176,
+            "bottom": 990.5,
+            "left": 88
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "14px"
+        },
+        {
+          "text": "例会决定",
+          "rect": {
+            "x": 184,
+            "y": 959.5,
+            "width": 48,
+            "height": 40,
+            "top": 959.5,
+            "right": 232,
+            "bottom": 999.5,
+            "left": 184
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "12px"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 240,
+            "y": 959.5,
+            "width": 40,
+            "height": 40,
+            "top": 959.5,
+            "right": 280,
+            "bottom": 999.5,
+            "left": 240
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "fontSize": "13px"
+        }
+      ],
+      "inputs": [
+        104,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 11,
+        "y": 620,
+        "width": 283,
+        "height": 396,
+        "top": 620,
+        "right": 294,
+        "bottom": 1016,
+        "left": 11
+      },
+      "documentWidth": 305,
+      "viewport": 320
+    }
+  ],
+  "baseURL": "http://127.0.0.1:44633",
+  "data": "隔离PGlite与虚构业务事实"
+}
