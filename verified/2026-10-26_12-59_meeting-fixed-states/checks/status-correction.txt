@@ -1,0 +1,4 @@
+> qiuyun-frontend-system@0.1.0 test:status-correction /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/promotion-status-correction.browser.ts
+
+{"passed":true,"checks":9,"widths":[1440,1024,390,320],"isolatedData":true}

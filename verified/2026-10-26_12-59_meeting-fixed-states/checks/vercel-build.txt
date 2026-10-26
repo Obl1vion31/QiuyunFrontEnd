@@ -1,0 +1,121 @@
+> qiuyun-frontend-system@0.1.0 build /home/obl1vion/projects/qiuyunFrontend
+> ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build
+
+12:58:38 [content] Syncing content
+12:58:38 [content] Astro config changed
+12:58:38 [content] Clearing content store
+12:58:38 [content] Synced content
+12:58:38 [types] Generated 56ms
+12:58:38 [check] Getting diagnostics for Astro files in /home/obl1vion/projects/qiuyunFrontend...
+tests/home.browser.mjs:49:78 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+49  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));await context.close();const video=await page.video().path(),deltas=frames.map(n=>n.dt).filter(n=>n>0).sort((a,b)=>a-b);
+                                                                                ~~~~~~~~
+tests/home.browser.mjs:46:188 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+46  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('[data-home-hero]');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-home-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+                                                                                                                                                                                              ~~~~~~~~
+tests/home.browser.mjs:46:34 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+46  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('[data-home-hero]');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-home-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+                                    ~~~~~~~~
+
+verified/2026-10-23_13-16_home-cinematic/source/capture.mjs:45:78 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+45  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));
+                                                                                ~~~~~~~~
+verified/2026-10-23_13-16_home-cinematic/source/capture.mjs:41:177 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+41  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,progress:+h.dataset.progress,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent,cards:[...document.querySelectorAll('[data-cover]')].map(n=>({transform:n.style.transform,opacity:+n.style.opacity}))});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+                                                                                                                                                                                   ~~~~~~~~
+verified/2026-10-23_13-16_home-cinematic/source/capture.mjs:41:34 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+41  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,progress:+h.dataset.progress,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent,cards:[...document.querySelectorAll('[data-cover]')].map(n=>({transform:n.style.transform,opacity:+n.style.opacity}))});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+                                    ~~~~~~~~
+
+verified/2026-10-23_13-42_home-loop/source/capture.mjs:44:78 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+44  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));await context.close();const video=await page.video().path(),deltas=frames.map(n=>n.dt).filter(n=>n>0).sort((a,b)=>a-b);
+                                                                                ~~~~~~~~
+verified/2026-10-23_13-42_home-loop/source/capture.mjs:41:177 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+41  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+                                                                                                                                                                                   ~~~~~~~~
+verified/2026-10-23_13-42_home-loop/source/capture.mjs:41:34 - warning ts(2568): Property '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+41  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+                                    ~~~~~~~~
+
+Result (297 files):
+- 0 errors
+- 0 warnings
+- 9 hints
+
+12:58:53 [content] Syncing content
+12:58:53 [content] Synced content
+12:58:53 [types] Generated 39ms
+12:58:53 [build] output: "server"
+12:58:53 [build] mode: "server"
+12:58:53 [build] directory: /home/obl1vion/projects/qiuyunFrontend/dist/
+12:58:53 [build] adapter: @astrojs/vercel
+12:58:53 [build] Collecting build info...
+12:58:53 [build] ✓ Completed in 214ms.
+12:58:53 [build] Building server entrypoints...
+12:58:57 [vite] ✓ built in 4.45s
+12:58:57 [build] ✓ Completed in 4.47s.
+
+ building client (vite)
+12:58:57 [vite] transforming...
+12:58:58 [vite] ✓ 112 modules transformed.
+12:58:58 [vite] rendering chunks...
+12:58:58 [vite] computing gzip size...
+12:58:58 [vite] dist/client/_astro/client.B9YBqyHK.js                                                              0.03 kB │ gzip:  0.05 kB
+12:58:58 [vite] dist/client/_astro/page.DWjkjaoM.js                                                                0.07 kB │ gzip:  0.08 kB
+12:58:58 [vite] dist/client/_astro/BusinessConsoleFrame.astro_astro_type_script_index_0_lang.BVfJGiAG.js           0.25 kB │ gzip:  0.17 kB
+12:58:58 [vite] dist/client/_astro/business-date.CvCuF-15.js                                                       0.44 kB │ gzip:  0.35 kB
+12:58:58 [vite] dist/client/_astro/business-permissions.BcHyGTbB.js                                                0.67 kB │ gzip:  0.40 kB
+12:58:58 [vite] dist/client/_astro/stage-review-rules.BUxUV3hS.js                                                  0.74 kB │ gzip:  0.48 kB
+12:58:58 [vite] dist/client/_astro/index.95d291e9.C1nvcLkw.js                                                      0.78 kB │ gzip:  0.41 kB
+12:58:58 [vite] dist/client/_astro/login.astro_astro_type_script_index_0_lang.D0D6MN7l.js                          0.83 kB │ gzip:  0.50 kB
+12:58:58 [vite] dist/client/_astro/client.Brzm4MT3.js                                                              0.88 kB │ gzip:  0.56 kB
+12:58:58 [vite] dist/client/_astro/jsx-runtime.ClP7wGfN.js                                                         1.00 kB │ gzip:  0.62 kB
+12:58:58 [vite] dist/client/_astro/BusinessDateTimeFields.astro_astro_type_script_index_0_lang.B--8MwvI.js         1.25 kB │ gzip:  0.55 kB
+12:58:58 [vite] dist/client/_astro/promotion-successors.DwNHEL_u.js                                                1.48 kB │ gzip:  0.57 kB
+12:58:58 [vite] dist/client/_astro/ClientRouter.astro_astro_type_script_index_0_lang._QSiuP-R.js                   1.69 kB │ gzip:  0.85 kB
+12:58:58 [vite] dist/client/_astro/BusinessAccountMenu.astro_astro_type_script_index_0_lang.D59NfbM4.js            1.73 kB │ gzip:  0.97 kB
+12:58:58 [vite] dist/client/_astro/BusinessPromotionWaitRanges.astro_astro_type_script_index_0_lang.DUOxtE_W.js    1.74 kB │ gzip:  1.07 kB
+12:58:58 [vite] dist/client/_astro/business-read.lHADWRqp.js                                                       1.78 kB │ gzip:  0.93 kB
+12:58:58 [vite] dist/client/_astro/index.CMSLJNQe.js                                                               2.34 kB │ gzip:  1.07 kB
+12:58:58 [vite] dist/client/_astro/MeetingPdfArchive.1qDuFocl.js                                                   2.41 kB │ gzip:  1.19 kB
+12:58:58 [vite] dist/client/_astro/BusinessScheduleApprovals.astro_astro_type_script_index_0_lang.JfVoHPyb.js      2.63 kB │ gzip:  1.24 kB
+12:58:58 [vite] dist/client/_astro/BusinessConsoleSidebar.astro_astro_type_script_index_0_lang.Bp6p43BI.js         3.13 kB │ gzip:  1.23 kB
+12:58:58 [vite] dist/client/_astro/BusinessPromotionSummary.astro_astro_type_script_index_0_lang.DDiPMAp3.js       4.40 kB │ gzip:  1.75 kB
+12:58:58 [vite] dist/client/_astro/business-dialog.CVrict8E.js                                                     6.36 kB │ gzip:  2.05 kB
+12:58:58 [vite] dist/client/_astro/index.DK-fsZOb.js                                                               6.81 kB │ gzip:  2.73 kB
+12:58:58 [vite] dist/client/_astro/BusinessPromotionDailyPosts.astro_astro_type_script_index_0_lang.DS0b_yFk.js    7.18 kB │ gzip:  2.92 kB
+12:58:58 [vite] dist/client/_astro/ContentTunnel.BWZlauFm.js                                                       7.35 kB │ gzip:  3.02 kB
+12:58:58 [vite] dist/client/_astro/non-promotion-review.astro_astro_type_script_index_0_lang.Da1Iw4QT.js           7.95 kB │ gzip:  3.44 kB
+12:58:58 [vite] dist/client/_astro/BusinessMeetingDiscussion.BrpmFq45.js                                          10.11 kB │ gzip:  3.83 kB
+12:58:58 [vite] dist/client/_astro/BusinessPromotionMetricForm.astro_astro_type_script_index_0_lang.CO4ACSyz.js   10.45 kB │ gzip:  3.72 kB
+12:58:58 [vite] dist/client/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.BgxEIA_F.js             10.58 kB │ gzip:  3.91 kB
+12:58:58 [vite] dist/client/_astro/router.CxpQgbQp.js                                                             11.54 kB │ gzip:  4.05 kB
+12:58:58 [vite] dist/client/_astro/BusinessPromotionTimeline.astro_astro_type_script_index_0_lang.ClIUYGOj.js     16.67 kB │ gzip:  5.15 kB
+12:58:58 [vite] dist/client/_astro/BusinessWeeklyMeeting.CBSNzzGN.js                                              17.26 kB │ gzip:  6.07 kB
+12:58:58 [vite] dist/client/_astro/operations-schedule.astro_astro_type_script_index_0_lang.DvogBYJy.js           18.81 kB │ gzip:  6.94 kB
+12:58:58 [vite] dist/client/_astro/annual-plan.astro_astro_type_script_index_0_lang.DiyM1uwv.js                   19.24 kB │ gzip:  6.94 kB
+12:58:58 [vite] dist/client/_astro/meeting-finalization.CfWXJAUw.js                                               21.70 kB │ gzip:  7.40 kB
+12:58:58 [vite] dist/client/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.DNvim1a2.js        27.21 kB │ gzip:  8.83 kB
+12:58:58 [vite] dist/client/_astro/client.Bz692-Ao.js                                                            136.51 kB │ gzip: 44.01 kB
+12:58:58 [vite] ✓ built in 923ms
+
+ prerendering static routes
+12:58:58 ▶ src/pages/index.astro
+12:58:58   └─ /index.html (+378ms)
+12:58:59 ✓ Completed in 420ms.
+
+12:58:59 [build] Rearranging server assets...
+12:58:59 [@astrojs/vercel] Bundling function ../../../../dist/server/entry.mjs
+12:59:02 [build] Waiting for integration "@astrojs/vercel", hook "astro:build:done"...
+12:59:04 [@astrojs/vercel] Copying static files to .vercel/output/static
+12:59:05 [build] Server built in 12.06s
+12:59:05 [build] Complete!

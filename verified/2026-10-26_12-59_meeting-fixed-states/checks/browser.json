@@ -1,0 +1,528 @@
+{
+  "checks": [
+    "1920/1440/1024/390/320px例会固定值两行、与当日状态相同的实际字体/字重/间距、最长复测文案、指标宽度、边缘避让及Esc焦点",
+    "理由必填、未保存取消、换记录确认、批量互锁、断网保留与重试、同对象列表/Inspector共享草稿、保存后指标/节点/滚动连续",
+    "非例会安排保持原生下拉、选项/选择/输入/节点保留，红绿灰及保存回显按各自状态取色，表头来源链接默认蓝色下划线且可访问",
+    "版本冲突不丢输入、后退取消、保存成功刷新失败与重新读取、减少动态效果、独立接口仅写安排审计且未提交指标"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "width": 1920,
+      "rect": {
+        "x": 1494.046875,
+        "y": 959.5,
+        "width": 192,
+        "height": 40,
+        "top": 959.5,
+        "right": 1686.046875,
+        "bottom": 999.5,
+        "left": 1494.046875
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 1551.046875,
+            "y": 961,
+            "width": 78,
+            "height": 19,
+            "top": 961,
+            "right": 1629.046875,
+            "bottom": 980,
+            "left": 1551.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 1578.046875,
+            "y": 981,
+            "width": 24,
+            "height": 17,
+            "top": 981,
+            "right": 1602.046875,
+            "bottom": 998,
+            "left": 1578.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": 649.375,
+            "y": 961,
+            "width": 78,
+            "height": 19,
+            "top": 961,
+            "right": 727.375,
+            "bottom": 980,
+            "left": 649.375
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 676.375,
+            "y": 981,
+            "width": 24,
+            "height": 17,
+            "top": 981,
+            "right": 700.375,
+            "bottom": 998,
+            "left": 676.375
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        113.546875,
+        103.21875,
+        103.234375,
+        103.21875,
+        103.234375
+      ],
+      "scrollRect": {
+        "x": 349.5,
+        "y": 548,
+        "width": 1438,
+        "height": 468,
+        "top": 548,
+        "right": 1787.5,
+        "bottom": 1016,
+        "left": 349.5
+      },
+      "documentWidth": 1905
+    },
+    {
+      "width": 1440,
+      "rect": {
+        "x": 1159,
+        "y": 959.5,
+        "width": 192,
+        "height": 40,
+        "top": 959.5,
+        "right": 1351,
+        "bottom": 999.5,
+        "left": 1159
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 1216,
+            "y": 961,
+            "width": 78,
+            "height": 19,
+            "top": 961,
+            "right": 1294,
+            "bottom": 980,
+            "left": 1216
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 1243,
+            "y": 981,
+            "width": 24,
+            "height": 17,
+            "top": 981,
+            "right": 1267,
+            "bottom": 998,
+            "left": 1243
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": 486,
+            "y": 961,
+            "width": 78,
+            "height": 19,
+            "top": 961,
+            "right": 564,
+            "bottom": 980,
+            "left": 486
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 513,
+            "y": 981,
+            "width": 24,
+            "height": 17,
+            "top": 981,
+            "right": 537,
+            "bottom": 998,
+            "left": 513
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        96,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 257,
+        "y": 548,
+        "width": 1143,
+        "height": 468,
+        "top": 548,
+        "right": 1400,
+        "bottom": 1016,
+        "left": 257
+      },
+      "documentWidth": 1425
+    },
+    {
+      "width": 1024,
+      "rect": {
+        "x": 694,
+        "y": 855.5,
+        "width": 192,
+        "height": 40,
+        "top": 855.5,
+        "right": 886,
+        "bottom": 895.5,
+        "left": 694
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 751,
+            "y": 857,
+            "width": 78,
+            "height": 19,
+            "top": 857,
+            "right": 829,
+            "bottom": 876,
+            "left": 751
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 778,
+            "y": 877,
+            "width": 24,
+            "height": 17,
+            "top": 877,
+            "right": 802,
+            "bottom": 894,
+            "left": 778
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": 21,
+            "y": 857,
+            "width": 78,
+            "height": 19,
+            "top": 857,
+            "right": 99,
+            "bottom": 876,
+            "left": 21
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 48,
+            "y": 877,
+            "width": 24,
+            "height": 17,
+            "top": 877,
+            "right": 72,
+            "bottom": 894,
+            "left": 48
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        96,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 257,
+        "y": 444,
+        "width": 727,
+        "height": 468,
+        "top": 444,
+        "right": 984,
+        "bottom": 912,
+        "left": 257
+      },
+      "documentWidth": 1009
+    },
+    {
+      "width": 390,
+      "rect": {
+        "x": 91,
+        "y": 826.5,
+        "width": 192,
+        "height": 40,
+        "top": 826.5,
+        "right": 283,
+        "bottom": 866.5,
+        "left": 91
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 148,
+            "y": 828,
+            "width": 78,
+            "height": 19,
+            "top": 828,
+            "right": 226,
+            "bottom": 847,
+            "left": 148
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 175,
+            "y": 848,
+            "width": 24,
+            "height": 17,
+            "top": 848,
+            "right": 199,
+            "bottom": 865,
+            "left": 175
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": -590,
+            "y": 828,
+            "width": 78,
+            "height": 19,
+            "top": 828,
+            "right": -512,
+            "bottom": 847,
+            "left": -590
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": -563,
+            "y": 848,
+            "width": 24,
+            "height": 17,
+            "top": 848,
+            "right": -539,
+            "bottom": 865,
+            "left": -563
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        104,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 11,
+        "y": 415,
+        "width": 353,
+        "height": 468,
+        "top": 415,
+        "right": 364,
+        "bottom": 883,
+        "left": 11
+      },
+      "documentWidth": 375
+    },
+    {
+      "width": 320,
+      "rect": {
+        "x": 91,
+        "y": 926.5,
+        "width": 192,
+        "height": 40,
+        "top": 926.5,
+        "right": 283,
+        "bottom": 966.5,
+        "left": 91
+      },
+      "children": [
+        {
+          "text": "重新开始测试",
+          "rect": {
+            "x": 148,
+            "y": 928,
+            "width": 78,
+            "height": 19,
+            "top": 928,
+            "right": 226,
+            "bottom": 947,
+            "left": 148
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 175,
+            "y": 948,
+            "width": 24,
+            "height": 17,
+            "top": 948,
+            "right": 199,
+            "bottom": 965,
+            "left": 175
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": -590,
+            "y": 928,
+            "width": 78,
+            "height": 19,
+            "top": 928,
+            "right": -512,
+            "bottom": 947,
+            "left": -590
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": -563,
+            "y": 948,
+            "width": 24,
+            "height": 17,
+            "top": 948,
+            "right": -539,
+            "bottom": 965,
+            "left": -563
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        104,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 11,
+        "y": 515,
+        "width": 283,
+        "height": 468,
+        "top": 515,
+        "right": 294,
+        "bottom": 983,
+        "left": 11
+      },
+      "documentWidth": 305
+    }
+  ],
+  "baseURL": "http://127.0.0.1:46411",
+  "data": "隔离PGlite与虚构业务事实"
+}

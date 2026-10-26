@@ -1,0 +1,40 @@
+Vercel CLI 64.0.2 (Node.js 22.23.3)
+Fetching deployment "qiuyun-frontend.vercel.app" in opgobl1v-5358
+> Fetched deployment "qiuyun-frontend-7g6pz9wlc-opgobl1v-5358.vercel.app" in opgobl1v-5358 [2s]
+
+  General
+
+    id		dpl_2h2Krp68bggmG6ihJeDjFstK18VK
+    name	qiuyun-frontend
+    target	production
+    status	● Ready
+    url		https://qiuyun-frontend-7g6pz9wlc-opgobl1v-5358.vercel.app
+    created	Mon Oct 26 2026 12:59:22 GMT+0800 (China Standard Time) [1m ago]
+
+
+  Build Machine
+
+    requested build machine basic
+    actual assigned cores   2 vCPU (actual assignment)
+    memory                  8192 MiB
+    selection type          fixed
+    selection source        plan-default
+
+
+  Duration
+
+    build duration	8s
+    post-build duration	5s
+    billable duration	1m
+    CPU Minutes Usage	2 minutes (1m x 2vCPU)
+
+
+  Aliases
+
+    ╶ https://qiuyun-frontend-opgobl1v-5358.vercel.app
+
+
+  Builds
+
+    ┌ .        [0ms]
+    └── λ _render (37.05MB) [iad1]
