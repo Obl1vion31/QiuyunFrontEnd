@@ -1,0 +1,1953 @@
+{
+  "checks": [
+    "1920/1440/1024/390/320px实际表头标题组水平垂直居中、纯文本中心与上标不占位、浮层原安排无星号、例会固定值两行、与当日状态相同的实际字体/字重/间距、最长复测文案、指标宽度、边缘避让及Esc焦点",
+    "理由必填、未保存取消、换记录确认、批量互锁、断网保留与重试、同对象列表/Inspector共享草稿、保存后指标/节点/滚动连续",
+    "非例会安排保持原生下拉、选项/选择/输入/节点保留，红绿灰及保存回显按各自状态取色，表头来源链接默认蓝色下划线且可访问",
+    "版本冲突不丢输入、后退取消、保存成功刷新失败与重新读取、减少动态效果、独立接口仅写安排审计且未提交指标"
+  ],
+  "errors": [],
+  "geometry": [
+    {
+      "width": 1920,
+      "rect": {
+        "x": 1494.046875,
+        "y": 959.5,
+        "width": 192,
+        "height": 40,
+        "top": 959.5,
+        "right": 1686.046875,
+        "bottom": 999.5,
+        "left": 1494.046875
+      },
+      "children": [
+        {
+          "text": "重新开始测试*",
+          "rect": {
+            "x": 1551.046875,
+            "y": 961,
+            "width": 78,
+            "height": 19,
+            "top": 961,
+            "right": 1629.046875,
+            "bottom": 980,
+            "left": 1551.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 1578.046875,
+            "y": 981,
+            "width": 24,
+            "height": 17,
+            "top": 981,
+            "right": 1602.046875,
+            "bottom": 998,
+            "left": 1578.046875
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": 649.375,
+            "y": 961,
+            "width": 78,
+            "height": 19,
+            "top": 961,
+            "right": 727.375,
+            "bottom": 980,
+            "left": 649.375
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 676.375,
+            "y": 981,
+            "width": 24,
+            "height": 17,
+            "top": 981,
+            "right": 700.375,
+            "bottom": 998,
+            "left": 676.375
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        113.546875,
+        103.21875,
+        103.234375,
+        103.21875,
+        103.234375
+      ],
+      "scrollRect": {
+        "x": 349.5,
+        "y": 548,
+        "width": 1438,
+        "height": 468,
+        "top": 548,
+        "right": 1787.5,
+        "bottom": 1016,
+        "left": 349.5
+      },
+      "documentWidth": 1905,
+      "heading": [
+        {
+          "text": "数据日期",
+          "cell": {
+            "x": 361.5,
+            "y": 557,
+            "width": 84,
+            "height": 18,
+            "top": 557,
+            "right": 445.5,
+            "bottom": 575,
+            "left": 361.5
+          },
+          "content": {
+            "x": 379.5,
+            "y": 558,
+            "width": 48,
+            "height": 16,
+            "top": 558,
+            "right": 427.5,
+            "bottom": 574,
+            "left": 379.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "内容 / 版本",
+          "cell": {
+            "x": 454.9375,
+            "y": 557,
+            "width": 176,
+            "height": 18,
+            "top": 557,
+            "right": 630.9375,
+            "bottom": 575,
+            "left": 454.9375
+          },
+          "content": {
+            "x": 512.4375,
+            "y": 558,
+            "width": 61,
+            "height": 16,
+            "top": 558,
+            "right": 573.4375,
+            "bottom": 574,
+            "left": 512.4375
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "当日状态",
+          "cell": {
+            "x": 640.375,
+            "y": 557,
+            "width": 96,
+            "height": 18,
+            "top": 557,
+            "right": 736.375,
+            "bottom": 575,
+            "left": 640.375
+          },
+          "content": {
+            "x": 664.375,
+            "y": 558,
+            "width": 48,
+            "height": 16,
+            "top": 558,
+            "right": 712.375,
+            "bottom": 574,
+            "left": 664.375
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "消耗（元）",
+          "cell": {
+            "x": 745.8125,
+            "y": 557,
+            "width": 113.546875,
+            "height": 18,
+            "top": 557,
+            "right": 859.359375,
+            "bottom": 575,
+            "left": 745.8125
+          },
+          "content": {
+            "x": 772.578125,
+            "y": 558,
+            "width": 60,
+            "height": 16,
+            "top": 558,
+            "right": 832.578125,
+            "bottom": 574,
+            "left": 772.578125
+          },
+          "dx": -0.0078125,
+          "dy": 0
+        },
+        {
+          "text": "平台开口（人）",
+          "cell": {
+            "x": 868.796875,
+            "y": 557,
+            "width": 103.21875,
+            "height": 18,
+            "top": 557,
+            "right": 972.015625,
+            "bottom": 575,
+            "left": 868.796875
+          },
+          "content": {
+            "x": 878.40625,
+            "y": 558,
+            "width": 84,
+            "height": 16,
+            "top": 558,
+            "right": 962.40625,
+            "bottom": 574,
+            "left": 878.40625
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际开口（人）",
+          "cell": {
+            "x": 981.453125,
+            "y": 557,
+            "width": 103.234375,
+            "height": 18,
+            "top": 557,
+            "right": 1084.6875,
+            "bottom": 575,
+            "left": 981.453125
+          },
+          "content": {
+            "x": 991.0625,
+            "y": 558,
+            "width": 84,
+            "height": 16,
+            "top": 558,
+            "right": 1075.0625,
+            "bottom": 574,
+            "left": 991.0625
+          },
+          "dx": -0.0078125,
+          "dy": 0
+        },
+        {
+          "text": "平台留资（人）",
+          "cell": {
+            "x": 1094.125,
+            "y": 557,
+            "width": 103.21875,
+            "height": 18,
+            "top": 557,
+            "right": 1197.34375,
+            "bottom": 575,
+            "left": 1094.125
+          },
+          "content": {
+            "x": 1103.734375,
+            "y": 558,
+            "width": 84,
+            "height": 16,
+            "top": 558,
+            "right": 1187.734375,
+            "bottom": 574,
+            "left": 1103.734375
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际留资（人）",
+          "cell": {
+            "x": 1206.78125,
+            "y": 557,
+            "width": 103.234375,
+            "height": 18,
+            "top": 557,
+            "right": 1310.015625,
+            "bottom": 575,
+            "left": 1206.78125
+          },
+          "content": {
+            "x": 1216.390625,
+            "y": 558,
+            "width": 84,
+            "height": 16,
+            "top": 558,
+            "right": 1300.390625,
+            "bottom": 574,
+            "left": 1216.390625
+          },
+          "dx": -0.0078125,
+          "dy": 0
+        },
+        {
+          "text": "实际成本（元/人）",
+          "cell": {
+            "x": 1319.453125,
+            "y": 557,
+            "width": 165.15625,
+            "height": 18,
+            "top": 557,
+            "right": 1484.609375,
+            "bottom": 575,
+            "left": 1319.453125
+          },
+          "content": {
+            "x": 1351.53125,
+            "y": 558,
+            "width": 101,
+            "height": 16,
+            "top": 558,
+            "right": 1452.53125,
+            "bottom": 574,
+            "left": 1351.53125
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "次日安排（*指例会决定）",
+          "cell": {
+            "x": 1494.046875,
+            "y": 557,
+            "width": 192,
+            "height": 18,
+            "top": 557,
+            "right": 1686.046875,
+            "bottom": 575,
+            "left": 1494.046875
+          },
+          "content": {
+            "x": 1519.546875,
+            "y": 557,
+            "width": 141,
+            "height": 18,
+            "top": 557,
+            "right": 1660.546875,
+            "bottom": 575,
+            "left": 1519.546875
+          },
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "mark": {
+        "value": {
+          "x": 1551.046875,
+          "y": 961,
+          "width": 78,
+          "height": 18,
+          "top": 961,
+          "right": 1629.046875,
+          "bottom": 979,
+          "left": 1551.046875
+        },
+        "marker": {
+          "x": 1631.046875,
+          "y": 959,
+          "width": 5,
+          "height": 12,
+          "top": 959,
+          "right": 1636.046875,
+          "bottom": 971,
+          "left": 1631.046875
+        },
+        "owner": {
+          "x": 1494.046875,
+          "y": 959.5,
+          "width": 192,
+          "height": 40,
+          "top": 959.5,
+          "right": 1686.046875,
+          "bottom": 999.5,
+          "left": 1494.046875
+        },
+        "text": "重新开始测试"
+      }
+    },
+    {
+      "width": 1440,
+      "rect": {
+        "x": 1159,
+        "y": 943.5,
+        "width": 192,
+        "height": 40,
+        "top": 943.5,
+        "right": 1351,
+        "bottom": 983.5,
+        "left": 1159
+      },
+      "children": [
+        {
+          "text": "重新开始测试*",
+          "rect": {
+            "x": 1216,
+            "y": 945,
+            "width": 78,
+            "height": 19,
+            "top": 945,
+            "right": 1294,
+            "bottom": 964,
+            "left": 1216
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 1243,
+            "y": 965,
+            "width": 24,
+            "height": 17,
+            "top": 965,
+            "right": 1267,
+            "bottom": 982,
+            "left": 1243
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": 486,
+            "y": 945,
+            "width": 78,
+            "height": 19,
+            "top": 945,
+            "right": 564,
+            "bottom": 964,
+            "left": 486
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 513,
+            "y": 965,
+            "width": 24,
+            "height": 17,
+            "top": 965,
+            "right": 537,
+            "bottom": 982,
+            "left": 513
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        96,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 257,
+        "y": 532,
+        "width": 1143,
+        "height": 468,
+        "top": 532,
+        "right": 1400,
+        "bottom": 1000,
+        "left": 257
+      },
+      "documentWidth": 1425,
+      "heading": [
+        {
+          "text": "数据日期",
+          "cell": {
+            "x": 269,
+            "y": 541,
+            "width": 84,
+            "height": 18,
+            "top": 541,
+            "right": 353,
+            "bottom": 559,
+            "left": 269
+          },
+          "content": {
+            "x": 287,
+            "y": 542,
+            "width": 48,
+            "height": 16,
+            "top": 542,
+            "right": 335,
+            "bottom": 558,
+            "left": 287
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "内容 / 版本",
+          "cell": {
+            "x": 359,
+            "y": 541,
+            "width": 112,
+            "height": 18,
+            "top": 541,
+            "right": 471,
+            "bottom": 559,
+            "left": 359
+          },
+          "content": {
+            "x": 384.5,
+            "y": 542,
+            "width": 61,
+            "height": 16,
+            "top": 542,
+            "right": 445.5,
+            "bottom": 558,
+            "left": 384.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "当日状态",
+          "cell": {
+            "x": 477,
+            "y": 541,
+            "width": 96,
+            "height": 18,
+            "top": 541,
+            "right": 573,
+            "bottom": 559,
+            "left": 477
+          },
+          "content": {
+            "x": 501,
+            "y": 542,
+            "width": 48,
+            "height": 16,
+            "top": 542,
+            "right": 549,
+            "bottom": 558,
+            "left": 501
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "消耗（元）",
+          "cell": {
+            "x": 579,
+            "y": 541,
+            "width": 96,
+            "height": 18,
+            "top": 541,
+            "right": 675,
+            "bottom": 559,
+            "left": 579
+          },
+          "content": {
+            "x": 597,
+            "y": 542,
+            "width": 60,
+            "height": 16,
+            "top": 542,
+            "right": 657,
+            "bottom": 558,
+            "left": 597
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台开口（人）",
+          "cell": {
+            "x": 681,
+            "y": 541,
+            "width": 80,
+            "height": 18,
+            "top": 541,
+            "right": 761,
+            "bottom": 559,
+            "left": 681
+          },
+          "content": {
+            "x": 679,
+            "y": 542,
+            "width": 84,
+            "height": 16,
+            "top": 542,
+            "right": 763,
+            "bottom": 558,
+            "left": 679
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际开口（人）",
+          "cell": {
+            "x": 767,
+            "y": 541,
+            "width": 80,
+            "height": 18,
+            "top": 541,
+            "right": 847,
+            "bottom": 559,
+            "left": 767
+          },
+          "content": {
+            "x": 765,
+            "y": 542,
+            "width": 84,
+            "height": 16,
+            "top": 542,
+            "right": 849,
+            "bottom": 558,
+            "left": 765
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台留资（人）",
+          "cell": {
+            "x": 853,
+            "y": 541,
+            "width": 80,
+            "height": 18,
+            "top": 541,
+            "right": 933,
+            "bottom": 559,
+            "left": 853
+          },
+          "content": {
+            "x": 851,
+            "y": 542,
+            "width": 84,
+            "height": 16,
+            "top": 542,
+            "right": 935,
+            "bottom": 558,
+            "left": 851
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际留资（人）",
+          "cell": {
+            "x": 939,
+            "y": 541,
+            "width": 80,
+            "height": 18,
+            "top": 541,
+            "right": 1019,
+            "bottom": 559,
+            "left": 939
+          },
+          "content": {
+            "x": 937,
+            "y": 542,
+            "width": 84,
+            "height": 16,
+            "top": 542,
+            "right": 1021,
+            "bottom": 558,
+            "left": 937
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际成本（元/人）",
+          "cell": {
+            "x": 1025,
+            "y": 541,
+            "width": 128,
+            "height": 18,
+            "top": 541,
+            "right": 1153,
+            "bottom": 559,
+            "left": 1025
+          },
+          "content": {
+            "x": 1038.5,
+            "y": 542,
+            "width": 101,
+            "height": 16,
+            "top": 542,
+            "right": 1139.5,
+            "bottom": 558,
+            "left": 1038.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "次日安排（*指例会决定）",
+          "cell": {
+            "x": 1159,
+            "y": 541,
+            "width": 192,
+            "height": 18,
+            "top": 541,
+            "right": 1351,
+            "bottom": 559,
+            "left": 1159
+          },
+          "content": {
+            "x": 1184.5,
+            "y": 541,
+            "width": 141,
+            "height": 18,
+            "top": 541,
+            "right": 1325.5,
+            "bottom": 559,
+            "left": 1184.5
+          },
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "mark": {
+        "value": {
+          "x": 1216,
+          "y": 945,
+          "width": 78,
+          "height": 18,
+          "top": 945,
+          "right": 1294,
+          "bottom": 963,
+          "left": 1216
+        },
+        "marker": {
+          "x": 1296,
+          "y": 943,
+          "width": 5,
+          "height": 12,
+          "top": 943,
+          "right": 1301,
+          "bottom": 955,
+          "left": 1296
+        },
+        "owner": {
+          "x": 1159,
+          "y": 943.5,
+          "width": 192,
+          "height": 40,
+          "top": 943.5,
+          "right": 1351,
+          "bottom": 983.5,
+          "left": 1159
+        },
+        "text": "重新开始测试"
+      }
+    },
+    {
+      "width": 1024,
+      "rect": {
+        "x": 694,
+        "y": 855.5,
+        "width": 192,
+        "height": 40,
+        "top": 855.5,
+        "right": 886,
+        "bottom": 895.5,
+        "left": 694
+      },
+      "children": [
+        {
+          "text": "重新开始测试*",
+          "rect": {
+            "x": 751,
+            "y": 857,
+            "width": 78,
+            "height": 19,
+            "top": 857,
+            "right": 829,
+            "bottom": 876,
+            "left": 751
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 778,
+            "y": 877,
+            "width": 24,
+            "height": 17,
+            "top": 877,
+            "right": 802,
+            "bottom": 894,
+            "left": 778
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": 21,
+            "y": 857,
+            "width": 78,
+            "height": 19,
+            "top": 857,
+            "right": 99,
+            "bottom": 876,
+            "left": 21
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 48,
+            "y": 877,
+            "width": 24,
+            "height": 17,
+            "top": 877,
+            "right": 72,
+            "bottom": 894,
+            "left": 48
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        96,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 257,
+        "y": 444,
+        "width": 727,
+        "height": 468,
+        "top": 444,
+        "right": 984,
+        "bottom": 912,
+        "left": 257
+      },
+      "documentWidth": 1009,
+      "heading": [
+        {
+          "text": "数据日期",
+          "cell": {
+            "x": -196,
+            "y": 453,
+            "width": 84,
+            "height": 18,
+            "top": 453,
+            "right": -112,
+            "bottom": 471,
+            "left": -196
+          },
+          "content": {
+            "x": -178,
+            "y": 454,
+            "width": 48,
+            "height": 16,
+            "top": 454,
+            "right": -130,
+            "bottom": 470,
+            "left": -178
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "内容 / 版本",
+          "cell": {
+            "x": -106,
+            "y": 453,
+            "width": 112,
+            "height": 18,
+            "top": 453,
+            "right": 6,
+            "bottom": 471,
+            "left": -106
+          },
+          "content": {
+            "x": -80.5,
+            "y": 454,
+            "width": 61,
+            "height": 16,
+            "top": 454,
+            "right": -19.5,
+            "bottom": 470,
+            "left": -80.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "当日状态",
+          "cell": {
+            "x": 12,
+            "y": 453,
+            "width": 96,
+            "height": 18,
+            "top": 453,
+            "right": 108,
+            "bottom": 471,
+            "left": 12
+          },
+          "content": {
+            "x": 36,
+            "y": 454,
+            "width": 48,
+            "height": 16,
+            "top": 454,
+            "right": 84,
+            "bottom": 470,
+            "left": 36
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "消耗（元）",
+          "cell": {
+            "x": 114,
+            "y": 453,
+            "width": 96,
+            "height": 18,
+            "top": 453,
+            "right": 210,
+            "bottom": 471,
+            "left": 114
+          },
+          "content": {
+            "x": 132,
+            "y": 454,
+            "width": 60,
+            "height": 16,
+            "top": 454,
+            "right": 192,
+            "bottom": 470,
+            "left": 132
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台开口（人）",
+          "cell": {
+            "x": 216,
+            "y": 453,
+            "width": 80,
+            "height": 18,
+            "top": 453,
+            "right": 296,
+            "bottom": 471,
+            "left": 216
+          },
+          "content": {
+            "x": 214,
+            "y": 454,
+            "width": 84,
+            "height": 16,
+            "top": 454,
+            "right": 298,
+            "bottom": 470,
+            "left": 214
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际开口（人）",
+          "cell": {
+            "x": 302,
+            "y": 453,
+            "width": 80,
+            "height": 18,
+            "top": 453,
+            "right": 382,
+            "bottom": 471,
+            "left": 302
+          },
+          "content": {
+            "x": 300,
+            "y": 454,
+            "width": 84,
+            "height": 16,
+            "top": 454,
+            "right": 384,
+            "bottom": 470,
+            "left": 300
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台留资（人）",
+          "cell": {
+            "x": 388,
+            "y": 453,
+            "width": 80,
+            "height": 18,
+            "top": 453,
+            "right": 468,
+            "bottom": 471,
+            "left": 388
+          },
+          "content": {
+            "x": 386,
+            "y": 454,
+            "width": 84,
+            "height": 16,
+            "top": 454,
+            "right": 470,
+            "bottom": 470,
+            "left": 386
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际留资（人）",
+          "cell": {
+            "x": 474,
+            "y": 453,
+            "width": 80,
+            "height": 18,
+            "top": 453,
+            "right": 554,
+            "bottom": 471,
+            "left": 474
+          },
+          "content": {
+            "x": 472,
+            "y": 454,
+            "width": 84,
+            "height": 16,
+            "top": 454,
+            "right": 556,
+            "bottom": 470,
+            "left": 472
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际成本（元/人）",
+          "cell": {
+            "x": 560,
+            "y": 453,
+            "width": 128,
+            "height": 18,
+            "top": 453,
+            "right": 688,
+            "bottom": 471,
+            "left": 560
+          },
+          "content": {
+            "x": 573.5,
+            "y": 454,
+            "width": 101,
+            "height": 16,
+            "top": 454,
+            "right": 674.5,
+            "bottom": 470,
+            "left": 573.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "次日安排（*指例会决定）",
+          "cell": {
+            "x": 694,
+            "y": 453,
+            "width": 192,
+            "height": 18,
+            "top": 453,
+            "right": 886,
+            "bottom": 471,
+            "left": 694
+          },
+          "content": {
+            "x": 719.5,
+            "y": 453,
+            "width": 141,
+            "height": 18,
+            "top": 453,
+            "right": 860.5,
+            "bottom": 471,
+            "left": 719.5
+          },
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "mark": {
+        "value": {
+          "x": 751,
+          "y": 857,
+          "width": 78,
+          "height": 18,
+          "top": 857,
+          "right": 829,
+          "bottom": 875,
+          "left": 751
+        },
+        "marker": {
+          "x": 831,
+          "y": 855,
+          "width": 5,
+          "height": 12,
+          "top": 855,
+          "right": 836,
+          "bottom": 867,
+          "left": 831
+        },
+        "owner": {
+          "x": 694,
+          "y": 855.5,
+          "width": 192,
+          "height": 40,
+          "top": 855.5,
+          "right": 886,
+          "bottom": 895.5,
+          "left": 694
+        },
+        "text": "重新开始测试"
+      }
+    },
+    {
+      "width": 390,
+      "rect": {
+        "x": 91,
+        "y": 785.5,
+        "width": 192,
+        "height": 40,
+        "top": 785.5,
+        "right": 283,
+        "bottom": 825.5,
+        "left": 91
+      },
+      "children": [
+        {
+          "text": "重新开始测试*",
+          "rect": {
+            "x": 148,
+            "y": 787,
+            "width": 78,
+            "height": 19,
+            "top": 787,
+            "right": 226,
+            "bottom": 806,
+            "left": 148
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 175,
+            "y": 807,
+            "width": 24,
+            "height": 17,
+            "top": 807,
+            "right": 199,
+            "bottom": 824,
+            "left": 175
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": -590,
+            "y": 787,
+            "width": 78,
+            "height": 19,
+            "top": 787,
+            "right": -512,
+            "bottom": 806,
+            "left": -590
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": -563,
+            "y": 807,
+            "width": 24,
+            "height": 17,
+            "top": 807,
+            "right": -539,
+            "bottom": 824,
+            "left": -563
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        104,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 11,
+        "y": 374,
+        "width": 353,
+        "height": 468,
+        "top": 374,
+        "right": 364,
+        "bottom": 842,
+        "left": 11
+      },
+      "documentWidth": 375,
+      "heading": [
+        {
+          "text": "数据日期",
+          "cell": {
+            "x": -807,
+            "y": 383,
+            "width": 84,
+            "height": 18,
+            "top": 383,
+            "right": -723,
+            "bottom": 401,
+            "left": -807
+          },
+          "content": {
+            "x": -789,
+            "y": 384,
+            "width": 48,
+            "height": 16,
+            "top": 384,
+            "right": -741,
+            "bottom": 400,
+            "left": -789
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "内容 / 版本",
+          "cell": {
+            "x": -717,
+            "y": 383,
+            "width": 112,
+            "height": 18,
+            "top": 383,
+            "right": -605,
+            "bottom": 401,
+            "left": -717
+          },
+          "content": {
+            "x": -691.5,
+            "y": 384,
+            "width": 61,
+            "height": 16,
+            "top": 384,
+            "right": -630.5,
+            "bottom": 400,
+            "left": -691.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "当日状态",
+          "cell": {
+            "x": -599,
+            "y": 383,
+            "width": 96,
+            "height": 18,
+            "top": 383,
+            "right": -503,
+            "bottom": 401,
+            "left": -599
+          },
+          "content": {
+            "x": -575,
+            "y": 384,
+            "width": 48,
+            "height": 16,
+            "top": 384,
+            "right": -527,
+            "bottom": 400,
+            "left": -575
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "消耗（元）",
+          "cell": {
+            "x": -497,
+            "y": 383,
+            "width": 104,
+            "height": 18,
+            "top": 383,
+            "right": -393,
+            "bottom": 401,
+            "left": -497
+          },
+          "content": {
+            "x": -475,
+            "y": 384,
+            "width": 60,
+            "height": 16,
+            "top": 384,
+            "right": -415,
+            "bottom": 400,
+            "left": -475
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台开口（人）",
+          "cell": {
+            "x": -387,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -307,
+            "bottom": 401,
+            "left": -387
+          },
+          "content": {
+            "x": -389,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -305,
+            "bottom": 400,
+            "left": -389
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际开口（人）",
+          "cell": {
+            "x": -301,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -221,
+            "bottom": 401,
+            "left": -301
+          },
+          "content": {
+            "x": -303,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -219,
+            "bottom": 400,
+            "left": -303
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台留资（人）",
+          "cell": {
+            "x": -215,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -135,
+            "bottom": 401,
+            "left": -215
+          },
+          "content": {
+            "x": -217,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -133,
+            "bottom": 400,
+            "left": -217
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际留资（人）",
+          "cell": {
+            "x": -129,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -49,
+            "bottom": 401,
+            "left": -129
+          },
+          "content": {
+            "x": -131,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -47,
+            "bottom": 400,
+            "left": -131
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际成本（元/人）",
+          "cell": {
+            "x": -43,
+            "y": 383,
+            "width": 128,
+            "height": 18,
+            "top": 383,
+            "right": 85,
+            "bottom": 401,
+            "left": -43
+          },
+          "content": {
+            "x": -29.5,
+            "y": 384,
+            "width": 101,
+            "height": 16,
+            "top": 384,
+            "right": 71.5,
+            "bottom": 400,
+            "left": -29.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "次日安排（*指例会决定）",
+          "cell": {
+            "x": 91,
+            "y": 383,
+            "width": 192,
+            "height": 18,
+            "top": 383,
+            "right": 283,
+            "bottom": 401,
+            "left": 91
+          },
+          "content": {
+            "x": 116.5,
+            "y": 383,
+            "width": 141,
+            "height": 18,
+            "top": 383,
+            "right": 257.5,
+            "bottom": 401,
+            "left": 116.5
+          },
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "mark": {
+        "value": {
+          "x": 148,
+          "y": 787,
+          "width": 78,
+          "height": 18,
+          "top": 787,
+          "right": 226,
+          "bottom": 805,
+          "left": 148
+        },
+        "marker": {
+          "x": 228,
+          "y": 785,
+          "width": 5,
+          "height": 12,
+          "top": 785,
+          "right": 233,
+          "bottom": 797,
+          "left": 228
+        },
+        "owner": {
+          "x": 91,
+          "y": 785.5,
+          "width": 192,
+          "height": 40,
+          "top": 785.5,
+          "right": 283,
+          "bottom": 825.5,
+          "left": 91
+        },
+        "text": "重新开始测试"
+      }
+    },
+    {
+      "width": 320,
+      "rect": {
+        "x": 91,
+        "y": 785.5,
+        "width": 192,
+        "height": 40,
+        "top": 785.5,
+        "right": 283,
+        "bottom": 825.5,
+        "left": 91
+      },
+      "children": [
+        {
+          "text": "重新开始测试*",
+          "rect": {
+            "x": 148,
+            "y": 787,
+            "width": 78,
+            "height": 19,
+            "top": 787,
+            "right": 226,
+            "bottom": 806,
+            "left": 148
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(121, 91, 13)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": 175,
+            "y": 807,
+            "width": 24,
+            "height": 17,
+            "top": 807,
+            "right": 199,
+            "bottom": 824,
+            "left": 175
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "actual": [
+        {
+          "text": "测试结束待定",
+          "rect": {
+            "x": -590,
+            "y": 787,
+            "width": 78,
+            "height": 19,
+            "top": 787,
+            "right": -512,
+            "bottom": 806,
+            "left": -590
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "13px",
+          "weight": "500",
+          "color": "rgb(93, 102, 115)"
+        },
+        {
+          "text": "修改",
+          "rect": {
+            "x": -563,
+            "y": 807,
+            "width": 24,
+            "height": 17,
+            "top": 807,
+            "right": -539,
+            "bottom": 824,
+            "left": -563
+          },
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+          "size": "12px",
+          "weight": "400",
+          "color": "rgb(49, 95, 214)"
+        }
+      ],
+      "inputs": [
+        104,
+        80,
+        80,
+        80,
+        80
+      ],
+      "scrollRect": {
+        "x": 11,
+        "y": 374,
+        "width": 283,
+        "height": 468,
+        "top": 374,
+        "right": 294,
+        "bottom": 842,
+        "left": 11
+      },
+      "documentWidth": 305,
+      "heading": [
+        {
+          "text": "数据日期",
+          "cell": {
+            "x": -807,
+            "y": 383,
+            "width": 84,
+            "height": 18,
+            "top": 383,
+            "right": -723,
+            "bottom": 401,
+            "left": -807
+          },
+          "content": {
+            "x": -789,
+            "y": 384,
+            "width": 48,
+            "height": 16,
+            "top": 384,
+            "right": -741,
+            "bottom": 400,
+            "left": -789
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "内容 / 版本",
+          "cell": {
+            "x": -717,
+            "y": 383,
+            "width": 112,
+            "height": 18,
+            "top": 383,
+            "right": -605,
+            "bottom": 401,
+            "left": -717
+          },
+          "content": {
+            "x": -691.5,
+            "y": 384,
+            "width": 61,
+            "height": 16,
+            "top": 384,
+            "right": -630.5,
+            "bottom": 400,
+            "left": -691.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "当日状态",
+          "cell": {
+            "x": -599,
+            "y": 383,
+            "width": 96,
+            "height": 18,
+            "top": 383,
+            "right": -503,
+            "bottom": 401,
+            "left": -599
+          },
+          "content": {
+            "x": -575,
+            "y": 384,
+            "width": 48,
+            "height": 16,
+            "top": 384,
+            "right": -527,
+            "bottom": 400,
+            "left": -575
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "消耗（元）",
+          "cell": {
+            "x": -497,
+            "y": 383,
+            "width": 104,
+            "height": 18,
+            "top": 383,
+            "right": -393,
+            "bottom": 401,
+            "left": -497
+          },
+          "content": {
+            "x": -475,
+            "y": 384,
+            "width": 60,
+            "height": 16,
+            "top": 384,
+            "right": -415,
+            "bottom": 400,
+            "left": -475
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台开口（人）",
+          "cell": {
+            "x": -387,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -307,
+            "bottom": 401,
+            "left": -387
+          },
+          "content": {
+            "x": -389,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -305,
+            "bottom": 400,
+            "left": -389
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际开口（人）",
+          "cell": {
+            "x": -301,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -221,
+            "bottom": 401,
+            "left": -301
+          },
+          "content": {
+            "x": -303,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -219,
+            "bottom": 400,
+            "left": -303
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "平台留资（人）",
+          "cell": {
+            "x": -215,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -135,
+            "bottom": 401,
+            "left": -215
+          },
+          "content": {
+            "x": -217,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -133,
+            "bottom": 400,
+            "left": -217
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际留资（人）",
+          "cell": {
+            "x": -129,
+            "y": 383,
+            "width": 80,
+            "height": 18,
+            "top": 383,
+            "right": -49,
+            "bottom": 401,
+            "left": -129
+          },
+          "content": {
+            "x": -131,
+            "y": 384,
+            "width": 84,
+            "height": 16,
+            "top": 384,
+            "right": -47,
+            "bottom": 400,
+            "left": -131
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "实际成本（元/人）",
+          "cell": {
+            "x": -43,
+            "y": 383,
+            "width": 128,
+            "height": 18,
+            "top": 383,
+            "right": 85,
+            "bottom": 401,
+            "left": -43
+          },
+          "content": {
+            "x": -29.5,
+            "y": 384,
+            "width": 101,
+            "height": 16,
+            "top": 384,
+            "right": 71.5,
+            "bottom": 400,
+            "left": -29.5
+          },
+          "dx": 0,
+          "dy": 0
+        },
+        {
+          "text": "次日安排（*指例会决定）",
+          "cell": {
+            "x": 91,
+            "y": 383,
+            "width": 192,
+            "height": 18,
+            "top": 383,
+            "right": 283,
+            "bottom": 401,
+            "left": 91
+          },
+          "content": {
+            "x": 116.5,
+            "y": 383,
+            "width": 141,
+            "height": 18,
+            "top": 383,
+            "right": 257.5,
+            "bottom": 401,
+            "left": 116.5
+          },
+          "dx": 0,
+          "dy": 0
+        }
+      ],
+      "mark": {
+        "value": {
+          "x": 148,
+          "y": 787,
+          "width": 78,
+          "height": 18,
+          "top": 787,
+          "right": 226,
+          "bottom": 805,
+          "left": 148
+        },
+        "marker": {
+          "x": 228,
+          "y": 785,
+          "width": 5,
+          "height": 12,
+          "top": 785,
+          "right": 233,
+          "bottom": 797,
+          "left": 228
+        },
+        "owner": {
+          "x": 91,
+          "y": 785.5,
+          "width": 192,
+          "height": 40,
+          "top": 785.5,
+          "right": 283,
+          "bottom": 825.5,
+          "left": 91
+        },
+        "text": "重新开始测试"
+      }
+    }
+  ],
+  "baseURL": "http://127.0.0.1:46403",
+  "data": "隔离PGlite与虚构业务事实"
+}

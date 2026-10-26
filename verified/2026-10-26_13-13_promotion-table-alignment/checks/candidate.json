@@ -1,0 +1,38 @@
+{
+  "deployment": "https://qiuyun-frontend-anaccjhw4-opgobl1v-5358.vercel.app",
+  "sourceCommit": "2deb355",
+  "checkedAt": "2026-10-26T05:15:37.354Z",
+  "passed": true,
+  "checks": [
+    {
+      "path": "/",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "path": "/api/auth/get-session",
+      "expected": 200,
+      "status": 200
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "expected": 302,
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "expected": 302,
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "expected": 302,
+      "status": 302
+    }
+  ]
+}
