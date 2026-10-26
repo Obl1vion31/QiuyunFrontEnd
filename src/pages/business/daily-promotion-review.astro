@@ -58,6 +58,7 @@ const historyQuery = (Astro.url.searchParams.get('q') ?? '').trim();
 const historyStatus = Astro.url.searchParams.get('status') ?? '';
 const historyMode = Astro.url.searchParams.get('mode') === 'day' ? 'day' : 'post';
 const selectedCampaignId = Astro.url.searchParams.get('campaign');
+if(selectedCampaignId?.startsWith('review:')){const target=new URL(Astro.url);target.searchParams.delete('campaign');return Astro.redirect(target.pathname+target.search,302);}
 const statusLabels = {...promotionLabels,none:'已转非推广'};
 let timelineRows:Awaited<ReturnType<typeof readPromotionTimeline>>=[];
 let databaseError = '';

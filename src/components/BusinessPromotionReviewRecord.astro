@@ -1,4 +1,5 @@
 ---
+import BusinessPostReferences from './BusinessPostReferences.astro';
 import type {PromotionTimelineRow} from '../db/promotion-pending';
 import type {ReviewDay} from '../db/promotion-review-days';
 import BusinessPromotionMetricForm from './BusinessPromotionMetricForm.astro';
@@ -7,5 +8,5 @@ interface Props {row:PromotionTimelineRow;day:ReviewDay;bucket:string;open?:bool
 const {row,day,bucket,now}=Astro.props,recordKey=`${day.campaignId??row.campaign?.id??row.scheduleId}:${day.date}`;
 ---
 <div class="review-record" data-review-record={recordKey} data-review-post={row.scheduleId} data-review-bucket={bucket} data-review-day={recordKey} data-review-date={day.date} data-opens-at={day.opensAt}>
- {day.kind==='metric'&&day.editable?<BusinessPromotionMetricForm row={row} day={day}/>:day.kind==='arrangement'?<div class="review-arrangement-record"><div class="review-entry-identity"><a class="review-post-link" href={`?view=daily&campaign=review:${row.scheduleId}:${recordKey}`} data-pending-inspector={row.scheduleId} data-review-key={recordKey}><strong>{row.contentName}</strong></a><small>V{row.versionNumber} · {row.subjectName}</small></div><BusinessPromotionPendingRows rows={[row]} now={now} embedded/></div>:<div class="review-compact-record"><span class="review-compact-name">{row.contentName}<small>V{row.versionNumber}</small></span><time datetime={day.date}>{day.date}</time><span>{day.blockedBy?`先完成 ${day.blockedBy}`:day.status}</span></div>}
+ {day.kind==='metric'&&day.editable?<BusinessPromotionMetricForm row={row} day={day}/>:day.kind==='arrangement'?<div class="review-arrangement-record"><div class="review-entry-identity"><strong class="review-post-name" title={row.contentName}>{row.contentName}</strong><div class="review-version-line"><small>V{row.versionNumber} · {row.subjectName}</small><BusinessPostReferences name={row.contentName} projectDocUrl={row.projectDocUrl} publicationUrl={row.publicationUrl} noteId={row.platformNoteId}/></div></div><BusinessPromotionPendingRows rows={[row]} now={now} embedded/></div>:<div class="review-compact-record"><span class="review-compact-name">{row.contentName}<small>V{row.versionNumber}</small></span><time datetime={day.date}>{day.date}</time><span>{day.blockedBy?`先完成 ${day.blockedBy}`:day.status}</span></div>}
 </div>

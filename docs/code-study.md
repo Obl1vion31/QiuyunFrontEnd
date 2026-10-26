@@ -83,7 +83,8 @@ flowchart LR
 | 空态与动态版本历史 | [年度规划](../src/pages/business/annual-plan.astro)、[年度适配器](../src/scripts/annual-plan.ts)、[Frame](../src/components/BusinessConsoleFrame.astro) | 使用共享字体变量及中性次级按钮；动态 DOM 也命中本区块样式，时间明确按上海时区格式化 |
 | 持续状态的待办表达 | [待办行](../src/components/BusinessPromotionPendingRows.astro)、[展示模型](../src/db/promotion-pending.ts)、[区域样式](../src/styles/promotion-pending.css) | 首次推广安排保留原表单；活动内暂停／待定接入普通逐日队列，新草稿默认零、已有输入不覆盖，真实跑量计原阶段；主键为活动＋日期 |
 | 录入表头与角标 | `BusinessPromotionDailyPosts.astro`、`promotion-pending.css` | 每日与残留补录共用 `.review-entry-head`，标题／单位／说明整组在列内居中；数值输入独立右对齐。例会状态用定位上标，不挤偏主文字；`data-meeting-result` 仅包裹安排纯文本，浮层读取不带星号。阅读型表格按 DESIGN 的同类规则接入，不使用全局居中覆盖 |
-| 例会安排原位更正 | `BusinessPromotionMetricForm.astro`、`meeting-decision.ts`、`promotion-editor-lifecycle.ts` | 列表与 Inspector 共用决定 ID 的锚定编辑草稿，仅例会固定值复用状态／修改两行，普通安排保留原下拉；表头来源链接共用 `BusinessPromotionDecisionLabel`；指标单行与批量保存先检查安排草稿，局部合并后按决定 ID 重新锚定，来源进入例会总览，决定 ID 与版本仍用于并发校验 |
+| 就近查看帖子资料 | `BusinessPostReferences.astro`、`WeeklyCardDetails.tsx`、`business-popover.ts` | 共享原生气泡开关／定位／键盘与视觉，消费者声明表格或卡片边界；资料只读展示版本文档、排期帖子链接和主体 ID，ID 补填仍委托本行保存。共享行为不复制业务表单 |
+| 例会安排原位更正 | `BusinessPromotionMetricForm.astro`、`meeting-decision.ts`、`promotion-editor-lifecycle.ts` | 安排编辑在原行的锚定气泡完成；指标单条与批量保存先处理安排草稿，保存只更新相关行、保留指标／节点／滚动，决定 ID 与版本用于并发校验 |
 | 推广状态和历史 | [状态组件](../src/components/BusinessPromotionTimeline.astro)、[适配器](../src/scripts/promotion-timeline.ts)、[事务](../src/db/promotion-timeline.ts) | 每日／历史 SSR 与排期认证片段共用；显式业务日期＋指纹＋请求键，保存只替换本篇行，保留其他输入与公共节点 |
 | 申请字段对照 | [SSR 组件](../src/components/BusinessChangeDiff.astro)、[异步适配器](../src/scripts/business-change-diff.ts)、[样式](../src/styles/business-changes.css) | 每个字段纵向展示原内容与申请内容，安全文本渲染，不创建横向表格或嵌套滚动 |
 | 排期申请队列 | [审核组件](../src/components/BusinessScheduleApprovals.astro)、[适配器](../src/scripts/schedule-approvals.ts)、[读模型](../src/db/schedule-approvals.ts) | 统一新旧申请，模板复用 Inspector，默认首项和 `request` 深链接；固定 footer 审核，原位更新结果与计数 |
@@ -124,15 +125,13 @@ flowchart LR
 
 移动端 Inspector 的焦点范围包含原生 `summary`，排除折叠内容中的字段；Chrome 的关闭 `details` 仍可能保留布局盒，不能只用 `getClientRects()` 判断键盘可达性。
 
-推广待办的真实双入口实例在 `promotion-daily-form.ts`：以活动与业务日期定位草稿，录入行与 Inspector 为同一草稿的两个视图；模板提供排期资料，表单沿用原接口。公共 Inspector 的可选 `discard` 钩子恢复业务适配器的入口快照，`refresh` 只重绘干净详情；`setLocalParameters` 原子更新已注册展示参数，不制造多次浏览器历史。非推广 `group` 保留旧 0/1 兼容含义，新增 `bucket` 定位学科＋分类的明细；`non-promotion-groups.ts` 同供 SSR、保存后刷新与单元验证，不能与同轮基准样本池混用。
+每日表单由 `promotion-daily-form.ts` 管理原行草稿、校验、计算与保存锁；`BusinessPostReferences` 仅展示资料，复用 `business-popover.ts` 与例会相同的原生气泡行为。表格不再克隆到 Inspector；查看资料不导航或触发草稿确认，缺失 ID 的确认仍只更新本地草稿并随复盘原子保存。
 
 推广精确状态和后继选择共用 `promotion-successors.mjs`；`promotionDayStatusEdit` 排除该日已有覆盖后回放原状态，SSR 和事务共用更正选项，误选终态可恢复该日原状态且不开放历史终态之后重启。状态气泡只传行日期、目标状态与原因，保存后仍显示“修改”，次日安排独立；终态与进行中互改时原位恢复相应选择控件，保留数字草稿。`promotion-residual.ts` 复用日度 API 的笔记搜索／残留保存；服务端稳定归属由日度事实的 `sourceStageStartedOn` 及阶段聚合维护，不以临时阶段行 ID 关联。
 
 ### 每日轻量补 ID 与批量复盘
 
-`BusinessPromotionMetricForm` 的内容／版本区只加 ID 提示，`promotion-note-id.ts` 管理锚定小气泡；通过 `business:note-id-draft` 写入 `promotion-daily-form.ts` 的同 contentId 共享草稿。首次补 ID 不调用 Inspector，名称详情仍沿用公共 Inspector。已有 ID 不由日度覆盖。
-
-`promotion-daily-write.ts` 复用原单条事务写入；`api/promotion-daily/batch.ts` 先校验事务初始指纹、内容 ID 一致性，再按稳定顺序写入，任何一行失败整批回滚。浏览器只捕获当前 ready 队列，镜像去重，成功用同一服务端文档按 schedule 合并，不替换其他输入节点。
+`promotion-daily-write.ts` 复用原单条事务写入；`api/promotion-daily/batch.ts` 先校验事务初始指纹、内容 ID 一致性，再按稳定顺序写入，任何一行失败整批回滚。浏览器只捕获当前 ready 队列，按活动与日期去重，成功用同一服务端文档按 schedule 合并，不替换其他输入节点。
 
 ### 周例会卡片与读取反馈
 

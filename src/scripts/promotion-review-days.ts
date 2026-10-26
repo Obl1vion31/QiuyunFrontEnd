@@ -32,6 +32,5 @@ document.addEventListener('astro:page-load',initialize);
 document.addEventListener('business:promotion-fragment-updated',initialize);
 document.addEventListener('astro:before-swap',()=>clearTimeout(timer));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void refreshBoundary();});
-document.addEventListener('business:promotion-draft-restored',()=>void refreshBoundary());
 window.addEventListener('focus',()=>void refreshBoundary());
 initialize();

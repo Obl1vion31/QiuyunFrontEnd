@@ -28,7 +28,7 @@
 
 `pnpm test:reviews` 在构建后使用隔离账号验收待定区间、次日计划、阶段快照版本、服务端例会引用、私有图片和桌面／390／320px 跨页布局。`promotion-intervals-snapshots.test.ts` 覆盖时间边界、手动恢复、历史影响确认、节假日交叠、任意时间段聚合、成本、缺失与快照不变；`review-intervals-migration.test.ts` 从上一结构验证追加迁移与旧会议保留。
 
-`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证居中表头与例会状态上标、仅例会次日安排采用状态／修改两行、普通下拉分支保留、表头来源链接、原位更正及列表／Inspector 草稿共用；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
+`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证居中表头与例会状态上标、仅例会次日安排采用状态／修改两行、普通下拉分支保留、表头来源链接、原位更正及资料读取不打断原行草稿；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
 
 ## 界面一致性验收
 
@@ -88,13 +88,13 @@ pnpm test:annual-plan
 
 推广汇总计算与审计分类继续由 `promotion-overview.test.ts`、`promotion-audit-view.test.ts` 验证，零分母为“—”，未登记不当作零。浏览器通过阶段节点就地展开每日表及表尾汇总，点击记录打开 Inspector；旧条形视觉断言不再作为通过条件。
 
-推广双入口验收由 `test:cards` 覆盖：名称打开覆盖式 Inspector，资料可读、背景不缩窄、卡片草稿进入面板、编辑双向同步、取消关闭保留、放弃恢复入口快照、失败重试与保存后显示原日期。该入口检查 1440／1280／1920px 截图与真实尺寸，390／320px 共享交互由 `test:ui`、`test:motion` 和 `test:timeline` 覆盖。全站真实字体按正文／输入 400、标签／按钮／指标 500、页面／区块标题 600 核对，普通日期与数字仍用正文字体及 tabular-nums。
+推广行内资料由 `test:cards`／`test:review-workbench` 覆盖：不打开重复录入 Inspector，资料气泡只读呈现文档、帖子链接和 ID，原指标与选择保留；缺失 ID 仍可补填并与日度事实原子保存。`meeting-arrangement.browser.ts` 检查五档视口、复制、无导航／无重复表单、视口避让、Esc／焦点及查看资料不打断安排草稿；例会明细和资料继续由例会内联／展示专项验证共享行为。
 
 `test:ui` 覆盖六页公共容器与 Toolbar、拆分日期时间、日度单帖暂停、分类就地展开、平铺节点保留、Inspector 未保存保护及历史编辑弹层。`test:motion` 保留公共面板逐帧几何验证；展示节点动效由 `test:review-workbench` 实际录制并检查关键帧。
 
 `promotion-precise-state.test.ts` 验证精确后继、暂停／待定非零、空字段不能补零、状态与指标分离、终态当日、幂等／指纹／权限、真实日度与历史 PATCH、残留归属和区间追加、兼容迁移及快照不变。`node --import tsx tests/business-read.browser.ts` 专测共享读取的延迟、单反馈、替换取消、失败清理、Inspector／Dialog 关闭及导航取消。
 
-`pnpm test:status-correction` 使用正式页面与隔离数据库，在 1440／1024／390／320px 验证测试／放量误选淘汰后仍有“修改”、气泡内再次编辑、恢复原状态、数字与其他记录节点保留、恢复合法次日安排，以及完整刷新后再次更正。桌面录制操作过程，截图与结果保存在 `.tools/test-artifacts/status-correction/`。服务端测试同时约束原状态后继、终态之后不得重启、指标不丢、幂等和旧指纹拒绝。
+`pnpm test:status-correction` 使用正式页面与隔离数据库，在 1440／1024／390／320px 验证测试／放量误选淘汰后仍有“修改”、气泡内再次编辑、恢复原状态、数字与其他记录节点保留、恢复合法次日安排，以及完整刷新后再次更正。资料查看后仍能原位更正且保留输入，桌面录制操作过程，截图与结果保存在 `.tools/test-artifacts/status-correction/`。服务端测试同时约束原状态后继、终态之后不得重启、指标不丢、幂等和旧指纹拒绝。
 
 `pnpm test:weekly` 先保留推广批量事务、ID、指纹与日度回归，再运行 `meeting-inline.browser.ts` 的正式例会组件验收。检查默认总览、周／月类型、候选确认、1920／1440／1280 三列与1024两列的同组同行等高卡片、内联点击率／观察／行动、未完成非推广草稿、非推广即时写入、保存草稿返回、会前 V0／会后 V1、来源变更拦截和冻结版本；跨上海午夜核对当天事实与次日决定、锁定、修改理由和数字保留。`meeting-decisions.test.ts` 验证会前不生效、同日最新版、跨日历史、旧更正不覆盖新版本、暂停／淘汰次日生效。旧 v2/v3 与附件继续由 `test:reviews` 验证。当前原始证据在 `.tools/test-artifacts/meeting-delay-fix/`，本轮桌面优先。
 

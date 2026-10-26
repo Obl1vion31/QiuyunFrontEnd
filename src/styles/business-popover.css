@@ -1,0 +1,13 @@
+/* 共享行为与资料视觉；表格、卡片分别声明自己的容器与内容。 */
+.business-post-reference{display:inline-flex;vertical-align:middle;flex:none;margin-left:3px}
+.business-post-reference .business-reference-trigger{box-sizing:border-box;display:grid;place-items:center;width:24px;height:24px;padding:4px;border:0;border-radius:5px;background:transparent;color:var(--console-blue);font:400 13px/1 var(--console-font);cursor:pointer}
+[data-popover-trigger].business-reference-trigger::before{display:none}.business-reference-trigger svg{display:block;width:16px;height:16px}.business-reference-trigger:hover,.business-reference-trigger[aria-expanded=true]{background:var(--console-blue-soft);color:var(--console-blue)}
+.business-reference-trigger:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+[data-popover-panel]{position:fixed;inset:auto;margin:0;box-sizing:border-box;padding:16px;border:1px solid var(--console-line);border-radius:8px;background:#fff;color:var(--console-ink);box-shadow:0 8px 24px #21314b18;font:400 13px/22px var(--console-font);overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere}
+[data-popover-panel] p{margin:0 0 8px}[data-popover-panel] a{color:var(--console-blue)}
+.business-reference-links{display:grid;gap:12px}.business-reference-links a{display:block;text-decoration:none}.business-reference-links a:hover{text-decoration:underline}.business-reference-links span{color:var(--console-muted)}
+.business-reference-note{display:grid;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}.business-reference-note>span{color:var(--console-muted)}
+.business-reference-note>div{display:flex;align-items:center;gap:8px;min-width:0}.business-reference-id{min-width:0;overflow-wrap:anywhere;user-select:text;font:400 13px/20px var(--console-font);font-variant-numeric:tabular-nums}
+.business-reference-note button{flex:none;margin-left:auto;border:0;border-radius:4px;padding:2px 4px;background:transparent;color:var(--console-blue);font:400 13px/20px var(--console-font);cursor:pointer}.business-reference-note button:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+[data-reference-note-status]{font-size:12px;color:#795b0d}[data-reference-message]{display:block;margin-top:6px;font:400 12px/18px var(--console-font);color:var(--console-muted)}[data-reference-message]:empty{display:none}
+[data-popover-panel] [hidden]{display:none!important}

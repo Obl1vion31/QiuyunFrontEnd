@@ -54,12 +54,10 @@ try{
   }
   if(width===1440){
    const form=metric(items[0]);await form.locator('[name=spend]').fill('240');await form.locator('[name=reviewDecision]').selectOption('test_continue');
-   await form.locator('[data-pending-inspector]').click();const inspector=page.locator('[data-promotion-inspector]'),mirror=inspector.locator('[data-metric-form]');await mirror.waitFor();
-   await mirror.locator('[data-toggle-day-state]').click();await save(mirror,'test_discarded','虚构验收：详情入口误选');await page.keyboard.press('Escape');
-   assert.equal(await mirror.locator('[data-state-caption]').innerText(),'修改');assert.ok(await mirror.locator('[data-toggle-day-state]').isEnabled());
-   await mirror.locator('[data-toggle-day-state]').click();await save(mirror,'testing','虚构验收：详情入口恢复');await page.keyboard.press('Escape');assert.ok(await mirror.locator('[data-toggle-day-state]').evaluate((node:HTMLElement)=>document.activeElement===node),'详情入口更正后焦点仍在详情');
-   assert.equal(await form.locator('[name=spend]').inputValue(),'240');assert.equal(await mirror.locator('[name=spend]').inputValue(),'240');assert.equal(await mirror.locator('select[name=reviewDecision]').inputValue(),'test_continue');
-   await page.screenshot({path:folder+'/inspector-restored-1440.png'});checks.push({width,stage:'testing',inspectorMirrorCorrection:true});
+   await form.locator('[data-reference-trigger]').click();const references=form.locator('[data-popover-panel]');await references.waitFor({state:'visible'});assert.equal(await references.locator('input,select,textarea,form').count(),0);assert.equal(await page.locator('[data-promotion-inspector].is-open').count(),0);await page.keyboard.press('Escape');
+   await form.locator('[data-toggle-day-state]').click();await save(form,'test_discarded','虚构验收：查看资料后误选');await page.keyboard.press('Escape');assert.equal(await form.locator('[data-state-caption]').innerText(),'修改');
+   await form.locator('[data-toggle-day-state]').click();await save(form,'testing','虚构验收：查看资料后恢复');await page.keyboard.press('Escape');assert.ok(await form.locator('[data-toggle-day-state]').evaluate((node:HTMLElement)=>document.activeElement===node));assert.equal(await form.locator('[name=spend]').inputValue(),'240');assert.equal(await form.locator('select[name=reviewDecision]').inputValue(),'test_continue');
+   await page.screenshot({path:folder+'/references-restored-1440.png'});checks.push({width,stage:'testing',readOnlyReferenceAndInlineCorrection:true});
   }
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
   await context.close();

@@ -1,8 +1,7 @@
 import {openNoteId} from './promotion-note-id';
-import {guardMeetingDecisionSubmission,discardMeetingDecision} from './meeting-decision';
+import {guardMeetingDecisionSubmission} from './meeting-decision';
 import {preparePromotionEditor,registerPromotionEditor} from './promotion-editor-lifecycle';
 import {readBusiness} from './business-read';
-import {getInspector} from './business-inspector';
 import {businessConfirm} from './business-dialog';
 import {randomRequestKey,refreshPromotionSchedule} from './promotion-timeline';
 import {promotionActualLabels,promotionSuccessorOptions} from '../db/promotion-successors.mjs';
@@ -72,8 +71,8 @@ async function openStateBubble(owner:HTMLFormElement){
    if(!response.ok){message.textContent=result.message??'保存失败，输入已保留。';return;}
    current.saved=true;message.textContent='变更已保存';form.dataset.dirty='false';updateBubble(current);
    // 指标草稿留在原节点；状态与合法的次日选项由新服务端片段同步。
-   const owner=current.owner,inspector=owner.closest<HTMLElement>('[data-inspector]');
-   await refreshPromotionSchedule(String(payload.scheduleId));current.owner=inspector?.querySelector<HTMLFormElement>(`[data-metric-form][data-pending-record="${CSS.escape(key)}"]`)??(owner.isConnected?owner:document.querySelector<HTMLFormElement>(`#daily-table [data-metric-form][data-pending-record="${CSS.escape(key)}"]`))??owner;
+   const owner=current.owner;
+   await refreshPromotionSchedule(String(payload.scheduleId));current.owner=(owner.isConnected?owner:document.querySelector<HTMLFormElement>(`#daily-table [data-metric-form][data-pending-record="${CSS.escape(key)}"]`))??owner;
    current.trigger=current.owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')??trigger;current.trigger.setAttribute('aria-expanded','true');positionBubble(current);
   }catch{message.textContent=current.saved?'状态已保存，列表更新失败，可关闭后重试刷新。':'连接失败，输入已保留。';}finally{current.busy=false;updateBubble(current);}
  });updateBubble(current);trigger.setAttribute('aria-expanded','true');positionBubble(current);select.focus({preventScroll:true});
@@ -84,12 +83,11 @@ async function dismissStateBubble(state:StateDraft){
  if(!state.saved){state.target='';state.reason='';updateBubble(state);}hideBubble(state);state.form.remove();stateDrafts.delete(state.key);setUnsaved();return true;
 }
 registerPromotionEditor('state',async()=>{for(const state of stateDrafts.values())if(!state.form.hidden&&!await dismissStateBubble(state))return false;return true;});
-window.addEventListener('keydown',event=>{if(event.key!=='Escape'||document.querySelector('dialog[open]'))return;const state=[...stateDrafts.values()].find(state=>!state.form.hidden);if(!state)return;event.preventDefault();event.stopImmediatePropagation();void dismissStateBubble(state);},{capture:true});
+window.addEventListener('keydown',event=>{if(event.key!=='Escape'||document.querySelector('dialog[open],[data-popover-panel]:popover-open'))return;const state=[...stateDrafts.values()].find(state=>!state.form.hidden);if(!state)return;event.preventDefault();event.stopImmediatePropagation();void dismissStateBubble(state);},{capture:true});
 window.addEventListener('resize',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)positionBubble(state);});
 window.addEventListener('scroll',()=>{for(const state of stateDrafts.values())if(!state.form.hidden)positionBubble(state);},true);
 document.addEventListener('astro:before-swap',()=>{for(const state of stateDrafts.values())state.form.remove();stateDrafts.clear();});
 function initialize(){
- const pane=document.querySelector<HTMLElement>('[data-promotion-inspector][data-inspector-overlay]');
  const drafts=documents.get(document)??new Map<string,Draft>();documents.set(document,drafts);
  const render=(form:HTMLFormElement,draft:Draft)=>{
   for(const field of fields(form))if(field.name in draft.values)field.value=draft.values[field.name];
@@ -99,6 +97,11 @@ function initialize(){
   const button=form.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=draft.busy;button.textContent=draft.success?'已完成':draft.busy?'正在保存…':'完成复盘';button.toggleAttribute('data-success',!!draft.success);
   form.querySelector<HTMLElement>('[data-form-message]')!.textContent=draft.message;
   for(const field of fields(form))if(field.type!=='hidden')field.disabled=draft.busy;for(const trigger of form.querySelectorAll<HTMLButtonElement>('[data-note-id-trigger]'))trigger.disabled=draft.busy;const stateTrigger=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]');if(stateTrigger)stateTrigger.disabled=draft.busy||!statusOptions(form).length;
+  const note=draft.values.platformNoteId??'',stored=!!form.dataset.noteId;
+  const reference=form.querySelector<HTMLElement>('[data-reference-note-id]');if(reference)reference.textContent=note||'未填写';
+  const copy=form.querySelector<HTMLButtonElement>('[data-copy-note-id]');if(copy)copy.hidden=!note;
+  const edit=form.querySelector<HTMLButtonElement>('[data-note-id-trigger]');if(edit)edit.textContent=note?'修改':'补填 ID';
+  const status=form.querySelector<HTMLElement>('[data-reference-note-status]');if(status)status.textContent=note&&!stored?'待保存':'';
   form.dataset.dirty=String(draft.dirty);
  };
  const sync=(draft:Draft)=>{for(const form of draft.views){if(!form.isConnected){draft.views.delete(form);continue;}render(form,draft);}};
@@ -122,7 +125,6 @@ function initialize(){
    const decision=form.querySelector<HTMLSelectElement>('[data-review-decision]');
    if(decision){const wanted=['test_discarded','formal_discarded','ended'].includes(previousStatus)?state.decisionBeforeTerminal??'':previousDecision;state.values.reviewDecision=Array.from(decision.options).some(option=>option.value===wanted)?wanted:form.dataset.actualStatus==='test_pending'?'wait_continue':'';if(!state.values.reviewDecision&&previousDecision)state.message='当日状态已更新，请重新选择次日安排。';}
    else {if(!['test_discarded','formal_discarded','ended'].includes(previousStatus))state.decisionBeforeTerminal=previousDecision;state.values.reviewDecision=(form.elements.namedItem('reviewDecision') as HTMLInputElement).value;}
-   for(const mirror of state.views)if(mirror!==form){mirror.dataset.actualStatus=form.dataset.actualStatus;mirror.dataset.statusEditOptions=form.dataset.statusEditOptions;mirror.dataset.fingerprint=form.dataset.fingerprint;const trigger=mirror.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!,source=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;trigger.replaceChildren(...[...source.childNodes].map(node=>node.cloneNode(true)));trigger.disabled=source.disabled;const group=form.querySelector('.review-decision');if(group)mirror.querySelector('.review-decision')?.replaceWith(group.cloneNode(true));}
    sync(state);
   });
   form.addEventListener('submit',async event=>{
@@ -139,13 +141,10 @@ function initialize(){
     const response=await fetch('/api/promotion-daily',{method:'POST',body:data,headers:{Accept:'application/json'}});
     const result=await response.json();if(!response.ok){state.message=result.message??'保存失败，请重试。';return;}
     state.dirty=false;state.success=true;state.message='复盘已完成';sync(state);
-    const controller=pane?getInspector(pane):null,wasPending=controller?.selected?.startsWith(`review:${form.dataset.scheduleId}:`);
-    if(wasPending)controller!.setClean();
     // 成功态短暂留在操作位置，随后只合并相关活动的队列。
     await new Promise(resolve=>setTimeout(resolve,matchMedia('(prefers-reduced-motion:reduce)').matches?0:320));
     try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{state.message='保存已成功，列表更新失败，请刷新页面查看。';return;}
     drafts.delete(key);pending?.form.remove();stateDrafts.delete(key);
-    if(wasPending&&pane){controller!.setClean();if(result.id)controller!.open(result.id,null,true);}
     setUnsaved();
    }catch{state.message='无法连接服务，请稍后重试。';}finally{state.busy=false;sync(state);}
   });
@@ -171,13 +170,11 @@ function initialize(){
   try{const response=await fetch('/api/promotion-daily/batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});const result=await response.json();
    if(!response.ok){for(const form of forms){const draft=drafts.get(formKey(form))!;draft.message=result.key&&result.key!==formKey(form)?'整批未保存，输入已保留。':result.message??'整批未保存，输入已保留。';sync(draft);}const invalid=forms.find(form=>formKey(form)===result.key)??forms[0];invalid.scrollIntoView({block:'nearest'});if(String(result.message).includes('ID'))openNoteId(invalid,result.message);else invalid.querySelector<HTMLInputElement>('[name=spend]')?.focus({preventScroll:true});return;}
    saved=true;for(const form of forms){const draft=drafts.get(formKey(form))!;draft.dirty=false;draft.success=true;draft.message='复盘已完成';sync(draft);}
-   const controller=pane?getInspector(pane):null,selectedKey=controller?.selected?.startsWith('review:')?controller.selected:null;const savedDetail=selectedKey?result.rows.find((row:{key:string;scheduleId:string})=>selectedKey===`review:${row.scheduleId}:${row.key}`):null;if(savedDetail)controller?.setClean();
    batch.textContent='全部已保存';
    await new Promise(resolve=>setTimeout(resolve,matchMedia('(prefers-reduced-motion:reduce)').matches?0:320));
    const host=document.querySelector<HTMLElement>('[data-promotion-pending-body]')!;
    const fresh=await readBusiness(host,async task=>{const res=await fetch(location.href,{cache:'no-store',signal:task.signal});if(!res.ok)throw new Error('列表更新失败');return new DOMParser().parseFromString(await res.text(),'text/html');});
    if(fresh)for(const id of new Set(forms.map(form=>form.dataset.scheduleId!)))await refreshPromotionSchedule(id,fresh);
-   if(savedDetail&&controller){controller.setClean();controller.open(savedDetail.id,null,true);}
    for(const form of forms){const key=formKey(form);drafts.delete(key);stateDrafts.get(key)?.form.remove();stateDrafts.delete(key);}
    setUnsaved();
   }catch{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
@@ -189,60 +186,8 @@ function initialize(){
  const host=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
  const measureNames=()=>{if(host?.isConnected){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(ctx){let width=112;for(const name of host.querySelectorAll<HTMLElement>('.review-entry-identity strong')){ctx.font=getComputedStyle(name).font;width=Math.max(width,Math.ceil(ctx.measureText(name.textContent??'').width)+16);}host.style.setProperty('--review-name-width',`${Math.min(176,Math.max(112,host.clientWidth-1080),width)}px`);}}};measureNames();void document.fonts.ready.then(measureNames);if(host&&!host.dataset.nameMeasureReady){host.dataset.nameMeasureReady='true';const observer=new ResizeObserver(measureNames);observer.observe(host);document.addEventListener('astro:before-swap',()=>observer.disconnect(),{once:true});}
  document.querySelectorAll<HTMLFormElement>('[data-history-mode-form]:not([data-ready])').forEach(form=>{form.dataset.ready='true';form.addEventListener('change',()=>form.requestSubmit());});
- if(!pane)return;
- // 公共模板负责开合，业务适配器仅提供同一草稿的另一份视图。
- document.querySelectorAll<HTMLAnchorElement>('#daily-table [data-pending-inspector]').forEach(link=>{
-  const source=document.querySelector<HTMLTemplateElement>(`template[data-history-schedule="${CSS.escape(link.dataset.pendingInspector!)}"]`);if(!source)return;
-  const key=new URL(link.href).searchParams.get('campaign')!;link.dataset.inspectorKey=key;
-  document.querySelector<HTMLTemplateElement>(`template[data-inspector-template="${CSS.escape(key)}"]`)?.remove();
-  const template=document.createElement('template');template.dataset.inspectorTemplate=key;template.dataset.pendingTemplate='';template.content.append(source.content.cloneNode(true));
-  const detail=template.content.querySelector('.promotion-detail')!;
-  detail.querySelector('.promotion-detail-meta:not(.promotion-references)')?.remove();
-  const slot=document.createElement('section');slot.dataset.pendingReviewPane='';slot.dataset.sourceSchedule=link.dataset.pendingInspector!;slot.dataset.sourceRecord=link.dataset.reviewKey??key.slice('review:'.length);
-  slot.setAttribute('aria-label','当前复盘');detail.querySelector('.promotion-references')!.after(slot);
-  pane.parentElement!.append(template);
- });
- if(pane.dataset.pendingAdapter){const controller=getInspector(pane);if(controller.selected?.startsWith('review:')&&pane.dataset.dirty!=='true')controller.refresh();return;}pane.dataset.pendingAdapter='true';
- let restore:(()=>void)|undefined;
- const listeners=new AbortController();document.addEventListener('astro:before-swap',()=>listeners.abort(),{once:true});
- document.addEventListener('business:promotion-arrangement-saving',event=>{const {scheduleId}=(event as CustomEvent).detail;if(getInspector(pane).selected?.startsWith(`review:${scheduleId}:`))getInspector(pane).setClean();},{signal:listeners.signal});
- document.addEventListener('business:promotion-arrangement-saved',event=>{const {scheduleId}=(event as CustomEvent).detail;const controller=getInspector(pane);if(!controller.selected?.startsWith(`review:${scheduleId}:`))return;const template=document.querySelector<HTMLTemplateElement>(`template[data-history-schedule="${CSS.escape(scheduleId)}"]`);if(template){controller.setClean();controller.open(template.dataset.inspectorTemplate!,null,true);}},{signal:listeners.signal});
- getInspector(pane).configure({discard:()=>{discardMeetingDecision(pane);restore?.();document.dispatchEvent(new Event('business:promotion-draft-restored'));}});
- pane.addEventListener('business:inspector-render',()=>{
-  restore=undefined;
-  const slot=pane.querySelector<HTMLElement>('[data-pending-review-pane]');if(!slot)return;
-  const source=document.querySelector<HTMLElement>(`#daily-table [data-pending-record="${CSS.escape(slot.dataset.sourceRecord!)}"]`);if(!source)return;
-  const clone=source.cloneNode(true) as HTMLElement;
-  for(const node of [clone,...clone.querySelectorAll<HTMLElement>('*')]){
-   for(const attr of [...node.attributes])if(attr.name.endsWith('-ready')||attr.name==='data-dirty')node.removeAttribute(attr.name);
-   if(node.id){const previous=node.id;node.id+='-inspector';clone.querySelectorAll<HTMLElement>(`[for="${CSS.escape(previous)}"],[aria-controls="${CSS.escape(previous)}"]`).forEach(label=>{if(label.hasAttribute('for'))label.setAttribute('for',node.id);else label.setAttribute('aria-controls',node.id);});}
-  }
-  clone.querySelector('.review-entry-identity')?.remove();
-  clone.querySelector('.review-version')?.remove();
-  slot.append(clone);
-  if(clone instanceof HTMLFormElement){
-   const draft=drafts.get(formKey(source as HTMLFormElement))!,snapshot={...draft.values},wasDirty=draft.dirty;
-   bind(clone);restore=()=>{draft.values=snapshot;draft.dirty=wasDirty;draft.message='';sync(draft);};
-  }else{
-   // 安排表单委托原控制器提交，保留校验及历史影响保护。
-   const originals=[...source.querySelectorAll<HTMLFormElement>('form')],copies=[...clone.querySelectorAll<HTMLFormElement>('form')];
-   const snapshots=originals.map(form=>({form,values:values(form),start:form.querySelector<HTMLInputElement>('[data-edit-start]')?.value,dirty:form.dataset.dirty}));
-   restore=()=>snapshots.forEach(snapshot=>{for(const field of fields(snapshot.form))field.value=snapshot.values[field.name]??'';const start=snapshot.form.querySelector<HTMLInputElement>('[data-edit-start]');if(start&&snapshot.start)start.value=snapshot.start;snapshot.form.dispatchEvent(new Event('change',{bubbles:true}));snapshot.form.dataset.dirty=snapshot.dirty??'false';});
-   copies.forEach((copy,index)=>{copy.dataset.timelineMirror='';
-    const original=originals[index];for(const field of fields(copy)){const live=original.elements.namedItem(field.name) as HTMLInputElement|null;if(live)field.value=live.value;}
-    for(const type of ['input','change'])copy.addEventListener(type,()=>{fields(copy).forEach((field,fieldIndex)=>{const live=fields(original)[fieldIndex];if(live)live.value=field.value;});const actual=copy.querySelector<HTMLInputElement>('[data-edit-start]'),liveActual=original.querySelector<HTMLInputElement>('[data-edit-start]');if(actual&&liveActual)liveActual.value=actual.value;original.dispatchEvent(new Event(type,{bubbles:true}));});
-    copy.addEventListener('submit',event=>{event.preventDefault();original.requestSubmit();});
-    const observer=new MutationObserver(()=>{const output=copy.querySelector('output'),feedback=original.querySelector('output');if(output&&feedback)output.textContent=feedback.textContent;const button=copy.querySelector<HTMLButtonElement>('[type=submit]'),live=original.querySelector<HTMLButtonElement>('[type=submit]');if(button&&live)button.disabled=live.disabled;});observer.observe(original,{subtree:true,childList:true,attributes:true});
-    pane.addEventListener('business:inspector-render',()=>observer.disconnect(),{once:true});
-   });
-   // 镜像模式复用条件字段与开合，不绑定第二份保存。
-   document.dispatchEvent(new Event('business:promotion-mirror-ready'));
-
-  }
- });
- document.dispatchEvent(new Event('business:inspector-refresh'));
- const requested=new URL(location.href).searchParams.get('campaign');if(requested?.startsWith('review:'))getInspector(pane).refresh();
 }
+
 document.addEventListener('astro:page-load',initialize);
 document.addEventListener('business:promotion-fragment-updated',initialize);
 

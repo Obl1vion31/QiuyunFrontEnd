@@ -169,7 +169,6 @@ function initialize(){
   }
  };
  sync();form.addEventListener('change',sync);form.addEventListener('input',()=>{sync();form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)pane.dataset.dirty='true';});
- if(form.hasAttribute('data-timeline-mirror'))return;
  form.addEventListener('submit',async event=>{event.preventDefault();if(form.dataset.pendingDue==='false')return;const out=form.querySelector('output')!,button=form.querySelector<HTMLButtonElement>('button[type=submit]')!;
   const otherDrafts=[...(form.closest('[data-pending-row]')?.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')??[])].filter(other=>other!==form);
   if(otherDrafts.length&&!await businessConfirm('本条还有其他未保存修改。继续保存会更新整条记录，是否放弃这些修改？',{confirmLabel:'继续保存'}))return;
@@ -183,5 +182,3 @@ function initialize(){
  });
 });}
 initialize();document.addEventListener('astro:page-load',initialize);document.addEventListener('business:inspector-render',initialize);document.addEventListener('business:promotion-fragment-updated',initialize);
-
-document.addEventListener('business:promotion-mirror-ready',initialize);

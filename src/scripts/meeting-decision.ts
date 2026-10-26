@@ -11,7 +11,7 @@ const unsaved=()=>{document.documentElement.dataset.unsaved=String(!!document.qu
 function findTrigger(draft:ArrangementDraft){
  if(draft.trigger.isConnected)return draft.trigger;
  const matches=[...document.querySelectorAll<HTMLButtonElement>('[data-meeting-change]')].filter(node=>node.dataset.decisionId===draft.id);
- return matches.find(node=>node.closest('[data-inspector]')&&!node.closest<HTMLElement>('[data-inspector]')!.hidden)??matches[0];
+ return matches[0];
 }
 function position(draft:ArrangementDraft){
  const trigger=findTrigger(draft);if(!trigger)return;draft.trigger=trigger;
@@ -28,15 +28,12 @@ function sync(draft:ArrangementDraft){
  submit.disabled=draft.busy||draft.saved;submit.textContent=draft.saved?'已修改':draft.busy?'正在保存…':'保存修改';
  draft.form.querySelector<HTMLButtonElement>('[data-meeting-again]')!.hidden=!draft.saved;
  for(const button of draft.form.querySelectorAll<HTMLButtonElement>('[data-meeting-close],[data-meeting-again]'))button.disabled=draft.busy;
- const pane=draft.trigger.closest<HTMLElement>('[data-inspector]');
- if(pane)pane.dataset.dirty=String(changed(draft)||!!pane.querySelector('form[data-dirty=true]'));
  unsaved();
 }
 async function finishClose(draft:ArrangementDraft,focus=true){
  if(!matchMedia('(prefers-reduced-motion:reduce)').matches)await draft.form.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(4px)'}],{duration:220,easing:'ease',fill:'both'}).finished.catch(()=>{});
  const trigger=findTrigger(draft);draft.form.remove();trigger?.setAttribute('aria-expanded','false');
  if(active===draft)active=undefined;
- const pane=trigger?.closest<HTMLElement>('[data-inspector]');if(pane)pane.dataset.dirty=String(!!pane.querySelector('form[data-dirty=true]'));
  unsaved();if(focus)trigger?.focus({preventScroll:true});
 }
 export async function dismissMeetingDecision(focus=true):Promise<boolean>{
@@ -46,8 +43,6 @@ export async function dismissMeetingDecision(focus=true):Promise<boolean>{
   await finishClose(draft,focus);return true;
  })();const accepted=await draft.closing;draft.closing=undefined;return accepted;
 }
-/** Inspector 的公共确认已经获得放弃授权，不再次弹框。 */
-export function discardMeetingDecision(pane:HTMLElement){if(active&&pane.contains(active.trigger)&&!active.busy)void finishClose(active,false);}
 registerPromotionEditor('meeting',()=>dismissMeetingDecision(false));
 export async function guardMeetingDecisionSubmission(forms:HTMLFormElement[]){
  const draft=active;if(!draft||!forms.some(form=>form.dataset.pendingRecord===draft.record))return true;
@@ -98,13 +93,12 @@ async function open(trigger:HTMLButtonElement){
  }finally{opening=false;}
 }
 // 在目标动作之前完成确认与退出，取消时不打开另一条记录或关闭 Inspector。
-document.addEventListener('pointerdown',event=>{if(active&&changed(active)&&!active.form.contains(event.target as Node)&&!document.querySelector('dialog[open]'))event.preventDefault();},true);
+document.addEventListener('pointerdown',event=>{if(active&&changed(active)&&!active.form.contains(event.target as Node)&&!(event.target as Element).closest('[data-business-popover]')&&!document.querySelector('dialog[open]'))event.preventDefault();},true);
 document.addEventListener('click',event=>{
  if(replaying||document.querySelector('dialog[open]'))return;
  const target=event.target as Element,trigger=target.closest<HTMLButtonElement>('[data-meeting-change]');
  if(trigger){event.preventDefault();event.stopImmediatePropagation();void open(trigger);return;}
- if(!active||active.form.contains(target)||target.closest('a[target=_blank]'))return;
- if(target.closest<HTMLElement>('[data-pending-inspector]')?.dataset.reviewKey===active.record)return;
+ if(!active||active.form.contains(target)||target.closest('a[target=_blank],[data-business-popover]'))return;
  const submit=target.closest<HTMLButtonElement>('[data-save-all],form[data-metric-form] button[type=submit]');
  if(submit&&(changed(active)||active.busy)){
   event.preventDefault();event.stopImmediatePropagation();
@@ -114,9 +108,8 @@ document.addEventListener('click',event=>{
  if(active.closing)return;
  void dismissMeetingDecision(false).then(accepted=>{if(!accepted)return;const control=target.closest<HTMLElement>('a,button,input,textarea,select,summary,[data-inspector-key]');if(control){replaying=true;control.focus({preventScroll:true});control.click();replaying=false;}});
 },true);
-window.addEventListener('keydown',event=>{if(event.key==='Escape'&&active&&!document.querySelector('dialog[open]')){event.preventDefault();event.stopImmediatePropagation();void dismissMeetingDecision();}},{capture:true});
+window.addEventListener('keydown',event=>{if(event.key==='Escape'&&active&&!document.querySelector('dialog[open],[data-popover-panel]:popover-open')){event.preventDefault();event.stopImmediatePropagation();void dismissMeetingDecision();}},{capture:true});
 for(const event of ['resize','scroll'])window.addEventListener(event,()=>{if(active&&!active.closing)position(active);},true);
-document.addEventListener('business:inspector-render',()=>{requestAnimationFrame(()=>{if(!active)return;const trigger=[...document.querySelectorAll<HTMLButtonElement>('[data-inspector] [data-meeting-change]')].find(node=>node.dataset.decisionId===active!.id);if(trigger){active.trigger.setAttribute('aria-expanded','false');active.trigger=trigger;sync(active);position(active);active.form.querySelector<HTMLElement>('textarea:not(:disabled),[data-meeting-close]')?.focus({preventScroll:true});}});});
 document.addEventListener('business:promotion-fragment-updated',()=>{if(active&&!active.closing)position(active);});
 document.addEventListener('business:navigation-discard',()=>{if(active)void finishClose(active,false);});
 document.addEventListener('astro:before-swap',()=>{active?.form.remove();active=undefined;});

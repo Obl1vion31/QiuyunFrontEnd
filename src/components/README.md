@@ -71,7 +71,7 @@ ContentTunnel.module.css
 
 `BusinessPromotionTimeline.astro` 每日委托 `BusinessPromotionPendingRows.astro` 表达首次安排和持续区间，历史和排期 Inspector 按需展开更正，共用业务日期、写入控制器与审计；`BusinessScheduleApprovals.astro` 沿用排期台账与共享 Inspector。`BusinessChangeDiff.astro` 与 `src/scripts/business-change-diff.ts` 为 SSR／异步详情提供相同的纵向字段对照，不另建详情开关或横向对比表。
 
-`BusinessPromotionDailyPosts.astro` 按活动与日期组织可填写、待开放与前日未完成分组；`BusinessPromotionMetricForm.astro` 是主列表与 Inspector 共用的填写表单，日期色块、居中状态、五项输入、只读成本、次日安排共用稳定列；状态编辑使用独立气泡；只有例会次日安排以状态、修改两行显示，普通安排保留原下拉；每日与残留补录共用居中表头，来源标题组复用 `BusinessPromotionDecisionLabel`，例会固定状态右上角显示不占位的星号，安排纯文本独立供浮层读取；原位气泡与 Inspector 共用草稿，保存独立于指标。可见日期与指标可填写条件由 `src/db/promotion-review-days.ts` 统一计算，客户端只负责原位更新与草稿保留。
+`BusinessPromotionDailyPosts.astro` 按活动与日期组织可填写、待开放与前日未完成分组；`BusinessPromotionMetricForm.astro` 在主表管理当日指标与次日安排，使用稳定列、居中表头和独立状态气泡。名称／版本旁的 `BusinessPostReferences` 就近展示资料和 ID，不复制表单到 Inspector；`WeeklyCardDetails` 与它共享 `business-popover` 的行为与视觉，各自声明容器边界。已有 ID 只读复制，缺失才委托 `promotion-note-id` 补填并随原行复盘保存。例会固定安排以状态／修改两行显示且带上标，普通安排保留下拉；保存独立于指标，保持原行草稿、节点和滚动。
 
 `BusinessPromotionSummary` 在每日与历史共用真实日期的黄绿阶段节点，`BusinessPromotionData / BusinessPromotionDataTable` 在本条展开逐日表格及表尾汇总，`BusinessPromotionTotals` 继续用于 Inspector 的单日指标。记录点击交给公共 Inspector，`BusinessPromotionDetails / BusinessPromotionMetric` 负责所选记录、业务安排与原编辑表单，不在页面复制详情开关或重复维护汇总。
 

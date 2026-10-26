@@ -35,7 +35,6 @@
 .weekly-decision{margin-top:0}.weekly-card-confirm{display:flex;align-items:center;justify-content:space-between;gap:12px}.weekly-card-confirm output{font-size:12px;color:var(--console-muted)}
  .weekly-card-source{margin-top:auto;border-top:1px solid var(--console-line);padding-top:10px}
 .weekly-detail-trigger{display:block;padding:0;border:0;background:none;color:var(--console-muted);font:400 13px/22px var(--console-font);cursor:pointer;text-align:left}.weekly-detail-trigger::before{content:'▸';display:inline-block;margin-right:6px}.weekly-detail-trigger[aria-expanded=true]::before{transform:rotate(90deg)}
-.weekly-detail-popover{position:fixed;inset:auto;margin:0;box-sizing:border-box;padding:16px;border:1px solid var(--console-line);border-radius:8px;background:#fff;color:var(--console-ink);box-shadow:0 8px 24px #21314b18;font:400 13px/22px var(--console-font);overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere}.weekly-detail-popover p{margin:0 0 8px}.weekly-detail-popover a{color:var(--console-blue)}
 
 .weekly-section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.weekly-section-heading h2{font:600 18px/26px var(--console-font);margin:0}
 .weekly-table-wrap{overflow-x:auto;margin-bottom:16px}.weekly-table{width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}.weekly-table :is(th,td){text-align:left;padding:12px 14px;border-bottom:1px solid var(--console-line)}.weekly-table th{background:#f6f7f9;color:var(--console-muted);font-size:13px;font-weight:500}.weekly-issues-table{table-layout:fixed}.weekly-issues-table th:nth-child(1){width:29%}.weekly-issues-table th:nth-child(2){width:39%}.weekly-issues-table th:nth-child(3){width:18%}.weekly-issues-table th:nth-child(4){width:14%}
@@ -53,7 +52,6 @@
 .weekly-card-grid:empty{display:none}.weekly-non-editor>fieldset{display:grid;gap:12px;border:0;padding:0;margin:0;min-width:0}.weekly-non-editor{display:grid;gap:12px}.weekly-non-editor p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .weekly-required-note{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 0 0;font-size:13px;line-height:20px;color:var(--console-ink)}.weekly-required-note span{color:var(--console-muted)}
 .weekly-non-card>header{min-height:0;flex-wrap:nowrap;align-items:start}.weekly-non-card>header strong{min-height:0;display:block;overflow:visible;-webkit-line-clamp:unset}.weekly-non-card>header>div:first-child{flex:1;gap:4px}
-.weekly-card-reference{display:inline-flex;vertical-align:middle;flex:none;margin:0 0 0 4px;padding:0;border:0}.weekly-card-reference .weekly-detail-trigger{display:grid;place-items:center;width:32px;height:28px;border-radius:50%;background:transparent;color:var(--console-muted);font:400 16px/1 var(--console-font);text-align:center}.weekly-card-reference .weekly-detail-trigger::before{display:none}.weekly-card-reference .weekly-detail-trigger:hover,.weekly-card-reference .weekly-detail-trigger[aria-expanded=true]{background:var(--console-blue-soft);color:var(--console-blue)}.weekly-card-reference .weekly-detail-trigger:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .weekly-reference-links{display:grid;gap:12px}.weekly-reference-links a{display:block;text-decoration:none}.weekly-reference-links span{color:var(--console-muted)}
 
 /* 资料跟随标题文字；草稿保留原有推广标题区和表单高度。 */
@@ -99,9 +97,6 @@
 .weekly-stage-card>header .weekly-card-title strong{display:inline;min-height:0;line-height:24px;vertical-align:middle;font-size:15px;font-weight:500}
 .weekly-card-version{display:inline-block;margin-left:6px;color:var(--console-muted);font:400 12px/24px var(--console-font);vertical-align:middle;white-space:nowrap}
 .weekly-title-tools{display:inline-flex;align-items:center;vertical-align:middle;white-space:nowrap;margin-left:6px;gap:0}.weekly-title-tools .weekly-card-version{margin-left:0}
-.weekly-card-reference{display:inline-flex;margin-left:3px;vertical-align:middle}
-.weekly-card-reference .weekly-detail-trigger{width:24px;height:24px;padding:4px;border-radius:5px;line-height:1}
-.weekly-card-reference svg{display:block;width:16px;height:16px}
 .weekly-stage-tag{line-height:20px;margin-top:0}
 .weekly-stage-card>header small{display:block;font-size:12px;line-height:20px}
 .weekly-data-context{display:grid;gap:3px}

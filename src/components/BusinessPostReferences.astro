@@ -1,0 +1,14 @@
+---
+interface Props {name:string;projectDocUrl?:string|null;publicationUrl?:string|null;noteId?:string|null;editableNoteId?:boolean}
+const {name,projectDocUrl,publicationUrl,noteId,editableNoteId=false}=Astro.props;
+---
+<div class="business-post-reference" data-business-popover data-popover-kind="reference">
+ <button type="button" class="business-reference-trigger" data-popover-trigger data-reference-trigger aria-label={`查看${name}相关资料`} aria-expanded="false"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v7M12 6.5v1"/></svg></button>
+ <div popover="auto" data-popover-panel role="region" aria-label={`${name}相关资料`}>
+  <p>相关资料</p>
+  <div class="business-reference-links">{projectDocUrl?<a href={projectDocUrl} target="_blank" rel="noopener noreferrer">项目文档 ↗</a>:<span>项目文档 · 未登记</span>}{publicationUrl?<a href={publicationUrl} target="_blank" rel="noopener noreferrer">小红书帖子 ↗</a>:<span>小红书帖子 · 未登记</span>}</div>
+  <div class="business-reference-note"><span>笔记 ID</span><div><span class="business-reference-id" data-reference-note-id>{noteId||'未填写'}</span><button type="button" data-copy-note-id hidden={!noteId}>复制</button>{editableNoteId&&!noteId&&<button type="button" data-note-id-trigger>补填 ID</button>}</div><small data-reference-note-status/></div>
+  <output role="status" data-reference-message/>
+ </div>
+</div>
+<script>import '../scripts/business-popover';</script>
