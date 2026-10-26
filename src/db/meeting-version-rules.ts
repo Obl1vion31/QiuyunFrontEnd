@@ -1,7 +1,7 @@
 import {nextDateKey,shanghaiDateKey} from './promotion-rules.mjs';
 export function meetingEffectiveOn(meeting:{meetingAt:Date|string},versions:Array<{snapshot:any;versionNumber:number}>){
  const ordered=[...versions].sort((a,b)=>a.versionNumber-b.versionNumber);
- return ordered.find(v=>v.snapshot.finalizationStage==='post'&&v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??ordered.find(v=>v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??nextDateKey(shanghaiDateKey(new Date(meeting.meetingAt))); 
+ return ordered.find(v=>v.snapshot.finalizationStage==='post'&&v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??ordered.find(v=>v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??nextDateKey(shanghaiDateKey(new Date(meeting.meetingAt)));
 }
 export const meetingArrangementsExpired=(effectiveOn:string,now=new Date())=>shanghaiDateKey(now)>=effectiveOn;
 export function latestValidMeetingVersion<T extends {versionNumber:number;invalidatedAt?:Date|null}>(versions:T[]){return [...versions].filter(v=>!v.invalidatedAt).sort((a,b)=>b.versionNumber-a.versionNumber)[0];}
