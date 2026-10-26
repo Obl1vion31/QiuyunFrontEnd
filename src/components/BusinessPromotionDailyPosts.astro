@@ -2,6 +2,7 @@
 import {promotionReviewDays,promotionReviewQueue} from '../db/promotion-review-days';
 import type {PromotionTimelineRow} from '../db/promotion-pending';
 import type {PromotionContext} from '../db/promotion-state.mjs';
+import BusinessPromotionDecisionLabel from './BusinessPromotionDecisionLabel.astro';
 import BusinessPromotionReviewRecord from './BusinessPromotionReviewRecord.astro';
 interface Props {rows:PromotionTimelineRow[];context:PromotionContext;now?:Date}
 const {rows,context,now=new Date()}=Astro.props,queue=promotionReviewQueue(promotionReviewDays(rows,context,now));
@@ -12,7 +13,7 @@ const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台�
 <div class="promotion-pending-content" data-promotion-pending-body data-server-now={now.toISOString()} data-due-count={queue.ready.length}>
  <p class="review-empty" data-review-empty hidden={queue.ready.length>0}>今日暂无待填写复盘</p>
  <div class="review-entry-scroll" data-review-container="ready" hidden={!queue.ready.length} tabindex="0" aria-label="每日复盘录入，可左右滚动">
-  <div class="review-entry-grid review-entry-head" aria-hidden="true"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span>次日安排</span><span/></div>
+  <div class="review-entry-grid review-entry-head"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span><BusinessPromotionDecisionLabel/></span><span/></div>
   {queue.ready.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket="ready" now={now}/>)}
  </div>
  <details class="review-queue-section review-upcoming" data-review-section="upcoming" hidden={!queue.upcoming.length}>

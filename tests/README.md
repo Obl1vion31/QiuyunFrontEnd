@@ -28,7 +28,7 @@
 
 `pnpm test:reviews` 在构建后使用隔离账号验收待定区间、次日计划、阶段快照版本、服务端例会引用、私有图片和桌面／390／320px 跨页布局。`promotion-intervals-snapshots.test.ts` 覆盖时间边界、手动恢复、历史影响确认、节假日交叠、任意时间段聚合、成本、缺失与快照不变；`review-intervals-migration.test.ts` 从上一结构验证追加迁移与旧会议保留。
 
-`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证例会次日安排单行、来源链接、原位更正及列表／Inspector 草稿共用；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
+`node --import tsx tests/meeting-arrangement.browser.ts` 在构建后用隔离 PGlite 验证仅例会次日安排采用状态／修改两行、普通下拉分支保留、表头来源链接、原位更正及列表／Inspector 草稿共用；覆盖 1920／1440／1024／390／320px、最长复测文案、指标宽度、字体、边缘避让、Esc／焦点、未保存取消与切换、批量互锁、断网重试、冲突及减少动态效果。截图与录像默认保存在 `.tools/test-artifacts/meeting-arrangement/`，用 `ARRANGEMENT_EVIDENCE_DIR` 可另设目录，实际查看后再归档。
 
 ## 界面一致性验收
 
