@@ -1,0 +1,23 @@
+{
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "sourceCommit": "2d02c1d8373aa49c1e6bc12f6d41a03c18c6c765",
+  "deploymentId": "dpl_3EZWiEbpxSpnRKS4z6YTgaRsciCM",
+  "deploymentUrl": "https://qiuyun-frontend-ivu06pv7s-opgobl1v-5358.vercel.app",
+  "checkedAt": "2026-10-26T04:38:02.725Z",
+  "readyState": "READY",
+  "httpChecks": 93,
+  "matchingAssets": 59,
+  "businessWrites": false,
+  "migration": "0038_meeting_pdf_archive",
+  "browser": {
+    "viewport": "1728x983",
+    "states": [
+      "single-line ledger with collapsed history",
+      "real post V2 readonly",
+      "historical pre V0 readonly"
+    ],
+    "screenshotStorage": "private .tools/test-artifacts/meeting-discussion/production-*.png",
+    "observed": true
+  },
+  "compatibility": "Existing V0/V1/V2 snapshots and business facts unchanged; new comparison fields apply to new material only."
+}
