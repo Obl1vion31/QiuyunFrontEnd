@@ -1,0 +1,4 @@
+> qiuyun-frontend-system@0.1.0 test:ui /home/obl1vion/projects/qiuyunFrontend/.tools/releases/post-references
+> node --import tsx tests/business-ui.browser.ts
+
+business UI shared geometry and inline category checks passed
