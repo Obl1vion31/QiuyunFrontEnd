@@ -111,7 +111,7 @@ function initialize() {
       const data = new FormData(form);
       if (data.has('dayNumber')) retained.set(`${data.get('planRevision')}:${data.get('dayNumber')}`, {responsibility:String(data.get('responsibility')),reason:String(data.get('reason')),open:form.closest('details')?.open ?? true});
     }
-    panel!.dataset.scheduleId = id; panel!.dataset.ready = 'false'; panel!.hidden = false;
+    panel!.dataset.scheduleId = id; panel!.dataset.ready = 'false'; panel!.hidden = true;
     historyHost.replaceChildren(); historyHost.hidden = true;
     panel!.replaceChildren();stopLoading();
     const pane=panel!.closest<HTMLElement>('[data-inspector]')!;
@@ -224,14 +224,14 @@ function initialize() {
           if(booking.history.length){const past=element('details');past.append(element('summary','预约操作历史'));for(const entry of booking.history)past.append(element('p',`${labels[entry.status]} · ${entry.actorLabel} · ${timeLabel(entry.at)}${entry.reason?'\n'+entry.reason:''}`));row.append(past);}details.append(row);
         }
       }
-      if(panel!.childElementCount)panel!.prepend(element('h3','待处理'));else panel!.hidden=true;
+      if(panel!.childElementCount){panel!.prepend(element('h3','待处理'));panel!.hidden=false;}
       if(historyHost.childElementCount){historyHost.prepend(element('h3','历史记录'));historyHost.hidden=false;}
       panel!.dataset.loadedScheduleId=id;panel!.dataset.ready='true';
       if(retained.size)(panel!.querySelector('form[data-dirty=true]')??historyHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
     } catch(error){
       if(!read.isCurrent())return;
       panel!.replaceChildren(element('p',error instanceof Error?error.message:'读取失败。'));
-      const button=element('button','重新读取');button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));panel!.append(button);
+      const button=element('button','重新读取');button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));panel!.append(button);panel!.hidden=false;
     } finally {if(token===panelToken)cleanup();}
   }
   const linkControl=publication.elements.namedItem('publicationUrl') as HTMLTextAreaElement;

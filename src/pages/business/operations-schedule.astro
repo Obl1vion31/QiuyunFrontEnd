@@ -322,15 +322,15 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                   <div data-inspector-completion-row><dt>发布状态</dt><dd data-inspector-completion></dd></div>
                 </dl>
                 <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
-                <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理"><p>正在读取待处理事项…</p></section>
+                <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
                 <details class="inspector-section inspector-reference" open><summary>相关资料</summary>
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
                 <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
                 <section class="inspector-section"><span>项目文档</span><a data-inspector-doc target="_blank" rel="noreferrer">打开项目文档 ↗</a></section>
                 <section class="inspector-section"><span>小红书帖子</span><a data-inspector-post target="_blank" rel="noreferrer"></a></section>
                 </details>
-                <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录"></section>
-                <section class="inspector-section" data-promotion-state-history></section>
+                <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录" hidden></section>
+                <section class="inspector-section" data-promotion-state-history hidden></section>
                 <details class="inspector-danger" data-business-operation="schedule.delete" hidden={permissions['schedule.delete']==='disabled'}><summary>更多操作</summary><button type="button" data-inspector-delete>删除这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
               <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
