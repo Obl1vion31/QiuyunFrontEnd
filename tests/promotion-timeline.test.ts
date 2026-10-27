@@ -120,3 +120,22 @@ test('更正发布时间也须确认首次待定影响，确认后清理计划�
  await registerPublication(db,row.id,body,[],true,admin,now);const snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.plan,null);assert.equal(snapshot.schedule.promotionDeferredThrough,null);assert.equal(snapshot.schedule.promotionStatus,'awaiting_promotion');
  const audit=await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,row.id));assert.ok(audit.some(row=>row.action==='publication_reset'&&row.before.plan));
 });
+
+test('持续待定区分显式null与旧省略，清理旧截止，T+1开始且不补造事实',async()=>{
+ const legacy=await seed();await changePromotionTimeline(db,await input(legacy.id,{action:'wait'}),staff,now);
+ assert.equal((await promotionSnapshot(db,legacy.id)).plan?.waitingThrough,'2026-10-17');
+ const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:null}),staff,now);
+ let [view]=await readPromotionTimeline(db,now,row.id);
+ assert.equal(view.initialWaiting,true);assert.equal(view.date,'2026-10-20');assert.equal(view.plan?.waitingThrough,null);assert.equal(view.campaign,null);
+ assert.equal((await readPromotionTimeline(db,new Date('2026-10-22T12:00:00+08:00'),row.id))[0].date,'2026-10-21');
+ const before=await promotionSnapshot(db,row.id);assert.equal(before.metrics.length,0);assert.equal(before.campaigns.length,0);
+ await assert.rejects(changePromotionTimeline(db,await input(row.id,{action:'plan',reviewDate:'2026-10-21',nextDecision:'start_testing'}),staff,now),/已开放/);
+ await changePromotionTimeline(db,await input(row.id,{action:'plan',reviewDate:'2026-10-20',nextDecision:'wait_continue',waitingThrough:null}),staff,now);
+ assert.equal((await promotionSnapshot(db,row.id)).metrics.length,0);
+ await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:'2026-10-23',reason:'设置截止'}),staff,now);
+ await assert.rejects(changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:null}),staff,now),/修改原因/);
+ await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:null,reason:'清空截止'}),staff,now);
+ let snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.schedule.promotionDeferredThrough,null);assert.equal(snapshot.plan?.waitingThrough,null);
+ await changePromotionTimeline(db,await input(row.id,{action:'plan',reviewDate:'2026-10-20',nextDecision:'start_testing'}),staff,now);
+ snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.campaigns[0].startedOn,'2026-10-21');assert.equal(snapshot.metrics.length,0);assert.equal(snapshot.plan?.waitingThrough,'2026-10-20');
+});

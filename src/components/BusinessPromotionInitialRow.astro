@@ -1,0 +1,30 @@
+---
+import BusinessPostReferences from './BusinessPostReferences.astro';
+import type {PromotionTimelineRow} from '../db/promotion-pending';
+import type {ReviewDay} from '../db/promotion-review-days';
+import {nextDateKey} from '../db/promotion-rules.mjs';
+interface Props {row:PromotionTimelineRow;day:ReviewDay}
+const {row,day}=Astro.props,waiting=!!day.initialWaiting,nextOn=nextDateKey(day.date);
+const metrics=['消耗（元）','平台开口（人）','实际开口（人）','平台留资（人）','实际留资（人）'];
+const editorId=`initial-arrangement-${row.scheduleId}-${day.date}`;
+const due=!day.waitingThrough||day.waitingThrough<=day.date;
+---
+<div class="review-metric-row review-entry-grid review-initial-row paused" data-pending-row data-initial-row data-timeline-row={row.scheduleId} data-pending-record={`${row.scheduleId}:${day.date}`}>
+ <time class="review-date-block" datetime={day.date} title={day.date}>{Number(day.date.slice(5,7))}月{Number(day.date.slice(8,10))}日</time>
+ <div class="review-entry-identity"><strong class="review-post-name" title={row.contentName}>{row.contentName}</strong><div class="review-version-line"><small>V{row.versionNumber} · {row.subjectName}</small><BusinessPostReferences name={row.contentName} projectDocUrl={row.projectDocUrl} publicationUrl={row.publicationUrl} noteId={row.platformNoteId}/></div></div>
+ <div class="review-initial-state"><button type="button" class="review-day-state" data-initial-toggle aria-haspopup="dialog" aria-controls={editorId} aria-expanded="false"><strong>{waiting?'待定':'尚未开始'}</strong><span>{waiting?'修改':'设置安排'}</span></button>{day.waitingThrough&&<small title="含当天">至 <time data-pending-period-end datetime={day.waitingThrough}>{day.waitingThrough}</time></small>}</div>
+ {metrics.map(label=><label class="review-number"><span class="review-field-label">{label}</span><input aria-label={label} disabled value="" placeholder="—" title="推广尚未开始，无需填写指标"/></label>)}
+ <div class="review-calculated" aria-label="尚无推广成本"><div><span>开口成本</span><output>—</output></div><div><span>留资成本</span><output>—</output></div></div>
+ {waiting?<form class="business-form review-initial-next timeline-next-form" data-timeline-form data-pending-due={String(due)} data-fingerprint={row.fingerprint} data-optional-wait>
+  <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={day.date}/><input type="hidden" name="action" value="plan"/>
+  <div class="review-decision"><select name="nextDecision" aria-label="次日安排" required disabled={!due} title={!due?'待定截止日的次日开放':undefined}><option value="">请选择</option><option value="wait_continue">继续待定</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></select><label data-timeline-through hidden>待定至（可不选）<input type="date" name="waitingThrough" min={nextOn} disabled/></label><button type="button" class="review-plan-cancel" data-cancel-plan hidden>取消修改</button></div>
+  <button type="submit" class="business-action-primary review-submit" disabled={!due}>保存安排</button><output role="status" data-form-message/>
+ </form>:<><span class="review-no-next review-initial-hint">先设置当日安排</span><span/></>}
+ <form id={editorId} class="business-form review-state-bubble review-initial-bubble" popover="manual" role="dialog" aria-label={waiting?'修改当日安排':'设置当日安排'} data-initial-panel data-timeline-form data-optional-wait data-fingerprint={row.fingerprint} hidden>
+  <header><strong>{waiting?'修改当日安排':'设置当日安排'}</strong><button type="button" class="review-state-close" data-initial-close aria-label="关闭安排气泡">×</button></header>
+  <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="target" value="initial"/><input type="hidden" name="reviewDate" value={day.date}/>
+  <div class="review-bubble-body"><div class="review-state-before"><span>数据日期</span><strong>{day.date}</strong></div><label>当日安排<select name="action" aria-label="当日安排" required><option value="">请选择</option><option value="wait" selected={waiting}>待定</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></select></label><label data-timeline-through hidden>待定至（可不选）<input type="date" name="waitingThrough" value={day.waitingThrough??''} min={row.publishedOn} disabled/></label>{waiting&&<label>修改原因<textarea name="reason" aria-label="修改原因" required maxlength="2000" rows="2"/></label>}<output role="status"/></div>
+  <footer><button type="button" class="business-action-secondary" data-initial-close>取消</button><button type="submit" class="business-action-primary">保存安排</button></footer>
+ </form>
+</div>
+<script>import '../scripts/promotion-initial-arrangement';</script>

@@ -1,3 +1,4 @@
+import {guardInitialArrangementSubmission} from './promotion-initial-arrangement';
 import {openNoteId} from './promotion-note-id';
 import {guardMeetingDecisionSubmission} from './meeting-decision';
 import {preparePromotionEditor,registerPromotionEditor} from './promotion-editor-lifecycle';
@@ -128,7 +129,7 @@ function initialize(){
    sync(state);
   });
   form.addEventListener('submit',async event=>{
-   event.preventDefault();if(state.busy||!await guardMeetingDecisionSubmission([form]))return;
+   event.preventDefault();if(state.busy||!guardInitialArrangementSubmission()||!await guardMeetingDecisionSubmission([form]))return;
    const pending=stateDrafts.get(key);if(pending&&!pending.saved&&(pending.target||pending.reason)){state.message='请先保存或取消当日状态变更。';sync(state);pending.form.hidden=false;positionBubble(pending);return;}
    const note=form.querySelector<HTMLInputElement>('[data-note-id-required]');
    if(note&&!/^[0-9a-fA-F]{24}$/.test(note.value.trim())){
@@ -156,7 +157,7 @@ function initialize(){
   const forms=[...document.querySelectorAll<HTMLFormElement>('#daily-table [data-review-container="ready"] [data-metric-form]')];
   if(!forms.length||forms.some(form=>drafts.get(formKey(form))?.busy))return;
   let invalid=false;
-  if(!await guardMeetingDecisionSubmission(forms))return;
+  if(!guardInitialArrangementSubmission()||!await guardMeetingDecisionSubmission(forms))return;
   for(const form of forms){const draft=drafts.get(formKey(form))!;const state=stateDrafts.get(formKey(form));
    if(state&&!state.saved&&(state.target||state.reason)){draft.message='请先保存或取消当日状态变更。';sync(draft);if(!invalid){state.form.hidden=false;positionBubble(state);}invalid=true;continue;}
    const note=draft.values.platformNoteId??'';

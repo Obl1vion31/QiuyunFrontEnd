@@ -10,7 +10,7 @@ import type {MeetingDecision} from './meeting-decisions';
 export interface ReviewDay {
  meetingDecision?:MeetingDecision;meetingNext?:string|null;
  date:string;campaignId?:string;kind:'metric'|'arrangement'|'preview';stage:string|null;status:string;
- actualStatus?:string;statusEditOptions?:Array<{value:string;label:string}>;defaultZero?:boolean;waitingThrough?:string;editable:boolean;blockedBy:string|null;opensAt:string;due:boolean;
+ actualStatus?:string;statusEditOptions?:Array<{value:string;label:string}>;defaultZero?:boolean;initialWaiting?:boolean;waitingThrough?:string;editable:boolean;blockedBy:string|null;opensAt:string;due:boolean;
 }
 /** 展示到今天，填写止于昨天；连续区间只保留当前状态及到期安排，不伪造指标。 */
 export function promotionReviewDays(rows:PromotionTimelineRow[],context:PromotionContext,now=new Date()){
@@ -19,7 +19,8 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
   if(!row.isPromoted||row.publishedOn>today)return [];
   const campaign=row.campaign,days:ReviewDay[]=[];
   const period=pendingPromotionPeriod(row,now);
-  if(row.pending||((!row.campaign||!row.campaign.dailyReviewEnabledOn)&&period?.due)){const date=period?.endedOn??row.date;days.push({date,kind:'arrangement',stage:period?.range?.stageType??null,status:period?.state??'待安排',editable:true,blockedBy:null,opensAt:`${nextDateKey(date)}T00:00:00+08:00`,due:true});}
+  if(!campaign&&row.canArrangeInitial&&row.publishedOn<=yesterday){const date=row.waitingThrough?(row.waitingThrough<yesterday?row.waitingThrough:yesterday):row.plan?yesterday:row.publishedOn;days.push({date,kind:'arrangement',stage:null,status:row.plan||row.waitingThrough?'待定':'尚未开始',initialWaiting:!!row.plan||!!row.waitingThrough,waitingThrough:row.waitingThrough??undefined,editable:true,blockedBy:null,opensAt:`${nextDateKey(date)}T00:00:00+08:00`,due:true});}
+  else if(row.pending||((!row.campaign||!row.campaign.dailyReviewEnabledOn)&&period?.due)){const date=period?.endedOn??row.date;days.push({date,kind:'arrangement',stage:period?.range?.stageType??null,status:period?.state??'待安排',editable:true,blockedBy:null,opensAt:`${nextDateKey(date)}T00:00:00+08:00`,due:true});}
   const owned=(context.campaigns??[]).filter(item=>'scheduleId' in item&&item.scheduleId===row.scheduleId).sort((a,b)=>a.startedOn.localeCompare(b.startedOn));
   for(const active of owned.length?owned:campaign?[campaign]:[]){
    const campaign=active;
@@ -41,10 +42,10 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
   if(!ended&&!days.some(d=>d.date===today)){
    const earlier=days.find(d=>d.kind==='metric'||d.kind==='arrangement');
    const range=row.ranges.find(r=>r.startedOn<=today&&(!r.nextEffectiveOn||r.nextEffectiveOn>today));
-   const waiting=!!range&&range.endedOn>=today&&(!campaign?.dailyReviewEnabledOn||today<campaign.dailyReviewEnabledOn)||!campaign&&!!row.waitingThrough&&row.waitingThrough>=today;
+   const waiting=!!range&&range.endedOn>=today&&(!campaign?.dailyReviewEnabledOn||today<campaign.dailyReviewEnabledOn)||!campaign&&!!(row.plan||row.waitingThrough)&&!row.plan?.plannedOn&&(!row.waitingThrough||row.waitingThrough>=today);
    const explicit=campaign?.startedOn===today||(context.stateChanges??[]).some(d=>d.campaignId===campaign?.id&&d.businessDate===today);
    const known=waiting||explicit||!earlier;
-   days.push({date:today,campaignId:campaign?.id,kind:'preview',actualStatus:state?normalizePromotionActualStatus(state.currentStatus,state.currentStage):undefined,waitingThrough:waiting?(range?.endedOn??row.waitingThrough??undefined):undefined,stage:known?state?.currentStage??null:null,status:waiting?(range?.stageType==='scaling'?'暂停':'待定'):known&&state?.currentStage?(state.currentStage==='scaling'?'放量':'测试'):'待安排',editable:false,blockedBy:earlier?.date??null,opensAt:`${nextDateKey(today)}T00:00:00+08:00`,due:false});
+   days.push({date:today,campaignId:campaign?.id,kind:'preview',initialWaiting:waiting&&!campaign,actualStatus:state?normalizePromotionActualStatus(state.currentStatus,state.currentStage):undefined,waitingThrough:waiting?(range?.endedOn??row.waitingThrough??undefined):undefined,stage:known?state?.currentStage??null:null,status:waiting?(range?.stageType==='scaling'?'暂停':'待定'):known&&state?.currentStage?(state.currentStage==='scaling'?'放量':'测试'):'待安排',editable:false,blockedBy:earlier?.date??null,opensAt:`${nextDateKey(today)}T00:00:00+08:00`,due:false});
   }
   return days.length?[{row,days:days.sort((a,b)=>a.date.localeCompare(b.date))}]:[];
  }).sort((a,b)=>(a.days.find(d=>d.due)?.date??today).localeCompare(b.days.find(d=>d.due)?.date??today)||a.row.contentName.localeCompare(b.row.contentName,'zh-CN'));
@@ -55,10 +56,11 @@ export function promotionReviewQueue(posts:ReturnType<typeof promotionReviewDays
  const records=posts.flatMap(({row,days})=>days.map(day=>({row,day})))
   .sort((a,b)=>a.day.date.localeCompare(b.day.date)||a.row.contentName.localeCompare(b.row.contentName,'zh-CN'));
  const ready=records.filter(({day})=>day.kind==='metric'&&day.editable);
- const upcoming=records.filter(({day})=>day.kind==='preview'&&!day.waitingThrough);
+ const upcoming=records.filter(({day})=>day.kind==='preview'&&!day.waitingThrough&&!day.initialWaiting);
  const openingTimes=[...new Set(upcoming.map(({day})=>day.opensAt))].sort();
- return {ready,upcoming,openingGroups:openingTimes.map(opensAt=>({opensAt,records:upcoming.filter(({day})=>day.opensAt===opensAt)})),
-  arrangements:records.filter(({day})=>day.kind==='arrangement'),
-  continuing:records.filter(({day})=>day.kind==='preview'&&day.waitingThrough),
+ const initial=records.filter(({row,day})=>day.kind==='arrangement'&&!row.campaign&&row.canArrangeInitial);
+ return {ready,main:records.filter(record=>ready.includes(record)||initial.includes(record)),upcoming,openingGroups:openingTimes.map(opensAt=>({opensAt,records:upcoming.filter(({day})=>day.opensAt===opensAt)})),
+  arrangements:records.filter(record=>record.day.kind==='arrangement'&&!initial.includes(record)),
+  continuing:records.filter(({day})=>day.kind==='preview'&&(day.waitingThrough||day.initialWaiting)),
   blocked:records.filter(({day})=>day.kind==='metric'&&!day.editable)};
 }

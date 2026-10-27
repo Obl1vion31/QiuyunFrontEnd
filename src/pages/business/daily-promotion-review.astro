@@ -9,6 +9,7 @@ import BusinessPromotionStageView from '../../components/BusinessPromotionStageV
 import BusinessPromotionToolbar from '../../components/BusinessPromotionToolbar.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
+import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
 import '../../styles/promotion-pending.css';
@@ -230,7 +231,7 @@ const historyHref = (overrides: Record<string, string>) => {
             {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
           </section>
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
-            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><Fragment slot="end"><button type="button" class="business-action-primary" data-save-all disabled={!pendingCount}>一键保存（{pendingCount}）</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history">历史总览 ↗</a></Fragment></BusinessSectionHeader></div>
+            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><BusinessToolbarActions slot="end" variant="section"><button type="button" class="primary-action" data-save-all disabled={!pendingCount}>一键保存（{pendingCount}）</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history"><span>历史总览</span><span aria-hidden="true">↗</span></a></BusinessToolbarActions></BusinessSectionHeader></div>
             <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
           </section>
 
@@ -249,8 +250,7 @@ const historyHref = (overrides: Record<string, string>) => {
                   <option value="">全部状态</option>
                   {Object.entries(statusLabels).map(([value, label]) => <option value={value} selected={historyStatus === value}>{label}</option>)}
                 </select></label>
-                <button type="submit" class="business-action-primary">查看</button>
-                <a href={`?view=history&mode=${historyMode}`}>重置范围</a>
+                <BusinessToolbarActions variant="section"><button type="submit" class="primary-action">查看</button><a href={`?view=history&mode=${historyMode}`}>重置范围</a></BusinessToolbarActions>
               </form>
             </div>
             <form class="history-mode-switch" method="get" data-history-mode-form>
@@ -358,8 +358,8 @@ const historyHref = (overrides: Record<string, string>) => {
 <style>
 .business-console-content{max-width:1488px;margin-inline:auto}
 
-.calendar-section :global(.business-section-header),.daily-section :global(.business-section-header){min-height:48px;box-sizing:border-box;padding:11px 16px;border-bottom:0}.review-residual-trigger{border:0;padding:0;margin-right:16px;background:none;color:var(--console-blue);font:400 13px/20px var(--console-font);cursor:pointer}
+.calendar-section :global(.business-section-header),.daily-section :global(.business-section-header){min-height:48px;box-sizing:border-box;padding:11px 16px;border-bottom:0}
 
-.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);overflow:clip;container-type:inline-size}.daily-section{margin-top:24px}.calendar-section{margin-top:0}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-filters>a{padding:10px 0}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
+.calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);overflow:clip;container-type:inline-size}.daily-section{margin-top:24px}.calendar-section{margin-top:0}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
 @media(max-width:600px){.history-head{padding:14px}.history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-search{grid-column:1/-1}.history-layout{padding:12px}.history-mode-switch{padding-inline:14px}}
 </style>

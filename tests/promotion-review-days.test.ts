@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {promotionReviewDays} from '../src/db/promotion-review-days';
+import {promotionReviewDays,promotionReviewQueue} from '../src/db/promotion-review-days';
 import type {PromotionTimelineRow} from '../src/db/promotion-pending';
 import type {PromotionContext} from '../src/db/promotion-state.mjs';
 const campaign={id:'c',scheduleId:'s',startedOn:'2026-10-19',initialStage:'testing',currentStage:'testing',currentStatus:'testing',endedOn:null};
@@ -39,4 +39,17 @@ test('持续待定只显示当日灰色状态，不制造欠填；末日下一�
  assert.deepEqual(days.map(d=>[d.date,d.kind,d.status]),[['2026-10-20','preview','待定']]);assert.equal(days[0].waitingThrough,'2026-10-21');
  const overdue=promotionReviewDays([held],{...context,waitRanges:[range]} as PromotionContext,at('2026-10-22T08:00:00'))[0].days;
  assert.equal(overdue[0].kind,'arrangement');assert.equal(overdue[0].date,'2026-10-21');assert.equal(overdue.at(-1)!.status,'待安排');
+});
+
+test('首次待定灰行每日只推导昨日，有限截止锚定末日且不计指标队列',()=>{
+ const initial={...row,campaign:null,canArrangeInitial:true,pending:true,plan:{waitingThrough:null,plannedOn:null},waitingThrough:null} as unknown as PromotionTimelineRow;
+ for(const day of ['2026-10-21','2026-10-22']){
+  const posts=promotionReviewDays([initial],{...context,campaigns:[]},at(day+'T08:00:00')),queue=promotionReviewQueue(posts);
+  assert.equal(queue.main.length,1);assert.equal(queue.ready.length,0);assert.equal(queue.arrangements.length,0);assert.equal(queue.main[0].day.status,'待定');
+  assert.equal(queue.main[0].day.date,day==='2026-10-21'?'2026-10-20':'2026-10-21');
+ }
+ const finite={...initial,waitingThrough:'2026-10-23'};
+ assert.equal(promotionReviewQueue(promotionReviewDays([finite],{...context,campaigns:[]},at('2026-10-22T08:00:00'))).main[0].day.date,'2026-10-21');
+ assert.equal(promotionReviewQueue(promotionReviewDays([finite],{...context,campaigns:[]},at('2026-10-26T08:00:00'))).main[0].day.date,'2026-10-23');
+ const fresh={...initial,plan:null};assert.equal(promotionReviewQueue(promotionReviewDays([fresh],{...context,campaigns:[]},at('2026-10-22T08:00:00'))).main[0].day.date,'2026-10-19');
 });

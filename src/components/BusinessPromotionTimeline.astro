@@ -7,7 +7,7 @@ import {readPromotionTimeline} from '../db/promotion-timeline';
 import {operationsPromotionTimelineAudit} from '../db/schema';
 import {promotionAuditView} from '../db/promotion-audit-view';
 import {businessDateTime} from '../scripts/business-date';
-import {shanghaiDateKey,previousDateKey} from '../db/promotion-rules.mjs';
+import {shanghaiDateKey,previousDateKey,nextDateKey} from '../db/promotion-rules.mjs';
 import {promotionLabels} from '../db/promotion-state.mjs';
 interface Props {rows?:Awaited<ReturnType<typeof readPromotionTimeline>>;history?:boolean;scheduleId?:string;embedded?:boolean;businessDate?:string;audits?:(typeof operationsPromotionTimelineAudit.$inferSelect)[]}
 const {rows:given,history=false,scheduleId,embedded=false,businessDate,audits:givenAudits}=Astro.props;
@@ -25,9 +25,9 @@ const auditGroups=(scheduleId:string)=>{
 const displayRows=visible.map(row=>{
   const range=row.ranges.filter(item=>item.startedOn<=yesterday&&!item.nextDecision).at(-1);
   const date=range?(range.endedOn<yesterday?range.endedOn:yesterday):history?(row.campaign?.startedOn??row.date):row.date;
-  const waiting=!!range||row.canArrangeInitial&&!!row.waitingThrough&&!row.plan?.plannedOn;
+  const waiting=!!range||row.canArrangeInitial&&!!(row.plan||row.waitingThrough)&&!row.plan?.plannedOn;
   const end=range?.endedOn??row.waitingThrough;
-  const nextDue=row.isPromoted&&waiting&&end&&end<=yesterday;
+  const nextDue=row.isPromoted&&waiting&&(!end||end<=yesterday)&&date<=yesterday;
   const status=row.campaign?.currentStatus??row.promotionStatus;
   const label=['ended','test_discarded','formal_discarded'].includes(status)||!row.campaign&&!row.canArrangeInitial?(promotionLabels[status]??status):range?(range.stageType==='testing'?'测试待定':'推广暂停'):row.campaign?(row.plan?.plannedOn&&row.plan.plannedOn>yesterday?'次日推广已安排':'已开始推广'):row.plan?.plannedOn?`计划${row.plan.plannedStage==='scaling'?'放量':'测试'}`:waiting?'待定（未开始推广）':'首次安排待确认';
   const editable=row.isPromoted&&(!!row.campaign||row.canArrangeInitial)&&(admin||!row.hasMetrics);
@@ -41,28 +41,28 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
 {history&&renderedRows.length>0&&<section class:list={["promotion-timeline",{"promotion-timeline-embedded":embedded}]} aria-label={history?'推广状态历史':'首次安排与待定'}>
  {history&&!embedded&&<h2>推广安排与状态历史</h2>}
  {renderedRows.map(({row,range,date,waiting,end,nextDue,label,editable})=><article class:list={[{"timeline-daily-row":!history}]} data-timeline-row={row.scheduleId} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={row.campaign?promotionLabels[row.campaign.currentStatus==='waiting_action'?(row.campaign.currentStage==='testing'?'test_pending':'promotion_paused'):row.campaign.currentStatus]:promotionLabels[row.promotionStatus]??row.promotionStatus}>
-   {!embedded&&<header><div class="timeline-identity"><strong>{row.contentName}</strong><span>V{row.versionNumber} · {row.subjectName}</span></div><time>{date}</time><mark>{label}{waiting&&<small>至 {end}（含当天）</small>}</mark></header>}
+   {!embedded&&<header><div class="timeline-identity"><strong>{row.contentName}</strong><span>V{row.versionNumber} · {row.subjectName}</span></div><time>{date}</time><mark>{label}{waiting&&<small>{end?`至 ${end}（含当天）`:'未设截止日'}</small>}</mark></header>}
    {row.plan?.plannedOn&&!row.campaign&&<p>{row.plan.plannedOn} 计划{row.plan.plannedStage==='scaling'?'放量':'测试'}，请确认当天实际状态。</p>}
    {editable&&(history||waiting||row.campaign)&&<details open={!waiting&&!row.campaign&&!history}>
     <summary>{history?(waiting||row.campaign?'更正推广安排':'选择首次安排'):'修改当日状态'}</summary>
-    <form class="business-form timeline-state-form" data-timeline-form data-fingerprint={row.fingerprint}>
+    <form class="business-form timeline-state-form" data-timeline-form data-optional-wait={!row.campaign} data-fingerprint={row.fingerprint}>
      <input type="hidden" name="scheduleId" value={row.scheduleId}/>
      <input type="hidden" name="target" value={range?'day':'initial'}/>
      <label>业务日期<input type="date" name="reviewDate" value={date} min={row.publishedOn} max={today} required/></label>
      <label>当日状态<select name="action" required><option value="">请选择</option>{!row.campaign&&<option value="wait" selected={waiting}>待定（未开始推广）</option>}<option value="start_testing">{row.campaign?'测试／恢复测试':'开始测试'}</option><option value="start_scaling">{row.campaign?'放量／恢复推广':'直接放量'}</option></select></label>
-     {!row.campaign&&<label data-timeline-through>待定至（含当天）<input type="date" name="waitingThrough" value={end??date} min={row.publishedOn}/></label>}
+     {!row.campaign&&<label data-timeline-through>待定至（可不选）<input type="date" name="waitingThrough" value={end??undefined} min={row.publishedOn}/></label>}
      <label class="timeline-reason">{history||row.campaign?'更正原因':'原因（选填）'}<textarea name="reason" maxlength="2000" rows="2" required={history||!!row.campaign}/></label>
      <button type="submit" class="business-action-primary">保存当日安排</button><output role="alert"/>
     </form>
    </details>}
-   {nextDue&&<form class="business-form timeline-next-form" data-timeline-form data-fingerprint={row.fingerprint}>
-    <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={end!}/><input type="hidden" name="action" value={range?'next':'plan'}/>{range&&<input type="hidden" name="rangeId" value={range.id}/>}
-    <label>{end} 的下一步<select name="nextDecision" required><option value="">请选择</option>{!range?<><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="restart_testing">重新开始测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
-    <button type="submit" class="business-action-primary">保存下一步</button><output role="alert"/>
+   {nextDue&&<form class="business-form timeline-next-form" data-timeline-form data-optional-wait={!range} data-fingerprint={row.fingerprint}>
+    <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={end??date}/><input type="hidden" name="action" value={range?'next':'plan'}/>{range&&<input type="hidden" name="rangeId" value={range.id}/>}
+    <label>{end??date} 的下一步<select name="nextDecision" required><option value="">请选择</option>{!range?<><option value="wait_continue">继续待定</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="restart_testing">重新开始测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
+    {!range&&<label data-timeline-through hidden>待定至（可不选）<input type="date" name="waitingThrough" min={nextDateKey(end??date)} disabled/></label>}<button type="submit" class="business-action-primary">保存下一步</button><output role="alert"/>
    </form>}
-   {waiting&&editable&&<details><summary>调整待定截止日</summary><form class="business-form timeline-next-form" data-timeline-form data-fingerprint={row.fingerprint}>
+   {waiting&&editable&&<details><summary>调整待定截止日</summary><form class="business-form timeline-next-form" data-timeline-form data-optional-wait={!range} data-fingerprint={row.fingerprint}>
     <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={range?end!:row.publishedOn}/><input type="hidden" name="action" value={range?'next':'wait'}/>{range&&<><input type="hidden" name="rangeId" value={range.id}/><input type="hidden" name="nextDecision" value="wait_continue"/></>}
-    <label>待定至（含当天）<input type="date" name="waitingThrough" value={end!} min={range?.startedOn??row.publishedOn} required/></label><label>调整原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存截止日</button><output role="alert"/>
+    <label>{range?'待定至（含当天）':'待定至（可不选）'}<input type="date" name="waitingThrough" value={end??undefined} min={range?.startedOn??row.publishedOn} required={!!range}/></label><label>调整原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存截止日</button><output role="alert"/>
    </form></details>}
    {history&&auditGroups(row.scheduleId).filter(group=>group.rows.length>0).map(group=><details data-business-history open={group.related}>
     <summary>{group.label}（{group.rows.length}）</summary>
@@ -77,7 +77,7 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
 </section>}
 <script>import '../scripts/promotion-timeline';</script>
 <style is:global>
-.promotion-timeline{display:grid;gap:10px;margin:12px 0}.daily-section>.promotion-timeline{margin:12px 10px}.promotion-timeline>h2{font-size:16px;margin:8px 0}.promotion-timeline article{min-width:0;padding:14px 16px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);font:400 13px/20px var(--console-font)}.promotion-timeline header{display:flex;gap:6px 12px;align-items:center;flex-wrap:wrap}.promotion-timeline header span,.promotion-timeline small{color:var(--console-muted);font-size:12px}.promotion-timeline time{font-variant-numeric:tabular-nums}.promotion-timeline mark{padding:2px 6px;border-radius:5px;background:#f3e6c8;color:#73551d}.promotion-timeline details{margin-top:10px}.promotion-timeline summary{cursor:pointer;font-weight:500}.promotion-timeline small{display:block}.timeline-state-form,.timeline-next-form{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:12px}.timeline-state-form>label,.timeline-next-form>label{min-width:140px;flex:1}.timeline-state-form .timeline-reason{flex-basis:100%}.promotion-timeline output:not(:empty){flex-basis:100%;color:#913c35}.promotion-timeline [hidden]{display:none!important}@media(max-width:600px){.timeline-state-form>label,.timeline-next-form>label{flex-basis:100%}.promotion-timeline button{width:100%}}
+.promotion-timeline{display:grid;gap:10px;margin:12px 0}.daily-section>.promotion-timeline{margin:12px 10px}.promotion-timeline>h2{font-size:16px;margin:8px 0}.promotion-timeline article{min-width:0;padding:14px 16px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);font:400 13px/20px var(--console-font)}.promotion-timeline header{display:flex;gap:6px 12px;align-items:center;flex-wrap:wrap}.promotion-timeline header span,.promotion-timeline small{color:var(--console-muted);font-size:12px}.promotion-timeline time{font-variant-numeric:tabular-nums}.promotion-timeline mark{padding:2px 6px;border-radius:5px;background:#f3e6c8;color:#73551d}.promotion-timeline details{margin-top:10px}.promotion-timeline summary{cursor:pointer;font-weight:500}.promotion-timeline small{display:block}.timeline-state-form,.timeline-next-form{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:12px}.timeline-state-form.business-form>label,.timeline-next-form.business-form>label{min-width:min(160px,100%);flex:1 1 160px}.timeline-state-form.business-form>.timeline-reason{flex-basis:100%}.promotion-timeline output:not(:empty){flex-basis:100%;color:#913c35}.promotion-timeline [hidden]{display:none!important}@media(max-width:600px){.timeline-state-form>label,.timeline-next-form>label{flex-basis:100%}.promotion-timeline button{width:100%}}
 </style>
 <style is:global>
 .timeline-archive{overflow:auto}.timeline-archive table{border-collapse:collapse;font-size:12px}.timeline-archive th,.timeline-archive td{padding:6px 9px;border-bottom:1px solid var(--console-line);white-space:nowrap;text-align:left;font-variant-numeric:tabular-nums}

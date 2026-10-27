@@ -41,3 +41,8 @@ test('例会安排理由更正作为真实业务事件展示具体前后状态',
  const view=promotionAuditView(audit({action:'meeting_decision_correction',reason:'会后补充核对，继续测试',before:{meetingDecision:decision},after:{meetingDecision:{...decision,targetStatus:'testing'}}}));
  assert.equal(view.visible,true);assert.equal(view.category,'business');assert.equal(view.title,'例会安排更正');assert.match(view.beforeLabel,/2026-10-24.*测试暂停/);assert.match(view.afterLabel,/2026-10-24.*测试中/);assert.equal(view.reason,'会后补充核对，继续测试');
 });
+
+test('保存持续待定与尚未安排的业务历史可区分',()=>{
+ assert.equal(promotionSnapshotLabel({plan:{waitingThrough:null,plannedOn:null},campaigns:[]},'2026-10-20','wait'),'持续待定');
+ assert.equal(promotionSnapshotLabel({plan:null,campaigns:[]},'2026-10-20','wait'),'尚未开始');
+});

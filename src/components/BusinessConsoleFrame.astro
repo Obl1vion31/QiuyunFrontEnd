@@ -60,6 +60,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     const tasks = new Map();
     const triggers = new WeakMap();
     let timer = 0;
+    let receiptTimer = 0;
     let recentTrigger = null;
     let recentTriggerAt = 0;
     const remember = node => {
@@ -72,6 +73,8 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     document.addEventListener('click', event => { if (event.target.closest?.('[data-session-dismiss]')) document.querySelector('[data-session-notice]').hidden = true; });
     const defaultLabel = method => method === 'DELETE' ? '正在删除…' : ['GET', 'HEAD'].includes(method) ? '正在加载…' : '正在保存…';
     const update = () => {
+      clearTimeout(receiptTimer);
+      const spinner=document.querySelector('.business-operation-feedback__spinner');if(spinner)spinner.hidden=false;
       const feedback = document.querySelector('[data-operation-feedback]');
       if (feedback && tasks.size) feedback.querySelector('[data-operation-label]').textContent = [...tasks.values()].at(-1);
       document.querySelector('.business-console-workspace')?.setAttribute('aria-busy', tasks.size ? 'true' : 'false');
@@ -82,6 +85,14 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
         timer = setTimeout(() => { if (tasks.size) document.querySelector('[data-operation-feedback]')?.setAttribute('aria-hidden', 'false'); }, 200);
       }
     };
+    // 原行移入待开放队列后仍提供结果反馈，复用现有通知外壳，不改变表格高度。
+    document.addEventListener('business:operation-receipt', event => {
+      if(tasks.size)return;
+      const feedback=document.querySelector('[data-operation-feedback]');if(!feedback)return;
+      clearTimeout(receiptTimer);feedback.querySelector('[data-operation-label]').textContent=event.detail.message;
+      feedback.querySelector('.business-operation-feedback__spinner').hidden=true;feedback.setAttribute('aria-hidden','false');
+      receiptTimer=setTimeout(()=>{if(!tasks.size)feedback.setAttribute('aria-hidden','true');},2400);
+    });
     const showError = (message, login = false) => {
       const notice = document.querySelector('[data-session-notice]');
       if (!notice) return;
@@ -150,7 +161,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   .business-console-frame [data-business-operation][hidden]{display:none!important}
   .business-operation-feedback{position:fixed;z-index:1200;right:20px;bottom:20px;display:flex;align-items:center;gap:9px;min-height:40px;padding:0 14px;border:1px solid rgba(23,33,28,.14);border-radius:10px;background:rgba(247,248,245,.96);box-shadow:0 10px 28px rgba(23,33,28,.14);color:var(--console-ink);font-size:13px;font-weight:500;opacity:1;transform:translateY(0);transition:opacity .16s ease,transform .16s ease;pointer-events:none}
   .business-operation-feedback[aria-hidden="true"]{opacity:0;transform:translateY(6px)}
-  .business-operation-feedback__spinner{width:15px;height:15px;border:2px solid var(--console-blue-soft);border-top-color:var(--console-blue);border-radius:50%;animation:business-operation-spin .72s linear infinite}
+  .business-operation-feedback__spinner[hidden]{display:none}.business-operation-feedback__spinner{width:15px;height:15px;border:2px solid var(--console-blue-soft);border-top-color:var(--console-blue);border-radius:50%;animation:business-operation-spin .72s linear infinite}
   .business-console-frame button[aria-busy="true"]{cursor:wait;opacity:.72}
   @keyframes business-operation-spin{to{transform:rotate(360deg)}}
   @media(prefers-reduced-motion:reduce){

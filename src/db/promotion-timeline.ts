@@ -18,7 +18,7 @@ export const timelineSchema = z.object({
   action: z.enum(['wait','start_testing','start_scaling','plan','pause','next','status']),
   targetStatus:z.enum(['testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended']).optional(),
   target: z.enum(['initial','day']).default('day'),
-  waitingThrough: businessDate.optional(), rangeId: z.uuid().optional(),
+  waitingThrough: businessDate.nullable().optional(), rangeId: z.uuid().optional(),
   nextDecision: z.enum(['test_continue','restart_testing','start_testing','start_scaling','test_discarded','scaling_continue','formal_discarded','ended','wait_continue']).optional(),
   reason: z.string().trim().max(2000).default(''),
   requestKey: z.uuid().default(() => randomUUID()), fingerprint: z.string().optional(), confirmImpact: z.boolean().default(false),
@@ -54,12 +54,13 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
     const publishedOn=shanghaiDateKey(row.actualPublishAt!), plan=plans.find(p=>p.scheduleId===row.scheduleId);
     const campaign=context.campaigns.filter(c=>c.scheduleId===row.scheduleId).sort((a,b)=>a.startedOn.localeCompare(b.startedOn)).at(-1);
     const waitingThrough=!campaign&&row.promotionDeferredThrough?row.promotionDeferredThrough:plan?.waitingThrough??(plan?null:row.promotionDeferredThrough);
-    const date=campaign?campaign.startedOn:plan?.plannedOn??(waitingThrough?waitingThrough<yesterday?waitingThrough:yesterday:publishedOn);
+    const initialWaiting=!campaign&&!!plan&&!plan.plannedOn;
+    const date=campaign?campaign.startedOn:plan?.plannedOn??(waitingThrough?waitingThrough<yesterday?waitingThrough:yesterday:initialWaiting?yesterday:publishedOn);
     const owned=context.campaigns.filter(c=>c.scheduleId===row.scheduleId),ids=new Set(owned.map(c=>c.id));
     const pausedRanges=context.waitRanges.filter(r=>r.campaignId===campaign?.id);
     const snapshot={schedule:withoutLegacyDelay(schedules.find(record=>record.id===row.scheduleId)!),plan:plan??null,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
     const canArrangeInitial=row.isPromoted&&row.promotionStatus==='awaiting_promotion'&&!campaign;
-    return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,date,canArrangeInitial,
+    return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,initialWaiting,date,canArrangeInitial,
       pending:canArrangeInitial&&publishedOn<=yesterday&&!dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})),
       ranges:pausedRanges, hasMetrics:snapshot.metrics.length>0, fingerprint:timelineFingerprint(snapshot)};
   });
@@ -110,27 +111,38 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       }
     }else if(input.action==='wait'){
       if(campaign)throw new WorkflowError('已开始的活动请使用当日暂停。');
-      const end=input.waitingThrough??date;
-      if(end<date)throw new WorkflowError('待定截止日不能早于该行日期。',422);
+      const end=input.waitingThrough===null?null:input.waitingThrough??date;
+      if(existingPlan&&(existingPlan.waitingThrough!==end||existingPlan.plannedOn)&&!input.reason)throw new WorkflowError('请填写修改原因。',422);
+      if(end&&end<date)throw new WorkflowError('待定截止日不能早于该行日期。',422);
       const expected=waitingThrough??publishedOn;
-      if(date>expected&&date!==nextDateKey(expected))throw new WorkflowError(`请先处理 ${expected} 的首次推广安排。`);
+      if(!(existingPlan&&!waitingThrough)&&date>expected&&date!==nextDateKey(expected))throw new WorkflowError(`请先处理 ${expected} 的首次推广安排。`);
       await savePlan({waitingThrough:end,plannedOn:null,plannedStage:null});
       await tx.update(s.operationsContentSchedule).set({promotionDeferredThrough:end,updatedAt:now}).where(eq(s.operationsContentSchedule.id,schedule.id));
     }else if(input.action==='plan'){
-      if(campaign||!waitingThrough||date!==waitingThrough)throw new WorkflowError('请在待定区间末日选择下一步。');
-      if(!['start_testing','start_scaling'].includes(input.nextDecision??''))throw new WorkflowError('请选择下一步。',422);
-      const plannedOn=nextDateKey(date);await guardPromotionStart(tx,plannedOn,now);
-      const stage=input.nextDecision==='start_scaling'?'scaling':'testing';
-      await savePlan({waitingThrough,plannedOn,plannedStage:stage});
-      [campaign]=await tx.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:plannedOn,initialStage:stage,currentStage:stage,currentStatus:stage}).returning();
-      await attachPromotionToActivePause(tx,campaign.id,stage,now);
+      if(campaign||!existingPlan&& !waitingThrough||waitingThrough&&date!==waitingThrough||!waitingThrough&&date>previousDateKey(today))throw new WorkflowError('请在已开放的待定日期选择下一步。');
+      if(!['wait_continue','start_testing','start_scaling'].includes(input.nextDecision??''))throw new WorkflowError('请选择下一步。',422);
+      if(input.nextDecision==='wait_continue'){
+        const end=input.waitingThrough===undefined?waitingThrough:input.waitingThrough;
+        if(end&&end<nextDateKey(date))throw new WorkflowError('次日待定截止日不能早于次日。',422);
+        await savePlan({waitingThrough:end,plannedOn:null,plannedStage:null});
+        await tx.update(s.operationsContentSchedule).set({promotionDeferredThrough:end,updatedAt:now}).where(eq(s.operationsContentSchedule.id,schedule.id));
+      }else{
+        const plannedOn=nextDateKey(date);
+        if(plannedOn>today)throw new WorkflowError('请在次日开放后处理该日安排。',422);
+        await guardPromotionStart(tx,plannedOn,now);
+        const stage=input.nextDecision==='start_scaling'?'scaling':'testing';
+        await savePlan({waitingThrough:date,plannedOn,plannedStage:stage});
+        await tx.update(s.operationsContentSchedule).set({promotionDeferredThrough:date,updatedAt:now}).where(eq(s.operationsContentSchedule.id,schedule.id));
+        [campaign]=await tx.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:plannedOn,initialStage:stage,currentStage:stage,currentStatus:stage}).returning();
+        await attachPromotionToActivePause(tx,campaign.id,stage,now);
+      }
     }else if(input.action==='start_testing'||input.action==='start_scaling'){
       if(dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})))throw new WorkflowError('该日期属于团队整日暂停，请先核对团队暂停安排。');
       await guardPromotionStart(tx,date,now);
       const stage=input.action==='start_scaling'?'scaling':'testing';
       const initialChanged=!campaign||date<=campaign.startedOn||input.target==='initial';
       if(!campaign){
-        if(date>publishedOn&&(!waitingThrough||waitingThrough<previousDateKey(date)))throw new WorkflowError(`请先明确 ${publishedOn} 至 ${previousDateKey(date)} 的待定安排。`);
+        if(date>publishedOn&&!(existingPlan&&!waitingThrough)&&(!waitingThrough||waitingThrough<previousDateKey(date)))throw new WorkflowError(`请先明确 ${publishedOn} 至 ${previousDateKey(date)} 的待定安排。`);
         [campaign]=await tx.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:date,initialStage:stage,currentStage:stage,currentStatus:stage}).returning();
         await attachPromotionToActivePause(tx,campaign.id,stage,now);
       }else if(date<=campaign.startedOn||input.target==='initial'){

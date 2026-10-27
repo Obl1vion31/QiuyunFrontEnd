@@ -33,7 +33,7 @@ export function promotionSnapshotLabel(value:Record<string,unknown>,date:string,
  if(range)state=`${range.stageType==='testing'?'测试待定':'推广暂停'}至 ${range.endedOn}${range.nextDecision&&range.nextEffectiveOn?`；${range.nextEffectiveOn} ${promotionDecisionLabels[range.nextDecision]??range.nextDecision}`:''}`;
  else if(!snapshot.campaigns?.length){
   const waitingThrough=plan?.waitingThrough??schedule?.promotionDeferredThrough??snapshot.waitingThrough??snapshot.promotionDeferredThrough;
-  state=waitingThrough?`待定至 ${waitingThrough}`:schedule?.promotionStatus&& !['awaiting_promotion','pending'].includes(schedule.promotionStatus)?promotionLabels[schedule.promotionStatus]??schedule.promotionStatus:'尚未开始';
+  state=waitingThrough?`待定至 ${waitingThrough}`:plan&&!plan.plannedOn?'持续待定':schedule?.promotionStatus&& !['awaiting_promotion','pending'].includes(schedule.promotionStatus)?promotionLabels[schedule.promotionStatus]??schedule.promotionStatus:'尚未开始';
   if(plan?.plannedOn)state+=`；${plan.plannedOn} 开始${stageLabel(plan.plannedStage)}`;
  }else{
   const campaign=[...snapshot.campaigns].sort((a,b)=>a.startedOn.localeCompare(b.startedOn)).at(-1)!;

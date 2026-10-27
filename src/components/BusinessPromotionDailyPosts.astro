@@ -11,10 +11,10 @@ const groups=[{key:'arrangements',label:'待处理推广安排',records:queue.ar
 const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台开口（人）','1'],['actualOpenCount','实际开口（人）','1'],['platformLeadCount','平台留资（人）','1'],['actualLeadCount','实际留资（人）','1']];
 ---
 <div class="promotion-pending-content" data-promotion-pending-body data-server-now={now.toISOString()} data-due-count={queue.ready.length}>
- <p class="review-empty" data-review-empty hidden={queue.ready.length>0}>今日暂无待填写复盘</p>
- <div class="review-entry-scroll" data-review-container="ready" hidden={!queue.ready.length} tabindex="0" aria-label="每日复盘录入，可左右滚动">
+ <p class="review-empty" data-review-empty hidden={queue.main.length>0}>今日暂无待填写复盘</p>
+ <div class="review-entry-scroll" data-review-container="ready" hidden={!queue.main.length} tabindex="0" aria-label="每日复盘录入，可左右滚动">
   <div class="review-entry-grid review-entry-head"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span><BusinessPromotionDecisionLabel/></span><span/></div>
-  {queue.ready.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket="ready" now={now}/>)}
+  {queue.main.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket="ready" now={now}/>)}
  </div>
  <details class="review-queue-section review-upcoming" data-review-section="upcoming" hidden={!queue.upcoming.length}>
   <summary><span data-review-section-label>待开放 {queue.upcoming.length} 项</span><span class="review-opening-hint" data-review-opening-hint>{queue.openingGroups[0]&&`最早于 ${shortOpening(queue.openingGroups[0].opensAt)} 开放`}</span><span class="review-section-action"><span class="when-closed">查看</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
