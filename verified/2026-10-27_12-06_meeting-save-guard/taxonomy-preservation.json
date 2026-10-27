@@ -1,0 +1,36 @@
+{
+  "applied": true,
+  "plans": 1,
+  "category": "非推广讲义帖",
+  "subject": "面试课",
+  "preserved": [
+    {
+      "table": "operations_annual_plan_version",
+      "rows": 70
+    },
+    {
+      "table": "operations_content_version",
+      "rows": 110
+    },
+    {
+      "table": "operations_review_meeting_version",
+      "rows": 4
+    },
+    {
+      "table": "operations_promotion_daily_metric",
+      "rows": 268
+    },
+    {
+      "table": "operations_content_performance_metric",
+      "rows": 57
+    },
+    {
+      "table": "operations_non_promotion_review",
+      "rows": 57
+    },
+    {
+      "table": "operations_review_action_item",
+      "rows": 1
+    }
+  ]
+}

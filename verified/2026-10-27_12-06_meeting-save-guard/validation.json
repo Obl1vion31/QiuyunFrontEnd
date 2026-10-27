@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "1e294ad",
+  "deployment": "dpl_FQyTH4FMg4mbnviBpRcAfR6J2z8A",
+  "status": "已自检，待用户反馈",
+  "unitTests": 210,
+  "passed": [
+    "类型检查与Node/Vercel构建",
+    "db:check",
+    "例会七组回归（前六组连续通过，紧凑组更新保存意图后单独通过）",
+    "版本讨论专项",
+    "年度规划与分类专项",
+    "公共UI桌面/移动回归",
+    "实际Vercel运行包中文PDF冷启动",
+    "旧分类历史恢复及旧快照JSON不变"
+  ],
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024
+  ],
+  "production": {
+    "readOnlyVersion": 3,
+    "nextVersion": 4,
+    "unchangedWriteButtonsDisabled": true,
+    "openInputStillDisabled": true,
+    "noUnsavedChanges": true,
+    "category": "非推广讲义帖",
+    "duplicateCategoryOptions": 0,
+    "subjectMappingPreserved": true,
+    "finalMode": "readOnly",
+    "meetingWrites": false,
+    "legacyRestoreCompatibility": "隔离HTTP验证通过",
+    "finalPublicSourceVerified": true
+  },
+  "databaseSchemaMigration": false
+}
