@@ -1,0 +1,417 @@
+[
+  {
+    "width": 1920,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 1539.5,
+        "y": 334,
+        "w": 113,
+        "h": 36,
+        "tx": 1552.5,
+        "ty": 343,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 1664.5,
+        "y": 334,
+        "w": 26,
+        "h": 36,
+        "tx": 1664.5,
+        "ty": 343,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 1702.5,
+        "y": 334,
+        "w": 69,
+        "h": 36,
+        "tx": 1702.5,
+        "ty": 342,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 1920,
+    "condition": "wait_continue",
+    "aligned": {
+      "metric": {
+        "x": 697.8125,
+        "y": 576.5,
+        "w": 116.171875,
+        "h": 40,
+        "mid": 596.5
+      },
+      "select": {
+        "x": 1462.0625,
+        "y": 576.5,
+        "w": 128,
+        "h": 40,
+        "mid": 596.5
+      },
+      "deadline": {
+        "x": 1598.0625,
+        "y": 576.5,
+        "w": 56,
+        "h": 40,
+        "mid": 596.5
+      },
+      "save": {
+        "x": 1663.5,
+        "y": 576.5,
+        "w": 56,
+        "h": 40,
+        "mid": 596.5
+      },
+      "cancel": {
+        "x": 1727.5,
+        "y": 576.5,
+        "w": 48,
+        "h": 40,
+        "mid": 596.5
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 1152,
+        "y": 334,
+        "w": 113,
+        "h": 36,
+        "tx": 1165,
+        "ty": 343,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 1277,
+        "y": 334,
+        "w": 26,
+        "h": 36,
+        "tx": 1277,
+        "ty": 343,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 1315,
+        "y": 334,
+        "w": 69,
+        "h": 36,
+        "tx": 1315,
+        "ty": 342,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "condition": "wait_continue",
+    "aligned": {
+      "metric": {
+        "x": 579,
+        "y": 576.5,
+        "w": 96,
+        "h": 40,
+        "mid": 596.5
+      },
+      "select": {
+        "x": 1159,
+        "y": 576.5,
+        "w": 128,
+        "h": 40,
+        "mid": 596.5
+      },
+      "deadline": {
+        "x": 1295,
+        "y": 576.5,
+        "w": 56,
+        "h": 40,
+        "mid": 596.5
+      },
+      "save": {
+        "x": 1357,
+        "y": 576.5,
+        "w": 56,
+        "h": 40,
+        "mid": 596.5
+      },
+      "cancel": {
+        "x": 1421,
+        "y": 576.5,
+        "w": 48,
+        "h": 40,
+        "mid": 596.5
+      }
+    }
+  },
+  {
+    "width": 1024,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 736,
+        "y": 576,
+        "w": 113,
+        "h": 36,
+        "tx": 749,
+        "ty": 585,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 861,
+        "y": 576,
+        "w": 26,
+        "h": 36,
+        "tx": 861,
+        "ty": 585,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 899,
+        "y": 576,
+        "w": 69,
+        "h": 36,
+        "tx": 899,
+        "ty": 584,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "condition": "wait_continue",
+    "aligned": {
+      "metric": {
+        "x": 579,
+        "y": 644.5,
+        "w": 96,
+        "h": 40,
+        "mid": 664.5
+      },
+      "select": {
+        "x": 1159,
+        "y": 644.5,
+        "w": 128,
+        "h": 40,
+        "mid": 664.5
+      },
+      "deadline": {
+        "x": 1295,
+        "y": 644.5,
+        "w": 56,
+        "h": 40,
+        "mid": 664.5
+      },
+      "save": {
+        "x": 1357,
+        "y": 644.5,
+        "w": 56,
+        "h": 40,
+        "mid": 664.5
+      },
+      "cancel": {
+        "x": 1421,
+        "y": 644.5,
+        "w": 48,
+        "h": 40,
+        "mid": 664.5
+      }
+    }
+  },
+  {
+    "width": 390,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 116,
+        "y": 577,
+        "w": 113,
+        "h": 36,
+        "tx": 129,
+        "ty": 586,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 241,
+        "y": 577,
+        "w": 26,
+        "h": 36,
+        "tx": 241,
+        "ty": 586,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 279,
+        "y": 577,
+        "w": 69,
+        "h": 36,
+        "tx": 279,
+        "ty": 585,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "condition": "wait_continue",
+    "aligned": {
+      "metric": {
+        "x": 327,
+        "y": 622.5,
+        "w": 104,
+        "h": 40,
+        "mid": 642.5
+      },
+      "select": {
+        "x": 915,
+        "y": 622.5,
+        "w": 128,
+        "h": 40,
+        "mid": 642.5
+      },
+      "deadline": {
+        "x": 1051,
+        "y": 622.5,
+        "w": 56,
+        "h": 40,
+        "mid": 642.5
+      },
+      "save": {
+        "x": 1113,
+        "y": 622.5,
+        "w": 56,
+        "h": 40,
+        "mid": 642.5
+      },
+      "cancel": {
+        "x": 1177,
+        "y": 622.5,
+        "w": 48,
+        "h": 40,
+        "mid": 642.5
+      }
+    }
+  },
+  {
+    "width": 320,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 46,
+        "y": 677,
+        "w": 113,
+        "h": 36,
+        "tx": 59,
+        "ty": 686,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 171,
+        "y": 677,
+        "w": 26,
+        "h": 36,
+        "tx": 171,
+        "ty": 686,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 209,
+        "y": 677,
+        "w": 69,
+        "h": 36,
+        "tx": 209,
+        "ty": 685,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "condition": "wait_continue",
+    "aligned": {
+      "metric": {
+        "x": 327,
+        "y": 622.5,
+        "w": 104,
+        "h": 40,
+        "mid": 642.5
+      },
+      "select": {
+        "x": 915,
+        "y": 622.5,
+        "w": 128,
+        "h": 40,
+        "mid": 642.5
+      },
+      "deadline": {
+        "x": 1051,
+        "y": 622.5,
+        "w": 56,
+        "h": 40,
+        "mid": 642.5
+      },
+      "save": {
+        "x": 1113,
+        "y": 622.5,
+        "w": 56,
+        "h": 40,
+        "mid": 642.5
+      },
+      "cancel": {
+        "x": 1177,
+        "y": 622.5,
+        "w": 48,
+        "h": 40,
+        "mid": 642.5
+      }
+    }
+  }
+]

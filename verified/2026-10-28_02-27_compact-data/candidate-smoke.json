@@ -1,0 +1,43 @@
+{
+  "deployment": "https://qiuyun-frontend-jxzat5ekb-opgobl1v-5358.vercel.app",
+  "sourceCommit": "96d5c400a75a2b654430a95b3656fc5878c71b72",
+  "checkedAt": "2026-10-27T18:41:30.801603+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "path": "/login",
+      "expected": 200,
+      "status": 200,
+      "bytes": 5194,
+      "passed": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "expected": 200,
+      "status": 200,
+      "bytes": 4,
+      "passed": true
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "expected": 302,
+      "status": 302,
+      "bytes": 0,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "expected": 401,
+      "status": 401,
+      "bytes": 96,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-daily",
+      "expected": 401,
+      "status": 401,
+      "bytes": 96,
+      "passed": true
+    }
+  ]
+}

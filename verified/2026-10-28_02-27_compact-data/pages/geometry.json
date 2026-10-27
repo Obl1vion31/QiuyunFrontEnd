@@ -1,0 +1,406 @@
+[
+  {
+    "width": 1920,
+    "stats": [
+      {
+        "text": "本月内容",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "待发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "推广进行中",
+        "width": 60,
+        "available": 85,
+        "height": 16
+      },
+      {
+        "text": "测试中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "放量中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "尚未登记",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "已发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      }
+    ]
+  },
+  {
+    "width": 1920,
+    "schedule": [
+      {
+        "i": 2,
+        "cell": 135.046875,
+        "center": 0.0078125,
+        "head": "center"
+      },
+      {
+        "i": 4,
+        "cell": 189.078125,
+        "center": 0.0078125,
+        "head": "center"
+      },
+      {
+        "i": 5,
+        "cell": 202.578125,
+        "center": 0.0078125,
+        "head": "center"
+      },
+      {
+        "i": 6,
+        "cell": 135.125,
+        "center": 0,
+        "head": "center"
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "stats": [
+      {
+        "text": "本月内容",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "待发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "推广进行中",
+        "width": 60,
+        "available": 85,
+        "height": 16
+      },
+      {
+        "text": "测试中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "放量中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "尚未登记",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "已发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "schedule": [
+      {
+        "i": 2,
+        "cell": 95.109375,
+        "center": 0.0078125,
+        "head": "center"
+      },
+      {
+        "i": 4,
+        "cell": 133.15625,
+        "center": 0,
+        "head": "center"
+      },
+      {
+        "i": 5,
+        "cell": 142.671875,
+        "center": 0.0078125,
+        "head": "center"
+      },
+      {
+        "i": 6,
+        "cell": 95.15625,
+        "center": 0,
+        "head": "center"
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "stats": [
+      {
+        "text": "本月内容",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "待发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "推广进行中",
+        "width": 60,
+        "available": 85,
+        "height": 16
+      },
+      {
+        "text": "测试中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "放量中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "尚未登记",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "已发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "schedule": [
+      {
+        "i": 2,
+        "cell": 74.890625,
+        "center": 0.0078125,
+        "head": "center"
+      },
+      {
+        "i": 4,
+        "cell": 104.84375,
+        "center": 0,
+        "head": "center"
+      },
+      {
+        "i": 5,
+        "cell": 112.34375,
+        "center": 0,
+        "head": "center"
+      },
+      {
+        "i": 6,
+        "cell": 74.921875,
+        "center": 0,
+        "head": "center"
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "stats": [
+      {
+        "text": "本月内容",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "待发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "推广进行中",
+        "width": 60,
+        "available": 85,
+        "height": 16
+      },
+      {
+        "text": "测试中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "放量中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "尚未登记",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "已发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "card": {
+      "timeRight": 62,
+      "timeEdge": 90,
+      "versionLeft": 94,
+      "contentLeft": 146,
+      "statusLeft": 146,
+      "statusAlign": "left",
+      "versionLabelHeight": 16
+    }
+  },
+  {
+    "width": 390,
+    "schedule": [
+      {
+        "i": 2,
+        "cell": 48,
+        "center": 0,
+        "head": "center"
+      },
+      {
+        "i": 4,
+        "cell": 211,
+        "center": 77,
+        "head": "center"
+      },
+      {
+        "i": 5,
+        "cell": 211,
+        "center": 68.5,
+        "head": "center"
+      },
+      {
+        "i": 6,
+        "cell": 0,
+        "center": 0,
+        "head": "center"
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "stats": [
+      {
+        "text": "本月内容",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "待发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "推广进行中",
+        "width": 60,
+        "available": 85,
+        "height": 16
+      },
+      {
+        "text": "测试中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "放量中",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      },
+      {
+        "text": "尚未登记",
+        "width": 48,
+        "available": 48,
+        "height": 16
+      },
+      {
+        "text": "已发布",
+        "width": 36,
+        "available": 36,
+        "height": 16
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "card": {
+      "timeRight": 62,
+      "timeEdge": 90,
+      "versionLeft": 94,
+      "contentLeft": 146,
+      "statusLeft": 146,
+      "statusAlign": "left",
+      "versionLabelHeight": 16
+    }
+  },
+  {
+    "width": 320,
+    "schedule": [
+      {
+        "i": 2,
+        "cell": 48,
+        "center": 0,
+        "head": "center"
+      },
+      {
+        "i": 4,
+        "cell": 141,
+        "center": 42,
+        "head": "center"
+      },
+      {
+        "i": 5,
+        "cell": 141,
+        "center": 33.5,
+        "head": "center"
+      },
+      {
+        "i": 6,
+        "cell": 0,
+        "center": 0,
+        "head": "center"
+      }
+    ]
+  }
+]

@@ -1,0 +1,35 @@
+Vercel CLI 64.0.2 (Node.js 22.23.3)
+Deploying qiuyun-frontend
+Uploading [--------------------] (0.0B/1.3MB)
+Uploading [=====---------------] (341.8KB/1.3MB)
+Uploading [==========----------] (692.9KB/1.3MB)
+Uploading [===============-----] (1.0MB/1.3MB)
+Uploading [====================] (1.3MB/1.3MB)
+  Inspect         https://vercel.com/opgobl1v-5358/qiuyun-frontend/3bNqG5u8BQXJoiBTUJFjaEneB4FP
+▲ Production      https://qiuyun-frontend-jxzat5ekb-opgobl1v-5358.vercel.app
+https://qiuyun-frontend-jxzat5ekb-opgobl1v-5358.vercel.appBuilding…
+Building…
+Running build in Washington, D.C., USA (East) – iad1
+Build machine configuration: 2 cores, 8 GB
+Retrieving list of deployment files...
+Downloading 1805 deployment files...
+Using prebuilt build artifacts from .vercel/output
+Learn more: https://vercel.link/build-output-api
+Deploying outputs...
+[2K[1A[2K[G▲ Production      https://qiuyun-frontend-jxzat5ekb-opgobl1v-5358.vercel.app
+Completing…
+▲ Aliased         https://qiuyun-frontend-opgobl1v-5358.vercel.app
+
+✓ Ready in 25s
+
+! Deployment Protection is on for this project (Vercel Authentication). Use `vercel curl` to access it.
+
+Next steps:
+- Automatically deploy changes on every push by connecting Git:
+  vercel git connect
+- Check the production response:
+  vercel curl https://qiuyun-frontend-opgobl1v-5358.vercel.app
+- View build logs:
+  vercel inspect qiuyun-frontend-jxzat5ekb-opgobl1v-5358.vercel.app --logs
+- Create a new deployment from the same source:
+  vercel redeploy qiuyun-frontend-jxzat5ekb-opgobl1v-5358.vercel.app
