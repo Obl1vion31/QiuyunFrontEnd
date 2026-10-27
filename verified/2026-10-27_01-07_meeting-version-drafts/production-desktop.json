@@ -1,0 +1,78 @@
+[
+  {
+    "width": 1920,
+    "centers": [
+      3019.4375,
+      3019.4375,
+      3019.4375,
+      3019.4375
+    ],
+    "headers": [
+      "center",
+      "center",
+      "center",
+      "center",
+      "center"
+    ],
+    "pageOverflow": false,
+    "rateOverflow": false,
+    "tableOverflow": false
+  },
+  {
+    "width": 1440,
+    "centers": [
+      708.5250244140625,
+      708.5250244140625,
+      708.5250244140625,
+      708.5250244140625
+    ],
+    "headers": [
+      "center",
+      "center",
+      "center",
+      "center",
+      "center"
+    ],
+    "pageOverflow": false,
+    "rateOverflow": false,
+    "tableOverflow": false
+  },
+  {
+    "width": 1280,
+    "centers": [
+      708.9249877929688,
+      708.9249877929688,
+      708.9249877929688,
+      708.9249877929688
+    ],
+    "headers": [
+      "center",
+      "center",
+      "center",
+      "center",
+      "center"
+    ],
+    "pageOverflow": false,
+    "rateOverflow": false,
+    "tableOverflow": false
+  },
+  {
+    "width": 1024,
+    "centers": [
+      709.1875,
+      709.1875,
+      709.1875,
+      709.1875
+    ],
+    "headers": [
+      "center",
+      "center",
+      "center",
+      "center",
+      "center"
+    ],
+    "pageOverflow": false,
+    "rateOverflow": false,
+    "tableOverflow": false
+  }
+]
