@@ -1,3 +1,4 @@
+export const delayResponsibilityLabels: Readonly<Record<'self' | 'external' | 'requester' | 'unknown', string>>;
 export const delayThresholdMs: number;
 export const delayDayMs: number;
 export function isDelayed(plannedAt: Date, at: Date, thresholdHours?: number): boolean;

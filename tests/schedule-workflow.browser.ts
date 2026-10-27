@@ -97,7 +97,7 @@ try {
   await page.locator('[data-schedule-workflow] .workflow-form').first().waitFor();
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1');
   const reasonForm=page.locator('[data-schedule-workflow] .workflow-reason form').first();await reasonForm.locator('input[type=radio][value=self]').check();await reasonForm.locator('textarea').fill('浏览器填写今日正在修改中');await reasonForm.locator('button[type=submit]').click();
-  await page.locator('[data-schedule-workflow-history]').getByText('自身原因：浏览器填写今日正在修改中').waitFor({state:'attached'});
+  await page.locator('[data-schedule-workflow-history]').getByText('运营原因：浏览器填写今日正在修改中').waitFor({state:'attached'});
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1','填完理由仍保留延期提示');
   await page.locator('[data-schedule-workflow] summary').filter({hasText:'申请调整排期'}).click();
   const applicationForm=page.locator('[data-schedule-workflow] form').filter({has:page.locator('[name=plannedPublishAt]')});

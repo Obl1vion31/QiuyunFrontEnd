@@ -8,7 +8,7 @@ import { getInspector } from './business-inspector';
 import { beginBusinessRead } from './business-read';
 import { extractPublicationLink } from '../db/publication-link.mjs';
 import { publicationLabels } from '../db/publication-rules.mjs';
-import { isDelayed } from '../db/schedule-rules.mjs';
+import { isDelayed, delayResponsibilityLabels } from '../db/schedule-rules.mjs';
 type SavedReason = { reason: string; responsibility: 'self' | 'external' | 'requester' | 'unknown'; source: string; updatedAt: string; changedByLabel: string; history: Array<unknown> };
 type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved: SavedReason | null; archived: boolean };
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
@@ -29,11 +29,11 @@ const textField = (form: HTMLElement, name: string, labelText: string, multiline
 };
 let responsibilityGroup=0;
 const responsibilityField = (host: HTMLElement, selected = '', name = 'responsibility') => {
-  const group=element('fieldset');group.append(element('legend','是否自身原因'));
+  const group=element('fieldset');group.append(element('legend','原因归属'));
   const options=element('div');options.className='responsibility-options';
-  for(const [value,text] of [['self','是'],['external','否']]){
+  for(const value of ['self','external'] as const){
     const label=element('label');const input=element('input');input.type='radio';input.name=name;input.value=value;input.required=true;
-    input.checked=(selected==='requester'?'external':selected)===value;label.append(input,document.createTextNode(text));options.append(label);
+    input.checked=(selected==='requester'?'external':selected)===value;label.append(input,document.createTextNode(delayResponsibilityLabels[value]));options.append(label);
   }
   group.append(options);host.append(group);return group;
 };
@@ -156,8 +156,7 @@ function initialize() {
         for(const day of saved){
           const row=element('section');row.className='workflow-reason';
           row.append(element('h4',reasonLabel(workflow,day)));
-          const labels={self:'自身原因',external:'非自身原因',requester:'需求端原因',unknown:'未知'};
-          row.append(element('p',`${labels[day.saved!.responsibility]}：${day.saved!.reason}`),element('small',`${day.saved!.source==='historical'?'':day.saved!.changedByLabel}`));
+          row.append(element('p',`${delayResponsibilityLabels[day.saved!.responsibility]}：${day.saved!.reason}`),element('small',`${day.saved!.source==='historical'?'':day.saved!.changedByLabel}`));
           if(!day.archived&&mayOperate('schedule.reason')){
             const button=element('button','更正理由');button.type='button';button.className='business-action-secondary';
             const form=reasonForm(day,id,()=>showPanel(id));form.hidden=true;

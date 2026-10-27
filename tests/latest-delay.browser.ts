@@ -26,7 +26,7 @@ try{
  const page=await context.newPage(),errors:string[]=[];page.on('pageerror',(e:Error)=>errors.push(e.message));
  await page.goto(`${baseURL}/business/operations-schedule?month=2026-10&row=${schedule.id}`);await page.getByText('较最新排期晚发布 1 天',{exact:true}).waitFor();
  const history=page.locator('[data-schedule-workflow-history]');await history.getByText('已填延期原因 1 条',{exact:true}).click();
- await page.getByText('自身原因：当日仅完成项目brief',{exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(300);
+ await page.getByText('运营原因：当日仅完成项目brief',{exact:true}).waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(300);
  assert.equal(await history.locator('.workflow-reason').count(),1);assert.match(await history.locator('.workflow-reason h4').innerText(),/2026-10-22 20:00/);assert.equal((await history.locator('.workflow-reason').innerText()).includes('R0'),false);
  assert.equal(await page.locator('.workflow-pending-reasons').count(),0);assert.deepEqual(errors,[]);
  await page.locator('.inspector-reference>summary').click();await page.waitForTimeout(300);await page.screenshot({path:folder+'/latest-delay-1440.png'});await page.waitForTimeout(1000);await context.close();

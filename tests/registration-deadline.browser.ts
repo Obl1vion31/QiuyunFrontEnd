@@ -50,7 +50,7 @@ try{
   const first=pending.first(),last=pending.last();await first.locator('input[type=radio][value=self]').check();await first.locator('textarea').fill('第一条实际原因');
   await last.locator('summary').click();await last.locator('input[type=radio][value=external]').check();await last.locator('textarea').fill('另一日未保存输入');
   const key=await last.getAttribute('data-delay-key');await first.locator('button[type=submit]').click();
-  await page.locator('[data-schedule-workflow-history]').getByText('自身原因：第一条实际原因',{exact:true}).waitFor({state:'attached'});
+  await page.locator('[data-schedule-workflow-history]').getByText('运营原因：第一条实际原因',{exact:true}).waitFor({state:'attached'});
   assert.equal(await page.locator(`[data-delay-key="${key}"] textarea`).inputValue(),'另一日未保存输入','保存另一日不会丢失其他草稿');
   assert.equal(await inspector.getAttribute('data-dirty'),'true');
   const geometry=()=>inspector.evaluate((node:HTMLElement)=>({header:node.querySelector(':scope>header')!.getBoundingClientRect().toJSON(),footer:node.querySelector(':scope>footer')!.getBoundingClientRect().toJSON()}));

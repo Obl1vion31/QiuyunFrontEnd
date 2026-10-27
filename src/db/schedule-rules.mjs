@@ -1,3 +1,6 @@
+/** 延期原因按运营岗位归属展示；self/external 保留存储兼容，编辑账号另行记录。 */
+export const delayResponsibilityLabels = {self:'运营原因',external:'非运营原因',requester:'需求端原因',unknown:'未知'};
+
 /** 新旧排期统一满 2 小时计为延期；保留旧调用参数兼容已归档入口。 */
 export const delayThresholdMs = 2 * 60 * 60 * 1000;
 export const delayDayMs = 24 * 60 * 60 * 1000;

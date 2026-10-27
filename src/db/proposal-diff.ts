@@ -1,6 +1,7 @@
 import {businessDateTime} from '../scripts/business-date';
 import {operationLabels,type BusinessOperation} from '../auth/business-capabilities';
 import {subjects,postCategories} from './taxonomy';
+import {delayResponsibilityLabels} from './schedule-rules.mjs';
 import {formatSlotRange,blockPromotionLabel,type PlanBlock} from './annual-plan-rules.mjs';
 type Snapshot=Record<string,unknown>;
 const display=(value:unknown)=>value==null||value===''?'—':typeof value==='boolean'?value?'是':'否':String(value);
@@ -23,7 +24,7 @@ function fields(snapshot:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;na
     result[prefix+'链接']=(snapshot.links as Array<Record<string,unknown>>??[]).filter(link=>link.planId===row.id).map(link=>`${link.label}：${link.url}`).join('\n')||'—';
   }
   for(const row of snapshot.years as Array<Record<string,unknown>>??[])result[`${row.year} 年度说明`]=display(row.instructions);
-  for(const row of snapshot.reasons as Array<Record<string,unknown>>??[])result[`延期原因 R${row.planRevision} / ${row.dayNumber}`]=`${({self:'自身',external:'非自身',requester:'需求端',unknown:'未知'} as Record<string,string>)[String(row.responsibility)]}：${row.reason}`;
+  for(const row of snapshot.reasons as Array<Record<string,unknown>>??[])result[`延期原因 R${row.planRevision} / ${row.dayNumber}`]=`${(delayResponsibilityLabels as Record<string,string>)[String(row.responsibility)]}：${row.reason}`;
   for(const [key,label] of [['campaigns','推广活动'],['metrics','推广日度记录'],['reviews','非推广复盘']] as const)if(snapshot[key])result[label]=`${(snapshot[key] as unknown[]).length} 条`;
   return result;
 }
