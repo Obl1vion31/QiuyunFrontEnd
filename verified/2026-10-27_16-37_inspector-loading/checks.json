@@ -1,0 +1,144 @@
+{
+  "baseline": false,
+  "checks": [
+    {
+      "width": 1920,
+      "early": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 564.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "ready": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 564.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "pendingVisible": true,
+      "failureRetry": true,
+      "closeReopen": true,
+      "reducedMotion": true
+    },
+    {
+      "width": 1440,
+      "early": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 564.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "ready": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 564.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "pendingVisible": true,
+      "failureRetry": true,
+      "closeReopen": true,
+      "reducedMotion": true
+    },
+    {
+      "width": 1280,
+      "early": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 564.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "ready": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 564.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "pendingVisible": true,
+      "failureRetry": true,
+      "closeReopen": true,
+      "reducedMotion": true
+    },
+    {
+      "width": 1024,
+      "early": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 406.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "ready": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 406.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "pendingVisible": true,
+      "failureRetry": true,
+      "closeReopen": true,
+      "reducedMotion": true
+    },
+    {
+      "width": 390,
+      "early": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 396.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "ready": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 396.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "pendingVisible": true,
+      "failureRetry": true,
+      "closeReopen": true,
+      "reducedMotion": true
+    },
+    {
+      "width": 320,
+      "early": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 396.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "ready": {
+        "hidden": true,
+        "height": 0,
+        "children": 0,
+        "referenceY": 396.1875,
+        "scrollY": 0,
+        "loaders": 0
+      },
+      "pendingVisible": true,
+      "failureRetry": true,
+      "closeReopen": true,
+      "reducedMotion": true
+    }
+  ],
+  "errors": []
+}

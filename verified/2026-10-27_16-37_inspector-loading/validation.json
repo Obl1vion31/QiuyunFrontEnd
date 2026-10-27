@@ -1,0 +1,44 @@
+{
+  "sourceCommit": "feb0169",
+  "deployment": "dpl_Geo6qHFGxtxq6XL9Mx9L63rCqWsz",
+  "status": "已自检，待用户反馈",
+  "unitTests": 210,
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024,
+    390,
+    320
+  ],
+  "reproducedBefore": {
+    "emptyGroupHeight": 17,
+    "borderTop": 1
+  },
+  "after": {
+    "emptyGroupHeight": 0,
+    "referencePositionUnchanged": true,
+    "readinessFailureRetry": true,
+    "realPendingVisible": true,
+    "cancelSwitchReopen": true,
+    "reducedMotion": true
+  },
+  "passed": [
+    "类型检查与Node/Vercel构建",
+    "db:check",
+    "排期加载专项",
+    "公共UI",
+    "100/450ms与慢请求/取消/未保存交互",
+    "面板进出逐帧、焦点与滚动回归",
+    "Vercel运行包中文打印冷启动",
+    "公网95项检查及61个资源哈希"
+  ],
+  "production": {
+    "readOnly": true,
+    "screenshotPostChecked": true,
+    "emptyGroupHidden": true,
+    "emptyGroupHeight": 0
+  },
+  "databaseWrites": false,
+  "databaseMigration": false
+}

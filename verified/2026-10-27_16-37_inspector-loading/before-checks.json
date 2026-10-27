@@ -1,0 +1,18 @@
+{
+  "baseline": true,
+  "checks": [
+    {
+      "width": 1440,
+      "reproduced": true,
+      "early": {
+        "hidden": false,
+        "height": 17,
+        "children": 0,
+        "referenceY": 601.1875,
+        "scrollY": 0,
+        "loaders": 0
+      }
+    }
+  ],
+  "errors": []
+}
