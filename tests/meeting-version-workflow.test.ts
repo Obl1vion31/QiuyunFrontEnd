@@ -60,3 +60,19 @@ test('草稿中伪造的安排不执行；回溯撤销凭独立日志且不依�
  assert.equal(resolveMeetingDecisions([old,draft],[])[0].targetStatus,'testing');
  assert.deepEqual(resolveMeetingDecisions([old,{...draft,businessEffects:[{type:'meeting_decisions_reset',effectiveOn:decision.effectiveOn}]}],[]),[]);
 });
+
+test('无实际修改不建立新修订；会前转会后和已有草稿同号定稿除外',()=>fixture(async(db,m,v)=>{
+ const input=discussionFromDraft(v.snapshot.draft as any),base={sourceVersionId:v.id,expectedUpdatedAt:m.updatedAt.toISOString(),discussion:input};
+ await assert.rejects(()=>writeVersion(db,m.id,{...base,action:'save_version_draft'},'fixture',before),/尚无实际修改/);
+ await assert.rejects(()=>writeVersion(db,m.id,{...base,action:'finalize_version_draft',stage:'pre'},'fixture',before),/尚无实际修改/);
+ await assert.rejects(()=>writeVersion(db,m.id,{...base,action:'save_version_draft',discussion:{...input,coreConclusion:' '+input.coreConclusion+' ',nonPromotionNotes:{}}},'fixture',before),/尚无实际修改/);
+ assert.equal((await db.select().from(s.operationsReviewMeetingVersion)).length,1);
+ const post=await writeVersion(db,m.id,{...base,action:'finalize_version_draft',stage:'post'},'fixture',before);
+ const [p]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,post.versionId));
+ const next=discussionFromDraft(p.snapshot.draft as any),postBase={sourceVersionId:p.id,expectedUpdatedAt:post.updatedAt,discussion:next};
+ await assert.rejects(()=>writeVersion(db,m.id,{...postBase,action:'finalize_version_draft',stage:'post'},'fixture',before),/尚无实际修改/);
+ next.coreConclusion='真正修订';
+ const saved=await writeVersion(db,m.id,{...postBase,discussion:next,action:'save_version_draft'},'fixture',before);
+ const finalized=await writeVersion(db,m.id,{...postBase,discussion:next,expectedUpdatedAt:saved.updatedAt,draftVersionId:saved.versionId,action:'finalize_version_draft',stage:'post'},'fixture',before);
+ assert.equal(finalized.versionNumber,saved.versionNumber);assert.equal(finalized.versionId,saved.versionId);
+}));

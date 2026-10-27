@@ -4,6 +4,7 @@ import type {Database} from './client';
 import type {Transaction} from './schedule-workflow';
 import {WorkflowError} from './schedule-workflow';
 import {discussionSchema,mergeDiscussion} from './meeting-discussion';
+import {meetingDiscussionKey} from './meeting-discussion-values';
 import {meetingEffectiveOn,meetingArrangementsExpired,latestValidMeetingVersion,activeMeetingDraft,meetingVersionDraft} from './meeting-version-rules';
 import {meetingFinalizationIssue} from './meeting-finalization';
 import {readPromotionContext,lockPromotionWorkflow} from './promotion-pauses';
@@ -84,6 +85,8 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const stage=finalizing?payload.stage:baseline.finalizationStage;
   if(!['pre','post'].includes(stage)||originalSnapshot.finalizationStage==='post'&&stage!=='post'&&active?.versionKind!=='rollback')throw new WorkflowError('请使用当前版本对应的定稿阶段。',422);
   const firstPost=stage==='post'&&(originalSnapshot.finalizationStage!=='post'||active?.versionKind==='rollback');
+  // 草稿可直接同号定稿，会前转会后也可维持原方案；其余新修订必须真正改过内容。
+  if(!active&&!firstPost&&meetingDiscussionKey({...originalSnapshot.draft,promotionDecisions:original})===meetingDiscussionKey(draft))throw new WorkflowError('尚无实际修改，无需生成新版本。',422);
   if(finalizing&&firstPost&&expired)throw new WorkflowError('已过安排生效时间，不能重新发布旧安排。',422);
   if(finalizing&&draft.issues.some(i=>!i.problem.trim()))throw new WorkflowError('请补充事项的问题，或删除新增空行。',422);
   if(finalizing){const issue=meetingFinalizationIssue(draft,stage,[]);if(issue)throw new WorkflowError(issue.message,422);}

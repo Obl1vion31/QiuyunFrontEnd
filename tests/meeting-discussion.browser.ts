@@ -46,6 +46,13 @@ try{
  assert.equal(await page.locator('.weekly-frozen textarea').count(),0);assert.equal(await page.locator('.version-nav .meeting-pdf-archive').count(),0);
  assert.ok(await page.getByText('同类样本 9 份',{exact:true}).count()>0);assert.equal(await page.getByText(/较同类|同类均值/).count(),0);
  await page.getByRole('radio',{name:'编辑模式',exact:true}).check();
+ const saveButton=page.getByRole('button',{name:'保存草稿',exact:true});
+ assert.equal(await saveButton.isDisabled(),true);assert.equal(await page.getByRole('button',{name:'会前定稿 V1',exact:true}).isDisabled(),true);
+ assert.equal(await page.getByRole('button',{name:'会后定稿 V1',exact:true}).isEnabled(),true,'会前维持原方案仍可转会后');
+ await page.getByRole('button',{name:'修改核心结论',exact:true}).click();const core=page.getByRole('textbox',{name:'核心结论',exact:true}),originalCore=await core.inputValue();
+ assert.equal(await saveButton.isDisabled(),true,'仅打开文本框不算修改');await core.fill('临时修改');assert.equal(await saveButton.isEnabled(),true);await core.fill(originalCore);assert.equal(await saveButton.isDisabled(),true,'改回原值不生成版本');
+ const issueStatus=page.getByRole('combobox',{name:'事项1进度',exact:true});await issueStatus.selectOption('validating');assert.equal(await saveButton.isEnabled(),true);await issueStatus.selectOption('pending');assert.equal(await saveButton.isDisabled(),true);
+ await page.getByRole('heading',{name:'下一步行动',exact:true}).click();
  await page.getByRole('button',{name:'修改核心结论',exact:true}).click();await page.getByRole('textbox',{name:'核心结论',exact:true}).fill('会中结论：实际开口稳定，优先改善留资转化。');await page.getByRole('heading',{name:'下一步行动',exact:true}).click();
  await page.getByRole('radio',{name:'只读模式',exact:true}).check();await respondToBusinessConfirm(page,false);assert.equal(await page.getByRole('radio',{name:'编辑模式',exact:true}).isChecked(),true);
  // 另存会前修订；缺省尚未决定的活动必须明确选择。
@@ -73,11 +80,18 @@ try{
  await page.getByRole('radio',{name:'编辑模式',exact:true}).check();await page.screenshot({path:folder+'/post-edit-1440.png'});
  // V2 opens a V3 draft; save twice, then finalize the same V3 row.
  await page.getByRole('button',{name:'修改核心结论',exact:true}).click();await page.getByRole('textbox',{name:'核心结论',exact:true}).fill('V3 draft discussion');await page.getByRole('heading',{name:'下一步行动',exact:true}).click();
- await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');
+ await page.getByRole('button',{name:'保存草稿',exact:true}).click();
+ await page.locator('[data-business-confirm][open]').waitFor();
+ assert.equal(await page.locator('[data-confirm-cancel]').evaluate((n:Element)=>document.activeElement===n),true);
+ for(const width of [1920,1440,1280,1024]){await page.setViewportSize({width,height:1000});await page.locator('[data-business-confirm]').evaluate((n:Element)=>Promise.all(n.getAnimations({subtree:true}).filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished)));await page.screenshot({path:`${folder}/new-draft-confirm-${width}.png`});}
+ await respondToBusinessConfirm(page,false);assert.equal((await db.select().from(s.operationsReviewMeetingVersion).where(and(eq(s.operationsReviewMeetingVersion.meetingId,id),eq(s.operationsReviewMeetingVersion.versionNumber,3)))).length,0);
+ assert.ok(await page.getByRole('button',{name:'修改核心结论',exact:true}).innerText().then((t:string)=>t.includes('V3 draft discussion')));
+ await page.getByRole('button',{name:'保存草稿',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**/business/meeting-review');
  let[draft3]=await db.select().from(s.operationsReviewMeetingVersion).where(and(eq(s.operationsReviewMeetingVersion.meetingId,id),eq(s.operationsReviewMeetingVersion.versionNumber,3)));
  assert.equal(draft3.lifecycleStatus,'draft');assert.equal((await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id)))[0].currentVersionNumber,2);
  const draftPdf=await fetch(baseURL+`/api/meeting-versions/${draft3.id}/pdf`,{method:'POST',headers:{Cookie:cookie,Origin:baseURL}});assert.equal(draftPdf.status,422);
  await nav('/business/meeting-review?meeting='+id);assert.equal(await page.getByRole('radio',{name:'编辑模式',exact:true}).isChecked(),true);
+ assert.equal(await page.getByRole('button',{name:'保存草稿',exact:true}).isDisabled(),true);assert.equal(await page.getByRole('button',{name:'会后定稿 V3',exact:true}).isEnabled(),true);
  assert.equal(await page.getByRole('textbox',{name:'事项1问题',exact:true}).inputValue(),'核对素材');
  for(const width of [1920,1440,1280,1024]){
   await page.setViewportSize({width,height:1000});await page.locator('.weekly-support').scrollIntoViewIfNeeded();
@@ -86,9 +100,12 @@ try{
   await page.locator('[data-weekly-non]').first().scrollIntoViewIfNeeded();await page.screenshot({path:`${folder}/inline-delta-${width}.png`});
   const deltas=await page.locator('.weekly-rate-value:has(.weekly-rate-comparison)').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>{const value=n.querySelector('strong')!,delta=n.querySelector('.weekly-rate-comparison')!,v=value.getBoundingClientRect(),d=delta.getBoundingClientRect();return {sameLine:Math.abs(v.bottom-d.bottom)<8,color:getComputedStyle(delta).color,overflow:n.scrollWidth>n.clientWidth};}));assert.ok(deltas.length>0);assert.ok(deltas.every((d:any)=>d.sameLine&&!d.overflow));
  }
+ await page.getByRole('textbox',{name:'事项1解决方案',exact:true}).fill('同版草稿补充方案');
  await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');
  assert.equal((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,draft3.id)))[0].versionNumber,3);
- await nav('/business/meeting-review?meeting='+id);await page.getByRole('button',{name:'会后定稿 V3',exact:true}).click();await respondToBusinessConfirm(page,true);await page.waitForURL('**version=3',{waitUntil:'domcontentloaded'});assert.equal((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,draft3.id)))[0].lifecycleStatus,'finalized');
+ await page.setViewportSize({width:1440,height:1000});await nav('/business/meeting-review?meeting='+id);await page.getByRole('button',{name:'会后定稿 V3',exact:true}).click();await page.locator('[data-business-confirm][open]').waitFor();await page.locator('[data-business-confirm]').evaluate((n:Element)=>Promise.all(n.getAnimations({subtree:true}).filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished)));await page.screenshot({path:folder+'/finalize-confirm-1440.png'});await respondToBusinessConfirm(page,true);await page.waitForURL('**version=3',{waitUntil:'domcontentloaded'});assert.equal((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,draft3.id)))[0].lifecycleStatus,'finalized');
+ await page.getByRole('radio',{name:'编辑模式',exact:true}).check();assert.equal(await page.getByRole('button',{name:'会后定稿 V4',exact:true}).isDisabled(),true);assert.equal(await page.getByRole('button',{name:'保存草稿',exact:true}).isDisabled(),true);
+ for(const width of [1920,1440,1280,1024]){await page.setViewportSize({width,height:1000});await page.screenshot({path:`${folder}/unchanged-edit-${width}.png`});}
  await nav('/business/meeting-review?meeting='+id+'&version=0');assert.equal(await page.getByRole('radio',{name:'编辑模式',exact:true}).isDisabled(),true);assert.ok(await page.locator('.version-nav').evaluate((n:Element)=>Math.abs(n.getBoundingClientRect().right-n.querySelector('[data-meeting-mode]')!.getBoundingClientRect().right)<=1),'历史版模式切换同样靠右对齐');await page.screenshot({path:folder+'/historical-read-1440.png'});await page.getByRole('button',{name:'回溯到此版本',exact:true}).click();await respondToBusinessConfirm(page,false);
  [meeting]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));const restored=await api('/api/meeting-reviews/'+id,{action:'rollback_version',sourceVersionId:pre.id,expectedUpdatedAt:meeting.updatedAt.toISOString(),confirmed:true});assert.equal(restored.versionNumber,4);
  await nav('/business/meeting-review?meeting='+id+'&version=4&mode=edit');assert.equal(await page.getByRole('radio',{name:'编辑模式',exact:true}).isChecked(),true);await page.screenshot({path:folder+'/rollback-edit-1440.png'});

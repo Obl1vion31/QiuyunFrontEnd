@@ -67,7 +67,7 @@ try{
  }
  checks.push('四档桌面紧凑卡片三列/两列、同行等高、64px事项文本框与控件中线、混合非推广发布时间排序');
  await page.setViewportSize({width:1440,height:1000});await post(a).getByRole('button',{name:'确认',exact:true}).click();await post(a).getByRole('button',{name:'修改',exact:true}).waitFor();
- await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');assert.ok((await record()).draftSnapshot.issues.some(i=>!i.problem&&i.conclusion==='先写方案，问题稍后补齐'));
+ assert.equal(await page.getByRole('button',{name:'保存草稿',exact:true}).isDisabled(),true,'卡片确认已保存整份草稿，无新改动不能重复保存');await page.getByRole('link',{name:'返回例会总览',exact:true}).click();await page.waitForURL('**/business/meeting-review');assert.ok((await record()).draftSnapshot.issues.some(i=>!i.problem&&i.conclusion==='先写方案，问题稍后补齐'));
  // 模拟升级前保存的材料：前两天已有真实记录，但没有 actualStatusSnapshot/dailyStates。
  const legacyDraft=structuredClone((await record()).draftSnapshot),legacyMaterial=legacyDraft.materialSnapshot as unknown as WeeklyMaterial;
  const legacyCard=legacyMaterial.promotions.find(row=>row.campaignId===a.campaign!.id)!;delete legacyCard.dailyStates;legacyMaterial.fingerprint='0'.repeat(64);legacyDraft.materialFingerprint=legacyMaterial.fingerprint;
@@ -75,7 +75,7 @@ try{
  await nav('/business/meeting-review?meeting='+id);await scroll(post(a));await post(a).getByRole('button',{name:'查看明细',exact:true}).click();
  for(const day of['2026-10-16','2026-10-17'])assert.match(await post(a).locator(':popover-open .weekly-daily-facts tbody tr').filter({hasText:day}).innerText(),/测试中/);
  assert.equal(JSON.stringify(await record()),beforeRead);assert.equal(await page.getByRole('button',{name:'刷新数据',exact:true}).isEnabled(),true);await shot('legacy-draft-states-1440');await page.keyboard.press('Escape');
- await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');const savedLegacy=(await record()).draftSnapshot;
+ await page.getByRole('textbox',{name:'本期具体动作',exact:true}).fill('核对旧材料状态后补充具体动作');await page.getByRole('button',{name:'保存草稿',exact:true}).click();await page.waitForURL('**/business/meeting-review');const savedLegacy=(await record()).draftSnapshot;
  assert.equal((savedLegacy.materialSnapshot as any).promotions.find((row:any)=>row.key===legacyCard.key).dailyStates['2026-10-16'],'testing');
  assert.equal(savedLegacy.materialFingerprint,legacyDraft.materialFingerprint);assert.deepEqual(savedLegacy.promotionInputs,legacyDraft.promotionInputs);assert.deepEqual((savedLegacy.materialSnapshot as any).summary,legacyMaterial.summary);
  assert.deepEqual((savedLegacy.materialSnapshot as any).promotions.find((row:any)=>row.key===legacyCard.key).facts,legacyCard.facts);

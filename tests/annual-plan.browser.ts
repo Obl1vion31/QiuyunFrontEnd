@@ -92,6 +92,10 @@ try {
   await page.locator('[data-close-inspector]').click();
   await page.locator('[data-module-href="/business/operations-schedule"]').click(); await page.waitForURL('**/operations-schedule*');
   await page.locator('[data-module-href="/business/annual-plan"]').click(); await page.waitForURL('**/annual-plan*'); await page.locator('[data-open-new]').click(); await page.locator('#row-dialog[open]').waitFor();
+  await page.locator('#row-form [name=sectionChoice]').selectOption('subject:interview');
+  const handoutOptions=await page.locator('#row-form [name=categoryId] option').allTextContents();assert.equal(handoutOptions.filter((t:string)=>t==='非推广讲义帖').length,1);assert.equal(handoutOptions.includes('面试课非推广讲义帖'),false);
+  await page.locator('#row-form [name=categoryId]').selectOption('non-promotional-handout');await page.screenshot({path:'.tools/test-artifacts/annual-handout-category-1280.png'});
+  await page.locator('#row-form [name=sectionChoice]').selectOption('subject:tmua');
   await page.locator('[name=rowName]').fill('浏览器新建规划'); await page.locator('[data-start]').first().selectOption('20'); await page.locator('[data-end]').first().selectOption('23');
   await page.locator('#row-form [data-note]').first().fill('每月发一篇，自由备注'); await page.locator('#row-form button[type=submit]').click(); await page.waitForLoadState('networkidle');
   await page.locator('.item-cell').filter({ hasText: '浏览器新建规划' }).waitFor();

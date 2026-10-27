@@ -59,7 +59,7 @@ const versionDraft=selectedVersion?.lifecycleStatus==='draft';
 const targetVersionNumber=versionDraft?selectedVersion!.versionNumber:Math.max(-1,...versions.map(v=>v.versionNumber))+1;
 const effectiveOn=selected?meetingEffectiveOn(selected,versions):nextDateKey(today),arrangementsExpired=meetingArrangementsExpired(effectiveOn,now);
 const discussionDraft=selectedVersion?meetingVersionDraft(selectedVersion.snapshot,selected?.draftSnapshot):undefined;
-if(discussionDraft&&selectedVersion)discussionDraft.promotionDecisions={...discussionDraft.promotionDecisions,...Object.fromEntries(((selectedVersion.snapshot as any).generated?.meetingDecisions??[]).map((d:any)=>[d.campaignId,d.action==='restart_testing'?'restart_testing':d.targetStatus]))};
+if(discussionDraft&&selectedVersion)discussionDraft.promotionDecisions={...Object.fromEntries(((selectedVersion.snapshot as any).generated?.meetingDecisions??[]).map((d:any)=>[d.campaignId,d.action==='restart_testing'?'restart_testing':d.targetStatus])),...discussionDraft.promotionDecisions};
 const editing = selected?.status === 'draft';
 const rollbackVersions=versions.filter(v=>!v.invalidatedAt&&v.versionNumber>(selectedVersion?.versionNumber??Infinity));
 const rollback=selectedVersion&&!canEdit?{allowed:!activeDraft&&!selectedVersion.invalidatedAt&&!arrangementsExpired&&rollbackVersions.length>0,versions:rollbackVersions.map(v=>v.versionNumber),arrangements:new Set(versions.filter(v=>!v.invalidatedAt).flatMap(v=>((v.snapshot as any).generated?.meetingDecisions??[]).map((d:any)=>d.id))).size,reason:activeDraft?'请先完成当前版本草稿':selectedVersion.invalidatedAt?'此版本已失效':undefined}:undefined;
