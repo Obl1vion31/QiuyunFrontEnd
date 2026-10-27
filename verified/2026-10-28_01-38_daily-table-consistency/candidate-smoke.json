@@ -1,0 +1,42 @@
+{
+  "origin": "https://qiuyun-frontend-io9hvew1y-opgobl1v-5358.vercel.app",
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200,
+      "expected": 200,
+      "bytes": 5194,
+      "passed": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "expected": 200,
+      "bytes": 4,
+      "passed": true
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "status": 302,
+      "expected": 302,
+      "bytes": 0,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "status": 401,
+      "expected": 401,
+      "bytes": 96,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-daily",
+      "status": 401,
+      "expected": 401,
+      "bytes": 96,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "businessWrites": false
+}

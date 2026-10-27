@@ -1,0 +1,212 @@
+[
+  {
+    "width": 1920,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 1539.5,
+        "y": 334,
+        "w": 113,
+        "h": 36,
+        "tx": 1552.5,
+        "ty": 343,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 1664.5,
+        "y": 334,
+        "w": 26,
+        "h": 36,
+        "tx": 1664.5,
+        "ty": 343,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 1702.5,
+        "y": 334,
+        "w": 69,
+        "h": 36,
+        "tx": 1702.5,
+        "ty": 342,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 1152,
+        "y": 334,
+        "w": 113,
+        "h": 36,
+        "tx": 1165,
+        "ty": 343,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 1277,
+        "y": 334,
+        "w": 26,
+        "h": 36,
+        "tx": 1277,
+        "ty": 343,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 1315,
+        "y": 334,
+        "w": 69,
+        "h": 36,
+        "tx": 1315,
+        "ty": 342,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 736,
+        "y": 576,
+        "w": 113,
+        "h": 36,
+        "tx": 749,
+        "ty": 585,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 861,
+        "y": 576,
+        "w": 26,
+        "h": 36,
+        "tx": 861,
+        "ty": 585,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 899,
+        "y": 576,
+        "w": 69,
+        "h": 36,
+        "tx": 899,
+        "ty": 584,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 116,
+        "y": 577,
+        "w": 113,
+        "h": 36,
+        "tx": 129,
+        "ty": 586,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 241,
+        "y": 577,
+        "w": 26,
+        "h": 36,
+        "tx": 241,
+        "ty": 586,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 279,
+        "y": 577,
+        "w": 69,
+        "h": 36,
+        "tx": 279,
+        "ty": 585,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "gap": "12px",
+    "items": [
+      {
+        "text": "一键保存（2）",
+        "x": 46,
+        "y": 677,
+        "w": 113,
+        "h": 36,
+        "tx": 59,
+        "ty": 686,
+        "tw": 87,
+        "th": 18,
+        "font": "500 13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "补录",
+        "x": 171,
+        "y": 677,
+        "w": 26,
+        "h": 36,
+        "tx": 171,
+        "ty": 686,
+        "tw": 26,
+        "th": 18,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      },
+      {
+        "text": "历史总览↗",
+        "x": 209,
+        "y": 677,
+        "w": 69,
+        "h": 36,
+        "tx": 209,
+        "ty": 685,
+        "tw": 69,
+        "th": 20,
+        "font": "13px / 20px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+      }
+    ]
+  }
+]
