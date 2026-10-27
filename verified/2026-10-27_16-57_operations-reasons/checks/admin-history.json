@@ -1,0 +1,8 @@
+{
+  "scope": "隔离 PGlite，虚构业务事实",
+  "oldReasonsDeleted": 2,
+  "currentReasons": 1,
+  "delayLabel": "较最新排期晚发布 1 天",
+  "planChangeReasonPreserved": true,
+  "errors": []
+}

@@ -1,0 +1,6 @@
+> qiuyun-frontend-system@0.1.0 test:workflows /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/schedule-workflow.browser.ts && node --import tsx tests/latest-delay.browser.ts
+
+通过：HTTP 改期权限与并发审批、伪造应发防绕过、实发原子理由、临时分类、跳过节点及同类基准。
+通过：桌面与手机的逐日理由、申请审批、跨页初始化、分类筛选、节点跳过与恢复。
+通过：改期实际删除旧原因，最新排期只保留22日一条，23日18时发布显示晚1天；改期理由保留。

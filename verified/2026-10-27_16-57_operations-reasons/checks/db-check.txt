@@ -1,0 +1,6 @@
+> qiuyun-frontend-system@0.1.0 db:check /home/obl1vion/projects/qiuyunFrontend
+> drizzle-kit check
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/obl1vion/projects/qiuyunFrontend/drizzle.config.ts'
+Everything's fine 🐶🔥
