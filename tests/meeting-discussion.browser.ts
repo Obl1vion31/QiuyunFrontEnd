@@ -113,5 +113,6 @@ try{
  [meeting]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id));await api('/api/meeting-reviews/'+id,{action:'rollback_version',sourceVersionId:pre.id,expectedUpdatedAt:meeting.updatedAt.toISOString(),confirmed:true},422);
  await nav('/business/meeting-review');assert.equal(await page.locator('.meeting-history-overview').getAttribute('open'),null);await page.screenshot({path:folder+'/overview-1440.png'});
  checks.push('四档桌面只读/编辑、pp与单处样本、无会议内PDF入口','V3草稿重复保存及同号定稿、草稿不生成PDF、事项真实中线与表头居中、旧版只读、退出取消保留输入、冻结指标不刷新','会后自动HTML PDF、幂等、同源保护、浏览器打印同款','回溯确认取消/执行、失效版本保留、恢复稿重新确认','生效日零点锁定安排和回溯，保留文字编辑');
+ checks.push('切编辑/打开文本框不置脏，恢复文字和进度后按钮置灰；首次草稿确认默认继续编辑、取消无版本且保留输入，同版实际修改保存无重复弹窗，已存草稿直接同号定稿');
  assert.deepEqual(errors,[]);await context.close();await writeFile(folder+'/checks.json',JSON.stringify({checks,errors,baseURL},null,2));console.log(JSON.stringify({checks,folder}));
 }catch(error){console.error(fixture.logs().slice(-5000));throw error;}finally{await browser?.close();await fixture.stop();}

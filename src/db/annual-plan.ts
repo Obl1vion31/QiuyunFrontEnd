@@ -37,7 +37,8 @@ const rowFields = {
   sectionLabel: z.string().trim().min(1, '请填写分区名称').max(120),
   subjectId: z.string().trim().min(1).nullable(),
   rowName: z.string().trim().min(1, '请填写规划项目名称').max(200),
-  categoryId: z.string().trim().min(1).nullable(),
+  // 已合并分类的旧稿/历史恢复使用现有字典；不回写旧版本JSON。
+  categoryId: z.string().trim().min(1).transform(value => value === 'interview-non-promotional-handout' ? 'non-promotional-handout' : value).nullable(),
   note: optionalText(1000),
   sortOrder: z.int().min(0).max(9999),
   isActive: z.boolean(),

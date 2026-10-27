@@ -51,6 +51,12 @@ try {
   await request('/api/operations-annual-plans/year/2029', 'PATCH', { instructions: '已有年度说明' }, cookie, 200);
   await request('/api/operations-annual-plans/year/2026/copy', 'POST', { targetYear: 2029 }, cookie, 409);
   assert.equal((await db.select().from(plans).where(eq(plans.year, 2029))).length, 0);
+  const renamedInput={...row('旧分类恢复验收',[],'non-promotional-handout'),year:2032,subjectId:'interview',sectionKey:'subject:interview',sectionLabel:'面试课 细致规划'};
+  const renamed=await request('/api/operations-annual-plans','POST',renamedInput,cookie,201);
+  const [renamedV0]=await db.select().from(versions).where(eq(versions.planId,renamed.id));const oldCategorySnapshot=structuredClone(renamedV0.snapshot) as AnnualPlanSnapshotV4;oldCategorySnapshot.row.categoryId='interview-non-promotional-handout';oldCategorySnapshot.row.categoryName='面试课非推广讲义帖';
+  await db.insert(versions).values({planId:renamed.id,versionNumber:1,snapshot:oldCategorySnapshot,changeSummary:'旧分类历史样例',diffSummary:[],changedByLabel:'test'});await db.update(plans).set({currentVersionNumber:1}).where(eq(plans.id,renamed.id));
+  await request(`/api/operations-annual-plans/${renamed.id}/restore`,'POST',{versionNumber:1,expectedVersionNumber:1},cookie,200);
+  assert.equal((await db.select().from(plans).where(eq(plans.id,renamed.id)))[0].categoryId,'non-promotional-handout');assert.deepEqual((await db.select().from(versions).where(and(eq(versions.planId,renamed.id),eq(versions.versionNumber,1))))[0].snapshot,oldCategorySnapshot);
   console.log('通过：真实 HTTP 新建、自由备注、半月校验、旧历史恢复、冲突、角色保护、年度复制与并发防覆盖。');
 
   const playwright = await import(process.env.PLAYWRIGHT_MODULE || new URL('../.tools/tooling/node_modules/playwright/index.mjs', import.meta.url).href);

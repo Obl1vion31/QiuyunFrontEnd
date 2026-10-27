@@ -149,6 +149,8 @@ flowchart LR
 
 规划内联字典接入：`annual-plan.astro` 的 `taxonomy-field` 在字段下展开，`annual-plan.ts` 调用管理员 `/api/taxonomy`，以 `taxonomy-store.ts` 统一追加、重名复用及学科关联。排期校验、复盘筛选与审批名称从数据库字典读取，`taxonomy.ts` 仅供初始化及旧纯规则测试。`settings-taxonomy-retest.browser.ts` 验证输入保留、失败重试、全站可用与权限。
 
+规划共享校验将已合并的旧讲义分类编号归一到现有“非推广讲义帖”；旧页面提交、历史恢复及审核重放复用该入口，保留原快照JSON。`annual-plan.browser.ts` 实际恢复旧分类快照并核对当前关联及原版本不变。
+
 推广轮次由 `promotion-cycles.mjs` 从已确认复测动作计算，日度以 `sourceStageStartedOn` 记录所属轮次；`promotion-replay.mjs` 分离复测动作与实际状态。例会决定保留可选action，不能把复测压成普通testing；`settings-taxonomy-retest.test.ts` 与浏览器专项覆盖100/30、暂停恢复、次日生效、同日去重及冻结版本。
 
 `WeeklyMeetingPresentation` 共用会前／会后阅读、最新版本编辑与打印布局。`BusinessMeetingDiscussion` 监听公共 `BusinessViewSwitch`，默认只读，保存 `save_version_draft` 首次建立下一版草稿，重复保存更新同一行；`finalize_version_draft` 按 pre／post 在同一行定稿。`meeting-version-workflow` 事务锁定来源版本与更新时间，合并白名单、固定生效日、记录事项前后值；`rollback_version` 仅生效日前确认回溯，保留失效版本并创建待重新定稿的会前恢复版本。`meeting-decision-rules` 跳过失效版本与纯文字继承事件，防止重复执行或盖掉日度更正。
