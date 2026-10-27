@@ -51,10 +51,31 @@ try{
   await page.locator('#daily-table').scrollIntoViewIfNeeded();await shot(`daily-left-${width}`);
   await page.locator('[data-review-container=ready]').evaluate((n:HTMLElement)=>n.scrollLeft=n.scrollWidth);await shot(`daily-right-${width}`);
   await page.locator('[data-review-container=ready]').evaluate((n:HTMLElement)=>n.scrollLeft=0);
+  // 条件态必须在五档视口逐个验收，不能只拍初始空态。
+  const pending=record(waiting),plan=pending.locator('.review-initial-next'),rowBox=await pending.boundingBox();
+  await plan.locator('[name=nextDecision]').selectOption('wait_continue');await plan.locator('[data-deadline-trigger]').waitFor({state:'visible'});
+  const selectedBox=await pending.boundingBox();assert.ok(Math.abs(selectedBox.height-rowBox.height)<=1,'选择继续待定不改变行高');
+  const aligned=await pending.evaluate((node:HTMLElement)=>{const pick=(s:string)=>{const b=node.querySelector<HTMLElement>(s)!.getBoundingClientRect();return {x:b.x,y:b.y,w:b.width,h:b.height,mid:b.y+b.height/2};};return {metric:pick('.review-number input'),select:pick('[name=nextDecision]'),deadline:pick('[data-deadline-trigger]'),save:pick('.review-plan-actions [type=submit]'),cancel:pick('[data-cancel-plan]')};});
+  for(const control of [aligned.select,aligned.deadline,aligned.save,aligned.cancel]){assert.equal(control.h,40);assert.ok(Math.abs(control.mid-aligned.metric.mid)<=1,JSON.stringify(aligned));}
+  assert.ok(aligned.select.w>=128);assert.equal(aligned.deadline.w,56);geometry.push({width,condition:'wait_continue',aligned});
+  await plan.locator('[data-deadline-trigger]').scrollIntoViewIfNeeded();await shot(`wait-empty-${width}`);
+  await plan.locator('[data-deadline-trigger]').click();const deadline=plan.locator('[data-deadline-panel]');await deadline.waitFor({state:'visible'});await shot(`wait-date-popup-${width}`);
+  const dateBox=await deadline.boundingBox();assert.ok(dateBox.x>=11&&dateBox.x+dateBox.width<=width-11);await deadline.locator('input').fill('2026-10-30');
+  await deadline.locator('[data-deadline-close]').last().click();assert.equal(await plan.locator('[name=waitingThrough]').inputValue(),'2026-10-30');assert.equal(await deadline.isVisible(),false);
+  assert.ok(Math.abs((await pending.boundingBox()).height-rowBox.height)<=1);await shot(`wait-date-selected-${width}`);
+  await plan.locator('[data-deadline-trigger]').click();await page.keyboard.press('Escape');assert.equal(await plan.locator('[name=waitingThrough]').inputValue(),'2026-10-30');
+  let release:()=>void=()=>{};await page.route('**/api/promotion-timeline',async(route:any)=>{await new Promise<void>(resolve=>release=resolve);await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'截止日保存失败，草稿已保留。'})});await page.unroute('**/api/promotion-timeline');});
+  await plan.locator('[type=submit]').click();assert.equal(await plan.locator('[name=nextDecision]').isDisabled(),true);assert.equal(await plan.locator('[data-cancel-plan]').isDisabled(),true);await shot(`wait-save-busy-${width}`);release();await plan.getByText('截止日保存失败，草稿已保留。').waitFor();const errorBounds=await plan.locator('output').boundingBox(),scrollBounds=await page.locator('[data-review-container=ready]').boundingBox();assert.ok(errorBounds.x>=scrollBounds.x-1&&errorBounds.x+errorBounds.width<=scrollBounds.x+scrollBounds.width+1,JSON.stringify({width,errorBounds,scrollBounds}));assert.equal(await plan.locator('[name=waitingThrough]').inputValue(),'2026-10-30');await shot(`wait-save-failure-${width}`);
+  await plan.locator('[data-cancel-plan]').click();assert.equal(await plan.locator('[name=nextDecision]').inputValue(),'');assert.equal(await plan.locator('[name=waitingThrough]').inputValue(),'');assert.ok(Math.abs((await pending.boundingBox()).height-rowBox.height)<=1);await shot(`wait-cancelled-${width}`);
+  await page.locator('[data-review-container=ready]').evaluate((n:HTMLElement)=>n.scrollLeft=0);
   await record(initial).locator('[data-initial-toggle]').click();await shot(`initial-popup-${width}`);
   const bounds=await popup(initial).boundingBox();assert.ok(bounds.x>=11&&bounds.x+bounds.width<=width-11);await page.keyboard.press('Escape');
  }
  await page.setViewportSize({width:1440,height:1000});
+ // 有截止日通过同一行唯一提交落库，随后由状态更正恢复无截止，保留后续午夜场景。
+ const finitePlan=record(waiting).locator('.review-initial-next');await finitePlan.locator('[name=nextDecision]').selectOption('wait_continue');await finitePlan.locator('[data-deadline-trigger]').click();await finitePlan.locator('[name=waitingThrough]').fill('2026-10-30');await page.keyboard.press('Escape');await save(finitePlan);
+ assert.equal((await db.select().from(s.operationsPromotionStartPlan).where(eq(s.operationsPromotionStartPlan.scheduleId,waiting.id)))[0].waitingThrough,'2026-10-30');await shot('wait-date-saved-1440');
+ await record(waiting).locator('[data-initial-toggle]').click();await popup(waiting).locator('[name=waitingThrough]').fill('');await popup(waiting).locator('[name=reason]').fill('虚构验收：恢复持续待定');await save(popup(waiting));
  // 默认、双位数、保存中、成功和禁用，均使用同一内容组。
  const batch=page.locator('[data-save-all]');const original=await batch.innerText();
  for(const [name,text,disabled] of [['count','一键保存（12）',false],['saving','正在保存…',true],['success','全部已保存',true],['disabled','一键保存（0）',true]] as const){await batch.evaluate((n:HTMLButtonElement,v:{text:string;disabled:boolean})=>{n.textContent=v.text;n.disabled=v.disabled;},{text,disabled});await shot('toolbar-'+name);}
