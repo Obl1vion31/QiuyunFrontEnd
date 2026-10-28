@@ -6,7 +6,7 @@
 
 - 首次输入与取锁并行，写入仍等待有效租约；修正重复赋值干扰小数／光标，协作标记等React初始化完成后接入。双向接管统一，非推广列表按排期＋轮次显示占用者，窄字段用圆点，草稿与版本保护保留。
 - 查帖统一右侧工具栏；另三项工具明确未开放。例会标题／表格／历史整体居中；非推广日期同行、帖子与分类上下、指标按内容限宽，不复盘展示原因与详情。
-- 五档截图及关键录像连续帧已查看，协作、非推广、公共UI、例会记录和动效专项、Node／Vercel构建与类型检查、db:check及运行包中文PDF通过。[验收索引](verified/2026-10-29_00-54_workspace-visual-correction/README.md)。最终全量规则复跑受WSL中断，未计通过；业务写入仅隔离夹具，无生产迁移。工作分支`codex/workspace-visual-correction`，main仍独立确认。
+- 五档截图及关键录像连续帧已查看，协作、非推广、公共UI、例会记录和动效专项、Node／Vercel构建与类型检查、db:check及运行包中文PDF通过。[验收索引](verified/2026-10-29_00-54_workspace-visual-correction/README.md)。最终全量规则复跑受WSL中断，未计通过；业务写入仅隔离夹具，无生产迁移。实现`a8d98c1`，工作分支`codex/workspace-visual-correction`已推送；部署`dpl_EqRmWS9o7sRNSSShmjRKjopFA5ZL`，独立6项、正式107项及66个资源哈希通过，main未合入。
 
 ## 统一查帖与编辑接管（2026-10-28）
 

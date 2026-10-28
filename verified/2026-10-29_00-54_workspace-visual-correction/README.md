@@ -1,6 +1,6 @@
 # 工作台工具、接管与复盘列表整改
 
-状态：已实际看图及检查关键录像连续帧，待用户反馈。业务数据全部来自隔离 PostgreSQL／PGlite 虚构夹具，无生产业务写入或数据库迁移。代码对应本批归档所在实现提交。
+状态：已实际看图及检查关键录像连续帧，已发布，待用户反馈。业务数据全部来自隔离 PostgreSQL／PGlite 虚构夹具，无生产业务写入或数据库迁移。代码对应本批归档所在实现提交。
 
 ## 直接查看
 
@@ -28,3 +28,7 @@
 最终`test:collaboration-lookup`、`test:non-promotion`、`test:ui`、`test:meeting-ledger`、`test:motion`通过；Node及Vercel构建／类型检查、db:check、正式运行包中文PDF通过。结果见各子目录JSON。
 
 本轮早期完整规则222项通过；最终全量复跑多次被WSL的Wsl/Service/E_UNEXPECTED中断，未计为最终通过。中断后完成生产构建及专项证据整理；未将中间帧或被中断任务冒充验收结果。
+
+## 发布
+
+实现`a8d98c1`，工作分支已推送；正式域名已核对为`dpl_EqRmWS9o7sRNSSShmjRKjopFA5ZL`。独立部署6项、正式107项检查及66个资源哈希通过。[发布记录](release.json) · [独立检查](candidate-smoke.json) · [公网检查](public-smoke.json)。main未合入。

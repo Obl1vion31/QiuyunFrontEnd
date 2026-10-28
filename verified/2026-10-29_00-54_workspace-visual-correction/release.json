@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "a8d98c1ca0234dad38f44cd20fe21ba9cf6bbeab",
+  "deploymentId": "dpl_EqRmWS9o7sRNSSShmjRKjopFA5ZL",
+  "deploymentUrl": "https://qiuyun-frontend-jtf8vb312-opgobl1v-5358.vercel.app",
+  "canonicalUrl": "https://qiuyun-frontend.vercel.app",
+  "verifiedAt": "2026-10-29T01:15:51.607388+08:00",
+  "candidateChecks": 6,
+  "publicChecks": 107,
+  "matchingAssets": 66,
+  "businessWrites": false,
+  "databaseMigrations": false,
+  "branch": "codex/workspace-visual-correction",
+  "mainMerged": false
+}
