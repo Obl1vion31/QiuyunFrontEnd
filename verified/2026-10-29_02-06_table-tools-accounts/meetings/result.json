@@ -1,0 +1,113 @@
+{
+  "checks": [
+    "六档视口普通记录：列宽按内容、PDF分组、行高、表头语义及内部横滚",
+    "长标题、手动附件、会前、草稿、生成中与失败状态，以及附件键盘关闭",
+    "历史版本共用同一PDF操作与内容列宽",
+    "生成中及失败可重试，文字完整，其他列宽不变"
+  ],
+  "measurements": [
+    {
+      "width": 1920,
+      "rowHeight": 101,
+      "tableWidth": 1280,
+      "titleWidth": 400,
+      "nameWidth": 380,
+      "titlePadding": 20,
+      "centers": [
+        195,
+        195,
+        235,
+        235
+      ],
+      "within": true,
+      "padding": 24,
+      "actionHeight": 36
+    },
+    {
+      "width": 1440,
+      "rowHeight": 101,
+      "tableWidth": 1200,
+      "titleWidth": 320,
+      "nameWidth": 300,
+      "titlePadding": 20,
+      "centers": [
+        195,
+        195,
+        235,
+        235
+      ],
+      "within": true,
+      "padding": 24,
+      "actionHeight": 36
+    },
+    {
+      "width": 1280,
+      "rowHeight": 101,
+      "tableWidth": 1200,
+      "titleWidth": 320,
+      "nameWidth": 300,
+      "titlePadding": 20,
+      "centers": [
+        195,
+        195,
+        235,
+        235
+      ],
+      "within": true,
+      "padding": 24,
+      "actionHeight": 36
+    },
+    {
+      "width": 1024,
+      "rowHeight": 101,
+      "tableWidth": 1200,
+      "titleWidth": 320,
+      "nameWidth": 300,
+      "titlePadding": 20,
+      "centers": [
+        195,
+        195,
+        235,
+        235
+      ],
+      "within": true,
+      "padding": 24,
+      "actionHeight": 36
+    },
+    {
+      "width": 390,
+      "rowHeight": 101,
+      "tableWidth": 1200,
+      "titleWidth": 320,
+      "nameWidth": 300,
+      "titlePadding": 20,
+      "centers": [
+        175,
+        175,
+        215,
+        215
+      ],
+      "within": true,
+      "padding": 24,
+      "actionHeight": 36
+    },
+    {
+      "width": 320,
+      "rowHeight": 101,
+      "tableWidth": 1200,
+      "titleWidth": 320,
+      "nameWidth": 300,
+      "titlePadding": 20,
+      "centers": [
+        175,
+        175,
+        215,
+        215
+      ],
+      "within": true,
+      "padding": 24,
+      "actionHeight": 36
+    }
+  ],
+  "errors": []
+}

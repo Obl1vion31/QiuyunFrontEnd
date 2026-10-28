@@ -1,6 +1,7 @@
 import type {APIRoute} from 'astro';
 import {and,eq,sql} from 'drizzle-orm';
 import {z} from 'zod';
+import {accountIdentifier,accountName,accountConflict} from '../../../../auth/identifiers';
 import {hashPassword} from 'better-auth/crypto';
 import {getDb} from '../../../../db/client';
 import {authUser,authSession,authAccount,accountManagementAudit} from '../../../../db/schema';
@@ -9,7 +10,8 @@ import {WorkflowError} from '../../../../db/schedule-workflow';
 import {workflowErrorResponse} from '../../../../db/workflow-api';
 export const prerender=false;
 const inputSchema=z.discriminatedUnion('action',[
- z.object({action:z.literal('rename'),name:z.string().trim().min(1).max(40)}),
+ z.object({action:z.literal('rename'),name:accountName}),
+ z.object({action:z.literal('updateUsername'),username:accountIdentifier}),
  z.object({action:z.literal('status'),enabled:z.boolean()}),
  z.object({action:z.literal('resetPassword'),password:z.string().min(6).max(128)}),
  z.object({action:z.literal('revokeSessions')}),
@@ -33,12 +35,13 @@ export const PATCH:APIRoute=async({request,url,params,locals})=>{
     if(target.role==='admin'&&admins.length<=1)throw new WorkflowError('至少需要保留一个有效管理员。',422);
    }
    if(input.action==='rename')await tx.update(authUser).set({name:input.name,updatedAt:new Date()}).where(eq(authUser.id,target.id));
+   if(input.action==='updateUsername')await tx.update(authUser).set({username:input.username,displayUsername:input.username,updatedAt}).where(eq(authUser.id,target.id));
    if(input.action==='status')await tx.update(authUser).set({enabled:input.enabled,updatedAt:new Date()}).where(eq(authUser.id,target.id));
    if(password)await tx.update(authAccount).set({password,updatedAt:new Date()}).where(and(eq(authAccount.userId,target.id),eq(authAccount.providerId,'credential')));
    if(input.action==='revokeSessions'||input.action==='resetPassword'||input.action==='status'&&!input.enabled)await tx.delete(authSession).where(eq(authSession.userId,target.id));
    await tx.update(authUser).set({updatedAt}).where(eq(authUser.id,target.id));
    await tx.insert(accountManagementAudit).values({actorId:locals.user!.id,targetId:target.id,action:input.action==='status'?(input.enabled?'enable':'disable'):input.action});
   });
-  return Response.json({ok:true,updatedAt:updatedAt.toISOString(),signedOut:locals.user!.id===params.id&&(input.action==='resetPassword'||input.action==='revokeSessions')});
- }catch(error){if(error instanceof z.ZodError)return Response.json({message:error.issues[0].message},{status:422});return workflowErrorResponse(error);}
+  return Response.json({ok:true,updatedAt:updatedAt.toISOString(),...(input.action==='updateUsername'?{username:input.username}:{}),signedOut:locals.user!.id===params.id&&(input.action==='resetPassword'||input.action==='revokeSessions')});
+ }catch(error){if(error instanceof z.ZodError)return Response.json({message:error.issues[0].message},{status:422});return workflowErrorResponse(accountConflict(error)??error);}
 };

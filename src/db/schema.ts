@@ -27,7 +27,7 @@ export const authUser = pgTable('auth_user', {
   enabled: boolean('enabled').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, table => [check('auth_user_role_check', sql`${table.role} IN ('admin', 'employee')`)]);
+}, table => [check('auth_user_role_check', sql`${table.role} IN ('admin', 'employee')`),uniqueIndex('auth_user_name_key').on(sql`lower(btrim(${table.name}))`),uniqueIndex('auth_user_login_identifier_username_key').on(sql`lower(btrim(${table.username}))`)]);
 
 export const authSession = pgTable('auth_session', {
   id: text('id').primaryKey(), userId: text('user_id').notNull().references(() => authUser.id, { onDelete: 'cascade' }),

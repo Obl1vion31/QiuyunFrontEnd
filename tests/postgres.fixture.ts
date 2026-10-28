@@ -1,3 +1,4 @@
+import {readFile} from 'node:fs/promises';
 /** 可选的真实 PostgreSQL 验收：仅连接显式指定的本机测试服务，创建独立临时库。 */
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -17,6 +18,8 @@ export async function startPostgresFixture(){
  const database=createDatabase(target.href),db=database.db;
  try{
   for(const statement of await generateMigration(generateDrizzleJson({}),generateDrizzleJson(schema)))await database.db.execute((await import('drizzle-orm')).sql.raw(statement));
+  const identifiers=await readFile(new URL('../drizzle/0042_account_login_identifiers.sql',import.meta.url),'utf8');
+  for(const statement of identifiers.split('--> statement-breakpoint').filter(s=>/^\s*CREATE (?:OR REPLACE FUNCTION|TRIGGER)/.test(s)))await db.execute((await import('drizzle-orm')).sql.raw(statement));
   await db.insert(schema.operationsSubject).values(subjects.map((row,index)=>({...row,sortOrder:index*10})));await db.insert(schema.operationsCategory).values(postCategories.map((row,index)=>({...row,sortOrder:index*10})));await db.insert(schema.operationsSubjectCategory).values([...subjectCategoryMappings]);
   await provisionAccount(db,admin);await provisionAccount(db,employee);await provisionAccount(db,{username:'test_other',password:'fictional-other-password',role:'employee'});
  }catch(error){await database.close();await maintenance.unsafe(`drop database "${name}"`);await maintenance.end();throw error;}

@@ -55,17 +55,17 @@ try {
   const context = await launched.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage(); page.on('pageerror', (error: Error) => errors.push(error.message));
   await page.goto(baseURL + '/business/annual-plan?year=2027'); assert.equal(new URL(page.url()).pathname, '/login');
-  // 真实422必须显示输入原因，不能误报服务故障；输入与重试继续保留。
+  // 未知用户名与错误密码使用同一反馈，不能误报服务故障；输入与重试保留。
   for(const width of [1440,390,320]){
     await page.setViewportSize({width,height:900});await page.locator('#username').fill('OB');await page.locator('#password').fill('fictional-password');
     const response=page.waitForResponse((r:{url:()=>string})=>r.url().endsWith('/api/auth/sign-in/username'));
-    await page.locator('button[type=submit]').click();assert.equal((await response).status(),422);
-    await page.getByText('账号名至少需要 3 个字符，请使用管理员提供的登录账号。',{exact:true}).waitFor();
+    await page.locator('button[type=submit]').click();assert.equal((await response).status(),401);
+    await page.getByText('账号、用户名或密码不正确，请重新输入。',{exact:true}).waitFor();
     assert.equal(await page.locator('#username').inputValue(),'OB');assert.equal(await page.locator('#password').inputValue(),'fictional-password');assert.equal(await page.locator('button[type=submit]').isEnabled(),true);
     await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:`${evidenceDir}/login-validation-${width}.png`});
   }
   await page.setViewportSize({width:1440,height:900});
-  for(const [status,body,message] of [[422,'not-json','账号或密码的填写格式不正确，请检查后重试。'],[403,JSON.stringify({message:'private detail'}),'登录请求被拒绝，请刷新页面或联系管理员确认账号状态。'],[503,'not-json','登录服务暂时不可用，请稍后重试。']] as const){
+  for(const [status,body,message] of [[403,JSON.stringify({message:'private detail'}),'登录请求被拒绝，请刷新页面或联系管理员确认账号状态。'],[503,'not-json','登录服务暂时不可用，请稍后重试。']] as const){
     await page.route('**/api/auth/sign-in/username',(route:{fulfill:(options:{status:number;contentType:string;body:string})=>Promise<void>})=>route.fulfill({status,contentType:'text/plain',body}));await page.locator('button[type=submit]').click();await page.getByText(message,{exact:true}).waitFor();assert.equal(await page.locator('#password').inputValue(),'fictional-password');assert.equal(await page.locator('#password').evaluate((n:HTMLInputElement)=>document.activeElement===n),true);await page.screenshot({path:`${evidenceDir}/login-status-${status}-1440.png`});await page.unroute('**/api/auth/sign-in/username');
   }
   await page.locator('#username').fill(admin.username); await page.locator('#password').fill('fictional-wrong-password'); await page.locator('button[type=submit]').click();
@@ -83,10 +83,10 @@ try {
     const link = page.locator(`[data-module-href="/business/${path}"]`); await link.click(); await page.waitForURL(`**/business/${path}*`);
     const current = await sidebar.boundingBox(); assert.equal(current?.x, box?.x); assert.equal(current?.width, box?.width);
   }
-  // 自己改名为两字符的OB仍保留原登录账号；页面明确区分姓名与凭据。
+  // 两字符用户名OB和原账号均可登录；身份保持。
   await page.goto(baseURL+'/business/settings');const self=page.locator(`[data-account-username="${admin.username}"]`);await self.locator('[data-account-action=rename]').click();const editor=page.locator('[data-account-editor]');await editor.locator('input[name=value]').fill('OB');
-  for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await editor.getByText(`此处只修改显示姓名，登录时仍使用 ${admin.username}。`,{exact:true}).waitFor();await page.evaluate(async()=>{await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished));});await page.screenshot({path:`${evidenceDir}/account-rename-${width}.png`});}
-  await page.setViewportSize({width:1440,height:900});await editor.locator('[type=submit]').click();await editor.waitFor({state:'hidden'});await self.getByText(`显示姓名已保存，登录账号仍为 ${admin.username}。`,{exact:true}).waitFor();const identity=await db.query.authUser.findFirst({where:(row,{eq})=>eq(row.username,admin.username)});assert.equal(identity?.name,'OB');assert.equal(identity?.username,admin.username);await login(admin);
+  for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await editor.getByText('可使用完整用户名或登录账号登录。用户名不能与他人的用户名或账号重复。',{exact:true}).waitFor();await page.evaluate(async()=>{await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished));});await page.screenshot({path:`${evidenceDir}/account-rename-${width}.png`});}
+  await page.setViewportSize({width:1440,height:900});await editor.locator('[type=submit]').click();await editor.waitFor({state:'hidden'});await self.getByText('已保存，可使用账号或用户名登录。',{exact:true}).waitFor();const identity=await db.query.authUser.findFirst({where:(row,{eq})=>eq(row.username,admin.username)});assert.equal(identity?.name,'OB');assert.equal(identity?.username,admin.username);await login(admin);await login({...admin,username:'OB'});
   await page.locator('.business-account--sidebar [data-account-trigger]').click(); await page.locator('#business-account-sidebar [data-sign-out]').click();
   await page.waitForURL('**/login'); await page.goto(baseURL + '/business/operations-schedule'); assert.equal(new URL(page.url()).pathname, '/login');
   await context.close();

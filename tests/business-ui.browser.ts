@@ -46,7 +46,7 @@ try {
     let geometry:any;
     for(const path of ['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','settings']) {
       await page.goto(baseURL+'/business/'+path+(path==='settings'?'?view=permissions':''));await page.locator('.business-toolbar').waitFor();
-      const tool=page.locator('[data-tools-trigger]');assert.ok(await tool.isVisible());const toolBox=await tool.boundingBox();assert.ok(toolBox.width>=44&&toolBox.height>=44);const mainRight=await page.locator('main').evaluate((n:HTMLElement)=>n.getBoundingClientRect().right),railLeft=await page.locator('.business-tools').evaluate((n:HTMLElement)=>n.getBoundingClientRect().left);assert.ok(mainRight<=railLeft+1,`${path} 正文不被工具栏覆盖`);
+      const tool=page.locator('[data-tools-trigger]');assert.ok(await tool.isVisible());const toolBox=await tool.boundingBox();assert.ok(toolBox.width>=44&&toolBox.height>=44);const shell=await page.locator('.business-console-workspace').evaluate((n:HTMLElement)=>({padding:getComputedStyle(n).paddingRight,width:n.getBoundingClientRect().width,toolbar:n.querySelector('.business-toolbar')!.getBoundingClientRect().width}));assert.equal(shell.padding,'0px');assert.ok(Math.abs(shell.width-shell.toolbar)<=1,'不再预留独立工具栏宽度');
       await tool.click();const tools=page.locator('#business-tools-menu');assert.equal(await tools.locator('button:disabled').count(),3);assert.deepEqual(await tools.locator('button>span').allTextContents(),['查找帖子','找功能','AI 录入','数据导出']);await page.keyboard.press('Escape');
       const current=await page.evaluate(() => {
         const bar=document.querySelector('.business-toolbar')!.getBoundingClientRect();

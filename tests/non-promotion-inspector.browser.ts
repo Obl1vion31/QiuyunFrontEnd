@@ -45,6 +45,8 @@ try {
   for(const [checkpointType,clickRate] of [['day_7','6.25'],['day_15','8.50']])
     await api('/api/non-promotion-reviews',{scheduleId:history.schedule.id,checkpointType,recordedThrough:checkpointType==='day_7'?'2026-10-08':'2026-10-16',clickRate,threeSecondReadRate:'42',conclusion:'保留问题拆解方式，补充反例。'});
   const edge=await seed('长数据边界：真实零值与完整百分比的对照');for(const [checkpointType,clickRate]of [['day_7','0'],['day_15','100']])await api('/api/non-promotion-reviews',{scheduleId:edge.schedule.id,checkpointType,recordedThrough:checkpointType==='day_7'?'2026-10-08':'2026-10-16',clickRate,threeSecondReadRate:clickRate,conclusion:'隔离视觉边界'});await seed('无同类基准的待复盘记录',{category:'temporary'});
+  const otherCategory=await seed('另一分类：常规短标题',{category:'temporary'});
+  await api('/api/non-promotion-reviews',{scheduleId:otherCategory.schedule.id,checkpointType:'day_7',recordedThrough:'2026-10-08',clickRate:'23.70',threeSecondReadRate:'58.58',conclusion:'第二分类展开验收'});
   const skipped = await seed('方法对照：条件充分性判断',{category:'temporary'});
   await api('/api/non-promotion-checkpoints',{scheduleId:skipped.schedule.id,checkpointType:'day_7',action:'skip',scope:'schedule',expectedEventId:'',expectedEvents:JSON.stringify({day_7:null,day_15:null}),reason:'本次平台数据不可用'});
 
@@ -60,6 +62,7 @@ try {
   browser = await pw.chromium.launch({headless:true});
   const context = await browser.newContext({viewport:{width:1440,height:1100},recordVideo:{dir:folder+'/video',size:{width:1440,height:1100}}});
   await context.addCookies(cookie.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:baseURL})));
+  const recordingStart=performance.now();
   const page = await context.newPage();await page.clock.setFixedTime(new Date('2026-10-23T12:00:00+08:00'));page.setDefaultTimeout(12000);
   page.on('pageerror',(e:Error)=>errors.push(e.message));
   page.on('dialog',(dialog:any)=>{errors.push('不应出现原生弹框：'+dialog.type());void dialog.dismiss();});
@@ -209,7 +212,25 @@ try {
     await shot('history-inspector-'+width);await close();
   }
   await page.setViewportSize({width:1440,height:1100});
-  await page.getByRole('radio',{name:'分类均值查看',exact:true}).check();await shot('history-category-1440');
+  await page.getByRole('radio',{name:'分类均值查看',exact:true}).check();
+  const categoryClipStart=(performance.now()-recordingStart)/1000;
+  const categoryChecks=async()=>{
+   const bounds=await page.locator('.review-table').evaluate((table:HTMLElement)=>{
+    const canvas=table.getBoundingClientRect();return [...table.querySelectorAll<HTMLElement>('.category-grid,details[open] .category-detail-body,details[open] .review-row')].filter(n=>n.getBoundingClientRect().height).map(n=>{const r=n.getBoundingClientRect();return {class:n.className,left:r.left-canvas.left,right:r.right-canvas.right,overflow:n.scrollWidth-n.clientWidth};});
+   });assert.ok(bounds.every((r:any)=>Math.abs(r.left)<=1&&Math.abs(r.right)<=1&&r.overflow<=1),'汇总与明细共用左右边界且内部内容不越界 '+JSON.stringify(bounds));
+   assert.equal(await page.locator('.category-detail-body').first().evaluate((n:HTMLElement)=>getComputedStyle(n).overflowX),'visible','明细不建立第二层横滚');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+  };
+  for(const width of [1920,1440,1024,390,320,1374,1376]){
+   await page.setViewportSize({width,height:1100});await page.evaluate(()=>window.scrollTo(0,0));
+   await page.locator('.review-table').evaluate((n:HTMLElement)=>{n.parentElement!.scrollLeft=0;});await page.locator('[data-category-details]').evaluateAll((nodes:HTMLDetailsElement[])=>nodes.forEach(n=>n.open=false));await shot('category-closed-'+width);await categoryChecks();
+   await group.locator('summary').click();await settleBusinessUI(page);await categoryChecks();await shot('category-open-'+width);
+   await page.locator('[data-category-details]').filter({hasText:'临时帖'}).locator('summary').click();await settleBusinessUI(page);await categoryChecks();await page.evaluate(()=>window.scrollTo(0,0));await shot('category-multiple-'+width);
+   if(width<=1024){await page.locator('[data-grouped=true]').evaluate((n:HTMLElement)=>{n.parentElement!.scrollLeft=n.parentElement!.scrollWidth;});await shot('category-right-'+width);await categoryChecks();}
+  }
+  await page.setViewportSize({width:1440,height:1100});await row(history.schedule.id).locator('.review-entry-button').click();await settleBusinessUI(page);await categoryChecks();await shot('category-inspector-1440');await close();
+  const categoryClipEnd=(performance.now()-recordingStart)/1000;
+  checks.push('分类收起／单展开／多展开逐档及断点两侧验证父子左右边界，Inspector窄容器及单横滚');
   checks.push('首次保存后资料仍可读，历史保存刷新、首二轮独立及分类/平铺共用节点');
 
   await nav('/business/non-promotion-review?view=skipped');
@@ -240,6 +261,6 @@ try {
   console.log('通过：'+checks.join('；'));
   const videoPath = await page.video().path();
   await context.close();
-  await writeFile(folder+'/video-path.txt',videoPath);
+  await writeFile(folder+'/video-path.txt',videoPath);await writeFile(folder+'/category-clip.json',JSON.stringify({path:videoPath,start:Math.max(0,categoryClipStart-.25),end:categoryClipEnd+.25},null,2));
 } catch(error) {console.error(fixture.logs().slice(-2500));throw error;}
 finally {await browser?.close();await fixture.stop();}

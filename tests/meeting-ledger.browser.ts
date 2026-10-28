@@ -32,13 +32,14 @@ try{
     const row=rowFor(primary.meeting.id);await row.getByRole('button',{name:'重新生成',exact:true}).waitFor();
     const geometry=await row.evaluate((node:HTMLElement)=>{
       const table=node.closest('table')!,cells=[...node.querySelectorAll('td')],actions=node.querySelector('.meeting-pdf-actions')!;
-      const boxes=[...actions.children].filter(el=>el.getBoundingClientRect().width>0).map(el=>el.getBoundingClientRect());
+      const boxes=[...actions.querySelectorAll('.meeting-pdf-action-group > a,.meeting-pdf-action-group > button')].filter(el=>el.getBoundingClientRect().width>0).map(el=>el.getBoundingClientRect());
       const row=node.getBoundingClientRect(),cell=cells[5].getBoundingClientRect(),title=cells[3].getBoundingClientRect(),name=node.querySelector('.meeting-name-cell')!.getBoundingClientRect();
       return {rowHeight:row.height,tableWidth:table.getBoundingClientRect().width,titleWidth:title.width,nameWidth:name.width,titlePadding:parseFloat(getComputedStyle(cells[3]).paddingLeft)+parseFloat(getComputedStyle(cells[3]).paddingRight),centers:boxes.map(r=>r.y+r.height/2),within:boxes.every(r=>r.left>=cell.left&&r.right<=cell.right),padding:parseFloat(getComputedStyle(cells[5]).paddingTop)+parseFloat(getComputedStyle(cells[5]).paddingBottom),actionHeight:Math.max(...boxes.map(r=>r.height))};
     });measurements.push({width,...geometry});
-    assert.ok(Math.max(...geometry.centers)-Math.min(...geometry.centers)<=1,'四个PDF动作同排且中线一致');
+    assert.ok(Math.abs(geometry.centers[0]-geometry.centers[1])<=1&&Math.abs(geometry.centers[2]-geometry.centers[3])<=1&&geometry.centers[2]-geometry.centers[0]>=36,'PDF查看与维护各一行，组内中线一致');
+    const reading=await row.evaluate((node:HTMLElement)=>{const cells=[...node.querySelectorAll('td')].slice(0,3);const rects=cells.map(cell=>{const r=document.createRange();r.selectNodeContents(cell);return r.getBoundingClientRect();});const name=node.querySelector('.meeting-name')!.getBoundingClientRect(),version=node.querySelector('.meeting-name-cell>span')!.getBoundingClientRect();return {gaps:rects.slice(1).map((r,i)=>r.left-rects[i].right),versionInline:Math.abs(name.y-version.y)<8};});assert.ok(reading.gaps.every((gap:number)=>gap>=20),'前三组实际文字之间留有可读间距');assert.ok(reading.versionInline,'普通会议名称与版本同行');
     assert.ok(geometry.within,'动作完整包含在PDF列中');
-    assert.ok(geometry.rowHeight<110,'常规记录保持紧凑且容纳两行会议信息');
+    assert.ok(geometry.rowHeight<110,'常规记录容纳两组PDF操作');
     assert.ok(geometry.tableWidth<=1280,'阅读表不扩展到整屏剩余宽度');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'仅表格内部横滚');
     assert.equal(await page.getByRole('columnheader',{name:'版本状态',exact:true}).count(),1);
@@ -48,7 +49,7 @@ try{
      await capture('normal-'+width);
     if(width<1440){const scroll=page.locator('.meeting-ledger-scroll').first();await row.locator('.meeting-pdf-actions').evaluate((n:HTMLElement)=>n.scrollIntoView({inline:'center',block:'nearest'}));const visible=await row.locator('.meeting-pdf-actions').evaluate((n:HTMLElement)=>{const r=n.getBoundingClientRect(),host=n.closest('.meeting-ledger-scroll')!.getBoundingClientRect();return r.left>=host.left&&r.right<=host.right;});assert.ok(visible,'表内横滚后PDF操作完整可见');await capture('normal-right-'+width);}
   }
-  checks.push('六档视口普通记录：列宽按内容、操作同行、行高、表头语义及内部横滚');
+  checks.push('六档视口普通记录：列宽按内容、PDF分组、行高、表头语义及内部横滚');
   const long=await seed('长标题：从完整条件、图像与反例理解复杂业务问题，并保留跨周期结论和执行记录，供团队会议核对', 'post','ready',2);
   await seed('会前版本只读材料','pre',null,0,false);
   const failed=await seed('PDF生成失败待重试','post','failed',0,false);
@@ -75,7 +76,7 @@ try{
   let release!:()=>void,reached!:()=>void;const started=new Promise<void>(resolve=>reached=resolve);
   await page.route(endpoint,async(route:any)=>{await new Promise<void>(resolve=>{release=resolve;reached();});await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'生成失败：请稍后重试，当前已有文件继续保留，可在同一条记录重新操作。'})});});
   const before=await page.locator('.meeting-ledger-main thead th').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.getBoundingClientRect().width));
-  await failure.getByRole('button',{name:'重试PDF',exact:true}).click();await failure.getByText('正在生成PDF…',{exact:true}).waitFor();await started;await capture('busy-1440');release();await failure.getByText(/^生成失败：/).waitFor();await capture('error-1440');
+  await failure.getByRole('button',{name:'重试PDF',exact:true}).click();await failure.getByText('正在生成PDF…',{exact:true}).waitFor();await started;await capture('busy-1440');release();await failure.getByText(/^生成失败：/).waitFor();await capture('error-1440');await page.locator('.meeting-ledger-main').evaluate((n:HTMLElement)=>{n.parentElement!.scrollLeft=n.parentElement!.scrollWidth;});await capture('error-right-1440');const dot=await page.locator('[data-tools-trigger] circle').first().boundingBox();const content=await page.locator('.meeting-ledger-main').evaluate((n:HTMLElement)=>n.parentElement!.getBoundingClientRect().right);assert.ok(dot&&dot.x>=content,'桌面竖点落在正文外，常态底板不遮盖错误文字');assert.equal(await page.locator('[data-tools-trigger]').evaluate((n:HTMLElement)=>getComputedStyle(n).backgroundColor),'rgba(0, 0, 0, 0)');
   const after=await page.locator('.meeting-ledger-main thead th').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.getBoundingClientRect().width));assert.ok(before.every((n:number,i:number)=>Math.abs(n-after[i])<=1),'错误反馈不重新分配整张表的列宽');
   const output=await failure.locator('output').evaluate((node:HTMLElement)=>({client:node.clientWidth,scroll:node.scrollWidth}));assert.ok(output.scroll<=output.client+1);
   checks.push('生成中及失败可重试，文字完整，其他列宽不变');

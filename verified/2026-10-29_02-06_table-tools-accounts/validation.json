@@ -1,0 +1,52 @@
+{
+  "rules": {
+    "passed": 222,
+    "failed": 0
+  },
+  "checks": {
+    "auth-browser": "passed",
+    "accounts-real-postgres": "passed",
+    "meeting-ledger": "passed",
+    "non-promotion": "passed",
+    "collaboration-lookup": "passed",
+    "public-ui": "passed",
+    "db-check": "passed",
+    "astro-check": "passed",
+    "node-build": "passed",
+    "vercel-build": "passed",
+    "runtime-chinese-pdf": "passed"
+  },
+  "visualReview": "稳定截图及三段录像12fps连续帧已实际打开审查",
+  "viewports": {
+    "categories": [
+      1920,
+      1440,
+      1024,
+      390,
+      320,
+      1374,
+      1376
+    ],
+    "meetings": [
+      1920,
+      1440,
+      1280,
+      1024,
+      390,
+      320
+    ],
+    "tools": [
+      1920,
+      1440,
+      1024,
+      390,
+      320
+    ],
+    "accountForms": [
+      1440,
+      390,
+      320
+    ]
+  },
+  "dataSource": "本机隔离测试库，演示资料链接；正式库只读预检、私有备份和已授权0042兼容迁移"
+}

@@ -43,7 +43,7 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
   let response:Response;
   if(protectedPath&&!['GET','HEAD','OPTIONS'].includes(request.method)&&!url.pathname.startsWith('/api/collaboration/')){
    try{response=await getDb().transaction(async tx=>withDatabase(tx,async()=>{
-    if(url.pathname.startsWith('/api/admin/accounts/'))await tx.execute(sql`select pg_advisory_xact_lock(719301)`);
+    if((url.pathname==='/api/admin/accounts'||url.pathname.startsWith('/api/admin/accounts/')))await tx.execute(sql`select pg_advisory_xact_lock(719301)`);
     const [account]=await tx.select({enabled:authUser.enabled}).from(authUser).where(eq(authUser.id,locals.user!.id)).for('share');
     const [session]=await tx.select({id:authSession.id}).from(authSession).where(and(eq(authSession.id,locals.session!.id),eq(authSession.userId,locals.user!.id)));
     if(!account?.enabled||!session)throw new WorkflowError('登录已失效，请重新登录。',401);

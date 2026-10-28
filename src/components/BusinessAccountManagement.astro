@@ -1,13 +1,29 @@
 ---
 import BusinessFormDialog from './BusinessFormDialog.astro';
+import BusinessAccountRow from './BusinessAccountRow.astro';
 interface Props{accounts:Array<{id:string;username:string;name:string;role:string;enabled:boolean;updatedAt:Date}>}
 const {accounts}=Astro.props;
 ---
 <section class="account-management business-form" data-account-management>
- <div class="account-table"><table><thead><tr><th>登录账号</th><th>显示姓名</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody>{accounts.map(account=><tr data-account-id={account.id} data-account-username={account.username} data-account-updated={account.updatedAt.toISOString()} data-collaboration-resource={`account:${account.id}`} data-collaboration-label={account.name}>
- <th>{account.username}</th><td data-account-name>{account.name}</td><td>{account.role==='admin'?'管理员':'员工'}</td><td data-account-status>{account.enabled?'已启用':'已停用'}</td><td><div class="account-actions"><button type="button" class="business-action-secondary" data-account-action="rename">修改姓名</button><button type="button" class="business-action-secondary" data-account-action="resetPassword">重置密码</button><button type="button" class="business-action-secondary" data-account-action="revokeSessions">撤销登录</button><button type="button" class="business-action-secondary" data-account-action="status" data-enabled={account.enabled} disabled={account.id===Astro.locals.user?.id}>{account.enabled?'停用':'恢复'}</button></div><output role="status"/></td>
- </tr>)}</tbody></table></div>
- <BusinessFormDialog labelledby="account-editor-title" width={480} data-account-editor><form class="business-form"><header class="dialog-head"><h2 id="account-editor-title">修改姓名</h2><button type="button" data-account-close aria-label="关闭">×</button></header><div class="form-dialog-body"><label data-account-field>显示姓名<input name="value" required maxlength="40" autocomplete="off"/></label><p data-account-editor-note hidden>重置后，该账号已登录的浏览器将退出。</p></div><footer class="dialog-actions"><output role="alert"/><button type="button" data-account-close>取消</button><button type="submit" class="business-action-primary">保存</button></footer></form></BusinessFormDialog>
+ <div class="account-toolbar"><button type="button" class="business-action-primary" data-account-create>新增账号</button></div>
+ <div class="account-table"><table><thead><tr><th>登录账号</th><th>用户名</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody>{accounts.map(account=><BusinessAccountRow account={account}/>)}</tbody></table></div>
+ <template data-account-row-template><BusinessAccountRow/></template>
+ <BusinessFormDialog labelledby="account-editor-title" width={480} data-account-editor><form class="business-form"><header class="dialog-head"><h2 id="account-editor-title">修改用户名</h2><button type="button" data-account-close aria-label="关闭">×</button></header><div class="form-dialog-body"><label data-account-field>用户名<input name="value" required maxlength="40" autocomplete="off"/></label><p data-account-editor-note/></div><footer class="dialog-actions"><output role="alert"/><button type="button" data-account-close>取消</button><button type="submit" class="business-action-primary">保存</button></footer></form></BusinessFormDialog>
+ <BusinessFormDialog labelledby="account-create-title" width={480} data-account-create-dialog><form class="business-form"><header class="dialog-head"><h2 id="account-create-title">新增账号</h2><button type="button" data-account-close aria-label="关闭">×</button></header><div class="form-dialog-body account-create-fields">
+ <div class="account-create-field"><label>登录账号<input name="username" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" autocomplete="off" spellcheck="false" aria-describedby="create-account-username-help"/></label><small id="create-account-username-help">3–30 位英文字母、数字或下划线</small></div>
+ <div class="account-create-field"><label>用户名<input name="name" required maxlength="40" autocomplete="off" aria-describedby="create-account-name-help"/></label><small id="create-account-name-help">完整姓名，可用于登录和人员显示</small></div>
+ <label>初始密码<input name="password" type="password" required minlength="6" maxlength="128" autocomplete="new-password"/></label>
+ <div class="account-create-field"><label for="create-account-role">角色</label><select id="create-account-role" name="role"><option value="employee">员工</option><option value="admin">管理员</option></select></div><p data-account-admin-note hidden>管理员可管理团队账号、操作授权和系统设置。</p>
+ </div><footer class="dialog-actions"><output role="alert"/><button type="button" data-account-close>取消</button><button type="submit" class="business-action-primary">创建账号</button></footer></form></BusinessFormDialog>
 </section>
 <script>import '../scripts/account-management';</script>
-<style>.account-table{overflow:auto;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}table{width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--console-line)}thead{background:var(--console-surface-subtle);color:var(--console-muted)}th{font-weight:500}.account-actions{display:flex;flex-wrap:wrap;gap:8px}output{display:block;color:var(--console-muted);font-size:13px}output:empty{display:none}[data-account-editor-note]{font-size:13px;color:var(--console-muted)}[data-account-editor] input{width:100%}</style>
+<style is:global>
+.account-management .account-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
+.account-management .account-table{overflow:auto;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
+.account-management table{width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}
+.account-management :is(th,td){padding:14px 16px;text-align:left;border-bottom:1px solid var(--console-line)}
+.account-management thead{background:var(--console-surface-subtle);color:var(--console-muted)}.account-management th{font-weight:500}
+.account-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:260px}.account-management output{display:block;color:var(--console-muted);font-size:13px}.account-management output:empty{display:none}
+.account-management [data-account-editor-note],.account-create-fields small,.account-create-fields p{font:400 13px/20px var(--console-font);color:var(--console-muted)}
+.account-management dialog :is(input,select){width:100%}.account-create-fields{display:grid;gap:16px}.account-create-field{display:grid;gap:6px}.account-create-fields p{margin:0}
+</style>

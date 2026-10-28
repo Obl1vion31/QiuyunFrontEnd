@@ -5,7 +5,7 @@ import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { getDb, type Database } from '../db/client';
 import { authUser, authSession, authAccount, authVerification, authRateLimit } from '../db/schema';
-import {eq} from 'drizzle-orm';
+import {sql} from 'drizzle-orm';
 
 export function createAuth(db: Database, config: { secret: string; baseURL: string; rateLimit?: boolean }) {
   if (config.secret.length < 32) throw new Error('BETTER_AUTH_SECRET_NOT_CONFIGURED');
@@ -22,13 +22,18 @@ export function createAuth(db: Database, config: { secret: string; baseURL: stri
     trustedOrigins,
     // 登录尚无 cookie 时也验证来源，避免登录 CSRF；不依赖浏览器是否已持有会话。
     hooks: { before: createAuthMiddleware(async context => {
-      if(context.path==='/sign-in/username'&&typeof context.body?.username==='string'){
-        const [account]=await db.select({enabled:authUser.enabled}).from(authUser).where(eq(authUser.username,context.body.username.toLowerCase()));
-        if(account&&!account.enabled)throw new APIError('FORBIDDEN',{message:'账号已停用，请联系管理员。'});
-      }
       if (context.request && !['GET', 'HEAD', 'OPTIONS'].includes(context.request.method)
         && !trustedOrigins.includes(context.request.headers.get('origin') ?? '')) {
         throw new APIError('FORBIDDEN', { message: '拒绝跨站账号操作。' });
+      }
+      if(context.path==='/sign-in/username'&&typeof context.body?.username==='string'){
+        const identifier=context.body.username.trim();
+        if(!identifier||identifier.length>40)throw new APIError('BAD_REQUEST',{message:'请填写有效的账号或用户名。'});
+        const [account]=await db.select({username:authUser.username,enabled:authUser.enabled}).from(authUser)
+          .where(sql`lower(btrim(${authUser.username}))=lower(btrim(${identifier})) or lower(btrim(${authUser.name}))=lower(btrim(${identifier}))`);
+        if(!account)throw new APIError('UNAUTHORIZED',{message:'账号或密码不正确。'});
+        if(!account.enabled)throw new APIError('FORBIDDEN',{message:'账号已停用，请联系管理员。'});
+        return {context:{body:{...context.body,username:account.username}}};
       }
     }) },
     database: drizzleAdapter(db, { provider: 'pg', transaction: true, schema: {

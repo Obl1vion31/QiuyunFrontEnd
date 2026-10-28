@@ -1,0 +1,16 @@
+{
+  "migration": "0042_account_login_identifiers",
+  "preflightConflicts": 0,
+  "privateBackup": true,
+  "tablesChecked": 50,
+  "unchangedTables": 49,
+  "changedTables": [
+    "business_presence"
+  ],
+  "beforeAt": "2026-10-28T18:09:50.689Z",
+  "afterAt": "2026-10-28T18:13:41.886Z",
+  "presenceChangedFields": [
+    "expires_at"
+  ],
+  "businessAndAccountDataUnchanged": true
+}

@@ -36,12 +36,15 @@ test('用户名登录保存哈希、注册关闭、无效凭据不创建会话',
   for (const input of [{ ...admin, password: 'fictional-wrong' }, { username: 'missing_user', password: 'fictional-password' }]) assert.equal((await request('sign-in/username', input)).status, 401);
   assert.equal((await db.select().from(schema.authSession)).length, before);
 });
-test('短账号和非法格式返回422且给出字段代码，不创建会话',async()=>{
- const before=(await db.select().from(schema.authSession)).length;
- for(const [username,code] of [['OB','USERNAME_TOO_SHORT'],['a'.repeat(31),'USERNAME_TOO_LONG'],['账号名','INVALID_USERNAME']]){
-  const response=await request('sign-in/username',{username,password:'fictional-password'});assert.equal(response.status,422);assert.equal((await response.json()).code,code);
- }
- assert.equal((await db.select().from(schema.authSession)).length,before);
+test('账号和完整用户名均可登录，短姓名不受账号最小长度限制',async()=>{
+ const created=await provisionAccount(db,{username:'alias_user',name:'OB',password:'fictional-alias-password',role:'employee'});
+ for(const username of ['alias_user','OB',' ob '])assert.equal((await request('sign-in/username',{username,password:'fictional-alias-password'})).status,200);
+ await db.update(schema.authUser).set({name:'陈晓 Alice'}).where(eq(schema.authUser.id,created.id));
+ assert.equal((await request('sign-in/username',{username:'陈晓 alice',password:'fictional-alias-password'})).status,200);
+ assert.equal((await request('sign-in/username',{username:'OB',password:'fictional-alias-password'})).status,401);
+ for(const username of ['未知姓名','missing_alias'])assert.equal((await request('sign-in/username',{username,password:'fictional-password'})).status,401);
+ await assert.rejects(provisionAccount(db,{username:'other_alias',name:'陈晓 ALICE',password:'fictional-password',role:'employee'}));
+ await assert.rejects(provisionAccount(db,{username:'other_alias',name:admin.username,password:'fictional-password',role:'employee'}));
 });
 test('重复与并发创建不改密码或角色', async () => {
   const input = { username: 'duplicate_user', password: 'fictional-original-password', role: 'employee' as const };

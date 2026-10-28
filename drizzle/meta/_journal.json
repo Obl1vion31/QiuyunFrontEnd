@@ -295,6 +295,13 @@
       "when": 1793176681952,
       "tag": "0041_collaboration_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793209394593,
+      "tag": "0042_account_login_identifiers",
+      "breakpoints": true
     }
   ]
 }

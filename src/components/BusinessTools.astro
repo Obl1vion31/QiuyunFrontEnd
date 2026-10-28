@@ -1,5 +1,5 @@
 <aside class="business-tools" aria-label="工作台工具">
-  <button type="button" class="business-tools__trigger" popovertarget="business-tools-menu" aria-label="打开工具" data-tools-trigger><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg><span>工具</span></button>
+  <button type="button" class="business-tools__trigger" aria-controls="business-tools-menu" aria-expanded="false" aria-label="工作台工具" title="工作台工具" data-tools-trigger><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
   <div id="business-tools-menu" class="business-tools__menu" popover="auto" aria-label="工作台工具菜单">
     <button type="button" data-post-lookup-open><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>查找帖子</span></button>
     <button type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg><span>找功能</span><small>未开放</small></button>
@@ -9,16 +9,28 @@
 </aside>
 <script>
  function initialize(){
-  const panel=document.querySelector<HTMLElement>('#business-tools-menu'),trigger=document.querySelector<HTMLElement>('[data-tools-trigger]');if(!panel||!trigger||panel.dataset.ready)return;panel.dataset.ready='true';
+  const panel=document.querySelector<HTMLElement>('#business-tools-menu'),trigger=document.querySelector<HTMLButtonElement>('[data-tools-trigger]');
+  if(!panel||!trigger||panel.dataset.ready)return;panel.dataset.ready='true';
+  const abort=new AbortController(),options={signal:abort.signal};let pinned=false,leaving:ReturnType<typeof setTimeout>|undefined;
+  const cancelLeave=()=>clearTimeout(leaving);
   const place=()=>{if(!panel.matches(':popover-open'))return;const box=trigger.getBoundingClientRect();panel.style.left=`${Math.max(8,box.left-panel.offsetWidth-8)}px`;panel.style.top=`${Math.max(8,Math.min(box.top,innerHeight-panel.offsetHeight-82))}px`;};
-  panel.addEventListener('toggle',place);const abort=new AbortController();window.addEventListener('resize',place,{signal:abort.signal});document.addEventListener('astro:before-swap',()=>{panel.hidePopover();abort.abort();},{once:true,signal:abort.signal});
+  const open=()=>{cancelLeave();panel.showPopover();trigger.setAttribute('aria-expanded','true');place();};
+  const close=()=>{cancelLeave();pinned=false;panel.hidePopover();trigger.setAttribute('aria-expanded','false');};
+  const leave=()=>{cancelLeave();leaving=setTimeout(()=>{if(!pinned&&!panel.matches(':hover')&&!trigger.matches(':hover')&&!panel.contains(document.activeElement)&&document.activeElement!==trigger)close();},180);};
+  trigger.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse')open();},options);
+  for(const node of [trigger,panel]){node.addEventListener('pointerenter',cancelLeave,options);node.addEventListener('pointerleave',leave,options);node.addEventListener('focusout',leave,options);}
+  trigger.addEventListener('click',()=>{if(pinned)close();else{pinned=true;open();}},options);
+  trigger.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();pinned=true;open();panel.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();}},options);
+  panel.addEventListener('toggle',()=>{const visible=panel.matches(':popover-open');trigger.setAttribute('aria-expanded',String(visible));if(!visible){pinned=false;cancelLeave();}else place();},options);
+  window.addEventListener('resize',place,options);
+  document.addEventListener('astro:before-swap',()=>{close();abort.abort();},{once:true,signal:abort.signal});
  }
  document.addEventListener('astro:page-load',initialize);initialize();
 </script>
 <style is:global>
-.business-tools{position:fixed;z-index:15;right:0;top:var(--console-toolbar-height);bottom:0;display:flex;align-items:center;justify-content:center;width:var(--console-tools-width);border-left:1px solid var(--console-line);background:var(--console-surface-subtle);font:400 13px/20px var(--console-font)}
-.business-tools__trigger{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:44px;min-height:64px;padding:6px 0;border:1px solid var(--console-line);border-radius:8px;background:var(--console-surface);color:var(--console-muted);font:500 12px/18px var(--console-font);cursor:pointer}
-.business-tools__trigger:hover,.business-tools__trigger[aria-expanded=true]{color:var(--console-blue);background:var(--console-blue-soft)}
+.business-tools{position:fixed;z-index:15;right:env(safe-area-inset-right,0px);top:50%;font:400 13px/20px var(--console-font)}
+.business-tools__trigger{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--console-muted);cursor:pointer}
+.business-tools__trigger:hover,.business-tools__trigger[aria-expanded=true]{color:var(--console-blue);background:var(--console-blue-soft);border-color:var(--console-line);box-shadow:0 2px 8px #10243e12}
 .business-tools__trigger:focus-visible,.business-tools__menu button:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
 .business-tools__menu{position:fixed;inset:auto;margin:0;width:224px;padding:6px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);box-shadow:0 10px 30px #10243e24;color:var(--console-ink);font:400 14px/22px var(--console-font)}
 .business-tools__menu:popover-open{display:grid;gap:4px}
@@ -26,5 +38,5 @@
 .business-tools__menu button:not(:disabled):hover{background:var(--console-blue-soft);color:var(--console-blue)}
 .business-tools__menu button:disabled{color:var(--console-muted);cursor:default}.business-tools__menu small{margin-left:auto;font:400 12px/18px var(--console-font);color:var(--console-muted)}
 .business-tools__menu svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
-@media(max-width:900px){:root{--console-tools-width:44px}.business-tools{bottom:66px}}
+@media(max-width:900px){.business-tools{right:max(12px,env(safe-area-inset-right));top:auto;bottom:calc(78px + env(safe-area-inset-bottom))}.business-tools__trigger{background:var(--console-surface);border-color:var(--console-line);box-shadow:0 2px 8px #10243e12}.business-console-content{padding-bottom:72px}}
 </style>
