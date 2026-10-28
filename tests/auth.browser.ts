@@ -83,6 +83,10 @@ try {
     const link = page.locator(`[data-module-href="/business/${path}"]`); await link.click(); await page.waitForURL(`**/business/${path}*`);
     const current = await sidebar.boundingBox(); assert.equal(current?.x, box?.x); assert.equal(current?.width, box?.width);
   }
+  // 自己改名为两字符的OB仍保留原登录账号；页面明确区分姓名与凭据。
+  await page.goto(baseURL+'/business/settings');const self=page.locator(`[data-account-username="${admin.username}"]`);await self.locator('[data-account-action=rename]').click();const editor=page.locator('[data-account-editor]');await editor.locator('input[name=value]').fill('OB');
+  for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await editor.getByText(`此处只修改显示姓名，登录时仍使用 ${admin.username}。`,{exact:true}).waitFor();await page.screenshot({path:`${evidenceDir}/account-rename-${width}.png`});}
+  await page.setViewportSize({width:1440,height:900});await editor.locator('[type=submit]').click();await editor.waitFor({state:'hidden'});await self.getByText(`显示姓名已保存，登录账号仍为 ${admin.username}。`,{exact:true}).waitFor();const identity=await db.query.authUser.findFirst({where:(row,{eq})=>eq(row.username,admin.username)});assert.equal(identity?.name,'OB');assert.equal(identity?.username,admin.username);await login(admin);
   await page.locator('.business-account--sidebar [data-account-trigger]').click(); await page.locator('#business-account-sidebar [data-sign-out]').click();
   await page.waitForURL('**/login'); await page.goto(baseURL + '/business/operations-schedule'); assert.equal(new URL(page.url()).pathname, '/login');
   await context.close();
