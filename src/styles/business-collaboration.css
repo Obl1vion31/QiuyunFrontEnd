@@ -9,3 +9,5 @@
 @media(min-width:901px){.business-sidebar__nav .presence-badge{max-width:56px;font-size:11px;line-height:16px}}
 
 [data-edit-lock=pending] input:focus,[data-edit-lock=pending] textarea:focus{cursor:progress}
+
+.collaboration-message button{flex:none;white-space:nowrap}

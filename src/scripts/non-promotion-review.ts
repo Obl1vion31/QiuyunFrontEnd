@@ -110,12 +110,12 @@ function initialize() {
       const newValue = (form.elements.namedItem('platformNoteId') as HTMLInputElement).value.trim().toLowerCase();
       if (!await businessConfirm(`旧值：${oldValue}\n新值：${newValue}\n\n该帖子的全部版本与复盘都会同步。`,{title:'更正笔记 ID',confirmLabel:'确认更正',cancelLabel:'继续编辑'})) return;
     }
-    button.disabled = true; output.textContent = '正在保存…';
+    button.disabled = true; output.setAttribute('role','status');output.textContent = '正在保存…';
     try {
       const endpoint = form.matches('[data-id-correction]') ? form.action : form.matches('[data-checkpoint-form]') ? '/api/non-promotion-checkpoints' : '/api/non-promotion-reviews';
       const response = await fetch(endpoint, { method:'POST',body:new FormData(form),headers:{Accept:'application/json'} });
       const result = await response.json();
-      if (!response.ok) { output.textContent = result.message || '保存失败。'; return; }
+      if (!response.ok) { output.setAttribute('role','alert');output.textContent = result.message || '保存失败。'; return; }
       controller.setClean();
       if(form.matches('[data-review-form]')&&result.fingerprint){
         (form.elements.namedItem('fingerprint') as HTMLInputElement).value=result.fingerprint;
@@ -129,7 +129,7 @@ function initialize() {
       if (new URL(location.href).searchParams.get('view') === 'history' && form.matches('[data-review-form]')) {
         await refresh(); output.textContent = '已保存';
       } else await navigate(form.dataset.successHref || location.href);
-    } catch (error) { output.textContent = error instanceof Error && error.message.startsWith('保存已成功') ? error.message : '连接失败，当前输入已保留，请重试。'; }
+    } catch (error) { output.setAttribute('role','alert');output.textContent = error instanceof Error && error.message.startsWith('保存已成功') ? error.message : '连接失败，当前输入已保留，请重试。'; }
     finally { button.disabled = false; }
   });
 }
