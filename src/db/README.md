@@ -52,3 +52,8 @@
 - `meeting-pdf.ts`／`meeting-pdf-render.tsx`：版本级私有PDF、指纹缓存与生成租约；复用网页组件和MiSans内联打印，不依赖外部渲染服务。
 
 例会版本的 `lifecycleStatus` 区分草稿／定稿，`finalizationStage` 独立区分会前／会后；同场仅一份活动草稿，保存和定稿更新同一版本行。`meeting-version-workflow.ts` 保护来源、更新时间及生效日，草稿不参与比较样本、安排回放、事项或PDF；恢复草稿的撤销事实使用独立业务效果日志。
+
+- `collaboration-resources.ts`：浏览器／服务端共用写入目标映射；`collaboration.ts`：稳定对象解析、编辑租约和写事务内校验，保留原业务版本保护。
+- `meeting-readiness.ts`／`promotion-review-required.ts`：本次会议缺项和原日度队列同源，未结束测试不进入会议来源。
+- `non-promotion-record.ts`：正式指标、复盘和节点事件的版本指纹；`stage-review-rules.mjs` 维护7／15天截止窗口。
+- `backup-restore.ts`：私有备份摘要验证、独立空库预检与原子恢复；维护入口在根 scripts，不通过网页开放。

@@ -364,7 +364,7 @@ Content
 - `operations_review_meeting_version` 以不可变 V0 / V1+ 快照保存排期对齐、推广区间聚合、非推广节点引用、人工指标和结论。
 - `operations_review_action_item` 保存跨周问题与当前状态；`operations_review_action_progress` 按会议追加进展和结论，不覆盖旧记录。
 - `operations_content_performance_metric` 以 `(schedule_id, checkpoint_type)` 唯一保存 T+7、T+15 的点击率、3 秒阅读率和数据截至日。
-- `operations_non_promotion_review` 以 `(schedule_id, checkpoint_type)` 唯一保存内容身份、指标、cohort 快照和人工结论；它不依赖会议，应用层按 T+7 → T+15 顺序开放。
+- `operations_non_promotion_review` 以 `(schedule_id, checkpoint_type)` 唯一保存内容身份、指标、cohort 快照和人工结论；它不依赖会议，应用层按 T+7 → T+15 顺序开放。真实截止日限目标日前后各1天且不晚于昨天，旧超窗记录只读保留；指标、复盘和节点事件共同形成写入指纹。
 - `operations_category_policy_version` 为稳定分类保存显示名称、默认推广身份、是否可选、生效日期和递增版本。
 - `operations_schedule_usage_event` 保存推广与非推广之间的用途变更。推广转非推广只结束开放 Campaign / Stage，不删除已有推广事实。
 - 正式非推广复盘起始日为 `2026-07-01`；此前内容不生成待办或 cohort 样本。
@@ -406,3 +406,14 @@ Content
 `operations_publication_event` 保存首次登记、链接调整及管理员时间更正的前后值、原因和已验证身份。北京时间 2026 年 10 月 17 日零点前已发送且链接为空的现存记录可保持空值；新登记始终必须链接。链接不替代项目文档或逻辑帖笔记 ID。
 
 `operations_publication_reservation` 保留旧时间、状态、身份及追加历史，不再用于新的预约提交或审核。新发布登记会结束对应旧开放记录，历史存在时排期仍受删除保护；不会批量转换旧预约或补造发布证据。
+
+## 多人协作与账号管理
+
+| 表／字段 | 身份和用途 | 保存边界 |
+| --- | --- | --- |
+| `auth_user.enabled` | 现有账号启用状态，默认true | 不改变登录名、角色和旧凭据 |
+| `business_edit_lease` | `resource`主键；用户、会话、标签页、随机token及expires_at | 稳定排期／轮次／日期等对象，上层与子记录互斥；会话删除级联释放 |
+| `business_presence` | 会话＋标签页标识，页面、对象、字段、业务标签和可见状态 | 只保存位置元数据，不保存输入值，过期清理；会话删除级联清理 |
+| `account_management_audit` | 操作者、目标账号、动作及时间 | 记录管理动作，排除密码与哈希 |
+
+租约与业务事实、不可变会议版本分开。写事务核对租约后仍运行原权限、来源指纹和版本检查。例会V7准备只读核对本次来源，未结束测试不进入候选或汇总；非推广只在原复盘入口写正式数据，会议保存不代写指标。删除会议草稿在事务内锁定会议和版本，等待后重新检查全批。

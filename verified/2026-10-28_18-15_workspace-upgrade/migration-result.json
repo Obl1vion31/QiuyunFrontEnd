@@ -1,0 +1,13 @@
+{
+  "migration": "0041_collaboration_accounts",
+  "previousTablesCompared": 47,
+  "changedTables": [],
+  "newTables": [
+    "account_management_audit",
+    "business_edit_lease",
+    "business_presence"
+  ],
+  "existingAccountsEnabled": true,
+  "source": "private production backup comparison",
+  "businessDataWritten": false
+}

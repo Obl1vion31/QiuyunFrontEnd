@@ -1,0 +1,42 @@
+{
+  "deployment": "https://qiuyun-frontend-8q7nze0bm-opgobl1v-5358.vercel.app",
+  "sourceCommit": "b0f2ba8",
+  "passed": true,
+  "checks": [
+    {
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/business/meeting-review",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/business/settings",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/api/content-search?q=test",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/collaboration/presence",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "status": 401,
+      "expected": 401
+    }
+  ]
+}

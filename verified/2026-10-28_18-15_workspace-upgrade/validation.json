@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "b0f2ba8",
+  "unitTests": 221,
+  "typecheck": "passed",
+  "databaseSchemaCheck": "passed",
+  "nodeBuild": "passed",
+  "productionBuild": "passed",
+  "realPostgresIntegration": "passed",
+  "authBrowser": "passed",
+  "sharedBusinessUI": "passed",
+  "annualPlanBrowser": "passed",
+  "meetingCreateBrowser": "passed",
+  "meetingDiscussionBrowser": "passed",
+  "runtimeChinesePdf": {
+    "react": true,
+    "chromiumBinary": true,
+    "puppeteer": true,
+    "chinesePdfBytes": 200738,
+    "network": "blocked"
+  },
+  "screenReview": "actual final images and recording frames inspected"
+}

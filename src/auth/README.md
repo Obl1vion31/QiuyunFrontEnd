@@ -13,3 +13,5 @@
 
 - `business-capabilities.ts`：年度及排期可配置操作目录、默认权限和业务名称。
 - `business-permissions.ts`：按账号读取有效授权、配置审计和待审失效；管理员审核不修改申请人的角色。
+
+`auth_user.enabled` 控制账号启停；重置密码、停用与撤销登录删除旧会话，写事务再次核对账号和会话。管理入口位于 `pages/api/admin/accounts/[id].ts`，角色和登录名不变，审计不存密码／哈希。员工位置仅供管理员读取；租约不替代既有业务权限。
