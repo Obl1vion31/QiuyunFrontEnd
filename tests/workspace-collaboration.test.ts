@@ -37,10 +37,10 @@ test('日期窗口覆盖上海自然日、目标未开放、超窗历史补录�
 test('同一记录互斥、独立轮次并行、上层操作互斥、同账号双窗口也互斥',async()=>{
  const first=`schedule:${schedule.id}:non:day_7`,second=`schedule:${schedule.id}:non:day_15`;
  const [lease]=await db.transaction(tx=>acquireLeases(tx,identity,[first]));
- await assert.rejects(db.transaction(tx=>acquireLeases(tx,otherIdentity,[first])),/暂时不可编辑/);
- await assert.rejects(db.transaction(tx=>acquireLeases(tx,{...identity,tabId:randomUUID()},[first])),/暂时不可编辑/);
+ await assert.rejects(db.transaction(tx=>acquireLeases(tx,otherIdentity,[first])),/正在编辑/);
+ await assert.rejects(db.transaction(tx=>acquireLeases(tx,{...identity,tabId:randomUUID()},[first])),/正在编辑/);
  await db.transaction(tx=>acquireLeases(tx,otherIdentity,[second]));
- await assert.rejects(db.transaction(tx=>acquireLeases(tx,identity,[`schedule:${schedule.id}`])),/暂时不可编辑/);
+ await assert.rejects(db.transaction(tx=>acquireLeases(tx,identity,[`schedule:${schedule.id}`])),/正在编辑/);
  await db.transaction(tx=>verifyLeases(tx,identity,[first],{[first]:lease.token}));
  await db.transaction(tx=>releaseLeases(tx,identity,[first]));await db.transaction(tx=>releaseLeases(tx,otherIdentity,[second]));
 });
@@ -49,7 +49,7 @@ test('过期锁可接续，旧租约不能写入，批量冲突不会取得部�
  const [old]=await db.transaction(tx=>acquireLeases(tx,identity,[key],now));
  const later=new Date(now.getTime()+61000);await db.transaction(tx=>acquireLeases(tx,otherIdentity,[key],later));
  await assert.rejects(db.transaction(tx=>verifyLeases(tx,identity,[key],{[key]:old.token},later)),/编辑权限已失效/);
- await assert.rejects(db.transaction(tx=>acquireLeases(tx,identity,[key,second],later)),/暂时不可编辑/);
+ await assert.rejects(db.transaction(tx=>acquireLeases(tx,identity,[key,second],later)),/正在编辑/);
  assert.equal((await db.select().from(s.businessEditLease).where(eq(s.businessEditLease.resource,second))).length,0);
  await db.transaction(tx=>releaseLeases(tx,otherIdentity,[key]));
 });
@@ -70,8 +70,8 @@ test('位置接口拒绝输入值，员工不能读取人员位置，管理员�
  const request=(data:unknown)=>({request:new Request(origin+'/api/collaboration/presence',{method:'PUT',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(data)}),url:new URL(origin+'/api/collaboration/presence'),locals:{user:employee,session:{id:identity.sessionId}}} as any);
  assert.equal((await withDatabase(db,async()=>putPresence(request({...payload,value:'123'})))).status,422);
  assert.equal((await withDatabase(db,async()=>putPresence(request(payload)))).status,200);
- assert.equal((await withDatabase(db,async()=>readPresence({locals:{user:employee}} as any))).status,403);
- const result=await withDatabase(db,async()=>readPresence({locals:{user:admin}} as any));const data=await result.json();assert.equal(data.rows[0].field,'点击率');assert.ok(!JSON.stringify(data).includes('password'));assert.ok(!('value'in data.rows[0]));
+ assert.equal((await withDatabase(db,async()=>readPresence({url:new URL(origin+'/api/collaboration/presence'),locals:{user:employee}} as any))).status,403);
+ const result=await withDatabase(db,async()=>readPresence({url:new URL(origin+'/api/collaboration/presence'),locals:{user:admin}} as any));const data=await result.json();assert.equal(data.rows[0].field,'点击率');assert.ok(!JSON.stringify(data).includes('password'));assert.ok(!('value'in data.rows[0]));
 });
 test('账号重置撤销旧会话，停用阻止登录，姓名更新保留账号身份',async()=>{
  const manage=async(payload:Record<string,unknown>)=>{

@@ -43,7 +43,8 @@
     "test:meeting-discussion": "node --import tsx tests/meeting-discussion.browser.ts",
     "test:data-ui": "node --import tsx tests/initial-arrangement.browser.ts && node --import tsx tests/data-interface.browser.ts",
     "test:workspace": "node --import tsx tests/workspace-upgrade.browser.ts",
-    "test:meeting-ledger": "node --import tsx tests/meeting-ledger.browser.ts"
+    "test:meeting-ledger": "node --import tsx tests/meeting-ledger.browser.ts",
+    "test:collaboration-lookup": "node --import tsx tests/collaboration-lookup.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

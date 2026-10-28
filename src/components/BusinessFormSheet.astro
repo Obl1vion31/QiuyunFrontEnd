@@ -1,13 +1,10 @@
 ---
+import BusinessSheet from './BusinessSheet.astro';
 interface Props { id: string; labelledby: string }
 const { id, labelledby } = Astro.props;
 ---
-<dialog id={id} class="business-form-sheet" aria-labelledby={labelledby}><slot /></dialog>
+<BusinessSheet id={id} labelledby={labelledby} class="business-form-sheet"><slot /></BusinessSheet>
 <style is:global>
-dialog.business-form-sheet,dialog.business-form-sheet *{box-sizing:border-box}
-dialog.business-form-sheet{position:fixed;inset:0 0 0 auto;width:min(680px,100%);max-width:100%;height:100dvh;max-height:100dvh;margin:0;padding:0;overflow:hidden;border:0;border-radius:20px 0 0 20px;background:var(--console-paper);color:var(--console-ink);box-shadow:-24px 0 80px #07111d42;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
-dialog.business-form-sheet::backdrop{background:#07111d73;backdrop-filter:blur(4px)}
-dialog.business-form-sheet[open]{animation:business-sheet-in 220ms cubic-bezier(.2,.8,.2,1)}
 dialog.business-form-sheet>form{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%;min-height:0;margin:0}
 .business-form-sheet .dialog-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;margin:0;padding:16px 20px;border-radius:0;color:#fff;background:#10243ef0;backdrop-filter:blur(16px)}
 .business-form-sheet .dialog-head h2{margin:0;font:600 18px/24px var(--console-font)}
@@ -49,7 +46,6 @@ dialog.business-form-sheet>form{display:grid;grid-template-rows:auto minmax(0,1f
 .business-form-sheet button:disabled{opacity:.6;cursor:default}
 .business-form-sheet :is(button,input,select,textarea):focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .business-form-sheet [hidden]{display:none!important}
-@keyframes business-sheet-in{from{opacity:var(--business-enter-opacity,0);transform:var(--business-enter-transform,translateX(28px))}to{opacity:1;transform:none}}
 @media(max-width:900px){dialog.business-form-sheet{width:100%;border-radius:0}.business-form-sheet .sheet-body{padding:16px}.business-form-sheet .dialog-head,.business-form-sheet .dialog-actions{padding-left:16px;padding-right:16px}.business-form-sheet .form-grid{gap:16px 12px}}
 @media(max-width:480px){.business-form-sheet .publication-time-field,.business-form-sheet .publication-status-field{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){dialog.business-form-sheet[open]{animation:none}}

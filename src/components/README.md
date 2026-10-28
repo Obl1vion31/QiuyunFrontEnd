@@ -91,3 +91,5 @@ ContentTunnel.module.css
 - `BusinessPostLookup.astro`：工具栏共用的查帖弹窗，结果和详情各用适合的密度，详情动作接公共控件；只读，不取业务编辑锁。
 - `BusinessAccountManagement.astro`：设置内账号表与公共编辑弹窗；身份／角色只读，密码不回显。
 - `BusinessWeeklyMeeting.tsx`：初始草稿先准备、补齐来源再展开原正文，非推广仅引用正式事实；`BusinessMeetingDiscussion.tsx` 的修订模式接同一会议编辑身份。
+
+`BusinessSheet` 是原生右侧抽屉外壳，提供固定头部与唯一正文滚动；编辑通过 `BusinessFormSheet` 保留表单规格，查帖直接接入中性头部。

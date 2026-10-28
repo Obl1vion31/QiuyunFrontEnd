@@ -1,0 +1,21 @@
+---
+interface Props { id: string; labelledby: string; class?: string; [key: string]: unknown }
+const {id,labelledby,class:className,...attributes}=Astro.props;
+---
+<dialog id={id} class:list={['business-sheet',className]} aria-labelledby={labelledby} {...attributes}><slot /></dialog>
+<style is:global>
+.business-sheet,.business-sheet *{box-sizing:border-box}
+dialog.business-sheet{position:fixed;inset:0 0 0 auto;width:min(680px,100%);max-width:100%;height:100dvh;max-height:100dvh;margin:0;padding:0;overflow:hidden;border:0;border-radius:20px 0 0 20px;background:var(--console-paper);color:var(--console-ink);box-shadow:-24px 0 80px #07111d42;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+dialog.business-sheet[open]{display:flex;flex-direction:column;animation:business-sheet-in 220ms cubic-bezier(.2,.8,.2,1)}
+dialog.business-sheet::backdrop{background:#07111d73;backdrop-filter:blur(4px)}
+.business-sheet>.dialog-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:72px;padding:16px 20px;border-bottom:1px solid var(--console-line);background:var(--console-paper)}
+.business-sheet>.dialog-head h2{margin:0;font:600 18px/24px var(--console-font)}
+.business-sheet .sheet-close{display:grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border:0;background:transparent;color:inherit;font:28px/1 var(--console-font);cursor:pointer}
+.business-sheet>.sheet-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:20px}
+.business-sheet>form{flex:1;min-height:0}
+.business-sheet [hidden]{display:none!important}
+@keyframes business-sheet-in{from{opacity:var(--business-enter-opacity,0);transform:var(--business-enter-transform,translateX(28px))}to{opacity:1;transform:none}}
+@media(max-width:900px){dialog.business-sheet{width:100%;border-radius:0}.business-sheet>.dialog-head,.business-sheet>.sheet-body{padding:16px}}
+@media(prefers-reduced-motion:reduce){dialog.business-sheet[open]{animation:none}}
+@media(prefers-reduced-transparency:reduce){dialog.business-sheet::backdrop{backdrop-filter:none}}
+</style>

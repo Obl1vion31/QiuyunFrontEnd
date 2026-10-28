@@ -140,7 +140,7 @@ try {
     assert.deepEqual(readonly,{border:'dashed',fill:'rgb(248, 249, 251)'},'只读信息与可编辑字段明确区分');
     await inspector.locator('.correction summary').click();
     assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
-    await inspector.locator('[name=conclusion]').fill('尚未保存');
+    await inspector.locator('[name=conclusion]').focus();await inspector.locator('[data-review-form][data-edit-lock=owned]').waitFor();await inspector.locator('[name=conclusion]').fill('尚未保存');assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await page.getByRole('link',{name:'待复盘',exact:true}).click();await answered;}assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
     {const answered=respondToBusinessConfirm(page);await page.goBack();await answered;}await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[1]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[1]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await inspector.locator('[data-close-inspector]').click();await answered;}assert.equal(await inspector.isVisible(),true,'未保存取消关闭');
@@ -152,11 +152,11 @@ try {
       // 快速选择最后一次立即生效，不等待后台请求。
       await first.click();await second.click();assert.equal(await inspector.locator('[name=checkpointType]').inputValue(),'day_15');
       // 保存后刷新数据，失败时明确指出已保存且保留编辑内容。
-      await inspector.locator('[name=conclusion]').fill('虚构本地保存');
+      await inspector.locator('[name=conclusion]').click();await inspector.locator('[name=conclusion]').fill('虚构本地保存');
       await page.route('**/api/non-promotion-reviews?**',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:'{}'}));
       await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText(/保存已成功，列表刷新失败/).waitFor();assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'虚构本地保存');
       await page.unroute('**/api/non-promotion-reviews?**');
-      await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值\s+9.59%/);
+      await inspector.locator('[name=clickRate]').click();await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值\s+9.59%/);
       await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
     }
     if(width===1440) {

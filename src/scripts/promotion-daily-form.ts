@@ -49,7 +49,7 @@ async function openStateBubble(owner:HTMLFormElement){
  let state=stateDrafts.get(key);
  if(state?.saved){state.form.remove();stateDrafts.delete(key);state=undefined;}
  if(state){state.owner=owner;state.trigger=trigger;if(!state.form.hidden){await dismissStateBubble(state);return;}state.form.hidden=false;trigger.setAttribute('aria-expanded',String(!state.form.hidden));if(!state.form.hidden){positionBubble(state);state.form.querySelector<HTMLSelectElement>('select')?.focus({preventScroll:true});}return;}
- const form=document.createElement('form');form.className='business-form review-state-bubble';form.dataset.dayStateForm=key;form.setAttribute('aria-label','修改当日状态');
+ const form=document.createElement('form');form.dataset.collaborationResource=`schedule:${owner.dataset.scheduleId}`;form.dataset.collaborationLabel=owner.dataset.collaborationLabel??'当日状态';form.className='business-form review-state-bubble';form.dataset.dayStateForm=key;form.setAttribute('aria-label','修改当日状态');
  const header=document.createElement('header'),heading=document.createElement('strong'),close=document.createElement('button');heading.textContent='修改当日状态';close.type='button';close.className='review-state-close';close.setAttribute('aria-label','关闭状态气泡');close.textContent='×';header.append(heading,close);
  const body=document.createElement('div');body.className='review-bubble-body';
  const original=owner.dataset.actualStatus!,before=document.createElement('div');before.className='review-state-before';const beforeCaption=document.createElement('span'),beforeValue=document.createElement('strong');beforeCaption.textContent='原状态';beforeValue.textContent=label(original);before.append(beforeCaption,beforeValue);
@@ -183,6 +183,13 @@ function initialize(){
  });}
  if(batch&&![...drafts.values()].some(d=>d.busy)){const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.textContent=`一键保存（${count}）`;batch.disabled=!count;}
 
+ for(const form of document.querySelectorAll<HTMLFormElement>('[data-metric-form]:not([data-reclaim-ready])')){
+  form.dataset.reclaimReady='true';
+  form.addEventListener('business:edit-reclaimed',event=>(event as CustomEvent).detail.waitUntil((async()=>{
+   if(form.dataset.dirty==='true')return;
+   await refreshPromotionSchedule(form.dataset.scheduleId!);
+  })()));
+ }
  // 内容列依据实际字体测量，同时限制最大宽度，所有行使用相同锚点。
  const host=document.querySelector<HTMLElement>('[data-promotion-pending-body]');
  const measureNames=()=>{if(host?.isConnected){const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(ctx){let width=112;for(const name of host.querySelectorAll<HTMLElement>('.review-entry-identity strong')){ctx.font=getComputedStyle(name).font;width=Math.max(width,Math.ceil(ctx.measureText(name.textContent??'').width)+16);}host.style.setProperty('--review-name-width',`${Math.min(176,Math.max(112,host.clientWidth-1112),width)}px`);}}};measureNames();void document.fonts.ready.then(measureNames);if(host&&!host.dataset.nameMeasureReady){host.dataset.nameMeasureReady='true';const observer=new ResizeObserver(measureNames);observer.observe(host);document.addEventListener('astro:before-swap',()=>observer.disconnect(),{once:true});}

@@ -96,7 +96,7 @@ export function closeBusinessDialog(dialog:HTMLDialogElement,value?:string):Prom
   });closing.set(dialog,task);return task;
 }
 function initialize(){
-  document.querySelectorAll<HTMLDialogElement>('dialog.business-form-sheet,dialog.business-form-dialog').forEach(dialog=>{
+  document.querySelectorAll<HTMLDialogElement>('dialog.business-sheet,dialog.business-form-dialog').forEach(dialog=>{
     if(natives.has(dialog))return;
     natives.set(dialog,dialog.close.bind(dialog));const showModal=dialog.showModal.bind(dialog);
     dialog.showModal=()=>{

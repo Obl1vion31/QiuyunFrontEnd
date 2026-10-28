@@ -67,6 +67,7 @@ const iconPaths = {
   </nav>
 
   <div class="business-sidebar__foot">
+    <button type="button" class="business-sidebar__lookup" data-post-lookup-open><svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>查找帖子</span></button>
     <BusinessAccountMenu />
 
     <a class="business-sidebar__hub" href="/" data-astro-reload><span aria-hidden="true">←</span> 返回总枢纽</a>
@@ -211,6 +212,7 @@ const iconPaths = {
   .business-sidebar__nav a.active,.business-sidebar__settings.active{color:#244fbf;background:#dce5ff}.business-sidebar__nav a.active strong,.business-sidebar__settings.active strong{font-weight:600}
   .business-sidebar__icon{width:18px;height:18px;display:block;overflow:visible}.business-sidebar__nav strong,.business-sidebar__settings strong{overflow:hidden;font-size:14px;line-height:20px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
   .business-sidebar__planned{grid-template-columns:18px minmax(0,1fr) auto;margin-top:-2px;color:#87918c;cursor:not-allowed}.business-sidebar__planned strong{font-size:.76rem;font-weight:500}.business-sidebar__planned small{padding:3px 6px;border:1px solid #c9d1cc;border-radius:999px;color:#79837e;font-size:var(--console-caption);line-height:1}
+  .business-sidebar__lookup{display:flex;align-items:center;gap:10px;min-height:42px;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:inherit;font:500 14px/20px var(--console-font);cursor:pointer}.business-sidebar__lookup:hover{background:#dce3de}.business-sidebar__lookup:focus-visible{outline:2px solid var(--console-blue)}
   .business-sidebar__foot{display:grid;gap:5px;margin-top:auto;padding-top:12px;border-top:1px solid #c9d1cc}.business-sidebar__settings{width:100%}.business-sidebar__hub{padding:9px 10px;border-radius:8px;color:#68736d;font-size:var(--console-caption);text-decoration:none}.business-sidebar__hub:hover{color:#17211c;background:#dce3de}
   .business-console-progress{position:fixed;left:232px;right:0;top:71px;z-index:80;height:2px;overflow:hidden;pointer-events:none;opacity:0;background:#cbd5f4;transition:opacity 80ms ease}.business-console-progress i{display:block;width:42%;height:100%;background:#315fd6;transform:translateX(-110%)}.business-console-progress.is-visible{opacity:1}.business-console-progress.is-visible i{animation:business-console-progress 1s ease-in-out infinite}.business-console-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   @keyframes business-console-progress{0%{transform:translateX(-110%)}60%{transform:translateX(155%)}100%{transform:translateX(255%)}}

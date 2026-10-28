@@ -1,13 +1,9 @@
-.presence-badge{flex:none;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-radius:4px;background:#edf2ff;color:#3159a0;padding:1px 4px;font:400 11px/16px var(--console-font)}
-[data-collaboration-resource]{position:relative}[data-remote-edit=true]{outline:1px solid #8ca9ed;outline-offset:-1px}
-.editor-badge{position:absolute;right:6px;top:2px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;border-radius:3px;background:#edf2ff;color:#3159a0;font:400 11px/16px var(--console-font);pointer-events:none}
-.collaboration-message{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:8px 10px;color:#8d5b47;background:#fff7e5;font:400 13px/20px var(--console-font)}
+.presence-badge{flex:none;max-width:none;white-space:nowrap;border-radius:4px;background:#edf2ff;color:#3159a0;padding:1px 4px;font:400 11px/16px var(--console-font)}
+[data-collaboration-resource]{position:relative}
+.editor-badge{position:absolute;z-index:3;right:6px;top:2px;display:inline-flex;align-items:center;gap:4px;max-width:100%;height:18px!important;min-height:0!important;white-space:nowrap;padding:0 5px!important;border:1px solid #cbd8f5!important;border-radius:4px;background:#edf2ff!important;color:#3159a0!important;font:400 11px/16px var(--console-font)!important;cursor:pointer}
+.editor-badge::before{content:'';width:5px;height:5px;flex:none;border-radius:50%;background:#6485c8}
+.editor-badge:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+[data-lock-disabled]{pointer-events:none;color:var(--console-muted)!important;background:var(--console-surface-subtle)!important;border-color:var(--console-line)!important;opacity:1!important;cursor:not-allowed}
+[data-meeting-presence]{font:400 var(--console-caption)/20px var(--console-font);color:var(--console-muted)}
 .business-sidebar__nav [data-module-id] strong{flex:1;min-width:0}
-
-[data-remote-field=true]{outline:2px solid #7997de!important;outline-offset:1px}
-
-@media(min-width:901px){.business-sidebar__nav .presence-badge{max-width:56px;font-size:11px;line-height:16px}}
-
-[data-edit-lock=pending] input:focus,[data-edit-lock=pending] textarea:focus{cursor:progress}
-
-.collaboration-message button{flex:none;white-space:nowrap}
+@media(max-width:900px){.business-sidebar__nav .presence-badge{position:absolute;top:1px;right:2px;font-size:9px;line-height:12px;padding:0 2px;max-width:100%;overflow:hidden;text-overflow:ellipsis}}

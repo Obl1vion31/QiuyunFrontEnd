@@ -383,6 +383,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       </form>
     </BusinessFormSheet>
 
+    <script type="application/json" data-schedule-records set:html={JSON.stringify(clientRows).replace(/</g,'\\u003c')}/>
     <BusinessFormSheet id="publication-dialog" labelledby="publication-title">
       <form class="business-form" id="publication-form" novalidate>
         <header class="dialog-head"><div><h2 id="publication-title">发布登记</h2></div><button type="button" class="close-button" data-close-publication aria-label="关闭">×</button></header>
@@ -454,6 +455,8 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       const fillInspector = (record) => {
         if (!record) return;
         activeRecord = record;
+        inspector.querySelector('.inspector-actions').dataset.collaborationResource=`schedule:${record.id}`;
+        inspector.querySelector('.inspector-actions').dataset.collaborationLabel=record.contentName;
         inspector.dataset.selectedId = record.id;
         setInspectorText('[data-inspector-version]', `V${record.versionNumber}`);
         setInspectorText('[data-inspector-kind]', record.workType === 'revision' ? '改帖' : '新做帖');
@@ -715,7 +718,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       };
       const openPublication = (record) => {
         if (!record) return;
-        activeRecord=record;publicationForm.reset();publicationDirty=false;
+        activeRecord=record;publicationForm.dataset.collaborationResource=`schedule:${record.id}`;publicationForm.dataset.collaborationLabel=record.contentName;publicationForm.reset();publicationDirty=false;
         publicationControl('publicationUrl').setCustomValidity('');
         document.querySelector('[data-publication-link-preview]').textContent='';
         publicationMessage.textContent='';document.querySelectorAll('[data-publication-error]').forEach(node=>node.textContent='');
@@ -730,6 +733,15 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         publicationControl(record.actualPublishAt?'publicationUrl':'actualPublishDate').focus();
         document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));
       };
+      const refreshReclaimed=event=>event.detail.waitUntil((async()=>{
+        if(event.target!==form&&event.target!==publicationForm)return;
+        const response=await fetch(location.href,{cache:'no-store',headers:{Accept:'text/html'}});if(!response.ok)throw new Error('读取最新排期失败，请重试。');
+        const fresh=new DOMParser().parseFromString(await response.text(),'text/html');const record=JSON.parse(fresh.querySelector('[data-schedule-records]').textContent).find(row=>row.id===activeRecord?.id);if(!record)throw new Error('记录已变化，请重新打开。');
+        if((dirty||publicationDirty)&&(record.planRevision!==activeRecord.planRevision||record.publicationRevision!==activeRecord.publicationRevision))throw new Error('排期已有新的保存内容，当前输入已保留。请核对后重新打开该记录。');
+        Object.assign(activeRecord,record);if(event.target===form&&!dirty)setRecordValues(activeRecord);
+        if(event.target===publicationForm&&!publicationDirty){publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;publicationControl('publicationUrl').value=record.publicationUrl||'';configureDateTime(publicationControl('actualPublishAt'),{value:record.actualPublishAt||''});publicationControl('projectDocUrl').value=record.projectDocUrl||'';updatePublicationFields();}
+      })());
+      form.addEventListener('business:edit-reclaimed',refreshReclaimed);publicationForm.addEventListener('business:edit-reclaimed',refreshReclaimed);
       const closePublication=async()=>{if(publicationDirty&&!await window.businessConfirm('有尚未保存的发布登记，是否放弃？'))return;publicationDirty=false;document.documentElement.dataset.unsaved='false';publicationDialog.close();};
       inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
       document.querySelectorAll('[data-close-publication]').forEach((button) => button.addEventListener('click', closePublication));

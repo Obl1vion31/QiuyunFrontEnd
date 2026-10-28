@@ -5,7 +5,7 @@ const { title, subtitle, mobilePriority = 'end', layout = 'balanced' } = Astro.p
 ---
 
 <header class:list={["business-toolbar", `business-toolbar--mobile-${mobilePriority}`, `business-toolbar--${layout}`]}>
-  <div class="business-toolbar__identity"><div class="business-toolbar__title"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</div><button class="post-lookup-trigger" type="button" data-post-lookup-open aria-label="查找帖子" title="查找帖子"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><BusinessAccountMenu placement="toolbar" /></div>
+  <div class="business-toolbar__identity"><div class="business-toolbar__title"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</div><BusinessAccountMenu placement="toolbar" /></div>
   <div class="business-toolbar__center"><slot name="center" /></div>
   <div class="business-toolbar__end"><slot name="end" /></div>
 </header>
@@ -13,7 +13,6 @@ const { title, subtitle, mobilePriority = 'end', layout = 'balanced' } = Astro.p
 <style>
   .business-toolbar,.business-toolbar *{box-sizing:border-box}
   .business-toolbar__identity{min-width:0;display:flex;align-items:center;gap:8px}
-  .post-lookup-trigger{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border:1px solid var(--console-line);border-radius:6px;background:var(--console-surface);color:var(--console-muted);cursor:pointer}.post-lookup-trigger:hover{color:var(--console-blue)}
   .business-toolbar{position:sticky;top:0;z-index:14;width:100%;height:72px;min-height:72px;max-height:72px;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr);align-items:center;gap:18px;overflow:hidden;padding:0 24px;color:#17211c;border-bottom:1px solid color-mix(in srgb,#c9d1cc 76%,transparent);background:color-mix(in srgb,#f7f8f5 92%,transparent);font-family:var(--console-font);font-size:16px;line-height:1.2;backdrop-filter:blur(20px) saturate(140%)}
   .business-toolbar__title{min-width:0;display:grid;gap:3px}.business-toolbar__title strong{overflow:hidden;color:#17211c;font-size:24px;line-height:30px;font-weight:600;letter-spacing:-.015em;text-overflow:ellipsis;white-space:nowrap}.business-toolbar__title small{overflow:hidden;color:#68736d;font-size:var(--console-caption);line-height:14px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
   .business-toolbar__center{min-width:0;max-height:36px;justify-self:center}.business-toolbar__end{min-width:0;max-height:36px;justify-self:end}

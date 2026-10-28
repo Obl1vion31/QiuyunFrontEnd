@@ -27,6 +27,10 @@ export const prerender = false;
 
 const emptyDraft: WeeklyMeetingDraft = { schemaVersion: 2, coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [], nonPromotionSelections: [] };
 
+export const GET:APIRoute=async({params})=>{
+ try{const [meeting]=await getDb().select().from(operationsReviewMeeting).where(eq(operationsReviewMeeting.id,params.id!));if(!meeting)return Response.json({message:'会议不存在。'},{status:404});return Response.json({meeting},{headers:{'Cache-Control':'private, no-store'}});}catch(error){return workflowErrorResponse(error);}
+};
+
 export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
   if (!params.id) return Response.json({ message: '缺少会议编号。' }, { status: 400 });

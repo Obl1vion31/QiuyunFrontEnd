@@ -52,13 +52,25 @@ function initialize() {
     if (field.name === 'subject') { const category = filters.elements.namedItem('category') as HTMLSelectElement; category.value = ''; category.disabled = true; }
     filters.requestSubmit();
   });
-  const refresh = async () => {
+  const refresh = async (reclaimed?:HTMLFormElement) => {
     const read=beginBusinessRead(table.closest<HTMLElement>('.table-pane')!);
     try {
     const response = await fetch(`/api/non-promotion-reviews${location.search}`, { headers: { Accept: 'application/json' },signal:read.signal });
     if (!response.ok) throw new Error('保存已成功，列表刷新失败，请刷新页面查看最新基准。');
-    const data = await response.json() as {tableRows:ReviewItem[]};
+    let data = await response.json() as {tableRows:ReviewItem[]};
+    if(reclaimed&&!data.tableRows.some(item=>reclaimed.dataset.collaborationResource===`schedule:${item.row.id}:non:${item.checkpoint.type}`)){const history=await fetch('/api/non-promotion-reviews?view=history',{cache:'no-store'});if(!history.ok)throw new Error('读取最新记录失败，请重试。');data=await history.json();}
     if(!read.isCurrent())return;
+    if(reclaimed){
+      const resource=reclaimed.dataset.collaborationResource!;
+      const item=data.tableRows.find(item=>resource===`schedule:${item.row.id}:non:${item.checkpoint.type}`);
+      if(item){
+        const fingerprint=reclaimed.querySelector<HTMLInputElement>('[name=fingerprint]')!;
+        if(inspector.dataset.dirty==='true'&&fingerprint.value!==item.fingerprint)throw new Error('这条记录已有新的保存内容，当前输入已保留。请核对后重新打开该记录。');
+        if(inspector.dataset.dirty!=='true')for(const [name,value]of Object.entries({fingerprint:item.fingerprint,recordedThrough:item.metric?.recordedThrough,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion})){
+          const control=reclaimed.elements.namedItem(name) as HTMLInputElement|HTMLTextAreaElement|null;if(control){control.value=String(value??'');control.defaultValue=control.value;}
+        }
+      }
+    }
     for (const item of data.tableRows) {
       const row = table.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(item.key)}"]`);
       if (!row) continue;
@@ -95,6 +107,7 @@ function initialize() {
     arrange();
     } catch(error) {if(!read.isCurrent())return;throw error;} finally {read.finish();}
   };
+  inspector.addEventListener('business:edit-reclaimed',event=>{const target=event.target as HTMLFormElement;if(target.matches('[data-review-form]'))(event as CustomEvent).detail.waitUntil(refresh(target));});
   inspector.addEventListener('click', async event => {
     const copy = (event.target as Element).closest<HTMLButtonElement>('[data-copy-id]');
     if (copy) { await navigator.clipboard.writeText(copy.dataset.copyId!); copy.textContent = '已复制'; }
