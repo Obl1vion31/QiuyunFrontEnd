@@ -1,3 +1,4 @@
+import {businessFetch as fetch} from './business-request.helper';
 /** 数据表和操作区的非空、条件态验收。仅写隔离PGlite。 */
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -45,7 +46,7 @@ try{
   if(width>=1024){const fonts=await page.locator('[data-flat-head] .table-head [role=columnheader]').evaluateAll((ns:HTMLElement[])=>ns.map(n=>{const c=getComputedStyle(n.querySelector('button')??n);return c.fontSize+'/'+c.lineHeight;}));assert.equal(new Set(fonts).size,1,JSON.stringify(fonts));}
   await nav('/business/non-promotion-review?view=history&group=1');assert.match(await page.locator('[data-category-count=day_7]').first().innerText(),/107/);await shot(`non-promotion-grouped-${width}`);await page.locator('.table-scroll').evaluate((n:HTMLElement)=>n.scrollLeft=n.scrollWidth);await shot(`non-promotion-grouped-right-${width}`);
   const sample=await page.locator('[data-category-count=day_7]').first().evaluate((n:HTMLElement)=>{const range=document.createRange();range.selectNodeContents(n);const t=range.getBoundingClientRect(),b=n.getBoundingClientRect();return {text:t.width,available:b.width-parseFloat(getComputedStyle(n).paddingLeft)-parseFloat(getComputedStyle(n).paddingRight)};});assert.ok(sample.text<=sample.available+1,JSON.stringify(sample));
-  await nav('/business/settings');await shot(`permissions-disabled-${width}`);await page.locator('[data-permission-account]').selectOption(u.id);await shot(`permissions-editable-${width}`);
+  await nav('/business/settings?view=permissions');await shot(`permissions-disabled-${width}`);await page.locator('[data-permission-account]').selectOption(u.id);await shot(`permissions-editable-${width}`);
   const table=page.locator('[data-account-permissions]:visible .permissions-table').first();assert.ok(await table.locator('select').evaluateAll((ns:HTMLElement[])=>ns.every(n=>n.getBoundingClientRect().width<=224.5)));assert.deepEqual(await table.locator('thead th').evaluateAll((ns:HTMLElement[])=>ns.map(n=>getComputedStyle(n).textAlign)),['center','center']);
   await nav('/business/settings?view=approvals');await page.locator('[data-proposal-id]>summary').first().click();assert.ok(await page.locator('.proposal-diff-scroll tbody tr').count()>0);assert.ok(await page.locator('.proposal-diff-scroll tbody th').first().evaluate((n:HTMLElement)=>n.getBoundingClientRect().width>=160));await shot(`annual-approval-${width}`);await page.locator('.proposal-diff-scroll').evaluate((n:HTMLElement)=>n.scrollLeft=n.scrollWidth);await shot(`annual-approval-right-${width}`);
   await nav('/business/annual-plan?year=2026');await shot(`annual-matrix-${width}`);

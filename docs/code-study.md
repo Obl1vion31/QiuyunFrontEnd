@@ -183,3 +183,7 @@ flowchart LR
 - `collaboration-resources.ts` 的写入目标映射由浏览器和服务端共用，`collaboration.ts` 把活动、指标、内容版本等映射到稳定排期身份；服务端在写事务内验证租约，原业务版本检查继续保留。新增写入口同步检查映射及实际表单聚焦状态。
 - `meeting-readiness.ts` 共用例会缺项口径，`promotion-review-required.ts` 共用日度应填日期；例会仅引用 `non-promotion-record.ts` 指纹对应的正式事实。准备区只提供原入口链接，不能重新复制指标表单。
 - `BusinessPostLookup` 与 `post-lookup.ts` 只读查帖；动态生成的结果使用专用全局样式，避免 Astro 作用域属性缺失导致后加载节点无样式。
+
+### 阅读表与归档动作
+
+例会总览和历史版本共用 `meeting-ledger` 阅读表，按内容而非整屏余量分配列宽。`MeetingPdfArchive` 用 `meeting-pdf-actions` 包含完整动作组，反馈作为同级区域；表头对应正文阅读锚点，长标题保留title完整值。检查有／无生成文件、手动附件、草稿、长标题、生成中和失败，核对动作中线、行高以及反馈前后列宽；同类问题先判断实际内容和操作性质，不给所有矩阵／录入表强加同一布局。
