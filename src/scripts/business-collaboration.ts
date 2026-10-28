@@ -15,7 +15,7 @@ if(!state.__collaborationReady){
   let output=scope.element.querySelector<HTMLElement>(':scope > [data-collaboration-message],:scope > .form-dialog-body > [data-collaboration-message]');
   if(!output){output=document.createElement('div');output.dataset.collaborationMessage='';output.className='collaboration-message';output.setAttribute('role','status');(scope.element.querySelector(':scope > .form-dialog-body')??scope.element).prepend(output);}
   output.replaceChildren(document.createTextNode(message));
-  if(retry){const button=document.createElement('button');button.type='button';button.textContent='重新取得编辑权';button.className='business-action-secondary';button.addEventListener('click',()=>{lost.delete(scope.resource);void ensure(scope,true).catch(error=>show(scope,error.message,true));});output.append(button);}
+  if(retry){const button=document.createElement('button');button.type='button';button.textContent='重新取得编辑权';button.className='business-action-secondary';button.style.width='auto';button.addEventListener('click',()=>{lost.delete(scope.resource);void ensure(scope,true).catch(error=>show(scope,error.message,true));});output.append(button);}
  };
  const ensure=(scope:Scope,explicit=false):Promise<void>=>{
   if(lost.has(scope.resource)&&!explicit)return Promise.reject(new Error('编辑已中断，请重新取得编辑权并核对最新记录。'));
