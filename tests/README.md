@@ -18,6 +18,8 @@ HTTP回归使用 `business-request.helper.ts` 按真实协议取锁、带租约�
 
 公网验收只做已授权账号登录、读取和无权限请求，不向共享业务库添加虚构数据。构建前需使用 Node 22；本机工具目录、测试产物及数据库备份不会提交或发布。
 
+登录回归使用隔离库复现短账号／非法格式的422，页面按已知错误代码显示原因，不透传服务端详情；同时检查401凭据、403拒绝、503不可用与非JSON校验错误，输入、焦点和重试保留。桌面及390／320px实际截图查看，不能将输入校验统称为服务故障。
+
 `deployment-origin.test.mjs` 使用真实 Astro 请求构造与来源中间件，覆盖本机配置下正式 HTTPS 域名的同源表单、伪造转发域名及外站拒绝；公网发布还须按部署指南检查真实表单请求。`test:weekly` 需要上述本机 TEST_POSTGRES_URL，串联新建、来源准备／多人协作和冻结版本讨论回归；包含 `meeting-create.browser.ts`，从新建弹窗实际填写和提交，覆盖上海时间保存、空标题、失败保留输入、非 JSON 错误、断网与连续提交防重复，再运行当前准备、草稿、会前／会后与PDF流程。
 
 旧 `meeting-presentation.browser.ts` 保存前版布局场景，当前流程由 `test:workspace` 与 `test:meeting-discussion` 验证；该旧用例，检查定稿结果与结论优先、两类标题资料入口、草稿布局与输入保留、四档桌面同行等高、长文字完整、汇总包含未选入但已满足复盘资格的本期实际跑量、实时资料与不可变快照分离、会前／会后及跨日生效日、月例会空态。使用隔离PGlite；原始截图与录像位于 `.tools/test-artifacts/meeting-presentation/`，可通过 `MEETING_PRESENTATION_DIR` 指定新目录。

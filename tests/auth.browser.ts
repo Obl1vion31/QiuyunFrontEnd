@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { startFixture, admin, employee } from './auth.fixture';
 import { operationsContentSchedule, operationsContentVersion, operationsPromotionCampaign, operationsPromotionDailyMetric } from '../src/db/schema';
 
+const evidenceDir=process.env.AUTH_EVIDENCE_DIR||'.tools/test-artifacts';
 const fixture = await startFixture();
 const { baseURL, db } = fixture;
 let browser: { close: () => Promise<void> } | undefined;
@@ -49,11 +50,24 @@ try {
 
   const playwright = await import(process.env.PLAYWRIGHT_MODULE || new URL('../.tools/tooling/node_modules/playwright/index.mjs', import.meta.url).href);
   const launched = await playwright.chromium.launch({ headless: true }); browser = launched;
-  await mkdir('.tools/test-artifacts', { recursive: true });
+  await mkdir(evidenceDir, { recursive: true });
   const errors: string[] = [];
   const context = await launched.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage(); page.on('pageerror', (error: Error) => errors.push(error.message));
   await page.goto(baseURL + '/business/annual-plan?year=2027'); assert.equal(new URL(page.url()).pathname, '/login');
+  // 真实422必须显示输入原因，不能误报服务故障；输入与重试继续保留。
+  for(const width of [1440,390,320]){
+    await page.setViewportSize({width,height:900});await page.locator('#username').fill('OB');await page.locator('#password').fill('fictional-password');
+    const response=page.waitForResponse((r:{url:()=>string})=>r.url().endsWith('/api/auth/sign-in/username'));
+    await page.locator('button[type=submit]').click();assert.equal((await response).status(),422);
+    await page.getByText('账号名至少需要 3 个字符，请使用管理员提供的登录账号。',{exact:true}).waitFor();
+    assert.equal(await page.locator('#username').inputValue(),'OB');assert.equal(await page.locator('#password').inputValue(),'fictional-password');assert.equal(await page.locator('button[type=submit]').isEnabled(),true);
+    await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:`${evidenceDir}/login-validation-${width}.png`});
+  }
+  await page.setViewportSize({width:1440,height:900});
+  for(const [status,body,message] of [[422,'not-json','账号或密码的填写格式不正确，请检查后重试。'],[403,JSON.stringify({message:'private detail'}),'登录请求被拒绝，请刷新页面或联系管理员确认账号状态。'],[503,'not-json','登录服务暂时不可用，请稍后重试。']] as const){
+    await page.route('**/api/auth/sign-in/username',(route:{fulfill:(options:{status:number;contentType:string;body:string})=>Promise<void>})=>route.fulfill({status,contentType:'text/plain',body}));await page.locator('button[type=submit]').click();await page.getByText(message,{exact:true}).waitFor();assert.equal(await page.locator('#password').inputValue(),'fictional-password');assert.equal(await page.locator('#password').evaluate((n:HTMLInputElement)=>document.activeElement===n),true);await page.screenshot({path:`${evidenceDir}/login-status-${status}-1440.png`});await page.unroute('**/api/auth/sign-in/username');
+  }
   await page.locator('#username').fill(admin.username); await page.locator('#password').fill('fictional-wrong-password'); await page.locator('button[type=submit]').click();
   await page.locator('[data-login-message]:not([hidden])').waitFor(); assert.equal(await page.locator('#username').inputValue(), admin.username);
   await page.locator('#password').fill(admin.password);
@@ -76,12 +90,12 @@ try {
     const mobile = await launched.newContext({ viewport: { width, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
     const phone = await mobile.newPage(); phone.on('pageerror', (error: Error) => errors.push(error.message));
     await phone.goto(baseURL + '/login'); await phone.locator('#username').fill(employee.username); await phone.locator('#password').fill(employee.password);
-    await phone.screenshot({ path: `.tools/test-artifacts/login-${width}.png` });
+    await phone.screenshot({ path: `${evidenceDir}/login-${width}.png` });
     assert.ok(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await phone.locator('button[type=submit]').click(); await phone.waitForURL('**/business/operations-schedule');
     assert.equal(await phone.locator('[data-module-id=settings]').count(), 0);
     await phone.locator('.business-account--toolbar [data-account-trigger]').click(); await phone.locator('#business-account-toolbar:popover-open').waitFor();
-    await phone.screenshot({ path: `.tools/test-artifacts/account-${width}.png` });
+    await phone.screenshot({ path: `${evidenceDir}/account-${width}.png` });
     await phone.locator('#business-account-toolbar [data-sign-out]').click(); await phone.waitForURL('**/login');
     await mobile.close();
   }
