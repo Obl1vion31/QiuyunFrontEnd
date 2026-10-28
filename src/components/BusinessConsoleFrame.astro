@@ -1,6 +1,7 @@
 ---
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
 import BusinessPostLookup from './BusinessPostLookup.astro';
+import BusinessTools from './BusinessTools.astro';
 import '../styles/business-tokens.css';
 import '../styles/business-forms.css';
 import '../styles/business-typography.css';
@@ -40,6 +41,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
   <BusinessConsoleSidebar active={active} />
   <section class="workspace business-console-workspace"><slot /></section>
+  <BusinessTools/>
   <BusinessPostLookup/>
   <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
     <span class="business-operation-feedback__spinner" aria-hidden="true"></span>
@@ -157,7 +159,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   /* Clip horizontal overflow without creating an ancestor scroll container for sticky toolbars. */
   body{margin:0;overflow-x:clip}
   .business-console-frame{width:100%;font-family:var(--console-font);font-size:var(--console-text);line-height:var(--console-text-leading)}
-  .business-console-workspace{width:100%;min-width:0;color:var(--console-ink)}
+  .business-console-workspace{width:100%;min-width:0;padding-right:var(--console-tools-width);color:var(--console-ink)}
   .business-console-content{box-sizing:border-box;width:auto;max-width:none;margin:0;padding:var(--console-content-top) var(--console-content-x) 46px;min-width:0}
   @media(max-width:900px){:root{--console-content-x:10px;--console-content-top:12px;--console-toolbar-height:62px}.business-console-content{padding-bottom:28px}}
   .business-console-frame[data-user-role="employee"] [data-admin-only]{display:none!important}

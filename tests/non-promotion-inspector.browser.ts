@@ -1,8 +1,9 @@
+import {businessFetch as fetch} from './business-request.helper';
 /** 正式非推广表格与共享 Inspector；仅使用隔离 PGlite 和虚构资料。 */
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { startFixture, admin } from './auth.fixture';
-import { respondToBusinessConfirm } from './business-confirm.helper';
+import { settleBusinessUI,respondToBusinessConfirm } from './business-confirm.helper';
 import * as s from '../src/db/schema';
 
 const folder = process.env.NON_PROMOTION_ARTIFACT_DIR || '.tools/test-artifacts/non-promotion-inspector';
@@ -18,9 +19,16 @@ try {
   const cookie = login.headers.getSetCookie().map(c => c.split(';')[0]).join('; ');
   const api = async (path:string, values?:Record<string,string>) => {
     const form = new FormData(); for (const [key,value] of Object.entries(values??{})) form.set(key,value);
+    if(values&&path==='/api/non-promotion-reviews'){
+      let data=await (await fetch(baseURL+'/api/non-promotion-reviews?view=pending',{headers:{Cookie:cookie}})).json();
+      let item=data.tableRows.find((item:any)=>item.row.id===values.scheduleId&&item.checkpoint.type===values.checkpointType);
+      if(!item){data=await (await fetch(baseURL+'/api/non-promotion-reviews?view=history',{headers:{Cookie:cookie}})).json();item=data.tableRows.find((item:any)=>item.row.id===values.scheduleId&&item.checkpoint.type===values.checkpointType);}
+      assert.ok(item,'真实读模型返回当前可写节点');form.set('fingerprint',item.fingerprint);
+    }
     const response = await fetch(baseURL + path,{ method:values?'POST':'GET', headers:{ Cookie:cookie,Origin:baseURL },body:values?form:undefined });
     const data = await response.json(); assert.ok(response.ok,JSON.stringify(data)); return data;
   };
+  await db.update(s.operationsCategory).set({name:'非推广讲义帖：长分类名称与多轮阅读对照'}).where((await import('drizzle-orm')).eq(s.operationsCategory.id,'innovation'));
   let number = 0;
   const seed = async (name:string, options:{source?:any; missing?:boolean; noteId?:boolean; category?:string}={}) => {
     number++;
@@ -36,6 +44,7 @@ try {
   const history = await seed('分类思路：从读题到建模');
   for(const [checkpointType,clickRate] of [['day_7','6.25'],['day_15','8.50']])
     await api('/api/non-promotion-reviews',{scheduleId:history.schedule.id,checkpointType,recordedThrough:checkpointType==='day_7'?'2026-10-08':'2026-10-16',clickRate,threeSecondReadRate:'42',conclusion:'保留问题拆解方式，补充反例。'});
+  const edge=await seed('长数据边界：真实零值与完整百分比的对照');for(const [checkpointType,clickRate]of [['day_7','0'],['day_15','100']])await api('/api/non-promotion-reviews',{scheduleId:edge.schedule.id,checkpointType,recordedThrough:checkpointType==='day_7'?'2026-10-08':'2026-10-16',clickRate,threeSecondReadRate:clickRate,conclusion:'隔离视觉边界'});await seed('无同类基准的待复盘记录',{category:'temporary'});
   const skipped = await seed('方法对照：条件充分性判断',{category:'temporary'});
   await api('/api/non-promotion-checkpoints',{scheduleId:skipped.schedule.id,checkpointType:'day_7',action:'skip',scope:'schedule',expectedEventId:'',expectedEvents:JSON.stringify({day_7:null,day_15:null}),reason:'本次平台数据不可用'});
 
@@ -51,20 +60,21 @@ try {
   browser = await pw.chromium.launch({headless:true});
   const context = await browser.newContext({viewport:{width:1440,height:1100},recordVideo:{dir:folder+'/video',size:{width:1440,height:1100}}});
   await context.addCookies(cookie.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:baseURL})));
-  const page = await context.newPage(); page.setDefaultTimeout(12000);
+  const page = await context.newPage();await page.clock.setFixedTime(new Date('2026-10-23T12:00:00+08:00'));page.setDefaultTimeout(12000);
   page.on('pageerror',(e:Error)=>errors.push(e.message));
   page.on('dialog',(dialog:any)=>{errors.push('不应出现原生弹框：'+dialog.type());void dialog.dismiss();});
   await context.route('https://fictional.example.test/**',(route:any)=>route.fulfill({status:200,contentType:'text/html',body:'<html><body>隔离资料页面</body></html>'}));
   await context.route('https://www.xiaohongshu.com/**',(route:any)=>route.fulfill({status:200,contentType:'text/html',body:'<html><body>隔离帖子页面</body></html>'}));
   const nav = async(path:string) => {await page.goto(baseURL+path);await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);};
   const shot = async(name:string) => {
-    await pane.evaluate(async(node:HTMLElement)=>{await Promise.allSettled(node.getAnimations({subtree:true}).map(a=>a.finished));});
+    await settleBusinessUI(page);
     await page.evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
     await page.screenshot({path:folder+'/'+name+'.png',fullPage:false});
   };
   const row = (id:string,round='day_7')=>page.locator('[data-inspector-key="'+id+':'+round+'"]');
   const assertDates = async(id:string,round='day_7')=>{
     const cell = row(id,round).locator('.date-cell'), dates = cell.locator('time');
+    const line=await dates.evaluateAll((nodes:HTMLTimeElement[])=>nodes.map(n=>n.getBoundingClientRect().top));assert.ok(Math.abs(line[0]-line[1])<=1,'完整日期区间同行');
     assert.deepEqual(await dates.allTextContents(),['2026-10-01',round==='day_7'?'2026-10-08':'2026-10-16']);
     assert.deepEqual(await dates.evaluateAll((nodes:HTMLTimeElement[])=>nodes.map(n=>n.dateTime)),await dates.allTextContents());
     assert.match(await dates.nth(1).getAttribute('aria-label')||'',/应复盘日期/);
@@ -81,8 +91,9 @@ try {
     assert.equal(await pane.locator('[name=checkpointType]').first().inputValue(),round);
   };
   await nav('/business/non-promotion-review');
-  for(const width of [1920,1280]){
+  for(const width of [1920,1440,1024,390,320]){
     await page.setViewportSize({width,height:1100});await assertDates(first.schedule.id);
+    if(width>=1440){const center=await row(first.schedule.id).locator('.review-date-range').evaluate((node:HTMLElement)=>{const cell=node.closest('[role=cell]')!,a=node.getBoundingClientRect(),b=cell.getBoundingClientRect();return Math.abs((a.left+a.right-b.left-b.right)/2);});assert.ok(center<=1,'实际日期文字组居中');}
     await shot('pending-'+width);
   }
   let documents = 0; page.on('request',(request:any)=>{if(request.resourceType()==='document'&&request.frame()===page.mainFrame())documents++;});
@@ -92,7 +103,7 @@ try {
     const r = row(first.schedule.id), action = r.locator('.review-entry-button');
     await assertDates(first.schedule.id);
     assert.equal(await action.innerText(),'点击录入');
-    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'页面不横向溢出');
+    const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,nodes:[...document.querySelectorAll<HTMLElement>('body *')].filter(n=>n.getBoundingClientRect().width&&n.getBoundingClientRect().right>innerWidth+1&&!n.closest('.table-scroll,.category-detail-body')).slice(0,12).map(n=>({tag:n.tagName,cls:n.className,right:n.getBoundingClientRect().right}))}));if(overflow.scroll>overflow.width)await page.screenshot({path:folder+'/overflow-'+width+'.png'});assert.ok(overflow.scroll<=overflow.width,'页面不横向溢出 '+JSON.stringify(overflow));
     if(width<=1440) {
       const button = await action.boundingBox(); assert.ok(button&&button.x>=0&&button.x+button.width<=width,'录入按钮完整可见');
     }
@@ -189,7 +200,7 @@ try {
   await pane.locator('[data-review-form] button[type=submit]').click();await pane.getByText('已保存',{exact:true}).waitFor();
   await close();await row(history.schedule.id,'day_7').locator('.review-entry-button').click();await assertIdentity(history.schedule.id,'day_7');
   assert.equal(Number(await pane.locator('[name=clickRate]').inputValue()),6.25);await close();
-  for(const width of [1440,1024,390,320]) {
+  for(const width of [1920,1440,1024,390,320]) {
     await page.setViewportSize({width,height:1100});
     const action=row(history.schedule.id,'day_15').locator('.review-entry-button');
     const rect=await action.boundingBox();assert.ok(rect&&rect.x>=0&&rect.x+rect.width<=width,'已复盘按钮完整可见');
@@ -206,7 +217,9 @@ try {
   await row(skipped.schedule.id).locator('.review-entry-button').click();
   assert.equal(await pane.locator('[data-review-form]').count(),0);
   assert.equal(await pane.locator('.review-resources a').count(),3);
-  await shot('skipped-1440');await close();
+  await shot('skipped-inspector-1440');await close();
+  assert.equal(await page.locator('.review-table .metric-cell').count(),0);assert.equal(await page.locator('.review-table').getByText('待录入',{exact:true}).count(),0);assert.equal(await page.getByRole('columnheader',{name:'点击率',exact:true}).count(),0);
+  for(const width of [1920,1440,1024,390,320]){await page.setViewportSize({width,height:1100});await assertDates(skipped.schedule.id);await shot('skipped-'+width);}
   checks.push('不复盘记录提供资料与恢复入口，按钮文案为查看详情');
   checks.push('实验日期原列展示上海实发日至7/15天应复盘日；待填、分类、历史、跳过和保存后日期一致；1920/1440/1280/1024px不溢出');
 

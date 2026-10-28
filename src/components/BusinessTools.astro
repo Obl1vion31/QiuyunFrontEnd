@@ -1,0 +1,30 @@
+<aside class="business-tools" aria-label="工作台工具">
+  <button type="button" class="business-tools__trigger" popovertarget="business-tools-menu" aria-label="打开工具" data-tools-trigger><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg><span>工具</span></button>
+  <div id="business-tools-menu" class="business-tools__menu" popover="auto" aria-label="工作台工具菜单">
+    <button type="button" data-post-lookup-open><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>查找帖子</span></button>
+    <button type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></svg><span>找功能</span><small>未开放</small></button>
+    <button type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>AI 录入</span><small>未开放</small></button>
+    <button type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></svg><span>数据导出</span><small>未开放</small></button>
+  </div>
+</aside>
+<script>
+ function initialize(){
+  const panel=document.querySelector<HTMLElement>('#business-tools-menu'),trigger=document.querySelector<HTMLElement>('[data-tools-trigger]');if(!panel||!trigger||panel.dataset.ready)return;panel.dataset.ready='true';
+  const place=()=>{if(!panel.matches(':popover-open'))return;const box=trigger.getBoundingClientRect();panel.style.left=`${Math.max(8,box.left-panel.offsetWidth-8)}px`;panel.style.top=`${Math.max(8,Math.min(box.top,innerHeight-panel.offsetHeight-82))}px`;};
+  panel.addEventListener('toggle',place);const abort=new AbortController();window.addEventListener('resize',place,{signal:abort.signal});document.addEventListener('astro:before-swap',()=>{panel.hidePopover();abort.abort();},{once:true,signal:abort.signal});
+ }
+ document.addEventListener('astro:page-load',initialize);initialize();
+</script>
+<style is:global>
+.business-tools{position:fixed;z-index:15;right:0;top:var(--console-toolbar-height);bottom:0;display:flex;align-items:center;justify-content:center;width:var(--console-tools-width);border-left:1px solid var(--console-line);background:var(--console-surface-subtle);font:400 13px/20px var(--console-font)}
+.business-tools__trigger{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:44px;min-height:64px;padding:6px 0;border:1px solid var(--console-line);border-radius:8px;background:var(--console-surface);color:var(--console-muted);font:500 12px/18px var(--console-font);cursor:pointer}
+.business-tools__trigger:hover,.business-tools__trigger[aria-expanded=true]{color:var(--console-blue);background:var(--console-blue-soft)}
+.business-tools__trigger:focus-visible,.business-tools__menu button:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
+.business-tools__menu{position:fixed;inset:auto;margin:0;width:224px;padding:6px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);box-shadow:0 10px 30px #10243e24;color:var(--console-ink);font:400 14px/22px var(--console-font)}
+.business-tools__menu:popover-open{display:grid;gap:4px}
+.business-tools__menu button{display:flex;align-items:center;gap:10px;width:100%;height:44px;margin:0;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--console-ink);font:inherit;text-align:left;white-space:nowrap;cursor:pointer}
+.business-tools__menu button:not(:disabled):hover{background:var(--console-blue-soft);color:var(--console-blue)}
+.business-tools__menu button:disabled{color:var(--console-muted);cursor:default}.business-tools__menu small{margin-left:auto;font:400 12px/18px var(--console-font);color:var(--console-muted)}
+.business-tools__menu svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+@media(max-width:900px){:root{--console-tools-width:44px}.business-tools{bottom:66px}}
+</style>

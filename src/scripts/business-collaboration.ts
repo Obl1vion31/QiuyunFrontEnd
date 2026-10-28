@@ -14,18 +14,28 @@ if(!state.__collaborationReady){
  let active:Scope|undefined,field:string|null=null,lastPresence=0,polling=false,occupants:Occupant[]=[],confirming=false;
  const page=()=>location.pathname.split('/').at(-1)!;
  const admin=()=>document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole==='admin';
- const visible=(element:HTMLElement)=>element.isConnected&&element.dataset.collaborationActive!=='false'&&!element.closest('[hidden],dialog:not([open])')&&element.getClientRects().length>0;
+ const visible=(element:HTMLElement)=>element.isConnected&&element.dataset.collaborationActive!=='false'&&!element.closest('[hidden],dialog:not([open]),astro-island[ssr]')&&element.getClientRects().length>0;
  const json=async(path:string,method:string,body?:unknown)=>{const res=await baseFetch(path,{method,headers:{'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await res.json();if(!res.ok)throw Object.assign(new Error(data.message??'协作服务暂时不可用'),{status:res.status});return data;};
  const fieldName=(node:Element)=>(node.getAttribute('aria-label')??node.closest('label')?.childNodes[0]?.textContent??node.getAttribute('name')??'字段').trim().slice(0,80);
  const isField=(node:Element)=>node.matches('input:not([type=hidden]):not([type=search]):not([readonly]),textarea:not([readonly]),select');
  function scopeFor(node:Element):Scope|undefined{
   const element=node.closest<HTMLElement>('[data-collaboration-resource]');
-  if(!element?.dataset.collaborationResource||element.dataset.collaborationActive==='false')return;
+  if(!element?.dataset.collaborationResource||element.dataset.collaborationActive==='false'||element.closest('astro-island[ssr]'))return;
   return {resource:element.dataset.collaborationResource,label:element.dataset.collaborationLabel??'当前记录',element};
  }
  const scopes=()=>[...document.querySelectorAll<HTMLElement>('[data-collaboration-resource]')].filter(visible).map(element=>scopeFor(element)!);
+  const observers=()=>[...document.querySelectorAll<HTMLElement>('[data-collaboration-observe]')].filter(visible);
+  const renderObservers=()=>{for(const element of observers()){
+   const owner=occupants.find(row=>!row.own&&overlaps(row.resource,element.dataset.collaborationObserve!));
+   const action=element.querySelector<HTMLButtonElement>('[data-collaboration-action]');if(!action)continue;
+   action.dataset.idleLabel??=action.textContent??'';action.dataset.idleAria??=action.getAttribute('aria-label')??action.dataset.idleLabel;
+   element.toggleAttribute('data-record-occupied',!!owner);
+   action.textContent=owner?`${shortName(owner.name)} · 编辑中`:action.dataset.idleLabel;
+   action.title=owner?`${owner.name} 正在编辑${owner.field?' · '+owner.field:''}`:'';
+   action.setAttribute('aria-label',owner?`${action.dataset.idleAria}；${action.title}`:action.dataset.idleAria);
+  }};
  const isLost=(resource:string)=>[...lost].some(key=>overlaps(key,resource));
- const renderRelated=(resource:string)=>{for(const scope of scopes())if(overlaps(scope.resource,resource))render(scope);};
+ const renderRelated=(resource:string)=>{for(const scope of scopes())if(overlaps(scope.resource,resource))render(scope);renderObservers();};
  const remote=(scope:Scope)=>occupants.filter(row=>!row.own&&overlaps(row.resource,scope.resource));
  const controls=(scope:Scope)=>[...scope.element.querySelectorAll<Control>('input:not([type=hidden]):not([type=search]):not([readonly]),textarea:not([readonly]),select,button')].filter(node=>{
   if(node.closest('[data-collaboration-resource]')!==scope.element||node.matches('[data-editor-badge]'))return false;
@@ -40,14 +50,15 @@ if(!state.__collaborationReady){
  const owned=(scope:Scope)=>{const keys=aliases.get(scope.resource);return !!keys?.length&&keys.every(key=>leases.has(key)&&Date.parse(leases.get(key)!.expiresAt)>Date.now());};
  function render(scope:Scope){
   const rows=remote(scope),blocked=rows.length>0||isLost(scope.resource);
-  disable(scope,blocked||pending.has(scope.resource));
+  disable(scope,blocked);
   scope.element.dataset.editLock=blocked?'blocked':pending.has(scope.resource)?'pending':owned(scope)?'owned':'available';
   let badge=scope.element.querySelector<HTMLButtonElement>(':scope > [data-editor-badge]');
   if(!blocked){badge?.remove();return;}
   if(!badge){badge=document.createElement('button');badge.type='button';badge.dataset.editorBadge='';badge.className='editor-badge';scope.element.append(badge);badge.addEventListener('click',()=>void reclaim(scope));}
-  const row=rows[0];badge.textContent=row?shortName(row.name):'重新取得编辑权';badge.title=row?`${row.name} 正在编辑 · 重新取得编辑权`:'输入已保留，重新取得编辑权';badge.setAttribute('aria-label',badge.title);
+  const row=rows[0];badge.textContent=row?shortName(row.name):'重新取得';badge.title=row?`${row.name} 正在编辑 · 重新取得编辑权`:'输入已保留，重新取得编辑权';badge.setAttribute('aria-label',badge.title);
   const target=row?.field?[...scope.element.querySelectorAll<Control>('input,textarea,select')].find(node=>fieldName(node)===row.field):undefined;
-  if(target){const box=target.getBoundingClientRect(),root=scope.element.getBoundingClientRect();badge.style.top=`${Math.max(2,box.top-root.top+scope.element.scrollTop-8)}px`;badge.style.right=`${Math.max(4,root.right-box.right)}px`;badge.dataset.remoteField='true';}
+  badge.classList.remove('editor-badge--dot');
+   if(target){const box=target.getBoundingClientRect(),root=scope.element.getBoundingClientRect();if(badge.getBoundingClientRect().width>box.width-12)badge.classList.add('editor-badge--dot');badge.style.top=`${Math.max(2,box.top-root.top+scope.element.scrollTop-8)}px`;badge.style.right=`${Math.max(4,root.right-box.right)}px`;badge.dataset.remoteField='true';}
   else{badge.style.top='2px';badge.style.right='6px';delete badge.dataset.remoteField;}
  }
  const markLost=(key:string)=>{
@@ -65,7 +76,7 @@ if(!state.__collaborationReady){
   if(isLost(scope.resource)&&takeover===undefined)throw new Error('当前输入已保留，请重新取得编辑权。');
   if(owned(scope)&&takeover===undefined)return;
   const running=pending.get(scope.resource);if(running)return running;
-  const focused=document.activeElement instanceof HTMLElement&&scope.element.contains(document.activeElement)?document.activeElement:null;disable(scope,true);
+  // 取锁期间允许本地输入；写请求仍等待本次租约，真正占用或失锁才禁用。
   const task=(async()=>{
    const result=await json('/api/collaboration/locks','POST',{tabId,resources:[scope.resource],...(takeover===undefined?{}:{takeover})});
    if(!visible(scope.element)||scope.element.dataset.collaborationResource!==scope.resource){await json('/api/collaboration/locks','DELETE',{tabId,resources:result.leases.map((lease:Lease)=>lease.resource),tokens:Object.fromEntries(result.leases.map((lease:Lease)=>[lease.resource,lease.token]))});return;}
@@ -73,7 +84,7 @@ if(!state.__collaborationReady){
    aliases.set(scope.resource,keys);
    if(takeover!==undefined){const updates:Promise<unknown>[]=[];scope.element.dispatchEvent(new CustomEvent('business:edit-reclaimed',{bubbles:true,detail:{waitUntil:(task:Promise<unknown>)=>updates.push(task)}}));try{await Promise.all(updates);if(!scope.element.isConnected){const replacement=scopes().find(next=>next.resource===scope.resource);if(replacement){scope.element=replacement.element;for(const key of keys)sources.set(key,scope.element);}else{await release(keys);return;}}}catch(error){lost.add(scope.resource);await release(keys);render(scope);throw error;}}
    for(const key of lost)if(overlaps(key,scope.resource))lost.delete(key);occupants=occupants.filter(row=>!keys.some(key=>overlaps(key,row.resource)));render(scope);
-  })().finally(()=>{pending.delete(scope.resource);if(scope.element.dataset.collaborationResource===scope.resource)render(scope);renderRelated(scope.resource);if(owned(scope)&&focused?.isConnected)focused.focus({preventScroll:true});});pending.set(scope.resource,task);return task;
+  })().finally(()=>{pending.delete(scope.resource);if(scope.element.dataset.collaborationResource===scope.resource)render(scope);renderRelated(scope.resource);});pending.set(scope.resource,task);return task;
  }
  async function reclaim(scope:Scope){
   if(confirming)return;confirming=true;
@@ -107,10 +118,10 @@ if(!state.__collaborationReady){
    discover();await release([...sources].filter(([key,element])=>!visible(element)||!aliases.get(element.dataset.collaborationResource??'')?.includes(key)).map(([key])=>key));
    if(active&&!visible(active.element)){active=undefined;field=null;}
    await position();if(document.hidden)return;
-   const current=scopes(),query=new URLSearchParams({tabId}),meetingId=new URL(location.href).searchParams.get('meeting');for(const resource of new Set([...current.map(scope=>scope.resource),...(meetingId?[`meeting:${meetingId}`]:[])]))query.append('resource',resource);
+   const current=scopes(),query=new URLSearchParams({tabId}),meetingId=new URL(location.href).searchParams.get('meeting');for(const resource of new Set([...current.map(scope=>scope.resource),...observers().map(element=>element.dataset.collaborationObserve!),...(meetingId?[`meeting:${meetingId}`]:[])]))query.append('resource',resource);
    occupants=(await json('/api/collaboration/locks?'+query,'GET')).rows;
    for(const keys of aliases.values())for(const key of keys){const lease=leases.get(key);if(lease&&(Date.parse(lease.expiresAt)<=Date.now()||occupants.some(row=>!row.own&&overlaps(row.resource,key))))markLost(key);}
-   for(const scope of current)render(scope);
+   for(const scope of current)render(scope);renderObservers();
    if(admin()){
     const {rows}=await json('/api/collaboration/presence','GET') as {rows:Presence[]};
     const modules:Record<string,string>={'operations-schedule':'schedule','daily-promotion-review':'daily-promotion'};
@@ -134,17 +145,18 @@ if(!state.__collaborationReady){
   try{await ensure(scope);await position(true);}catch(error){await poll().catch(()=>{});render(scope);if(!remote(scope).length&&!(error instanceof Error&&'status' in error&&error.status===409))document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:error instanceof Error?error.message:'取得编辑权失败，请重试。'}}));}
  }
  document.addEventListener('focusin',event=>{const node=event.target as Element;if(!isField(node)||node.matches(':disabled'))return;discover();const scope=scopeFor(node);if(scope)void start(scope,node);});
- document.addEventListener('beforeinput',event=>{const node=event.target as Element,scope=scopeFor(node);if(!scope||!isField(node))return;if(!owned(scope)){event.preventDefault();void start(scope,node);}},true);
+ document.addEventListener('beforeinput',event=>{const node=event.target as Element,scope=scopeFor(node);if(!scope||!isField(node))return;if(remote(scope).length||isLost(scope.resource)){event.preventDefault();return;}if(!owned(scope))void start(scope,node);},true);
  document.addEventListener('pointerdown',event=>{
   const node=event.target as Element,scope=scopeFor(node);if(!scope||node.closest('[data-editor-badge]'))return;
   const blocked=remote(scope).length||isLost(scope.resource);
   if(blocked){const hit=controls(scope).some(control=>{const box=control.getBoundingClientRect();return event.clientX>=box.left&&event.clientX<=box.right&&event.clientY>=box.top&&event.clientY<=box.bottom;});if(hit){event.preventDefault();event.stopImmediatePropagation();void reclaim(scope);}}
-  else if(isField(node)&&!owned(scope)){event.preventDefault();void start(scope,node).then(()=>{if(owned(scope))(node as HTMLElement).focus();});}
+  else if(isField(node)&&!owned(scope))void start(scope,node);
  },true);
  document.addEventListener('focusout',()=>queueMicrotask(()=>{if(!(document.activeElement instanceof Element)||!isField(document.activeElement)){field=null;void position(true);}}));
  const refresh=()=>queueMicrotask(()=>void (async()=>{for(const element of document.querySelectorAll<HTMLElement>('[data-collaboration-active="false"]')){delete element.dataset.editEntered;element.querySelector(':scope > [data-editor-badge]')?.remove();disable({resource:element.dataset.collaborationResource!,label:'',element},false);}discover();await poll();for(const scope of scopes())if((scope.element.matches('[data-weekly-report]')||scope.element.matches('[data-collaboration-active="true"]')||scope.element.matches('[data-review-form]')&&new URL(location.href).searchParams.get('view')!=='history'&&!!scope.element.closest('[data-inspector].is-open'))&&!scope.element.dataset.editEntered&&!isLost(scope.resource)&&!remote(scope).length){scope.element.dataset.editEntered='true';await start(scope);}})().catch(()=>{}));
  for(const name of ['business:editing-scope-change','business:inspector-selection','business:inspector-render','business:publication-opened'])document.addEventListener(name,refresh);
  document.addEventListener('close',refresh,true);
+  document.addEventListener('astro:hydrate',refresh,true);
  window.fetch=async(input,init)=>{
   const target=new URL(input instanceof Request?input.url:String(input),location.href),method=String(init?.method??(input instanceof Request?input.method:'GET')).toUpperCase();
   if(target.origin!==location.origin||!target.pathname.startsWith('/api/')||target.pathname.startsWith('/api/collaboration/')||['GET','HEAD','OPTIONS'].includes(method))return baseFetch(input,init);
@@ -153,7 +165,7 @@ if(!state.__collaborationReady){
   const resources=writeResources(target.pathname,method,data);if(!resources.length)return baseFetch(input,init);
   let acquired:string[]=[];
   try{
-   await Promise.all([...pending.values()]);
+   await Promise.all([...pending].filter(([resource])=>resources.some(key=>overlaps(resource,key))).map(([,task])=>task));
    if(resources.some(resource=>[...lost].some(key=>overlaps(key,resource))))throw new Error('当前输入已保留，请重新取得编辑权。');
    const missing=resources.filter(resource=>![...leases.values()].some(lease=>overlaps(lease.resource,resource)));
    if(missing.length){const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}

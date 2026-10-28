@@ -1,0 +1,590 @@
+[
+  {
+    "ms": 0.09999999403953552,
+    "disabled": false,
+    "focused": false,
+    "value": ""
+  },
+  {
+    "ms": 5.9000000059604645,
+    "disabled": false,
+    "focused": false,
+    "value": ""
+  },
+  {
+    "ms": 22.900000005960464,
+    "disabled": false,
+    "focused": false,
+    "value": ""
+  },
+  {
+    "ms": 39.5,
+    "disabled": false,
+    "focused": false,
+    "value": ""
+  },
+  {
+    "ms": 60.400000005960464,
+    "disabled": false,
+    "focused": true,
+    "value": ""
+  },
+  {
+    "ms": 75.20000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1"
+  },
+  {
+    "ms": 89.79999999701977,
+    "disabled": false,
+    "focused": true,
+    "value": "1"
+  },
+  {
+    "ms": 106.09999999403954,
+    "disabled": false,
+    "focused": true,
+    "value": "1"
+  },
+  {
+    "ms": 123,
+    "disabled": false,
+    "focused": true,
+    "value": "12"
+  },
+  {
+    "ms": 139.5,
+    "disabled": false,
+    "focused": true,
+    "value": "12"
+  },
+  {
+    "ms": 157,
+    "disabled": false,
+    "focused": true,
+    "value": "123"
+  },
+  {
+    "ms": 172.59999999403954,
+    "disabled": false,
+    "focused": true,
+    "value": "123"
+  },
+  {
+    "ms": 190,
+    "disabled": false,
+    "focused": true,
+    "value": "1234"
+  },
+  {
+    "ms": 206.20000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1234"
+  },
+  {
+    "ms": 222.90000000596046,
+    "disabled": false,
+    "focused": true,
+    "value": "1234"
+  },
+  {
+    "ms": 240,
+    "disabled": false,
+    "focused": true,
+    "value": "1234"
+  },
+  {
+    "ms": 256.09999999403954,
+    "disabled": false,
+    "focused": true,
+    "value": "1234"
+  },
+  {
+    "ms": 273.09999999403954,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.5"
+  },
+  {
+    "ms": 289.29999999701977,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.5"
+  },
+  {
+    "ms": 307.40000000596046,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 322.70000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 339.40000000596046,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 356.40000000596046,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 372.59999999403954,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 389.29999999701977,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 406.20000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 424.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 439.40000000596046,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 456.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 472.70000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 489.70000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 506.20000000298023,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 522.7000000029802,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 539.9000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 556.0999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 573.0999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 589.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 606.4000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 623.0999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 639.2999999970198,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 656,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 672.7999999970198,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 689.2999999970198,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 706,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 722.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 739.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 756.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 772.9000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 789.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 806.2000000029802,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 822.7999999970198,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 839.4000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 856.2000000029802,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 872.9000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 889.4000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 906.0999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 922.7999999970198,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 939.2000000029802,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 955.9000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 972.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 989.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1006.2000000029802,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1022.7999999970198,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1039.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1056.4000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1072.9000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1089.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1106,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1123.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1139.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1156.5,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1172.9000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1189.5999999940395,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1206.4000000059605,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1223,
+    "disabled": false,
+    "focused": true,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1242.7000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1257.7000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1273,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1289.4000000059605,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1306.2000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1324.7000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1339.5999999940395,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1356.0999999940395,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1372.7000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1389.2000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1406,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1422.5,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1439.2999999970198,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1456.2000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1472.7000000029802,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1489.7999999970198,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1506.4000000059605,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1522.5999999940395,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1539.4000000059605,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1556.0999999940395,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1572.5,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1589.2999999970198,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  },
+  {
+    "ms": 1606,
+    "disabled": false,
+    "focused": false,
+    "value": "1234.56"
+  }
+]

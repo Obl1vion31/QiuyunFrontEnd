@@ -7,3 +7,6 @@
 [data-meeting-presence]{font:400 var(--console-caption)/20px var(--console-font);color:var(--console-muted)}
 .business-sidebar__nav [data-module-id] strong{flex:1;min-width:0}
 @media(max-width:900px){.business-sidebar__nav .presence-badge{position:absolute;top:1px;right:2px;font-size:9px;line-height:12px;padding:0 2px;max-width:100%;overflow:hidden;text-overflow:ellipsis}}
+
+.editor-badge--dot{width:18px!important;max-width:18px;overflow:hidden;font-size:0!important;justify-content:center;padding:0!important;gap:0}.editor-badge--dot::before{width:6px;height:6px}
+[data-record-occupied] [data-collaboration-action]{background:var(--console-blue-soft);border-color:#cbd8f5;color:#3159a0}

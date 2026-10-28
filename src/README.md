@@ -26,4 +26,4 @@
 
 推广状态由 `db/promotion-timeline.ts` 维护业务日期、首次安排、实际当日暂停及历史更正；推广历史和排期通过同一组件展示。排期待审直接位于排期管理，设置提供账号管理和操作授权，旧年度审核地址继续兼容；学科和分类在年度规划内联追加，全站共用数据库字典。
 
-例会准备使用既有 JSON 的 `workflowVersion=7`：按本次来源核对完整性，推广／非推广均回原入口补齐，正文只读引用非推广事实；会前／会后版本与安排由原控制器维护。`meeting-readiness.ts`、`promotion-review-required.ts` 统一完整性和日度应填口径。协作、查帖和账号管理分别由 Frame、共享控制器及受保护 API 接入，不复制页面壳层。
+例会准备使用既有 JSON 的 `workflowVersion=7`：按本次来源核对完整性，推广／非推广均回原入口补齐，正文只读引用非推广事实；会前／会后版本与安排由原控制器维护。`meeting-readiness.ts`、`promotion-review-required.ts` 统一完整性和日度应填口径。协作、查帖和账号管理分别由 Frame、共享控制器及受保护 API 接入；`BusinessTools` 提供右侧统一工具入口，`non-promotion-table.css` 集中维护非推广列表的语义列与窄屏布局，不复制页面壳层。

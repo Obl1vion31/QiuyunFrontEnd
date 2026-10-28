@@ -3,6 +3,7 @@ import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
 import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
+import '../../styles/non-promotion-table.css';
 import MetricCell from '../../components/MetricCell.astro';
 import BusinessNonPromotionTableHead from '../../components/BusinessNonPromotionTableHead.astro';
 import {nonPromotionGroupLabel} from '../../db/non-promotion-groups';
@@ -41,8 +42,8 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
     {activeView==='history' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'分类均值查看',value:'1'},{label:'历史数据总览',value:'0'}]} data-review-display/></div>}
     </div>
     <section class="review-workspace" data-inspector-host>
-      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
-        <div data-flat-head hidden={grouped}><BusinessNonPromotionTableHead/></div>
+      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-view={activeView} data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
+        <div data-flat-head hidden={grouped}><BusinessNonPromotionTableHead skipped={activeView==='skipped'}/></div>
         <div data-category-overview hidden={!grouped}>
           <div class="category-grid category-group-head" aria-hidden="true"><span>帖子分类</span><span>轮次</span><span>样本</span><span>点击率</span><span>3 秒阅读率</span><span>明细</span></div>
           {categoryGroups.map(group=><details class="review-category-group" data-category-details data-category-group={group.key} data-category-label={group.label} open={selectedGroup===group.key}>
@@ -54,18 +55,19 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
         {group.items.map((item) => {
           const clickValue=item.metric?Number(item.metric.clickRate):null;const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
           const click=metricPresentation(clickValue,item.click.mean);const read=metricPresentation(readValue,item.read.mean);
-          return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
+          return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-collaboration-observe={`schedule:${item.row.id}:non:${item.checkpoint.type}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
             <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class="date-cell" title={`发布日期：${shanghaiDateKey(item.row.actualPublishAt)}；应复盘日期：${item.dueOn}`}>
               <span class="review-date-range"><time datetime={shanghaiDateKey(item.row.actualPublishAt)} aria-label={`发布日期 ${shanghaiDateKey(item.row.actualPublishAt)}`}>{shanghaiDateKey(item.row.actualPublishAt)}</time><span><span class="review-date-separator" aria-hidden="true">至 </span><time datetime={item.dueOn} aria-label={`应复盘日期 ${item.dueOn}`}>{item.dueOn}</time></span></span>
             </span>
             <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':false}]}  title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
-              <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={'查看详情：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small></span>
+              <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={'查看详情：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small></span><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small>
             </span>
             <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
-            <span role="cell" aria-colindex="4" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
+            {activeView==='skipped'?<span role="cell" aria-colindex="4" class="review-reason" data-label="不复盘原因">{item.event?.reason||'—'}</span>:<><span role="cell" aria-colindex="4" data-label="点击率" class="metric"><MetricCell value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
             <span role="cell" aria-colindex="5" data-label="3 秒阅读率" class="metric"><MetricCell value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
-            <span role="cell" aria-colindex="6" class="review-action-cell" data-label="操作"><button type="button" class="review-entry-button" data-inspector-trigger aria-label={(activeView==='pending'?'点击录入':'查看详情')+'：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}>{activeView==='pending'?'点击录入':'查看详情'}</button></span>
-          </div>;
+            </>}
+             <span role="cell" aria-colindex={activeView==='skipped'?5:6} class="review-action-cell" data-label="操作"><button type="button" class="review-entry-button" data-collaboration-action data-inspector-trigger aria-label={(activeView==='pending'?'点击录入':'查看详情')+'：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}>{activeView==='pending'?'点击录入':'查看详情'}</button></span>
+           </div>;
         })}
 
         </div>)}
@@ -96,7 +98,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
           <label>数据截至<input type="date" name="recordedThrough" min={selected.window.min} max={selected.window.max} value={selected.metric?.recordedThrough??selected.window.defaultValue} required/></label>
           <label>点击率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="clickRate" value={selected.metric?.clickRate??''} required/><b>%</b></div></label>
           <label>3 秒阅读率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="threeSecondReadRate" value={selected.metric?.threeSecondReadRate??''} required/><b>%</b></div></label>
-          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="status"></output><button type="submit">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button></fieldset>
+          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="status"></output><button type="submit" class="business-action-primary">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button></fieldset>
         </form>}
         {!selected.review&&<details class="checkpoint-action" open={activeView==='skipped'}>
           <summary>{activeView==='skipped'?'不复盘记录与恢复':'这次不复盘'}</summary>
@@ -106,7 +108,7 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
             <input type="hidden" name="expectedEvents" value={JSON.stringify(Object.fromEntries(['day_7','day_15'].map(type=>[type,checkpointEvents.get(`${selected.row.id}:${type}`)?.id??null])))}/>
             <label>处理范围<select name="scope"><option value="checkpoint">仅本次复盘</option><option value="schedule">该篇全部未完成复盘</option></select></label>
             <label>{activeView==='skipped'?'恢复说明':'不复盘原因'}<textarea name="reason" maxlength="500" required placeholder={activeView==='skipped'?'数据已恢复，可以补录':'例如：平台数据无法获取'}></textarea></label>
-            <output role="alert"></output><button type="submit">{activeView==='skipped'?'恢复为待复盘':'确认此节点不复盘'}</button>
+            <output role="alert"></output><button type="submit" class="business-action-primary">{activeView==='skipped'?'恢复为待复盘':'确认此节点不复盘'}</button>
           </form>
         </details>}
       </template>)}
@@ -134,84 +136,10 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-filters a{display:flex;align-items:center;height:var(--console-control-compact);padding:0 8px;color:var(--console-blue);font-size:var(--console-caption)}
 .review-filters select:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .review-workspace{min-height:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
-.table-pane{min-width:0;container-type:inline-size;container-name:nonpromotion-table}.table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}
-.review-table{width:100%;min-width:964px}
-.review-row{display:grid;grid-template-columns:100px minmax(200px,1.1fr) 64px minmax(180px,1fr) minmax(180px,1fr) 184px;align-items:center;min-height:60px;border-bottom:1px solid #dde2df;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
-.review-row>span{min-width:0;padding:8px 12px}
-.table-head{position:sticky;top:0;z-index:2;min-height:42px;color:#53615a;background:#F8F9FB;font-size:13px;line-height:20px;font-weight:500}
-.table-head>span:nth-child(4),.table-head>span:nth-child(5){text-align:left}.table-head button{display:inline-flex;align-items:center;gap:5px;margin:0;padding:0;border:0;color:inherit;background:none;font:inherit;cursor:pointer}.table-head i{opacity:.5;font-size:var(--console-caption);font-style:normal}.table-head button:hover i,.table-head button:focus-visible i,[aria-sort="ascending"] i,[aria-sort="descending"] i{opacity:1}.table-head button:focus-visible{outline:2px solid var(--console-blue);outline-offset:4px}
-.review-row:not(.table-head):hover,.review-row.selected{background:#F8F9FB}.review-row.selected{box-shadow:inset 3px 0 var(--console-blue)}.review-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
-.date-cell{font:500 13px/20px var(--console-font);font-variant-numeric:tabular-nums;white-space:nowrap}
-.review-date-range{display:grid;gap:2px}.review-date-separator{color:var(--console-muted)}
-.post-cell{display:grid;gap:3px}.review-post-title{display:flex;align-items:baseline;gap:8px;min-width:0}.post-cell a{display:flex;align-items:center;gap:5px;min-width:0;color:inherit;text-decoration:none}.post-cell a:hover strong{text-decoration:underline}.post-cell a i{flex:none;color:var(--console-muted);font-size:var(--console-caption);font-style:normal}.post-cell strong{min-width:0;overflow:hidden;color:var(--console-ink);font-size:var(--console-emphasis);line-height:var(--console-text-leading);font-weight:500;text-overflow:ellipsis;white-space:nowrap}.post-cell small{color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading)}.review-post-title small{flex:none}
-.review-row mark{display:inline-block;padding:2px 6px;border:1px solid #d9dfdb;border-radius:5px;color:#53615a;background:#f2f4f2;font-size:var(--console-caption);font-weight:500;line-height:var(--console-caption-leading);white-space:nowrap}.review-row mark.overdue{border-color:#ead8d0;color:#8d5b47;background:#faf3ef}
-.review-row .metric{text-align:left}.review-row[hidden]{display:none}.review-post-group{border-bottom:1px solid var(--console-line)}.review-row.missing-round{color:var(--console-muted);font-size:var(--console-caption)}.review-table button:disabled{cursor:default;opacity:.6}
-.review-common-repeat{visibility:hidden;pointer-events:none}.review-post-group .review-row{border-bottom:0}.review-post-group .review-row>[role=cell]:nth-child(n+3):nth-child(-n+5){border-bottom:1px solid #dde2df}.review-post-group .review-row:last-child>[role=cell]{border-bottom:0}
 .review-empty{padding:32px 16px;text-align:center;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .review-form label{font-size:var(--console-text);line-height:var(--console-text-leading);color:var(--console-ink);font-weight:500}.review-workspace .review-form :is(input,textarea){min-height:var(--console-control-height);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .rate{height:var(--console-control-height)}.review-workspace .rate input{min-height:0;height:calc(var(--console-control-height) - 2px)}.review-workspace .rate b,.review-workspace .review-form>button{font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
-@media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters select{width:100%}.review-display{width:100%}}
-.sort-read-short{display:none}
-/* A category spans both rounds. Data columns keep one shared header and the same anchors. */
-.review-table [hidden]{display:none!important}
-.review-table .review-row{grid-template-columns:132px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;gap:0 12px}
-.review-table .review-category-column{display:none!important}
-.review-post-category{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}
-.review-table[data-grouped=true] .review-post-category{display:none}
-.review-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-.category-grid{display:grid;grid-template-columns:minmax(172px,1.15fr) 64px 88px minmax(136px,1fr) minmax(136px,1fr) 64px;align-items:center}
-.category-grid>*{min-width:0;padding:8px 16px;text-align:left}
-.category-group-head{min-height:40px;border-bottom:1px solid var(--console-line);background:#FAFBFC;color:var(--console-muted);font:500 13px/20px var(--console-font)}
-.category-group-head>:last-child{padding-left:4px;padding-right:4px;text-align:center}
-.review-category-group{margin:0;border-bottom:1px solid var(--console-line)}
-.review-category-group:last-child{border-bottom:0}
-.category-summary-row{min-height:88px;grid-template-rows:44px 44px;list-style:none;cursor:pointer;font:400 13px/20px var(--console-font)}
-.category-summary-row::-webkit-details-marker{display:none}
-.category-summary-row>.category-name{grid-column:1;grid-row:1/3;font:500 15px/22px var(--console-font);overflow-wrap:anywhere}
-.category-summary-row>.category-round{color:var(--console-muted)}
-.category-summary-row>.category-rate{font:500 18px/24px var(--console-font);font-variant-numeric:tabular-nums}
-.category-summary-row>.category-sample{font-variant-numeric:tabular-nums}
-.category-summary-row:hover{background:var(--console-surface-subtle)}
-.category-summary-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
-.category-detail-link{grid-column:6;grid-row:1/3;display:flex;align-items:center;justify-content:center;gap:2px;padding-left:4px;padding-right:4px;color:var(--console-blue);white-space:nowrap;font-size:13px}
-.category-detail-link svg{width:12px;transition:transform 220ms}
-.review-category-group[open]>.category-summary-row svg{transform:rotate(180deg)}
-.review-category-group:not([open])>.category-summary-row .when-open,.review-category-group[open]>.category-summary-row .when-closed{display:none}
-.category-detail-body{padding:0 16px 12px;min-width:0;overflow-x:auto;box-sizing:border-box}
-.category-detail-body>.table-head{background:var(--console-surface-subtle)}
-.review-workspace .review-table[data-grouped=true]{min-width:660px}
-.review-table .review-row.table-head{min-height:44px}
-.review-table .review-post-title{flex-wrap:wrap}
-.review-table .table-head button{font:inherit}
-.review-table .table-head>[role=columnheader]{display:flex;align-items:center;align-self:stretch;min-height:42px}
-.business-console-content:has(.review-controls){max-width:1488px;margin-inline:auto}
-@media(max-width:900px){
- .review-workspace .review-table[data-grouped=true]{min-width:660px}
- .review-table[data-grouped=false]{min-width:0}
- .category-detail-body .review-row{width:100%;min-width:932px;grid-template-columns:132px minmax(180px,1fr) 64px minmax(176px,1fr) minmax(176px,1fr) 100px;grid-template-areas:none;gap:0 12px;align-items:center;padding:0}
- .category-detail-body .review-row>span{display:block!important;grid-area:auto;padding:8px 12px!important}
- .category-detail-body .review-row>.review-category-column{display:none!important}
- .category-detail-body .review-row .metric::before{display:none}
- .category-detail-body .table-head{display:grid}
- .category-detail-body .table-head>span:not(:has(button)){position:static;width:auto;height:auto;overflow:visible;clip-path:none}
-}
-@media(max-width:700px){
- .review-filters label:has(select[name="category"]) select{width:100%}
-}
-@media(max-width:480px){
- .review-filters{grid-template-columns:1fr}
- .review-controls{gap:16px}
- .review-display .business-view-switch{max-width:100%}
-}
-@media(prefers-reduced-motion:reduce){.category-detail-link svg{transition:none}}
-
-.review-table .review-row>.review-action-cell{display:flex;align-items:center;justify-content:flex-end}
-.review-table .review-row>.review-action-head{justify-content:flex-end}
-.review-title-button{display:inline-flex;min-width:0;max-width:100%;margin:0;padding:0;border:0;background:transparent;color:var(--console-ink);font:inherit;text-align:left;cursor:pointer}
-.review-title-button:hover strong{text-decoration:underline;text-underline-offset:3px}
-.review-title-button:focus-visible,.review-entry-button:focus-visible,.review-resources a:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px;border-radius:4px}
-.review-entry-button{display:inline-flex;align-items:center;justify-content:center;flex:none;height:var(--console-control-compact);margin:0;padding:0 10px;border:1px solid var(--console-line);border-radius:var(--console-control-radius);background:var(--console-surface);color:var(--console-blue);font:500 13px/20px var(--console-font);white-space:nowrap;cursor:pointer}
-.review-entry-button:hover{border-color:var(--console-blue);background:var(--console-blue-soft)}
+@media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters select,.review-filters label:has(select[name="category"]) select{width:100%}.review-display{width:100%}}
 .review-resources dl{display:grid;gap:10px;margin:0;font:400 13px/20px var(--console-font)}
 .review-resources dl>div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px;align-items:baseline}
 .review-resources dt{color:var(--console-muted)}.review-resources dd{min-width:0;margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
@@ -219,32 +147,5 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-resources .resource-missing{color:var(--console-muted)}
 .review-resources .review-schedule-link{display:inline-block;margin:12px 0 16px;font:400 13px/20px var(--console-font)}
 .review-resources>label{display:block}.review-resources>p{margin-top:6px}
-/* Adapt to the remaining list width, including when a docked Inspector is open. */
-.review-table[data-grouped=false]{min-width:0}
-@container nonpromotion-table (min-width:601px) and (max-width:1000px){
- .review-table[data-grouped=false] .review-row{grid-template-columns:124px minmax(140px,1fr) 52px minmax(112px,1fr) minmax(112px,1fr) 96px;gap:0 8px}
- .review-table[data-grouped=false] .review-row>span{padding:8px}
- .review-table[data-grouped=false] .metric-primary{display:grid;min-width:0;max-width:100%;gap:2px}
- .review-table[data-grouped=false] .review-title-button strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden}
-}
-@container nonpromotion-table (max-width:600px){
- .review-table[data-grouped=false] .table-head{position:relative;display:flex;align-items:center;width:100%;height:auto;min-height:40px;overflow:visible}
- .review-table[data-grouped=false] .table-head>span:has(button){flex:1;padding:8px 4px;min-width:0}
- .review-table[data-grouped=false] .table-head>span:not(:has(button)){position:absolute;min-height:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
- .review-table[data-grouped=false] .table-head button{gap:3px}
- .review-table[data-grouped=false] .sort-read-full{display:none}
- .review-table[data-grouped=false] .sort-read-short{display:inline}
- .review-table[data-grouped=false] .review-row:not(.table-head){grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"date date action" "post post post" "node click read";align-items:start;gap:8px;padding:12px}
- .review-table[data-grouped=false] .review-row:not(.table-head)>span{padding:0}
- .review-table[data-grouped=false] .review-row>[aria-colindex="1"]{grid-area:date;align-self:center;color:var(--console-muted);font-size:12px}
- .review-table[data-grouped=false] .review-row>[aria-colindex="2"]{grid-area:post}
- .review-table[data-grouped=false] .review-row>[aria-colindex="3"]{grid-area:node}
- .review-table[data-grouped=false] .review-row>[aria-colindex="4"]{grid-area:click}
- .review-table[data-grouped=false] .review-row>[aria-colindex="5"]{grid-area:read}
- .review-table[data-grouped=false] .review-row>.review-action-cell{grid-area:action;justify-self:end}
- .review-table[data-grouped=false] .metric::before{content:attr(data-label);display:block;margin-bottom:4px;color:var(--console-muted);font-size:12px}
- .review-table[data-grouped=false] .metric-primary{display:grid;gap:2px}
- .review-table[data-grouped=false] .post-cell strong{white-space:normal;overflow-wrap:anywhere}
- .review-table[data-grouped=false] .review-entry-button{padding:0 8px}
-}
+@media(max-width:480px){.review-filters{grid-template-columns:1fr}.review-controls{gap:16px}.review-display .business-view-switch{max-width:100%}}
 </style>

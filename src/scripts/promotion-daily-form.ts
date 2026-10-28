@@ -91,13 +91,13 @@ document.addEventListener('astro:before-swap',()=>{for(const state of stateDraft
 function initialize(){
  const drafts=documents.get(document)??new Map<string,Draft>();documents.set(document,drafts);
  const render=(form:HTMLFormElement,draft:Draft)=>{
-  for(const field of fields(form))if(field.name in draft.values)field.value=draft.values[field.name];
+  for(const field of fields(form))if(field.name in draft.values&&field.value!==draft.values[field.name])field.value=draft.values[field.name];
   const complete=metricNames.every(name=>draft.values[name]!==''&&draft.values[name]!=null&&Number.isFinite(Number(draft.values[name])));
   form.querySelector<HTMLOutputElement>('[data-open-cost]')!.textContent=complete?cost(Number(draft.values.spend),Number(draft.values.actualOpenCount)):'—';
   form.querySelector<HTMLOutputElement>('[data-lead-cost]')!.textContent=complete?cost(Number(draft.values.spend),Number(draft.values.actualLeadCount)):'—';
-  const button=form.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=draft.busy;button.textContent=draft.success?'已完成':draft.busy?'正在保存…':'完成复盘';button.toggleAttribute('data-success',!!draft.success);
+  const button=form.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=draft.busy||button.hasAttribute('data-lock-disabled');button.textContent=draft.success?'已完成':draft.busy?'正在保存…':'完成复盘';button.toggleAttribute('data-success',!!draft.success);
   form.querySelector<HTMLElement>('[data-form-message]')!.textContent=draft.message;
-  for(const field of fields(form))if(field.type!=='hidden')field.disabled=draft.busy;for(const trigger of form.querySelectorAll<HTMLButtonElement>('[data-note-id-trigger]'))trigger.disabled=draft.busy;const stateTrigger=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]');if(stateTrigger)stateTrigger.disabled=draft.busy||!statusOptions(form).length;
+  for(const field of fields(form))if(field.type!=='hidden')field.disabled=draft.busy||field.hasAttribute('data-lock-disabled');for(const trigger of form.querySelectorAll<HTMLButtonElement>('[data-note-id-trigger]'))trigger.disabled=draft.busy||trigger.hasAttribute('data-lock-disabled');const stateTrigger=form.querySelector<HTMLButtonElement>('[data-toggle-day-state]');if(stateTrigger)stateTrigger.disabled=draft.busy||stateTrigger.hasAttribute('data-lock-disabled')||!statusOptions(form).length;
   const note=draft.values.platformNoteId??'',stored=!!form.dataset.noteId;
   const reference=form.querySelector<HTMLElement>('[data-reference-note-id]');if(reference)reference.textContent=note||'未填写';
   const copy=form.querySelector<HTMLButtonElement>('[data-copy-note-id]');if(copy)copy.hidden=!note;

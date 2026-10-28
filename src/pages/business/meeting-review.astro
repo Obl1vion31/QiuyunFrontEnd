@@ -145,7 +145,14 @@ const defaultStart=requestedFrom&&/^\d{4}-\d{2}-\d{2}$/.test(requestedFrom)&&req
 .meeting-create-fields{display:grid;gap:16px}.meeting-create-fields .writing-grid{margin-top:0}.report.business-form .writing-grid{margin-top:16px}.report.business-form .manual-promotion{align-items:start}.report.business-form .paper{padding:20px}.report.business-form .paper>h2{font-size:16px;line-height:24px}.report.business-form .paper>h3{font-size:14px;line-height:20px}@media(max-width:600px){.report.business-form .paper{padding:16px}.report.business-form .writing-grid{grid-template-columns:1fr}}
 </style>
 
-<style>.meeting-ledger-scroll{overflow-x:auto}.meeting-ledger{width:max-content;max-width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}.meeting-ledger :is(th,td){padding:14px 16px;border-bottom:1px solid var(--console-line);text-align:left;vertical-align:middle}.meeting-ledger th{font-size:13px;color:var(--console-muted);font-weight:500;background:#f6f7f9}.meeting-ledger small{display:block;font-size:12px;color:var(--console-muted);margin-top:4px}.meeting-ledger a{color:var(--console-blue);text-decoration:none}.meeting-ledger-main{width:min(100%,1280px);min-width:1140px;table-layout:fixed}.meeting-ledger-main th:nth-child(1){width:180px}.meeting-ledger-main th:nth-child(2){width:192px}.meeting-ledger-main th:nth-child(3){width:149px}.meeting-ledger-main th:nth-child(5){width:90px}.meeting-ledger-main th:nth-child(6){width:310px}.meeting-ledger-main :is(th,td){white-space:nowrap;padding:12px 10px}.meeting-ledger-main :is(th,td):nth-child(5){text-align:center}.meeting-ledger button{display:block;margin-top:6px;font:inherit;font-size:12px;border:0;background:none;color:var(--console-muted);padding:0}</style>
+<style>
+.ledger,.meeting-history-overview{width:100%;max-width:1280px;margin-inline:auto}
+.meeting-ledger-scroll{overflow-x:auto}.meeting-ledger{width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}
+.meeting-ledger :is(th,td){padding:12px 10px;border-bottom:1px solid var(--console-line);text-align:center;vertical-align:middle}
+.meeting-ledger th{font:500 13px/20px var(--console-font);color:var(--console-muted);background:#f6f7f9}.meeting-ledger small{display:block;font:400 12px/18px var(--console-font);color:var(--console-muted);margin-top:4px}.meeting-ledger a{color:var(--console-blue);text-decoration:none}
+.meeting-ledger-main{min-width:1088px;table-layout:fixed}.meeting-ledger-main th:nth-child(1){width:180px}.meeting-ledger-main th:nth-child(2){width:192px}.meeting-ledger-main th:nth-child(3){width:148px}.meeting-ledger-main th:nth-child(5){width:96px}.meeting-ledger-main th:nth-child(6){width:280px}.meeting-ledger-main :is(th,td):not(:nth-child(4)){white-space:nowrap}
+.meeting-ledger button{font:inherit;font-size:12px;border:0;background:none;color:var(--console-muted);padding:0}
+</style>
 
 <script>import '../../scripts/meeting-layout';</script>
 
@@ -155,16 +162,16 @@ const defaultStart=requestedFrom&&/^\d{4}-\d{2}-\d{2}$/.test(requestedFrom)&&req
 
 <style is:global>
 .meeting-history-overview{margin-top:24px}.meeting-history-overview>summary{cursor:pointer;padding:14px 0;font:500 16px/24px var(--console-font)}.meeting-history-overview>summary>span{font:400 13px/24px var(--console-font);color:var(--console-muted)}
-/* 阅读表按内容分列，剩余屏幕空间留在表外；PDF动作不挤高普通记录。 */
+/* 标题、表格和历史共同居中；每列按内容分配，相关操作在本列成组。 */
 .meeting-ledger-muted{color:var(--console-muted);font-size:12px}
-.meeting-name-cell{display:flex;align-items:center;gap:5px;max-width:100%;min-width:0}
-.meeting-name-cell .meeting-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.meeting-name-cell>span,.meeting-row-action{flex:none}.meeting-row-action{margin:0;font-size:12px}
-.meeting-ledger-main button{display:inline-block;margin:0 0 0 8px}
+.meeting-name-cell{display:grid;justify-items:center;gap:4px;max-width:100%;min-width:0}
+.meeting-name-cell .meeting-name{min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.meeting-name-cell>span,.meeting-row-action{font:400 12px/18px var(--console-font);color:var(--console-muted)}.meeting-row-action{margin:0}
+.meeting-ledger-main button{display:inline-block;margin:0}.meeting-ledger-main [data-delete-one]{display:block;margin:4px auto 0}
 .meeting-history .meeting-ledger{min-width:800px}
 .meeting-history .meeting-ledger td:nth-child(4){max-width:360px;overflow-wrap:anywhere}
-.meeting-pdf-archive{display:grid;justify-items:start;gap:4px;width:100%;max-width:100%;font:400 13px/20px var(--console-font)}
-.meeting-pdf-actions{display:flex;align-items:center;gap:12px;width:max-content;white-space:nowrap}
+.meeting-pdf-archive{display:grid;justify-items:center;gap:4px;width:100%;max-width:100%;font:400 13px/20px var(--console-font)}
+.meeting-pdf-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 12px;width:fit-content;max-width:100%;white-space:nowrap}
 .meeting-pdf-actions>a,.meeting-pdf-actions>button,.meeting-pdf-attachments>button{display:inline-flex;box-sizing:border-box;min-height:36px;align-items:center;justify-content:center;margin:0;white-space:nowrap}
 .meeting-pdf-archive a{color:var(--console-blue);text-decoration:none}
 .meeting-ledger-main .meeting-pdf-archive button,.meeting-pdf-archive button{margin:0;padding:0;border:0;background:none;color:var(--console-blue);font:inherit;cursor:pointer}

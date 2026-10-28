@@ -77,7 +77,8 @@ function initialize() {
       for (const [key, field, cohort] of [['click','clickRate',item.click],['read','threeSecondReadRate',item.read]] as const) {
         const value = item.metric ? Number(item.metric[field]) : null;
         row.dataset[key] = value == null ? '' : String(value);
-        const cell = row.querySelector<HTMLElement>(`[data-label="${key === 'click' ? '点击率' : '3 秒阅读率'}"] .metric-cell`)!;
+        const cell = row.querySelector<HTMLElement>(`[data-label="${key === 'click' ? '点击率' : '3 秒阅读率'}"] .metric-cell`);
+        if(!cell)continue;
         const delta = value == null || cohort.mean == null ? null : value - cohort.mean;
         cell.classList.toggle('has-value',value!=null);cell.toggleAttribute('data-result-metric',value!=null);
         cell.classList.remove('positive','negative','neutral');

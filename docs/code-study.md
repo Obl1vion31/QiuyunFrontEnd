@@ -91,7 +91,7 @@ flowchart LR
 | 读取反馈与取消 | [共享读取](../src/scripts/business-read.ts)、[排期详情](../src/scripts/operations-workflow.ts)、[年度历史](../src/scripts/annual-plan.ts)、[推广刷新](../src/scripts/promotion-timeline.ts) | `readBusiness(target, task, {isCurrent})` 包含 fetch 与解析；500ms 目标区域单反馈，同目标替换取消，落地前复核代次，关闭及导航清理 |
 | 验收实例 | [界面浏览器测试](../tests/business-ui.browser.ts)、[排期工作流](../tests/schedule-workflow.browser.ts) | 隔离数据与真实 DOM，检查节点身份、坐标和交互结果 |
 
-非推广的行、标题与末列操作共用同一排期＋轮次键；公共委托允许显式 `data-inspector-trigger` 按钮，原生键盘生成 click，关闭回到实际触发按钮。普通外链仍独立处理。资料由 `readNonPromotionReview` 同时供给 SSR 与认证 GET，包含 `projectDocUrl`、`publicationUrl`、`plannedPublishAt` 与 `actualPublishAt`；使用 `businessDateTime`，排期链接使用应发上海月份＋排期 ID，新标签保留当前草稿。实验日期在同一列以两个 `time` 显示上海实发日与共享规则返回的 `dueOn`（7／15天），排序键仍为实发日；保存和分类切换保留日期节点，不改人工填写的 `recordedThrough`。
+非推广的行、标题与末列操作共用同一排期＋轮次键；公共委托允许显式 `data-inspector-trigger` 按钮，原生键盘生成 click，关闭回到实际触发按钮。普通外链仍独立处理。资料由 `readNonPromotionReview` 同时供给 SSR 与认证 GET，包含 `projectDocUrl`、`publicationUrl`、`plannedPublishAt` 与 `actualPublishAt`；使用 `businessDateTime`，排期链接使用应发上海月份＋排期 ID，新标签保留当前草稿。实验日期在同一列同行以两个 `time` 显示上海实发日与共享规则返回的 `dueOn`（7／15天），排序键仍为实发日；保存和分类切换保留日期节点，不改人工填写的 `recordedThrough`。
 
 模板中的业务表单由页面适配器代理事件；`business:inspector-render` 只初始化新挂载内容，不导航、不重建列表。需要异步补充时立即显示本地内容，在请求后比较选择和请求代次，失败在面板内提供重试；排期的 [operations-workflow](../src/scripts/operations-workflow.ts) 是完整实例。
 
@@ -179,7 +179,7 @@ flowchart LR
 
 ### 协作与来源准备接入
 
-- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
+- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，申请中允许本地输入，写请求等待对应资源的pending；Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
 - `collaboration-resources.ts` 的写入目标映射由浏览器和服务端共用，`collaboration.ts` 把活动、指标、内容版本等映射到稳定排期身份；服务端在写事务内验证租约，原业务版本检查继续保留。新增写入口同步检查映射及实际表单聚焦状态。
 - `meeting-readiness.ts` 共用例会缺项口径，`promotion-review-required.ts` 共用日度应填日期；例会仅引用 `non-promotion-record.ts` 指纹对应的正式事实。准备区只提供原入口链接，不能重新复制指标表单。
 - `BusinessPostLookup` 与 `post-lookup.ts` 只读查帖；动态生成的结果使用专用全局样式，避免 Astro 作用域属性缺失导致后加载节点无样式。
@@ -189,3 +189,7 @@ flowchart LR
 例会总览和历史版本共用 `meeting-ledger` 阅读表，按内容而非整屏余量分配列宽。`MeetingPdfArchive` 用 `meeting-pdf-actions` 包含完整动作组，反馈作为同级区域；表头对应正文阅读锚点，长标题保留title完整值。检查有／无生成文件、手动附件、草稿、长标题、生成中和失败，核对动作中线、行高以及反馈前后列宽；同类问题先判断实际内容和操作性质，不给所有矩阵／录入表强加同一布局。
 
 `BusinessSheet` 提供原生右侧抽屉外壳与单正文滚动；`BusinessFormSheet` 保留兼容表单包装，`BusinessPostLookup` 使用中性头部及直接正文，不放假外层表单。查帖控制器在跨页时清理委托监听与旧请求，结果位置只在列表进入详情时记录。
+
+`BusinessTools` 在Frame接入共享右侧工具栏；原生popover只承载入口，查帖复用现有Sheet。工具栏宽度由`--console-tools-width`为正文预留，手机同入口且44px触控。只读列表用`data-collaboration-observe`映射现有租约资源，`data-collaboration-action`复用原操作位；它们不参与编辑取锁。编辑容器继续使用resource属性，窄字段姓名角标按实测宽度退为圆点。首次输入验收直接延迟真实取锁请求并记录禁用／焦点帧，保存仍走真实API。
+
+非推广列表布局集中在`non-promotion-table.css`；跳过视图向共享表头传`skipped`，渲染原因而不生成MetricCell。保存刷新只更新实际存在的指标节点。例会记录标题、表格与历史共用限宽居中容器，名称与版本上下排列，PDF反馈仍在自身单元格。稳定截图复用测试辅助`settleBusinessUI`等待字体和有限动画，动态过程另行录像，仍须实际打开图像和审查关键录像。

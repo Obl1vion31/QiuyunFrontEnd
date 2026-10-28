@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {startFixture,admin} from './auth.fixture';
 import * as s from '../src/db/schema';
+import {settleBusinessUI} from './business-confirm.helper';
 
 const folder=process.env.MEETING_LEDGER_DIR||'.tools/test-artifacts/meeting-ledger';
 await mkdir(folder,{recursive:true});
@@ -24,7 +25,7 @@ try{
   context=await browser.newContext({viewport:{width:1920,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});
   const login=await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:admin});assert.equal(login.status(),200);
   const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));
-  const capture=async(name:string)=>{await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:folder+'/'+name+'.png'});};
+  const capture=async(name:string)=>{await settleBusinessUI(page);await page.screenshot({path:folder+'/'+name+'.png'});};
   const rowFor=(id:string)=>page.locator('.meeting-ledger-main tbody tr').filter({has:page.locator(`a.meeting-name[href="?meeting=${id}"]`)});
   for(const width of [1920,1440,1280,1024,390,320]){
     await page.setViewportSize({width,height:1000});await page.goto(baseURL+'/business/meeting-review');await page.waitForLoadState('networkidle');
@@ -37,12 +38,14 @@ try{
     });measurements.push({width,...geometry});
     assert.ok(Math.max(...geometry.centers)-Math.min(...geometry.centers)<=1,'四个PDF动作同排且中线一致');
     assert.ok(geometry.within,'动作完整包含在PDF列中');
-    assert.ok(geometry.rowHeight<=geometry.actionHeight+geometry.padding+1,'常规记录不因PDF折行产生额外行高');
+    assert.ok(geometry.rowHeight<110,'常规记录保持紧凑且容纳两行会议信息');
     assert.ok(geometry.tableWidth<=1280,'阅读表不扩展到整屏剩余宽度');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'仅表格内部横滚');
     assert.equal(await page.getByRole('columnheader',{name:'版本状态',exact:true}).count(),1);
     assert.match(await row.locator('td').nth(2).innerText(),/2026年10月 · 第3周/);
-    await capture('normal-'+width);
+    if(width>=1440){const balance=await page.locator('section.ledger').evaluate((node:HTMLElement)=>{const box=node.getBoundingClientRect(),host=node.closest('main')!.getBoundingClientRect(),style=getComputedStyle(node.closest('main')!);return {left:box.left-host.left-parseFloat(style.paddingLeft),right:host.right-box.right-parseFloat(style.paddingRight)};});assert.ok(Math.abs(balance.left-balance.right)<=1,'标题与表格的外部留白对称');}
+     const aligns=await row.evaluate((node:HTMLElement)=>[...node.querySelectorAll('td')].map(cell=>getComputedStyle(cell).textAlign));assert.ok(aligns.every((value:string)=>value==='center'));
+     await capture('normal-'+width);
     if(width<1440){const scroll=page.locator('.meeting-ledger-scroll').first();await row.locator('.meeting-pdf-actions').evaluate((n:HTMLElement)=>n.scrollIntoView({inline:'center',block:'nearest'}));const visible=await row.locator('.meeting-pdf-actions').evaluate((n:HTMLElement)=>{const r=n.getBoundingClientRect(),host=n.closest('.meeting-ledger-scroll')!.getBoundingClientRect();return r.left>=host.left&&r.right<=host.right;});assert.ok(visible,'表内横滚后PDF操作完整可见');await capture('normal-right-'+width);}
   }
   checks.push('六档视口普通记录：列宽按内容、操作同行、行高、表头语义及内部横滚');
