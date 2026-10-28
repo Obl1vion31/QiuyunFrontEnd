@@ -1,0 +1,35 @@
+{
+  "sourceCommit": "7c052e921f5b3862140224ab508df1c042f409ec",
+  "deploymentId": "dpl_CBUZ1PxMVSgFGKrLGjyvDV2U8Ba3",
+  "status": "已自检并发布，待使用反馈",
+  "tests": {
+    "unit": {
+      "passed": 222,
+      "failed": 0
+    },
+    "astroCheckAndBuild": true,
+    "dbCheck": true,
+    "meetingLedgerBrowser": true,
+    "sharedBusinessUI": true,
+    "nonemptyDataInterfaces": true,
+    "vercelProductionBuild": true,
+    "runtimeChinesePdf": {
+      "bytes": 200738,
+      "network": "blocked"
+    },
+    "candidateDynamicChecks": 5,
+    "publicChecks": 105,
+    "matchingPublicAssets": 66
+  },
+  "visualData": "隔离PGlite虚构会议和附件",
+  "businessWritesToProduction": false,
+  "databaseMigrations": false,
+  "viewports": [
+    1920,
+    1440,
+    1280,
+    1024,
+    390,
+    320
+  ]
+}

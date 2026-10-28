@@ -1,0 +1,30 @@
+{
+  "deployment": "https://qiuyun-frontend-7dppsmzyp-opgobl1v-5358.vercel.app",
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/business/meeting-review",
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/settings",
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "status": 401,
+      "passed": true
+    }
+  ]
+}
