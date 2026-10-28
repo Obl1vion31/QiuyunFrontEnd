@@ -1,0 +1,138 @@
+
+> qiuyun-frontend-system@0.1.0 build /home/obl1vion/projects/qiuyunFrontend/.tools/worktrees/login-validation
+> ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build
+
+21:17:11 [@astrojs/node] Enabling sessions with filesystem storage
+21:17:11 [content] Syncing content
+21:17:11 [content] Astro config changed
+21:17:11 [content] Clearing content store
+21:17:11 [content] Synced content
+21:17:11 [types] Generated 39ms
+21:17:11 [check] Getting diagnostics for Astro files in /home/obl1vion/projects/qiuyunFrontend/.tools/worktrees/login-validation...
+[96mtests/home.browser.mjs[0m:[93m49[0m:[93m78[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m49[0m  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));await context.close();const video=await page.video().path(),deltas=frames.map(n=>n.dt).filter(n=>n>0).sort((a,b)=>a-b);
+[7m  [0m [93m                                                                             ~~~~~~~~[0m
+[96mtests/home.browser.mjs[0m:[93m46[0m:[93m188[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m46[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('[data-home-hero]');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-home-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                                                                                                                                                                           ~~~~~~~~[0m
+[96mtests/home.browser.mjs[0m:[93m46[0m:[93m34[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m46[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('[data-home-hero]');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-home-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                 ~~~~~~~~[0m
+
+[96mtests/meeting-compact.browser.ts[0m:[93m2[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'discussionFromDraft' is declared but its value is never read.
+
+[7m2[0m import {discussionFromDraft} from '../src/db/meeting-discussion-values';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/meeting-finalization.browser.ts[0m:[93m1[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'discussionFromDraft' is declared but its value is never read.
+
+[7m1[0m import {discussionFromDraft} from '../src/db/meeting-discussion-values';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mverified/2026-10-23_13-16_home-cinematic/source/capture.mjs[0m:[93m45[0m:[93m78[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m45[0m  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));
+[7m  [0m [93m                                                                             ~~~~~~~~[0m
+[96mverified/2026-10-23_13-16_home-cinematic/source/capture.mjs[0m:[93m41[0m:[93m177[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,progress:+h.dataset.progress,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent,cards:[...document.querySelectorAll('[data-cover]')].map(n=>({transform:n.style.transform,opacity:+n.style.opacity}))});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                                                                                                                                                                ~~~~~~~~[0m
+[96mverified/2026-10-23_13-16_home-cinematic/source/capture.mjs[0m:[93m41[0m:[93m34[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,progress:+h.dataset.progress,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent,cards:[...document.querySelectorAll('[data-cover]')].map(n=>({transform:n.style.transform,opacity:+n.style.opacity}))});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                 ~~~~~~~~[0m
+
+[96mverified/2026-10-23_13-42_home-loop/source/capture.mjs[0m:[93m44[0m:[93m78[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m44[0m  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));await context.close();const video=await page.video().path(),deltas=frames.map(n=>n.dt).filter(n=>n>0).sort((a,b)=>a-b);
+[7m  [0m [93m                                                                             ~~~~~~~~[0m
+[96mverified/2026-10-23_13-42_home-loop/source/capture.mjs[0m:[93m41[0m:[93m177[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                                                                                                                                                                ~~~~~~~~[0m
+[96mverified/2026-10-23_13-42_home-loop/source/capture.mjs[0m:[93m41[0m:[93m34[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                 ~~~~~~~~[0m
+
+Result (329 files): 
+- 0 errors
+- 0 warnings
+- 11 hints
+
+21:17:25 [@astrojs/node] Enabling sessions with filesystem storage
+21:17:25 [content] Syncing content
+21:17:25 [content] Synced content
+21:17:25 [types] Generated 35ms
+21:17:25 [build] output: "server"
+21:17:25 [build] mode: "server"
+21:17:25 [build] directory: /home/obl1vion/projects/qiuyunFrontend/.tools/worktrees/login-validation/dist/
+21:17:25 [build] adapter: @astrojs/node
+21:17:25 [build] Collecting build info...
+21:17:25 [build] ✓ Completed in 69ms.
+21:17:25 [build] Building server entrypoints...
+21:17:28 [vite] ✓ built in 2.62s
+21:17:28 [build] ✓ Completed in 2.64s.
+
+ building client (vite) 
+21:17:28 [vite] transforming...
+21:17:28 [vite] ✓ 124 modules transformed.
+21:17:28 [vite] rendering chunks...
+21:17:28 [vite] computing gzip size...
+21:17:28 [vite] dist/client/_astro/client.B9YBqyHK.js                                                              0.03 kB │ gzip:  0.05 kB
+21:17:28 [vite] dist/client/_astro/page.DWjkjaoM.js                                                                0.07 kB │ gzip:  0.08 kB
+21:17:28 [vite] dist/client/_astro/meeting-review.astro_astro_type_script_index_0_lang.BFZ8y8wi.js                 0.08 kB │ gzip:  0.10 kB
+21:17:28 [vite] dist/client/_astro/meeting-review.astro_astro_type_script_index_1_lang.BFZ8y8wi.js                 0.08 kB │ gzip:  0.10 kB
+21:17:28 [vite] dist/client/_astro/promotion-editor-lifecycle.ChKbKqc0.js                                          0.19 kB │ gzip:  0.16 kB
+21:17:28 [vite] dist/client/_astro/business-date.CvCuF-15.js                                                       0.44 kB │ gzip:  0.35 kB
+21:17:28 [vite] dist/client/_astro/business-permissions.BcHyGTbB.js                                                0.67 kB │ gzip:  0.40 kB
+21:17:28 [vite] dist/client/_astro/stage-review-rules.BUxUV3hS.js                                                  0.74 kB │ gzip:  0.48 kB
+21:17:28 [vite] dist/client/_astro/index.95d291e9.C1nvcLkw.js                                                      0.78 kB │ gzip:  0.41 kB
+21:17:28 [vite] dist/client/_astro/login.astro_astro_type_script_index_0_lang.BzV_KIu4.js                          0.83 kB │ gzip:  0.50 kB
+21:17:28 [vite] dist/client/_astro/jsx-runtime.ClP7wGfN.js                                                         1.00 kB │ gzip:  0.62 kB
+21:17:28 [vite] dist/client/_astro/BusinessDateTimeFields.astro_astro_type_script_index_0_lang.B--8MwvI.js         1.25 kB │ gzip:  0.55 kB
+21:17:28 [vite] dist/client/_astro/client.DmQkY1VD.js                                                              1.43 kB │ gzip:  0.80 kB
+21:17:28 [vite] dist/client/_astro/promotion-successors.DwNHEL_u.js                                                1.48 kB │ gzip:  0.57 kB
+21:17:28 [vite] dist/client/_astro/ClientRouter.astro_astro_type_script_index_0_lang._QSiuP-R.js                   1.69 kB │ gzip:  0.85 kB
+21:17:28 [vite] dist/client/_astro/BusinessAccountMenu.astro_astro_type_script_index_0_lang.C3FQ1cto.js            1.73 kB │ gzip:  0.98 kB
+21:17:28 [vite] dist/client/_astro/BusinessPromotionWaitRanges.astro_astro_type_script_index_0_lang.BRIwQJN8.js    1.74 kB │ gzip:  1.07 kB
+21:17:28 [vite] dist/client/_astro/business-read.lHADWRqp.js                                                       1.78 kB │ gzip:  0.93 kB
+21:17:28 [vite] dist/client/_astro/index.CMSLJNQe.js                                                               2.34 kB │ gzip:  1.07 kB
+21:17:28 [vite] dist/client/_astro/BusinessScheduleApprovals.astro_astro_type_script_index_0_lang.CpQwSxBF.js      2.63 kB │ gzip:  1.24 kB
+21:17:28 [vite] dist/client/_astro/MeetingPdfArchive.RQYHSu3p.js                                                   2.88 kB │ gzip:  1.31 kB
+21:17:28 [vite] dist/client/_astro/BusinessConsoleSidebar.astro_astro_type_script_index_0_lang.Bp6p43BI.js         3.13 kB │ gzip:  1.23 kB
+21:17:28 [vite] dist/client/_astro/BusinessAccountManagement.astro_astro_type_script_index_0_lang.DTBj4LJm.js      3.72 kB │ gzip:  1.67 kB
+21:17:28 [vite] dist/client/_astro/BusinessPostReferences.astro_astro_type_script_index_0_lang.B6unCf_F.js         3.79 kB │ gzip:  1.41 kB
+21:17:28 [vite] dist/client/_astro/BusinessPromotionSummary.astro_astro_type_script_index_0_lang.DDiPMAp3.js       4.40 kB │ gzip:  1.75 kB
+21:17:28 [vite] dist/client/_astro/BusinessPromotionInitialRow.astro_astro_type_script_index_0_lang.CaUrIkf-.js    5.36 kB │ gzip:  1.96 kB
+21:17:28 [vite] dist/client/_astro/BusinessPostLookup.astro_astro_type_script_index_0_lang.sjUSl1fw.js             6.26 kB │ gzip:  2.78 kB
+21:17:28 [vite] dist/client/_astro/BusinessMeetingDiscussion.Dz-RmwVs.js                                           6.32 kB │ gzip:  2.89 kB
+21:17:28 [vite] dist/client/_astro/business-dialog.CmHuCt72.js                                                     6.37 kB │ gzip:  2.05 kB
+21:17:28 [vite] dist/client/_astro/index.DK-fsZOb.js                                                               6.81 kB │ gzip:  2.73 kB
+21:17:28 [vite] dist/client/_astro/BusinessPromotionDailyPosts.astro_astro_type_script_index_0_lang.DrWRyyTW.js    7.11 kB │ gzip:  2.91 kB
+21:17:28 [vite] dist/client/_astro/ContentTunnel.BWZlauFm.js                                                       7.35 kB │ gzip:  3.02 kB
+21:17:28 [vite] dist/client/_astro/non-promotion-review.astro_astro_type_script_index_0_lang.D_6Ea1jf.js           8.78 kB │ gzip:  3.66 kB
+21:17:28 [vite] dist/client/_astro/BusinessPromotionMetricForm.astro_astro_type_script_index_0_lang.BJ8rw4My.js    9.83 kB │ gzip:  3.59 kB
+21:17:28 [vite] dist/client/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.BXl2Q9x9.js             10.58 kB │ gzip:  3.91 kB
+21:17:28 [vite] dist/client/_astro/router.CxpQgbQp.js                                                             11.54 kB │ gzip:  4.05 kB
+21:17:28 [vite] dist/client/_astro/BusinessConsoleFrame.astro_astro_type_script_index_0_lang.aZdW4c9_.js          12.22 kB │ gzip:  4.39 kB
+21:17:28 [vite] dist/client/_astro/BusinessWeeklyMeeting.BD94pRL0.js                                              17.76 kB │ gzip:  6.37 kB
+21:17:28 [vite] dist/client/_astro/BusinessPromotionTimeline.astro_astro_type_script_index_0_lang.BDDcQHY_.js     17.90 kB │ gzip:  5.47 kB
+21:17:28 [vite] dist/client/_astro/operations-schedule.astro_astro_type_script_index_0_lang.D1nYs105.js           18.85 kB │ gzip:  6.94 kB
+21:17:28 [vite] dist/client/_astro/annual-plan.astro_astro_type_script_index_0_lang.eQ0BoHMv.js                   19.45 kB │ gzip:  7.00 kB
+21:17:28 [vite] dist/client/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.p8pCrBr8.js        22.70 kB │ gzip:  7.56 kB
+21:17:28 [vite] dist/client/_astro/meeting-finalization.BCS8RyCM.js                                               33.26 kB │ gzip: 10.43 kB
+21:17:28 [vite] dist/client/_astro/client.Bz692-Ao.js                                                            136.51 kB │ gzip: 44.01 kB
+21:17:28 [vite] ✓ built in 712ms
+
+ prerendering static routes 
+21:17:28 ▶ src/pages/index.astro
+21:17:28   └─ /index.html (+378ms) 
+21:17:29 ✓ Completed in 408ms.
+
+21:17:29 [build] Rearranging server assets...
+21:17:29 [build] Server built in 3.85s
+21:17:29 [build] Complete!

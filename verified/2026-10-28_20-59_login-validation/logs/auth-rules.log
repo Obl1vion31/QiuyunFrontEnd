@@ -1,0 +1,116 @@
+TAP version 13
+# [2m2026-10-28T12:59:54.661Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-10-28T12:59:54.711Z[0m [33mWARN[0m [1m[Better Auth]:[0m User not found
+# [2m2026-10-28T12:59:54.716Z[0m [33mWARN[0m [1m[Better Auth]:[0m Username too short
+# [2m2026-10-28T12:59:54.718Z[0m [33mWARN[0m [1m[Better Auth]:[0m Username too long
+# Subtest: 用户名登录保存哈希、注册关闭、无效凭据不创建会话
+ok 1 - 用户名登录保存哈希、注册关闭、无效凭据不创建会话
+  ---
+  duration_ms: 1689.247512
+  type: 'test'
+  ...
+# Subtest: 短账号和非法格式返回422且给出字段代码，不创建会话
+ok 2 - 短账号和非法格式返回422且给出字段代码，不创建会话
+  ---
+  duration_ms: 6.767542
+  type: 'test'
+  ...
+# [2m2026-10-28T12:59:54.924Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# Subtest: 重复与并发创建不改密码或角色
+ok 3 - 重复与并发创建不改密码或角色
+  ---
+  duration_ms: 252.779739
+  type: 'test'
+  ...
+# Subtest: 身份与角色来自数据库，伪造身份无效，角色更新即时读取
+ok 4 - 身份与角色来自数据库，伪造身份无效，角色更新即时读取
+  ---
+  duration_ms: 65.646232
+  type: 'test'
+  ...
+# Subtest: 退出、撤销和过期立即阻止访问，另一个账号会话保持
+ok 5 - 退出、撤销和过期立即阻止访问，另一个账号会话保持
+  ---
+  duration_ms: 175.376512
+  type: 'test'
+  ...
+# Subtest: 外部来源被拒绝，HTTPS cookie 使用 Secure
+ok 6 - 外部来源被拒绝，HTTPS cookie 使用 Secure
+  ---
+  duration_ms: 53.205085
+  type: 'test'
+  ...
+# [2m2026-10-28T12:59:55.348Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-10-28T12:59:55.359Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-10-28T12:59:55.362Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-10-28T12:59:55.363Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-10-28T12:59:55.395Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# Subtest: 多个实例共享原子限流，重建实例不能重置
+ok 7 - 多个实例共享原子限流，重建实例不能重置
+  ---
+  duration_ms: 131.930736
+  type: 'test'
+  ...
+# Subtest: 请求权限覆盖旧入口、删除及未知写入，返回地址不能跳到外站
+ok 8 - 请求权限覆盖旧入口、删除及未知写入，返回地址不能跳到外站
+  ---
+  duration_ms: 0.874843
+  type: 'test'
+  ...
+# Subtest: 可配置写入的角色门禁与事务入口共用路径规则，尾斜杠不能绕过授权
+ok 9 - 可配置写入的角色门禁与事务入口共用路径规则，尾斜杠不能绕过授权
+  ---
+  duration_ms: 0.385823
+  type: 'test'
+  ...
+# Subtest: 日期窗口覆盖上海自然日、目标未开放、超窗历史补录与闰年
+ok 10 - 日期窗口覆盖上海自然日、目标未开放、超窗历史补录与闰年
+  ---
+  duration_ms: 1545.942334
+  type: 'test'
+  ...
+# Subtest: 同一记录互斥、独立轮次并行、上层操作互斥、同账号双窗口也互斥
+ok 11 - 同一记录互斥、独立轮次并行、上层操作互斥、同账号双窗口也互斥
+  ---
+  duration_ms: 13.222697
+  type: 'test'
+  ...
+# Subtest: 过期锁可接续，旧租约不能写入，批量冲突不会取得部分锁
+ok 12 - 过期锁可接续，旧租约不能写入，批量冲突不会取得部分锁
+  ---
+  duration_ms: 10.133517
+  type: 'test'
+  ...
+# Subtest: 真实复盘保存拒绝旧页面覆盖与未来日期，保留当前指标和不可变历史
+ok 13 - 真实复盘保存拒绝旧页面覆盖与未来日期，保留当前指标和不可变历史
+  ---
+  duration_ms: 69.215164
+  type: 'test'
+  ...
+# Subtest: 位置接口拒绝输入值，员工不能读取人员位置，管理员响应只有位置元数据
+ok 14 - 位置接口拒绝输入值，员工不能读取人员位置，管理员响应只有位置元数据
+  ---
+  duration_ms: 5.417445
+  type: 'test'
+  ...
+# Subtest: 账号重置撤销旧会话，停用阻止登录，姓名更新保留账号身份
+ok 15 - 账号重置撤销旧会话，停用阻止登录，姓名更新保留账号身份
+  ---
+  duration_ms: 145.951839
+  type: 'test'
+  ...
+# Subtest: 同一窗口旧释放请求不能删除过期后新取得的租约
+ok 16 - 同一窗口旧释放请求不能删除过期后新取得的租约
+  ---
+  duration_ms: 5.754854
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7245.417513

@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "ce186d3fb622592466a5eb75ce7f5676267eeec2",
+  "deployment": "https://qiuyun-frontend-ibow241ae-opgobl1v-5358.vercel.app",
+  "passed": true,
+  "checks": [
+    {
+      "path": "/login",
+      "expected": 200,
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "expected": 200,
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/business/operations-schedule",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-daily",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    }
+  ]
+}
