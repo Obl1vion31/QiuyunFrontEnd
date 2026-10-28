@@ -28,4 +28,8 @@
 - `test:motion`：1440／1280／390／320px逐帧几何、遮罩终帧、背景位置、快速重开、嵌套确认与减少动态效果通过；各视口使用独立记录，避免上一场景的真实租约影响下一场景。
 - `test:meeting-discussion`：版本草稿、定稿、冻结指标、中文PDF、回溯与到期锁定通过。
 
-构建发布及公网核对结果在发布后追加。main未合入。
+## 发布
+
+实现 `30b50cf`，工作分支已推送 GitHub。生产构建／类型检查、中文PDF运行包通过；独立部署6项动态检查、正式域名107项检查与66个资源哈希通过。
+
+正式部署 `dpl_2SC8bWs63Jtmr9ADiRmP96P26fay`，已核对 [正式域名](https://qiuyun-frontend.vercel.app) 指向该版本。[发布记录](release.json)、[独立部署检查](candidate-smoke.json)、[公网检查](public-smoke.json)。main未合入。

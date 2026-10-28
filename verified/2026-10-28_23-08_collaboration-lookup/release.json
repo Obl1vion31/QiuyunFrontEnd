@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "30b50cfdc5de03f6e86451926540768ad6cb6115",
+  "branch": "codex/collaboration-lookup-release",
+  "deployment": "dpl_2SC8bWs63Jtmr9ADiRmP96P26fay",
+  "canonical": "https://qiuyun-frontend.vercel.app",
+  "deploymentURL": "https://qiuyun-frontend-dmn7zmeto-opgobl1v-5358.vercel.app",
+  "verifiedAt": "2026-10-28T23:40:51.681758+08:00",
+  "candidateChecks": 6,
+  "publicChecks": 107,
+  "matchingAssets": 66,
+  "businessTestDatabase": "isolated local PostgreSQL",
+  "productionBusinessWrites": false,
+  "productionMigrations": false,
+  "mainMerged": false
+}
