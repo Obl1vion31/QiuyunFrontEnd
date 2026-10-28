@@ -24,6 +24,7 @@ export const authUser = pgTable('auth_user', {
   emailVerified: boolean('email_verified').notNull().default(false), image: text('image'),
   username: text('username').notNull().unique(), displayUsername: text('display_username'),
   role: text('role').$type<'admin' | 'employee'>().notNull().default('employee'),
+  enabled: boolean('enabled').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [check('auth_user_role_check', sql`${table.role} IN ('admin', 'employee')`)]);
@@ -52,6 +53,24 @@ export const authVerification = pgTable('auth_verification', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [index('auth_verification_identifier_idx').on(table.identifier)]);
+
+export const businessPresence = pgTable('business_presence', {
+ id:text('id').primaryKey(),userId:text('user_id').notNull().references(()=>authUser.id,{onDelete:'cascade'}),
+ sessionId:text('session_id').notNull().references(()=>authSession.id,{onDelete:'cascade'}),
+ tabId:text('tab_id').notNull(),page:text('page').notNull(),resource:text('resource'),field:text('field'),label:text('label'),
+ visible:boolean('visible').notNull().default(true),expiresAt:timestamp('expires_at',{withTimezone:true}).notNull(),
+});
+export const businessEditLease = pgTable('business_edit_lease', {
+ resource:text('resource').primaryKey(),token:uuid('token').notNull(),
+ userId:text('user_id').notNull().references(()=>authUser.id,{onDelete:'cascade'}),
+ sessionId:text('session_id').notNull().references(()=>authSession.id,{onDelete:'cascade'}),tabId:text('tab_id').notNull(),
+ expiresAt:timestamp('expires_at',{withTimezone:true}).notNull(),
+});
+export const accountManagementAudit = pgTable('account_management_audit', {
+ id:uuid('id').primaryKey().defaultRandom(),actorId:text('actor_id').notNull().references(()=>authUser.id),
+ targetId:text('target_id').notNull().references(()=>authUser.id),action:text('action').notNull(),
+ createdAt:timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
+});
 
 export const authRateLimit = pgTable('auth_rate_limit', {
   id: text('id').primaryKey(), key: text('key').notNull().unique(), count: integer('count').notNull(),
@@ -668,7 +687,7 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 
 export interface WeeklyMeetingDraft {
   discussionSourceVersionId?:string;
-  workflowVersion?:5|6;
+  workflowVersion?:5|6|7;
   hasRevisionDraft?:boolean;
   candidatesConfirmed?:boolean;
   finalizationStage?:'pre'|'post';

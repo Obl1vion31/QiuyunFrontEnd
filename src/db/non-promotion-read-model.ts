@@ -1,8 +1,9 @@
 import {nonPromotionGroups} from './non-promotion-groups';
+import {nonPromotionFingerprint} from './non-promotion-record';
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { getDb } from './client';
 import { operationsCategory, operationsContent, operationsContentPerformanceMetric, operationsContentSchedule, operationsContentVersion, operationsNonPromotionReview, operationsNonPromotionCheckpointEvent, operationsSubject } from './schema';
-import { checkpointsForPublishDate, nextReviewCheckpoint, reviewCheckpoints, shanghaiDateKey, summarizeRates } from './stage-review-rules.mjs';
+import { checkpointWindow,checkpointsForPublishDate, nextReviewCheckpoint, reviewCheckpoints, shanghaiDateKey, summarizeRates } from './stage-review-rules.mjs';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import {readTaxonomy} from './taxonomy-store';
 
@@ -55,7 +56,11 @@ const tableRows = rows.flatMap(row => {
     const key = `${row.id}:${checkpoint.type}`;
     const peers = metrics.filter(metric => metric.checkpointType === checkpoint.type && metric.subjectId === row.subjectId
       && metric.categoryId === row.categoryId && checkpointEvents.get(`${metric.scheduleId}:${metric.checkpointType}`)?.action !== 'skip');
-    return { key, row, checkpoint, dueOn: row.checkpoints.find(item => item.type === checkpoint.type)!.dueOn!,
+    const metric=metricMap.get(key);
+    const window=checkpointWindow(row.actualPublishAt,checkpoint.type,today);
+    const historical=!!metric&&(metric.recordedThrough<window.min||metric.recordedThrough>window.max);
+    const storedMetric=metric&&Object.fromEntries(Object.entries(metric).filter(([name])=>!['subjectId','categoryId'].includes(name)));
+    return { key, row, checkpoint,window,historical, fingerprint:nonPromotionFingerprint(storedMetric,reviewMap.get(key),checkpointEvents.get(key)),dueOn: row.checkpoints.find(item => item.type === checkpoint.type)!.dueOn!,
       metric: metricMap.get(key), review: reviewMap.get(key), event: checkpointEvents.get(key),
       click: summarizeRates(peers.map(metric => Number(metric.clickRate))), read: summarizeRates(peers.map(metric => Number(metric.threeSecondReadRate))) };
   });

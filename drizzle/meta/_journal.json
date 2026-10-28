@@ -288,6 +288,13 @@
       "when": 1793033345874,
       "tag": "0040_meeting_version_drafts",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793176681952,
+      "tag": "0041_collaboration_accounts",
+      "breakpoints": true
     }
   ]
 }

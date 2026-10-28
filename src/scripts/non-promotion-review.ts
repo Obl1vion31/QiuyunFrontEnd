@@ -76,6 +76,8 @@ function initialize() {
         cell.querySelector('small')!.textContent = delta == null ? '暂无同类基准' : `${delta>0?'+':''}${delta.toFixed(2)}pp`;
       }
       const template = [...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node => node.dataset.inspectorTemplate === item.key);
+      const fingerprint=template?.content.querySelector<HTMLInputElement>('[name=fingerprint]');if(fingerprint)fingerprint.value=item.fingerprint;
+      const active=inspector.querySelector<HTMLInputElement>(`[data-review-form][data-collaboration-resource="schedule:${CSS.escape(item.row.id)}:non:${item.checkpoint.type}"] [name=fingerprint]`);if(active)active.value=item.fingerprint;
       if (template) for (const [field, value] of Object.entries({ recordedThrough:item.metric?.recordedThrough,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion })) {
         const input = template.content.querySelector<HTMLInputElement|HTMLTextAreaElement>(`[name="${field}"]`);
         if (input) { input.value = String(value ?? ''); input.defaultValue = input.value; }
@@ -115,6 +117,15 @@ function initialize() {
       const result = await response.json();
       if (!response.ok) { output.textContent = result.message || '保存失败。'; return; }
       controller.setClean();
+      if(form.matches('[data-review-form]')&&result.fingerprint){
+        (form.elements.namedItem('fingerprint') as HTMLInputElement).value=result.fingerprint;
+        const key=(form.elements.namedItem('scheduleId') as HTMLInputElement).value+':'+(form.elements.namedItem('checkpointType') as HTMLInputElement).value;
+        const template=[...inspector.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node=>node.dataset.inspectorTemplate===key);
+        for(const input of form.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('input[name],textarea[name]')){
+          const stored=template?.content.querySelector<HTMLInputElement|HTMLTextAreaElement>(`[name="${input.name}"]`);
+          if(stored){stored.value=input.value;stored.defaultValue=input.value;}
+        }
+      }
       if (new URL(location.href).searchParams.get('view') === 'history' && form.matches('[data-review-form]')) {
         await refresh(); output.textContent = '已保存';
       } else await navigate(form.dataset.successHref || location.href);

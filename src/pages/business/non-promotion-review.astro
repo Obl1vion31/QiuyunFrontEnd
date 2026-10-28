@@ -87,18 +87,21 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
           <label>小红书笔记 ID</label>{selected.row.platformNoteId?<div class="full-id"><code>{selected.row.platformNoteId}</code><button type="button" data-copy-id={selected.row.platformNoteId}>复制</button></div>:<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}
         </section>
         {selected.row.platformNoteId&&<details class="correction" data-admin-only><summary>更正笔记 ID</summary><form class="business-form" data-id-correction action={`/api/operations-content/${selected.row.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><label>旧值<input value={selected.row.platformNoteId} readonly/></label><label>新值<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" required/></label><p>确认后，该帖子的全部版本与复盘都会同步。</p><output></output><button type="submit">确认更正</button></form></details>}
-        {activeView!=='skipped'&&<form class="review-form business-form" data-review-form data-success-href={viewHref('history')}>
+        {activeView!=='skipped'&&<form class="review-form business-form" data-review-form data-collaboration-resource={`schedule:${selected.row.id}:non:${selected.checkpoint.type}`} data-collaboration-label={`${selected.row.contentName} · ${names[selected.checkpoint.type]}`} data-success-href={viewHref('history')}>
+          {selected.historical&&<p class="hint">历史口径 · 原始数据只读保留</p>}
+          <fieldset disabled={selected.historical} style="border:0;padding:0;margin:0;min-width:0;width:100%;box-sizing:border-box;display:grid;gap:14px">
+          <input type="hidden" name="fingerprint" value={selected.fingerprint}/>
           <input type="hidden" name="scheduleId" value={selected.row.id}/><input type="hidden" name="checkpointType" value={selected.checkpoint.type}/>
           {!selected.row.platformNoteId&&<label>小红书笔记 ID<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" autocomplete="off" required placeholder="24 位十六进制 ID"/></label>}
-          <label>数据截至<input type="date" name="recordedThrough" value={selected.metric?.recordedThrough||selected.dueOn} required/></label>
+          <label>数据截至<input type="date" name="recordedThrough" min={selected.window.min} max={selected.window.max} value={selected.metric?.recordedThrough??selected.window.defaultValue} required/></label>
           <label>点击率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="clickRate" value={selected.metric?.clickRate??''} required/><b>%</b></div></label>
           <label>3 秒阅读率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="threeSecondReadRate" value={selected.metric?.threeSecondReadRate??''} required/><b>%</b></div></label>
-          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="alert"></output><button type="submit">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button>
+          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="alert"></output><button type="submit">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button></fieldset>
         </form>}
         {!selected.review&&<details class="checkpoint-action" open={activeView==='skipped'}>
           <summary>{activeView==='skipped'?'不复盘记录与恢复':'这次不复盘'}</summary>
           {activeView==='skipped'&&<p>{selected.event?.reason}<small>{selected.event?.changedByLabel} · {selected.event && shanghaiDateKey(selected.event.createdAt)}</small></p>}
-          <form data-checkpoint-form class="review-form business-form" data-success-href={viewHref(activeView==='skipped'?'pending':'skipped')}>
+          <form data-checkpoint-form data-collaboration-resource={`schedule:${selected.row.id}:non:${selected.checkpoint.type}`} data-collaboration-label={selected.row.contentName} class="review-form business-form" data-success-href={viewHref(activeView==='skipped'?'pending':'skipped')}>
             <input type="hidden" name="scheduleId" value={selected.row.id}/><input type="hidden" name="checkpointType" value={selected.checkpoint.type}/><input type="hidden" name="action" value={activeView==='skipped'?'restore':'skip'}/><input type="hidden" name="expectedEventId" value={selected.event?.id||''}/>
             <input type="hidden" name="expectedEvents" value={JSON.stringify(Object.fromEntries(['day_7','day_15'].map(type=>[type,checkpointEvents.get(`${selected.row.id}:${type}`)?.id??null])))}/>
             <label>处理范围<select name="scope"><option value="checkpoint">仅本次复盘</option><option value="schedule">该篇全部未完成复盘</option></select></label>

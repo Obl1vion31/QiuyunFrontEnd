@@ -15,7 +15,7 @@ const seed = async (name: string, stage = 'testing', promoted = true) => { const
 const fact = async (campaignId: string, date: string, decision: string, status = 'testing', spend = '100.00') => { const [f] = await db.insert(s.operationsPromotionDailyMetric).values({ campaignId, metricDate: date, stageTypeSnapshot: status.startsWith('scaling') ? 'scaling' : 'testing', actualStatusSnapshot: status, dailyStatus: ['testing', 'scaling'].includes(status) ? 'active' : 'waiting_action', sourceStageStartedOn: '2026-10-09', spend, platformOpenCount: 10, actualOpenCount: 5, platformLeadCount: 4, actualLeadCount: 2, reviewDecision: decision }).returning(); return f; };
 const meeting = async (start = '2026-10-10', end = '2026-10-15') => (await db.insert(s.operationsReviewMeeting).values({ name: '隔离周例会', periodStart: start, periodEnd: end, meetingAt: new Date('2026-10-16T10:00:00+08:00'), createdByLabel: '隔离测试', draftSnapshot: { schemaVersion: 4, promotionSelections: [], coreConclusion: '', nextAction: '', promotionInputs: {}, issues: [], nonPromotionSelections: [] } }).returning())[0];
 test('测试终止日按最后测试日，实际暂停与待定均排除生效日，测试当日淘汰包括该日', () => { assert.equal(testingCheckpointDate('test_pending', '2026-10-12', true, null), '2026-10-11'); assert.equal(testingCheckpointDate('test_paused', '2026-10-12', true, null), '2026-10-11'); assert.equal(testingCheckpointDate('test_discarded', '2026-10-12', true, null), '2026-10-12'); assert.equal(testingCheckpointDate('test_discarded', '2026-10-15', false, '2026-10-11'), '2026-10-11'); });
-test('测试跨期完整结果、本期真实总量、暂停阶段小结不相互混算', async () => {
+test('未结束测试与暂停均排除，本期放量与勾选独立汇总', async () => {
     const a = await seed('隔离跨期测试');
     await fact(a.campaign.id, '2026-10-09', 'test_continue');
     await fact(a.campaign.id, '2026-10-10', 'test_pause');
@@ -26,16 +26,12 @@ test('测试跨期完整结果、本期真实总量、暂停阶段小结不相�
     const m = await meeting();
     const material = await readWeeklyMaterial(db, m);
     const card = material.promotions.find(p => p.campaignId === a.campaign.id)!;
-    assert.ok(card);
-    assert.equal(card.label, '测试阶段小结');
-    assert.equal(card.total.spend, 225);
-    assert.equal(card.periodTotal.spend, 125);
-    assert.equal(card.total.recordedDays, 2);
-    assert.equal(material.summary.spend, 175);
+    assert.equal(card,undefined,'暂停不是测试结束结论');
+    assert.equal(material.summary.spend, 50);
     assert.equal(material.promotions.find(p => p.campaignId === b.campaign.id)?.total.spend, 50);
     const none = selectWeeklyMaterial(material, [], []);
     assert.equal(none.promotions.length, 0);
-    assert.equal(material.summary.spend, 175);
+    assert.equal(material.summary.spend, 50);
 });
 test('非推广按 recordedThrough 纳入，二轮自动携带首轮而不算主选，首次录入不随更正变动', async () => {
     const a = await seed('隔离非推广对照', 'testing', false);
@@ -55,6 +51,7 @@ test('历史成本按累计消耗除累计人数，样本与勾选无关，来�
     await fact(hist.campaign.id, '2026-10-09', 'test_discarded', 'testing', '70.00');
     const candidate = await seed('隔离同期样本');
     const f = await fact(candidate.campaign.id, '2026-10-10', 'test_pending', 'testing', '30.00');
+    const peer=await seed('隔离已结束同期样本');await fact(peer.campaign.id,'2026-10-11','test_pending','testing','40.00');
     const m = await meeting(), a = await readWeeklyMaterial(db, m);
     const card = a.promotions.find(c => c.campaignId === candidate.campaign.id)!;
     assert.ok(card.historical.n >= 1);
@@ -71,7 +68,10 @@ test('暂停后结束保留全结果与上次复盘；晚录／更正只成为�
     await fact(a.campaign.id, '2026-10-09', 'test_pause');
     await fact(a.campaign.id, '2026-10-10', 'test_continue', 'test_paused', '10.00');
     const first = await meeting('2026-10-09', '2026-10-10');
-    const firstMaterial = await readWeeklyMaterial(db, first), key = firstMaterial.promotions.find(p => p.campaignId === a.campaign.id)!.key;
+    const firstMaterial = await readWeeklyMaterial(db, first), key = `${a.campaign.id}:testing:2026-10-09`;
+    assert.ok(!firstMaterial.promotions.some(p=>p.key===key),'新会议不纳入尚未结束测试');
+    const oldFacts=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,a.campaign.id));
+    firstMaterial.promotions.push({key,originKey:key,campaignId:a.campaign.id,scheduleId:a.schedule.id,stageType:'testing',startedOn:'2026-10-09',endedOn:'2026-10-10',facts:oldFacts,total:{spend:110},kind:'current'} as any);
     const freeze = async (m: typeof first, material: typeof firstMaterial, at: string) => { await db.update(s.operationsReviewMeeting).set({ status: 'completed', currentVersionNumber: 0, meetingAt: new Date(at) }).where(eq(s.operationsReviewMeeting.id, m.id)); await db.insert(s.operationsReviewMeetingVersion).values({ meetingId: m.id, versionNumber: 0, snapshot: { schemaVersion: 4, generated: selectWeeklyMaterial(material, [key], []) }, changeSummary: '隔离首次定稿', finalizedByLabel: '隔离测试', createdAt: new Date(at) }); };
     await freeze(first, firstMaterial, '2026-10-11T12:00:00+08:00');
     await fact(a.campaign.id, '2026-10-11', 'test_continue');
@@ -132,4 +132,11 @@ test('会后次日淘汰不能产生普通投放事实，会议当天事实仍�
  await db.insert(s.operationsReviewMeetingVersion).values({meetingId:m.id,versionNumber:1,finalizedByLabel:'隔离',changeSummary:'会后定稿',snapshot:{finalizationStage:'post',decisionEffectiveOn:'2026-10-10',generated:{meetingDecisions:[{id:m.id+':'+post.campaign.id+':2026-10-10',meetingId:m.id,versionNumber:1,campaignId:post.campaign.id,scheduleId:post.schedule.id,effectiveOn:'2026-10-10',targetStatus:'test_discarded',stageType:'testing',label:'隔离会后'}]}}});
  const result=await db.transaction(tx=>writePromotionDaily(tx as any,{campaignId:post.campaign.id,platformNoteId:post.c.platformNoteId,metricDate:'2026-10-10',dailyStatus:'waiting_action',actualStatusSnapshot:'test_discarded',recordKind:'regular',stageTypeSnapshot:'testing',spend:10,platformOpenCount:1,actualOpenCount:1,platformLeadCount:1,actualLeadCount:1,reviewDecision:'test_discarded'}, {id:randomUUID(),username:'隔离'}));
  assert.equal(result.kind,'closed');assert.equal((await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,post.campaign.id))).length,1);
+});
+
+test('实际状态从测试转放量即可纳入，完成判断独立于展示文案',async()=>{
+ const a=await seed('隔离实际转放量');await fact(a.campaign.id,'2026-10-10','test_continue');
+ await db.insert(s.operationsPromotionDayDecision).values({campaignId:a.campaign.id,businessDate:'2026-10-11',stageType:'scaling',actualStatus:'scaling',reason:'测试结果已完整'});
+ const material=await readWeeklyMaterial(db,await meeting());
+ assert.ok(material.promotions.some(row=>row.campaignId===a.campaign.id&&row.stageType==='testing'));
 });

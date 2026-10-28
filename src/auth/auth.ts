@@ -5,6 +5,7 @@ import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { getDb, type Database } from '../db/client';
 import { authUser, authSession, authAccount, authVerification, authRateLimit } from '../db/schema';
+import {eq} from 'drizzle-orm';
 
 export function createAuth(db: Database, config: { secret: string; baseURL: string; rateLimit?: boolean }) {
   if (config.secret.length < 32) throw new Error('BETTER_AUTH_SECRET_NOT_CONFIGURED');
@@ -21,6 +22,10 @@ export function createAuth(db: Database, config: { secret: string; baseURL: stri
     trustedOrigins,
     // 登录尚无 cookie 时也验证来源，避免登录 CSRF；不依赖浏览器是否已持有会话。
     hooks: { before: createAuthMiddleware(async context => {
+      if(context.path==='/sign-in/username'&&typeof context.body?.username==='string'){
+        const [account]=await db.select({enabled:authUser.enabled}).from(authUser).where(eq(authUser.username,context.body.username.toLowerCase()));
+        if(account&&!account.enabled)throw new APIError('FORBIDDEN',{message:'账号已停用，请联系管理员。'});
+      }
       if (context.request && !['GET', 'HEAD', 'OPTIONS'].includes(context.request.method)
         && !trustedOrigins.includes(context.request.headers.get('origin') ?? '')) {
         throw new APIError('FORBIDDEN', { message: '拒绝跨站账号操作。' });
@@ -30,7 +35,7 @@ export function createAuth(db: Database, config: { secret: string; baseURL: stri
       user: authUser, session: authSession, account: authAccount, verification: authVerification, rateLimit: authRateLimit,
     } }),
     emailAndPassword: { enabled: true, disableSignUp: true, minPasswordLength: 6, maxPasswordLength: 128 },
-    user: { additionalFields: { role: { type: ['admin', 'employee'], required: true, defaultValue: 'employee', input: false } } },
+    user: { additionalFields: { role: { type: ['admin', 'employee'], required: true, defaultValue: 'employee', input: false },enabled:{type:'boolean',required:true,defaultValue:true,input:false} } },
     session: { expiresIn: 7 * 86400, updateAge: 86400, cookieCache: { enabled: false } },
     rateLimit: { enabled: config.rateLimit ?? true, storage: 'database', window: 60, max: 100,
       customRules: { '/sign-in/username': { window: 60, max: 5 }, '/sign-in/email': { window: 60, max: 5 } } },

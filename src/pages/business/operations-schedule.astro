@@ -595,6 +595,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         promotionHelp.textContent = '';
         updateCategoryOptions();
 
+        if(record){form.dataset.collaborationResource=`schedule:${record.id}`;form.dataset.collaborationLabel=record.contentName;}else{delete form.dataset.collaborationResource;delete form.dataset.collaborationLabel;}
         if (nextMode === 'new') {
           title.textContent = '新做帖';
           context.textContent = '新建内容';

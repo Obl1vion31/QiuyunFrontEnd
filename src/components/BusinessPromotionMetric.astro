@@ -20,7 +20,7 @@ const hasNext=!residual&&decisionOptions.length>0;
  {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
  <button type="button" class="business-action-secondary" data-edit-trigger={metric.id}>编辑这一天</button>
                           <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
-                            <form class="business-form" data-history-edit-form>
+                            <form class="business-form" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName} data-history-edit-form>
                               <header class="dialog-head"><div><h3 id={`history-edit-${metric.id}`}>{formatFullDate(metric.metricDate)}</h3><p>{entry.post.contentName} · {metric.stageTypeSnapshot === 'testing' ? '测试期' : '放量期'}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
                               <input type="hidden" name="metricId" value={metric.id} />
                               <input type="hidden" name="dailyStatus" value={metric.dailyStatus} />

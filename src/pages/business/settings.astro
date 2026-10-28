@@ -2,14 +2,15 @@
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
+import BusinessAccountManagement from '../../components/BusinessAccountManagement.astro';
 import { getDb } from '../../db/client';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import {businessOperations,permissionModes} from '../../auth/business-capabilities';
 import {authUser} from '../../db/schema';
 export const prerender = false;
-const view=Astro.url.searchParams.get('view')==='approvals'?'approvals':'permissions';
-const accounts=await getDb().select({id:authUser.id,username:authUser.username,role:authUser.role}).from(authUser).orderBy(authUser.username);
+const view=Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
+const accounts=await getDb().select({id:authUser.id,username:authUser.username,name:authUser.name,role:authUser.role,enabled:authUser.enabled,updatedAt:authUser.updatedAt}).from(authUser).orderBy(authUser.username);
 const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
 ---
 <!doctype html>
@@ -19,7 +20,9 @@ const grants=await Promise.all(accounts.map(async user=>({...user,permissions:aw
 <BusinessConsoleFrame active="settings">
   <BusinessConsoleToolbar title="系统设置" subtitle="账号权限与操作授权" />
   <main class="business-console-content">
-    <BusinessPageHeader title={view==='approvals'?'待审核变更':'账号权限'} />
+    <nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a></nav>
+    <BusinessPageHeader title={view==='approvals'?'待审核变更':view==='accounts'?'账号管理':'操作授权'} />
+    {view==='accounts'&&<BusinessAccountManagement accounts={accounts}/>}
     {view==='permissions'&&<section class="account-permissions business-form">
       <label>账号<select data-permission-account>{grants.map(user=><option value={user.id}>{user.username} · {user.role==='admin'?'管理员':'员工'}</option>)}</select></label>
       {grants.map(user=><form data-account-permissions={user.id} data-permissions={JSON.stringify(user.permissions)} hidden={user.id!==grants[0]?.id}>
@@ -66,3 +69,5 @@ initializeSettings();document.addEventListener('astro:page-load',initializeSetti
 <style>
 .account-permissions{max-width:920px;margin-top:20px}.account-permissions>label{display:grid;gap:6px;max-width:360px}.account-permissions>form{margin-top:16px;padding:20px}.account-permissions [hidden]{display:none!important}.account-permissions section{margin:12px 0}.account-permissions header{display:flex;align-items:center;justify-content:space-between;gap:12px}.account-permissions h2{font-size:14px;margin:0}.permissions-table{overflow:auto}.permissions-table table{width:100%;border-collapse:collapse;text-align:left}.permissions-table th,.permissions-table td{padding:8px;border-bottom:1px solid var(--console-line)}.permissions-table table{min-width:420px;table-layout:fixed}.permissions-table col.permission-operation{width:60%}.permissions-table col.permission-mode{width:40%}.permissions-table thead th{text-align:center;font:500 13px/20px var(--console-font)}.permissions-table tbody th{text-align:left;font:400 14px/22px var(--console-font)}.permissions-table td{text-align:center}.permissions-table select{min-width:140px;max-width:224px;margin:0;font:400 14px/22px var(--console-font)}.permission-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}.permission-actions output{flex:1}
 </style>
+
+<style>.settings-views{display:flex;gap:8px;margin-bottom:20px}.settings-views a{padding:8px 14px;border-radius:6px;color:var(--console-muted);font:500 14px/20px var(--console-font);text-decoration:none}.settings-views a[aria-current=page]{background:var(--console-ink);color:white}</style>

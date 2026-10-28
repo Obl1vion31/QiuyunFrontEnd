@@ -1,5 +1,11 @@
 # 验证
 
+`pnpm test:workspace` 是多人协作与例会来源准备的综合验收。先以Node构建，显式配置本机 `TEST_POSTGRES_URL`；测试仅允许 localhost／127.0.0.1，创建独立临时库并清理。覆盖真实并发租约、过期保护、旧表单指纹、来源缺项／补齐／定稿、同名版本查帖、位置隐私、账号启停及全表恢复摘要和0041追加迁移。`WORKSPACE_EVIDENCE_DIR` 可指定产物目录；常规运行自动退出，人工复查可用 `KEEP_WORKSPACE_FIXTURE=1` 保留至结束。
+
+综合桌面验收覆盖1920／1440／1280／1024px的准备缺项态，1440px的已齐全、正文、定稿、账号、查帖结果／详情／空态、管理员字段标记、员工冲突及锁失效恢复。新测试和实际截图共同核对，不把保存截图视作视觉验收。旧例会内联录入非推广的断言属于旧流程，应以本轮“原入口补齐、例会只读”的规则为准；冻结版本、修订与PDF规则继续适用。
+
+HTTP回归使用 `business-request.helper.ts` 按真实协议取锁、带租约写入并释放；真实并发与无锁拒绝由综合测试直接发送请求，避免用测试开关绕过服务端保护。
+
 `pnpm test:pauses` 验证管理员、员工访问旧团队暂停接口均返回 410，不能创建、延期或恢复批次。`promotion-pauses.test.ts` 验证退役迁移仅结束有效批次，保留历史窗口、关联和审计，不生成零指标。迁移不由浏览器测试连接共享库执行。
 
 `pnpm test` 运行现有业务规则检查与 `auth.test.ts` 的独立内存 PostgreSQL 认证测试，覆盖哈希、初始化幂等、会话撤销、角色来源、CSRF 和多实例限流。
@@ -12,13 +18,13 @@
 
 公网验收只做已授权账号登录、读取和无权限请求，不向共享业务库添加虚构数据。构建前需使用 Node 22；本机工具目录、测试产物及数据库备份不会提交或发布。
 
-`deployment-origin.test.mjs` 使用真实 Astro 请求构造与来源中间件，覆盖本机配置下正式 HTTPS 域名的同源表单、伪造转发域名及外站拒绝；公网发布还须按部署指南检查真实表单请求。`test:weekly` 包含 `meeting-create.browser.ts`，从新建弹窗实际填写和提交，覆盖上海时间保存、空标题、失败保留输入、非 JSON 错误、断网与连续提交防重复，再运行候选、草稿及会前／会后流程。
+`deployment-origin.test.mjs` 使用真实 Astro 请求构造与来源中间件，覆盖本机配置下正式 HTTPS 域名的同源表单、伪造转发域名及外站拒绝；公网发布还须按部署指南检查真实表单请求。`test:weekly` 需要上述本机 TEST_POSTGRES_URL，串联新建、来源准备／多人协作和冻结版本讨论回归；包含 `meeting-create.browser.ts`，从新建弹窗实际填写和提交，覆盖上海时间保存、空标题、失败保留输入、非 JSON 错误、断网与连续提交防重复，再运行当前准备、草稿、会前／会后与PDF流程。
 
-`meeting-presentation.browser.ts` 纳入 `test:weekly`，检查定稿结果与结论优先、两类标题资料入口、草稿布局与输入保留、四档桌面同行等高、长文字完整、汇总包含未选入的本期实际跑量、实时资料与不可变快照分离、会前／会后及跨日生效日、月例会空态。使用隔离PGlite；原始截图与录像位于 `.tools/test-artifacts/meeting-presentation/`，可通过 `MEETING_PRESENTATION_DIR` 指定新目录。
+旧 `meeting-presentation.browser.ts` 保存前版布局场景，当前流程由 `test:workspace` 与 `test:meeting-discussion` 验证；该旧用例，检查定稿结果与结论优先、两类标题资料入口、草稿布局与输入保留、四档桌面同行等高、长文字完整、汇总包含未选入但已满足复盘资格的本期实际跑量、实时资料与不可变快照分离、会前／会后及跨日生效日、月例会空态。使用隔离PGlite；原始截图与录像位于 `.tools/test-artifacts/meeting-presentation/`，可通过 `MEETING_PRESENTATION_DIR` 指定新目录。
 
-`meeting-finalization.browser.ts` 纳入 `test:weekly`，覆盖定稿缺项定位、原生指标范围错误、已确认隐藏字段的精度、来源指纹冲突、非JSON错误与断网保留、取消和重复提交，以及真实按钮生成并跳转会前V0／会后V1。全部写入隔离PGlite，`MEETING_FINALIZATION_DIR` 可指定产物目录。
+旧 `meeting-finalization.browser.ts` 保存前版内联录入流程断言；当前定稿流程由综合验收替代，旧用例，覆盖定稿缺项定位、原生指标范围错误、已确认隐藏字段的精度、来源指纹冲突、非JSON错误与断网保留、取消和重复提交，以及真实按钮生成并跳转会前V0／会后V1。全部写入隔离PGlite，`MEETING_FINALIZATION_DIR` 可指定产物目录。
 
-`meeting-card-rules.test.ts` 与 `meeting-compact.browser.ts` 覆盖非零首末日、暂停后转化和中间零值、点击率区间保留复核、逐日当日状态、已填／待填统一排序、自动标题持久化及自定义保留、半填写事项、稳定行删除和会后流转。专项检查四档桌面草稿／V0／V1及完整页面；旧草稿缺状态字段时，无需手动刷新即按真实日度补齐，验证读取不写库、保存保留且不改指标／输入／指纹、无日度记录不猜测；旧定稿缺状态不补造；`MEETING_COMPACT_DIR` 可指定隔离产物目录。
+`meeting-card-rules.test.ts` 覆盖当前卡片纯规则；旧 `meeting-compact.browser.ts` 保留前版流程场景，涉及非零首末日、暂停后转化和中间零值、点击率区间保留复核、逐日当日状态、已填／待填统一排序、自动标题持久化及自定义保留、半填写事项、稳定行删除和会后流转。专项检查四档桌面草稿／V0／V1及完整页面；旧草稿缺状态字段时，无需手动刷新即按真实日度补齐，验证读取不写库、保存保留且不改指标／输入／指纹、无日度记录不猜测；旧定稿缺状态不补造；`MEETING_COMPACT_DIR` 可指定隔离产物目录。
 
 历史迁移含特定导入批次断言，隔离测试从当前 schema 建立业务结构，再执行本次认证 SQL；不会修改已共享的历史迁移，也不会使用真实业务数据补足断言。Chromium 系统库与中文字体可在 `.tools/system/` 解压，并用 `LD_LIBRARY_PATH`、`FONTCONFIG_FILE` 提供，避免修改系统配置。
 

@@ -96,7 +96,7 @@ function initializeAnnualPlan() {
     q('button', node).addEventListener('click', () => { node.remove(); markDirty(); }); linkRows.append(node);
   }
   function openRow(row: Row | null = null, sectionKey?: string) {
-    editingRow = row; rowForm.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea').forEach(control=>{control.disabled=false;if(!(control instanceof HTMLSelectElement))control.readOnly=false;});rowForm.reset();all<HTMLElement>('[data-taxonomy-editor]',rowForm).forEach(n=>n.hidden=true); blockRows.replaceChildren(); linkRows.replaceChildren();
+    editingRow = row;rowForm.dataset.collaborationResource=row?`year:${selectedYear}:plan:${row.id}`:`year:${selectedYear}`;rowForm.dataset.collaborationLabel=row?.rowName??'新建规划行'; rowForm.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input,select,textarea').forEach(control=>{control.disabled=false;if(!(control instanceof HTMLSelectElement))control.readOnly=false;});rowForm.reset();all<HTMLElement>('[data-taxonomy-editor]',rowForm).forEach(n=>n.hidden=true); blockRows.replaceChildren(); linkRows.replaceChildren();
     const key = row?.sectionKey ?? sectionKey ?? sections[0]?.key; if (!key) return;
     field('sectionChoice').value = key; applySection(key, row?.categoryId ?? '');
     field('planId').value = row?.id ?? ''; field('expectedVersionNumber').value = String(row?.currentVersionNumber ?? 0);
@@ -212,10 +212,10 @@ function initializeAnnualPlan() {
       }
     } catch { if (read.isCurrent()) target.textContent = '版本历史读取失败，请重试。'; } finally { read.finish(); }
   });
-  const yearForm = q<HTMLFormElement>('#year-form'); q('[data-edit-year]').addEventListener('click', () => { q<HTMLElement>('[role=alert]', yearForm).textContent = ''; yearDialog.showModal(); });
+  const yearForm = q<HTMLFormElement>('#year-form');yearForm.dataset.collaborationResource=`year:${selectedYear}`; q('[data-edit-year]').addEventListener('click', () => { q<HTMLElement>('[role=alert]', yearForm).textContent = ''; yearDialog.showModal(); });
   let yearDirty=false;yearForm.addEventListener('input',()=>{yearDirty=true;document.documentElement.dataset.unsaved='true';});const closeYear=async()=>{if(yearDirty&&!await businessConfirm('有尚未保存的修改，是否放弃？'))return;yearDirty=false;clearUnsaved();yearDialog.close();};all('[data-close-year]').forEach(button=>button.addEventListener('click',closeYear));yearDialog.addEventListener('cancel',event=>{event.preventDefault();void closeYear();});
   yearForm.addEventListener('submit', event => { event.preventDefault(); void submit(yearForm, `/api/operations-annual-plans/year/${selectedYear}`, 'PATCH', { instructions: (yearForm.elements.namedItem('instructions') as HTMLTextAreaElement).value.trim() || null }, () => window.location.reload()); });
-  const copyForm = q<HTMLFormElement>('#copy-form'); q('[data-copy-year]').addEventListener('click', () => { q('.form-message', copyForm).textContent = ''; copyDialog.showModal(); });
+  const copyForm = q<HTMLFormElement>('#copy-form');copyForm.dataset.collaborationResource=`year:${selectedYear}`; q('[data-copy-year]').addEventListener('click', () => { q('.form-message', copyForm).textContent = ''; copyDialog.showModal(); });
   all('[data-close-copy]').forEach(button => button.addEventListener('click', () => copyDialog.close()));
   copyForm.addEventListener('submit', event => { event.preventDefault(); void submit(copyForm, `/api/operations-annual-plans/year/${Number((copyForm.elements.namedItem('sourceYear') as HTMLInputElement).value)}/copy`, 'POST', { targetYear: Number((copyForm.elements.namedItem('targetYear') as HTMLInputElement).value) }, result => { window.location.href = `/business/annual-plan?year=${result.year}`; }); });
 }

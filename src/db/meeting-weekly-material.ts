@@ -1,4 +1,5 @@
 import {rateComparison,type RateSample,type RateComparison} from './meeting-rate-comparison';
+import {requiredPromotionStage} from './promotion-review-required';
 import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 /** 周例会 v4：实际日期候选、可核对的比较样本与不可变来源。 */
 import { createHash } from 'node:crypto';
@@ -182,6 +183,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             date: string;
             lastTestingOn: string;
             label: string;
+            complete: boolean;
         }> = [];
         const lastActive = (before: string) => testIntervals.filter(s => s.startedOn <= before).map(s => [s.endedOn ?? before, before].sort()[0]).sort().at(-1) ?? null;
         for (const change of context.stateChanges.filter(c => c.campaignId === campaign.id && c.businessDate <= nextDateKey(end) && ['test_paused', 'test_pending', 'test_discarded', 'scaling'].includes(c.actualStatus ?? ''))) {
@@ -189,16 +191,16 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const previousActive = before?.currentStatus === 'testing';
             const last = testingCheckpointDate(change.actualStatus!, change.businessDate, previousActive, lastActive(previousDateKey(change.businessDate)));
             if (last && last >= campaign.startedOn && last <= end)
-                nodes.push({ date: change.businessDate, lastTestingOn: last, label: promotionLabels[change.actualStatus!] ?? change.actualStatus! });
+                nodes.push({ date: change.businessDate, lastTestingOn: last, label: promotionLabels[change.actualStatus!] ?? change.actualStatus!, complete: change.actualStatus!=='test_paused' });
         }
         for (const f of related.filter(f => f.recordKind !== 'test_residual' && f.stageTypeSnapshot === 'testing' && ['test_pause', 'test_pending', 'test_discarded', 'start_scaling'].includes(f.reviewDecision))) {
             const last = f.dailyStatus === 'active' ? f.metricDate : lastActive(f.metricDate);
             if (last)
-                nodes.push({ date: nextDateKey(f.metricDate), lastTestingOn: last, label: ({ test_pause: '测试暂停', test_pending: '测试结束待定', test_discarded: '测试淘汰', start_scaling: '开始放量' } as Record<string, string>)[f.reviewDecision] });
+                nodes.push({ date: nextDateKey(f.metricDate), lastTestingOn: last, label: ({ test_pause: '测试暂停', test_pending: '测试结束待定', test_discarded: '测试淘汰', start_scaling: '开始放量' } as Record<string, string>)[f.reviewDecision], complete: f.reviewDecision!=='test_pause' });
         }
         for (const i of testIntervals)
             if (i.endedOn && i.endedOn <= end && !nodes.some(n => n.lastTestingOn === i.endedOn))
-                nodes.push({ date: nextDateKey(i.endedOn), lastTestingOn: i.endedOn, label: i.outcome ? promotionLabels[i.outcome] ?? '测试阶段小结' : '测试阶段小结' });
+                nodes.push({ date: nextDateKey(i.endedOn), lastTestingOn: i.endedOn, label: i.outcome ? promotionLabels[i.outcome] ?? '测试阶段小结' : '测试阶段小结', complete: ['start_scaling','test_discarded'].includes(i.outcome??'') });
         for (const {stageType,cycle} of [...testingCycles(campaign,context,end).map(cycle=>({stageType:'testing' as const,cycle})),{stageType:'scaling' as const,cycle:null}]) {
             const cycleStart=cycle?.startedOn??campaign.startedOn,cycleEnd=cycle?.endedOn;
             const cycleNodes=nodes.filter(n=>!cycle||(n.lastTestingOn>=cycleStart&&(!cycleEnd||n.lastTestingOn<=cycleEnd)));
@@ -211,19 +213,17 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
             const changedNodes = cycleNodes.filter(n => between(n.date, start, end));
             const periodFacts = relevant.filter(f => between(f.metricDate, start, end));
             const late = relevant.filter(f => f.metricDate < start && lastFinalized && f.updatedAt > lastFinalized && !prior.some(p => p.card.facts?.some((old: any) => old.id === f.id && sourceHash(old) === sourceHash(f))));
-            const current = stageType === 'scaling' ? periodFacts.length > 0 : matchingNodes.length > 0 || state.currentStatus==='testing' && (!cycleEnd||cycleEnd>=end) && periodFacts.some(f=>f.dailyStatus==='active'&&f.recordKind!=='test_residual');
-            const supplement = !current && (late.length > 0 || stageType === 'testing' && periodFacts.length > 0 || prior.length > 0 && changedNodes.length > 0);
-            const cutoff = stageType === 'testing' ? cycleNodes.map(n => n.lastTestingOn).sort().at(-1) ?? null : end;
+            const conclusions=cycleNodes.filter(n=>n.complete);
+            const completed=stageType==='scaling'||conclusions.length>0;
+            const current = completed && (stageType === 'scaling' ? phase.some(p=>p.startedOn<=end&&(!p.endedOn||p.endedOn>=start))||periodFacts.length>0 : conclusions.some(n=>between(n.lastTestingOn,start,end)));
+            const supplement = completed && !current && (late.length > 0 || stageType === 'testing' && periodFacts.length > 0 || prior.length > 0 && changedNodes.length > 0);
+            const cutoff = stageType === 'testing' ? conclusions.map(n => n.lastTestingOn).sort().at(-1) ?? null : end;
             const added = [...new Map([...periodFacts, ...late].map(f => [f.id, f])).values()].sort((a, b) => a.metricDate.localeCompare(b.metricDate));
             const cardFacts = supplement && added.length ? added : stageType === 'testing' ? relevant : periodFacts;
             const missingDates: string[] = [];
             const upper = stageType === 'testing' ? (cutoff ?? end) : end;
-            for (const i of phase) {
-                const from = stageType === 'testing' ? i.startedOn : [i.startedOn, start].sort().at(-1)!, to = [i.endedOn ?? upper, upper].sort()[0];
-                for (let d = from; d <= to; d = nextDateKey(d))
-                    if (!related.some(f => f.metricDate === d))
-                        missingDates.push(d);
-            }
+            const from=stageType==='testing'?origin:[origin,start].sort().at(-1)!;
+            for(let d=from;d<=upper;d=nextDateKey(d))if(requiredPromotionStage(campaign,context,d)===stageType&&(!cycle||testingCycleOn(campaign,context,d)?.startedOn===cycleStart)&&!related.some(f=>f.metricDate===d))missingDates.push(d);
             const knownIds = new Map<string, string>();
             for (const p of prior)
                 for (const f of p.card.facts ?? [])
@@ -315,7 +315,8 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
     const nonPromotions = nonPool.filter(p => (p as any)._eligible).sort((a, b) => a.key.localeCompare(b.key));
     for (const p of nonPool)
         delete (p as any)._eligible;
-    const periodFacts = facts.filter(f => between(f.metricDate, start, end)), summary = { ...totals(periodFacts), posts: new Set(periodFacts.map(f => context.campaigns.find(c => c.id === f.campaignId)?.scheduleId ?? f.campaignId)).size, testingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'testing').map(f => f.campaignId)).size, scalingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'scaling').map(f => f.campaignId)).size };
+    const includedFacts=new Set(promotions.flatMap(p=>p.facts.map(f=>f.id)));
+    const periodFacts = facts.filter(f => includedFacts.has(f.id)&&between(f.metricDate, start, end)), summary = { ...totals(periodFacts), posts: new Set(periodFacts.map(f => context.campaigns.find(c => c.id === f.campaignId)?.scheduleId ?? f.campaignId)).size, testingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'testing').map(f => f.campaignId)).size, scalingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'scaling').map(f => f.campaignId)).size };
     const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions };
     return { ...base, fingerprint: sourceHash(base) };
 }

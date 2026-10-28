@@ -292,7 +292,7 @@ function initialize() {
   signal.addEventListener('abort',()=>{stopLoading();stopPublicationRead();},{once:true});
   document.addEventListener('business:schedule-selected', event => showPanel((event as CustomEvent).detail.id), { signal });
   document.addEventListener('business:publication-opened', event => {
-    publicationId = (event as CustomEvent).detail.id; host.replaceChildren(); publicationDays = [];
+    publicationId = (event as CustomEvent).detail.id;publication!.dataset.collaborationResource=`schedule:${publicationId}`; host.replaceChildren(); publicationDays = [];
     publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden = false; showPublication();
   }, { signal });
   publication.addEventListener('input', event => {

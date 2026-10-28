@@ -1,3 +1,4 @@
+import {meetingReadiness} from '../../../db/meeting-readiness';
 import {reviseMeetingVersion,persistMeetingIssues} from '../../../db/meeting-version-workflow';
 import {discussionSchema,mergeDiscussion} from '../../../db/meeting-discussion';
 import {freezeRateComparisons} from '../../../db/meeting-rate-comparison';
@@ -43,8 +44,8 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   if(discussionMode&&(!discussion?.success||payload.draft||!payload.expectedUpdatedAt))return Response.json({message:'讨论稿格式无效，输入已保留。'},{status:422});
   draft.issues=draft.issues.filter(hasMeetingIssueContent);
   const stage=payload.action==='finalize_version_draft'?payload.stage as 'pre'|'post':payload.action==='finalize_pre'?'pre':payload.action==='finalize_post'?'post':null;
-  if(stage&&!discussionMode&&draft.workflowVersion!==6)return Response.json({message:'请刷新例会编辑器。'},{status:422});
-  if(draft.workflowVersion===6&&payload.action==='finalize')return Response.json({message:'请选择会前或会后定稿。'},{status:422});
+  if(stage&&!discussionMode&&![6,7].includes(draft.workflowVersion??0))return Response.json({message:'请刷新例会编辑器。'},{status:422});
+  if([6,7].includes(draft.workflowVersion??0)&&payload.action==='finalize')return Response.json({message:'请选择会前或会后定稿。'},{status:422});
   const finalizing=payload.action==='finalize'||!!stage;
   try {
     const result = await getDb().transaction(async (transaction) => {
@@ -54,7 +55,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       let targetDraft:typeof operationsReviewMeetingVersion.$inferSelect|undefined;
       if(draft.schemaVersion===4){
         [targetDraft]=await transaction.select().from(operationsReviewMeetingVersion).where(and(eq(operationsReviewMeetingVersion.meetingId,meeting.id),eq(operationsReviewMeetingVersion.lifecycleStatus,'draft'))).for('update');
-        if(draft.workflowVersion!==6||!['save_version_draft','finalize_version_draft'].includes(payload.action??'')||!targetDraft||targetDraft.id!==payload.draftVersionId||meeting.status!=='draft')throw new WorkflowError('例会流程已更新，请刷新页面后继续，输入已保留。',409);
+        if(![6,7].includes(draft.workflowVersion??0)||!['save_version_draft','finalize_version_draft'].includes(payload.action??'')||!targetDraft||targetDraft.id!==payload.draftVersionId||meeting.status!=='draft')throw new WorkflowError('例会流程已更新，请刷新页面后继续，输入已保留。',409);
         if(stage&&stage!=='pre')throw new WorkflowError('请先完成会前 V0 定稿。',422);
       }
       let baseline:any;
@@ -65,8 +66,8 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        draft=mergeDiscussion(baseline,discussion!.data!,source.id);
       }
       if(meeting.status==='completed'&&!discussionMode)throw new WorkflowError('请通过最新版本的编辑模式保存修订。',422);
-      if(draft.workflowVersion===6)draft.hasRevisionDraft=(payload.action==='save_version_draft')&&meeting.status==='completed';
-      if(meeting.draftSnapshot.workflowVersion===6&&draft.workflowVersion!==6)throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
+      if([6,7].includes(draft.workflowVersion??0))draft.hasRevisionDraft=(payload.action==='save_version_draft')&&meeting.status==='completed';
+      if([6,7].includes(meeting.draftSnapshot.workflowVersion??0)&&![6,7].includes(draft.workflowVersion??0))throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
       if (payload.expectedUpdatedAt && payload.expectedUpdatedAt !== meeting.updatedAt.toISOString()) throw new WorkflowError('会议已被更新，请刷新后再保存。');
       for (const id of [...new Set(draft.nonPromotionSelections.map(item => item.scheduleId))].sort()) await lockSchedule(transaction, id);
       if((meeting.draftSnapshot.schemaVersion===4)!==(draft.schemaVersion===4))throw new WorkflowError('请使用此会议对应版本的编辑器。',422);
@@ -82,6 +83,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(discussionMode){snapshot={...baseline,draft,discussionSourceVersionId:payload.sourceVersionId};}
        else {
        const fresh=await readWeeklyMaterial(transaction,target);
+       if(finalizing&&meetingReadiness(fresh).length)throw new WorkflowError('本次例会仍有待补数据，请返回准备区完成登记。',422);
        const cached=meeting.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
        if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new WorkflowError('来源数据已变化，请刷新数据并核对后再定稿。');
        let material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
@@ -89,7 +91,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        material=await readWeeklyDraftStates(transaction,material);
        draft.promotionInputs=reconcileClickRateRanges(draft.promotionInputs,cached?.promotions??material.promotions,material.promotions,meeting.draftSnapshot.promotionInputs);
        if((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType)))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
-       if(draft.workflowVersion===6)draft.nonPromotionSelections=meetingNonPromotionSelections(material,draft.nonPromotionSelections);
+       if([6,7].includes(draft.workflowVersion??0))draft.nonPromotionSelections=meetingNonPromotionSelections(material,draft.nonPromotionSelections);
        if(finalizing&&draft.nonPromotionInputs)draft.nonPromotionInputs=Object.fromEntries(Object.entries(draft.nonPromotionInputs).map(([key,input])=>{const {platformNoteId:_id,...rest}=input;return [key,rest]}));
        const common=await assembleMeetingSnapshot(transaction,target,{...draft,nonPromotionSelections:[],promotionSnapshotIds:[]});
        draft.materialSnapshot=material as unknown as Record<string,unknown>;

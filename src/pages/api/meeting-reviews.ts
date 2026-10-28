@@ -46,10 +46,10 @@ export const DELETE: APIRoute = async ({ request, url }) => {
   try {
     const deleted = await getDb().transaction(async (transaction) => {
       const meetings = await transaction.select({ id: operationsReviewMeeting.id, status: operationsReviewMeeting.status })
-        .from(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids));
+        .from(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids)).orderBy(operationsReviewMeeting.id).for('update');
       if (meetings.length !== ids.length) throw new Error('meeting-missing');
       if (meetings.some((meeting) => meeting.status !== 'draft')) throw new Error('finalized-meeting');
-      const existing=await transaction.select().from(versions).where(inArray(versions.meetingId,ids));
+      const existing=await transaction.select().from(versions).where(inArray(versions.meetingId,ids)).for('update');
       if(existing.some(v=>v.lifecycleStatus!=='draft'))throw new Error('finalized-meeting');
       await transaction.delete(versions).where(inArray(versions.meetingId,ids));
       return transaction.delete(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids)).returning({ id: operationsReviewMeeting.id });

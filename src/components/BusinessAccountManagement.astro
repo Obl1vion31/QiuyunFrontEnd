@@ -1,0 +1,13 @@
+---
+import BusinessFormDialog from './BusinessFormDialog.astro';
+interface Props{accounts:Array<{id:string;username:string;name:string;role:string;enabled:boolean;updatedAt:Date}>}
+const {accounts}=Astro.props;
+---
+<section class="account-management business-form" data-account-management>
+ <div class="account-table"><table><thead><tr><th>账号</th><th>显示姓名</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody>{accounts.map(account=><tr data-account-id={account.id} data-account-updated={account.updatedAt.toISOString()} data-collaboration-resource={`account:${account.id}`} data-collaboration-label={account.name}>
+ <th>{account.username}</th><td data-account-name>{account.name}</td><td>{account.role==='admin'?'管理员':'员工'}</td><td data-account-status>{account.enabled?'已启用':'已停用'}</td><td><div class="account-actions"><button type="button" class="business-action-secondary" data-account-action="rename">修改姓名</button><button type="button" class="business-action-secondary" data-account-action="resetPassword">重置密码</button><button type="button" class="business-action-secondary" data-account-action="revokeSessions">撤销登录</button><button type="button" class="business-action-secondary" data-account-action="status" data-enabled={account.enabled} disabled={account.id===Astro.locals.user?.id}>{account.enabled?'停用':'恢复'}</button></div><output role="status"/></td>
+ </tr>)}</tbody></table></div>
+ <BusinessFormDialog labelledby="account-editor-title" width={480} data-account-editor><form class="business-form"><header class="dialog-head"><h2 id="account-editor-title">修改姓名</h2><button type="button" data-account-close aria-label="关闭">×</button></header><div class="form-dialog-body"><label data-account-field>显示姓名<input name="value" required maxlength="40" autocomplete="off"/></label><p data-account-editor-note hidden>重置后，该账号已登录的浏览器将退出。</p></div><footer class="dialog-actions"><output role="alert"/><button type="button" data-account-close>取消</button><button type="submit" class="business-action-primary">保存</button></footer></form></BusinessFormDialog>
+</section>
+<script>import '../scripts/account-management';</script>
+<style>.account-table{overflow:auto;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}table{width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}th,td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--console-line)}thead{background:var(--console-surface-subtle);color:var(--console-muted)}th{font-weight:500}.account-actions{display:flex;flex-wrap:wrap;gap:8px}output{display:block;color:var(--console-muted);font-size:13px}output:empty{display:none}[data-account-editor-note]{font-size:13px;color:var(--console-muted)}[data-account-editor] input{width:100%}</style>

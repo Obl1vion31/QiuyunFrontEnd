@@ -194,3 +194,6 @@ document.addEventListener('business:promotion-fragment-updated',initialize);
 
 // 真正离开视图时清理草稿；局部刷新与详情选择不会触发页面交换。
 document.addEventListener('astro:before-swap',()=>documents.delete(document));
+
+function focusRequestedReview(){const id=new URL(location.href).searchParams.get('focus');if(!id)return;const row=document.querySelector<HTMLElement>(`#daily-table [data-schedule-id="${CSS.escape(id)}"]`);if(row){row.scrollIntoView({block:'center'});row.querySelector<HTMLInputElement>('input:not([type=hidden]):not(:disabled)')?.focus({preventScroll:true});}}
+document.addEventListener('astro:page-load',focusRequestedReview);focusRequestedReview();

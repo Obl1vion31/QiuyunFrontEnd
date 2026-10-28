@@ -1,4 +1,5 @@
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
+import {readNonPromotionFingerprint} from '../../db/non-promotion-record';
 import type { APIRoute } from 'astro';
 import { and, eq, isNull } from 'drizzle-orm';
 import { lockSchedule } from '../../db/schedule-workflow';
@@ -15,7 +16,7 @@ import {
   operationsNonPromotionReviewVersion,
   operationsSubject,
 } from '../../db/schema';
-import { nextReviewCheckpoint, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
+import { checkpointWindow,nextReviewCheckpoint, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
 import { formObject, issuesByField, stageReviewItemSchema } from '../../db/stage-review-validation';
 
 export const prerender = false;
@@ -54,9 +55,10 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       if (!identity?.actualPublishAt || identity.isPromoted) {
         return { kind: 'invalid-schedule' as const };
       }
-
-
-
+      const fingerprint=await readNonPromotionFingerprint(transaction,result.data.scheduleId,result.data.checkpointType);
+      if(form.get('fingerprint')!==fingerprint)return {kind:'conflict' as const};
+      const window=checkpointWindow(identity.actualPublishAt,result.data.checkpointType,shanghaiDateKey(new Date()));
+      if(result.data.recordedThrough<window.min||result.data.recordedThrough>window.max)return {kind:'date-window' as const,min:window.min,max:window.max};
       const completed = await transaction.select({ type: operationsNonPromotionReview.checkpointType })
         .from(operationsNonPromotionReview).where(eq(operationsNonPromotionReview.scheduleId, result.data.scheduleId));
       const existing = completed.some((row) => row.type === result.data.checkpointType);
@@ -154,13 +156,15 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         changeSummary: versionNumber ? '更新复盘指标或结论' : '完成首次复盘',
         changedByLabel: locals.operationsUser || 'unknown',
       });
-      return { kind: 'saved' as const, id: review.id, versionNumber };
+      return { kind: 'saved' as const, id: review.id, versionNumber,fingerprint:await readNonPromotionFingerprint(transaction,result.data.scheduleId,result.data.checkpointType) };
     });
     if (saved.kind === 'invalid-schedule') return Response.json({ message: '只能复盘已实发、当前分类允许复盘的非推广内容。' }, { status: 409 });
+    if(saved.kind==='conflict')return Response.json({code:'STALE_RECORD',message:'这条复盘已发生变化，当前输入已保留。请刷新页面核对最新记录后再填写。'},{status:409});
+    if(saved.kind==='date-window')return Response.json({message:`数据截止日须在 ${saved.min} 至 ${saved.max}，且只能填写昨天及以前的数据。`,fields:{recordedThrough:['请选择窗口内的历史日期']}},{status:422});
     if (saved.kind === 'note-id-required') return Response.json({ message: '首次保存复盘前，请填写这篇帖子的小红书笔记 ID。', fields: { platformNoteId: ['请填写笔记 ID'] } }, { status: 422 });
     if (saved.kind === 'skipped') return Response.json({ message: '请先恢复这个节点，再补录复盘。' }, { status: 409 });
     if (saved.kind === 'out-of-order') return Response.json({ message: saved.expected ? '请先完成前一个复盘节点。' : '这个节点尚未到期。' }, { status: 409 });
-    return Response.json({ ok: true, id: saved.id }, { status: 201 });
+    return Response.json({ ok: true, id: saved.id,fingerprint:saved.fingerprint }, { status: 201 });
   } catch (error) {
     const code = (error as { code?: string; cause?: { code?: string } }).code ?? (error as { cause?: { code?: string } }).cause?.code;
     if (code === '23505') return Response.json({ message: '笔记 ID 或复盘记录已存在，请刷新核对后重试。', fields: { platformNoteId: ['请核对已有笔记 ID'] } }, { status: 409 });

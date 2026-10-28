@@ -259,6 +259,7 @@ const historyHref = (overrides: Record<string, string>) => {
             </form>
             <div class="history-layout" data-inspector-host>
               {historyMode==='post'?<div class="history-list">
+                <div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>
                 <div class="promotion-history-active" data-history-group="unfinished">
                   {activeHistoryRows.length?activeHistoryRows.map(entry=><BusinessPromotionSummary entry={entry} href={historyHref({campaign:entry.key})}/>):<p class="promotion-group-empty">当前筛选范围内没有尚未结束的帖子。</p>}
                 </div>

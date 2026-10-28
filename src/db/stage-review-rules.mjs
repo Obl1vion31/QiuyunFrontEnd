@@ -22,6 +22,15 @@ export const checkpointsForPublishDate = (actualPublishAt) => {
   }));
 };
 
+export const checkpointWindow = (actualPublishAt, checkpointType, todayKey) => {
+  const checkpoint = checkpointsForPublishDate(actualPublishAt).find(item => item.type === checkpointType);
+  if (!checkpoint) throw new Error('INVALID_CHECKPOINT');
+  const min = addDays(checkpoint.dueOn, -1), upper = addDays(checkpoint.dueOn, 1);
+  const yesterday = addDays(todayKey, -1), max = yesterday < upper ? yesterday : upper;
+  return { target: checkpoint.dueOn, min, max, open: min <= max,
+    defaultValue: checkpoint.dueOn <= max ? checkpoint.dueOn : '' };
+};
+
 export const nextReviewCheckpoint = (actualPublishAt, completedTypes, todayKey) => {
   const checkpoints = checkpointsForPublishDate(actualPublishAt);
   return checkpoints.find((checkpoint) => !completedTypes.includes(checkpoint.type) && checkpoint.dueOn <= todayKey) ?? null;

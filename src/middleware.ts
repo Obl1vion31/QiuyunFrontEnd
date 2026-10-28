@@ -3,6 +3,12 @@ import { defineMiddleware } from 'astro:middleware';
 import { getAuth } from './auth/auth';
 import { deniedResponse, requiresAdmin } from './auth/permissions';
 import {isBusinessWrite,runBusinessWrite} from './db/business-approvals';
+import {getDb,withDatabase} from './db/client';
+import {requestResources,verifyLeases} from './db/collaboration';
+import {authUser,authSession} from './db/schema';
+import {and,eq,sql} from 'drizzle-orm';
+import {WorkflowError} from './db/schedule-workflow';
+import {workflowErrorResponse} from './db/workflow-api';
 
 export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
   const protectedPath = url.pathname === '/business' || url.pathname.startsWith('/business/')
@@ -17,8 +23,8 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
   }
   const identity = sessionResult.response;
   const user = identity?.user;
-  locals.user = user?.username && (user.role === 'admin' || user.role === 'employee')
-    ? { id: user.id, username: user.username, role: user.role } : null;
+  locals.user = user?.username && user.enabled!==false && (user.role === 'admin' || user.role === 'employee')
+    ? { id: user.id, username: user.username,name:user.name, role: user.role } : null;
   locals.session = locals.user ? identity?.session ?? null : null;
   locals.operationsUser = locals.user?.username;
   if (protectedPath && !locals.user) {
@@ -33,8 +39,23 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
     );
     response.headers.set('Cache-Control', 'private, no-store'); return response;
   }
-  const response = isBusinessWrite(url.pathname,request.method)
-    ? await runBusinessWrite({request,url,locals},next) : await next();
+  const execute=()=>isBusinessWrite(url.pathname,request.method)?runBusinessWrite({request,url,locals},next):next();
+  let response:Response;
+  if(protectedPath&&!['GET','HEAD','OPTIONS'].includes(request.method)&&!url.pathname.startsWith('/api/collaboration/')){
+   try{response=await getDb().transaction(async tx=>withDatabase(tx,async()=>{
+    if(url.pathname.startsWith('/api/admin/accounts/'))await tx.execute(sql`select pg_advisory_xact_lock(719301)`);
+    const [account]=await tx.select({enabled:authUser.enabled}).from(authUser).where(eq(authUser.id,locals.user!.id)).for('share');
+    const [session]=await tx.select({id:authSession.id}).from(authSession).where(and(eq(authSession.id,locals.session!.id),eq(authSession.userId,locals.user!.id)));
+    if(!account?.enabled||!session)throw new WorkflowError('登录已失效，请重新登录。',401);
+    const resources=await requestResources(tx,request);
+    if(resources.length){
+     const tabId=request.headers.get('X-Edit-Tab');let tokens:Record<string,string>={};try{tokens=JSON.parse(request.headers.get('X-Edit-Leases')??'{}');}catch{}
+     if(!tabId)throw new WorkflowError('页面已更新，请刷新后继续。当前输入已保留。',409);
+     await verifyLeases(tx,{userId:locals.user!.id,sessionId:locals.session!.id,tabId},resources,tokens);
+    }
+    return execute();
+   }));}catch(error){response=workflowErrorResponse(error);}
+  }else response=await execute();
   for (const cookie of sessionResult.headers.getSetCookie()) response.headers.append('Set-Cookie', cookie);
   response.headers.set('Cache-Control', 'private, no-store');
   const totalDuration = performance.now() - startedAt;

@@ -1,3 +1,4 @@
+import {businessFetch as fetch} from './business-request.helper';
 import {respondToBusinessConfirm} from './business-confirm.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
@@ -20,7 +21,7 @@ try {
     const [schedule]=await db.insert(schema.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:old,actualPublishAt:old,isPromoted:false,promotionStatus:'none',completionStatus:'on_time'}).returning();
     ids.push(schedule.id);
     for(const [checkpointType,clickRate] of (i===2 ? [['day_7',8]] : [['day_7',[12.46,5.52][i]],['day_15',[12.23,4.95][i]]]) as Array<[string,number]>) {
-      const [metric]=await db.insert(schema.operationsContentPerformanceMetric).values({scheduleId:schedule.id,checkpointType,recordedThrough:published,clickRate:String(clickRate),threeSecondReadRate:'40'}).returning();
+      const [metric]=await db.insert(schema.operationsContentPerformanceMetric).values({scheduleId:schedule.id,checkpointType,recordedThrough:new Date(Date.parse(published+'T00:00:00Z')+(checkpointType==='day_7'?7:15)*86400000).toISOString().slice(0,10),clickRate:String(clickRate),threeSecondReadRate:'40'}).returning();
       await db.insert(schema.operationsNonPromotionReview).values({scheduleId:schedule.id,metricId:metric.id,checkpointType,actualPublishAtSnapshot:old,subjectIdSnapshot:'tmua',subjectNameSnapshot:'TMUA',categoryIdSnapshot:version.categoryId,categoryNameSnapshot:i===2?'临时帖':'创新帖',contentNameSnapshot:'虚构同名分组验收帖',clickRateSnapshot:String(clickRate),threeSecondReadRateSnapshot:'40',reviewedByLabel:'test_admin',reviewedAt:new Date(),conclusion:'虚构验收结论',cohortSnapshot:{}});
     }
   }
@@ -44,7 +45,7 @@ try {
     page.on('pageerror',(error:Error)=>errors.push(error.message));
     let geometry:any;
     for(const path of ['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','settings']) {
-      await page.goto(baseURL+'/business/'+path);await page.locator('.business-toolbar').waitFor();
+      await page.goto(baseURL+'/business/'+path+(path==='settings'?'?view=permissions':''));await page.locator('.business-toolbar').waitFor();
       const current=await page.evaluate(() => {
         const bar=document.querySelector('.business-toolbar')!.getBoundingClientRect();
         const title=document.querySelector('.business-toolbar__title strong')!.getBoundingClientRect();

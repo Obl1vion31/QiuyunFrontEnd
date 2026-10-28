@@ -5,11 +5,11 @@ const user = Astro.locals.user;
 const panelId = `business-account-${placement}`;
 ---
 {user && <div class:list={['business-account', `business-account--${placement}`]} data-business-account>
-  <button type="button" class="business-account__trigger" popovertarget={panelId} data-account-trigger aria-label={`当前账号：${user.username}，${user.role === 'admin' ? '管理员' : '员工'}`}>
-    <span aria-hidden="true">◉</span><span class="business-account__name">{user.username}</span><span class="business-account__role">{user.role === 'admin' ? '管理员' : '员工'}</span>
+  <button type="button" class="business-account__trigger" popovertarget={panelId} data-account-trigger aria-label={`当前账号：${user.name||user.username}，${user.role === 'admin' ? '管理员' : '员工'}`}>
+    <span aria-hidden="true">◉</span><span class="business-account__name">{user.name||user.username}</span><span class="business-account__role">{user.role === 'admin' ? '管理员' : '员工'}</span>
   </button>
   <div id={panelId} popover="auto" class="business-account__panel">
-    <strong>{user.username}</strong><small>{user.role === 'admin' ? '管理员' : '员工'}</small>
+    <strong>{user.name||user.username}</strong><small>{user.role === 'admin' ? '管理员' : '员工'}</small>
     <small>界面字体 MiSans · <a href="/fonts/misans-5.0.0/LICENSE-MiSans.pdf" target="_blank" rel="noopener">字体许可 ↗</a></small>
     <button type="button" data-sign-out>退出登录</button><p role="alert" data-account-error hidden></p>
   </div>

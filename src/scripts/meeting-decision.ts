@@ -32,7 +32,7 @@ function sync(draft:ArrangementDraft){
 }
 async function finishClose(draft:ArrangementDraft,focus=true){
  if(!matchMedia('(prefers-reduced-motion:reduce)').matches)await draft.form.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(4px)'}],{duration:220,easing:'ease',fill:'both'}).finished.catch(()=>{});
- const trigger=findTrigger(draft);draft.form.remove();trigger?.setAttribute('aria-expanded','false');
+ const trigger=findTrigger(draft);draft.form.remove();document.dispatchEvent(new Event('business:editing-scope-change'));trigger?.setAttribute('aria-expanded','false');
  if(active===draft)active=undefined;
  unsaved();if(focus)trigger?.focus({preventScroll:true});
 }
@@ -61,7 +61,7 @@ async function open(trigger:HTMLButtonElement){
  try{
   if(active&&active.id===trigger.dataset.decisionId){active.trigger.setAttribute('aria-expanded','false');active.trigger=trigger;position(active);active.form.querySelector<HTMLElement>('select:not(:disabled),[data-meeting-close]')?.focus({preventScroll:true});return;}
   if(!await dismissMeetingDecision(false)||!await preparePromotionEditor('meeting'))return;
-  const form=document.createElement('form');form.className='business-form review-state-bubble review-arrangement-bubble';form.dataset.meetingChangeForm=trigger.dataset.decisionId;form.setAttribute('role','dialog');form.setAttribute('aria-label','修改次日安排');
+  const form=document.createElement('form');form.className='business-form review-state-bubble review-arrangement-bubble';form.dataset.meetingChangeForm=trigger.dataset.decisionId;form.dataset.collaborationResource=`schedule:${trigger.dataset.schedule}`;form.dataset.collaborationLabel=trigger.closest<HTMLElement>('[data-collaboration-resource]')?.dataset.collaborationLabel??'次日安排';form.setAttribute('role','dialog');form.setAttribute('aria-label','修改次日安排');
   form.innerHTML='<header><strong>修改次日安排</strong><button type="button" class="review-state-close" data-meeting-close aria-label="关闭安排修改">×</button></header><div class="review-bubble-body"><div class="review-state-before"><span>原安排</span><strong data-original-arrangement></strong></div><div class="review-state-before"><span>生效日期</span><time data-arrangement-date></time></div><label>新安排<select name="targetStatus" data-meeting-target aria-label="新安排"><option value="">请选择新安排</option></select></label><label>修改理由<textarea name="reason" data-meeting-reason aria-label="修改理由" rows="2" maxlength="500"></textarea></label><output role="status" data-state-message></output><button type="button" class="business-action-secondary" data-meeting-refresh hidden>重新读取</button></div><footer><button type="button" class="business-action-secondary" data-meeting-close>取消</button><button type="button" class="business-action-secondary" data-meeting-again hidden>再次修改</button><button type="submit" class="business-action-primary" data-save-meeting-change>保存修改</button></footer>';
   const select=form.querySelector<HTMLSelectElement>('select')!,reason=form.querySelector<HTMLTextAreaElement>('textarea')!,out=form.querySelector<HTMLOutputElement>('output')!,retry=form.querySelector<HTMLButtonElement>('[data-meeting-refresh]')!;
   for(const option of JSON.parse(trigger.dataset.meetingOptions!) as Array<{value:string;label:string}>)select.add(new Option(option.label,option.value));
