@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "2072b4554b75f74211b947da3e67401007548622",
+  "branch": "codex/table-tools-account-login",
+  "deploymentId": "dpl_D779E9V4c67ASjj1hbSroTQjTwPp",
+  "url": "https://qiuyun-frontend.vercel.app",
+  "candidateChecks": 6,
+  "publicChecks": 108,
+  "matchingAssets": 66,
+  "mainMerged": false
+}

@@ -1,6 +1,6 @@
 # 表格边界、例会排版、悬浮工具与账号登录
 
-状态：已自检，待用户反馈；发布核对另见本批后续记录。数据来自隔离测试库，未在正式库创建演示账号或业务记录。
+状态：已自检并发布，待用户反馈。数据来自隔离测试库，未在正式库创建演示账号或业务记录。
 
 - [分类展开，1920px](categories/category-open-1920.png) · [多个分类，1440px](categories/category-multiple-1440.png) · [390px](categories/category-open-390.png) · [320px滚到右侧](categories/category-right-320.png) · [Inspector](categories/category-inspector-1440.png)
 - [例会普通名称，1920px](meetings/normal-1920.png) · [长名称与附件](meetings/mixed-1920.png) · [PDF错误，右侧1440px](meetings/error-right-1440.png) · [手机PDF操作](meetings/normal-right-320.png)
@@ -21,4 +21,6 @@
 
 几何检查守住汇总／明细边界误差≤1px、单横滚与正文不溢出；实际审图同时核对比例、字号、基线、长文本与末列操作。发现桌面悬浮底板压住PDF错误末尾后，改成正文外竖点、常态透明底板并重新构建、回归和拍图。旧批次分类展开只验1440px及例会布局误判已在[原记录](../2026-10-29_00-54_workspace-visual-correction/README.md)更正，旧图保留。
 
-验证：222项规则、认证浏览器、真实PostgreSQL账号并发与迁移、非推广、例会记录、协作查帖、公共UI、db:check、Astro类型检查、Node／Vercel构建及正式运行包中文PDF通过，详见[验证摘要](validation.json)。正式迁移前预检与备份，迁移后核对见[数据比对](migration-check.json)。
+验证：222项规则、认证浏览器、真实PostgreSQL账号并发与迁移、非推广、例会记录、协作查帖、公共UI、db:check、Astro类型检查、Node／Vercel构建及正式运行包中文PDF通过，详见[验证摘要](validation.json)。正式迁移前预检与备份，49张身份／凭据／业务表逐行摘要一致，唯一差异为在线位置表的心跳过期时间，见[数据比对](migration-check.json)。
+
+发布源 `2072b45`，正式部署 `dpl_D779E9V4c67ASjj1hbSroTQjTwPp`；[正式站点](https://qiuyun-frontend.vercel.app)已核对，6项候选动态检查、108项公网检查及66个资源哈希通过（[发布信息](release.json)、[公网结果](public-smoke.json)）。工作分支已推送，main未合并。
