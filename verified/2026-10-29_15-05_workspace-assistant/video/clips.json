@@ -1,0 +1,16 @@
+[
+  {
+    "file": "desktop-1440.webm",
+    "source": "page@eacf63a1e88fd1a909b875feb9d04259.webm",
+    "duration": "10.560000",
+    "reviewFps": 8,
+    "width": 1440
+  },
+  {
+    "file": "mobile-390.webm",
+    "source": "page@26c5b92fcbd943339661cac2bb84c880.webm",
+    "duration": "5.520000",
+    "reviewFps": 8,
+    "width": 390
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "6df4534df4397ded6d4a71aac67eee5e640488fc",
+  "deploymentId": "dpl_BdeHMzvYdai2XafTHE6u4REkBKEs",
+  "url": "https://qiuyun-frontend.vercel.app",
+  "candidateUrl": "https://qiuyun-frontend-li02cb51v-opgobl1v-5358.vercel.app",
+  "candidateChecks": 6,
+  "publicChecks": 108,
+  "matchingAssets": 66,
+  "databaseMigration": false,
+  "businessWrites": false
+}

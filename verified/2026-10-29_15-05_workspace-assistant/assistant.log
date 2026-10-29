@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:assistant /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/workspace-assistant.browser.ts
+
+{"passed":true,"checks":["1920px推广与排期入口、助手首屏、正文几何、触屏和焦点返回","1920px分页、详情末尾、返回位置、原指标草稿与节点、空态及失败重试","1440px推广与排期入口、助手首屏、正文几何、触屏和焦点返回","1440px分页、详情末尾、返回位置、原指标草稿与节点、空态及失败重试","1024px推广与排期入口、助手首屏、正文几何、触屏和焦点返回","1024px分页、详情末尾、返回位置、原指标草稿与节点、空态及失败重试","390px推广与排期入口、助手首屏、正文几何、触屏和焦点返回","390px分页、详情末尾、返回位置、原指标草稿与节点、空态及失败重试","320px推广与排期入口、助手首屏、正文几何、触屏和焦点返回","320px分页、详情末尾、返回位置、原指标草稿与节点、空态及失败重试","六页短窗口、键盘与减少动态效果、跨页入口节点和状态"],"folder":".tools/test-artifacts/workspace-assistant"}
