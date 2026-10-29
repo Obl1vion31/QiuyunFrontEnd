@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:moments /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/publication-moments.browser.ts
+
+{"passed":true,"checks":["admin 1920px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","employee 1920px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","admin 1440px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","employee 1440px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","admin 1024px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","employee 1024px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","admin 390px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","employee 390px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","admin 320px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","employee 320px：默认未选、缺项拦截及焦点、键盘、失败／关闭取消保留、真实保存与旧登记隐藏","不同步／历史旧帖不追补；五档真实延期长表单、固定头尾与减少动态效果；员工审核提交、三档审批差异与真实批准"],"folder":".tools/test-artifacts/publication-moments"}
