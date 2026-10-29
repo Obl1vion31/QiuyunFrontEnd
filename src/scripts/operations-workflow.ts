@@ -1,3 +1,4 @@
+import type {PublicationMomentsConfirmation} from '../db/schema';
 import './promotion-timeline';
 import './schedule-approvals';
 import {appendChangeDiff} from './business-change-diff';
@@ -14,7 +15,7 @@ type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved:
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
 type ChangeProposal={key:string;name:string;title:string;requestedBy:string;reason:string;endpoint:string;scheduleId:string|null;diff:Array<{label:string;before:string;after:string}>};
-type Workflow = {delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null};after:{actualPublishAt:string;publicationUrl:string|null};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type Workflow = {delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};after:{actualPublishAt:string;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -210,6 +211,7 @@ function initialize() {
       if(workflow.publicationHistory.length){
         const details=history(`发布登记与更正历史 ${workflow.publicationHistory.length} 条`);
         for(const entry of workflow.publicationHistory){const row=element('section');row.className='workflow-plan-history';row.append(element('p',`R${entry.revision} · ${entry.changedByLabel} · ${timeLabel(entry.createdAt)}\n实发：${entry.before.actualPublishAt?timeLabel(entry.before.actualPublishAt):'未登记'} → ${timeLabel(entry.after.actualPublishAt)}`));
+          if(entry.after.momentsConfirmation&&!entry.before.momentsConfirmation)row.append(element('p','运营确认：已发送朋友圈 · 已发送对应需求'));
           if(entry.reason)row.append(element('p',entry.reason));
           for(const [label,url] of [['查看原帖子链接 ↗',entry.before.publicationUrl],['查看登记的帖子链接 ↗',entry.after.publicationUrl]])if(url){const link=element('a',label!);link.href=url;link.target='_blank';link.rel='noreferrer';row.append(link);}details.append(row);
         }
@@ -303,6 +305,9 @@ function initialize() {
   publication.addEventListener('submit', event => {
     validateLink();
     if (host.dataset.ready !== 'true') { event.preventDefault(); event.stopImmediatePropagation(); status.textContent = '正在核对理由，请稍后保存；读取失败时请重新选择实发时间。'; return; }
+    const moments=publication!.querySelector<HTMLElement>('[data-publication-moments]')!;
+    const missing=[...moments.querySelectorAll<HTMLInputElement>('input')].find(control=>control.required&&!control.checked);
+    if(missing){moments.querySelector<HTMLElement>('[data-publication-moments-error]')!.textContent='请确认朋友圈及对应需求均已发送。';missing.focus();event.preventDefault();event.stopImmediatePropagation();return;}
     if (!publication!.reportValidity()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     (publication!.elements.namedItem('dailyReasons') as HTMLInputElement).value = JSON.stringify(collectInput());
   }, { capture: true, signal });

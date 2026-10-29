@@ -398,6 +398,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           <div class="field field-wide"><label for="publicationProjectDocUrl">项目文档链接 <b data-publication-doc-required>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required/></div>
           <div class="field field-wide" data-time-correction hidden><label for="publicationCorrectionReason">实发时间更正原因 <b>*</b></label><textarea id="publicationCorrectionReason" name="correctionReason" maxlength="500" disabled></textarea><small data-publication-error="correctionReason"></small></div>
           <section class="field field-wide delay-field" data-publication-delay><strong>逐日延期理由</strong><p data-publication-delay-status role="status"></p><div data-publication-delay-days></div><input type="hidden" name="dailyReasons" value="[]"/><input type="hidden" name="expectedPlanRevision"/></section>
+          <fieldset class="field field-wide publication-moments" data-publication-moments hidden><legend>朋友圈同步确认 <b aria-hidden="true">*</b></legend><div class="checks"><label><input type="checkbox" name="momentsSentConfirmed"/>已发送朋友圈</label><label><input type="checkbox" name="momentsRequestSentConfirmed"/>已发送对应需求</label></div><small data-publication-moments-error role="alert"></small></fieldset>
         </div>
         <p class="form-message" data-publication-message role="alert"></p>
         </div>
@@ -704,6 +705,10 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         publicationStatus.className = `status-preview ${delayed ? 'completion-delayed' : ''}`;
       };
       const updatePublicationFields = () => {
+        const requiresMomentsConfirmation=Boolean(activeRecord?.syncToMoments&&!activeRecord?.actualPublishAt);
+        const moments=publicationForm.querySelector('[data-publication-moments]');moments.hidden=!requiresMomentsConfirmation;
+        for(const name of ['momentsSentConfirmed','momentsRequestSentConfirmed']){const control=publicationControl(name);control.disabled=!requiresMomentsConfirmation;control.required=requiresMomentsConfirmation;}
+        if(!requiresMomentsConfirmation||publicationControl('momentsSentConfirmed').checked&&publicationControl('momentsRequestSentConfirmed').checked)publicationForm.querySelector('[data-publication-moments-error]').textContent='';
         const correcting=Boolean(activeRecord?.actualPublishAt)&&mayOperate('schedule.correctPublication')&&publicationControl('correctTime').checked;
         const actual=publicationControl('actualPublishAt');configureDateTime(actual,{disabled:Boolean(activeRecord?.actualPublishAt)&&!correcting,required:!activeRecord?.actualPublishAt||correcting});
         const keepEmpty=Boolean(activeRecord?.allowEmptyPublicationLink)&&actual.value<'2026-10-17T00:00';
@@ -718,7 +723,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       };
       const openPublication = (record) => {
         if (!record) return;
-        activeRecord=record;publicationForm.dataset.collaborationResource=`schedule:${record.id}`;publicationForm.dataset.collaborationLabel=record.contentName;publicationForm.reset();publicationDirty=false;
+        activeRecord=record;publicationForm.dataset.collaborationResource=`schedule:${record.id}`;publicationForm.dataset.collaborationLabel=record.contentName;publicationForm.reset();publicationDirty=false;publicationForm.querySelector('[data-publication-moments-error]').textContent='';
         publicationControl('publicationUrl').setCustomValidity('');
         document.querySelector('[data-publication-link-preview]').textContent='';
         publicationMessage.textContent='';document.querySelectorAll('[data-publication-error]').forEach(node=>node.textContent='');
@@ -1074,3 +1079,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 </style>
 
 <style>.inspector-delay-label{margin:0 0 12px;font:500 13px/20px var(--console-font);color:var(--console-ink)}</style>
+
+<style>
+.publication-moments{min-width:0;margin:0;padding:0;border:0}.publication-moments legend{margin:0 0 6px;padding:0;font:500 13px/20px var(--console-font);color:var(--console-ink)}.publication-moments legend b{color:#a63b32}.publication-moments .checks{display:flex;flex-wrap:wrap;gap:8px 16px}.publication-moments .checks label{display:flex;align-items:center;gap:8px;min-height:40px;margin:0;font:400 14px/22px var(--console-font);white-space:nowrap;cursor:pointer}.publication-moments [data-publication-moments-error]{color:#a63b32;font:400 12px/18px var(--console-font)}
+</style>

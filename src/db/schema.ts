@@ -409,12 +409,13 @@ export const operationsPublicationReservation = pgTable('operations_publication_
   check('operations_reservation_status_check',sql`${table.status} IN ('pending','approved','rejected','cancelled','obsolete','fulfilled')`),
 ]);
 
+export type PublicationMomentsConfirmation = { momentsSent: true; requestSent: true };
 export const operationsPublicationEvent = pgTable('operations_publication_event', {
   id: uuid('id').defaultRandom().primaryKey(),
   scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
   revision: integer('revision').notNull(),
-  before: jsonb('before').$type<{actualPublishAt:string|null;publicationUrl:string|null;projectDocUrl:string|null}>().notNull(),
-  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string|null;projectDocUrl:string|null}>().notNull(),
+  before: jsonb('before').$type<{actualPublishAt:string|null;publicationUrl:string|null;projectDocUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation}>().notNull(),
+  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string|null;projectDocUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation}>().notNull(),
   reason: text('reason'),
   changedById: text('changed_by_id').notNull(),
   changedByLabel: text('changed_by_label').notNull(),

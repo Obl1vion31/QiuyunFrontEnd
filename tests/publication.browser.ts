@@ -1,4 +1,5 @@
 import {respondToBusinessConfirm} from './business-confirm.helper';
+import {businessFetch as fetch} from './business-request.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 发布登记、历史空值与月历交互；业务写入仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
@@ -121,6 +122,7 @@ await page.locator('[data-inspector-publication]').click();await checkBusinessDa
   await page.goto(baseURL+`/business/operations-schedule?row=${cases[3].id}`);await page.locator('[data-inspector-edit]').click();await page.locator('#schedule-dialog[open]').waitFor();
   assert.equal(await page.locator('#schedule-form [name=isPromoted]').isChecked(),true);assert.equal(await page.locator('[data-promotion-preview]').isVisible(),true,'独立的当前推广阶段仍然可见');
   await page.locator('[data-close]').first().click();
+  await page.locator('#schedule-dialog').waitFor({state:'hidden'});await page.locator('[data-module-id=annual-plan]').click();await page.waitForURL('**/business/annual-plan');await page.waitForLoadState('networkidle');
   await context.close();
  }
  const {context:adminContext,page:adminPage}=await pageFor(boss,1440);

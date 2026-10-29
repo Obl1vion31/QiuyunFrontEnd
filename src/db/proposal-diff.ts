@@ -16,6 +16,7 @@ function fields(snapshot:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;na
     for(const [key,label] of [['plannedPublishAt','应发时间'],['actualPublishAt','实发时间']])result[label]=schedule[key]?businessDateTime(String(schedule[key])):'—';
     for(const [key,label] of [['isPromoted','推广帖'],['syncToMoments','同步朋友圈'],['publicationUrl','帖子链接']])result[label]=display(schedule[key]);
   }
+  if(snapshot.momentsConfirmation){result['已发送朋友圈']='已确认';result['已发送对应需求']='已确认';}
   for(const row of snapshot.rows as Array<Record<string,unknown>>??[]){
     const prefix=`${row.rowName} · `;
     for(const [key,label] of [['rowName','名称'],['year','年度'],['isActive','启用'],['note','备注'],['sectionLabel','分区'],['categoryId','帖子分类']])result[prefix+label]=display(key==='categoryId'?postCategories.find(category=>category.id===row[key])?.name:row[key]);

@@ -26,6 +26,8 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
   return db.transaction(async tx=>{
     await lockPromotionWorkflow(tx);
     const schedule=await lockSchedule(tx,id);checkRevision(schedule,input);
+    const requiresMomentsConfirmation=!schedule.actualPublishAt&&schedule.syncToMoments;
+    if(requiresMomentsConfirmation&&(!input.momentsSentConfirmed||!input.momentsRequestSentConfirmed))throw new WorkflowError('请确认朋友圈及对应需求均已发送；若未显示确认项，请刷新页面。',422);
     const actual=input.actualPublishAt??schedule.actualPublishAt;
     if(!actual)throw new WorkflowError('请填写实际发送时间。',422);
     const publicationUrl=input.publicationUrl??null;
@@ -57,8 +59,10 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
       await tx.delete(campaigns).where(eq(campaigns.scheduleId,id));
     }
     if(actualChanged&&oldTimeline?.plan)await tx.delete(startPlans).where(eq(startPlans.scheduleId,id));
-    const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl};
-    const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl};
+    const previousConfirmation=workflow.publicationHistory[0]?.after.momentsConfirmation;
+    const momentsConfirmation=requiresMomentsConfirmation?{momentsSent:true as const,requestSent:true as const}:previousConfirmation;
+    const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl,...(previousConfirmation?{momentsConfirmation:previousConfirmation}:{})};
+    const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{})};
     if(JSON.stringify(before)===JSON.stringify(after))return {kind:'saved' as const,unchanged:true};
     await tx.update(versions).set({projectDocUrl,updatedAt:now}).where(eq(versions.id,version.id));
     const promotionStatus=!schedule.isPromoted?'none':actualChanged||!campaignRows.length?'awaiting_promotion':schedule.promotionStatus;

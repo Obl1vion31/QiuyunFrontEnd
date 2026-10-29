@@ -95,3 +95,24 @@ test('更正实发为按时后实际删除失效原因，旧发布表单不得�
  assert.equal((await db.select().from(schema.operationsScheduleDelayReason).where(eq(schema.operationsScheduleDelayReason.scheduleId,s.id))).length,0);
  await assert.rejects(registerPublication(db,s.id,sent(s),[],false,employee,now),/已更新/);
 });
+
+test('首次同步朋友圈必须同时确认两项，缺项不产生发布事实或历史',async()=>{
+ const s=await seed();await db.update(schema.operationsContentSchedule).set({syncToMoments:true}).where(eq(schema.operationsContentSchedule.id,s.id));
+ for(const confirmation of [{},{momentsSentConfirmed:true},{momentsRequestSentConfirmed:true}]){
+  await assert.rejects(registerPublication(db,s.id,{...sent(s),...confirmation},[],false,employee,now),(error:any)=>error.status===422&&/朋友圈及对应需求/.test(error.message));
+  const w=await read(s.id);assert.equal(w.schedule.actualPublishAt,null);assert.equal(w.schedule.publicationRevision,0);assert.equal(w.publicationHistory.length,0);
+ }
+});
+test('两种角色均可确认后登记未来发布，确认复用发布事件的操作者及时间',async()=>{
+ for(const actor of [admin,employee]){const s=await seed();await db.update(schema.operationsContentSchedule).set({syncToMoments:true}).where(eq(schema.operationsContentSchedule.id,s.id));await registerPublication(db,s.id,{...sent(s),actualPublishAt:later,momentsSentConfirmed:true,momentsRequestSentConfirmed:true},[],false,actor,now);const w=await read(s.id);assert.equal(w.schedule.actualPublishAt?.getTime(),later.getTime());assert.deepEqual(w.publicationHistory[0].after.momentsConfirmation,{momentsSent:true,requestSent:true});assert.equal(w.publicationHistory[0].before.momentsConfirmation,undefined);assert.equal(w.publicationHistory[0].changedById,actor.id);assert.equal(w.publicationHistory[0].createdAt.getTime(),now.getTime());}
+});
+test('链接更新及时间更正保留首次确认，重复保存不追加确认；旧已发与不同步记录不追认',async()=>{
+ const s=await seed();await db.update(schema.operationsContentSchedule).set({syncToMoments:true}).where(eq(schema.operationsContentSchedule.id,s.id));await registerPublication(db,s.id,{...sent(s),momentsSentConfirmed:true,momentsRequestSentConfirmed:true},[],false,employee,now);let w=await read(s.id);
+ await registerPublication(db,s.id,{...sent(w.schedule),publicationUrl:'https://xhslink.cn/o/updated'},[],false,employee,now);w=await read(s.id);assert.deepEqual(w.publicationHistory[0].before.momentsConfirmation,w.publicationHistory[0].after.momentsConfirmation);assert.equal(w.publicationHistory.length,2);
+ await registerPublication(db,s.id,{...sent(w.schedule),actualPublishAt:later,correctionReason:'核对时间'},[],false,admin,now);w=await read(s.id);assert.deepEqual(w.publicationHistory[0].after.momentsConfirmation,{momentsSent:true,requestSent:true});const unchanged=await registerPublication(db,s.id,{...revision(w.schedule),publicationUrl:link},[],false,employee,now);assert.equal(unchanged.unchanged,true);assert.equal((await read(s.id)).publicationHistory.length,3);
+ const old=await seed(new Date('2026-10-16T12:00:00+08:00'));await db.update(schema.operationsContentSchedule).set({syncToMoments:true}).where(eq(schema.operationsContentSchedule.id,old.id));await registerPublication(db,old.id,{...revision(old),publicationUrl:link},[],false,employee,now);assert.equal((await read(old.id)).publicationHistory[0].after.momentsConfirmation,undefined);
+ const ordinary=await seed();await registerPublication(db,ordinary.id,{...sent(ordinary),momentsSentConfirmed:true,momentsRequestSentConfirmed:true},[],false,employee,now);assert.equal((await read(ordinary.id)).publicationHistory[0].after.momentsConfirmation,undefined);
+});
+test('同步要求按当前排期复核，旧版本及遗漏字段不能绕过',async()=>{
+ const s=await seed();await db.update(schema.operationsContentSchedule).set({syncToMoments:true,planRevision:1}).where(eq(schema.operationsContentSchedule.id,s.id));await assert.rejects(registerPublication(db,s.id,sent(s),[],false,employee,now),/已更新/);await assert.rejects(registerPublication(db,s.id,{...sent(s),expectedPlanRevision:1},[],false,employee,now),(error:any)=>error.status===422);
+});

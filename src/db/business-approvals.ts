@@ -2,7 +2,7 @@ import {readPostSchemas} from './taxonomy-store';
 import {createHash} from 'node:crypto';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import type {APIContext,APIRoute} from 'astro';
-import {and,eq,inArray} from 'drizzle-orm';
+import {and,eq,inArray,desc} from 'drizzle-orm';
 import {getDb,withDatabase,type Database} from './client';
 import * as s from './schema';
 import {requiresPlanApproval} from './schedule-rules.mjs';
@@ -100,7 +100,10 @@ async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>
   const campaignIds=campaigns.map(row=>row.id);
   const startPlans=await db.select().from(s.operationsPromotionStartPlan).where(eq(s.operationsPromotionStartPlan.scheduleId,id));
   const dayDecisions=campaignIds.length?await db.select().from(s.operationsPromotionDayDecision).where(inArray(s.operationsPromotionDayDecision.campaignId,campaignIds)):[];
+  const [publicationEvent]=await db.select({after:s.operationsPublicationEvent.after}).from(s.operationsPublicationEvent).where(eq(s.operationsPublicationEvent.scheduleId,id)).orderBy(desc(s.operationsPublicationEvent.revision)).limit(1);
+  const momentsConfirmation=publicationEvent?.after.momentsConfirmation;
   return {schedule:withoutLegacyDelay(schedule),versions,campaigns,
+    ...(momentsConfirmation?{momentsConfirmation}:{}),
     ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
     reasons:await db.select().from(s.operationsScheduleDelayReason).where(and(eq(s.operationsScheduleDelayReason.scheduleId,id),eq(s.operationsScheduleDelayReason.planRevision,schedule.planRevision))),
     plans:await db.select().from(s.operationsSchedulePlanHistory).where(eq(s.operationsSchedulePlanHistory.scheduleId,id)),

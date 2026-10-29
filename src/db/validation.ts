@@ -55,6 +55,8 @@ export const publicationSchema = z.object({
   expectedPlanRevision:z.coerce.number().int().min(0),
   expectedPublicationRevision:z.coerce.number().int().min(0),
   correctionReason:z.string().trim().max(500).optional(),
+  momentsSentConfirmed:z.boolean().optional(),
+  momentsRequestSentConfirmed:z.boolean().optional(),
 });
 
 export const normalizeCompletionStatus = (
@@ -89,6 +91,8 @@ export const publicationInputFromForm = (form: FormData) => ({
   expectedPlanRevision:form.get('expectedPlanRevision') ?? undefined,
   expectedPublicationRevision:form.get('expectedPublicationRevision') ?? undefined,
   correctionReason:form.get('correctionReason') ?? undefined,
+  momentsSentConfirmed:form.get('momentsSentConfirmed') === 'on',
+  momentsRequestSentConfirmed:form.get('momentsRequestSentConfirmed') === 'on',
 });
 
 export const issuesByField = (issues: z.core.$ZodIssue[]) => {
