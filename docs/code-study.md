@@ -188,9 +188,11 @@ flowchart LR
 
 例会总览和历史版本共用 `meeting-ledger` 阅读表，按内容而非整屏余量分配列宽。`MeetingPdfArchive` 用 `meeting-pdf-actions` 包含完整动作组，反馈作为同级区域；表头对应正文阅读锚点，长标题保留title完整值。检查有／无生成文件、手动附件、草稿、长标题、生成中和失败，核对动作中线、行高以及反馈前后列宽；同类问题先判断实际内容和操作性质，不给所有矩阵／录入表强加同一布局。
 
-`BusinessSheet` 提供原生右侧抽屉外壳与单正文滚动；`BusinessFormSheet` 保留兼容表单包装，`BusinessPostLookup` 使用中性头部及直接正文，不放假外层表单。查帖控制器在跨页时清理委托监听与旧请求，结果位置只在列表进入详情时记录。
+`BusinessSheet` 提供原生右侧抽屉外壳与单正文滚动；`BusinessFormSheet` 保留兼容表单包装，`BusinessPostLookup` 使用深蓝助手头部及直接正文，不放假外层表单。查帖控制器在跨页时清理委托监听与旧请求，结果位置只在列表进入详情时记录。
 
-`BusinessTools` 在Frame接入悬浮竖三点；原生popover承载入口，悬停预览／点击固定及键盘触屏共用，查帖复用现有Sheet并按aria-controls返回焦点。正文不再预留独立工具轨道，按钮44px触控。只读列表用`data-collaboration-observe`映射现有租约资源，`data-collaboration-action`复用原操作位；它们不参与编辑取锁。编辑容器继续使用resource属性，窄字段姓名角标按实测宽度退为圆点。首次输入验收直接延迟真实取锁请求并记录禁用／焦点帧，保存仍走真实API。
+`BusinessAssistantEntry` 共用桌面侧栏与手机账号菜单入口，`data-post-lookup-open` 直接打开Frame中的 `BusinessPostLookup`。`post-lookup.ts` 维护展开状态与原触发焦点；手机原生账号popover关闭后返回其账号按钮，Astro换页清理监听并重置持久侧栏入口状态。首屏引导和未开放能力与结果／详情分开显示，分页、版本回退及原页草稿沿用只读控制器；不新增悬浮菜单、页面宽度补偿或独立查帖流程。`test:assistant` 验证五档真实页面、短窗口、触屏、查询失败与草稿连续性。
+
+只读列表用`data-collaboration-observe`映射现有租约资源，`data-collaboration-action`复用原操作位；它们不参与编辑取锁。编辑容器继续使用resource属性，窄字段姓名角标按实测宽度退为圆点。首次输入验收直接延迟真实取锁请求并记录禁用／焦点帧，保存仍走真实API。
 
 非推广列表布局集中在`non-promotion-table.css`；跳过视图向共享表头传`skipped`，渲染原因而不生成MetricCell。保存刷新只更新实际存在的指标节点。例会记录标题、表格与历史共用限宽居中容器，名称与版本同行组成信息组，PDF按读取／管理分两行，反馈仍在自身单元格。稳定截图复用测试辅助`settleBusinessUI`等待字体和有限动画，动态过程另行录像，仍须实际打开图像和审查关键录像。
 

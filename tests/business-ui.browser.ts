@@ -1,5 +1,5 @@
 import {businessFetch as fetch} from './business-request.helper';
-import {respondToBusinessConfirm} from './business-confirm.helper';
+import {respondToBusinessConfirm,openPostLookup} from './business-confirm.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
@@ -46,8 +46,9 @@ try {
     let geometry:any;
     for(const path of ['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','settings']) {
       await page.goto(baseURL+'/business/'+path+(path==='settings'?'?view=permissions':''));await page.locator('.business-toolbar').waitFor();
-      const tool=page.locator('[data-tools-trigger]');assert.ok(await tool.isVisible());const toolBox=await tool.boundingBox();assert.ok(toolBox.width>=44&&toolBox.height>=44);const shell=await page.locator('.business-console-workspace').evaluate((n:HTMLElement)=>({padding:getComputedStyle(n).paddingRight,width:n.getBoundingClientRect().width,toolbar:n.querySelector('.business-toolbar')!.getBoundingClientRect().width}));assert.equal(shell.padding,'0px');assert.ok(Math.abs(shell.width-shell.toolbar)<=1,'不再预留独立工具栏宽度');
-      await tool.click();const tools=page.locator('#business-tools-menu');assert.equal(await tools.locator('button:disabled').count(),3);assert.deepEqual(await tools.locator('button>span').allTextContents(),['查找帖子','找功能','AI 录入','数据导出']);await page.keyboard.press('Escape');
+      const entry=page.locator(width>900?'.business-assistant-entry--sidebar':'.business-account--toolbar [data-account-trigger]');assert.ok(await entry.isVisible());assert.equal(await page.locator('.business-tools,[data-tools-trigger]').count(),0);
+      const shell=await page.locator('.business-console-workspace').evaluate((n:HTMLElement)=>({padding:getComputedStyle(n).paddingRight,width:n.getBoundingClientRect().width,toolbar:n.querySelector('.business-toolbar')!.getBoundingClientRect().width}));assert.equal(shell.padding,'0px');assert.ok(Math.abs(shell.width-shell.toolbar)<=1,'正文不预留助手轨道');
+      await openPostLookup(page);assert.equal(await page.locator('.assistant-capabilities button:disabled').count(),3);assert.deepEqual(await page.locator('.assistant-capabilities button>span').allTextContents(),['找功能','AI 录入','数据导出']);await page.keyboard.press('Escape');await page.locator('[data-post-lookup]').waitFor({state:'hidden'});
       const current=await page.evaluate(() => {
         const bar=document.querySelector('.business-toolbar')!.getBoundingClientRect();
         const title=document.querySelector('.business-toolbar__title strong')!.getBoundingClientRect();

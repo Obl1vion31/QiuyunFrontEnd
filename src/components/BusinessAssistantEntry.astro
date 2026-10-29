@@ -1,0 +1,22 @@
+---
+interface Props { placement?: 'sidebar' | 'menu' }
+const { placement = 'sidebar' } = Astro.props;
+---
+<button type="button" class:list={['business-assistant-entry', `business-assistant-entry--${placement}`]} data-post-lookup-open data-assistant-open aria-label="工作台助手" aria-haspopup="dialog" aria-controls="business-post-lookup" aria-expanded="false">
+  <svg class="business-assistant-entry__symbol" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5ZM20 2v4m-2-2h4"/></svg>
+  <span class="business-assistant-entry__copy"><strong>工作台助手</strong>{placement === 'sidebar' && <small>查找内容与常用操作</small>}</span>
+  <svg class="business-assistant-entry__arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+</button>
+<style>
+  .business-assistant-entry{box-sizing:border-box;display:grid;grid-template-columns:24px minmax(0,1fr) 14px;align-items:center;gap:8px;width:100%;min-height:64px;margin:0;padding:10px;border:1px solid #c9d1cc;border-radius:12px;background:var(--console-surface);color:var(--console-ink);text-align:left;font:400 14px/22px var(--console-font);cursor:pointer;transition:background-color 120ms ease,border-color 120ms ease}
+  .business-assistant-entry__symbol{width:20px;height:20px;color:var(--console-blue)}
+  .business-assistant-entry__copy{display:grid;min-width:0;gap:2px}
+  .business-assistant-entry__copy strong{font:500 14px/22px var(--console-font)}
+  .business-assistant-entry__copy small{color:var(--console-muted);font:400 12px/18px var(--console-font)}
+  .business-assistant-entry__arrow{width:14px;height:14px}
+  .business-assistant-entry:hover{background:var(--console-blue-soft)}
+  .business-assistant-entry[aria-expanded=true]{border-color:var(--console-blue)}
+  .business-assistant-entry:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+  .business-assistant-entry--menu{min-height:44px;border-radius:8px}
+  @media(prefers-reduced-motion:reduce){.business-assistant-entry{transition:none}}
+</style>

@@ -5,7 +5,7 @@ import {eq,sql} from 'drizzle-orm';
 import {startPostgresFixture} from './postgres.fixture';
 import {admin,employee} from './auth.fixture';
 import {businessFetch} from './business-request.helper';
-import {settleBusinessUI} from './business-confirm.helper';
+import {settleBusinessUI,openPostLookup} from './business-confirm.helper';
 import {authUser,authAccount} from '../src/db/schema';
 const folder='.tools/test-artifacts/account-identifiers';await mkdir(folder,{recursive:true});
 const fixture=await startPostgresFixture(),{db,baseURL}=fixture;let browser:any,context:any;const checks:string[]=[],errors:string[]=[];
@@ -49,14 +49,11 @@ try{
  const credential=await db.select().from(authAccount).where(eq(authAccount.userId,identityBefore.user.id));assert.equal(credential[0].accountId,identityBefore.user.id);assert.equal(credential.length,1);
  checks.push('网页新增两种角色、冲突重试、两字符/中文姓名登录、修改自身账号保留ID/密码/会话、旧账号可重用');
  await page.setViewportSize({width:1440,height:1000});await page.goto(baseURL+'/business/annual-plan');await settleBusinessUI(page);
- const trigger=page.locator('[data-tools-trigger]'),menu=page.locator('#business-tools-menu');
- await trigger.hover();await menu.waitFor();await menu.getByRole('button',{name:'查找帖子',exact:true}).hover();await page.waitForTimeout(250);assert.ok(await menu.isVisible());await shot('tools-hover-1440');await page.mouse.move(300,150);await menu.waitFor({state:'hidden'});
- await trigger.click();await page.mouse.move(300,150);await page.waitForTimeout(250);assert.ok(await menu.isVisible());await shot('tools-pinned-1440');await page.keyboard.press('Escape');await menu.waitFor({state:'hidden'});
- await trigger.focus();await page.keyboard.press('ArrowDown');await menu.waitFor();assert.ok(await menu.getByRole('button',{name:'查找帖子',exact:true}).evaluate((n:HTMLElement)=>document.activeElement===n));await page.keyboard.press('Escape');
- for(const width of [1920,1440,1024,390,320]){await page.setViewportSize({width,height:900});await page.mouse.move(300,150);await trigger.click();await menu.waitFor();assert.equal(await menu.locator('button:disabled').count(),3);await shot('tools-open-'+width);await page.keyboard.press('Escape');}
- await trigger.click();await menu.getByRole('button',{name:'查找帖子',exact:true}).click();await page.locator('[data-post-lookup][open]').waitFor();await page.locator('[data-post-lookup] [data-lookup-close]').first().click();await page.locator('[data-post-lookup]').waitFor({state:'hidden'});assert.ok(await trigger.evaluate((n:HTMLElement)=>document.activeElement===n));
- checks.push('悬停跨越间隙、移出关闭、点击固定、键盘及查帖焦点返回，五档工具菜单');
+ const trigger=page.locator('.business-assistant-entry--sidebar');await trigger.hover();assert.equal(await page.locator('[data-post-lookup][open]').count(),0,'助手只在明确点击时打开');
+ for(const width of [1920,1440,1024,390,320]){await page.setViewportSize({width,height:900});await openPostLookup(page);assert.equal(await page.locator('.assistant-capabilities button:disabled').count(),3);await shot('assistant-open-'+width);await page.keyboard.press('Escape');await page.locator('[data-post-lookup]').waitFor({state:'hidden'});const returned=page.locator(width>900?'.business-assistant-entry--sidebar':'.business-account--toolbar [data-account-trigger]');assert.ok(await returned.evaluate((n:HTMLElement)=>document.activeElement===n));}
+ await page.setViewportSize({width:1440,height:900});await trigger.focus();await page.keyboard.press('Enter');await page.locator('[data-post-lookup][open]').waitFor();await page.locator('[data-lookup-close]').click();await page.locator('[data-post-lookup]').waitFor({state:'hidden'});
+ checks.push('左侧助手、手机账号入口、键盘和焦点返回，五档助手面板');
  await context.close();context=undefined;
- for(const width of [1440,390,320]){const mobile=await browser.newContext({viewport:{width,height:900},isMobile:width<500,hasTouch:width<500});const p=await mobile.newPage();await p.goto(baseURL+'/login');await p.getByLabel('账号或用户名',{exact:true}).fill('OB');await p.getByLabel('密码',{exact:true}).fill(admin.password);await settleBusinessUI(p);await p.screenshot({path:folder+'/login-name-'+width+'.png'});await p.getByRole('button',{name:'登录工作台',exact:true}).click();await p.waitForURL('**/business/operations-schedule');if(width<500){await p.locator('[data-tools-trigger]').tap();await p.locator('#business-tools-menu').waitFor();await settleBusinessUI(p);await p.screenshot({path:folder+'/tools-touch-'+width+'.png'});}await mobile.close();}
+ for(const width of [1440,390,320]){const mobile=await browser.newContext({viewport:{width,height:900},isMobile:width<500,hasTouch:width<500});const p=await mobile.newPage();await p.goto(baseURL+'/login');await p.getByLabel('账号或用户名',{exact:true}).fill('OB');await p.getByLabel('密码',{exact:true}).fill(admin.password);await settleBusinessUI(p);await p.screenshot({path:folder+'/login-name-'+width+'.png'});await p.getByRole('button',{name:'登录工作台',exact:true}).click();await p.waitForURL('**/business/operations-schedule');if(width<500){await p.locator('.business-account--toolbar [data-account-trigger]').tap();await p.locator('.business-assistant-entry--menu').tap();await p.locator('[data-post-lookup][open]').waitFor();await settleBusinessUI(p);await p.screenshot({path:folder+'/assistant-touch-'+width+'.png'});}await mobile.close();}
  assert.deepEqual(errors,[]);await writeFile(folder+'/result.json',JSON.stringify({checks,errors},null,2));console.log(JSON.stringify({passed:true,checks,folder}));
 }catch(error){for(const p of context?.pages()??[])await p.screenshot({path:folder+'/failure.png'}).catch(()=>{});console.error(fixture.logs().slice(-1500));throw error;}finally{await context?.close();await browser?.close();await fixture.stop();}

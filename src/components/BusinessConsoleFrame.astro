@@ -1,7 +1,6 @@
 ---
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
 import BusinessPostLookup from './BusinessPostLookup.astro';
-import BusinessTools from './BusinessTools.astro';
 import '../styles/business-tokens.css';
 import '../styles/business-forms.css';
 import '../styles/business-typography.css';
@@ -41,7 +40,6 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
   <BusinessConsoleSidebar active={active} />
   <section class="workspace business-console-workspace"><slot /></section>
-  <BusinessTools/>
   <BusinessPostLookup/>
   <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
     <span class="business-operation-feedback__spinner" aria-hidden="true"></span>

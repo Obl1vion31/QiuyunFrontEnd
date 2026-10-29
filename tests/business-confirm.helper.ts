@@ -11,7 +11,8 @@ export async function settleBusinessUI(page:any){
  await page.evaluate(async()=>{await document.fonts.ready;await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));});
 }
 export async function openPostLookup(page:any){
- await page.getByRole('button',{name:'工作台工具',exact:true}).click();
- await page.getByRole('button',{name:'查找帖子',exact:true}).click();
+ const entry=page.locator('.business-assistant-entry--sidebar');
+ if(await entry.isVisible())await entry.click();
+ else{await page.locator('.business-account--toolbar [data-account-trigger]').click();await page.locator('.business-assistant-entry--menu').click();}
  await settleBusinessUI(page);
 }

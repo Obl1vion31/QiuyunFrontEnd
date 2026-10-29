@@ -45,7 +45,8 @@
     "test:workspace": "node --import tsx tests/workspace-upgrade.browser.ts",
     "test:meeting-ledger": "node --import tsx tests/meeting-ledger.browser.ts",
     "test:collaboration-lookup": "node --import tsx tests/collaboration-lookup.browser.ts",
-    "test:accounts": "node --import tsx tests/account-identifiers.browser.ts"
+    "test:accounts": "node --import tsx tests/account-identifiers.browser.ts",
+    "test:assistant": "node --import tsx tests/workspace-assistant.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

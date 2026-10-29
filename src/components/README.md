@@ -88,8 +88,9 @@ ContentTunnel.module.css
 - `WeeklyMeetingPresentation.tsx`：冻结阅读布局；`BusinessMeetingDiscussion.tsx`：最新有效版本的模式切换、追加修订、限时回溯和会后定稿；`MeetingDiscussionText.tsx`：共用正文编辑入口。
 - `MeetingPdfArchive.tsx`：当前版本、总览与历史共用的私有PDF查看、下载、生成重试和补充上传；完整动作组与状态反馈分区，反馈不参与表格列宽分配。
 
-- `BusinessPostLookup.astro`：工具栏共用的查帖弹窗，结果和详情各用适合的密度，详情动作接公共控件；只读，不取业务编辑锁。
+- `BusinessAssistantEntry.astro`：左栏账号上方和手机账号菜单的统一助手入口。
+- `BusinessPostLookup.astro`：助手右侧Sheet，首屏直接查帖、其余能力明确未开放；结果与详情共用正文滚动，只读、不取业务编辑锁。
 - `BusinessAccountManagement.astro`：设置内账号表与公共编辑弹窗；身份／角色只读，密码不回显。
 - `BusinessWeeklyMeeting.tsx`：初始草稿先准备、补齐来源再展开原正文，非推广仅引用正式事实；`BusinessMeetingDiscussion.tsx` 的修订模式接同一会议编辑身份。
 
-`BusinessSheet` 是原生右侧抽屉外壳，提供固定头部与唯一正文滚动；编辑通过 `BusinessFormSheet` 保留表单规格，查帖直接接入中性头部。
+`BusinessSheet` 是原生右侧抽屉外壳，提供固定头部与唯一正文滚动；编辑通过 `BusinessFormSheet` 保留表单规格，助手直接接入深蓝头部。
