@@ -2,6 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
+## 月度运营导航间距修正（2026-10-30）
+
+- 月度运营归入“复盘与沉淀”共享模块列表，消除误用14px组间距的问题，桌面同组均4px；手机账号入口与底栏保持。规范、接入及真实几何回归已同步，原批侧栏结论更正。
+- 年度页／看板双角色五档16图已实际查看，月度与公共UI回归、Node／Vercel类型检查构建和中文PDF通过：[验收索引](verified/2026-10-30_20-17_sidebar-spacing/README.md)。实现`f2f751d`，部署`dpl_Bvmh2mX6HGezjNZBftaTM1w1TByd`；8项候选、114项正式与70资源哈希通过。分支`codex/sidebar-monthly-spacing`，main独立确认。
+
 ## 月度运营看板第一版（2026-10-30）
 
 - `/business/monthly-operations` 与同名只读API已接入；两角色共用，手机账号菜单进入。当前排期、实发与费用按各自自然月归属，运营原因按任务去重，严格超过48小时提醒。最新排期及改期清旧原因保持，无负责人或月初快照。
