@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:publication /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/publication.browser.ts
+
+通过：统一未来发布、完整分享文案、旧链接留空、旧预约停用、权限及并发与管理员更正；1440／390／320px 默认月历、双色状态、筛选、日期新建、未保存与失败保护。

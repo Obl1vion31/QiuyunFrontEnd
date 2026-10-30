@@ -1,0 +1,12 @@
+[
+  {
+    "name": "desktop.webm",
+    "duration": 10.36,
+    "reviewFps": 8
+  },
+  {
+    "name": "mobile.webm",
+    "duration": 6.68,
+    "reviewFps": 8
+  }
+]

@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:summary-controls /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/summary-controls.browser.ts
+
+{"passed":true,"checks":["五档月历／台账／筛选／零值，1至4位真实数字，内容组双向居中、8px间距、横滚首尾","管理员桌面／员工触屏真实十二项批量保存、503保留重试、服务端落库、成功／禁用五档、次日回显；查帖和同类摘要"],"folder":".tools/test-artifacts/summary-controls"}
