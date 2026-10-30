@@ -4,4 +4,4 @@
 
 字体来源：https://hyperos.mi.com/font/zh/ 。字体适用本目录 `LICENSE-MiSans.pdf`；切片构建工具许可另见 `LICENSE-build-scripts.txt`，两者不可混用。资产从 https://cdn.jsdelivr.net/npm/misans@5.0.0/lib/Normal/ 原样固定，不二次修改字体。
 
-工作台由 `src/pages/fonts/business.css.ts` 基于此CSS生成静态共享样式：原始0–15、50、54切片以data URL内联，其他切片按需读取，派生样式采用block展示策略。字体二进制、可变字重和原CSS不变，首页与PDF继续原入口。
+工作台由 `src/styles/business-font-assets.ts` 基于此CSS生成共享静态JS／CSS：原始0–15、50、54切片随脚本到达，以二进制FontFace在正文解析前同步准备，其他切片由CSS按需读取。字体二进制、可变字重和原CSS不变，首页与PDF继续原入口。

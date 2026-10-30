@@ -1,5 +1,5 @@
 import {businessFetch as fetch} from './business-request.helper';
-import {respondToBusinessConfirm,openPostLookup} from './business-confirm.helper';
+import {respondToBusinessConfirm,openPostLookup,settleBusinessUI} from './business-confirm.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
@@ -65,7 +65,7 @@ try {
       if(path==='settings') {
         const controls=await page.locator('.business-form input:not([type=checkbox]):not([type=hidden]):visible,.business-form select:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
         const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'系统设置接入公共表单规格');
-        await page.screenshot({path:`.tools/test-artifacts/settings-ui-${width}.png`,fullPage:true});
+        await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/settings-ui-${width}.png`,fullPage:true});
       }
       if(path==='meeting-review') {
         await page.locator('[data-open-create]').click();const dialog=page.locator('[data-create]');await dialog.waitFor();
@@ -75,7 +75,7 @@ try {
         await checkBusinessDateTime(dialog.locator('[data-datetime-field]'));await fillBusinessDateTime(page,'meetingAt',`${today}T00:00`);
         assert.equal(await dialog.locator('[name=meetingAt]').inputValue(),`${today}T00:00`);
         assert.equal(await dialog.evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth),true,'窄屏对话框无横向溢出');
-        await page.screenshot({path:`.tools/test-artifacts/meeting-create-ui-${width}.png`});
+        await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/meeting-create-ui-${width}.png`});
         if(width===1440){
           await dialog.locator('[name=periodStart]').fill(start);await dialog.locator('[name=periodEnd]').fill(previousDateKey(today));await dialog.locator('[name=name]').fill('虚构拆分时间例会');
           const created=page.waitForResponse((response:any)=>response.url().endsWith('/api/meeting-reviews')&&response.request().method()==='POST');await dialog.locator('button[type=submit],button.primary').click();const response=await created;assert.equal(response.status(),201);await page.waitForURL((url:URL)=>Boolean(url.searchParams.get('meeting')));const result={id:new URL(page.url()).searchParams.get('meeting')!};
@@ -85,11 +85,12 @@ try {
       }
       if(path==='annual-plan') {
         await page.locator('[data-open-new]').click();const dialog=page.locator('#row-dialog');await dialog.waitFor();
+        await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/annual-dialog-default-ui-${width}.png`});
         const before=await dialog.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]}));
         await dialog.locator('[name=note]').evaluate((node:HTMLElement)=>node.style.height='1400px');
         await dialog.locator('.form-dialog-body').evaluate((node:HTMLElement)=>node.scrollTop=node.scrollHeight);
         assert.deepEqual(await dialog.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),before,'年度长表单只滚动正文，头尾位置稳定');
-        await page.screenshot({path:`.tools/test-artifacts/annual-dialog-ui-${width}.png`});await dialog.locator('[data-close-row]').first().click();
+        await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/annual-dialog-ui-${width}.png`});await dialog.locator('[data-close-row]').first().click();
       }
 
     }
@@ -100,7 +101,7 @@ try {
       if(view==='history') await page.locator('[data-promotion-toolbar] a[href="?view=history"]').click(); else await page.locator(`[data-promotion-toolbar] a[href="?view=${view}"]`).click();
       await page.waitForURL(new RegExp(`view=${view}`));await page.waitForLoadState('networkidle');
       assert.equal(await page.evaluate(()=>(window as any).__document===document&&(window as any).__toolbar===document.querySelector('[data-promotion-toolbar]')&&(window as any).__tabs===document.querySelector('.toolbar-segmented')),true,'相邻视图保留同一工具栏和切换节点');
-      if(view==='daily'||view==='history')await page.screenshot({path:`.tools/test-artifacts/promotion-${view}-ui-${width}.png`,fullPage:true});
+      if(view==='daily'||view==='history')await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/promotion-${view}-ui-${width}.png`,fullPage:true});
 
       if(view==='daily') {
         assert.equal(await page.locator('[data-pause-form]').count(),0,'团队暂停已移除');
@@ -122,7 +123,7 @@ try {
     await page.evaluate(()=>{(window as any).__record=document.querySelector('[data-category-group="tmua:innovation"] [data-row-href]');});
     await page.getByRole('radio',{name:'历史数据总览',exact:true}).check();assert.equal(await page.evaluate(()=>(window as any).__record.isConnected),true);
     await page.getByRole('radio',{name:'分类均值查看',exact:true}).check();assert.equal(await group.getAttribute('open')!==null,true);
-    await page.screenshot({path:`.tools/test-artifacts/review-inline-categories-${width}.png`,fullPage:true});
+    await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/review-inline-categories-${width}.png`,fullPage:true});
     await page.getByRole('radio',{name:'历史数据总览',exact:true}).check();
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
     const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
@@ -133,7 +134,7 @@ try {
     await page.evaluate(()=>{(window as any).__table=document.querySelector('.review-table');(window as any).__document=document;});
     let documents=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')documents++;});
     await first.click();await page.locator('[data-inspector].is-open').waitFor();
-    await page.screenshot({path:`.tools/test-artifacts/inspector-ui-${width}.png`,fullPage:true});
+    await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/inspector-ui-${width}.png`,fullPage:true});
     const before=await page.evaluate(()=>({scroll:scrollY,tableScroll:document.querySelector('.table-scroll')!.scrollLeft}));
     assert.equal(await page.evaluate(()=>(window as any).__document===document&&(window as any).__table===document.querySelector('.review-table')),true);
     assert.equal(documents,0,'详情点击不请求新文档');
@@ -186,7 +187,7 @@ try {
     const editorGeometry=await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]}));
     await editor.locator('textarea').evaluate((node:HTMLElement)=>node.style.height='1100px');await editor.locator('.form-dialog-body').evaluate((node:HTMLElement)=>node.scrollTop=node.scrollHeight);
     assert.deepEqual(await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),editorGeometry,`推广历史长表单头尾固定 ${JSON.stringify(await editor.evaluate((node:HTMLElement)=>({html:node.outerHTML.slice(0,600),dialogHeight:getComputedStyle(node).height,formHeight:getComputedStyle(node.querySelector('form')!).height,formDisplay:getComputedStyle(node.querySelector('form')!).display,bodyHeight:getComputedStyle(node.querySelector('.form-dialog-body')!).height})))}`);
-    await page.screenshot({path:`.tools/test-artifacts/promotion-edit-ui-${width}.png`});await editor.locator('[data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
+    await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/promotion-edit-ui-${width}.png`});await editor.locator('[data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     await context.close();
     await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'4.95'}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[1]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
   }

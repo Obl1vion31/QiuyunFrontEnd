@@ -30,4 +30,4 @@
 
 账号管理的行结构由 `BusinessAccountRow.astro` 共用；`account-management.ts` 处理新增、改名及改号，服务端复用 `auth/identifiers.ts` 边界与 `auth/provision.ts` 事务创建。标识解析在 Better Auth 之前完成，密码验证和会话仍由原认证服务负责。
 
-七个工作台页的head共用 `BusinessConsoleFonts`；`pages/fonts/business.css.ts` 构建生成共享静态字体样式，常用原始MiSans切片随样式到达，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
+七个工作台页的head共用 `BusinessConsoleFonts`；`styles/business-font-assets.ts` 为 `pages/fonts/business.css.ts` 与 `business.js.ts` 构建生成共享静态字体资源，常用原始切片在正文解析前同步准备，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
