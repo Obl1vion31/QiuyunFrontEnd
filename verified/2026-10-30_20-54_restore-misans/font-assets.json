@@ -1,0 +1,134 @@
+{
+  "slices": [
+    {
+      "file": "MiSansVF.16240990c6f7f7dd.0.woff2",
+      "bytes": 50044,
+      "sha256": "16240990c6f7f7dd44defa56f59b65a187a9002d2ee99119d6aa8c65ab6aa1ad",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.1fa3a293a561985c.1.woff2",
+      "bytes": 60192,
+      "sha256": "1fa3a293a561985c4d654adc91c64041b4bf1ae893130d3c071158aaeb911208",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.235af3ebfd0343d5.2.woff2",
+      "bytes": 66632,
+      "sha256": "235af3ebfd0343d59f8020f26947b85c178f93a00101d25c07619f368f09bc0e",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.53744263f2939586.3.woff2",
+      "bytes": 68912,
+      "sha256": "53744263f2939586642b98e666fa92116680d70861233857dea6d0d6eb09767a",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.8ac4bbc96a6db0e2.4.woff2",
+      "bytes": 70216,
+      "sha256": "8ac4bbc96a6db0e22f853a79dd1ed21adcb73523541b7172ffc651923a69ca06",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.73924789affc3080.5.woff2",
+      "bytes": 72452,
+      "sha256": "73924789affc3080e6e776efab5ca22f213368c0b9f4038ce1ac86ac57b2a7cd",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.52728aa7bc854270.6.woff2",
+      "bytes": 75708,
+      "sha256": "52728aa7bc854270e4405e3d408cecd0f759b9dbaa5ff26e62401690180e30e3",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.d77855c75a78e271.7.woff2",
+      "bytes": 78316,
+      "sha256": "d77855c75a78e2714b3617a2e3825af14c45573f5f95b55442c78f66c4abf9d8",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.c06909dbc78c83aa.8.woff2",
+      "bytes": 78632,
+      "sha256": "c06909dbc78c83aa43083e9fdf665528f5b73814dacf52af3b24dc977aa3f722",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.18220753c89aeaa7.9.woff2",
+      "bytes": 78568,
+      "sha256": "18220753c89aeaa78a51365947baa64ebfba012d554fdf0fc57ccc0b128183b2",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.91d6994ea01c40e1.10.woff2",
+      "bytes": 79272,
+      "sha256": "91d6994ea01c40e13120910889fc66672e9314067719d6b0758aa42c3dc569e9",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.4432f1e8b9c6afb6.11.woff2",
+      "bytes": 81852,
+      "sha256": "4432f1e8b9c6afb644056c1fccc14a18282f4ab96eac6c00d408dd0b4de430f7",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.a597bc0d89a7e9de.12.woff2",
+      "bytes": 81580,
+      "sha256": "a597bc0d89a7e9de34ceab3ad03ab2097df3ec99cbf73aed3c6c4e8036036048",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.799303268bd0a8c8.13.woff2",
+      "bytes": 81896,
+      "sha256": "799303268bd0a8c8619a4cb71d4f61c97baf255a6431e4e6326a91b7e58b092f",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.353f733c1a9d24dd.14.woff2",
+      "bytes": 82708,
+      "sha256": "353f733c1a9d24dd9dcf06adab385bebddfdf5013ba524b35ce7b2278cc61fb6",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.00d0682c24b9e852.15.woff2",
+      "bytes": 82132,
+      "sha256": "00d0682c24b9e85262ce9ce423720d10b245aa06c2174cd750f46a9842c4a8fa",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.3ee7f36171786397.50.woff2",
+      "bytes": 50712,
+      "sha256": "3ee7f3617178639776ada0f6fa24334c39665599d895a7cb42b1d04aee5aed79",
+      "unchanged": true,
+      "weight": "150 700"
+    },
+    {
+      "file": "MiSansVF.517a94fe8dd5692a.54.woff2",
+      "bytes": 25596,
+      "sha256": "517a94fe8dd5692abf7792c9696e02d0af31617d875573008d53013c0bc87e53",
+      "unchanged": true,
+      "weight": "150 700"
+    }
+  ],
+  "scriptBytes": 1711557,
+  "gzipScriptBytes": 1291065,
+  "cssBytes": 55614,
+  "fontFilesModified": false
+}

@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:first-paint /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/business-first-paint.browser.ts
+
+{"passed":true,"cases":17,"notificationRetry":true,"sharedFontConsumers":7,"folder":".tools/test-artifacts/first-paint"}

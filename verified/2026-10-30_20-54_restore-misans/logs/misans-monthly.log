@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:monthly /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/monthly-operations.browser.ts
+
+{"passed":true,"checks":["真实数据库/API：自然月消耗、测试淘汰/残留/V1/放量淘汰、混合归因去重、改期和48小时边界","学科/分类真实筛选、分类组成与图形钻取，根节点连续保留","五档默认/图表/原因展开/分类消耗/空跑/空态、长金额、读取失败保留重试与旧响应隔离","员工/管理员同数据五档对照、原记录定位及手机账号入口","默认月份跨上海零点自动进入新月"],"folder":".tools/test-artifacts/monthly-operations"}
