@@ -10,7 +10,7 @@ import '../styles/business-collaboration.css';
 import {getDb} from '../db/client';
 import {effectiveBusinessPermissions} from '../auth/business-permissions';
 import {defaultBusinessPermissions} from '../auth/business-capabilities';
-type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'settings';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
 let permissions=defaultBusinessPermissions();

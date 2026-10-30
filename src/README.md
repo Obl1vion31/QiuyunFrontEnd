@@ -8,7 +8,7 @@
 | `components/ContentTunnel.tsx`、`scripts/home-motion.ts` | 首屏浅弧→平带的连续循环、暂停与可见性管理 |
 | `styles/home.css`、`components/ContentTunnel.module.css` | 首页基础排版、紧凑后两区与首屏局部样式 |
 | `pages/login.astro` | 账号或完整用户名登录 |
-| `pages/business/` | 年度规划、排期、推广、非推广、例会和设置页面 |
+| `pages/business/` | 年度规划、排期、推广、非推广、月度运营、例会和设置页面 |
 | `pages/api/` | 同源、登录与权限校验后的 HTTP 入口 |
 | `components/` | 共享控制台、工具栏、Inspector、指标与暂停控件 |
 | `scripts/` | 打包后的浏览器交互与共享时间格式 |

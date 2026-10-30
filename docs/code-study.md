@@ -203,3 +203,9 @@ flowchart LR
 发布朋友圈确认由排期表单按当前对象配置显示／禁用，`operations-workflow.ts` 提交捕获阶段执行组内校验；`publication-workflow.ts` 在锁定排期和修订检查后按实际要求再次校验。`momentsSentConfirmed`／`momentsRequestSentConfirmed` 为表单布尔值，仅首次必需；发布事件before／after的可选 `momentsConfirmation` 保存两项true并在更正中继承。审批快照只有确认存在时才增加同名键，避免改变历史申请指纹；差异、排期历史与查帖历史呈现运营确认，后续事件前后相同时不重复展示。
 
 统计摘要接入：排期使用单行居中内容组；例会`.weekly-results`建立行内尺寸容器，宽度不足760px时将四项指标按两列组织，保留原字体与打印布局。协作写入从单轮扩为整篇时须取得覆盖整篇的租约，重叠的子级租约只表达冲突关系，不能充当上级写入权限。
+
+### 月度运营只读接入
+
+`src/db/monthly-operations.ts` 同时服务 `/business/monthly-operations` 的SSR和 `GET /api/monthly-operations?month=YYYY-MM&subject=…&category=…`，共用查询边界校验、延期规则、推广回放／轮次及 `promotionTotals`。页面由 `BusinessMonthlyOperations` 保持筛选、图表和明细节点，异步刷新调用公共 `readBusiness`。费用按日度事实日期，不复用例会候选汇总；归因按当前修订，不以操作人推断负责人。原记录链接使用排期 `row` 选择参数。
+
+桌面激活侧栏月度入口，手机放在现有账号菜单；只读查看不建立编辑租约。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
