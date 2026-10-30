@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "e78a689eb0cf129257bce7e600c01ce0d876bae6",
+  "deploymentId": "dpl_4TrNtG3uRZCNxF94eKu9bKxco7p6",
+  "candidate": "https://qiuyun-frontend-iq8jq6rot-opgobl1v-5358.vercel.app",
+  "formalDomain": "https://qiuyun-frontend.vercel.app",
+  "promoted": true,
+  "publicChecks": 108,
+  "matchingAssets": 66,
+  "checkedAt": "2026-10-30T08:49:32.911Z",
+  "businessWrites": false,
+  "databaseMigrations": false
+}
