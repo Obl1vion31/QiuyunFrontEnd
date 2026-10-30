@@ -220,8 +220,8 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           {selectedView === 'schedule' && !queueView && <BusinessToolbarPeriodNav slot="center" previousHref={hrefFor({ month: previousMonth })} nextHref={hrefFor({ month: nextMonth })} label={`${selectedMonth.replace('-', ' 年 ')} 月`} todayHref={hrefFor({ month: currentMonth })} todayLabel="本月" monthPicker={monthPicker} />}
           <BusinessToolbarActions slot="end">
             <BusinessToolbarSegmented label="显示方式" items={[
-              { label: '台账', href: hrefFor({ display: 'ledger' }), active: selectedDisplay === 'ledger' || selectedView === 'promotion' },
               { label: '月历', href: hrefFor({ view: 'schedule', display: 'calendar', status: '', promotion: '' }), active: selectedDisplay === 'calendar' && selectedView === 'schedule' },
+              { label: '台账', href: hrefFor({ display: 'ledger' }), active: selectedDisplay === 'ledger' || selectedView === 'promotion' },
             ]} />
             <button class="filter-button toolbar-action-secondary" type="button" disabled title="更多筛选将在数据维度确认后开放">筛选</button>
             <button class="primary-action" type="button" data-open-new data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
