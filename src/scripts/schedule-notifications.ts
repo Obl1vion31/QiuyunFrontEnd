@@ -3,6 +3,8 @@ let busy = false;
 async function refresh() {
   if (busy || document.hidden || !document.querySelector('[data-schedule-notifications]')) return;
   busy = true;
+  const panel = document.querySelector<HTMLElement>('[data-schedule-notifications]')!;
+  panel.setAttribute('aria-busy', 'true');
   try {
     const response = await fetch('/api/business-notifications', { headers: { Accept: 'application/json' }, cache: 'no-store' });
     if (!response.ok) throw new Error('notification-unavailable');
@@ -10,6 +12,7 @@ async function refresh() {
     document.querySelectorAll<HTMLElement>('[data-schedule-count]').forEach(node => { node.textContent = String(data[node.dataset.scheduleCount!] ?? 0); });
     const status = document.querySelector('[data-schedule-notification-status]');
     if(status)status.textContent='';
+    panel.querySelector<HTMLElement>('[data-schedule-notification-error]')!.hidden = true;
     document.querySelector('[data-schedule-count=overdue]')?.closest('a')?.setAttribute('aria-label', `尚未登记 ${data.overdue ?? 0} 篇`);
     const link = document.querySelector<HTMLElement>('[data-module-id="schedule"]');
     if (link) {
@@ -21,7 +24,8 @@ async function refresh() {
   } catch {
     const status = document.querySelector('[data-schedule-notification-status]');
     if (status) status.textContent = '提醒暂不可用，稍后重试';
-  } finally { busy = false; }
+    panel.querySelector<HTMLElement>('[data-schedule-notification-error]')!.hidden = false;
+  } finally { panel.setAttribute('aria-busy', 'false'); busy = false; }
 }
 document.addEventListener('astro:page-load', refresh);
 document.addEventListener('visibilitychange', refresh);

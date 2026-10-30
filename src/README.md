@@ -29,3 +29,5 @@
 例会准备使用既有 JSON 的 `workflowVersion=7`：按本次来源核对完整性，推广／非推广均回原入口补齐，正文只读引用非推广事实；会前／会后版本与安排由原控制器维护。`meeting-readiness.ts`、`promotion-review-required.ts` 统一完整性和日度应填口径。协作、查帖和账号管理分别由 Frame、共享控制器及受保护 API 接入；`BusinessAssistantEntry` 提供左栏／手机账号菜单中的助手入口，`BusinessPostLookup` 提供直接查帖的共享右侧面板，`non-promotion-table.css` 集中维护非推广列表的语义列与窄屏布局，不复制页面壳层。
 
 账号管理的行结构由 `BusinessAccountRow.astro` 共用；`account-management.ts` 处理新增、改名及改号，服务端复用 `auth/identifiers.ts` 边界与 `auth/provision.ts` 事务创建。标识解析在 Better Auth 之前完成，密码验证和会话仍由原认证服务负责。
+
+七个工作台页的head共用 `BusinessConsoleFonts`；Frame只在首帧前所需字形已经就绪时启用MiSans，迟到时本次文档保持系统回退，不在正文末尾加载字体样式。

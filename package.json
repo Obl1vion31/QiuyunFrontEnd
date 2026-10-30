@@ -49,7 +49,8 @@
     "test:assistant": "node --import tsx tests/workspace-assistant.browser.ts",
     "test:moments": "node --import tsx tests/publication-moments.browser.ts",
     "test:summary-controls": "node --import tsx tests/summary-controls.browser.ts && node --import tsx tests/summary-peer.browser.ts",
-    "test:monthly": "node --import tsx tests/monthly-operations.browser.ts"
+    "test:monthly": "node --import tsx tests/monthly-operations.browser.ts",
+    "test:first-paint": "node --import tsx tests/business-first-paint.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

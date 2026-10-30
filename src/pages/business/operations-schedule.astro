@@ -5,6 +5,7 @@ import BusinessScheduleApprovals from '../../components/BusinessScheduleApproval
 import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
+import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
@@ -213,7 +214,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     <meta name="robots" content="noindex,nofollow" />
     <meta name="description" content="管理新做帖、改帖版本和运营内容发布排期。" />
     <title>内容发布控制台 · 排期管理</title>
-  </head>
+  <BusinessConsoleFonts /></head>
   <body>
     <BusinessConsoleFrame active="schedule">
         <BusinessConsoleToolbar title="排期管理" subtitle={selectedView === 'promotion' ? '推广中视角' : queueView ? queueLabel : `${selectedMonth} 当月排期`}>

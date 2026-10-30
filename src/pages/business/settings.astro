@@ -1,4 +1,5 @@
 ---
+import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
@@ -15,7 +16,7 @@ const grants=await Promise.all(accounts.map(async user=>({...user,permissions:aw
 ---
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>系统设置 · 内容发布控制台</title></head>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>系统设置 · 内容发布控制台</title><BusinessConsoleFonts /></head>
 <body>
 <BusinessConsoleFrame active="settings">
   <BusinessConsoleToolbar title="系统设置" subtitle="账号权限与操作授权" />

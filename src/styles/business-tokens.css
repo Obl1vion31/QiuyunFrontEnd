@@ -12,7 +12,8 @@
     --console-line:#E5E7EB;
     --console-blue:#315fd6;
     --console-blue-soft:#dce5ff;
-    --console-font:"MiSans VF","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
+    --console-fallback-font:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
+    --console-font:var(--console-fallback-font);
     --console-text:14px;
     --console-text-leading:22px;
     --console-caption:12px;
@@ -22,3 +23,5 @@
     --console-control-compact:36px;
     --console-control-radius:8px;
   }
+
+:root[data-console-font="ready"]{--console-font:"MiSans VF",var(--console-fallback-font)}
