@@ -1,0 +1,72 @@
+Fetching deployment "qiuyun-frontend-8adylb3hi-opgobl1v-5358.vercel.app" in opgobl1v-5358
+{
+  "id": "dpl_3ZMwn2j9q2meEhnxBJhhLrfi5S25",
+  "name": "qiuyun-frontend",
+  "url": "qiuyun-frontend-8adylb3hi-opgobl1v-5358.vercel.app",
+  "target": "production",
+  "readyState": "READY",
+  "createdAt": 1793364043475,
+  "duration": {
+    "startTime": 1793364044791,
+    "timeToReady": 12435
+  },
+  "buildMachine": {
+    "cores": 2,
+    "memory": 8192,
+    "machine": "basic",
+    "selectionType": "fixed",
+    "selectionSource": "plan-default"
+  },
+  "aliases": [
+    "qiuyun-frontend-opgobl1v-5358.vercel.app"
+  ],
+  "builds": [
+    {
+      "id": "bld_mcjqug23w",
+      "deploymentId": "dpl_3ZMwn2j9q2meEhnxBJhhLrfi5S25",
+      "entrypoint": ".",
+      "readyState": "READY",
+      "readyStateAt": 1793364043350,
+      "createdAt": 1793364043350,
+      "createdIn": "sfo1",
+      "use": "@vercel/vc-build",
+      "config": {
+        "framework": "astro",
+        "installCommand": "pnpm install --frozen-lockfile",
+        "buildCommand": "pnpm build",
+        "nodeVersion": "22.x",
+        "projectCreatedAt": 1791964343582,
+        "vercelConfig": {
+          "name": "qiuyun-frontend",
+          "version": 2
+        }
+      },
+      "middleware": [],
+      "output": [
+        {
+          "prerender": null,
+          "type": "lambda",
+          "path": "_render",
+          "digest": "prj_bTVgrgB2yde06natDUjxaUPPrVvK/17dbfa933df4d823da2c41672720ed179fbe8c8602e4259cf0b343e489fb7772",
+          "mode": 49590,
+          "size": 79523571,
+          "lambda": {
+            "functionName": "team_n6Aaq9rCmYd86BCXyEd4mCNJ-ba1cf7971b491819d8ed80f6b205f62a0b",
+            "deployedTo": [
+              "iad1"
+            ],
+            "runtime": "nodejs22.x",
+            "memorySize": 2048,
+            "timeout": 300,
+            "layers": [
+              "arn:aws:lambda:AWS_REGION_PLACEHOLDER:977805900156:layer:vercel-rusty-runtime-nodejs-1_51_16-production-f938d7ce24-AWS_ARCH_PLACEHOLDER:1"
+            ]
+          },
+          "edge": null
+        }
+      ],
+      "fingerprint": null
+    }
+  ],
+  "contextName": "opgobl1v-5358"
+}
