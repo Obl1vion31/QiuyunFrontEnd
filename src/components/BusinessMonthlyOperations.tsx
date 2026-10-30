@@ -66,10 +66,10 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
      <button className={`${styles.metric} ${styles.spendMetric}`} onClick={()=>show('promotion','all')}><span>已登记推广消耗</span><strong data-value="spend">{money(spend.spend)}</strong><em>其中已确认空跑 {money(spend.wasted)}</em></button>
     </section>
     <section className={styles.attention} aria-label="执行关注项">
-     <button className={pub.severe?styles.warning:''} onClick={()=>show('publication','severe')}><span>超时未登记 &gt;48小时</span><b>{pub.severe}</b><span>篇</span></button>
-     <button onClick={()=>show('publication','operational')}><span>运营原因延期</span><b>{pub.operational}</b><span>篇</span></button>
-     <button onClick={()=>show('publication','changed')}><span>改期后仍未登记</span><b>{pub.changedPending}</b><span>篇</span></button>
-     <button onClick={()=>show('publication','moved')}><span>改出本月且未登记</span><b>{pub.movedOut}</b><span>篇</span></button>
+     <button className={pub.severe?styles.warning:''} onClick={()=>show('publication','severe')}><span>未登记 &gt;48小时</span><b>{pub.severe}<small>篇</small></b></button>
+     <button onClick={()=>show('publication','operational')}><span>运营原因延期</span><b>{pub.operational}<small>篇</small></b></button>
+     <button onClick={()=>show('publication','changed')}><span>改期后仍未登记</span><b>{pub.changedPending}<small>篇</small></b></button>
+     <button onClick={()=>show('publication','moved')}><span>改出本月未登记</span><b>{pub.movedOut}<small>篇</small></b></button>
     </section>
     <section className={styles.charts} aria-label="执行与消耗分布">
      <div className={styles.panel} data-monthly-chart="publication" data-chart-pending=""><header><h2>发布执行</h2><span>{pub.planned} 篇当前应发</span></header><p className={styles.caption}>按最新应发日期归月；尚未登记与确认延期分开。</p>
