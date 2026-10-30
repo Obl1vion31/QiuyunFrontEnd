@@ -1,0 +1,27 @@
+
+> qiuyun-frontend-system@0.1.0 test:workflows /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/schedule-workflow.browser.ts && node --import tsx tests/latest-delay.browser.ts
+
+19:52:02 [@astrojs/node] Server listening on http://127.0.0.1:33649
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: /api/non-promotion-reviews: {"code":"STALE_RECORD","message":"这条复盘已发生变化，当前输入已保留。请刷新页面核对最新记录后再填写。"}
+
+409 !== 201
+
+    at request (/home/obl1vion/projects/qiuyunFrontend/tests/schedule-workflow.browser.ts:22:43)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async <anonymous> (/home/obl1vion/projects/qiuyunFrontend/tests/schedule-workflow.browser.ts:72:3) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 409,
+  expected: 201,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.3
+ ELIFECYCLE  Command failed with exit code 1.

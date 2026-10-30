@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:overview /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/promotion-overview.browser.ts
+
+review-v8 browser passed

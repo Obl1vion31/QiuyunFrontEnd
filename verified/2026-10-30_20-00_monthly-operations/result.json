@@ -1,0 +1,183 @@
+{
+  "passed": true,
+  "checks": [
+    "真实数据库/API：自然月消耗、测试淘汰/残留/V1/放量淘汰、混合归因去重、改期和48小时边界",
+    "学科/分类真实筛选、分类组成与图形钻取，根节点连续保留",
+    "五档默认/图表/原因展开/分类消耗/空跑/空态、长金额、读取失败保留重试与旧响应隔离",
+    "员工/管理员同数据五档对照、原记录定位及手机账号入口",
+    "默认月份跨上海零点自动进入新月"
+  ],
+  "measurements": [
+    {
+      "width": 1920,
+      "sizes": [
+        {
+          "key": "planned",
+          "width": 59.109375,
+          "textWidth": 59.109375,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "published",
+          "width": 38.75,
+          "textWidth": 38.75,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "delay-rate",
+          "width": 97.8125,
+          "textWidth": 97.8125,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "spend",
+          "width": 224.890625,
+          "textWidth": 224.890625,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "sizes": [
+        {
+          "key": "planned",
+          "width": 59.109375,
+          "textWidth": 59.109375,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "published",
+          "width": 38.75,
+          "textWidth": 38.75,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "delay-rate",
+          "width": 97.8125,
+          "textWidth": 97.8125,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "spend",
+          "width": 224.890625,
+          "textWidth": 224.890625,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "sizes": [
+        {
+          "key": "planned",
+          "width": 59.109375,
+          "textWidth": 59.109375,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "published",
+          "width": 38.75,
+          "textWidth": 38.75,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "delay-rate",
+          "width": 97.8125,
+          "textWidth": 97.8125,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "spend",
+          "width": 224.890625,
+          "textWidth": 224.890625,
+          "height": 40,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "sizes": [
+        {
+          "key": "planned",
+          "width": 55.21875,
+          "textWidth": 55.21875,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "published",
+          "width": 37.8125,
+          "textWidth": 37.8125,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "delay-rate",
+          "width": 91.015625,
+          "textWidth": 91.015625,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "spend",
+          "width": 188,
+          "textWidth": 188,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "sizes": [
+        {
+          "key": "planned",
+          "width": 51.34375,
+          "textWidth": 51.34375,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "published",
+          "width": 36.90625,
+          "textWidth": 36.90625,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "delay-rate",
+          "width": 85.203125,
+          "textWidth": 85.203125,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        },
+        {
+          "key": "spend",
+          "width": 177.5625,
+          "textWidth": 177.5625,
+          "height": 38,
+          "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif"
+        }
+      ]
+    }
+  ],
+  "videos": [
+    ".tools/test-artifacts/monthly-operations/video/desktop.webm",
+    ".tools/test-artifacts/monthly-operations/video/mobile.webm"
+  ],
+  "businessWrites": "isolated PGlite only",
+  "databaseMigrations": false
+}
