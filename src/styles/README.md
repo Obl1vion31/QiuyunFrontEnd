@@ -2,7 +2,7 @@
 
 `business-typography.css` 负责工作台及原生弹层的字体基准，组件按语义设定标题、正文、辅助和控件层级；统计使用正文字体与等宽数字，代码／原始 ID 可使用等宽字体。
 
-工作台优先使用固定自托管的 `MiSans VF`，由共享 `BusinessConsoleFonts` 在head引入原始 `/fonts/misans-5.0.0/MiSansVF.css` 并预加载常用文字与数字切片；Frame仅在首帧前全部所需字形已就绪时启用MiSans，否则本次文档保持系统回退，保留系统中文无衬线回退。该样式也维护目标容器的延迟读取反馈；读取控制器见 `src/scripts/business-read.ts`。
+工作台使用固定自托管的 `MiSans VF`，共享 `BusinessConsoleFonts` 在head引入构建生成的 `/fonts/business.css`。常用原始切片随样式到达，其余按需读取；字体栈始终优先MiSans，不因加载速度改成系统字体。辅助系统回退只处理字体不可用。延迟读取控制器见 `src/scripts/business-read.ts`。
 
 `business-forms.css` 由 `BusinessConsoleFrame` 引入，集中维护常规表单 `business-form`、紧凑筛选 `business-filter` 与居中 `BusinessFormDialog` 的视觉规格。
 

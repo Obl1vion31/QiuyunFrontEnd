@@ -52,23 +52,6 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     <footer class="dialog-actions"><button type="button" data-confirm-cancel autofocus>继续编辑</button><button type="button" class="primary" data-confirm-accept>放弃修改</button></footer>
   </dialog>
 </div>
-<!-- 每个文档只在首帧前选一次字体；迟到的字体供缓存复用，不再改写已显示文字。 -->
-<script is:inline>
-(() => {
-  const root = document.documentElement;
-  if (root.dataset.consoleFont) return;
-  root.dataset.consoleFont = 'fallback';
-  document.addEventListener('astro:before-swap', event => {
-    event.newDocument.documentElement.dataset.consoleFont = root.dataset.consoleFont;
-  });
-  let painted = performance.getEntriesByName('first-contentful-paint').length > 0;
-  requestAnimationFrame(() => { painted = true; });
-  const text = document.querySelector('.business-console-frame').innerText;
-  document.fonts.load('400 14px "MiSans VF"', text).then(() => {
-    if (!painted && !performance.getEntriesByName('first-contentful-paint').length) root.dataset.consoleFont = 'ready';
-  }).catch(() => { /* 字体不可用时继续使用已经显示的系统字体。 */ });
-})();
-</script>
 <script>import '../scripts/business-collaboration';import '../scripts/business-dialog';import '../scripts/business-permissions';import '../scripts/business-read';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
 
 <script is:inline>

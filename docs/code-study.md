@@ -63,7 +63,7 @@ flowchart LR
 
 ## 共享界面接入
 
-各工作台页面在head接入 `BusinessConsoleFonts`，不要在Frame正文后追加字体样式。Frame使用字体加载API请求当前可见文字，仅在首帧前已就绪时将文档标记为ready；否则保持系统字体，迟到资产供缓存复用。没有字号计时器、整页隐藏或重复56切片声明，二进制、原始CSS、首页和PDF保留。`BusinessScheduleNotifications` 的实时状态不占布局行，错误放回首条标签。`pnpm test:first-paint` 在等待fonts.ready之前记录早期画面和实际使用字体，补充最终稳定图检查。
+各工作台页面在head接入 `BusinessConsoleFonts`，不要在Frame正文后追加字体样式。`src/pages/fonts/business.css.ts` 在构建时从固定MiSans CSS与原始常用WOFF2切片生成共享静态字体样式（常用字形以data URL随样式到达，其余按需读取），不手抄56份声明、不改字体二进制或字重。Frame直接使用原MiSans字体栈，不按首帧速度选择或锁定另一种字体；首页与PDF保留原入口。`BusinessScheduleNotifications` 的实时状态不占布局行，错误放回首条标签。`pnpm test:first-paint` 在等待fonts.ready之前记录早期画面和实际使用字体，补充最终稳定图检查。
 
 前端任务每次按此顺序接手：读 [DESIGN](DESIGN.md) → 检查下列真实例子和共享代码 → 通过 Props、插槽或业务适配器接入 → 执行[界面验收](../tests/README.md#界面一致性验收)。规则以 DESIGN 为准，此处只维护可直接定位的实例。
 
