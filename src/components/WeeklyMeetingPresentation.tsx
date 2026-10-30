@@ -30,7 +30,7 @@ export default function WeeklyMeetingPresentation({snapshot,postReferences={},di
   </section>}
   {nonPromotionSection??<section className="weekly-frozen-cards" aria-label="非推广帖复盘"><header className="weekly-section-heading"><h2>非推广帖复盘</h2><span>{(generated.nonPromotions??[]).filter((r:any)=>!r.comparisonOnly).length} 个节点</span></header>
    <NonPromotionCards rows={(generated.nonPromotions??[]).map((r:any)=>({...r,conclusion:draft.nonPromotionNotes?.[r.key]??r.conclusion}))} postReferences={postReferences} readonly onConclusion={discussion?(key,value)=>update('nonPromotionNotes',{...draft.nonPromotionNotes,[key]:value}):undefined}/>
-   {generated.excludedNonPromotions?.length>0&&<details className="weekly-source"><summary>本期不复盘（{generated.excludedNonPromotions.length} 项）</summary>{generated.excludedNonPromotions.map((n:any)=><p key={n.key}>{n.contentName} · {n.checkpointType==='day_7'?'首轮':'二轮'} · {n.reason}</p>)}</details>}
+   {generated.excludedNonPromotions?.length>0&&<details className="weekly-source"><summary>本期不复盘 ({generated.excludedNonPromotions.length} 项)</summary>{generated.excludedNonPromotions.map((n:any)=><p key={n.key}>{n.contentName} · {n.checkpointType==='day_7'?'首轮':'二轮'} · {n.reason}</p>)}</details>}
    {!generated.nonPromotions?.length&&<p className="weekly-empty">本次未选非推广节点</p>}
   </section>}
   <section className="weekly-paper weekly-support" aria-label="补充分析与事项"><header><h2>补充分析与事项</h2></header><div className="weekly-writing-grid">{[['衡量情况','situation'],['本期具体动作','strategy']].map(([title,key])=><div key={key}><h3>{title}</h3>{writing(key,title)}</div>)}</div>

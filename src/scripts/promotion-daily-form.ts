@@ -179,9 +179,9 @@ function initialize(){
    for(const form of forms){const key=formKey(form);drafts.delete(key);stateDrafts.get(key)?.form.remove();stateDrafts.delete(key);}
    setUnsaved();
   }catch{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
-  finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.disabled=!count;batch.textContent=`一键保存（${count}）`;}
+  finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.disabled=!count;batch.textContent=`一键保存 (${count})`;}
  });}
- if(batch&&![...drafts.values()].some(d=>d.busy)){const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.textContent=`一键保存（${count}）`;batch.disabled=!count;}
+ if(batch&&![...drafts.values()].some(d=>d.busy)){const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.textContent=`一键保存 (${count})`;batch.disabled=!count;}
 
  for(const form of document.querySelectorAll<HTMLFormElement>('[data-metric-form]:not([data-reclaim-ready])')){
   form.dataset.reclaimReady='true';

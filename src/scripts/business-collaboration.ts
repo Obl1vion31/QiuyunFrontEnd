@@ -167,7 +167,8 @@ if(!state.__collaborationReady){
   try{
    await Promise.all([...pending].filter(([resource])=>resources.some(key=>overlaps(resource,key))).map(([,task])=>task));
    if(resources.some(resource=>[...lost].some(key=>overlaps(key,resource))))throw new Error('当前输入已保留，请重新取得编辑权。');
-   const missing=resources.filter(resource=>![...leases.values()].some(lease=>overlaps(lease.resource,resource)));
+   // 子字段租约不能覆盖整篇操作；campaign别名只接受对应的完整租约。
+   const missing=resources.filter(resource=>![...leases.values()].some(lease=>lease.resource===resource||resource.startsWith(lease.resource+':')||resource.startsWith('campaign:')&&lease.resource.endsWith(':'+resource)));
    if(missing.length){const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}
    const used=[...leases.keys()].filter(key=>resources.some(resource=>overlaps(key,resource)));
    const headers=new Headers(init?.headers??(input instanceof Request?input.headers:undefined));headers.set('X-Edit-Tab',tabId);headers.set('X-Edit-Leases',JSON.stringify(Object.fromEntries([...leases].map(([key,value])=>[key,value.token]))));

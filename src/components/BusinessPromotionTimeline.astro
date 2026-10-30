@@ -65,7 +65,7 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
     <label>{range?'待定至（含当天）':'待定至（可不选）'}<input type="date" name="waitingThrough" value={end??undefined} min={range?.startedOn??row.publishedOn} required={!!range}/></label><label>调整原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存截止日</button><output role="alert"/>
    </form></details>}
    {history&&auditGroups(row.scheduleId).filter(group=>group.rows.length>0).map(group=><details data-business-history open={group.related}>
-    <summary>{group.label}（{group.rows.length}）</summary>
+    <summary>{group.label} ({group.rows.length})</summary>
     {group.rows.map(audit=><details class="promotion-business-event" data-business-event={audit.id} data-audit-category={audit.category}>
      <summary>{audit.action==='legacy_defer'?audit.title:`${audit.businessDate} · ${audit.title}`}</summary>
      <dl class="promotion-audit-diff">{audit.beforeLabel!==audit.afterLabel?<><div><dt>更正前</dt><dd>{audit.beforeLabel}</dd></div><div><dt>更正后</dt><dd>{audit.afterLabel}</dd></div></>:<div><dt>首次安排</dt><dd>{audit.afterLabel}</dd></div>}</dl>

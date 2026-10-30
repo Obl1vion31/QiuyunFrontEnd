@@ -76,10 +76,8 @@ try{
  const finitePlan=record(waiting).locator('.review-initial-next');await finitePlan.locator('[name=nextDecision]').selectOption('wait_continue');await finitePlan.locator('[data-deadline-trigger]').click();await finitePlan.locator('[name=waitingThrough]').fill('2026-10-30');await page.keyboard.press('Escape');await save(finitePlan);
  assert.equal((await db.select().from(s.operationsPromotionStartPlan).where(eq(s.operationsPromotionStartPlan.scheduleId,waiting.id)))[0].waitingThrough,'2026-10-30');await shot('wait-date-saved-1440');
  await record(waiting).locator('[data-initial-toggle]').click();await popup(waiting).locator('[name=waitingThrough]').fill('');await popup(waiting).locator('[name=reason]').fill('虚构验收：恢复持续待定');await save(popup(waiting));
- // 默认、双位数、保存中、成功和禁用，均使用同一内容组。
- const batch=page.locator('[data-save-all]');const original=await batch.innerText();
- for(const [name,text,disabled] of [['count','一键保存（12）',false],['saving','正在保存…',true],['success','全部已保存',true],['disabled','一键保存（0）',true]] as const){await batch.evaluate((n:HTMLButtonElement,v:{text:string;disabled:boolean})=>{n.textContent=v.text;n.disabled=v.disabled;},{text,disabled});await shot('toolbar-'+name);}
- await batch.evaluate((n:HTMLButtonElement,text:string)=>{n.textContent=text;n.disabled=false;},original);
+ // 计数与真实批量保存过程由 summary-controls.browser.ts 验证。
+ const batch=page.locator('[data-save-all]');
  // 保存失败保留输入，重试成功只更新本帖；指标节点、草稿、滚动保留。
  await record(active).locator('[name=spend]').fill('123.45');await page.evaluate((id:string)=>{(window as any).__kept=document.querySelector(`[data-review-post="${id}"] [name=spend]`);},active.id);
  await record(initial).locator('[data-initial-toggle]').click();await popup(initial).locator('[name=action]').selectOption('wait');assert.equal(await popup(initial).locator('[name=waitingThrough]').inputValue(),'');assert.equal(await popup(initial).locator('[name=waitingThrough]').getAttribute('required'),null);
