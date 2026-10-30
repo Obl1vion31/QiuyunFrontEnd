@@ -20,6 +20,7 @@ const groups = [
       { id: 'daily-promotion', href: '/business/daily-promotion-review', label: '推广帖复盘', icon: 'daily' },
       { id: 'non-promotion-review', href: '/business/non-promotion-review', label: '非推广复盘', icon: 'review' },
       { id: 'meeting-review', href: '/business/meeting-review', label: '例会总览', icon: 'meeting' },
+      { id: 'monthly-operations', href: '/business/monthly-operations', label: '月度运营', icon: 'monthly' },
     ],
   },
 ] as const;
@@ -29,6 +30,7 @@ const iconPaths = {
   daily: '<path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/><path d="M12 7v5l3.5 2M15.5 3.5H21V9"/>',
   review: '<path d="M5 3.5h11l3 3v14H5z"/><path d="M15.5 3.5V7H19M8.5 11h7M8.5 14.5h5M8.5 18h3"/>',
   meeting: '<path d="M4.5 5.5h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4.5 3v-3h-2a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z"/><path d="M7 10h10M7 13.5h6"/>',
+  monthly: '<path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1v.1H9.55V21a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 4.05 15a1.7 1.7 0 0 0-1.6-1H2.4V10h.05a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06L6.5 4.2l.06.06A1.7 1.7 0 0 0 8.45 4a1.7 1.7 0 0 0 1.1-1.6v-.1h4.05v.1A1.7 1.7 0 0 0 14.7 4a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06A1.7 1.7 0 0 0 19.1 8.4a1.7 1.7 0 0 0 1.6 1h.1v4.05h-.1a1.7 1.7 0 0 0-1.3 1.55Z"/>',
 };
 ---
@@ -45,7 +47,7 @@ const iconPaths = {
       <h2>{group.label}</h2>
       <div>
         {group.modules.map((module) => <Fragment><a
-          class:list={{ active: active === module.id }}
+          class:list={{ active: active === module.id, 'business-sidebar__monthly': module.id === 'monthly-operations' }}
           href={module.href}
           data-module-id={module.id}
           data-module-href={module.href}
@@ -57,9 +59,7 @@ const iconPaths = {
         </a></Fragment>)}
       </div>
     </section>)}
-    <a class:list={['business-sidebar__monthly',{active:active==='monthly-operations'}]} href="/business/monthly-operations" data-module-id="monthly-operations" data-module-href="/business/monthly-operations" aria-current={active==='monthly-operations'?'page':undefined}>
-      <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/></svg><strong>月度运营</strong>
-    </a>
+
     {Astro.locals.user?.role === 'admin' && <section class="business-sidebar__group"><h2>系统管理</h2><div>    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href="/business/settings" data-module-id="settings" data-module-href="/business/settings" data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
       <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.settings} /></svg>
       <strong>系统设置</strong>

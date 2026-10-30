@@ -209,3 +209,5 @@ flowchart LR
 `src/db/monthly-operations.ts` 同时服务 `/business/monthly-operations` 的SSR和 `GET /api/monthly-operations?month=YYYY-MM&subject=…&category=…`，共用查询边界校验、延期规则、推广回放／轮次及 `promotionTotals`。页面由 `BusinessMonthlyOperations` 保持筛选、图表和明细节点，异步刷新调用公共 `readBusiness`。费用按日度事实日期，不复用例会候选汇总；归因按当前修订，不以操作人推断负责人。原记录链接使用排期 `row` 选择参数。
 
 桌面激活侧栏月度入口，手机放在现有账号菜单；只读查看不建立编辑租约。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
+
+侧栏新增同组模块应加入 `BusinessConsoleSidebar` 的 `groups.modules`，复用同一渲染和4px组内间距，不能在分组外追加独立链接。月度运营属于“复盘与沉淀”，手机继续在账号菜单进入；移动底栏的既有项目数保持。
