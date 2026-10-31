@@ -1,5 +1,6 @@
 ---
 import { safeReturnTo } from '../auth/permissions';
+import SiteIcons from '../components/SiteIcons.astro';
 export const prerender = false;
 const next = safeReturnTo(Astro.url.searchParams.get('next'), Astro.url.origin);
 if (Astro.locals.user) return Astro.redirect(next);
@@ -10,6 +11,7 @@ if (Astro.locals.user) return Astro.redirect(next);
     <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" /><meta name="theme-color" content="#0B1B2B" />
     <title>登录 · 内容工作台</title>
+    <SiteIcons />
   </head>
   <body>
     <header><a href="/">FRONTEND <span>内容工作台</span></a><a class="back" href="/">返回总枢纽 <span aria-hidden="true">↗</span></a></header>

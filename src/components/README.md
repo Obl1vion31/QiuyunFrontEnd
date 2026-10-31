@@ -4,6 +4,7 @@
 
 ## 当前文件
 
+- `SiteIcons.astro`：首页、登录和全部业务页的共享站点图标引用；资源源文件位于 `public/images/brand/`。
 - `ContentTunnel.tsx`：首页 React Island，负责滚动进度、封面循环、流程状态和首屏结构。
 - `ContentTunnel.module.css`：负责 Hero 的封面纵深、统一遮罩、信息排版、流程轨道和响应式样式。
 - `BusinessConsoleSidebar.astro`：业务控制台共享导航，负责 Quiet Operations 视觉、持久化跨页切换、即时选择反馈、受控预取和加载状态。

@@ -5,6 +5,7 @@ import BusinessFormDialog from '../../components/BusinessFormDialog.astro';
 import { businessDateTime } from '../../scripts/business-date';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
@@ -200,7 +201,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
     <meta name="robots" content="noindex,nofollow" />
     <meta name="description" content="统一查看总规划和各学科的年度细致规划。" />
     <title>THE PLAN · 年度总周期规划</title>
-  <BusinessConsoleFonts /></head>
+  <SiteIcons /><BusinessConsoleFonts /></head>
   <body>
     <BusinessConsoleFrame active="annual-plan">
         <BusinessConsoleToolbar title="总周期规划" subtitle={`${selectedYear} 年度规划`}>

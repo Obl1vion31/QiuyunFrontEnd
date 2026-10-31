@@ -1,5 +1,6 @@
 ---
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
@@ -20,7 +21,7 @@ const {subjects, checkpointEvents, today, names, loadError, selectedSubject, cat
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
 const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 ---
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>非推广复盘 · 内容发布控制台</title><BusinessConsoleFonts /></head><body>
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>非推广复盘 · 内容发布控制台</title><SiteIcons /><BusinessConsoleFonts /></head><body>
 <BusinessConsoleFrame active="non-promotion-review">
   <BusinessConsoleToolbar title="非推广复盘" subtitle="同学科、同分类、同节点比较" mobilePriority="center">
     <BusinessToolbarSegmented slot="center" label="非推广复盘视图" items={[

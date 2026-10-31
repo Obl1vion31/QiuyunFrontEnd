@@ -1,0 +1,26 @@
+{
+  "source": "User-approved E3",
+  "vectorizer": "Recraft",
+  "paths": 3,
+  "colors": [
+    "#173655",
+    "#28968d"
+  ],
+  "sourceBounds": {
+    "left": 550.8527221679688,
+    "top": 535.9058837890625,
+    "width": 1404.947021484375,
+    "height": 929.734130859375
+  },
+  "markSize": {
+    "width": 2048,
+    "height": 1408
+  },
+  "transparentMark": true,
+  "embeddedRaster": false,
+  "faviconSizes": [
+    16,
+    32,
+    48
+  ]
+}

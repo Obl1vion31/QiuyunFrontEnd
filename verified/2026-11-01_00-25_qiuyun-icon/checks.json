@@ -1,0 +1,374 @@
+{
+  "source": "User-approved E3; real built application; isolated PGlite; no production writes",
+  "alpha": {
+    "width": 2048,
+    "height": 1408,
+    "clear": 1824083,
+    "opaque": 1047285,
+    "corner": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "opening": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "checks": [
+    {
+      "role": "admin",
+      "path": "/",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/annual-plan",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/operations-schedule",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/daily-promotion-review",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/non-promotion-review",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/meeting-review",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/monthly-operations",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "path": "/business/settings",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/annual-plan",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/operations-schedule",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/daily-promotion-review",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/non-promotion-review",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/meeting-review",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/monthly-operations",
+      "icons": [
+        {
+          "rel": "icon",
+          "href": "/favicon.ico?v=20261101",
+          "sizes": "16x16 32x32 48x48"
+        },
+        {
+          "rel": "icon",
+          "href": "/favicon.svg?v=20261101",
+          "sizes": "any"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "href": "/apple-touch-icon.png?v=20261101",
+          "sizes": "180x180"
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "path": "/business/settings",
+      "status": 403,
+      "expected": "Admin-only page"
+    },
+    {
+      "asset": "/images/brand/qiuyun-mark.svg",
+      "status": 200,
+      "type": "image/svg+xml",
+      "bytes": 2677
+    },
+    {
+      "asset": "/images/brand/qiuyun-mark.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 87407
+    },
+    {
+      "asset": "/favicon.svg",
+      "status": 200,
+      "type": "image/svg+xml",
+      "bytes": 2737
+    },
+    {
+      "asset": "/favicon.ico",
+      "status": 200,
+      "type": "image/vnd.microsoft.icon",
+      "bytes": 3525
+    },
+    {
+      "asset": "/apple-touch-icon.png",
+      "status": 200,
+      "type": "image/png",
+      "bytes": 6722
+    }
+  ]
+}

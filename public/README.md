@@ -3,6 +3,7 @@
 本目录内容可按原路径被网站访问，只保存实际公开使用的资源。
 
 - `images/home/`：首页正式封面。
+- `images/brand/`：用户确认的湫云纯图标，公开 SVG 与透明 PNG；根目录的 SVG／ICO favicon 和 Apple 图标由同源图形生成。
 - `fonts/misans-5.0.0/`：工作台固定版 MiSans 可变字体、按需子集和原许可；账号菜单保留字体署名与许可入口。
 浏览器交互统一从 `src/scripts/` 打包，不在此复制控制器。
 

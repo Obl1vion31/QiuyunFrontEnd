@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "manifest": "manifest_BEBmw0TO.mjs",
+  "formalDomain": true,
+  "matchingNewAssets": [
+    "favicon.svg",
+    "favicon.ico",
+    "apple-touch-icon.png",
+    "images/brand/qiuyun-mark.svg",
+    "images/brand/qiuyun-mark.png"
+  ],
+  "privateFoldersExcluded": true,
+  "runtimeModules": true,
+  "chromiumBinaries": true
+}

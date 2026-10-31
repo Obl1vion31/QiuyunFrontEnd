@@ -1,5 +1,6 @@
 ---
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
@@ -10,7 +11,7 @@ import {shanghaiDateKey} from '../../db/promotion-rules.mjs';
 let query={month:shanghaiDateKey(new Date()).slice(0,7),subject:'',category:''},data:MonthlyOperations|null=null,error='';
 try{query=monthlyQuery(Astro.url.searchParams);data=await readMonthlyOperations(getDb(),query);}catch(e){console.error('monthly operations read failed',e);error='月度数据读取失败，请重试。';}
 ---
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="robots" content="noindex,nofollow"/><title>月度运营 · 内容工作台</title><BusinessConsoleFonts /></head><body>
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="robots" content="noindex,nofollow"/><title>月度运营 · 内容工作台</title><SiteIcons /><BusinessConsoleFonts /></head><body>
 <BusinessConsoleFrame active="monthly-operations"><BusinessConsoleToolbar title="月度运营" subtitle="执行进度 · 延期归因 · 推广投入" layout="title"><BusinessToolbarActions slot="end"><a href="/business/operations-schedule">排期管理 ↗</a></BusinessToolbarActions></BusinessConsoleToolbar>
 <BusinessMonthlyOperations client:load initial={data} query={query} error={error} followCurrentMonth={!Astro.url.searchParams.has('month')}/></BusinessConsoleFrame>
 </body></html>

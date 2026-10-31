@@ -1,6 +1,7 @@
 ---
 /** 静态总枢纽：首页数据统一来自 home.ts，首屏由 React Island 激活动效。 */
 import ContentTunnel from '../components/ContentTunnel';
+import SiteIcons from '../components/SiteIcons.astro';
 import { homeContent } from '../data/home';
 import '../styles/home.css';
 export const prerender = true;
@@ -16,6 +17,7 @@ const workflowTitle = workflow.title.replace('，', '，|').replace('持续', '|
     <meta name="theme-color" content="#0b1b2b" />
     <link rel="stylesheet" href="/fonts/misans-5.0.0/MiSansVF.css" />
     <title>{meta.title}</title>
+    <SiteIcons />
   </head>
   <body>
     <a class="skip-link" href="#workflow-title">跳到工作流</a>

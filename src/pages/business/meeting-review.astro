@@ -12,6 +12,7 @@ import BusinessFormDialog from '../../components/BusinessFormDialog.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import { businessDateTime } from '../../scripts/business-date';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
@@ -83,7 +84,7 @@ const latestCompletedWeekly=meetings.filter(m=>m.status==='completed'&&m.meeting
 const defaultStart=requestedFrom&&/^\d{4}-\d{2}-\d{2}$/.test(requestedFrom)&&requestedFrom<=defaultEnd?requestedFrom:latestCompletedWeekly?new Date(Date.parse(`${latestCompletedWeekly.periodEnd}T00:00:00Z`)+86400000).toISOString().slice(0,10):new Date(Date.parse(`${defaultEnd}T00:00:00Z`)-6*86400000).toISOString().slice(0,10);
 
 ---
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>{selected?.name??'例会总览'} · 内容发布控制台</title><BusinessConsoleFonts /></head><body>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>{selected?.name??'例会总览'} · 内容发布控制台</title><SiteIcons /><BusinessConsoleFonts /></head><body>
 <BusinessConsoleFrame active="meeting-review">
   <BusinessConsoleToolbar layout="title" title={selected?.name??'例会总览'} subtitle={selected ? `${selected.meetingType==='monthly'?'月例会':'周例会'} · ${editing?'会前 V0 · 草稿':`${(selectedVersion?.snapshot as any)?.finalizationStage==='pre'?'会前':(selectedVersion?.snapshot as any)?.finalizationStage==='post'?'会后':'已定稿'} V${selectedVersion?.versionNumber??0}${versionDraft?' · 草稿':''}`}` : '周例会、月例会与结论归档'}><BusinessToolbarActions slot="end">{selected?<a class="secondary" href="/business/meeting-review">返回例会总览</a>:<button data-open-create class="secondary">新建例会</button>}</BusinessToolbarActions></BusinessConsoleToolbar>
   <main class="business-console-content">{selectedVersion&&<header class="meeting-print-heading"><h1>{selected?.name}</h1><p>{selected?.periodStart}—{selected?.periodEnd} · V{selectedVersion.versionNumber} · {(selectedVersion.snapshot as any).finalizationStage==='post'?'会后定稿':'会前定稿'}</p></header>}{error && <p role="alert">{error}</p>}

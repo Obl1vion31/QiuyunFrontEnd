@@ -63,6 +63,8 @@ flowchart LR
 
 ## 共享界面接入
 
+站点图标统一在各 HTML 页面 head 中接入 `SiteIcons.astro`，沿用同一 SVG／ICO 与 Apple 图标及缓存版本。主图位于 `public/images/brand/`，SVG 为三个纯矢量路径，透明 PNG 和平台图标均由该源导出；不将文字稿或内嵌位图当作 SVG 交付。
+
 各工作台页面在head接入 `BusinessConsoleFonts`，不要在Frame正文后追加字体样式。`business-font-assets.ts` 从固定MiSans CSS与原始WOFF2切片生成静态 `business.js`／`business.css`。head内的普通脚本在正文解析前用二进制FontFace同步准备常用字形，其余由CSS按需读取；不手抄56份声明、不改二进制、unicode-range或字重。Frame直接使用原MiSans字体栈，不按首帧速度选择或锁定另一种字体；首页与PDF保留原入口。`BusinessScheduleNotifications` 的实时状态不占布局行，错误放回首条标签。`pnpm test:first-paint` 在等待fonts.ready之前记录早期画面和实际使用字体，补充最终稳定图检查。
 
 前端任务每次按此顺序接手：读 [DESIGN](DESIGN.md) → 检查下列真实例子和共享代码 → 通过 Props、插槽或业务适配器接入 → 执行[界面验收](../tests/README.md#界面一致性验收)。规则以 DESIGN 为准，此处只维护可直接定位的实例。

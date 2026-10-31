@@ -9,6 +9,7 @@ import BusinessPromotionStageView from '../../components/BusinessPromotionStageV
 import BusinessPromotionToolbar from '../../components/BusinessPromotionToolbar.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
@@ -216,7 +217,7 @@ const historyHref = (overrides: Record<string, string>) => {
     <meta name="robots" content="noindex,nofollow" />
     <meta name="description" content="填写推广帖日度数据，查看测试与放量生命周期。" />
     <title>Daily Promotion Review · 内容发布控制台</title>
-  <BusinessConsoleFonts /></head>
+  <SiteIcons /><BusinessConsoleFonts /></head>
   <body>
     <BusinessConsoleFrame active="daily-promotion">
         <BusinessPromotionToolbar history={activeView==='history'} />
