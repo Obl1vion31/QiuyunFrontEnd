@@ -1,6 +1,6 @@
 # 网页内湫云品牌图标
 
-按确认计划将E3原色图形接入首页左上、页脚、登录左上和共享侧栏。深色区域使用浅底板，浅色侧栏保持透明；36px常规、24px页脚，与文字间距8px。当前本机功能与视觉自检通过，正式发布结果核对后补齐。
+按确认计划将E3原色图形接入首页左上、页脚、登录左上和共享侧栏。深色区域使用浅底板，浅色侧栏保持透明；36px常规、24px页脚，与文字间距8px。已自检并发布正式站。
 
 ## 实际效果
 
@@ -15,6 +15,8 @@
 
 以上19张稳定截图均已实际查看。图形、文字和底板中线协调，320px登录品牌与返回操作仍有间距；原侧栏提醒和导航起点保持，手机继续隐藏侧栏品牌区。
 
+正式站另实查四图：[首页1440px](screenshots/public-home-1440.png)、[页脚1440px](screenshots/public-footer-1440.png)、[登录1440px](screenshots/public-login-1440.png)、[登录320px](screenshots/public-login-320.png)，均已实际查看。本批共23张稳定截图，工作台业务图使用隔离账号。
+
 ## 验证与过程
 
 - [专项记录](checks.json)：15个页面／角色／宽度场景，13组与修改前`270f6fa`的[实际布局](baseline.json)比较，顶栏、正文、登录表单、品牌区及导航误差不超过1px。
@@ -24,3 +26,9 @@
 - 233项规则、`db:check`、`pnpm build`类型检查及Node构建、现有`test:ui`四档公共布局／交互通过。Vercel构建、[正式来源预检](preflight.json)及[实际运行包中文PDF](bundle-check.json)通过；首页SSR含两处图形，未新增图标客户端岛，原资源逐字节一致。
 
 数据来自用户确认的现有SVG、真实构建与隔离PGlite虚构账号／空会议列表；SVG和PNG原文件未改动。原始调试与逐帧图位于`.tools/test-artifacts/brand-placement/`。
+
+## 正式发布
+
+- 应用实现`f26253fde487b1fdb4dc024c96c6b7b3d0800a34`，工作分支`codex/qiuyun-brand-placement`。
+- 部署`dpl_HuhCyPfwrfUppjyMHtkjJv9gsmdK`，[正式站](https://qiuyun-frontend.vercel.app)。11项[候选检查](candidate.json)与105项[正式核对](public-smoke.json)通过，77个资源哈希一致。
+- 首页SSR含两处图形、登录含一处；登录保护、同源表单401、外站403及私有路径404均通过。无生产业务写入或结构迁移。

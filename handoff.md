@@ -2,6 +2,12 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
+## 网页内湫云品牌图标（2026-11-01）
+
+- 静态`QiuyunMark`复用原SVG，首页左上／页脚、登录左上及所有工作台共享侧栏接入；深底浅色底板、侧栏透明，36／24px。登录和侧栏品牌文字改为QIUYUN，原字体、顶栏、侧栏高度与手机导航保持；无新客户端岛或接口。
+- 233项规则、db:check、Node／Vercel类型检查构建、首页／公共UI及运行包中文PDF通过。13组修改前布局对照、15组场景、双角色11次跨页、慢图片／刷新／键盘均通过；23张本机／正式截图与两段录像连续帧已实际查看：[验收索引](verified/2026-11-01_00-45_brand-placement/README.md)。业务验证仅隔离PGlite，无结构迁移。
+- 应用实现`f26253f`，部署`dpl_HuhCyPfwrfUppjyMHtkjJv9gsmdK`；11项候选及105项正式核对通过，77资源哈希一致。分支`codex/qiuyun-brand-placement`，按持续授权同步main。
+
 ## 湫云纯图标与全站 favicon（2026-11-01）
 
 - 用户确认的E3云形翻转带已制为三路径透明SVG与2048×1408透明PNG，公开位于`/images/brand/qiuyun-mark.svg`及同名PNG；无文字、编号或内嵌位图。首页、登录及七个业务页共用`SiteIcons`，SVG／ICO与Apple图标同源导出，小尺寸用白底保证深浅主题可读。

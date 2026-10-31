@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "deployment": "https://qiuyun-frontend-ik0fp0nkv-opgobl1v-5358.vercel.app",
+  "sourceCommit": "f26253fde487b1fdb4dc024c96c6b7b3d0800a34",
+  "checkedAt": "2026-10-31T16:54:09.421Z",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/business/operations-schedule",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/business/monthly-operations",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/api/promotion-daily",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200,
+      "expected": 200,
+      "sha256": "7e4037a482f485c7c51078e68c7ed097c85343f80da410a882c3ca67d56e3ad9"
+    },
+    {
+      "path": "/favicon.ico",
+      "status": 200,
+      "expected": 200,
+      "sha256": "df971905a5ccfaecf60e32aec60177e273d7869c613b8d4243a1e29276c02903"
+    },
+    {
+      "path": "/apple-touch-icon.png",
+      "status": 200,
+      "expected": 200,
+      "sha256": "108eb26305ac7a2bbdc40313020d368add07a1e3a798117e3a1ca3952a9ac27f"
+    },
+    {
+      "path": "/images/brand/qiuyun-mark.svg",
+      "status": 200,
+      "expected": 200,
+      "sha256": "d5be11f76530c5c046a8cc516e0921a57d5961c30a97f243aba4317a521c27c7"
+    },
+    {
+      "path": "/images/brand/qiuyun-mark.png",
+      "status": 200,
+      "expected": 200,
+      "sha256": "dc60f4e938ac17d4b40623767908a3fca29ebfa540d8c3dc014dac47d1b57614"
+    }
+  ]
+}
