@@ -1,5 +1,7 @@
 # 表格边界、例会排版、悬浮工具与账号登录
 
+更正（2026-10-31）：本批例会记录表的局部对齐／列宽检查不足以证明阅读层级合理，六列分散信息、维护操作主导行高的视觉结论不再沿用。旧证据保留；[紧凑会议列表与新验收](../2026-10-31_17-28_compact-meetings/README.md)。
+
 状态：已自检并发布，待用户反馈。数据来自隔离测试库，未在正式库创建演示账号或业务记录。
 
 - [分类展开，1920px](categories/category-open-1920.png) · [多个分类，1440px](categories/category-multiple-1440.png) · [390px](categories/category-open-390.png) · [320px滚到右侧](categories/category-right-320.png) · [Inspector](categories/category-inspector-1440.png)

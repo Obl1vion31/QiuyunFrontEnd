@@ -1,0 +1,51 @@
+
+> qiuyun-frontend-system@0.1.0 test:data-ui /home/obl1vion/projects/qiuyunFrontend
+> node --import tsx tests/initial-arrangement.browser.ts && node --import tsx tests/data-interface.browser.ts
+
+12:00:00 [@astrojs/node] Server listening on http://127.0.0.1:33313
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.selectOption: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-review-record][data-review-post="d9421568-63c8-4307-b0a4-b9df4cb23292"]').filter({ has: locator('[data-initial-row],[data-metric-form]') }).locator('.review-initial-next').locator('[name=nextDecision]')[22m
+[2m    - locator resolved to <select disabled required="" aria-label="次日安排" name="nextDecision" data-lock-disabled="true">…</select>[22m
+[2m  - attempting select option action[22m
+[2m    2 × waiting for element to be visible and enabled[22m
+[2m      - element is not enabled[22m
+[2m    - retrying select option action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible and enabled[22m
+[2m      - element is not enabled[22m
+[2m    - retrying select option action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible and enabled[22m
+[2m       - element is not enabled[22m
+[2m     - retrying select option action[22m
+[2m       - waiting 500ms[22m
+
+    at <anonymous> (/home/obl1vion/projects/qiuyunFrontend/tests/initial-arrangement.browser.ts:56:45) {
+  log: [
+    `  - waiting for locator('[data-review-record][data-review-post="d9421568-63c8-4307-b0a4-b9df4cb23292"]').filter({ has: locator('[data-initial-row],[data-metric-form]') }).locator('.review-initial-next').locator('[name=nextDecision]')`,
+    '    - locator resolved to <select disabled required="" aria-label="次日安排" name="nextDecision" data-lock-disabled="true">…</select>',
+    '  - attempting select option action',
+    '    2 × waiting for element to be visible and enabled',
+    '      - element is not enabled',
+    '    - retrying select option action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible and enabled',
+    '      - element is not enabled',
+    '    - retrying select option action',
+    '      - waiting 100ms',
+    '    19 × waiting for element to be visible and enabled',
+    '       - element is not enabled',
+    '     - retrying select option action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.3
+ ELIFECYCLE  Command failed with exit code 1.

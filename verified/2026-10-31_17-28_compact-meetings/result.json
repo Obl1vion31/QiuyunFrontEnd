@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "checks": [
+    "五档单条列表与菜单：公共边界、文字起点、完整时间、手机重排、键盘返回及实际MiSans",
+    "五档混合状态：长标题、初始草稿、V4草稿/V3PDF、会前讨论、历史与失效只读、手动附件",
+    "管理员删除取消/真实删除原位更新，员工无删除入口",
+    "桌面/手机冷启动与刷新、菜单键盘、故障注入、真实PDF重试及真实手动附件上传录像"
+  ],
+  "measurements": [
+    {
+      "width": 1920,
+      "height": 92,
+      "scroll": 1623,
+      "client": 1623,
+      "left": 0,
+      "right": 0,
+      "anchor": 0,
+      "actionsBelow": false,
+      "actionRight": 1860,
+      "rowRight": 1880,
+      "font": "15px"
+    },
+    {
+      "width": 1440,
+      "height": 92,
+      "scroll": 1143,
+      "client": 1143,
+      "left": 0,
+      "right": 0,
+      "anchor": 0,
+      "actionsBelow": false,
+      "actionRight": 1380,
+      "rowRight": 1400,
+      "font": "15px"
+    },
+    {
+      "width": 1024,
+      "height": 125,
+      "scroll": 727,
+      "client": 727,
+      "left": 0,
+      "right": 0,
+      "anchor": 0,
+      "actionsBelow": true,
+      "actionRight": 964,
+      "rowRight": 984,
+      "font": "15px"
+    },
+    {
+      "width": 390,
+      "height": 177,
+      "scroll": 353,
+      "client": 353,
+      "left": 0,
+      "right": 0,
+      "anchor": 0,
+      "actionsBelow": true,
+      "actionRight": 352,
+      "rowRight": 364,
+      "font": "15px"
+    },
+    {
+      "width": 320,
+      "height": 203,
+      "scroll": 283,
+      "client": 283,
+      "left": 0,
+      "right": 0,
+      "anchor": 0,
+      "actionsBelow": true,
+      "actionRight": 282,
+      "rowRight": 294,
+      "font": "15px"
+    }
+  ],
+  "fonts": [
+    {
+      "familyName": "MiSans VF",
+      "postScriptName": "MiSansVF",
+      "isCustomFont": true,
+      "glyphCount": 23
+    }
+  ],
+  "errors": []
+}

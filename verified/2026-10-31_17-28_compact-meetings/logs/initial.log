@@ -1,0 +1,46 @@
+12:00:00 [@astrojs/node] Server listening on http://127.0.0.1:35495
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 10000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-review-record][data-review-post="0a7c8b2a-4a81-4ac7-8d28-9dc4029d6562"]').filter({ has: locator('[data-initial-row],[data-metric-form]') }).locator('.review-initial-next').locator('[type=submit]')[22m
+[2m    - locator resolved to <button disabled type="submit" data-loading-label="保存中" data-lock-disabled="true" class="business-action-primary review-submit">保存</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not enabled[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    19 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not enabled[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+    at <anonymous> (/home/obl1vion/projects/qiuyunFrontend/tests/initial-arrangement.browser.ts:68:39) {
+  log: [
+    `  - waiting for locator('[data-review-record][data-review-post="0a7c8b2a-4a81-4ac7-8d28-9dc4029d6562"]').filter({ has: locator('[data-initial-row],[data-metric-form]') }).locator('.review-initial-next').locator('[type=submit]')`,
+    '    - locator resolved to <button disabled type="submit" data-loading-label="保存中" data-lock-disabled="true" class="business-action-primary review-submit">保存</button>',
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '      - waiting 100ms',
+    '    19 × waiting for element to be visible, enabled and stable',
+    '       - element is not enabled',
+    '     - retrying click action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.3

@@ -2,7 +2,7 @@
 
 ## 公网托管
 
-正式入口：[内容工作台](https://qiuyun-frontend.vercel.app)。Vercel 项目为 `qiuyun-frontend`，与 Formward 使用同一账号、独立配置；当前通过 CLI 发布，Git 推送不自动部署。用户已于 2026-10-23 持续授权：修改完成必要测试与视觉自检后直接发布并核对结果，无需每轮再次确认，直到用户通知变更；合入 main 仍独立确认。
+正式入口：[内容工作台](https://qiuyun-frontend.vercel.app)。Vercel 项目为 `qiuyun-frontend`，与 Formward 使用同一账号、独立配置；当前通过 CLI 发布，Git 推送不自动部署。用户已于 2026-10-23 持续授权：修改完成必要测试与视觉自检后直接发布并核对结果，无需每轮再次确认，直到用户通知变更；用户于2026-10-31进一步授权，通过必要测试与视觉自检后可直接同步并推送 main，推送前核对远端并保留无关修改。
 
 Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` 和 `ENABLE_EXPERIMENTAL_COREPACK=1`。数据库连接与认证密钥设为 Secret；认证 URL 使用正式 HTTPS 根地址。本机 `.env` 保留本机 URL，预览环境不连接共享业务库。
 
