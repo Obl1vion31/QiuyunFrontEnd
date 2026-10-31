@@ -2,6 +2,12 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
+## 湫云纯图标与全站 favicon（2026-11-01）
+
+- 用户确认的E3云形翻转带已制为三路径透明SVG与2048×1408透明PNG，公开位于`/images/brand/qiuyun-mark.svg`及同名PNG；无文字、编号或内嵌位图。首页、登录及七个业务页共用`SiteIcons`，SVG／ICO与Apple图标同源导出，小尺寸用白底保证深浅主题可读。
+- 233项规则、db:check、公共UI、Node／Vercel类型检查构建、运行包中文PDF通过；16至96px与1440／390px九张本机／正式截图已实际查看，[验收索引](verified/2026-11-01_00-25_qiuyun-icon/README.md)。图标专项使用隔离PGlite，无生产业务写入或结构迁移。
+- 应用实现`281ac6b`，部署`dpl_4ZWVyjuhdSCswk8PKFNy7xLohWZD`；11项候选及104项正式核对通过，76资源哈希一致。工作分支`codex/qiuyun-cloud-icon`，按持续授权同步main。
+
 ## 例会总览紧凑会议列表（2026-10-31）
 
 - 总览及两层折叠历史改为共享白底紧凑记录，名称／版本／状态优先，时间集中；查看／下载直接可用，维护动作放入公共“更多”，长附件名独立换行。V4草稿与V3 PDF来源、继续草稿、进入讨论及管理员初始删除保留；原MiSans、接口和权限不变。设计规范、接入实例及旧图库结论已同步。
