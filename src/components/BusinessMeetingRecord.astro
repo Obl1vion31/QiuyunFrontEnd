@@ -1,0 +1,22 @@
+---
+interface Props {
+  meetingId: string;
+  href: string;
+  title: string;
+  version?: string;
+  status: string;
+  hasActions: boolean;
+  invalidated?: boolean;
+}
+const {meetingId,href,title,version,status,hasActions,invalidated=false}=Astro.props;
+---
+<article class:list={["meeting-record",{"meeting-record--invalidated":invalidated}]} data-meeting-record data-meeting-id={meetingId}>
+  <div class="meeting-record__body">
+    <header class="meeting-record__heading">
+      <div class="meeting-record__identity"><a class="meeting-name" href={href} title={title}>{title}{version&&<span class="meeting-record__version"> · {version}</span>}</a></div>
+      <span class="meeting-record__status">{status}</span>
+    </header>
+    <div class="meeting-record__metadata"><slot /></div>
+  </div>
+  {hasActions&&<div class="meeting-record__actions"><slot name="actions" /></div>}
+</article>

@@ -9,8 +9,8 @@ function initialize(){
     if(!active?.matches(':popover-open')||!trigger)return;
     const anchor=trigger.getBoundingClientRect(),group=trigger.closest<HTMLElement>('[data-business-popover]')!,card=group.dataset.popoverBoundary?trigger.closest(group.dataset.popoverBoundary)?.getBoundingClientRect():null;
     if(anchor.bottom<0||anchor.top>innerHeight||!trigger.getClientRects().length){active.hidePopover();return;}
-    const info=group.dataset.popoverKind==='reference';
-    const width=Math.min(info?Math.min(340,card?card.width-32:340):card?card.width-32:340,innerWidth-24),below=innerHeight-anchor.bottom-20,above=anchor.top-20;
+    const info=group.dataset.popoverKind==='reference',menu=group.dataset.popoverKind==='actions';
+    const width=Math.min(menu?176:info?Math.min(340,card?card.width-32:340):card?card.width-32:340,innerWidth-24),below=innerHeight-anchor.bottom-20,above=anchor.top-20;
     const up=below<160&&above>below,available=Math.max(0,up?above:below);
     active.style.width=width+'px';active.style.maxHeight=Math.min(360,available)+'px';
     const left=card?(info?Math.max(card.left+16,Math.min(anchor.left,card.right-16-width)):card.left+16):anchor.left;

@@ -62,7 +62,7 @@ try{
   assert.equal(meetings[0].name,'2026.10.17—10.22 周度业务复盘');
   checks.push('真实拆分表单成功创建并进入会议；连续提交仅写一次；23:00正确存为上海时间；空标题自动生成');
   await page.getByRole('link',{name:'返回例会总览',exact:true}).click();
-  await page.locator('.meeting-ledger tbody td').filter({hasText:'2026-10-24 23:00'}).waitFor();
+  await page.locator('[data-meeting-list] .meeting-record__metadata').filter({hasText:'2026-10-24 23:00'}).waitFor();
   await page.screenshot({path:folder+'/overview-created-1440.png'});
   assert.deepEqual(errors,[]);
   await writeFile(folder+'/checks.json',JSON.stringify({checks,errors,requests,scope:'真实组件；隔离PGlite、虚构会议；桌面1440px'},null,2));
