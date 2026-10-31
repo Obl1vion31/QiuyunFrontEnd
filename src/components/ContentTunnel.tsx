@@ -2,6 +2,7 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import type { CoverItem, WorkflowStage } from '../data/home';
 import { attachHomeMotion } from '../scripts/home-motion';
+import QiuyunMark from './QiuyunMark';
 import styles from './ContentTunnel.module.css';
 interface Props {
   covers: CoverItem[]; stages: WorkflowStage[]; eyebrow: string; title: string[];
@@ -26,7 +27,7 @@ export default function ContentTunnel(props: Props) {
     <section ref={section} className={styles.hero} aria-labelledby="page-title" data-home-hero>
       <div className={styles.frame} data-home-frame>
         <header className={`${styles.masthead} shell`}>
-          <a className={styles.wordmark} href="/">QIUYUN <span>/</span> FRONTEND</a>
+          <a className={styles.wordmark} href="/" aria-label="湫云 · 内容工作台首页"><QiuyunMark surface="tile" /><span className={styles.wordmarkText}>QIUYUN <span>/</span> FRONTEND</span></a>
           <span className={styles.context}>CONTENT WORKSPACE</span>
           <a className={styles.login} href="/login">登录工作台 <span aria-hidden="true">↗</span></a>
         </header>

@@ -2,6 +2,7 @@
 /** 静态总枢纽：首页数据统一来自 home.ts，首屏由 React Island 激活动效。 */
 import ContentTunnel from '../components/ContentTunnel';
 import SiteIcons from '../components/SiteIcons.astro';
+import QiuyunMark from '../components/QiuyunMark';
 import { homeContent } from '../data/home';
 import '../styles/home.css';
 export const prerender = true;
@@ -64,7 +65,7 @@ const workflowTitle = workflow.title.replace('，', '，|').replace('持续', '|
           </div>
         </section>
       </div>
-      <footer><div class="shell"><span>QIUYUN FRONTEND</span><span>最后更新 {meta.updatedAt}</span></div></footer>
+      <footer><div class="shell"><a class="footer-brand" href="/" aria-label="湫云 · 返回首页"><QiuyunMark size={24} surface="tile" /><span>QIUYUN FRONTEND</span></a><span>最后更新 {meta.updatedAt}</span></div></footer>
     </main>
   </body>
 </html>

@@ -46,6 +46,8 @@ try {
     let geometry:any;
     for(const path of ['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','settings']) {
       await page.goto(baseURL+'/business/'+path+(path==='settings'?'?view=permissions':''));await page.locator('.business-toolbar').waitFor();
+      const brand=page.locator('.business-sidebar__brand');assert.equal(await brand.getAttribute('href'),'/');assert.match(await brand.innerText(),/QIUYUN/);assert.equal(await brand.isVisible(),width>900);
+      assert(await brand.locator('[data-qiuyun-mark]').evaluate((node:HTMLImageElement)=>node.complete&&node.naturalWidth>0),'侧栏共享品牌图形实际加载');
       const entry=page.locator(width>900?'.business-assistant-entry--sidebar':'.business-account--toolbar [data-account-trigger]');assert.ok(await entry.isVisible());assert.equal(await page.locator('.business-tools,[data-tools-trigger]').count(),0);
       const shell=await page.locator('.business-console-workspace').evaluate((n:HTMLElement)=>({padding:getComputedStyle(n).paddingRight,width:n.getBoundingClientRect().width,toolbar:n.querySelector('.business-toolbar')!.getBoundingClientRect().width}));assert.equal(shell.padding,'0px');assert.ok(Math.abs(shell.width-shell.toolbar)<=1,'正文不预留助手轨道');
       await openPostLookup(page);assert.equal(await page.locator('.assistant-capabilities button:disabled').count(),3);assert.deepEqual(await page.locator('.assistant-capabilities button>span').allTextContents(),['找功能','AI 录入','数据导出']);await page.keyboard.press('Escape');await page.locator('[data-post-lookup]').waitFor({state:'hidden'});

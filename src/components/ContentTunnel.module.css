@@ -42,10 +42,16 @@
   letter-spacing:.13em
 }
 .wordmark {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
   text-decoration:none;
   white-space:nowrap
 }
-.wordmark span {
+.wordmarkText {
+  display:block
+}
+.wordmarkText span {
   color:var(--coral);
   padding:0 8px
 }

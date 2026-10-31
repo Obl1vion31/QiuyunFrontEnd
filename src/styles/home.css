@@ -235,6 +235,12 @@ footer>.shell {
   align-items:center;
   height:64px
 }
+.footer-brand {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  text-decoration:none
+}
 .section-heading h2>span {
   display:contents
 }

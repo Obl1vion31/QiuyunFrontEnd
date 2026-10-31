@@ -1,0 +1,416 @@
+{
+  "source": "270f6fa",
+  "viewports": {
+    "home-1920": {
+      "header": {
+        "x": 370,
+        "y": 0,
+        "width": 1180,
+        "height": 72,
+        "display": "flex"
+      },
+      "[data-home-copy]": {
+        "x": 370,
+        "y": 126,
+        "width": 1180,
+        "height": 353.921875,
+        "display": "grid"
+      },
+      "[data-home-copy] h1": {
+        "x": 370,
+        "y": 160.5,
+        "width": 567,
+        "height": 184.78125,
+        "display": "block"
+      },
+      "[data-home-rail]": {
+        "x": 370,
+        "y": 806.5,
+        "width": 1180,
+        "height": 62.5,
+        "display": "grid"
+      },
+      "footer>.shell": {
+        "x": 370,
+        "y": 1823.953125,
+        "width": 1180,
+        "height": 64,
+        "display": "flex"
+      }
+    },
+    "login-1920": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 76,
+        "display": "flex"
+      },
+      "section[aria-labelledby=\"login-title\"]": {
+        "x": 730,
+        "y": 235.0625,
+        "width": 460,
+        "height": 505.859375,
+        "display": "block"
+      }
+    },
+    "home-1440": {
+      "header": {
+        "x": 130,
+        "y": 0,
+        "width": 1180,
+        "height": 72,
+        "display": "flex"
+      },
+      "[data-home-copy]": {
+        "x": 130,
+        "y": 126,
+        "width": 1180,
+        "height": 353.921875,
+        "display": "grid"
+      },
+      "[data-home-copy] h1": {
+        "x": 130,
+        "y": 160.5,
+        "width": 567,
+        "height": 184.78125,
+        "display": "block"
+      },
+      "[data-home-rail]": {
+        "x": 130,
+        "y": 806.5,
+        "width": 1180,
+        "height": 62.5,
+        "display": "grid"
+      },
+      "footer>.shell": {
+        "x": 130,
+        "y": 1823.953125,
+        "width": 1180,
+        "height": 64,
+        "display": "flex"
+      }
+    },
+    "login-1440": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 76,
+        "display": "flex"
+      },
+      "section[aria-labelledby=\"login-title\"]": {
+        "x": 490,
+        "y": 235.0625,
+        "width": 460,
+        "height": 505.859375,
+        "display": "block"
+      }
+    },
+    "home-1024": {
+      "header": {
+        "x": 48,
+        "y": 0,
+        "width": 928,
+        "height": 72,
+        "display": "flex"
+      },
+      "[data-home-copy]": {
+        "x": 48,
+        "y": 126,
+        "width": 928,
+        "height": 303.515625,
+        "display": "grid"
+      },
+      "[data-home-copy] h1": {
+        "x": 48,
+        "y": 160.5,
+        "width": 461.984375,
+        "height": 134.375,
+        "display": "block"
+      },
+      "[data-home-rail]": {
+        "x": 48,
+        "y": 806.5,
+        "width": 928,
+        "height": 62.5,
+        "display": "grid"
+      },
+      "footer>.shell": {
+        "x": 48,
+        "y": 1813.578125,
+        "width": 928,
+        "height": 64,
+        "display": "flex"
+      }
+    },
+    "login-1024": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 76,
+        "display": "flex"
+      },
+      "section[aria-labelledby=\"login-title\"]": {
+        "x": 282,
+        "y": 235.0625,
+        "width": 460,
+        "height": 505.859375,
+        "display": "block"
+      }
+    },
+    "login-390": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "display": "flex"
+      },
+      "section[aria-labelledby=\"login-title\"]": {
+        "x": 20,
+        "y": 241.015625,
+        "width": 350,
+        "height": 481.96875,
+        "display": "block"
+      }
+    },
+    "login-320": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 64,
+        "display": "flex"
+      },
+      "section[aria-labelledby=\"login-title\"]": {
+        "x": 20,
+        "y": 220.21875,
+        "width": 280,
+        "height": 523.546875,
+        "display": "block"
+      }
+    },
+    "workspace-1920": {
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1673,
+        "height": 72,
+        "display": "grid"
+      },
+      ".business-sidebar": {
+        "x": 0,
+        "y": 0,
+        "width": 232,
+        "height": 900,
+        "display": "flex"
+      },
+      ".business-sidebar__brand": {
+        "x": 12,
+        "y": 18,
+        "width": 207,
+        "height": 66.578125,
+        "display": "grid"
+      },
+      ".business-sidebar__nav": {
+        "x": 12,
+        "y": 198.578125,
+        "width": 207,
+        "height": 396.171875,
+        "display": "grid"
+      },
+      ".business-sidebar__nav a": {
+        "x": 12,
+        "y": 217.96875,
+        "width": 207,
+        "height": 42,
+        "display": "grid"
+      },
+      ".business-toolbar": {
+        "x": 232,
+        "y": 0,
+        "width": 1673,
+        "height": 72,
+        "display": "grid"
+      }
+    },
+    "workspace-1440": {
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 1193,
+        "height": 72,
+        "display": "grid"
+      },
+      ".business-sidebar": {
+        "x": 0,
+        "y": 0,
+        "width": 232,
+        "height": 900,
+        "display": "flex"
+      },
+      ".business-sidebar__brand": {
+        "x": 12,
+        "y": 18,
+        "width": 207,
+        "height": 66.578125,
+        "display": "grid"
+      },
+      ".business-sidebar__nav": {
+        "x": 12,
+        "y": 198.578125,
+        "width": 207,
+        "height": 396.171875,
+        "display": "grid"
+      },
+      ".business-sidebar__nav a": {
+        "x": 12,
+        "y": 217.96875,
+        "width": 207,
+        "height": 42,
+        "display": "grid"
+      },
+      ".business-toolbar": {
+        "x": 232,
+        "y": 0,
+        "width": 1193,
+        "height": 72,
+        "display": "grid"
+      }
+    },
+    "workspace-1024": {
+      "header": {
+        "x": 232,
+        "y": 0,
+        "width": 777,
+        "height": 72,
+        "display": "grid"
+      },
+      ".business-sidebar": {
+        "x": 0,
+        "y": 0,
+        "width": 232,
+        "height": 900,
+        "display": "flex"
+      },
+      ".business-sidebar__brand": {
+        "x": 12,
+        "y": 18,
+        "width": 207,
+        "height": 66.578125,
+        "display": "grid"
+      },
+      ".business-sidebar__nav": {
+        "x": 12,
+        "y": 198.578125,
+        "width": 207,
+        "height": 396.171875,
+        "display": "grid"
+      },
+      ".business-sidebar__nav a": {
+        "x": 12,
+        "y": 217.96875,
+        "width": 207,
+        "height": 42,
+        "display": "grid"
+      },
+      ".business-toolbar": {
+        "x": 232,
+        "y": 0,
+        "width": 777,
+        "height": 72,
+        "display": "grid"
+      }
+    },
+    "workspace-390": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 62,
+        "display": "grid"
+      },
+      ".business-sidebar": {
+        "x": 0,
+        "y": 834,
+        "width": 375,
+        "height": 66,
+        "display": "block"
+      },
+      ".business-sidebar__brand": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "display": "none"
+      },
+      ".business-sidebar__nav": {
+        "x": 8,
+        "y": 841,
+        "width": 359,
+        "height": 53,
+        "display": "grid"
+      },
+      ".business-sidebar__nav a": {
+        "x": 8,
+        "y": 841,
+        "width": 58.15625,
+        "height": 54,
+        "display": "grid"
+      },
+      ".business-toolbar": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 62,
+        "display": "grid"
+      }
+    },
+    "workspace-320": {
+      "header": {
+        "x": 0,
+        "y": 0,
+        "width": 305,
+        "height": 62,
+        "display": "grid"
+      },
+      ".business-sidebar": {
+        "x": 0,
+        "y": 834,
+        "width": 305,
+        "height": 66,
+        "display": "block"
+      },
+      ".business-sidebar__brand": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "display": "none"
+      },
+      ".business-sidebar__nav": {
+        "x": 8,
+        "y": 841,
+        "width": 289,
+        "height": 53,
+        "display": "grid"
+      },
+      ".business-sidebar__nav a": {
+        "x": 8,
+        "y": 841,
+        "width": 46.5,
+        "height": 54,
+        "display": "grid"
+      },
+      ".business-toolbar": {
+        "x": 0,
+        "y": 0,
+        "width": 305,
+        "height": 62,
+        "display": "grid"
+      }
+    }
+  }
+}

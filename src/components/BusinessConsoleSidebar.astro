@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import BusinessAccountMenu from './BusinessAccountMenu.astro';
 import BusinessScheduleNotifications from './BusinessScheduleNotifications.astro';
 import BusinessAssistantEntry from './BusinessAssistantEntry.astro';
+import QiuyunMark from './QiuyunMark';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
@@ -36,9 +37,9 @@ const iconPaths = {
 ---
 <ClientRouter fallback="swap" />
 <aside class="business-sidebar" transition:persist="business-console-sidebar" data-business-console-sidebar data-account-role={Astro.locals.user?.role}>
-  <a class="business-sidebar__brand" href="/" data-astro-reload>
-    <span>OPERATIONS</span>
-    <strong>内容发布控制台</strong>
+  <a class="business-sidebar__brand" href="/" data-astro-reload aria-label="湫云 · 内容发布控制台 · 返回首页">
+    <QiuyunMark />
+    <div class="business-sidebar__brand-copy"><span>QIUYUN</span><strong>内容发布控制台</strong></div>
   </a>
 
   <BusinessScheduleNotifications />
@@ -204,7 +205,7 @@ const iconPaths = {
 <style>
   .business-sidebar,.business-sidebar *{box-sizing:border-box}
   .business-sidebar{position:sticky;top:0;width:232px;height:100vh;z-index:20;display:flex;flex-direction:column;padding:18px 12px 14px;color:#17211c;background:#e7ece8;border-right:1px solid #c9d1cc;font-family:var(--console-font);font-size:16px;line-height:1.2}
-  .business-sidebar__brand{display:grid;gap:3px;padding:8px 10px 22px;color:inherit;text-decoration:none}.business-sidebar__brand span{color:#4e6b5b;font:600 var(--console-caption)/1.2 var(--console-font);letter-spacing:.14em;font-variant-numeric:tabular-nums}.business-sidebar__brand strong{font-size:1rem;line-height:1.2;letter-spacing:-.02em}
+  .business-sidebar__brand{display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;gap:8px;padding:8px 10px 22px;color:inherit;text-decoration:none}.business-sidebar__brand-copy{min-width:0;display:grid;gap:3px}.business-sidebar__brand span{color:#4e6b5b;font:600 var(--console-caption)/1.2 var(--console-font);letter-spacing:.14em;font-variant-numeric:tabular-nums}.business-sidebar__brand strong{font-size:1rem;line-height:1.2;letter-spacing:-.02em}
   .business-sidebar__nav{display:grid;align-content:start;gap:14px;min-height:0;overflow-y:auto}.business-sidebar__group{display:grid;gap:5px}.business-sidebar__group h2{margin:0;padding:0 10px;color:#68736d;font-size:var(--console-caption);line-height:1.2;font-weight:600}.business-sidebar__group>div{display:grid;gap:4px}
   .business-sidebar__nav a,.business-sidebar__planned,.business-sidebar__settings{position:relative;display:grid;grid-template-columns:18px minmax(0,1fr);align-items:center;gap:10px;min-height:42px;padding:6px 10px;border-radius:10px;color:inherit;text-decoration:none;outline:none;transition:background-color 120ms ease,color 120ms ease,transform 70ms ease}
   @media(min-width:901px){.business-sidebar__nav a[data-has-presence]{grid-template-columns:18px minmax(0,1fr) auto;gap:8px}}

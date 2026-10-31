@@ -61,7 +61,7 @@ pnpm build
 | `verified/` | 按时间归档的最终视觉截图与查看索引，不进入网站部署 |
 | `.tools/` | 被忽略的本机工具、原始测试产物和私有备份 |
 
-全站使用用户确认的湫云纯图形图标；[SVG 矢量源](public/images/brand/qiuyun-mark.svg)与[透明 PNG](public/images/brand/qiuyun-mark.png)公开下载，首页、登录与工作台共用站点图标引用。
+全站使用用户确认的湫云纯图形图标；[SVG 矢量源](public/images/brand/qiuyun-mark.svg)与[透明 PNG](public/images/brand/qiuyun-mark.png)公开下载，首页、登录与工作台共用站点图标引用，网页品牌区通过静态`QiuyunMark`复用原图。
 
 ## 日常使用与发布
 
