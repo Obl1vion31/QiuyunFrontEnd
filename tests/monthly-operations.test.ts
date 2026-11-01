@@ -6,6 +6,35 @@ const post=(id:string,planned='2026-10-01T10:00:00+08:00',actual:string|null=nul
 const campaign=(id:string,scheduleId=id,extra={})=>({id,scheduleId,startedOn:'2026-10-01',dailyReviewEnabledOn:'2026-10-01',endedOn:null,initialStage:'testing',currentStage:'testing',currentStatus:'testing',...extra});
 const fact=(id:string,campaignId:string,metricDate:string,spend='10',extra={})=>({id,campaignId,metricDate,spend,stageTypeSnapshot:'testing',dailyStatus:'active',actualStatusSnapshot:'testing',platformOpenCount:1,actualOpenCount:1,platformLeadCount:1,actualLeadCount:1,reviewDecision:'test_continue',note:null,recordKind:'regular',sourceStageStartedOn:'2026-10-01',...extra});
 function source(posts:any[]=[],campaigns:any[]=[],metrics:any[]=[],extra:any={}){return {posts,history:[],reasons:[],metrics,context:{campaigns,metrics,stateChanges:[],meetingDecisions:[],pauses:[],targets:[],holds:[],waitRanges:[]},taxonomy:{subjects:[],postCategories:[],subjectCategoryMappings:[]},...extra} as Parameters<typeof buildMonthlyOperations>[0];}
+const delayReason=(scheduleId:string,responsibility:string,dayNumber=1,planRevision=1)=>({scheduleId,planRevision,dayNumber,dueAt:now,responsibility,reason:'隔离归因样本',changedByLabel:'test_admin'});
+
+test('全部7/25与运营2/25共用已发布分母，未登记运营原因不混入延期发布',()=>{
+ const posts=Array.from({length:27},(_,i)=>post(String(i),'2026-10-01T10:00:00+08:00',i<18?'2026-10-01T11:00:00+08:00':i<25?'2026-10-03T10:00:00+08:00':null));
+ const reasons=[delayReason('18','self'),delayReason('19','self'),...Array.from({length:5},(_,i)=>delayReason(String(20+i),'external')),delayReason('25','self')];
+ const data=buildMonthlyOperations(source(posts,[],[],{reasons}),query,now),p=data.publication;
+ assert.equal(p.planned,27);assert.equal(p.registered,25);assert.equal(p.onTime,18);assert.equal(p.delayed,7);
+ assert.equal(p.operationalDelayed,2);assert.equal(p.nonOperationalDelayed,5);assert.equal(p.unattributedDelayed,0);assert.equal(p.operational,3);
+ assert.equal(p.delayRate?.toFixed(1),'28.0');assert.equal(p.operationalDelayRate?.toFixed(1),'8.0');
+ assert.equal(p.onTime+p.operationalDelayed+p.nonOperationalDelayed+p.unattributedDelayed+p.missing+p.pending,p.planned);
+ assert.equal(data.scheduleRows.find(r=>r.id==='25')?.delayAttribution,null);
+});
+
+test('混合归因归运营，旧修订不参与，缺失或部分未知不冒充非运营原因',()=>{
+ const posts=['mixed','old','requester','unknown','empty','partial'].map(id=>post(id,undefined,'2026-10-03T10:00:00+08:00'));
+ const reasons=[delayReason('mixed','self'),delayReason('mixed','external',2),delayReason('old','self',1,0),delayReason('old','external'),delayReason('requester','requester'),delayReason('unknown','unknown'),delayReason('partial','external'),delayReason('partial','unknown',2)];
+ const data=buildMonthlyOperations(source(posts,[],[],{reasons}),query,now),p=data.publication;
+ assert.equal(p.delayed,6);assert.equal(p.operationalDelayed,1);assert.equal(p.nonOperationalDelayed,2);assert.equal(p.unattributedDelayed,3);
+ assert.equal(data.scheduleRows.find(r=>r.id==='mixed')?.mixed,true);assert.equal(data.scheduleRows.find(r=>r.id==='old')?.delayAttribution,'nonOperational');
+ assert.equal(data.scheduleRows.find(r=>r.id==='partial')?.delayAttribution,'unknown');assert.equal(p.operationalDelayed+p.nonOperationalDelayed+p.unattributedDelayed,p.delayed);
+});
+
+test('两种延期率区分无分母与真实零，并随学科与分类读取同一分组',()=>{
+ const empty=buildMonthlyOperations(source(),query,now).publication;assert.equal(empty.delayRate,null);assert.equal(empty.operationalDelayRate,null);assert.equal(empty.unattributedDelayed,0);
+ const onTime=post('on',undefined,'2026-10-01T11:00:00+08:00'),late=post('late',undefined,'2026-10-03T10:00:00+08:00',{subjectId:'step',subjectName:'STEP',categoryId:'other'});
+ const input=source([onTime,late],[],[],{reasons:[delayReason('late','self')]});
+ const zero=buildMonthlyOperations(input,{...query,subject:'tmua'},now).publication;assert.equal(zero.delayRate,0);assert.equal(zero.operationalDelayRate,0);assert.equal(zero.registered,1);
+ const filtered=buildMonthlyOperations(input,{...query,subject:'step',category:'other'},now).publication;assert.equal(filtered.operationalDelayed,1);assert.equal(filtered.operationalDelayRate,100);
+});
 test('月份边界在上海时区，发布延期率只用本月应发中的已登记任务作分母',()=>{
  const data=buildMonthlyOperations(source([post('on','2026-10-01T10:00:00+08:00','2026-10-01T11:59:00+08:00'),post('late','2026-10-01T10:00:00+08:00','2026-10-01T12:00:00+08:00'),post('pending','2026-10-31T10:00:00+08:00'),post('cross','2026-09-30T20:00:00+08:00','2026-10-01T00:00:00+08:00'),post('old','2026-09-29T10:00:00+08:00')]),query,now);
  assert.equal(data.publication.planned,3);assert.equal(data.publication.registered,2);assert.equal(data.publication.delayRate,50);assert.equal(data.publication.published,3);assert.equal(data.publication.crossMonthPublished,1);assert.equal(data.publication.onTime+data.publication.delayed+data.publication.missing+data.publication.pending,3);

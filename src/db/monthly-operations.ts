@@ -13,6 +13,7 @@ import {completionStatus,needsRegistration} from './schedule-rules.mjs';
 
 export const monthlyQuerySchema=z.object({month:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/,'请选择有效月份。'),subject:z.string().default(''),category:z.string().default('')});
 export type MonthlyQuery=z.infer<typeof monthlyQuerySchema>;
+export type DelayAttribution='operational'|'nonOperational'|'unknown';
 type Context=Awaited<ReturnType<typeof readPromotionContext>>;
 export interface MonthlyPost {
  id:string;contentId:string;contentName:string;versionNumber:number;subjectId:string;subjectName:string;categoryId:string|null;categoryName:string|null;
@@ -39,18 +40,21 @@ export function buildMonthlyOperations(source:MonthlySource,query:MonthlyQuery,n
   const status=completionStatus(post.plannedPublishAt,post.actualPublishAt),missing=needsRegistration(post,now);
   const reasons=source.reasons.filter(r=>r.scheduleId===post.id&&r.planRevision===post.planRevision).sort((a,b)=>a.dayNumber-b.dayNumber);
   const operational=reasons.some(r=>r.responsibility==='self'),external=reasons.some(r=>['external','requester'].includes(r.responsibility));
+  const delayAttribution:DelayAttribution|null=status!=='delayed'?null:operational?'operational':reasons.length&&reasons.every(r=>['external','requester'].includes(r.responsibility))?'nonOperational':'unknown';
   return {id:post.id,contentName:post.contentName,versionNumber:post.versionNumber,subjectName:post.subjectName,categoryName:post.categoryName,
    plannedAt:post.plannedPublishAt.toISOString(),actualAt:post.actualPublishAt?.toISOString()??null,currentMonth,publishedThisMonth,movedOut,status,missing,
    severe:missing&&now.getTime()-post.plannedPublishAt.getTime()>48*3600000,changedPending:currentMonth&&!post.actualPublishAt&&history.length>0,
-   operational:currentMonth&&(status==='delayed'||missing)&&operational,mixed:operational&&external,
+   operational:currentMonth&&(status==='delayed'||missing)&&operational,mixed:operational&&external,delayAttribution,
    history:history.map(h=>({from:h.plannedPublishAt.toISOString(),to:h.newPlannedPublishAt.toISOString(),at:h.endedAt.toISOString(),reason:h.reason})),
    reasons:reasons.map(r=>({day:r.dayNumber,at:r.dueAt.toISOString(),responsibility:r.responsibility,reason:r.reason})),
   };
  }).filter(p=>p.currentMonth||p.publishedThisMonth||p.movedOut).sort((a,b)=>Number(b.severe)-Number(a.severe)||Number(b.missing)-Number(a.missing)||b.plannedAt.localeCompare(a.plannedAt));
  const planned=scheduleRows.filter(p=>p.currentMonth),registered=planned.filter(p=>p.actualAt),delayed=registered.filter(p=>p.status==='delayed');
+ const operationalDelayed=delayed.filter(p=>p.delayAttribution==='operational').length,nonOperationalDelayed=delayed.filter(p=>p.delayAttribution==='nonOperational').length,unattributedDelayed=delayed.filter(p=>p.delayAttribution==='unknown').length;
  const publication={planned:planned.length,published:scheduleRows.filter(p=>p.publishedThisMonth).length,newPublished:scheduleRows.filter(p=>p.publishedThisMonth&&p.versionNumber===0).length,
   revisionPublished:scheduleRows.filter(p=>p.publishedThisMonth&&p.versionNumber>0).length,crossMonthPublished:scheduleRows.filter(p=>p.publishedThisMonth&&!p.currentMonth).length,
   registered:registered.length,onTime:registered.filter(p=>p.status==='on_time').length,delayed:delayed.length,delayRate:registered.length?delayed.length/registered.length*100:null,
+  operationalDelayed,nonOperationalDelayed,unattributedDelayed,operationalDelayRate:registered.length?operationalDelayed/registered.length*100:null,
   missing:planned.filter(p=>p.missing).length,severe:planned.filter(p=>p.severe).length,pending:planned.filter(p=>!p.actualAt&&!p.missing).length,
   operational:planned.filter(p=>p.operational).length,changedPending:scheduleRows.filter(p=>p.changedPending).length,movedOut:scheduleRows.filter(p=>p.movedOut).length};
 
