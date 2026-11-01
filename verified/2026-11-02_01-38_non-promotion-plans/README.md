@@ -1,6 +1,6 @@
 # 非推广复盘：原帖计划、原始量与周会合卡
 
-状态：已自检，发布核对见本页末尾。数据来自隔离 PGlite／本机 PostgreSQL；截图中的帖子、数量和账号均为测试样本。业务时钟固定在 2026-11-24，未向正式库写入样本。
+状态：已自检、已推送main并发布，待用户反馈。数据来自隔离 PGlite／本机 PostgreSQL；截图中的帖子、数量和账号均为测试样本。业务时钟固定在 2026-11-24，未向正式库写入样本。
 
 ## 关键效果
 
@@ -48,4 +48,4 @@
 
 ## 发布
 
-候选与正式检查报告将在发布后补入，旧证据不覆盖。本批对应工作分支 `codex/nonpromotion-review-plans`，兼容迁移0043。
+应用实现 `f6122ed`，部署 `dpl_6j8RSaC6yMT5G5AfnxrCtkXJMXQQ`，正式域名 https://qiuyun-frontend.vercel.app。候选10项、正式108项检查与78个资源哈希通过，正式域名指向本部署且为READY；正式数据三视图只读查询无错误、节点身份不重复。工作分支 `codex/nonpromotion-review-plans` 和 main 已同步，兼容迁移0043已执行。详见[发布记录](release.json)、[候选检查](candidate-smoke.json)、[正式检查](public-smoke.json)及[只读模型检查](production-read-model.json)。
