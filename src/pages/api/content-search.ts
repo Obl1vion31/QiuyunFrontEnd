@@ -29,8 +29,8 @@ export const GET:APIRoute=async({url})=>{
   const [metrics,stages,non,checkpointEvents,audits,meetingVersions,workflow]=await Promise.all([
    campaignIds.length?getDb().select().from(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.campaignId,campaignIds)).orderBy(s.operationsPromotionDailyMetric.metricDate):[],
    campaignIds.length?getDb().select().from(s.operationsPromotionStage).where(inArray(s.operationsPromotionStage.campaignId,campaignIds)).orderBy(s.operationsPromotionStage.startedOn):[],
-   getDb().select().from(s.operationsContentPerformanceMetric).where(eq(s.operationsContentPerformanceMetric.scheduleId,id)),
-   getDb().select().from(s.operationsNonPromotionCheckpointEvent).where(eq(s.operationsNonPromotionCheckpointEvent.scheduleId,id)).orderBy(desc(s.operationsNonPromotionCheckpointEvent.sequence)),
+   getDb().select().from(s.operationsContentPerformanceMetric).where(inArray(s.operationsContentPerformanceMetric.scheduleId,versions.map(v=>v.id))),
+   getDb().select().from(s.operationsNonPromotionCheckpointEvent).where(inArray(s.operationsNonPromotionCheckpointEvent.scheduleId,versions.map(v=>v.id))).orderBy(desc(s.operationsNonPromotionCheckpointEvent.sequence)),
    getDb().select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,id)).orderBy(desc(s.operationsPromotionTimelineAudit.createdAt)),
    getDb().select({id:s.operationsReviewMeeting.id,name:s.operationsReviewMeeting.name,version:s.operationsReviewMeetingVersion.versionNumber,status:s.operationsReviewMeetingVersion.lifecycleStatus,snapshot:s.operationsReviewMeetingVersion.snapshot,invalidatedAt:s.operationsReviewMeetingVersion.invalidatedAt}).from(s.operationsReviewMeetingVersion).innerJoin(s.operationsReviewMeeting,eq(s.operationsReviewMeetingVersion.meetingId,s.operationsReviewMeeting.id)).orderBy(desc(s.operationsReviewMeetingVersion.createdAt)),
    readScheduleWorkflow(getDb(),id),

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-01T17:33:01.267Z",
+  "unchangedTables": 46,
+  "liveChanges": [],
+  "newEmptyTables": [
+    "operations_non_promotion_custom_checkpoint",
+    "operations_non_promotion_review_plan"
+  ],
+  "originalFactsRewritten": false
+}

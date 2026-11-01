@@ -39,6 +39,7 @@
     "test:review-workbench": "node --import tsx tests/review-workbench.browser.ts",
     "test:status-correction": "node --import tsx tests/promotion-status-correction.browser.ts",
     "test:weekly": "node --import tsx tests/meeting-create.browser.ts && node --import tsx tests/workspace-upgrade.browser.ts && node --import tsx tests/meeting-discussion.browser.ts",
+    "test:non-promotion-plans": "node --import tsx tests/non-promotion-plans.integration.ts && node --import tsx tests/non-promotion-plans.browser.ts",
     "test:non-promotion": "node --import tsx tests/non-promotion-inspector.browser.ts",
     "test:meeting-discussion": "node --import tsx tests/meeting-discussion.browser.ts",
     "test:data-ui": "node --import tsx tests/initial-arrangement.browser.ts && node --import tsx tests/data-interface.browser.ts",

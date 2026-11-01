@@ -17,6 +17,8 @@ function fields(snapshot:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;na
     for(const [key,label] of [['isPromoted','推广帖'],['syncToMoments','同步朋友圈'],['publicationUrl','帖子链接']])result[label]=display(schedule[key]);
   }
   if(snapshot.momentsConfirmation){result['已发送朋友圈']='已确认';result['已发送对应需求']='已确认';}
+  if(snapshot.reviewPlan){const plan=snapshot.reviewPlan as Record<string,unknown>;result['复盘方式']=({standard:'常规复盘',instant:'即时复盘',continuous:'持续复盘'} as Record<string,string>)[String(plan.mode)]??String(plan.mode);result['7天复盘']=plan.day7?'启用':'关闭';result['15天复盘']=plan.day15?'启用':'关闭';}
+  if(snapshot.customReviewNodes)result['自定义复盘日期']=(snapshot.customReviewNodes as Array<Record<string,unknown>>).map(n=>`${n.dueOn}${n.cancelledAt?'（已取消）':''}`).join('\n')||'—';
   for(const row of snapshot.rows as Array<Record<string,unknown>>??[]){
     const prefix=`${row.rowName} · `;
     for(const [key,label] of [['rowName','名称'],['year','年度'],['isActive','启用'],['note','备注'],['sectionLabel','分区'],['categoryId','帖子分类']])result[prefix+label]=display(key==='categoryId'?postCategories.find(category=>category.id===row[key])?.name:row[key]);

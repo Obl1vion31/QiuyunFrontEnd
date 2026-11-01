@@ -28,6 +28,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
     else{form=await request.clone().formData();values=Object.fromEntries(form.entries());}
   }
   const parts=path.split('/').filter(Boolean);
+  if(parts[1]==='non-promotion-checkpoints')return {module:'schedule',target:`schedule:${values.scheduleId}`,operations:['add','reschedule','cancel'].includes(String(values.action))?['schedule.edit']:[],values};
   if(parts[1]==='operations-annual-plans'){
     const operations:BusinessOperation[]=[];
     if(parts[2]==='year')operations.push(parts[4]==='copy'?'annual.copy':'annual.instructions');
@@ -51,6 +52,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
   if(parts[2]==='versions')return {module:'schedule',target:`schedule:${values.sourceScheduleId}`,operations:['schedule.revise'],values};
   const [current]=await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,parts[2]));
   if(!current)throw new Error('没有找到排期。');
+  if(values.action==='reviewPlan')return {module:'schedule',target:`schedule:${current.id}`,operations:['schedule.edit'],values};
   const operations:BusinessOperation[]=[];
   if(form&&method==='PATCH'){
     const normalized=parts[3]==='publication'?publicationSchema.safeParse(publicationInputFromForm(form)):(await readPostSchemas(db)).editScheduleSchema.safeParse(editScheduleInputFromForm(form));
@@ -61,6 +63,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
   if(method==='DELETE')operations.push('schedule.delete');
   else if(parts[3]==='delay-reasons')operations.push('schedule.reason');
   else if(parts[3]==='publication'){
+    if(current.actualPublishAt&&values.reviewPlan)operations.push('schedule.edit');
     const actual=dateValue(values.actualPublishAt,current.actualPublishAt);
     if(current.actualPublishAt&&actual?.getTime()!==current.actualPublishAt.getTime())operations.push('schedule.correctPublication');
     const [version]=await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,current.contentVersionId));
@@ -102,15 +105,19 @@ async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>
   const dayDecisions=campaignIds.length?await db.select().from(s.operationsPromotionDayDecision).where(inArray(s.operationsPromotionDayDecision.campaignId,campaignIds)):[];
   const [publicationEvent]=await db.select({after:s.operationsPublicationEvent.after}).from(s.operationsPublicationEvent).where(eq(s.operationsPublicationEvent.scheduleId,id)).orderBy(desc(s.operationsPublicationEvent.revision)).limit(1);
   const momentsConfirmation=publicationEvent?.after.momentsConfirmation;
+  const [reviewPlan]=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,version.contentId));
+  const customNodes=await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,version.contentId));
+  const legacyShape=(row:Record<string,unknown>)=>Object.fromEntries(Object.entries(row).filter(([key,value])=>!(value==null&&['customCheckpointId','exposureCountSnapshot','readCountSnapshot'].includes(key))));
   return {schedule:withoutLegacyDelay(schedule),versions,campaigns,
+    ...(reviewPlan?{reviewPlan}:{}),...(customNodes.length?{customReviewNodes:customNodes}:{}),
     ...(momentsConfirmation?{momentsConfirmation}:{}),
     ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
     reasons:await db.select().from(s.operationsScheduleDelayReason).where(and(eq(s.operationsScheduleDelayReason.scheduleId,id),eq(s.operationsScheduleDelayReason.planRevision,schedule.planRevision))),
     plans:await db.select().from(s.operationsSchedulePlanHistory).where(eq(s.operationsSchedulePlanHistory.scheduleId,id)),
     metrics:campaignIds.length?await db.select().from(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.campaignId,campaignIds)):[],
     ranges:campaignIds.length?await db.select().from(s.operationsPromotionWaitRange).where(inArray(s.operationsPromotionWaitRange.campaignId,campaignIds)):[],
-    reviews:await db.select().from(s.operationsNonPromotionReview).where(eq(s.operationsNonPromotionReview.scheduleId,id)),
-    checkpoints:await db.select().from(s.operationsNonPromotionCheckpointEvent).where(eq(s.operationsNonPromotionCheckpointEvent.scheduleId,id)),
+    reviews:(await db.select().from(s.operationsNonPromotionReview).where(eq(s.operationsNonPromotionReview.scheduleId,id))).map(legacyShape),
+    checkpoints:(await db.select().from(s.operationsNonPromotionCheckpointEvent).where(eq(s.operationsNonPromotionCheckpointEvent.scheduleId,id))).map(legacyShape),
   };
 }
 class RolledBack extends Error{constructor(public response:Response,public after:Record<string,unknown>={}){super('ROLLBACK_BUSINESS_PREVIEW');}}
@@ -167,6 +174,7 @@ async function replay(path:string,method:string,request:Request,actor:Operations
     else if(parts[2]==='versions'){params.sourceVersionId=parts[3];handler=(await import('../pages/api/operations-content/versions/[sourceVersionId]/revisions')).POST;}
     else{params.id=parts[2];handler=parts[3]==='publication'?(await import('../pages/api/operations-content/[id]/publication')).PATCH:parts[3]==='delay-reasons'?(await import('../pages/api/operations-content/[id]/delay-reasons')).POST:parts[3]==='change-requests'?(await import('../pages/api/operations-content/[id]/change-requests')).POST:method==='DELETE'?(await import('../pages/api/operations-content/[id]')).DELETE:(await import('../pages/api/operations-content/[id]')).PATCH;}
   }
+  if(parts[1]==='non-promotion-checkpoints')handler=(await import('../pages/api/non-promotion-checkpoints')).POST;
   if(!handler)throw new Error('未知业务入口。');
   return await handler({request,url:new URL(request.url),params,locals:{user:actor,operationsUser:actor.username,session:null},redirect:(location:string,status=303)=>new Response(null,{status,headers:{Location:location}})} as APIContext);
 }

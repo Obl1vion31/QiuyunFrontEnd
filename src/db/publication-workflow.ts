@@ -2,7 +2,7 @@ import {randomUUID} from 'node:crypto';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 import {promotionSnapshot} from './promotion-timeline';
 import {shanghaiDateKey} from './promotion-rules.mjs';
-import { and, eq, inArray,sql } from 'drizzle-orm';
+import { and, eq, ne, isNotNull, desc, inArray,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import { type OperationsUser } from '../auth/permissions';
@@ -16,6 +16,7 @@ import { operationsContentSchedule as schedules, operationsContentVersion as ver
   operationsPromotionWaitRange as ranges, operationsPromotionHold as holds, operationsScheduleChangeRequest as changes, operationsPromotionStartPlan as startPlans, operationsPromotionDayDecision as decisions, operationsPromotionTimelineAudit as audits } from './schema';
 import { count } from 'drizzle-orm';
 import { mayKeepEmptyPublicationLink } from './publication-rules.mjs';
+import {saveReviewPlan,reviewIdentity} from './non-promotion-plan';
 
 const historyEntry=(status:string,actor:OperationsUser,now:Date,reason:string|null=null)=>[{status,actorId:actor.id,actorLabel:actor.username,at:now.toISOString(),reason}];
 function checkRevision(schedule:{planRevision:number;publicationRevision:number},input:{expectedPlanRevision:number;expectedPublicationRevision:number}) {
@@ -63,13 +64,21 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     const momentsConfirmation=requiresMomentsConfirmation?{momentsSent:true as const,requestSent:true as const}:previousConfirmation;
     const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl,...(previousConfirmation?{momentsConfirmation:previousConfirmation}:{})};
     const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{})};
-    if(JSON.stringify(before)===JSON.stringify(after))return {kind:'saved' as const,unchanged:true};
+    if(JSON.stringify(before)===JSON.stringify(after)){
+      if(input.reviewPlan)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
+      return {kind:'saved' as const,unchanged:true};
+    }
     await tx.update(versions).set({projectDocUrl,updatedAt:now}).where(eq(versions.id,version.id));
     const promotionStatus=!schedule.isPromoted?'none':actualChanged||!campaignRows.length?'awaiting_promotion':schedule.promotionStatus;
     await tx.update(schedules).set({actualPublishAt:actual,publicationUrl,publicationRevision:schedule.publicationRevision+1,
       completionStatus:normalizeCompletionStatus({plannedPublishAt:schedule.plannedPublishAt,actualPublishAt:actual,delayThresholdHours:schedule.delayThresholdHours}),promotionStatus,
       promotionDeferredThrough:promotionStatus==='awaiting_promotion'&&actualChanged?null:undefined,updatedAt:now}).where(eq(schedules.id,id));
     await tx.insert(events).values({scheduleId:id,revision:schedule.publicationRevision+1,before,after,reason:input.correctionReason||null,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
+    if(input.reviewPlan)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
+    else if(!schedule.actualPublishAt&&!schedule.isPromoted){
+      const [previous]=await tx.select({isPromoted:schedules.isPromoted}).from(schedules).innerJoin(versions,eq(schedules.contentVersionId,versions.id)).where(and(eq(versions.contentId,version.contentId),ne(schedules.id,id),isNotNull(schedules.actualPublishAt))).orderBy(desc(versions.versionNumber)).limit(1);
+      if(previous?.isPromoted){const post=await reviewIdentity(tx,id);await saveReviewPlan(tx,post.id,{mode:'continuous',day7:false,day15:false,expectedRevision:post.plan?.revision??-1},actor.username);}
+    }
     await tx.update(reservations).set({status:'fulfilled',history:sql`${reservations.history} || ${JSON.stringify(historyEntry('fulfilled',actor,now,'已登记实发'))}::jsonb`,decisionReason:'已登记实发，预约流程结束',updatedAt:now}).where(and(eq(reservations.scheduleId,id),inArray(reservations.status,['pending','approved'])));
     await tx.update(changes).set({status:'obsolete',decidedAt:now,decisionReason:'帖子已经实发'}).where(and(eq(changes.scheduleId,id),eq(changes.status,'pending')));
     if(oldTimeline&&(oldTimeline.plan||oldTimeline.campaigns.length))await tx.insert(audits).values({scheduleId:id,requestKey:randomUUID(),businessDate:shanghaiDateKey(actual),action:'publication_reset',reason:input.correctionReason||'发布时间更正',before:oldTimeline,after:await promotionSnapshot(tx,id),changedById:actor.id,changedByLabel:actor.username,createdAt:now});

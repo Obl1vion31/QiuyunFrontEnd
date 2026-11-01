@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { extractPublicationLink } from './publication-link.mjs';
+import {reviewPlanSchema,reviewPlanFromForm} from './non-promotion-plan-input';
 import {
   subjectCategoryMappings,
   postCategories,
@@ -49,6 +50,7 @@ export function createPostSchemas(taxonomy:{subjects:ReadonlyArray<{id:string}>;
 export const {newPostSchema,editScheduleSchema,revisionSchema}=createPostSchemas({subjects,postCategories,subjectCategoryMappings});
 
 export const publicationSchema = z.object({
+  reviewPlan:reviewPlanSchema.optional(),
   actualPublishAt: z.preprocess(emptyToNull,shanghaiDateTime.nullable().optional()),
   projectDocUrl: optionalHttpUrl.optional(),
   publicationUrl: z.preprocess(emptyToNull, publicationUrlSchema.nullable().optional()),
@@ -85,6 +87,7 @@ export const revisionInputFromForm = (form: FormData) => ({
 });
 
 export const publicationInputFromForm = (form: FormData) => ({
+  reviewPlan:reviewPlanFromForm(form),
   actualPublishAt: form.get('actualPublishAt') ?? undefined,
   projectDocUrl: form.get('projectDocUrl') ?? undefined,
   publicationUrl: form.get('publicationUrl'),

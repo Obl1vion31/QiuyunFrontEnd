@@ -16,8 +16,10 @@ import {
   operationsNonPromotionReviewVersion,
   operationsSubject,
 } from '../../db/schema';
-import { checkpointWindow,nextReviewCheckpoint, shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
-import { formObject, issuesByField, stageReviewItemSchema } from '../../db/stage-review-validation';
+import { shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
+import { formObject, issuesByField, nonPromotionItemSchema } from '../../db/stage-review-validation';
+import {reviewIdentity,activeReviewAnchorIds} from '../../db/non-promotion-plan';
+import {nodeCanRecord,reviewNodeWindow} from '../../db/non-promotion-nodes';
 
 export const prerender = false;
 
@@ -25,7 +27,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
   let form: FormData;
   try { form = await request.formData(); } catch { return Response.json({ message: '请求必须使用有效表单。' }, { status: 400 }); }
-  const result = stageReviewItemSchema.safeParse(formObject(form));
+  const result = nonPromotionItemSchema.safeParse(formObject(form));
   if (!result.success) return Response.json({ message: '请检查复盘数据。', fields: issuesByField(result.error.issues) }, { status: 422 });
 
   try {
@@ -34,8 +36,11 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       const [content] = await transaction.select({ id: operationsContentVersion.contentId }).from(operationsContentSchedule)
         .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
         .where(eq(operationsContentSchedule.id, result.data.scheduleId)).limit(1);
+      if(!content)return {kind:'invalid-schedule' as const};
       // 不同版本共用一个笔记 ID，首次补齐必须在读取身份前锁住同一帖子。
       await transaction.select({ id: operationsContent.id }).from(operationsContent).where(eq(operationsContent.id, content.id)).for('update');
+      const post=await reviewIdentity(transaction,result.data.scheduleId),node=post.nodes.find(n=>n.type===result.data.checkpointType);
+      if(post.id!==result.data.scheduleId||post.isPromoted||!node)return {kind:'invalid-schedule' as const};
       const [identity] = await transaction.select({
         contentId: operationsContent.id,
         platformNoteId: operationsContent.platformNoteId,
@@ -52,21 +57,20 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
         .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
         .where(eq(operationsContentSchedule.id, result.data.scheduleId)).limit(1);
-      if (!identity?.actualPublishAt || identity.isPromoted) {
+      if (!identity?.actualPublishAt) {
         return { kind: 'invalid-schedule' as const };
       }
       const fingerprint=await readNonPromotionFingerprint(transaction,result.data.scheduleId,result.data.checkpointType);
       if(form.get('fingerprint')!==fingerprint)return {kind:'conflict' as const};
-      const window=checkpointWindow(identity.actualPublishAt,result.data.checkpointType,shanghaiDateKey(new Date()));
-      if(result.data.recordedThrough<window.min||result.data.recordedThrough>window.max)return {kind:'date-window' as const,min:window.min,max:window.max};
+      const window=reviewNodeWindow(identity.actualPublishAt,node,shanghaiDateKey(new Date()));
+      if(!window.open||result.data.recordedThrough<window.min||result.data.recordedThrough>window.max)return {kind:'date-window' as const,min:window.min,max:window.max};
       const completed = await transaction.select({ type: operationsNonPromotionReview.checkpointType })
         .from(operationsNonPromotionReview).where(eq(operationsNonPromotionReview.scheduleId, result.data.scheduleId));
       const existing = completed.some((row) => row.type === result.data.checkpointType);
       const events = await readCheckpointEvents(transaction, result.data.scheduleId);
       if (events.get(`${result.data.scheduleId}:${result.data.checkpointType}`)?.action === 'skip') return { kind: 'skipped' as const };
       const resolved = [...completed.map(row => row.type), ...[...events.values()].filter(row => row.action === 'skip').map(row => row.checkpointType)];
-      const expected = nextReviewCheckpoint(identity.actualPublishAt, resolved, shanghaiDateKey(new Date()));
-      if (!existing && expected?.type !== result.data.checkpointType) return { kind: 'out-of-order' as const, expected: expected?.type ?? null };
+      if (!existing && !nodeCanRecord(post.nodes,node,resolved,shanghaiDateKey(new Date()))) return { kind: 'out-of-order' as const, expected:'day_7' };
 
       if (!identity.platformNoteId && !result.data.platformNoteId) return { kind: 'note-id-required' as const };
       if (!identity.platformNoteId && result.data.platformNoteId) {
@@ -79,14 +83,16 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       const [metric] = await transaction.insert(operationsContentPerformanceMetric).values({
         scheduleId: result.data.scheduleId,
         checkpointType: result.data.checkpointType,
+        customCheckpointId:node.nodeId,exposureCount:result.data.exposureCount,readCount:result.data.readCount,
         recordedThrough: result.data.recordedThrough,
-        clickRate: result.data.clickRate.toFixed(4),
+        clickRate: result.data.clickRate?.toFixed(4)??null,
         threeSecondReadRate: result.data.threeSecondReadRate.toFixed(4),
       }).onConflictDoUpdate({
         target: [operationsContentPerformanceMetric.scheduleId, operationsContentPerformanceMetric.checkpointType],
         set: {
           recordedThrough: result.data.recordedThrough,
-          clickRate: result.data.clickRate.toFixed(4),
+          exposureCount:result.data.exposureCount,readCount:result.data.readCount,
+          clickRate: result.data.clickRate?.toFixed(4)??null,
           threeSecondReadRate: result.data.threeSecondReadRate.toFixed(4),
           updatedAt: new Date(),
         },
@@ -106,12 +112,13 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
           eq(operationsContentSchedule.isPromoted, false),
         ));
       const cohortEvents = await readCheckpointEvents(transaction);
-      const comparableRows = cohortRows.filter(row => cohortEvents.get(`${row.scheduleId}:${result.data.checkpointType}`)?.action !== 'skip');
+      const anchors=await activeReviewAnchorIds(transaction);
+      const comparableRows = node.kind==='custom'?[]:cohortRows.filter(row => anchors.has(row.scheduleId)&&cohortEvents.get(`${row.scheduleId}:${result.data.checkpointType}`)?.action !== 'skip');
       const cohortSnapshot = {
         subjectId: identity.subjectId,
         categoryId: identity.categoryId,
         checkpointType: result.data.checkpointType,
-        clickRate: summarizeRates(comparableRows.map((row) => Number(row.clickRate))),
+        clickRate: summarizeRates(comparableRows.flatMap((row) => row.clickRate==null?[]:[Number(row.clickRate)])),
         threeSecondReadRate: summarizeRates(comparableRows.map((row) => Number(row.readRate))),
       };
       const clickRate = result.data.clickRate;
@@ -124,7 +131,8 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         categoryIdSnapshot: identity.categoryId,
         categoryNameSnapshot: identity.categoryName,
         contentNameSnapshot: identity.contentName,
-        clickRateSnapshot: clickRate.toFixed(4),
+        customCheckpointId:node.nodeId,exposureCountSnapshot:result.data.exposureCount,readCountSnapshot:result.data.readCount,
+        clickRateSnapshot: clickRate?.toFixed(4)??null,
         threeSecondReadRateSnapshot: readRate.toFixed(4),
         cohortSnapshot,
         conclusion: result.data.conclusion ?? null,

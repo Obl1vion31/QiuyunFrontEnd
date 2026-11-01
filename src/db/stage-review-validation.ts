@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { optionalPlatformNoteIdSchema } from './platform-note-id';
 import { shanghaiDateTime } from './validation';
+import {checkpointKeyPattern} from './non-promotion-nodes';
 
 const checkpoint = z.enum(['day_7', 'day_15']);
 const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '请选择有效日期');
@@ -28,6 +29,12 @@ export const stageReviewItemSchema = z.object({
   conclusion: optionalText,
   platformNoteId: optionalPlatformNoteIdSchema.optional(),
 });
+
+export const nonPromotionItemSchema=stageReviewItemSchema.omit({clickRate:true,checkpointType:true}).extend({
+ checkpointType:z.string().regex(checkpointKeyPattern,'复盘节点无效'),
+ exposureCount:z.preprocess(value=>value===''||value==null?NaN:value,z.coerce.number().int('请填写整数').min(0).max(2147483647)),
+ readCount:z.preprocess(value=>value===''||value==null?NaN:value,z.coerce.number().int('请填写整数').min(0).max(2147483647)),
+}).superRefine((value,ctx)=>{if(value.readCount>value.exposureCount)ctx.addIssue({code:'custom',path:['readCount'],message:'阅读量不能大于曝光量，请核对'});}).transform(value=>({...value,clickRate:value.exposureCount?Math.round(value.readCount/value.exposureCount*1000000)/10000:null}));
 
 export const formObject = (form: FormData) => Object.fromEntries(form.entries());
 

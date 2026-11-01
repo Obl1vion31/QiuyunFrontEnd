@@ -48,7 +48,7 @@ try {
     db.select().from(stageVersions).orderBy(desc(stageVersions.createdAt)),
     db.select().from(issuesTable).where(ne(issuesTable.status, 'resolved')),
     db.select({ id: attachmentsTable.id, name: attachmentsTable.name }).from(attachmentsTable).where(and(eq(attachmentsTable.meetingId, selected.id),ne(attachmentsTable.mimeType,'application/pdf'))),
-    readMeetingMaterial(db, selected),
+    selected.draftSnapshot.schemaVersion===4?Promise.resolve({activity:[],candidates:[]}):readMeetingMaterial(db, selected),
   ]);
   if(selected?.draftSnapshot.schemaVersion===4){
     const cached=selected.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;

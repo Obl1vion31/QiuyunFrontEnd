@@ -1,6 +1,7 @@
+import {useState} from 'react';
 import {DiscussionText} from './MeetingDiscussionText';
 import {promotionRateComparison,freezeRateComparisons,rateDifference,type RateComparison} from '../db/meeting-rate-comparison';
-import {useState} from 'react';
+
 import WeeklyCardDetails from './WeeklyCardDetails';
 import type {WeeklyPromotionCard,WeeklyNonPromotionCard,WeeklyMaterial,Benchmark} from '../db/meeting-weekly-material';
 import type {WeeklyMeetingDraft} from '../db/schema';
@@ -8,9 +9,10 @@ import {promotionActualLabels,promotionNextOptions,nextActualPromotionState} fro
 import type {WeeklyPostReference} from '../db/meeting-note-ids';
 import {businessDate} from '../scripts/business-date';
 import {cardDataRange,sortMeetingNonPromotions} from '../db/meeting-card-rules';
-import {nonPromotionDueOn} from '../db/meeting-non-promotion';
+
+import {checkpointLabel,reviewModeLabels} from '../db/non-promotion-nodes';
 const money=(v:number|null|undefined)=>v==null?'—':`¥${v.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-type NonInput=NonNullable<WeeklyMeetingDraft['nonPromotionInputs']>[string];
+
 function CardTitle({name,version,reference}:{name:string;version?:number;reference?:WeeklyPostReference}){
  return <div className="weekly-card-title"><strong>{name}</strong><div className="weekly-title-tools">{version!=null&&<span className="weekly-card-version">V{version}</span>}<WeeklyCardDetails variant="info" label={`查看${name}相关资料`}><p>相关资料</p><div className="weekly-reference-links">{reference?.projectDocUrl?<a href={reference.projectDocUrl} target="_blank" rel="noopener noreferrer">项目文档 ↗</a>:<span>项目文档 · 未登记</span>}{reference?.publicationUrl?<a href={reference.publicationUrl} target="_blank" rel="noopener noreferrer">小红书帖子 ↗</a>:<span>小红书帖子 · 未登记</span>}</div></WeeklyCardDetails></div></div>;
 }
@@ -18,7 +20,7 @@ export function NonPromotionHeader({row,reference,pending=false}:{row:{contentNa
  const publishedOn=row.publishedOn||(row.actualPublishAt?businessDate(row.actualPublishAt):reference?.publishedOn),version=row.versionNumber??reference?.versionNumber;
  return <header><div><CardTitle name={row.contentName} version={version} reference={reference}/><small>{row.checkpointType==='day_7'?'首轮（7 天）':'二轮（15 天）'}{pending?' · 待处理':row.comparisonOnly?' · 对照数据':''} · {publishedOn?`发布于 ${publishedOn}`:'发布时间未登记'}</small></div></header>;
 }
-const rate=(v:number|null|undefined)=>v==null?'待补充':`${v.toFixed(2)}%`;
+ const rate=(v:number|null|undefined)=>v==null?'—':`${v.toFixed(2)}%`;
 function Comparison({b,non=false}:{b:Benchmark;non?:boolean}){if(!b.n)return <div className="weekly-comparison"><span>历史同类 · 暂无可对比样本</span></div>;return <div className="weekly-comparison"><strong>历史同类（{b.n} 份样本）</strong><span>{b.n?(non?`点击率 ${rate(b.clickRate)} · 阅读率 ${rate(b.threeSecondReadRate)}`:`开口成本 ${money(b.actualOpenCost)} · 留资成本 ${money(b.actualLeadCost)}`):'暂无可对比样本'}</span></div>}
 function RateDelta({value,comparison,field='clickRate'}:{compact?:boolean;value:number|null|undefined;comparison?:RateComparison;field?:'clickRate'|'threeSecondReadRate'}){
  const delta=rateDifference(value,comparison,field);
@@ -26,7 +28,7 @@ function RateDelta({value,comparison,field='clickRate'}:{compact?:boolean;value:
  const rounded=Math.abs(delta)<0.005?0:delta;
  return <span className="weekly-rate-comparison" data-direction={rounded>0?'positive':rounded<0?'negative':'neutral'}><b>{rounded>0?'+':''}{rounded.toFixed(2)} pp</b></span>;
 }
-function RateSamples({comparison}:{comparison?:RateComparison}){return comparison?<p className="weekly-rate-samples">{comparison.n?`同类样本 ${comparison.n} 份`:'暂无同类样本'}</p>:null;}
+function RateSamples({comparison}:{comparison?:RateComparison}){return comparison?<p className="weekly-rate-samples">{comparison.n?(comparison.threeSecondReadRate!=null&&comparison.clickCount!=null&&comparison.readCount!=null&&comparison.clickCount!==comparison.readCount?`同类样本 点击 ${comparison.clickCount}／3秒 ${comparison.readCount} 份`:`同类样本 ${comparison.n} 份`):'暂无同类样本'}</p>:null;}
 interface PromotionProps{arrangementsLocked?:boolean;discussion?:boolean;rows:WeeklyPromotionCard[];selected?:string[];onSelect?:(key:string,value:boolean)=>void;inputs?:WeeklyMeetingDraft['promotionInputs'];onInput?:(key:string,field:string,value:string)=>void;readonly?:boolean;query?:string;decisions?:Record<string,string>;onDecision?:(id:string,value:string)=>void;effectiveOn?:string;decisionStage?:'pre'|'post';postReferences?:Record<string,WeeklyPostReference>;onConfirm?:(key:string)=>Promise<boolean>;}
 export function PromotionCards({rows,...props}:PromotionProps){return <div className="weekly-card-grid">{freezeRateComparisons({promotions:rows},{promotionInputs:props.inputs??{}}).promotions.map(row=><PromotionCard key={row.key} row={row} {...props}/>)}</div>}
 function PromotionCard({row,inputs={},onInput,readonly=false,decisions={},onDecision,effectiveOn,decisionStage,postReferences={},onConfirm,query='',discussion=false,arrangementsLocked=false}:Omit<PromotionProps,'rows'>&{row:WeeklyPromotionCard}){
@@ -54,22 +56,30 @@ function PromotionCard({row,inputs={},onInput,readonly=false,decisions={},onDeci
  </article>;
 }
 type NonRow=WeeklyNonPromotionCard&{comparisonOnly?:boolean};
-interface NonProps{onConclusion?:(key:string,value:string)=>void;rows:NonRow[];pending?:WeeklyMaterial['pending'];context?:WeeklyNonPromotionCard[];readonly?:boolean;selected?:string[];onSelect?:(key:string,value:boolean)=>void;query?:string;onSaved?:(key:string)=>Promise<void>;inputs?:Record<string,NonInput>;onDraft?:(key:string,value:NonInput)=>void;noteIds?:Record<string,string|null>;postReferences?:Record<string,WeeklyPostReference>;}
-export function NonPromotionCards({rows,pending=[],context=[],readonly=false,onSaved,inputs={},onDraft,noteIds={},postReferences={},onConclusion}:NonProps){
- const nodes=sortMeetingNonPromotions([...rows.map(row=>({...row,pending:false as const})),...pending.map(row=>({...row,pending:true as const,scheduleId:row.scheduleId??row.key.split(':')[0]}))]);
- return <div className="weekly-card-grid">{nodes.map(row=><article className="weekly-stage-card weekly-non-card" key={row.key} data-weekly-non={row.scheduleId} data-weekly-checkpoint={row.checkpointType}>
-  <NonPromotionHeader row={row} pending={row.pending} reference={postReferences[row.scheduleId]}/>
-  {row.pending?<NonPromotionEditor noteId={noteIds[row.scheduleId]} initial={inputs[row.key]} onDraft={value=>onDraft?.(row.key,value)} row={{scheduleId:row.scheduleId,checkpointType:row.checkpointType,recordedThrough:row.dueOn||nonPromotionDueOn(row.publishedOn||postReferences[row.scheduleId]?.publishedOn,row.checkpointType)}} onSaved={()=>onSaved?.(row.key)??Promise.resolve()}/>:<>
-   {!readonly&&!row.comparisonOnly?<NonPromotionEditor row={row} noteId={noteIds[row.scheduleId]} initial={inputs[row.key]} onDraft={value=>onDraft?.(row.key,value)} onSaved={()=>onSaved?.(row.key)??Promise.resolve()}/>:<><div className="weekly-metrics two"><div><span>点击率</span><div className="weekly-rate-value"><strong>{rate(row.clickRate)}</strong><RateDelta value={row.clickRate} comparison={row.rateComparison}/></div></div><div><span>3 秒阅读率</span><div className="weekly-rate-value"><strong>{rate(row.threeSecondReadRate)}</strong><RateDelta value={row.threeSecondReadRate} comparison={row.rateComparison} field="threeSecondReadRate"/></div></div></div>{onConclusion?<DiscussionText label={`${row.contentName} 结论`} value={row.conclusion??''} onChange={v=>onConclusion(row.key,v)}/>:<p>{row.conclusion||'待补充'}</p>}</>}
-   {row.rateComparison?<RateSamples comparison={row.rateComparison}/>:<Comparison b={row.historical} non/>}
-   {row.checkpointType==='day_15'&&context.find(r=>r.scheduleId===row.scheduleId&&r.checkpointType==='day_7')&&<details className="weekly-source"><summary>首轮对照</summary>{context.filter(r=>r.scheduleId===row.scheduleId&&r.checkpointType==='day_7').map(r=><p key={r.key}>点击率 {rate(r.clickRate)} · 阅读率 {rate(r.threeSecondReadRate)} · {r.conclusion}</p>)}</details>}
-   <WeeklyCardDetails><p>数据截止 {row.recordedThrough??'待补充'}</p><a href="/business/non-promotion-review" target="_blank" rel="noreferrer">查看完整复盘记录</a></WeeklyCardDetails>
+interface NonProps{onConclusion?:(key:string,value:string)=>void;rows:NonRow[];pending?:WeeklyMaterial['pending'];context?:WeeklyNonPromotionCard[];readonly?:boolean;selected?:string[];onSelect?:(key:string,value:boolean)=>void;query?:string;noteIds?:Record<string,string|null>;postReferences?:Record<string,WeeklyPostReference>;}
+export function NonPromotionCards({rows,context=[],noteIds={},postReferences={},onConclusion}:NonProps){
+ const groups=new Map<string,NonRow[]>();
+ for(const row of sortMeetingNonPromotions(rows)){const id=row.contentId||row.scheduleId;if(!groups.has(id))groups.set(id,[]);groups.get(id)!.push(row);}
+ const status=(row:NonRow,primary:boolean)=>row.placeholder==='future'?'未到复盘时间':row.placeholder==='missing'?'待补录':row.skipped?'不复盘':primary?'本次复盘':row.previous?.length?'往期已复盘':'已录入，待例会复盘';
+ const node=(row:NonRow,primary:boolean)=><section key={row.key} className={`weekly-non-node ${primary?'is-current':'is-comparison'}`} data-weekly-checkpoint={row.checkpointType}>
+  <header><strong>{checkpointLabel(row.checkpointType)}</strong><span className="weekly-node-status">{status(row,primary)}</span></header><small className="weekly-node-date">截至 {row.recordedThrough||row.dueOn||'未记录'}</small>
+  {row.placeholder?<p className="weekly-node-empty">{row.placeholder==='missing'?<a href={`/business/non-promotion-review?view=pending&row=${encodeURIComponent(row.key)}`} target="_blank" rel="noreferrer">前往补录 ↗</a>:'—'}</p>:<>
+   <div className="weekly-node-metrics"><div><span>阅读量</span><strong>{row.readCount==null?'未记录':row.readCount.toLocaleString('zh-CN')}</strong></div><div><span>点击率</span><strong>{rate(row.clickRate)}</strong>{row.checkpointKind!=='custom'&&<RateDelta value={row.clickRate} comparison={row.rateComparison}/>}</div><div><span>3 秒阅读率</span><strong>{rate(row.threeSecondReadRate)}</strong>{row.checkpointKind!=='custom'&&<RateDelta value={row.threeSecondReadRate} comparison={row.rateComparison} field="threeSecondReadRate"/>}</div></div>
+   {onConclusion&&primary?<DiscussionText label={`${row.contentName} 结论`} value={row.conclusion??""} onChange={v=>onConclusion(row.key,v)}/>:row.conclusion&&<p className="weekly-node-conclusion">{row.conclusion}</p>}
+   {row.checkpointKind!=='custom'&&(row.rateComparison?<RateSamples comparison={row.rateComparison}/>:row.historical&&<Comparison b={row.historical} non/>)}
   </>}
- </article>)}</div>;
-}
-export function NonPromotionEditor({row,onSaved,initial,onDraft,noteId}:{noteId?:string|null;initial?:NonInput;onDraft?:(value:NonInput)=>void;row:{scheduleId:string;checkpointType:string;recordedThrough?:string|null;clickRate?:number|null;threeSecondReadRate?:number|null;conclusion?:string;contentName?:string;rateComparison?:RateComparison};onSaved?:()=>Promise<void>}){
- const [value,setValue]=useState({clickRate:row.clickRate??'',threeSecondReadRate:row.threeSecondReadRate??'',recordedThrough:row.recordedThrough??'',conclusion:row.conclusion??'',platformNoteId:'',reason:'',...initial}),[mode,setMode]=useState(initial?.mode??'record'),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[confirmed,setConfirmed]=useState(row.clickRate!=null&&!initial?.editing);
- const set=(k:string,v:string)=>{const next={...value,[k]:v};setValue(next);onDraft?.({...next,clickRate:String(next.clickRate),threeSecondReadRate:String(next.threeSecondReadRate),mode,editing:true});document.documentElement.dataset.unsaved='true';};
- const save=async()=>{setBusy(true);setMessage('');try{const data=new FormData();data.set('scheduleId',row.scheduleId);data.set('checkpointType',row.checkpointType);if(mode==='skip'){data.set('action','skip');data.set('reason',value.reason);}else for(const [k,v] of Object.entries(value))data.set(k,k==='platformNoteId'&&noteId?noteId:String(v));const res=await fetch(mode==='skip'?'/api/non-promotion-checkpoints':'/api/non-promotion-reviews',{method:'POST',body:data});const json=await res.json();if(!res.ok)throw new Error(json.message);setConfirmed(true);setMessage(mode==='skip'?'已标记不复盘':'已保存正式复盘');await onSaved?.();setValue(v=>({...v,platformNoteId:''}));}catch(e){setMessage(e instanceof Error?e.message:'保存失败，输入已保留');}finally{setBusy(false)}};
- return <div className="weekly-non-editor">{confirmed&&mode==='skip'?<p>已标记不复盘 · {value.reason}</p>:confirmed&&<><div className="weekly-metrics two"><div><span>点击率</span><div className="weekly-rate-value"><strong>{rate(Number(value.clickRate))}</strong><RateDelta value={Number(value.clickRate)} comparison={row.rateComparison}/></div></div><div><span>3 秒阅读率</span><div className="weekly-rate-value"><strong>{rate(Number(value.threeSecondReadRate))}</strong><RateDelta value={Number(value.threeSecondReadRate)} comparison={row.rateComparison} field="threeSecondReadRate"/></div></div></div><p>{value.conclusion}</p></>}<fieldset disabled={busy||confirmed} hidden={confirmed}><label>处理方式<select value={mode} onChange={e=>{const mode=e.target.value as 'record'|'skip';setMode(mode);onDraft?.({...value,clickRate:String(value.clickRate),threeSecondReadRate:String(value.threeSecondReadRate),mode,editing:true})}}><option value="record">录入数据</option>{row.clickRate==null&&<option value="skip">不复盘</option>}</select></label>{mode==='skip'?<label>不复盘理由<textarea rows={2} value={value.reason} onChange={e=>set('reason',e.target.value)}/></label>:<><div className="weekly-writing-grid">{['clickRate','threeSecondReadRate'].map((k,i)=><label key={k}>{i?'3 秒阅读率（%）':'点击率（%）'}<input type="number" min="0" max="100" step="0.01" placeholder="待补充" value={value[k as 'clickRate']} onChange={e=>set(k,e.target.value)}/></label>)}</div><label>数据截止日<input type="date" value={value.recordedThrough} onChange={e=>set('recordedThrough',e.target.value)}/></label><label>结论<textarea rows={2} value={value.conclusion} onChange={e=>set('conclusion',e.target.value)}/></label></>}</fieldset>{(noteId||mode==='record')&&<label>笔记 ID{noteId?<input aria-label="笔记 ID" readOnly value={noteId}/>:<input aria-label="笔记 ID" placeholder="填写 24 位笔记 ID" disabled={busy} maxLength={24} value={value.platformNoteId} onChange={e=>{setConfirmed(false);set('platformNoteId',e.target.value)}}/>}</label>}<div className="weekly-card-confirm"><output role="status">{message}</output><button type="button" className="business-action-secondary" disabled={busy} onClick={()=>{if(confirmed){setConfirmed(false);onDraft?.({...value,clickRate:String(value.clickRate),threeSecondReadRate:String(value.threeSecondReadRate),mode,editing:true});}else void save()}}>{busy?'保存中…':confirmed?'修改':'确认'}</button></div></div>
+ </section>;
+ return <div className="weekly-card-grid weekly-non-grid">{[...groups.entries()].map(([id,selected])=>{
+  const first=selected[0],primary=new Set(selected.filter(r=>!r.comparisonOnly).map(r=>r.key));
+  const others=context.filter(r=>(r.contentId||r.scheduleId)===id&&!selected.some(s=>s.key===r.key)).map(r=>({...r,comparisonOnly:true}));
+  const all=[...selected,...others].sort((a,b)=>(a.dueOn??'').localeCompare(b.dueOn??'')||a.key.localeCompare(b.key));
+  const visible=all.filter(r=>!r.checkpointType.startsWith('custom:')||primary.has(r.key)),history=all.filter(r=>r.checkpointType.startsWith('custom:')&&!primary.has(r.key)&&!r.placeholder),upcoming=all.filter(r=>r.checkpointType.startsWith('custom:')&&!primary.has(r.key)&&r.placeholder);
+  return <article className="weekly-stage-card weekly-non-card" key={id} data-weekly-non={first.scheduleId}>
+   <header><div><CardTitle name={first.contentName} version={first.versionNumber} reference={postReferences[first.scheduleId]}/><small>{first.reviewMode?reviewModeLabels[first.reviewMode]:'非推广复盘'} · 发布于 {first.publishedOn||(first.actualPublishAt?businessDate(first.actualPublishAt):'未记录')}</small></div></header>
+   <div className={`weekly-non-compare ${visible.length===1?'single':''}`}>{visible.map(r=>node(r,primary.has(r.key)))}</div>
+   {!!history.length&&<details className="weekly-source"><summary>往期自定义复盘 ({history.length})</summary>{history.map(r=>node(r,false))}</details>}
+   {!!upcoming.length&&<details className="weekly-source"><summary>待复盘节点 ({upcoming.length})</summary>{upcoming.map(r=>node(r,false))}</details>}
+   <WeeklyCardDetails><a href={`/business/non-promotion-review?view=history&row=${encodeURIComponent(first.key)}`} target="_blank" rel="noreferrer">查看完整复盘记录 ↗</a>{noteIds[first.scheduleId]&&<p>笔记 ID：{noteIds[first.scheduleId]}</p>}</WeeklyCardDetails>
+  </article>;
+ })}</div>;
 }

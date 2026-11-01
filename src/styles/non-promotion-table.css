@@ -34,3 +34,19 @@
 /* 分组表共用外边界和横滚画布，展开内容不另建缩进或滚动层。 */
 .review-table[data-grouped=true]{min-width:1096px}
 @container nonpromotion-table (max-width:1095px){.review-table[data-grouped=true]{min-width:820px}}
+
+/* 阅读量是累计主值；金额/比率列宽不从名称列随机分配。 */
+.review-table:not([data-view=skipped]){--review-columns:224px minmax(180px,1fr) 72px 168px 160px 160px 128px}
+.review-table[data-grouped=true]{min-width:1164px}
+.review-table:not([data-view=skipped]) .review-row{min-width:1164px}
+.review-read-count{font-variant-numeric:tabular-nums;align-self:stretch;display:flex;align-items:flex-start;justify-content:center}.review-read-count>span{display:none}.review-read-count strong{font:500 20px/26px var(--console-font)}
+.review-count-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}.review-count-fields input{min-width:0}
+@container nonpromotion-table (max-width:1095px){.review-table:not([data-view=skipped]){--review-columns:208px minmax(128px,1fr) 48px 168px 88px 88px 140px}.review-table:not([data-view=skipped]) .review-row{min-width:940px}.review-table[data-grouped=true]{min-width:940px}}
+@container nonpromotion-table (max-width:740px){
+ .review-table[data-grouped=false]:not([data-view=skipped]) .review-row:not(.table-head){min-width:0;grid-template-areas:"date date date" "post post post" "count count count" "node click read" "action action action"}
+ .review-table[data-grouped=false]:not([data-view=skipped]) [data-label=阅读量]{grid-area:count;display:flex;align-items:baseline;justify-content:center;gap:8px}.review-read-count>span{display:inline;color:var(--console-muted);font-size:12px}
+ .review-read-count strong{font-size:18px}
+ .review-table[data-grouped=false]:not([data-view=skipped]) [data-label=点击率]{grid-area:click}.review-table[data-grouped=false]:not([data-view=skipped]) [data-label="3 秒阅读率"]{grid-area:read}
+}
+.category-summary-row[data-custom-only]{min-height:56px;grid-template-rows:56px}.category-summary-row[data-custom-only]>:is(.category-name,.category-detail-link){grid-row:1}.category-custom-note{grid-column:2/6;grid-row:1;color:var(--console-muted);font:400 12px/18px var(--console-font)}
+.review-row>.metric{align-self:start}

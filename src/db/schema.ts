@@ -479,11 +479,32 @@ export const operationsScheduleDelayReason = pgTable('operations_schedule_delay_
   check('operations_delay_reason_text_check', sql`length(trim(${table.reason})) > 0`),
 ]);
 
+export const operationsNonPromotionReviewPlan = pgTable('operations_non_promotion_review_plan', {
+  contentId: uuid('content_id').primaryKey().references(()=>operationsContent.id,{onDelete:'restrict'}),
+  anchorScheduleId: uuid('anchor_schedule_id').notNull().references(()=>operationsContentSchedule.id,{onDelete:'restrict'}),
+  mode: text('mode').$type<'standard'|'instant'|'continuous'>().notNull(),
+  day7: boolean('day_7').notNull().default(true), day15: boolean('day_15').notNull().default(true),
+  revision: integer('revision').notNull().default(0),
+  history: jsonb('history').$type<Array<Record<string,unknown>>>().notNull().default([]),
+  updatedAt: timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(),
+},table=>[check('operations_non_plan_mode_check',sql`${table.mode} IN ('standard','instant','continuous')`)]);
+
+export const operationsNonPromotionCustomCheckpoint = pgTable('operations_non_promotion_custom_checkpoint', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  contentId: uuid('content_id').notNull().references(()=>operationsContent.id,{onDelete:'restrict'}),
+  scheduleId: uuid('schedule_id').notNull().references(()=>operationsContentSchedule.id,{onDelete:'restrict'}),
+  dueOn: date('due_on').notNull(), revision: integer('revision').notNull().default(0),
+  cancelledAt: timestamp('cancelled_at',{withTimezone:true}),
+  history: jsonb('history').$type<Array<Record<string,unknown>>>().notNull().default([]),
+  createdAt: timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
+},table=>[index('operations_non_custom_content_idx').on(table.contentId),uniqueIndex('operations_non_custom_date_idx').on(table.contentId,table.dueOn).where(sql`${table.cancelledAt} IS NULL`)]);
+
 export const operationsNonPromotionCheckpointEvent = pgTable('operations_non_promotion_checkpoint_event', {
   id: uuid('id').defaultRandom().primaryKey(),
   sequence: bigint('sequence', { mode: 'number' }).generatedAlwaysAsIdentity().notNull(),
   scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
-  checkpointType: text('checkpoint_type').$type<'day_7' | 'day_15'>().notNull(),
+  checkpointType: text('checkpoint_type').notNull(),
+  customCheckpointId: uuid('custom_checkpoint_id').references(()=>operationsNonPromotionCustomCheckpoint.id,{onDelete:'restrict'}),
   action: text('action').$type<'skip' | 'restore'>().notNull(),
   reason: text('reason').notNull(),
   changedById: text('changed_by_id').notNull(),
@@ -491,7 +512,7 @@ export const operationsNonPromotionCheckpointEvent = pgTable('operations_non_pro
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [
   index('operations_checkpoint_event_schedule_idx').on(table.scheduleId, table.checkpointType, table.createdAt),
-  check('operations_checkpoint_event_type_check', sql`${table.checkpointType} IN ('day_7','day_15')`),
+  check('operations_checkpoint_event_type_check', sql`(${table.customCheckpointId} IS NULL AND ${table.checkpointType} IN ('day_7','day_15')) OR (${table.customCheckpointId} IS NOT NULL AND ${table.checkpointType} = 'custom:' || ${table.customCheckpointId}::text)`),
   check('operations_checkpoint_event_action_check', sql`${table.action} IN ('skip','restore')`),
 ]);
 
@@ -709,7 +730,7 @@ export interface WeeklyMeetingDraft {
   nextAction: string;
   promotionInputs: Record<string, { confirmed?:boolean; rateRange?:{from:string;through:string}|null; rateNeedsReview?:boolean; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
   issues: Array<{ id?: string; problem: string; conclusion: string; status: 'pending' | 'validating' | 'resolved' | 'paused' }>;
-  nonPromotionSelections: Array<{ scheduleId: string; checkpointType: 'day_7' | 'day_15' }>;
+  nonPromotionSelections: Array<{ scheduleId: string; checkpointType: string }>;
 }
 
 export const operationsReviewMeeting = pgTable(
@@ -798,7 +819,9 @@ export const operationsContentPerformanceMetric = pgTable(
     scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
     checkpointType: text('checkpoint_type').notNull(),
     recordedThrough: date('recorded_through').notNull(),
-    clickRate: numeric('click_rate', { precision: 7, scale: 4 }).notNull(),
+    customCheckpointId: uuid('custom_checkpoint_id').references(()=>operationsNonPromotionCustomCheckpoint.id,{onDelete:'restrict'}),
+    exposureCount: integer('exposure_count'), readCount: integer('read_count'),
+    clickRate: numeric('click_rate', { precision: 7, scale: 4 }),
     threeSecondReadRate: numeric('three_second_read_rate', { precision: 7, scale: 4 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -806,7 +829,8 @@ export const operationsContentPerformanceMetric = pgTable(
   (table) => [
     uniqueIndex('operations_content_metric_schedule_checkpoint_idx').on(table.scheduleId, table.checkpointType),
     index('operations_content_metric_checkpoint_idx').on(table.checkpointType),
-    check('operations_content_metric_checkpoint_check', sql`${table.checkpointType} IN ('day_7', 'day_15')`),
+    check('operations_content_metric_checkpoint_check', sql`(${table.customCheckpointId} IS NULL AND ${table.checkpointType} IN ('day_7','day_15')) OR (${table.customCheckpointId} IS NOT NULL AND ${table.checkpointType} = 'custom:' || ${table.customCheckpointId}::text)`),
+    check('operations_content_metric_counts_check',sql`(${table.exposureCount} IS NULL AND ${table.readCount} IS NULL) OR (${table.exposureCount} IS NOT NULL AND ${table.readCount} IS NOT NULL AND ${table.exposureCount} >= 0 AND ${table.readCount} >= 0 AND ${table.readCount} <= ${table.exposureCount})`),
     check('operations_content_metric_click_check', sql`${table.clickRate} BETWEEN 0 AND 100`),
     check('operations_content_metric_read_check', sql`${table.threeSecondReadRate} BETWEEN 0 AND 100`),
   ],
@@ -819,13 +843,15 @@ export const operationsNonPromotionReview = pgTable(
     scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
     metricId: uuid('metric_id').notNull().references(() => operationsContentPerformanceMetric.id, { onDelete: 'restrict' }),
     checkpointType: text('checkpoint_type').notNull(),
+    customCheckpointId: uuid('custom_checkpoint_id').references(()=>operationsNonPromotionCustomCheckpoint.id,{onDelete:'restrict'}),
     actualPublishAtSnapshot: timestamp('actual_publish_at_snapshot', { withTimezone: true }).notNull(),
     subjectIdSnapshot: text('subject_id_snapshot').notNull(),
     subjectNameSnapshot: text('subject_name_snapshot').notNull(),
     categoryIdSnapshot: text('category_id_snapshot'),
     categoryNameSnapshot: text('category_name_snapshot'),
     contentNameSnapshot: text('content_name_snapshot').notNull(),
-    clickRateSnapshot: numeric('click_rate_snapshot', { precision: 7, scale: 4 }).notNull(),
+    exposureCountSnapshot: integer('exposure_count_snapshot'), readCountSnapshot: integer('read_count_snapshot'),
+    clickRateSnapshot: numeric('click_rate_snapshot', { precision: 7, scale: 4 }),
     threeSecondReadRateSnapshot: numeric('three_second_read_rate_snapshot', { precision: 7, scale: 4 }).notNull(),
     cohortSnapshot: jsonb('cohort_snapshot').$type<Record<string, unknown>>().notNull(),
     conclusion: text('conclusion'),
@@ -840,7 +866,7 @@ export const operationsNonPromotionReview = pgTable(
   (table) => [
     uniqueIndex('operations_non_promotion_review_checkpoint_idx').on(table.scheduleId, table.checkpointType),
     index('operations_non_promotion_review_reviewed_idx').on(table.reviewedAt),
-    check('operations_non_promotion_review_checkpoint_check', sql`${table.checkpointType} IN ('day_7', 'day_15')`),
+    check('operations_non_promotion_review_checkpoint_check', sql`(${table.customCheckpointId} IS NULL AND ${table.checkpointType} IN ('day_7','day_15')) OR (${table.customCheckpointId} IS NOT NULL AND ${table.checkpointType} = 'custom:' || ${table.customCheckpointId}::text)`),
     check('operations_non_promotion_review_version_check', sql`${table.currentVersionNumber} >= 0`),
   ],
 );

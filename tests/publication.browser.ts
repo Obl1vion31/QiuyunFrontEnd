@@ -3,13 +3,13 @@ import {businessFetch as fetch} from './business-request.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 发布登记、历史空值与月历交互；业务写入仅使用隔离数据库。 */
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {eq} from 'drizzle-orm';
 import {startFixture,admin,employee} from './auth.fixture';
 import * as schema from '../src/db/schema';
-const fixture=await startFixture(),{db,baseURL}=fixture;let browser:any;
+const clockFile=new URL('../.tools/test-artifacts/nonpromotion-plans/publication-clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-15T12:00:00+08:00');const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;let browser:any;
 const time=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date).replace(' ','T');
-const now=new Date(Math.floor(Date.now()/60000)*60000),future=time(new Date(now.getTime()+3*3600000)),month=time(now).slice(0,7);
+const now=new Date('2026-11-15T12:00:00+08:00'),future=time(new Date(now.getTime()+3*3600000)),month=time(now).slice(0,7);
 const link='https://xhslink.cn/o/4KuczULK8Ja',share=`2026TMUA超完整超全解析来啦！！🤩 所有时区的考试全... ${link} 快戳【小红书】瞧瞧这篇笔记！`;
 const form=(input:Record<string,string>)=>{const data=new FormData();for(const [key,value]of Object.entries(input))data.set(key,value);return data;};
 async function login(account:typeof admin|typeof employee){const r=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(account)});assert.equal(r.status,200);return r.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ')}
@@ -46,7 +46,7 @@ try{
  assert.equal((await fetch(baseURL+endpoint+'/publication',{method:'PATCH',headers:{Cookie:staff,Origin:'https://foreign.example.test'}})).status,403);
  const playwright=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await playwright.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});
  const errors:string[]=[];
- async function pageFor(cookie:string,width:number){const context=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));return {context,page};}
+ async function pageFor(cookie:string,width:number){const context=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));const page=await context.newPage();await page.clock.setFixedTime(now);page.on('pageerror',(error:Error)=>errors.push(error.message));return {context,page};}
  for(const width of [1440,390,320]){
   const {context,page}=await pageFor(staff,width);
   await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);const display=page.getByRole('navigation',{name:'显示方式',exact:true});assert.deepEqual(await display.locator('a').allTextContents(),['月历','台账']);assert.equal(await display.locator('[aria-current=page]').innerText(),'月历');const stats=await page.locator('.status-strip strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({font:getComputedStyle(node).fontFamily,size:parseFloat(getComputedStyle(node).fontSize),weight:getComputedStyle(node).fontWeight,figures:getComputedStyle(node).fontVariantNumeric})));assert.ok(stats.length>0);assert.ok(stats.every((item:any)=>item.font.includes('system-ui')&&!item.font.includes('monospace')&&item.size>=20&&item.size<=24&&item.weight==='500'&&item.figures.includes('tabular-nums')),'核心统计使用共享字体和等宽数字');assert.equal(await page.locator('#publicationMode').count(),0);
@@ -94,7 +94,7 @@ try{
   assert.deepEqual((await sheetGeometry('#schedule-dialog')).rects,editGeometry.rects,'编辑表单滚动不移动头部或操作区');
   await page.screenshot({path:`.tools/test-artifacts/control-sheet-edit-${width}.png`});
   await page.locator('[data-close]').first().click();
-  await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),'');assert.equal(await page.locator('#publicationUrl').getAttribute('required'),null);assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
+  await page.locator('[data-inspector-publication]').click();await page.locator('#publication-dialog[open]').waitFor();assert.equal(await page.locator('#publicationUrl').inputValue(),'');assert.equal(await page.locator('#publicationUrl').getAttribute('required'),'');assert.equal(await page.locator('#publicationActualPublishAt').isDisabled(),true);
   assert.deepEqual(await sheetGeometry('#publication-dialog'),editGeometry,'编辑排期与发布登记共用抽屉、头部和底部几何');
   await checkBusinessDateTime(page.locator('#publication-form [data-datetime-field]'));const requiredMark=await page.locator('#publicationUrl').locator('..').locator('label').evaluate((node:HTMLElement)=>({labelY:node.getBoundingClientRect().y,markY:node.querySelector('b')!.getBoundingClientRect().y}));if(await page.locator('[data-publication-link-required]').isVisible())assert.ok(Math.abs(requiredMark.labelY-requiredMark.markY)<=5,'必填标记与标签同行');assert.equal(await page.locator('#actualPublishDate').isDisabled(),true);assert.equal(await page.locator('#actualPublishTime').isDisabled(),true);
   await page.locator('#publicationUrl').evaluate((node:HTMLElement)=>{node.style.minHeight='1100px';});await page.locator('#publication-dialog .sheet-body').evaluate((node:HTMLElement)=>{node.scrollTop=node.scrollHeight;});

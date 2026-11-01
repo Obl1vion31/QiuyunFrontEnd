@@ -1,0 +1,38 @@
+{
+  "screenshots": 43,
+  "groups": [
+    "continuous-plan",
+    "employee-history",
+    "non-promotion-history",
+    "non-promotion-input",
+    "publication-instant",
+    "save-failure",
+    "save-retry",
+    "touch-input",
+    "touch-save",
+    "weekly-15day",
+    "weekly-7day",
+    "weekly-expanded",
+    "weekly-touch",
+    "zero-exposure"
+  ],
+  "pdfPages": 2,
+  "videos": [
+    {
+      "kind": "desktop",
+      "source": "videos/desktop.mp4",
+      "duration": 16.96,
+      "review": "all decoded frames",
+      "sheets": 15
+    },
+    {
+      "kind": "mobile",
+      "source": "videos/mobile.mp4",
+      "duration": 4.24,
+      "review": "all decoded frames",
+      "sheets": 4
+    }
+  ],
+  "reviewed": true,
+  "method": "Stable screenshots and every decoded video frame reviewed separately; PDF both pages rendered and reviewed."
+}

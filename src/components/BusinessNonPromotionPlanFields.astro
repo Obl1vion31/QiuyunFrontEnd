@@ -1,0 +1,20 @@
+---
+interface Props {prefix:string}
+const {prefix}=Astro.props;
+---
+<fieldset class="non-plan-fields" data-review-plan-fields>
+ <legend>复盘方式</legend>
+ <input type="hidden" name="expectedReviewRevision" value="-1"/>
+ <label for={prefix+'-mode'}>方式<select id={prefix+'-mode'} name="reviewMode"><option value="standard">常规复盘</option><option value="instant">即时复盘</option><option value="continuous">持续复盘</option></select></label>
+ <div class="non-plan-options" data-review-plan-options hidden>
+  <label data-review-date-group>截止日期<input type="date" name="reviewDueOn"/><small data-review-days></small></label>
+  <div class="non-plan-checks"><label><input type="checkbox" name="reviewDay7"/>仍需7天复盘</label><label><input type="checkbox" name="reviewDay15"/>仍需15天复盘</label></div>
+ </div>
+ <small data-review-plan-help>按原帖实际发布日期安排复盘。</small>
+</fieldset>
+<style is:global>
+.non-plan-fields{display:grid;gap:12px;min-width:0;margin:0;padding:14px;border:1px solid var(--console-line);border-radius:8px}.non-plan-fields legend{padding:0 5px;color:var(--console-ink);font-size:14px;font-weight:500}.non-plan-fields label{display:grid;gap:6px;font:400 13px/20px var(--console-font)}.non-plan-fields select,.non-plan-fields input[type=date]{width:100%;min-width:0;height:40px;font:400 14px/22px var(--console-font)}.non-plan-options{display:grid;gap:12px}.non-plan-checks{display:flex;flex-wrap:wrap;gap:12px}.non-plan-checks label{display:flex;align-items:center;gap:6px}.non-plan-checks input{width:16px;height:16px}.non-plan-fields small{font-size:12px;line-height:18px;color:var(--console-muted)}.non-plan-fields [hidden]{display:none!important}.non-plan-panel{display:grid;gap:14px;padding-block:16px;border-top:1px solid var(--console-line)}.non-plan-panel h3{margin:0;font-size:15px;line-height:22px}.non-plan-panel form{display:grid;gap:10px}.non-plan-panel output{font-size:13px;line-height:20px}.non-plan-panel details>summary{cursor:pointer;font-size:13px;line-height:22px}.non-plan-panel details>form{margin-top:12px}.non-plan-nodes{display:grid;gap:10px}.non-plan-node{padding:10px 0;border-bottom:1px solid var(--console-line)}.non-plan-node>p{margin:0;font-size:13px;line-height:22px}.non-plan-node>small{color:var(--console-muted);font-size:12px}.non-plan-panel [hidden]{display:none!important}
+</style>
+<style is:global>
+.business-form .non-plan-fields small{color:var(--console-muted);font:400 12px/18px var(--console-font)}
+</style>

@@ -5,15 +5,15 @@
  * 【组件职责】展示主指标和 pp 差值，并通过 tooltip 保留同类均值与样本量。
  * 【安全边界】颜色只辅助表达状态；主数值始终保持深色并使用等宽数字。
  */
-interface Props { value:number|null; benchmark:number|null; delta:number|null; sampleSize:number; state:'positive'|'neutral'|'negative'; round?:string }
-const { value, benchmark, delta, sampleSize, state, round } = Astro.props;
+interface Props { value:number|null; benchmark:number|null; delta:number|null; sampleSize:number; state:'positive'|'neutral'|'negative'; round?:string; recorded?:boolean; comparable?:boolean }
+const { value, benchmark, delta, sampleSize, state, round,recorded=false,comparable=true } = Astro.props;
 const formatRate=(number:number|null)=>number==null?'—':`${number.toFixed(2)}%`;
 const formatDelta=(number:number|null)=>number==null?'暂无同类基准':`${number>0?'+':''}${number.toFixed(2)}pp`;
 const title=`${round??''}${benchmark==null?`同类样本 n=${sampleSize} 篇，暂无法计算均值`:`同类均值 ${formatRate(benchmark)} · n=${sampleSize} 篇`}`;
 ---
 <span class:list={['metric-cell',state,{'has-value':value!=null}]} title={title} data-result-metric={value!=null||undefined}>
-  <span class="metric-primary"><strong>{value==null?'待录入':formatRate(value)}</strong><small>{formatDelta(delta)}</small></span>
-  {round && <em><span class="metric-reference-label">同类均值 </span><span>{formatRate(benchmark)} </span><span>· {sampleSize} 篇</span></em>}
+  <span class="metric-primary"><strong>{value==null?(recorded?'—':'待录入'):formatRate(value)}</strong>{comparable&&<small>{formatDelta(delta)}</small>}</span>
+  {round && comparable && <em><span class="metric-reference-label">同类均值 </span><span>{formatRate(benchmark)} </span><span>· {sampleSize} 篇</span></em>}
 </span>
 <style>
 .metric-cell,.metric-cell *{box-sizing:border-box}.metric-cell{min-width:0;display:grid;justify-items:center;gap:3px;font-family:var(--console-font);font-variant-numeric:tabular-nums;text-align:center}.metric-primary{display:grid;justify-items:center;gap:2px}.metric-cell strong{color:var(--console-ink);font-size:20px;line-height:26px;font-weight:500}.metric-cell em{display:flex;flex-wrap:wrap;justify-content:center;gap:0 3px;color:var(--console-muted);font-size:var(--console-caption);line-height:var(--console-caption-leading);font-style:normal;font-weight:400}.metric-cell small{white-space:nowrap;color:var(--console-muted);font-size:13px;line-height:20px;font-weight:500}.metric-cell.positive small{color:#4f7d68}.metric-cell.negative small{color:#a35f59}

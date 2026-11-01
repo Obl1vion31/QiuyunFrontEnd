@@ -87,7 +87,7 @@ test('逐日理由只接受到期日期，必填责任方与文字，拒绝覆�
 test('按节点跳过不需要笔记ID或指标，首轮跳过后二轮开放，恢复保留后续状态', async () => {
   const schedule=await seed(new Date('2026-09-20T08:00:00+08:00'),new Date('2026-09-20T08:00:00+08:00'));
   const action={scheduleId:schedule.id,checkpointType:'day_7' as const,action:'skip' as const,reason:'平台数据无法获取',expectedEventId:null};
-  await assert.rejects(changeCheckpointState(db,{...action,checkpointType:'day_15'},employee,now),/顺序/);
+  await assert.rejects(changeCheckpointState(db,{...action,checkpointType:'day_15'},employee,now),/先处理7天/);
   await changeCheckpointState(db,action,employee,now);
   const first=(await readCheckpointEvents(db,schedule.id)).get(`${schedule.id}:day_7`)!;
   await changeCheckpointState(db,{...action,checkpointType:'day_15'},employee,now);

@@ -13,7 +13,7 @@ export function writeResources(path:string,method:string,data:Record<string,unkn
   if(id==='versions')return text('sourceScheduleId')?[`schedule:${text('sourceScheduleId')}`]:[];
   return id?[`schedule:${id}`]:[];
  }
- if(kind==='non-promotion-reviews'||kind==='non-promotion-checkpoints')return text('scheduleId')?[`schedule:${text('scheduleId')}${text('scope')==='schedule'?'':`:non:${text('checkpointType')}`}`]:[];
+ if(kind==='non-promotion-reviews'||kind==='non-promotion-checkpoints')return text('scheduleId')?[`schedule:${text('scheduleId')}${text('scope')==='schedule'||['add','reschedule','cancel'].includes(text('action'))?'':`:non:${text('checkpointType')}`}`]:[];
  if(kind==='promotion-daily'){
   if(id==='batch')return (Array.isArray(data.rows)?data.rows:[]).flatMap(row=>writeResources('/api/promotion-daily',method,row as Record<string,unknown>));
   if(id)return [`metric:${id}`];

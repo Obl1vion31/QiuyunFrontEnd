@@ -54,7 +54,7 @@ test('过期锁可接续，旧租约不能写入，批量冲突不会取得部�
  await db.transaction(tx=>releaseLeases(tx,otherIdentity,[key]));
 });
 async function record(fingerprint:string,rate:string,date='2020-10-08',conclusion=''){
- const form=new FormData();for(const [key,value]of Object.entries({scheduleId:schedule.id,checkpointType:'day_7',recordedThrough:date,clickRate:rate,threeSecondReadRate:'40',conclusion,fingerprint}))form.set(key,value);
+ const form=new FormData();for(const [key,value]of Object.entries({scheduleId:schedule.id,checkpointType:'day_7',recordedThrough:date,exposureCount:'10000',readCount:String(Number(rate)*100),clickRate:rate,threeSecondReadRate:'40',conclusion,fingerprint}))form.set(key,value);
  return withDatabase(db,async()=>saveReview({request:new Request(origin+'/api/non-promotion-reviews',{method:'POST',headers:{Origin:origin},body:form}),url:new URL(origin+'/api/non-promotion-reviews'),locals:{operationsUser:employee.username,user:employee}} as any));
 }
 test('真实复盘保存拒绝旧页面覆盖与未来日期，保留当前指标和不可变历史',async()=>{

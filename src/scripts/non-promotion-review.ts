@@ -1,3 +1,4 @@
+import {checkpointLabel} from '../db/non-promotion-nodes';
 import './business-data-motion';
 import './promotion-disclosure';
 import {nonPromotionGroups} from '../db/non-promotion-groups';
@@ -14,6 +15,13 @@ function initialize() {
   table.dataset.reviewReady = 'true';
   document.dispatchEvent(new Event('business:inspector-refresh'));
   const controller = getInspector(inspector);
+  inspector.addEventListener('input',event=>{
+    const input=event.target as HTMLInputElement,form=input.closest<HTMLFormElement>('[data-review-form]');
+    if(!form||!['exposureCount','readCount'].includes(input.name))return;
+    const exposure=form.elements.namedItem('exposureCount') as HTMLInputElement,reads=form.elements.namedItem('readCount') as HTMLInputElement,rate=form.elements.namedItem('clickRate') as HTMLInputElement;
+    rate.value=exposure.value!==''&&reads.value!==''&&Number(exposure.value)>0?(Number(reads.value)/Number(exposure.value)*100).toFixed(2):'—';
+    reads.setCustomValidity(reads.value!==''&&Number(reads.value)>Number(exposure.value)?'阅读量不能大于曝光量，请核对':'');
+  });
   const body = table.querySelector<HTMLElement>('[data-review-body]')!;
   const records = [...body.querySelectorAll<HTMLElement>('[data-row-href]')];
   const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
@@ -66,16 +74,17 @@ function initialize() {
       if(item){
         const fingerprint=reclaimed.querySelector<HTMLInputElement>('[name=fingerprint]')!;
         if(inspector.dataset.dirty==='true'&&fingerprint.value!==item.fingerprint)throw new Error('这条记录已有新的保存内容，当前输入已保留。请核对后重新打开该记录。');
-        if(inspector.dataset.dirty!=='true')for(const [name,value]of Object.entries({fingerprint:item.fingerprint,recordedThrough:item.metric?.recordedThrough,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion})){
-          const control=reclaimed.elements.namedItem(name) as HTMLInputElement|HTMLTextAreaElement|null;if(control){control.value=String(value??'');control.defaultValue=control.value;}
+        if(inspector.dataset.dirty!=='true')for(const [name,value]of Object.entries({fingerprint:item.fingerprint,recordedThrough:item.metric?.recordedThrough,exposureCount:item.metric?.exposureCount,readCount:item.metric?.readCount,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion})){
+          const control=reclaimed.elements.namedItem(name) as HTMLInputElement|HTMLTextAreaElement|null;if(control){control.value=name==='clickRate'&&item.metric&&value==null?'—':String(value??'');control.defaultValue=control.value;}
         }
       }
     }
     for (const item of data.tableRows) {
       const row = table.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(item.key)}"]`);
       if (!row) continue;
+      const reading=row.querySelector<HTMLElement>('[data-label=阅读量] strong');if(reading)reading.textContent=item.metric?.readCount==null?'未记录':item.metric.readCount.toLocaleString('zh-CN');
       for (const [key, field, cohort] of [['click','clickRate',item.click],['read','threeSecondReadRate',item.read]] as const) {
-        const value = item.metric ? Number(item.metric[field]) : null;
+        const value = item.metric?.[field]==null?null:Number(item.metric[field]);
         row.dataset[key] = value == null ? '' : String(value);
         const cell = row.querySelector<HTMLElement>(`[data-label="${key === 'click' ? '点击率' : '3 秒阅读率'}"] .metric-cell`);
         if(!cell)continue;
@@ -83,17 +92,17 @@ function initialize() {
         cell.classList.toggle('has-value',value!=null);cell.toggleAttribute('data-result-metric',value!=null);
         cell.classList.remove('positive','negative','neutral');
         cell.classList.add(delta == null || Math.abs(delta)<.01 ? 'neutral' : delta>0 ? 'positive' : 'negative');
-        cell.title = `${item.checkpoint.type==='day_7'?'首轮':'二轮'}同类均值 ${cohort.mean?.toFixed(2) ?? '—'}% · n=${cohort.count} 篇`;
-        cell.querySelector('strong')!.textContent = value == null ? '待录入' : `${value.toFixed(2)}%`;
+        cell.title = `${checkpointLabel(item.checkpoint.type)}同类均值 ${cohort.mean?.toFixed(2) ?? '—'}% · n=${cohort.count} 篇`;
+        cell.querySelector('strong')!.textContent = value == null ? (item.metric?'—':'待录入') : `${value.toFixed(2)}%`;
         const em=cell.querySelector('em');if(em){const label=document.createElement('span'),mean=document.createElement('span'),sample=document.createElement('span');label.className='metric-reference-label';label.textContent='同类均值 ';mean.textContent=cohort.mean==null?'— ':`${cohort.mean.toFixed(2)}% `;sample.textContent=`· ${cohort.count} 篇`;em.replaceChildren(label,mean,sample);}
-        cell.querySelector('small')!.textContent = delta == null ? '暂无同类基准' : `${delta>0?'+':''}${delta.toFixed(2)}pp`;
+        const difference=cell.querySelector('small');if(difference)difference.textContent = delta == null ? '暂无同类基准' : `${delta>0?'+':''}${delta.toFixed(2)}pp`;
       }
       const template = [...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node => node.dataset.inspectorTemplate === item.key);
       const fingerprint=template?.content.querySelector<HTMLInputElement>('[name=fingerprint]');if(fingerprint)fingerprint.value=item.fingerprint;
       const active=inspector.querySelector<HTMLInputElement>(`[data-review-form][data-collaboration-resource="schedule:${CSS.escape(item.row.id)}:non:${item.checkpoint.type}"] [name=fingerprint]`);if(active)active.value=item.fingerprint;
-      if (template) for (const [field, value] of Object.entries({ recordedThrough:item.metric?.recordedThrough,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion })) {
+      if (template) for (const [field, value] of Object.entries({ recordedThrough:item.metric?.recordedThrough,exposureCount:item.metric?.exposureCount,readCount:item.metric?.readCount,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion })) {
         const input = template.content.querySelector<HTMLInputElement|HTMLTextAreaElement>(`[name="${field}"]`);
-        if (input) { input.value = String(value ?? ''); input.defaultValue = input.value; }
+        if (input) { input.value = field==='clickRate'&&item.metric&&value==null?'—':String(value ?? ''); input.defaultValue = input.value; }
       }
     }
     for(const group of nonPromotionGroups(data.tableRows)){

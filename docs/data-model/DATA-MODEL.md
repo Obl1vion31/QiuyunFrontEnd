@@ -363,11 +363,13 @@ Content
 - `operations_review_meeting` 保存自选会议范围、会议时间、类型、当前版本和可编辑草稿；旧 `operations_stage_review_meeting` 由迁移原位改名并保留 ID。
 - `operations_review_meeting_version` 以不可变 V0 / V1+ 快照保存排期对齐、推广区间聚合、非推广节点引用、人工指标和结论。
 - `operations_review_action_item` 保存跨周问题与当前状态；`operations_review_action_progress` 按会议追加进展和结论，不覆盖旧记录。
-- `operations_content_performance_metric` 以 `(schedule_id, checkpoint_type)` 唯一保存 T+7、T+15 的点击率、3 秒阅读率和数据截至日。
-- `operations_non_promotion_review` 以 `(schedule_id, checkpoint_type)` 唯一保存内容身份、指标、cohort 快照和人工结论；它不依赖会议，应用层按 T+7 → T+15 顺序开放。真实截止日限目标日前后各1天且不晚于昨天，旧超窗记录只读保留；指标、复盘和节点事件共同形成写入指纹。
+- `operations_content_performance_metric` 以 `(schedule_id, checkpoint_type)` 唯一保存7／15天或custom:<UUID>节点的曝光／阅读原始量、服务端计算点击率、3秒阅读率和数据截至日。
+- `operations_non_promotion_review` 以 `(schedule_id, checkpoint_type)` 唯一保存内容身份、指标、cohort 快照和人工结论；它不依赖会议，应用层按帖子计划启用节点；仅启用7天时15天要求先完成或跳过7天。真实截止日限目标日前后各1天且不晚于昨天，旧超窗记录只读保留；指标、复盘和节点事件共同形成写入指纹。
 - `operations_category_policy_version` 为稳定分类保存显示名称、默认推广身份、是否可选、生效日期和递增版本。
 - `operations_schedule_usage_event` 保存推广与非推广之间的用途变更。推广转非推广只结束开放 Campaign / Stage，不删除已有推广事实。
 - 正式非推广复盘起始日为 `2026-07-01`；此前内容不生成待办或 cohort 样本。
+
+帖子级operations_non_promotion_review_plan保存常规／即时／持续方式、7／15开关、原帖锚点及修订历史；operations_non_promotion_custom_checkpoint保存独立ID、原帖归属、累计截止日与调整／取消历史。自定义次日开放，无±1窗口，各节点独立；改版继承原帖计划，旧改版事实只读且不入新样本。新增计数字段可空兼容旧百分比，零曝光允许空点击率，不反推历史原始量。
 
 ## 排期审批与逐日延期
 

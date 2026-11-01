@@ -11,6 +11,9 @@ import { nextDateKey, previousDateKey, shanghaiDateKey } from './promotion-rules
 import { promotionTotals, type PromotionFact } from './promotion-overview';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import {checkpointsForPublishDate} from './stage-review-rules.mjs';
+import {anchorReviewPosts,readReviewPlanning} from './non-promotion-plan';
+import {reviewNodes,type ReviewMode} from './non-promotion-nodes';
+import {nonPromotionSource} from './non-promotion-record';
 import {actualDataRange,cardDataRange,type ActualDataRange} from './meeting-card-rules';
 import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages } from './schema';
 export const sourceHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v)).digest('hex');
@@ -93,7 +96,13 @@ export interface WeeklyNonPromotionCard {
     subjectName: string;
     categoryId: string | null;
     categoryName: string | null;
-    checkpointType: 'day_7' | 'day_15';
+    checkpointType: string;
+    checkpointKind?:'standard'|'custom';
+    nodeId?:string|null;
+    reviewMode?:ReviewMode;
+    exposureCount?:number|null;
+    readCount?:number|null;
+    placeholder?:'future'|'missing'|'skipped';
     publishedOn?:string;
     dueOn?:string;
     recordedThrough: string | null;
@@ -156,13 +165,14 @@ const benchPromotion = (rows: Array<{
 const benchNon = (rows: WeeklyNonPromotionCard[], excluded: string): Benchmark => { const sample = rows.filter(r => r.key !== excluded && r.clickRate != null && r.threeSecondReadRate != null); return { n: sample.length, days: 0, clickRate: sample.length ? sample.reduce((n, r) => n + r.clickRate!, 0) / sample.length : null, threeSecondReadRate: sample.length ? sample.reduce((n, r) => n + r.threeSecondReadRate!, 0) / sample.length : null, sourceKeys: sample.map(r => r.key), samples: sample.map(r => ({ key: r.key, recordedThrough: r.recordedThrough, clickRate: r.clickRate, threeSecondReadRate: r.threeSecondReadRate, sourceHash: r.sourceHash })) }; };
 /** 实际状态 D 日变化；待定／放量／暂停从 D 日起，终止前一日测试。 */
 export function testingCheckpointDate(status: string, effectiveOn: string, previousActive: boolean, lastActive: string | null) { return status === 'test_discarded' && previousActive ? effectiveOn : previousActive ? previousDateKey(effectiveOn) : lastActive; }
-export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): Promise<WeeklyMaterial> {
+export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, now = new Date()): Promise<WeeklyMaterial> {
     const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersionsIncludingInvalid, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
         db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
         db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages),
     ]);
     const allVersions=allVersionsIncludingInvalid.filter(v=>!v.invalidatedAt);
+    const planning=await readReviewPlanning(db);
     const start = meeting.periodStart, end = meeting.periodEnd;
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
     const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.lifecycleStatus!=='draft' && !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
@@ -271,40 +281,43 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord): 
     }
     for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total;card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
     const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [], excludedNonPromotions:NonNullable<WeeklyMaterial['excludedNonPromotions']>=[];
-    for (const post of content.filter(p => !p.isPromoted && p.actualPublishAt))
-        for (const checkpointType of ['day_7', 'day_15'] as const) {
+    const nonPosts=anchorReviewPosts(content.map(p=>({...p,id:p.scheduleId})),planning.plans).filter(p=>!p.isPromoted);
+    const nodesFor=(post:typeof nonPosts[number])=>reviewNodes(post.actualPublishAt,post.enabledPlan,planning.custom.filter(n=>n.contentId===post.contentId));
+    for (const post of nonPosts)
+        for (const node of nodesFor(post)) {
+            const checkpointType=node.type;
             const key = `${post.scheduleId}:${checkpointType}`, metric = performanceRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), review = reviewRows.find(p => p.scheduleId === post.scheduleId && p.checkpointType === checkpointType), skipped = events.get(key)?.action === 'skip';
-            const {publishedOn,dueOn}=checkpointsForPublishDate(post.actualPublishAt!).find(row=>row.type===checkpointType)!;
+            const {publishedOn,dueOn}=node;
             if(skipped&&between(dueOn,start,end)){const event=events.get(key)!;excludedNonPromotions.push({key,contentName:post.contentName,checkpointType,reason:event.reason,eventId:event.id});}
-            if (!metric) {
-                if (!skipped && dueOn >= start && dueOn <= end)
+            if (!metric || metric.recordedThrough>end) {
+                if (!skipped && dueOn >= start && dueOn <= end && (node.kind!=='custom'||dueOn<shanghaiDateKey(now)))
                     pending.push({ key,scheduleId:post.scheduleId,actualPublishAt:post.actualPublishAt,versionNumber:post.versionNumber,publishedOn,dueOn,recordedThrough:dueOn, contentName: post.contentName, checkpointType, reason: '尚无实际数据截止日' });
+                nonPool.push({...post,key,checkpointType,checkpointKind:node.kind,nodeId:node.nodeId,reviewMode:post.mode,publishedOn,dueOn,recordedThrough:null,firstRecordedAt:null,updatedAt:null,sourceHash:sourceHash({node,skipped}),kind:'supplement',label:'对照',clickRate:null,threeSecondReadRate:null,readCount:null,exposureCount:null,conclusion:'',cause:'',nextAction:'',skipped,previous:priorCards(key,'nonPromotions').map(p=>p.ref),historical:emptyBenchmark(),peers:emptyBenchmark(),ownHistory:[],placeholder:skipped?'skipped':dueOn>end||node.kind==='custom'&&dueOn>=shanghaiDateKey(now)?'future':'missing'});
                 continue;
             }
-            if (metric.recordedThrough > end)
-                continue;
-            const cutoff = metric.recordedThrough, hash = sourceHash({ metric, review }), prior = priorCards(key, 'nonPromotions');
+            const cutoff = metric.recordedThrough, hash = sourceHash({ metric:nonPromotionSource(metric), review:nonPromotionSource(review)??undefined }), prior = priorCards(key, 'nonPromotions');
             const current = between(cutoff, start, end) && !skipped;
             const latest = review && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt;
             const changed = prior.length ? !prior.some(p => p.card.sourceHash === hash || !p.card.sourceHash && latest <= p.savedAt) : !!lastFinalized && latest > lastFinalized;
-            const card: WeeklyNonPromotionCard = { ...post, key, checkpointType,publishedOn,dueOn, recordedThrough: cutoff, firstRecordedAt: iso(metric.createdAt), updatedAt: iso(review?.updatedAt && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt), sourceHash: hash, kind: current ? 'current' : 'supplement', label: current ? '本期数据' : prior.length ? '往期数据更新' : '往期补录', clickRate: Number(metric.clickRate), threeSecondReadRate: Number(metric.threeSecondReadRate), conclusion: review?.conclusion ?? '', cause: review?.cause ?? '', nextAction: review?.nextAction ?? '', skipped, previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
+            const card: WeeklyNonPromotionCard = { ...post, key, checkpointType,checkpointKind:node.kind,nodeId:node.nodeId,reviewMode:post.mode,readCount:metric.readCount,exposureCount:metric.exposureCount,publishedOn,dueOn, recordedThrough: cutoff, firstRecordedAt: iso(metric.createdAt), updatedAt: iso(review?.updatedAt && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt), sourceHash: hash, kind: current ? 'current' : 'supplement', label: current ? '本期数据' : prior.length ? '往期数据更新' : '往期补录', clickRate: metric.clickRate==null?null:Number(metric.clickRate), threeSecondReadRate: Number(metric.threeSecondReadRate), conclusion: review?.conclusion ?? '', cause: review?.cause ?? '', nextAction: review?.nextAction ?? '', skipped, previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
             (card as any)._eligible = current || !skipped && cutoff < start && changed;
             nonPool.push(card);
         }
     // 本期二轮尚未处理时，将缺失的首轮作为同卡片流程的前置节点展示。
     for(const node of [...pending].filter(n=>n.checkpointType==='day_15')){
       const key=`${node.scheduleId}:day_7`;
-      if(!performanceRows.some(p=>p.scheduleId===node.scheduleId&&p.checkpointType==='day_7')&&events.get(key)?.action!=='skip'&&!pending.some(p=>p.key===key)){
+      if(nonPosts.find(p=>p.id===node.scheduleId)?.enabledPlan.day7&&!performanceRows.some(p=>p.scheduleId===node.scheduleId&&p.checkpointType==='day_7')&&events.get(key)?.action!=='skip'&&!pending.some(p=>p.key===key)){
         const dueOn=checkpointsForPublishDate(content.find(p=>p.scheduleId===node.scheduleId)!.actualPublishAt!).find(row=>row.type==='day_7')!.dueOn;
         pending.unshift({...node,key,checkpointType:'day_7',dueOn,recordedThrough:dueOn,reason:'请先处理首轮'});
       }
     }
     for (const card of nonPool) {
+        if(card.placeholder||card.checkpointKind==='custom')continue;
         card.ownHistory = nonPool.filter(p => p.contentId === card.contentId && p.versionNumber < card.versionNumber && p.checkpointType === card.checkpointType).map(p => ({ versionNumber: p.versionNumber, recordedThrough: p.recordedThrough, clickRate: p.clickRate, threeSecondReadRate: p.threeSecondReadRate }));
-        const same = nonPool.filter(p => p.subjectId === card.subjectId && p.categoryId === card.categoryId && p.checkpointType === card.checkpointType && !p.skipped);
+        const same = nonPool.filter(p => !p.placeholder&&p.subjectId === card.subjectId && p.categoryId === card.categoryId && p.checkpointType === card.checkpointType && !p.skipped);
         card.historical = benchNon(same.filter(p => p.recordedThrough! < start), card.key);
         card.peers = benchNon(same.filter(p => p.recordedThrough! >= start && p.recordedThrough! <= end), card.key);
-        card.rateComparison=rateComparison(same.map(p=>({key:p.key,clickRate:p.clickRate!,threeSecondReadRate:p.threeSecondReadRate!,through:p.recordedThrough!,sourceHash:p.sourceHash})),end);
+        card.rateComparison=rateComparison(same.map(p=>({key:p.key,clickRate:p.clickRate,threeSecondReadRate:p.threeSecondReadRate!,through:p.recordedThrough!,sourceHash:p.sourceHash})),end);
     }
     const promotions = pool.filter(p => (p as any)._eligible).sort((a, b) => a.key.localeCompare(b.key));
     for (const p of promotions) {
@@ -327,7 +340,8 @@ export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: st
     const promotions = material.promotions.filter(p => promotionKeys.includes(p.key));
     const keys = new Set(nonSelections.map(s => `${s.scheduleId}:${s.checkpointType}`));
     const primary = material.nonPromotions.filter(p => keys.has(p.key)).map(p => ({ ...p, comparisonOnly: false }));
-    const comparison = primary.filter(p => p.checkpointType === 'day_15' && !keys.has(`${p.scheduleId}:day_7`)).flatMap(p => { const first = material.nonPromotionContext.find(c => c.scheduleId === p.scheduleId && c.checkpointType === 'day_7'); return first ? [{ ...first, comparisonOnly: true }] : []; });
+    const posts=new Set(primary.map(p=>p.contentId));
+    const comparison = material.nonPromotionContext.filter(p=>posts.has(p.contentId)&&!keys.has(p.key)).map(p=>({...p,comparisonOnly:true}));
     return { promotions, nonPromotions: [...primary, ...comparison],excludedNonPromotions:material.excludedNonPromotions??[] };
 }
 

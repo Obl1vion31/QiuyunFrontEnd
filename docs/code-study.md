@@ -41,7 +41,7 @@ flowchart LR
 1. 新做帖建立帖子身份、V0 和排期；改帖派生 V1+，共用逻辑帖子笔记 ID。
 2. 发布登记原子保存项目文档、提取后的帖子链接、发布时间和已到期的逐日理由，允许未来时间并立即显示已发送。旧记录空链接遵循既定边界；改期和已有发布时间更正按账号的操作授权执行，更正必须填写原因。 首次且 `syncToMoments=true` 的登记将两项确认一并校验、存入发布事件JSON，后续更正保留，旧事件缺属性不回填。
 3. 推广按日度事实与明确等待区间回放。排期、历史和待办共用有效状态推导；旧团队暂停区间保留在历史回放中，单帖当前安排独立处理。
-4. 非推广复盘保存真实数据截止日、两项指标与修订版本；跳过单独保存事件，不生成指标。
+4. 非推广复盘保存真实数据截止日、曝光／阅读原始量、服务端计算点击率与手填3秒阅读率及修订版本；跳过单独保存事件，不生成指标。
 5. 周会引用业务事实并保存不可变定稿快照，修订追加版本；历史导入不覆盖旧定稿。
 
 ## 运行与维护
@@ -219,3 +219,7 @@ flowchart LR
 桌面激活侧栏月度入口，手机放在现有账号菜单；只读查看不建立编辑租约。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
 
 侧栏新增同组模块应加入 `BusinessConsoleSidebar` 的 `groups.modules`，复用同一渲染和4px组内间距，不能在分组外追加独立链接。月度运营属于“复盘与沉淀”，手机继续在账号菜单进入；移动底栏的既有项目数保持。
+
+非推广计划集中在non-promotion-plan.ts，浏览器安全的节点、窗口及类型键在non-promotion-nodes.ts；读模型统一原帖锚点，旧版本仅历史。BusinessNonPromotionPlanFields供发布登记及排期Inspector共用，non-promotion-plan控制计划／节点维护；不复制指标表单。标准键day_7/day_15保留，自定义使用custom:<UUID>并关联独立节点。保存、租约、跳过恢复、查帖与例会都使用根排期＋节点键。API非推广录入使用nonPromotionItemSchema计算点击率，SSR／GET共用readNonPromotionReview。
+
+WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未来占位冻结到新快照；readWeeklyMaterial只把启用且已到开放时间的缺项列为pending。自定义不入普通基准，历史修订不参与新样本。非推广发布计划与节点变更接入schedule.edit及审批重放；旧审批空新增字段通过nonPromotionSource保持指纹。

@@ -7,10 +7,12 @@ import {shanghaiDateKey} from '../../../db/promotion-rules.mjs';
 import { changeSchedulePlan, WorkflowError } from '../../../db/schedule-workflow';
 import { workflowErrorResponse } from '../../../db/workflow-api';
 import {requireBusinessOperation} from '../../../auth/business-permissions';
+import {reviewPlanSchema,reviewPlanFromForm} from '../../../db/non-promotion-plan-input';
+import {saveReviewPlan,reviewIdentity} from '../../../db/non-promotion-plan';
 import { and, count, eq, inArray, isNull } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
-  operationsContent,
+  operationsContent, operationsNonPromotionReviewPlan,operationsNonPromotionCustomCheckpoint,
   operationsContentPerformanceMetric,
   operationsContentSchedule,
   operationsContentVersion,
@@ -75,11 +77,13 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         transaction.select({value:count()}).from(operationsPublicationReservation).where(eq(operationsPublicationReservation.scheduleId,schedule.id)),
         transaction.select({value:count()}).from(operationsPublicationEvent).where(eq(operationsPublicationEvent.scheduleId,schedule.id)),
       ]);
-      const [startPlanRows,timelineAuditRows]=await Promise.all([
+      const [reviewPlans,customNodes,startPlanRows,timelineAuditRows]=await Promise.all([
+        transaction.select({value:count()}).from(operationsNonPromotionReviewPlan).where(eq(operationsNonPromotionReviewPlan.anchorScheduleId,schedule.id)),
+        transaction.select({value:count()}).from(operationsNonPromotionCustomCheckpoint).where(eq(operationsNonPromotionCustomCheckpoint.scheduleId,schedule.id)),
         transaction.select({value:count()}).from(operationsPromotionStartPlan).where(eq(operationsPromotionStartPlan.scheduleId,schedule.id)),
         transaction.select({value:count()}).from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.scheduleId,schedule.id)),
       ]);
-      const blockers = {startPlans:Number(startPlanRows[0]?.value??0),timelineAudits:Number(timelineAuditRows[0]?.value??0),
+      const blockers = {reviewPlans:Number(reviewPlans[0]?.value??0),customNodes:Number(customNodes[0]?.value??0),startPlans:Number(startPlanRows[0]?.value??0),timelineAudits:Number(timelineAuditRows[0]?.value??0),
         reservations:Number(reservationCountRow[0]?.value??0),publicationEvents:Number(publicationCountRow[0]?.value??0),
         versions: Number(versionCountRow?.[0]?.value ?? 0) > 1,
         campaigns: Number(campaignCountRow?.[0]?.value ?? 0),
@@ -89,7 +93,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         planHistory: Number(planCountRow?.[0]?.value ?? 0), changeRequests: Number(requestCountRow?.[0]?.value ?? 0),
         delayReasons: Number(reasonCountRow?.[0]?.value ?? 0), checkpointEvents: Number(checkpointCountRow?.[0]?.value ?? 0),
       };
-      if (blockers.startPlans || blockers.timelineAudits || blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents || blockers.reservations || blockers.publicationEvents) {
+      if (blockers.reviewPlans || blockers.customNodes || blockers.startPlans || blockers.timelineAudits || blockers.versions || blockers.campaigns || blockers.performanceMetrics || blockers.reviews || blockers.usageEvents || blockers.planHistory || blockers.changeRequests || blockers.delayReasons || blockers.checkpointEvents || blockers.reservations || blockers.publicationEvents) {
         return { kind: 'blocked' as const, blockers };
       }
 
@@ -128,6 +132,11 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
     return Response.json({ message: '请求必须使用有效的表单格式。' }, { status: 400 });
   }
 
+  if(form.get('action')==='reviewPlan'){
+    const parsed=reviewPlanSchema.safeParse(reviewPlanFromForm(form));
+    if(!parsed.success)return Response.json({message:'请核对复盘计划。',fields:issuesByField(parsed.error.issues)},{status:422});
+    try{await getDb().transaction(async tx=>{await requireBusinessOperation(tx,locals.user!,'schedule.edit');await saveReviewPlan(tx,params.id!,parsed.data,locals.user!.username);});return Response.json({ok:true});}catch(error){return workflowErrorResponse(error);}
+  }
   const result = (await readPostSchemas(getDb())).editScheduleSchema.safeParse(editScheduleInputFromForm(form));
   if (!result.success) {
     return Response.json({ message: '请检查标记的字段。', fields: issuesByField(result.error.issues) }, { status: 422 });
@@ -246,6 +255,10 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
           : null,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, params.id!)).returning({ id: operationsContentSchedule.id });
+      if(schedule.isPromoted&&!result.data.isPromoted&&schedule.actualPublishAt){
+        const post=await reviewIdentity(transaction,schedule.id);
+        await saveReviewPlan(transaction,post.id,{mode:'continuous',day7:false,day15:false,expectedRevision:post.plan?.revision??-1},locals.user!.username);
+      }
       if(oldTimeline?.plan){
         await transaction.delete(operationsPromotionStartPlan).where(eq(operationsPromotionStartPlan.scheduleId,schedule.id));
         await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:randomUUID(),businessDate:shanghaiDateKey(new Date()),action:'usage_change',reason:usageChangeReason||'调整推广身份',before:oldTimeline,after:await promotionSnapshot(transaction,schedule.id),changedById:locals.user!.id,changedByLabel:locals.user!.username});

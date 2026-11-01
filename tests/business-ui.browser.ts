@@ -128,10 +128,10 @@ try {
     await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/review-inline-categories-${width}.png`,fullPage:true});
     await page.getByRole('radio',{name:'历史数据总览',exact:true}).check();
     const metricType=await page.locator('.metric-cell em').first().evaluate((node:HTMLElement)=>({size:parseFloat(getComputedStyle(node).fontSize),family:getComputedStyle(node).fontFamily}));assert.ok(metricType.size>=12);assert.match(metricType.family,/system-ui/);
-    const first=page.locator(`[data-inspector-key="${ids[1]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[1]}:day_15"]`);
-    assert.match(await first.innerText(),/同类均值\s+8.99%/);assert.match(await first.innerText(),/-3.47pp/);
-    assert.match(await second.innerText(),/同类均值\s+8.59%/);assert.match(await second.innerText(),/-3.64pp/);
-    assert.equal(await first.locator('[data-label=节点]').innerText(),'首轮');assert.equal(await second.locator('[data-label=节点]').innerText(),'二轮');
+    const first=page.locator(`[data-inspector-key="${ids[0]}:day_7"]`), second=page.locator(`[data-inspector-key="${ids[0]}:day_15"]`);
+    assert.match(await first.innerText(),/同类均值\s+12.46%/);assert.match(await first.innerText(),/0.00pp/);
+    assert.match(await second.innerText(),/同类均值\s+12.23%/);assert.match(await second.innerText(),/0.00pp/);
+    assert.equal(await first.locator('[data-label=节点]').innerText(),'7 天');assert.equal(await second.locator('[data-label=节点]').innerText(),'15 天');
     assert.equal(await first.locator('.post-cell').innerText().then((value:string)=>value.includes('ID ')),false,'完整 ID 留在悬停和详情，不重复占行');
     await page.evaluate(()=>{(window as any).__table=document.querySelector('.review-table');(window as any).__document=document;});
     let documents=0;page.on('request',(request:any)=>{if(request.resourceType()==='document')documents++;});
@@ -148,7 +148,7 @@ try {
     assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
     await inspector.locator('[name=conclusion]').focus();await inspector.locator('[data-review-form][data-edit-lock=owned]').waitFor();await inspector.locator('[name=conclusion]').fill('尚未保存');assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await page.getByRole('link',{name:'待复盘',exact:true}).click();await answered;}assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
-    {const answered=respondToBusinessConfirm(page);await page.goBack();await answered;}await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[1]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[1]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
+    {const answered=respondToBusinessConfirm(page);await page.goBack();await answered;}await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[0]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[0]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await inspector.locator('[data-close-inspector]').click();await answered;}assert.equal(await inspector.isVisible(),true,'未保存取消关闭');
     {const answered=respondToBusinessConfirm(page,true);await page.keyboard.press('Escape');await answered;}await inspector.waitFor({state:'hidden'});
     assert.deepEqual(await page.evaluate(()=>({scroll:scrollY,tableScroll:document.querySelector('.table-scroll')!.scrollLeft})),before,'关闭保留列表滚动位置');
@@ -158,11 +158,11 @@ try {
       // 快速选择最后一次立即生效，不等待后台请求。
       await first.click();await second.click();assert.equal(await inspector.locator('[name=checkpointType]').inputValue(),'day_15');
       // 保存后刷新数据，失败时明确指出已保存且保留编辑内容。
-      await inspector.locator('[name=conclusion]').click();await inspector.locator('[name=conclusion]').fill('虚构本地保存');
+      await inspector.locator('[name=exposureCount]').fill('10000');await inspector.locator('[name=readCount]').fill('1223');await inspector.locator('[name=conclusion]').click();await inspector.locator('[name=conclusion]').fill('虚构本地保存');
       await page.route('**/api/non-promotion-reviews?**',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:'{}'}));
       await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText(/保存已成功，列表刷新失败/).waitFor();assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'虚构本地保存');
       await page.unroute('**/api/non-promotion-reviews?**');
-      await inspector.locator('[name=clickRate]').click();await inspector.locator('[name=clickRate]').fill('6.95');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值\s+9.59%/);
+      await inspector.locator('[name=readCount]').fill('695');await inspector.locator('[data-review-form] button[type=submit]').click();await inspector.getByText('已保存',{exact:true}).waitFor();assert.match(await second.innerText(),/同类均值\s+6.95%/);
       await page.keyboard.press('Escape');await inspector.waitFor({state:'hidden'});
     }
     if(width===1440) {
@@ -191,7 +191,7 @@ try {
     assert.deepEqual(await editor.locator('.dialog-head,.dialog-actions').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>{const r=node.getBoundingClientRect();return [r.y,r.height]})),editorGeometry,`推广历史长表单头尾固定 ${JSON.stringify(await editor.evaluate((node:HTMLElement)=>({html:node.outerHTML.slice(0,600),dialogHeight:getComputedStyle(node).height,formHeight:getComputedStyle(node.querySelector('form')!).height,formDisplay:getComputedStyle(node.querySelector('form')!).display,bodyHeight:getComputedStyle(node.querySelector('.form-dialog-body')!).height})))}`);
     await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/promotion-edit-ui-${width}.png`});await editor.locator('[data-close-edit]').first().click();await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     await context.close();
-    await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'4.95'}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[1]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
+    await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'12.23',readCount:1223,exposureCount:10000}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[0]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
   }
   assert.deepEqual(errors,[]);console.log('business UI shared geometry and inline category checks passed');
 }finally{await browser?.close();await fixture.stop();}

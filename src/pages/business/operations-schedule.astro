@@ -6,6 +6,7 @@ import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astr
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import BusinessNonPromotionPlanFields from '../../components/BusinessNonPromotionPlanFields.astro';
 import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
 import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astro';
@@ -325,6 +326,12 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 </dl>
                 <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
+                <section class="non-plan-panel" data-review-plan-panel hidden aria-label="复盘计划">
+                  <h3>复盘计划</h3><p data-review-plan-summary></p>
+                  <details data-business-operation="schedule.edit"><summary>管理复盘方式</summary><form class="business-form" data-review-plan-form><input type="hidden" name="action" value="reviewPlan"/><BusinessNonPromotionPlanFields prefix="inspector-review"/><output role="status"></output><button type="submit" class="business-action-primary">保存复盘计划</button></form></details>
+                  <form class="business-form" data-review-node-add data-business-operation="schedule.edit" hidden><input type="hidden" name="action" value="add"/><input type="hidden" name="scope" value="schedule"/><input type="hidden" name="scheduleId"/><label>新增复盘截止日<input type="date" name="dueOn" required/><small data-review-node-days></small></label><output role="status"></output><button type="submit" class="business-action-secondary">新增复盘日期</button></form>
+                  <div class="non-plan-nodes" data-review-node-list></div>
+                </section>
                 <details class="inspector-section inspector-reference" open><summary>相关资料</summary>
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
                 <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
@@ -398,6 +405,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           <div class="field field-wide publication-status-field"><label>完成情况</label><output class="status-preview" data-publication-status>待登记</output></div>
           <div class="field field-wide"><label for="publicationUrl">小红书帖子链接 <b data-publication-link-required>*</b></label><textarea id="publicationUrl" name="publicationUrl" rows="3" maxlength="4000" required placeholder="可直接粘贴小红书完整分享文案"></textarea><output data-publication-link-preview aria-live="polite"></output><small data-publication-error="publicationUrl"></small></div>
           <div class="field field-wide"><label for="publicationProjectDocUrl">项目文档链接 <b data-publication-doc-required>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required/></div>
+          <div class="field field-wide" data-publication-review-plan><BusinessNonPromotionPlanFields prefix="publication-review"/></div>
           <div class="field field-wide" data-time-correction hidden><label for="publicationCorrectionReason">实发时间更正原因 <b>*</b></label><textarea id="publicationCorrectionReason" name="correctionReason" maxlength="500" disabled></textarea><small data-publication-error="correctionReason"></small></div>
           <section class="field field-wide delay-field" data-publication-delay><strong>逐日延期理由</strong><p data-publication-delay-status role="status"></p><div data-publication-delay-days></div><input type="hidden" name="dailyReasons" value="[]"/><input type="hidden" name="expectedPlanRevision"/></section>
           <fieldset class="field field-wide publication-moments" data-publication-moments hidden><legend>朋友圈同步确认 <b aria-hidden="true">*</b></legend><div class="checks"><label><input type="checkbox" name="momentsSentConfirmed"/>已发送朋友圈</label><label><input type="checkbox" name="momentsRequestSentConfirmed"/>已发送对应需求</label></div><small data-publication-moments-error role="alert"></small></fieldset>
@@ -823,7 +831,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
             const impact = result.impact ?? {};
             const confirmed = await window.businessConfirm(
               result.preserveHistory
-                ? `改为非推广会结束仍开放的推广阶段。${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据都会保留，未来进入非推广 7 / 15 天复盘。确定继续吗？`
+                ? `改为非推广会结束仍开放的推广阶段。${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据都会保留，转为持续复盘，按需添加截止日期，已有非推广结果保留。确定继续吗？`
                 : `修改实发日期会归档 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并重置 ${impact.startPlans ?? 0} 个首次待定安排。确定继续吗？`,
               {title:'确认历史影响',confirmLabel:'确认更正'},
             );
@@ -879,6 +887,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     }
     </script>
     <script>import '../../scripts/operations-workflow';</script>
+<script>import '../../scripts/non-promotion-plan';</script>
   </body>
 </html>
 

@@ -1,15 +1,16 @@
 /** 新例会使用截止日内的同学科／分类／轮次样本；旧快照不补算。 */
 import type {WeeklyMeetingDraft} from './schema';
 import {cardDataRange,sameDataRange} from './meeting-card-rules';
-export type RateSample={key:string;clickRate:number;threeSecondReadRate?:number;through:string;sourceVersionId?:string;sourceHash?:string};
-export type RateComparison={asOf:string;n:number;clickRate:number|null;threeSecondReadRate:number|null;sourceKeys:string[];samples:RateSample[]};
+export type RateSample={key:string;clickRate:number|null;threeSecondReadRate?:number;through:string;sourceVersionId?:string;sourceHash?:string};
+export type RateComparison={asOf:string;n:number;clickCount?:number;readCount?:number;clickRate:number|null;threeSecondReadRate:number|null;sourceKeys:string[];samples:RateSample[]};
 export function rateComparison(samples:RateSample[],asOf:string):RateComparison{
- const valid=[...new Map(samples.filter(s=>s.through<=asOf&&Number.isFinite(s.clickRate)&&s.clickRate>=0&&s.clickRate<=100).map(s=>[s.key,s])).values()].sort((a,b)=>a.key.localeCompare(b.key));
- const read=valid.filter(s=>s.threeSecondReadRate!=null&&Number.isFinite(s.threeSecondReadRate));
- return {asOf,n:valid.length,clickRate:valid.length?valid.reduce((a,s)=>a+s.clickRate,0)/valid.length:null,threeSecondReadRate:read.length?read.reduce((a,s)=>a+s.threeSecondReadRate!,0)/read.length:null,sourceKeys:valid.map(s=>s.key),samples:valid};
+ const percentage=(value:number|null|undefined)=>value!=null&&Number.isFinite(value)&&value>=0&&value<=100;
+ const valid=[...new Map(samples.filter(s=>s.through<=asOf&&(percentage(s.clickRate)||percentage(s.threeSecondReadRate))).map(s=>[s.key,s])).values()].sort((a,b)=>a.key.localeCompare(b.key));
+ const click=valid.filter(s=>percentage(s.clickRate)),read=valid.filter(s=>percentage(s.threeSecondReadRate));
+ return {asOf,n:valid.length,clickCount:click.length,readCount:read.length,clickRate:click.length?click.reduce((a,s)=>a+s.clickRate!,0)/click.length:null,threeSecondReadRate:read.length?read.reduce((a,s)=>a+s.threeSecondReadRate!,0)/read.length:null,sourceKeys:valid.map(s=>s.key),samples:valid};
 }
 export function rateDifference(value:number|null|undefined,comparison:RateComparison|undefined,field:'clickRate'|'threeSecondReadRate'='clickRate'){
- const mean=comparison?.[field];return value==null||mean==null||comparison!.n<2?null:value-mean;
+ const mean=comparison?.[field],count=comparison?.[field==='clickRate'?'clickCount':'readCount']??comparison?.n??0;return value==null||mean==null||count<2?null:value-mean;
 }
 
 /** 旧定稿仅从自身冻结样本补展示，不读取实时业务，也不修改传入快照。 */

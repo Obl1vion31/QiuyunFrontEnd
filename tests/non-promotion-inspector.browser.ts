@@ -23,7 +23,7 @@ try {
       let data=await (await fetch(baseURL+'/api/non-promotion-reviews?view=pending',{headers:{Cookie:cookie}})).json();
       let item=data.tableRows.find((item:any)=>item.row.id===values.scheduleId&&item.checkpoint.type===values.checkpointType);
       if(!item){data=await (await fetch(baseURL+'/api/non-promotion-reviews?view=history',{headers:{Cookie:cookie}})).json();item=data.tableRows.find((item:any)=>item.row.id===values.scheduleId&&item.checkpoint.type===values.checkpointType);}
-      assert.ok(item,'真实读模型返回当前可写节点');form.set('fingerprint',item.fingerprint);
+      assert.ok(item,'真实读模型返回当前可写节点');form.set('fingerprint',item.fingerprint);form.set('exposureCount','10000');form.set('readCount',String(Math.round(Number(values.clickRate)*100)));
     }
     const response = await fetch(baseURL + path,{ method:values?'POST':'GET', headers:{ Cookie:cookie,Origin:baseURL },body:values?form:undefined });
     const data = await response.json(); assert.ok(response.ok,JSON.stringify(data)); return data;
@@ -38,7 +38,7 @@ try {
     return {content,version,schedule};
   };
   const first = await seed('TMUA 备考：用反例辨析常见逻辑命题');
-  const second = await seed(first.version.contentName,{source:first,missing:true});
+  const second = await seed(first.version.contentName,{missing:true});
   const long = await seed('从真题到方法：如何拆解数学入学考试中的长条件与逻辑关系，建立完整解题过程',{noteId:false});
   await seed('数列与递推：把关键条件转化成可用信息');
   const history = await seed('分类思路：从读题到建模');
@@ -168,7 +168,7 @@ try {
     await row(second.schedule.id).locator('.review-title-button').evaluate((n:HTMLElement)=>n.click());await accept;
     await assertIdentity(second.schedule.id);
     assert.equal(await pane.locator('.resource-missing').count(),2);
-    assert.match(await pane.locator('header').innerText(),/V1/);
+    assert.match(await pane.locator('header').innerText(),/V0/);
     await shot('missing-resources-'+width);await close();
     await row(long.schedule.id).locator('.review-entry-button').click();await pane.waitFor({state:'visible'});
     assert.equal(await pane.locator('[name=platformNoteId]').count(),1);
@@ -184,10 +184,11 @@ try {
 
   await page.setViewportSize({width:1440,height:1100});
   await row(first.schedule.id).locator('.review-entry-button').click();
-  await pane.locator('[name=clickRate]').fill('7.25');await pane.locator('[name=threeSecondReadRate]').fill('43.50');
+  await pane.locator('[name=exposureCount]').fill('10000');await pane.locator('[name=readCount]').fill('725');await pane.locator('[name=threeSecondReadRate]').fill('43.50');
   await pane.locator('[name=conclusion]').fill('第一次保存并检查资料');
   await pane.locator('[data-review-form] button[type=submit]').click();
   await page.waitForURL((url:URL)=>url.searchParams.get('view')==='history');await page.waitForLoadState('networkidle');
+  await page.getByRole('radio',{name:'分类均值查看',exact:true}).check();
   const group = page.locator('[data-category-group="tmua:innovation"]');
   await group.locator('summary').first().click();
   await assertDates(history.schedule.id);await assertDates(history.schedule.id,'day_15');
