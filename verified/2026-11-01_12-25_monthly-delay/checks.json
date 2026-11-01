@@ -1,0 +1,256 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "role": "admin",
+      "width": 1920,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 173,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 71.25,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "admin",
+      "width": 1240,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 21.25,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 153.5,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "admin",
+      "width": 390,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 156,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "admin",
+      "width": 320,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 94,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "admin",
+      "keyboard": true,
+      "refreshRetains": true,
+      "filtersRetain": true,
+      "zero": true,
+      "empty": true,
+      "unknown": 3,
+      "retryRetains": true
+    },
+    {
+      "role": "employee",
+      "width": 1920,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 173,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 71.25,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "employee",
+      "width": 1240,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 21.25,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "employee",
+      "width": 1024,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 153.5,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "employee",
+      "width": 390,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 156,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "employee",
+      "width": 320,
+      "rate": "7/25 -> 2/25",
+      "cardStable": true,
+      "headingGap": 94,
+      "details": [
+        7,
+        2
+      ],
+      "segments": [
+        18,
+        2,
+        5,
+        2,
+        0
+      ],
+      "legend": 4
+    },
+    {
+      "role": "employee",
+      "keyboard": true,
+      "refreshRetains": true,
+      "filtersRetain": true,
+      "zero": true,
+      "empty": true,
+      "unknown": 3,
+      "retryRetains": true
+    }
+  ],
+  "errors": [],
+  "database": "isolated PGlite",
+  "databaseMigrations": false
+}

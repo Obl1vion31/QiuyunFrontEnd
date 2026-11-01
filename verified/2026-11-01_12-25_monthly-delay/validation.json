@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "sourceCommit": "1f6705e97bc47039dd83457622c013784d8e223a",
+  "deployment": "dpl_AhtbWUoMvzkCHkbWuxCrEP8UoAHb",
+  "rules": {
+    "passed": 236,
+    "failed": 0
+  },
+  "databaseCheck": true,
+  "migrations": false,
+  "nodeBuildAndTypes": true,
+  "vercelBuildAndTypes": true,
+  "monthlyBaseBrowser": true,
+  "monthlyDelayBrowser": true,
+  "sharedUI": true,
+  "firstPaintCases": 17,
+  "visualReview": {
+    "screenshots": 42,
+    "viewports": [
+      1920,
+      1440,
+      1240,
+      1024,
+      390,
+      320
+    ],
+    "roles": [
+      "admin",
+      "employee"
+    ],
+    "videos": [
+      {
+        "name": "desktop.webm",
+        "frames": 104
+      },
+      {
+        "name": "mobile.webm",
+        "frames": 110
+      }
+    ],
+    "method": "实际查看全部稳定图及两段录像完整连续帧"
+  },
+  "productionData": "read-only aggregate verification, details private",
+  "businessTestData": "isolated PGlite",
+  "candidateChecks": 13,
+  "formalChecks": 105,
+  "matchingAssets": 77
+}

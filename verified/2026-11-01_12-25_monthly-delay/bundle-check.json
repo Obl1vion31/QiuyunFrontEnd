@@ -1,0 +1,7 @@
+{
+  "react": true,
+  "chromiumBinary": true,
+  "puppeteer": true,
+  "chinesePdfBytes": 201251,
+  "network": "blocked"
+}
