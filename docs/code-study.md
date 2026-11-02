@@ -239,3 +239,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 - `MonthlyPlanReference`在周会会前预览当前执行；计划版本变化时须明确确认引用，只有会后定稿才锁定原计划并冻结对照。`MonthlyPlanEditor`编辑时可读取已生效的追加，退出编辑仍回到该会议版本快照。PDF沿用同一信息组件，展开月度分类明细，并按完整人数／Week组控制分页。
 
 内容职能接入：`content-roles`共用固定选项、分组键与`sameNonPromotionCohort`；`BusinessContentRoleFields`及`operation-setup`只在两个合集显示单选，`content-role-workflow`在原排期事务保存并记录业务更正。新字段为空不改变旧审批指纹。`non-promotion-read-model`、指标保存及`meeting-weekly-material`共用职能入样条件；持续指标保存预期起点，旧数据以已存`statisticsFrom`冻结与展示。管理员`BusinessUsageGuide`由既有settings门禁覆盖。
+
+标准基准资格由`anchorReviewPosts.standardCohortEligible`统一推导，读模型、指标保存与例会材料复用；客户端使用服务端`cohortEligible`组织原位明细，不将推广后持续遗留的标准事实重新归入分类均值。

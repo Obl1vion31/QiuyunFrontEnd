@@ -27,7 +27,7 @@ export function anchorReviewPosts<T extends {id:string;contentId:string;versionN
   const state=campaign&&promotionStateOn(campaign,context,today);
   const activatedOn=segmented&&state?.currentStatus==='ended'&&state.endedOn?nextDateKey(state.endedOn):null;
   const reviewActive=operationType==='promotion_only'?false:segmented?!!activatedOn&&activatedOn<=today:operationType==='non_promotion_standard'||operationType==='non_promotion_instant'||!latest.isPromoted;
-  return {...anchor,operationType,reviewActive,activatedOn,statisticsFrom:segmented?activatedOn:null,latestScheduleId:latest.id,actualPublishAt:anchor.actualPublishAt!,isPromoted:latest.isPromoted,plan,mode,enabledPlan:segmented?{mode,day7:false,day15:false}:plan??{mode,day7:mode==='standard',day15:mode==='standard'}};
+  return {...anchor,standardCohortEligible:reviewActive&&!anchor.isPromoted,operationType,reviewActive,activatedOn,statisticsFrom:segmented?activatedOn:null,latestScheduleId:latest.id,actualPublishAt:anchor.actualPublishAt!,isPromoted:latest.isPromoted,plan,mode,enabledPlan:segmented?{mode,day7:false,day15:false}:plan??{mode,day7:mode==='standard',day15:mode==='standard'}};
  });
 }
 /** 与实发登记同一事务记录周期切换。未来登记先记录生效时间，读写资格按真实时刻切换。 */
@@ -41,9 +41,9 @@ export async function switchContinuousReviewCycle(db:Reader,contentId:string,sch
  else await db.insert(s.operationsNonPromotionReviewPlan).values({contentId,anchorScheduleId:scheduleId,mode:'continuous',day7:false,day15:false,history});
 }
 export async function readReviewPlanning(db:Reader){const [plans,custom,context]=await Promise.all([db.select().from(s.operationsNonPromotionReviewPlan),db.select().from(s.operationsNonPromotionCustomCheckpoint),readPromotionContext(db)]);return {plans,custom,context};}
-export async function activeReviewAnchorIds(db:Reader){
+export async function standardCohortAnchorIds(db:Reader){
  const [rows,plans]=await Promise.all([db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,versionNumber:s.operationsContentVersion.versionNumber,actualPublishAt:s.operationsContentSchedule.actualPublishAt,isPromoted:s.operationsContentSchedule.isPromoted,operationType:s.operationsContent.operationType}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)),db.select().from(s.operationsNonPromotionReviewPlan)]);
- return new Set(anchorReviewPosts(rows,plans,await readPromotionContext(db)).filter(p=>p.reviewActive).map(p=>p.id));
+ return new Set(anchorReviewPosts(rows,plans,await readPromotionContext(db)).filter(p=>p.standardCohortEligible).map(p=>p.id));
 }
 export async function reviewIdentity(db:Reader,scheduleId:string){
  const [version]=await db.select({contentId:s.operationsContentVersion.contentId}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).where(eq(s.operationsContentSchedule.id,scheduleId));

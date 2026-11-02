@@ -20,7 +20,7 @@ import {
 } from '../../db/schema';
 import { shanghaiDateKey, summarizeRates } from '../../db/stage-review-rules.mjs';
 import { formObject, issuesByField, nonPromotionItemSchema } from '../../db/stage-review-validation';
-import {reviewIdentity,activeReviewAnchorIds} from '../../db/non-promotion-plan';
+import {reviewIdentity,standardCohortAnchorIds} from '../../db/non-promotion-plan';
 import {nodeCanRecord,reviewNodeWindow} from '../../db/non-promotion-nodes';
 
 export const prerender = false;
@@ -123,7 +123,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
           eq(operationsContentSchedule.isPromoted, false),
         ));
       const cohortEvents = await readCheckpointEvents(transaction);
-      const anchors=await activeReviewAnchorIds(transaction);
+      const anchors=await standardCohortAnchorIds(transaction);
       const comparableRows = node.kind==='custom'?[]:cohortRows.filter(row => anchors.has(row.scheduleId)&&sameNonPromotionCohort(row,identity)&&cohortEvents.get(`${row.scheduleId}:${result.data.checkpointType}`)?.action !== 'skip');
       const cohortSnapshot = {
         subjectId: identity.subjectId,

@@ -28,6 +28,7 @@ export async function readNonPromotionReview(url:URL,{includeAllModes=false}={})
  const selectedCategory=categoryOptions.some(c=>c.id===url.searchParams.get('category'))?url.searchParams.get('category')!:'';
  const roleOptions=rolesForCategory(selectedCategory),selectedRole=roleOptions.includes(url.searchParams.get('role') as typeof roleOptions[number])?url.searchParams.get('role')!:'';
  const anchors=anchorReviewPosts(schedules,plans,context),anchorIds=new Set(anchors.map(p=>p.id));
+ const cohortAnchorIds=new Set(anchors.filter(p=>p.standardCohortEligible).map(p=>p.id));
  const matches=(p:typeof schedules[number])=>(!selectedSubject||p.subjectId===selectedSubject)&&(!selectedCategory||p.categoryId===selectedCategory)&&(!selectedRole||p.contentRole===selectedRole);
  const buildRow=(post:typeof anchors[number],legacy=false)=>{
   const enabled=reviewNodes(post.actualPublishAt,post.enabledPlan,custom.filter(c=>c.contentId===post.contentId&&(post.operationType!=='promotion_then_continuous'||c.scheduleId===post.id))).filter(n=>!post.activatedOn||n.dueOn>=post.activatedOn);
@@ -38,7 +39,7 @@ export async function readNonPromotionReview(url:URL,{includeAllModes=false}={})
   return {...post,legacy,completed,skipped,checkpoints,available,next:nextEnabledNode(enabled,resolved,today)};
  };
  const rows=anchors.filter(p=>p.reviewActive&&matches(p)).map(p=>buildRow(p));
- const legacy=schedules.filter(p=>(!anchorIds.has(p.id)||anchors.some(a=>a.id===p.id&&!a.reviewActive))&&p.actualPublishAt&&matches(p)&&reviews.some(r=>r.scheduleId===p.id)).map(p=>buildRow({...p,actualPublishAt:p.actualPublishAt!,reviewActive:false,activatedOn:null,statisticsFrom:null,latestScheduleId:p.id,mode:p.operationType==='promotion_then_continuous'?'continuous' as const:'standard' as const,plan:undefined,enabledPlan:{mode:p.operationType==='promotion_then_continuous'?'continuous' as const:'standard' as const,day7:p.operationType!=='promotion_then_continuous',day15:p.operationType!=='promotion_then_continuous'}},true));
+ const legacy=schedules.filter(p=>(!anchorIds.has(p.id)||anchors.some(a=>a.id===p.id&&!a.reviewActive))&&p.actualPublishAt&&matches(p)&&reviews.some(r=>r.scheduleId===p.id)).map(p=>buildRow({...p,actualPublishAt:p.actualPublishAt!,standardCohortEligible:false,reviewActive:false,activatedOn:null,statisticsFrom:null,latestScheduleId:p.id,mode:p.operationType==='promotion_then_continuous'?'continuous' as const:'standard' as const,plan:undefined,enabledPlan:{mode:p.operationType==='promotion_then_continuous'?'continuous' as const:'standard' as const,day7:p.operationType!=='promotion_then_continuous',day15:p.operationType!=='promotion_then_continuous'}},true));
  const pending=rows.flatMap(row=>row.available.map(checkpoint=>({row,checkpoint})));
  const activeView=['history','skipped'].includes(url.searchParams.get('view')??'')?url.searchParams.get('view')!:'pending',selectedRound='';
  const names:Record<string,string>={day_7:'7 天',day_15:'15 天'};
@@ -46,9 +47,9 @@ export async function readNonPromotionReview(url:URL,{includeAllModes=false}={})
  const allItems=[...rows,...legacy].flatMap(row=>{
   return row.checkpoints.map((checkpoint:ReviewNode)=>{
    const key=`${row.id}:${checkpoint.type}`,metric=metricMap.get(key),window=reviewNodeWindow(row.actualPublishAt,checkpoint,today);
-   const peers=checkpoint.kind==='custom'?[]:metrics.filter(m=>anchors.some(p=>p.id===m.scheduleId&&p.reviewActive)&&m.checkpointType===checkpoint.type&&sameNonPromotionCohort(m,row)&&checkpointEvents.get(`${m.scheduleId}:${m.checkpointType}`)?.action!=='skip');
+   const peers=checkpoint.kind==='custom'?[]:metrics.filter(m=>cohortAnchorIds.has(m.scheduleId)&&m.checkpointType===checkpoint.type&&sameNonPromotionCohort(m,row)&&checkpointEvents.get(`${m.scheduleId}:${m.checkpointType}`)?.action!=='skip');
    const storedMetric=metric&&Object.fromEntries(Object.entries(metric).filter(([name])=>!['subjectId','categoryId','contentRole'].includes(name)));
-   return {key,row,checkpoint,window,historical:row.legacy||row.operationType==='promotion_then_continuous'&&!!metric&&metric.statisticsFrom!==row.statisticsFrom||!!row.activatedOn&&checkpoint.dueOn<row.activatedOn||checkpoint.type==='day_7'&&!row.enabledPlan.day7||checkpoint.type==='day_15'&&!row.enabledPlan.day15||!!metric&&(metric.recordedThrough<window.min||metric.recordedThrough>window.max),fingerprint:nonPromotionFingerprint(storedMetric,reviewMap.get(key),checkpointEvents.get(key)),dueOn:checkpoint.dueOn,metric,review:reviewMap.get(key),event:checkpointEvents.get(key),click:summarizeRates(peers.flatMap(m=>m.clickRate==null?[]:[Number(m.clickRate)])),read:summarizeRates(peers.flatMap(m=>m.threeSecondReadRate==null?[]:[Number(m.threeSecondReadRate)]))};
+   return {key,row,checkpoint,window,cohortEligible:cohortAnchorIds.has(row.id)&&checkpoint.kind==='standard'&&!!reviewMap.get(key)&&checkpointEvents.get(key)?.action!=='skip',historical:row.legacy||row.operationType==='promotion_then_continuous'&&!!metric&&metric.statisticsFrom!==row.statisticsFrom||!!row.activatedOn&&checkpoint.dueOn<row.activatedOn||checkpoint.type==='day_7'&&!row.enabledPlan.day7||checkpoint.type==='day_15'&&!row.enabledPlan.day15||!!metric&&(metric.recordedThrough<window.min||metric.recordedThrough>window.max),fingerprint:nonPromotionFingerprint(storedMetric,reviewMap.get(key),checkpointEvents.get(key)),dueOn:checkpoint.dueOn,metric,review:reviewMap.get(key),event:checkpointEvents.get(key),click:summarizeRates(peers.flatMap(m=>m.clickRate==null?[]:[Number(m.clickRate)])),read:summarizeRates(peers.flatMap(m=>m.threeSecondReadRate==null?[]:[Number(m.threeSecondReadRate)]))};
   });
  });
  const linked=allItems.find(item=>item.key===url.searchParams.get('row'));
@@ -57,7 +58,7 @@ export async function readNonPromotionReview(url:URL,{includeAllModes=false}={})
  const grouped=activeView==='history'&&mode==='standard'&&url.searchParams.get('group')!=='0';
  const viewHref=(view:string,key?:string)=>{const q=new URLSearchParams({view,mode});if(selectedSubject)q.set('subject',selectedSubject);if(selectedCategory)q.set('category',selectedCategory);if(selectedRole)q.set('role',selectedRole);if(view==='history')q.set('group',url.searchParams.get('group')==='0'?'0':'1');if(key)q.set('row',key);return '?'+q;};
  // 分类基准跨复盘方式共享，明细与均值使用完全相同的入样条件。
- const standardHistory=allItems.filter(item=>!item.row.legacy&&item.checkpoint.kind==='standard'&&item.review&&item.event?.action!=='skip');
+ const standardHistory=allItems.filter(item=>item.cohortEligible);
  const categoryGroups=nonPromotionGroups(standardHistory);
  const visible=allItems.filter(item=>activeView==='history'?!!item.review:!item.row.legacy&&(activeView==='skipped'?item.row.skipped.includes(item.checkpoint.type):item.row.available.some(n=>n.type===item.checkpoint.type)));
  const tableRows=(grouped&&!includeAllModes?standardHistory:visible.filter(item=>includeAllModes||item.row.mode===mode)).sort((a,b)=>activeView==='pending'?a.dueOn.localeCompare(b.dueOn)||a.key.localeCompare(b.key):b.dueOn.localeCompare(a.dueOn)||a.key.localeCompare(b.key));

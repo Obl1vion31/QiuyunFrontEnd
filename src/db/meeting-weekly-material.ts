@@ -88,6 +88,7 @@ export interface WeeklyPromotionCard {
     }>;
 }
 export interface WeeklyNonPromotionCard {
+    standardCohortEligible?:boolean;
     contentRole?:ContentRole|null;statisticsFrom?:string|null;statisticsScope?:'version_interval'|'post_cumulative'|'legacy_cumulative';
     rateComparison?:RateComparison;
     actualPublishAt?:Date|string|null;
@@ -320,7 +321,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     for (const card of nonPool) {
         if(card.placeholder||card.checkpointKind==='custom')continue;
         card.ownHistory = nonPool.filter(p => p.contentId === card.contentId && p.versionNumber < card.versionNumber && p.checkpointType === card.checkpointType).map(p => ({ versionNumber: p.versionNumber, recordedThrough: p.recordedThrough, clickRate: p.clickRate, threeSecondReadRate: p.threeSecondReadRate }));
-        const same = nonPool.filter(p => !p.placeholder&&sameNonPromotionCohort(p,card) && p.checkpointType === card.checkpointType && !p.skipped);
+        const same = card.standardCohortEligible?nonPool.filter(p => p.standardCohortEligible&&!p.placeholder&&sameNonPromotionCohort(p,card) && p.checkpointType === card.checkpointType && !p.skipped):[];
         card.historical = benchNon(same.filter(p => p.recordedThrough! < start), card.key);
         card.peers = benchNon(same.filter(p => p.recordedThrough! >= start && p.recordedThrough! <= end), card.key);
         card.rateComparison=rateComparison(same.map(p=>({key:p.key,clickRate:p.clickRate,threeSecondReadRate:p.threeSecondReadRate!,through:p.recordedThrough!,sourceHash:p.sourceHash})),end);
