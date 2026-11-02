@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "checkedTables": 56,
+  "checks": [
+    "0046→0047真实PostgreSQL迁移逐表保留旧数据与冻结JSON",
+    "旧排期最终日期为NULL、旧字段写入保持兼容、新最终日期正常保存"
+  ]
+}

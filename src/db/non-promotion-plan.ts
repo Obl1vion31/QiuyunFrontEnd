@@ -83,6 +83,8 @@ export async function saveReviewPlan(db:Reader,scheduleId:string,input:ReviewPla
 }
 export async function addCustomNode(db:Reader,scheduleId:string,dueOn:string,actor:string){
  const post=await reviewIdentity(db,scheduleId);
+ const [configuration]=await db.select({finalReviewOn:s.operationsContentSchedule.finalReviewOn}).from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,scheduleId));
+ if(post.operationType==='promotion_then_continuous'&&configuration?.finalReviewOn)throw new WorkflowError('自动复盘节点请通过最终复盘日期调整。',422);
  if(post.id!==scheduleId)throw new WorkflowError('该版本已退出当前持续复盘，请打开当前版本。');
  if(!post.reviewActive)throw new WorkflowError('推广阶段不能新增非推广复盘。',422);
  if(post.mode==='standard')throw new WorkflowError('请先选择即时或持续复盘。',422);
@@ -92,7 +94,10 @@ export async function addCustomNode(db:Reader,scheduleId:string,dueOn:string,act
  return (await db.insert(s.operationsNonPromotionCustomCheckpoint).values({scheduleId:post.id,contentId:post.contentId,dueOn,history:[stamp(actor,null,{dueOn})]}).returning())[0];
 }
 export async function mutateCustomNode(db:Reader,scheduleId:string,input:{action:'reschedule'|'cancel';nodeId:string;dueOn?:string;expectedRevision:number;reason:string},actor:string){
+ const [configuration]=await db.select({finalReviewOn:s.operationsContentSchedule.finalReviewOn}).from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,scheduleId));
  const post=await reviewIdentity(db,scheduleId),node=post.custom.find(n=>n.id===input.nodeId);
+ if(post.operationType==='promotion_then_continuous'&&configuration?.finalReviewOn)throw new WorkflowError('自动复盘节点请通过最终复盘日期调整。',422);
+
  if(post.id!==scheduleId||!post.reviewActive||!node||node.scheduleId!==post.id||node.cancelledAt)throw new WorkflowError('该节点不属于当前可编辑的非推广复盘。');
  if(node.revision!==input.expectedRevision)throw new WorkflowError('节点已更新，请刷新核对。');
  const saved=await db.select({id:s.operationsContentPerformanceMetric.id}).from(s.operationsContentPerformanceMetric).where(eq(s.operationsContentPerformanceMetric.customCheckpointId,node.id));

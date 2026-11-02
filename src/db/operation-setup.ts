@@ -1,3 +1,4 @@
+import {syncContinuousCheckpoints,saveFinalReviewDate} from './continuous-schedule';
 import {eq,desc} from 'drizzle-orm';
 import type {Database} from './client';
 import type {Transaction} from './schedule-workflow';
@@ -14,7 +15,8 @@ export async function operationSetupChanged(db:Database|Transaction,contentId:st
  const nodes=await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,contentId));
  return plan.day7!==!!input.reviewDay7||plan.day15!==!!input.reviewDay15||(plan.draftDueOn??nodes.find(n=>!n.cancelledAt)?.dueOn??'')!==(input.reviewDueOn??'');
 }
-export async function saveOperationSetup(db:Database|Transaction,scheduleId:string,input:{operationType?:OperationType;reviewDueOn:string;reviewDay7:boolean;reviewDay15:boolean;expectedReviewRevision:number},actor:string,authorize?:()=>Promise<unknown>){
+export async function saveOperationSetup(db:Database|Transaction,scheduleId:string,input:{finalReviewOn?:string;operationType?:OperationType;reviewDueOn:string;reviewDay7:boolean;reviewDay15:boolean;expectedReviewRevision:number},actor:string,authorize?:()=>Promise<unknown>){
+ if(input.finalReviewOn!==undefined&&await saveFinalReviewDate(db,scheduleId,input.finalReviewOn,input.expectedReviewRevision,actor,authorize,input.operationType))input={...input,expectedReviewRevision:input.expectedReviewRevision+1};
  if(!input.operationType)return;
  if(!await operationSetupChanged(db,(await db.select({contentId:s.operationsContentVersion.contentId}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).where(eq(s.operationsContentSchedule.id,scheduleId)))[0].contentId,input))return;
  if(authorize)await authorize();
@@ -25,6 +27,7 @@ export async function saveOperationSetup(db:Database|Transaction,scheduleId:stri
  if((plan?.revision??-1)!==input.expectedReviewRevision)throw new WorkflowError('运营类型或复盘配置已更新，请刷新核对。');
  const latest=await db.select({id:s.operationsContentSchedule.id}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).where(eq(s.operationsContentVersion.contentId,row.content.id)).orderBy(desc(s.operationsContentVersion.versionNumber));
  if(row.content.operationType!==input.operationType&&latest[0]?.id!==scheduleId)throw new WorkflowError('请在最新版本的排期详情中调整运营类型。',422);
+ if(input.operationType==='promotion_then_continuous'&&row.content.operationType!=='promotion_then_continuous'&&!row.schedule.finalReviewOn)throw new WorkflowError('请选择最终复盘日期。',422);
  const mode=operationMode(input.operationType),dueOn=mode==='instant'?input.reviewDueOn:'';
  if(row.schedule.actualPublishAt&&mode==='instant'&&!dueOn)throw new WorkflowError('请填写即时复盘截止日期。',422);
  if(dueOn&&!validReviewDate(dueOn))throw new WorkflowError('请选择有效截止日期。',422);
@@ -37,4 +40,5 @@ export async function saveOperationSetup(db:Database|Transaction,scheduleId:stri
  const history=[...(plan?.history??[]),{at:new Date().toISOString(),actor,before:{operationType:row.content.operationType},after:{operationType:input.operationType,...values}}];
  if(plan)await db.update(s.operationsNonPromotionReviewPlan).set({...values,revision:plan.revision+1,history,updatedAt:new Date()}).where(eq(s.operationsNonPromotionReviewPlan.contentId,row.content.id));
  else await db.insert(s.operationsNonPromotionReviewPlan).values({contentId:row.content.id,anchorScheduleId:scheduleId,...values,history});
+ await syncContinuousCheckpoints(db,scheduleId,actor);
 }

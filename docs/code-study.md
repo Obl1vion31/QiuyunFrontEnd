@@ -241,3 +241,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 内容职能接入：`content-roles`共用固定选项、分组键与`sameNonPromotionCohort`；`BusinessContentRoleFields`及`operation-setup`只在两个合集显示单选，`content-role-workflow`在原排期事务保存并记录业务更正。新字段为空不改变旧审批指纹。`non-promotion-read-model`、指标保存及`meeting-weekly-material`共用职能入样条件；持续指标保存预期起点，旧数据以已存`statisticsFrom`冻结与展示。管理员`BusinessUsageGuide`由既有settings门禁覆盖。
 
 标准基准资格由`anchorReviewPosts.standardCohortEligible`统一推导，读模型、指标保存与例会材料复用；客户端使用服务端`cohortEligible`组织原位明细，不将推广后持续遗留的标准事实重新归入分类均值。
+
+持续每周安排接入：`continuous-schedule`统一保存版本最终日期及协调真实节点；推广日度、时间线、待定区间和排期修改在原事务内调用，读取不生成节点。`BusinessOperationFields`显示最终日期；审批快照复用排期字段，旧NULL字段不改变待审指纹；普通／旧持续计划保留原日期入口。

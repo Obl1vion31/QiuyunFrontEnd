@@ -7,8 +7,9 @@ import {operationTypeLabels,operationTypes} from '../db/operation-types';
  <small data-operation-summary></small>
  <div data-operation-instant hidden><label for="operation-due">复盘截止日期（可发布时补齐）</label><input id="operation-due" type="date" name="reviewDueOn"/><small data-operation-days></small>
  <div class="non-plan-checks"><label><input type="checkbox" name="reviewDay7"/>仍需7天复盘</label><label><input type="checkbox" name="reviewDay15"/>仍需15天复盘</label></div></div>
+ <div data-operation-continuous hidden><label for="operation-final">最终复盘日期 <b>*</b></label><input id="operation-final" type="date" name="finalReviewOn"/><small>推广结束后每7天复盘，最终日期收尾。</small><small data-error="finalReviewOn"></small></div>
  <input type="hidden" name="expectedReviewRevision" value="-1"/><small data-error="operationType"></small>
 </div>
-<style>.operation-setup{display:grid;gap:8px}.operation-setup [hidden]{display:none!important}.operation-setup [data-operation-instant]{display:grid;gap:8px}.operation-setup .non-plan-checks{display:flex;gap:12px;flex-wrap:wrap}.operation-setup .non-plan-checks label{display:flex;align-items:center;gap:6px;font-size:13px}.operation-setup input[type=checkbox]{width:16px;height:16px}</style>
+<style>.operation-setup{display:grid;gap:8px}.operation-setup [hidden]{display:none!important}.operation-setup [data-operation-instant],.operation-setup [data-operation-continuous]{display:grid;gap:8px}.operation-setup .non-plan-checks{display:flex;gap:12px;flex-wrap:wrap}.operation-setup .non-plan-checks label{display:flex;align-items:center;gap:6px;font-size:13px}.operation-setup input[type=checkbox]{width:16px;height:16px}</style>
 
 <style is:global>.business-form.business-form .operation-setup small:not([data-error]){color:var(--console-muted);font:400 12px/18px var(--console-font)}</style>

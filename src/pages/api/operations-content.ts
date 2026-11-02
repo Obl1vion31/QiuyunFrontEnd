@@ -34,6 +34,7 @@ export const POST: APIRoute = async ({ request, redirect, url, locals }) => {
   }
 
   try {
+    if(result.data.operationType==='promotion_then_continuous'&&!result.data.finalReviewOn)return Response.json({message:'请选择最终复盘日期。',fields:{finalReviewOn:'请选择最终复盘日期。'}},{status:422});
     const promotionStatus = result.data.isPromoted ? 'pending' : 'none';
     const created = await getDb().transaction(async (transaction) => {
       const [content] = await transaction.insert(operationsContent).values({}).returning({ id: operationsContent.id });

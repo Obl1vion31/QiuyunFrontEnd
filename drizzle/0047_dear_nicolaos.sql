@@ -1,0 +1,1 @@
+ALTER TABLE "operations_content_schedule" ADD COLUMN "final_review_on" date;

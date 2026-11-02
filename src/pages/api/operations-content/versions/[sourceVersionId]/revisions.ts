@@ -1,3 +1,6 @@
+import {WorkflowError} from '../../../../../db/schedule-workflow';
+import {workflowErrorResponse} from '../../../../../db/workflow-api';
+import {validReviewDate} from '../../../../../db/non-promotion-nodes';
 import {isPromotionType} from '../../../../../db/operation-types';
 import {readPostSchemas} from '../../../../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
@@ -53,6 +56,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
 
       const [sourceSchedule] = await transaction.select({
         id: operationsContentSchedule.id,
+        finalReviewOn: operationsContentSchedule.finalReviewOn,
         promotionStatus: operationsContentSchedule.promotionStatus,
       }).from(operationsContentSchedule).where(and(
         eq(operationsContentSchedule.id, result.data.sourceScheduleId),
@@ -68,6 +72,8 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       if (latest && latest.versionNumber !== source.versionNumber) {
         return { kind: 'outdated-source' as const, latestVersionNumber: latest.versionNumber };
       }
+      const finalReviewOn=result.data.finalReviewOn??sourceSchedule.finalReviewOn;
+      if(post.operationType==='promotion_then_continuous'&&(!finalReviewOn||!validReviewDate(finalReviewOn)||finalReviewOn<shanghaiDateKey(result.data.plannedPublishAt)))throw new WorkflowError('请重新选择不早于新版应发日期的最终复盘日期。',422);
       const nextVersionNumber = (latest?.versionNumber ?? source.versionNumber) + 1;
 
       const [activeCampaign] = await transaction.select({
@@ -135,7 +141,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
 
       const promotionStatus = result.data.isPromoted ? 'pending' : 'none';
       const [schedule] = await transaction.insert(operationsContentSchedule).values({
-        contentVersionId: version.id,
+        contentVersionId: version.id,finalReviewOn:post.operationType==='promotion_then_continuous'?finalReviewOn:null,
         syncToMoments: result.data.syncToMoments,
         isPromoted: result.data.isPromoted,
         promotionStatus,
@@ -161,6 +167,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
     if (postgresError.code === '23505') {
       return Response.json({ message: '该帖子已产生更新版本，请刷新后再发起改帖。' }, { status: 409 });
     }
+    if(error instanceof WorkflowError)return workflowErrorResponse(error);
     console.error('operations revision insert failed', error);
     return Response.json({ message: '数据库暂时不可用，请稍后重试。' }, { status: 503 });
   }

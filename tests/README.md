@@ -180,3 +180,5 @@ pnpm test:annual-plan
 视觉按月会编辑／定稿、月历池与表单、私域摘要／抽屉及不同角色分别记录五档视口，实际审查截图及桌面／手机连续录像；首屏另测冷／暖刷新与字体。滚动验收包含隐藏无障碍节点、底部导航避让和内部滚动边界。旧月度回归的表格断言限定在“可追溯明细”区域，新增私域表不能改变原业务检查语义。
 
 内容职能与持续版本周期：`node --import tsx tests/content-role-cycles.integration.ts`覆盖真实建帖／更正／审批、标准同职能共享、普通V0保留和推广后V0→V1区间及旧表单拒绝；`tests/content-role-cycles.browser.ts`覆盖五档职能分组、筛选／前后退、只读历史、区间Inspector、趋势、管理员说明和员工门禁。`TEST_POSTGRES_URL=本机隔离连接 node --import tsx tests/content-role-cycles.postgres.ts`实际演练0045→0046、旧事实与指纹保留及同版本日期并发；连接仅允许localhost。浏览器夹具数据不写入共享库。
+
+每周持续复盘：Node构建后运行 `node --import tsx tests/weekly-continuous.browser.ts`，覆盖最终日期校验、生成／延长／缩短、真实表单保存、统计区间、结束撤销／更正、版本切换、旧表单、员工审批与同一尾日期口径更正；五档新建／详情／待办及320px说明实际截图。`TEST_POSTGRES_URL=本机隔离连接 node --import tsx tests/weekly-continuous.postgres.ts`验证0046→0047逐表保留。旧内容职能综合验收显式建立NULL最终日期的遗留计划，继续验证原自定义流程。

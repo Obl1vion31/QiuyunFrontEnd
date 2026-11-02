@@ -355,6 +355,7 @@ export const operationsContentSchedule = pgTable(
     isPromoted: boolean('is_promoted').notNull().default(false),
     promotionStatus: text('promotion_status').notNull().default('none'),
     promotionDeferredThrough: date('promotion_deferred_through'),
+    finalReviewOn: date('final_review_on'),
     plannedPublishAt: timestamp('planned_publish_at', { withTimezone: true }).notNull(),
     planRevision: integer('plan_revision').notNull().default(0),
     planEffectiveAt: timestamp('plan_effective_at', { withTimezone: true }),

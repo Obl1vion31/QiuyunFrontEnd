@@ -20,7 +20,7 @@ import {updateAnnualPlanSchema} from './annual-plan';
 import {editScheduleInputFromForm,publicationSchema,publicationInputFromForm} from './validation';
 type Context=Pick<APIContext,'request'|'url'|'locals'>;
 type Write={module:'annual'|'schedule';target:string;operations:BusinessOperation[];values:Record<string,unknown>};
-const stable=(value:unknown):string=>JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item);
+const stable=(value:unknown):string=>JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.entries(item).filter(([key,value])=>key!=='finalReviewOn'||value!=null).sort(([a],[b])=>a.localeCompare(b))):item);
 const digest=(value:unknown)=>createHash('sha256').update(stable(value)).digest('hex');
 export const isBusinessWrite=isConfigurableBusinessWrite;
 async function describe(db:Database,request:Request):Promise<Write>{
@@ -80,6 +80,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
       const [version]=await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,current.contentVersionId));
       const [identity]=await db.select({contentRole:s.operationsContent.contentRole}).from(s.operationsContent).where(eq(s.operationsContent.id,version.contentId));if(values.contentRole!==undefined&&rolesForCategory(String(values.categoryId??'')).length&&(values.contentRole||null)!==identity.contentRole&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
       if(await operationSetupChanged(db,version.contentId,values as {operationType?:OperationType})&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
+      if(values.finalReviewOn!==undefined&&(values.finalReviewOn||null)!==current.finalReviewOn&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
       if(['contentName','subjectId','categoryId','projectDocUrl'].some(key=>(values[key]||null)!==(version[key as keyof typeof version]||null))||current.isPromoted!==checked(values.isPromoted)||current.syncToMoments!==checked(values.syncToMoments))operations.push('schedule.edit');
       if(current.isPromoted&&!checked(values.isPromoted)){
         const campaigns=await db.select({id:s.operationsPromotionCampaign.id}).from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.scheduleId,current.id));

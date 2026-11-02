@@ -1,3 +1,4 @@
+import {syncContinuousCheckpoints} from './continuous-schedule';
 import {testingCycleOn} from './promotion-cycles.mjs';
 /** 单条与批量复盘共用同一事务写入，调用方持有推广工作流锁。 */
 import { asc, eq, sql } from 'drizzle-orm';
@@ -133,6 +134,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         promotionStatus: replayed.currentStatus,
         updatedAt: new Date(),
     }).where(eq(operationsContentSchedule.id, campaign.scheduleId));
+    await syncContinuousCheckpoints(transaction,campaign.scheduleId,actor.username);
     await audit(replayed.currentStatus);
     return { kind: 'saved' as const, id: metric.id, nextStatus: replayed.currentStatus };
 }

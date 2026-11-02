@@ -2,7 +2,7 @@
 import {operationTypes,operationTypeLabels} from '../db/operation-types';
 import {categoryContentRoles,contentRoleLabels} from '../db/content-roles';
 import {reviewCheckpoints} from '../db/stage-review-rules.mjs';
-const descriptions={promotion_only:'推广期间按日复盘，结束后不自动转入持续复盘。',promotion_then_continuous:'推广正常结束后，按本版推广结束次日起的区间持续复盘。',non_promotion_standard:'原帖实发后按标准节点复盘，改帖继续原计划。',non_promotion_instant:'指定截止日期，次日起录入；可以额外开启标准节点。'};
+const descriptions={promotion_only:'推广期间按日复盘，结束后不自动转入持续复盘。',promotion_then_continuous:'建帖时选择最终复盘日期；推广正常结束次日起，每7天复盘，最终日期收尾。',non_promotion_standard:'原帖实发后按标准节点复盘，改帖继续原计划。',non_promotion_instant:'指定截止日期，次日起录入；可以额外开启标准节点。'};
 const categoryNames={'score-release-collection':'出分合集','first-analysis-series':'第一时间解析帖集'};
 ---
 <article class="usage-guide">
@@ -15,7 +15,7 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
  </section>
  <section id="guide-versions"><h2>发布与改帖</h2><div class="guide-pair"><div><h3>普通非推广</h3><p>改帖继承原帖运营类型、职能和笔记 ID。新版不新开一套复盘，V0 未完成的节点继续，已有事实不重复入样。</p></div><div><h3>推广后持续复盘</h3><p>创建新版草稿或排期时，旧版仍可持续复盘。新版实际发布时间生效后，旧版退出当前待办；已录结果只读保留，未完成节点停止追填。</p><p>新版可测试或直接放量；只有正常结束才开启该版持续复盘。暂停、待定、淘汰均不触发。</p></div></div></section>
  <section id="guide-dates"><h2>日期与统计区间</h2><div class="guide-table"><table><thead><tr><th>复盘方式</th><th>数据范围与开放时间</th></tr></thead><tbody><tr><th>常规</th><td>原帖最早实发日累计至数据截至日；标准节点为实发后 {reviewCheckpoints.map(point=>point.days).join('／')} 天。标准节点可在应复盘日前后一天内记录，且只能填写昨天及以前的数据；启用首轮时，先处理首轮再处理二轮。</td></tr><tr><th>即时</th><td>原帖最早实发日至指定截止日，截止次日起录入。</td></tr><tr><th>推广后持续</th><td>本版推广正常结束次日至指定截止日。每个节点共用本版固定起点，截止次日起录入真实平台区间数据。</td></tr></tbody></table></div>
- <div class="guide-example"><span>统计区间示例</span><p>本版推广在 2026-11-05 正常结束，节点截至 2026-11-12，则填写 <strong>2026-11-06 至 2026-11-12</strong> 的曝光量、阅读量与 3 秒阅读率。</p></div>
+ <p>选择最终复盘日期后，无需逐个添加节点。例如11月5日推广正常结束、最终日期11月24日，自动安排11月12日、11月19日和11月24日，分别在截止次日录入。最后不足7天也收尾，各节点仍从11月6日起累计。</p><div class="guide-example"><span>统计区间示例</span><p>本版推广在 2026-11-05 正常结束，节点截至 2026-11-12，则填写 <strong>2026-11-06 至 2026-11-12</strong> 的曝光量、阅读量与 3 秒阅读率。</p></div>
  <p>后续节点仍从同一起点累计，各节点不相加。点击率自动按阅读量÷曝光量计算；曝光为零时显示“—”，有曝光而零阅读显示 0%。3 秒阅读率仍须填写。</p><p>旧整篇累计数据保留原值并标为旧口径，不代替新区间结果，不与新区间连接趋势。统计区间缺数据时等待补录；更正推广结束日期后，已存结果保留原区间，需重新核对新节点。</p>
  </section>
  <section id="guide-compare"><h2>同类比较</h2><p>标准节点按<strong>同学科＋同规划分类＋同内容职能＋同节点</strong>比较。两个合集分别分组，其他分类沿用原口径。</p><p>即时帖额外开启的标准节点可参与对应基准；自定义截止节点不混入标准均值。方式筛选只改变当前展示，不改变共享基准。</p><p>阅读量与两项比率分别计算算术均值，缺失排除、真实零参与；有效样本不足时明确显示。两轮样本可能不同，均值对照不代表同帖增长。引流互动仍正常填写与展示全部指标。</p></section>

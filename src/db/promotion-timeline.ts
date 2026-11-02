@@ -1,3 +1,4 @@
+import {syncContinuousCheckpoints} from './continuous-schedule';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import {promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
 import { createHash, randomUUID } from 'node:crypto';
@@ -216,6 +217,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       await tx.update(s.operationsPromotionCampaign).set({currentStage:state.currentStage,currentStatus:state.currentStatus,endedOn:state.endedOn,updatedAt:now}).where(eq(s.operationsPromotionCampaign.id,fresh.id));
       await tx.update(s.operationsContentSchedule).set({promotionStatus:state.currentStatus,updatedAt:now}).where(eq(s.operationsContentSchedule.id,schedule.id));
     }
+    await syncContinuousCheckpoints(tx,schedule.id,actor.username,now);
     const after=await promotionSnapshot(tx,schedule.id);
     await tx.insert(s.operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:input.requestKey,businessDate:date,action:input.action,reason:input.reason||'首次推广安排',before,after,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
     return {ok:true,businessDate:date,archived:removed.length};

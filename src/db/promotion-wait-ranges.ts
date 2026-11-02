@@ -1,3 +1,4 @@
+import {syncContinuousCheckpoints} from './continuous-schedule';
 import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
@@ -77,6 +78,7 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
     for (const stage of current.stages) await tx.insert(stages).values({ campaignId: campaign.id, ...stage });
     await tx.update(campaigns).set({ currentStage: current.currentStage, currentStatus: current.currentStatus, endedOn: current.endedOn, updatedAt: now }).where(eq(campaigns.id, campaign.id));
     await tx.update(schedules).set({ promotionStatus: current.currentStatus, updatedAt: now }).where(eq(schedules.id, campaign.scheduleId));
+    await syncContinuousCheckpoints(tx,campaign.scheduleId,actor.username,now);
     return { id: saved.id, revision: saved.revision, deleted: deleted.length };
   });
 }
