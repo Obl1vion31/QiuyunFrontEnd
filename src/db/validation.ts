@@ -1,3 +1,4 @@
+import {contentRoles,rolesForCategory} from './content-roles';
 import {operationTypes,isPromotionType} from './operation-types';
 import { z } from 'zod';
 import { extractPublicationLink } from './publication-link.mjs';
@@ -43,8 +44,8 @@ export const publicationUrlSchema = z.string().trim().min(1,'请粘贴对应的�
 export function createPostSchemas(taxonomy:{subjects:ReadonlyArray<{id:string}>;postCategories:ReadonlyArray<{id:string}>;subjectCategoryMappings:ReadonlyArray<{subjectId:string;categoryId:string}>}){
  const subjectIds=taxonomy.subjects.map(row=>row.id) as [string,...string[]],categoryIds=taxonomy.postCategories.map(row=>row.id) as [string,...string[]];
  const versionFields={contentName:z.string().trim().min(1,'请填写内容名称').max(200),subjectId:z.enum(subjectIds,{message:'请选择有效学科'}),categoryId:z.preprocess(emptyToNull,z.enum(categoryIds,{message:'请选择有效帖子分类'}).nullable()),projectDocUrl:optionalHttpUrl};
- const scheduleFields={operationType:z.enum(operationTypes).optional(),reviewDueOn:z.string().default(''),reviewDay7:z.boolean().default(false),reviewDay15:z.boolean().default(false),expectedReviewRevision:z.coerce.number().int().min(-1).default(-1),syncToMoments:z.boolean(),isPromoted:z.boolean(),promotionStatus:z.enum(promotionStatuses,{message:'请选择有效推广状态'}),plannedPublishAt:shanghaiDateTime};
- const rules=<T extends z.ZodRawShape>(shape:T)=>z.object(shape).superRefine((data,context)=>{const v=data as {subjectId?:string;categoryId?:string|null};if(v.subjectId&&!v.categoryId)context.addIssue({code:'custom',path:['categoryId'],message:'请选择帖子分类'});else if(v.subjectId&&v.categoryId&&!taxonomy.subjectCategoryMappings.some(m=>m.subjectId===v.subjectId&&m.categoryId===v.categoryId))context.addIssue({code:'custom',path:['categoryId'],message:'帖子分类不属于所选学科'});});
+ const scheduleFields={contentRole:z.enum(contentRoles).nullable().optional(),expectedContentRole:z.enum(contentRoles).nullable().optional(),operationType:z.enum(operationTypes).optional(),reviewDueOn:z.string().default(''),reviewDay7:z.boolean().default(false),reviewDay15:z.boolean().default(false),expectedReviewRevision:z.coerce.number().int().min(-1).default(-1),syncToMoments:z.boolean(),isPromoted:z.boolean(),promotionStatus:z.enum(promotionStatuses,{message:'请选择有效推广状态'}),plannedPublishAt:shanghaiDateTime};
+ const rules=<T extends z.ZodRawShape>(shape:T)=>z.object(shape).superRefine((data,context)=>{const v=data as {subjectId?:string;categoryId?:string|null;contentRole?:typeof contentRoles[number]|null};const roles=rolesForCategory(v.categoryId);if(v.contentRole!==undefined&&(roles.length?!v.contentRole||!roles.includes(v.contentRole):v.contentRole!==null))context.addIssue({code:'custom',path:['contentRole'],message:'请选择该合集对应的内容职能'});if(v.subjectId&&!v.categoryId)context.addIssue({code:'custom',path:['categoryId'],message:'请选择帖子分类'});else if(v.subjectId&&v.categoryId&&!taxonomy.subjectCategoryMappings.some(m=>m.subjectId===v.subjectId&&m.categoryId===v.categoryId))context.addIssue({code:'custom',path:['categoryId'],message:'帖子分类不属于所选学科'});});
  return {newPostSchema:rules({...versionFields,...scheduleFields}),editScheduleSchema:rules({...versionFields,...scheduleFields}),revisionSchema:rules({...versionFields,...scheduleFields,sourceScheduleId:z.uuid('来源排期无效'),revisionSummary:z.string().trim().min(1,'请填写具体改动说明').max(1000)})};
 }
 // 静态导出仅供旧种子与纯规则测试；业务接口按数据库字典创建校验器。
@@ -70,6 +71,7 @@ export const normalizeCompletionStatus = (
 };
 
 const commonInputFromForm = (form: FormData) => ({
+  contentRole:form.has('contentRole')?(form.get('contentRole')||null):undefined,expectedContentRole:form.has('expectedContentRole')?(form.get('expectedContentRole')||null):undefined,
   contentName: form.get('contentName'),
   subjectId: form.get('subjectId'),
   categoryId: form.get('categoryId'),

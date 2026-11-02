@@ -1,3 +1,4 @@
+import {contentRoleLabel,rolesForCategory} from '../db/content-roles';
 import {useState} from 'react';
 import {DiscussionText} from './MeetingDiscussionText';
 import {promotionRateComparison,freezeRateComparisons,rateDifference,type RateComparison} from '../db/meeting-rate-comparison';
@@ -62,7 +63,7 @@ export function NonPromotionCards({rows,context=[],noteIds={},postReferences={},
  for(const row of sortMeetingNonPromotions(rows)){const id=row.contentId||row.scheduleId;if(!groups.has(id))groups.set(id,[]);groups.get(id)!.push(row);}
  const status=(row:NonRow,primary:boolean)=>row.placeholder==='future'?'未到复盘时间':row.placeholder==='missing'?'待补录':row.skipped?'不复盘':primary?'本次复盘':row.previous?.length?'往期已复盘':'已录入，待例会复盘';
  const node=(row:NonRow,primary:boolean)=><section key={row.key} className={`weekly-non-node ${primary?'is-current':'is-comparison'}`} data-weekly-checkpoint={row.checkpointType}>
-  <header><strong>{checkpointLabel(row.checkpointType)}</strong><span className="weekly-node-status">{status(row,primary)}</span></header><small className="weekly-node-date">截至 {row.recordedThrough||row.dueOn||'未记录'}</small>
+  <header><strong>{checkpointLabel(row.checkpointType)}</strong><span className="weekly-node-status">{status(row,primary)}</span></header><small className="weekly-node-date">{row.statisticsFrom?row.statisticsFrom+' 至 ':row.statisticsScope==='legacy_cumulative'?'旧累计口径 · 截至 ':'截至 '}{row.recordedThrough||row.dueOn||'未记录'}</small>
   {row.placeholder?<p className="weekly-node-empty">{row.placeholder==='missing'?<a href={`/business/non-promotion-review?view=pending&row=${encodeURIComponent(row.key)}`} target="_blank" rel="noreferrer">前往补录 ↗</a>:'—'}</p>:<>
    <div className="weekly-node-metrics"><div><span>阅读量</span><strong>{row.readCount==null?'未记录':row.readCount.toLocaleString('zh-CN')}</strong></div><div><span>点击率</span><strong>{rate(row.clickRate)}</strong>{row.checkpointKind!=='custom'&&<RateDelta value={row.clickRate} comparison={row.rateComparison}/>}</div><div><span>3 秒阅读率</span><strong>{rate(row.threeSecondReadRate)}</strong>{row.checkpointKind!=='custom'&&<RateDelta value={row.threeSecondReadRate} comparison={row.rateComparison} field="threeSecondReadRate"/>}</div></div>
    {onConclusion&&primary?<DiscussionText label={`${row.contentName} 结论`} value={row.conclusion??""} onChange={v=>onConclusion(row.key,v)}/>:row.conclusion&&<p className="weekly-node-conclusion">{row.conclusion}</p>}
@@ -75,7 +76,7 @@ export function NonPromotionCards({rows,context=[],noteIds={},postReferences={},
   const all=[...selected,...others].sort((a,b)=>(a.dueOn??'').localeCompare(b.dueOn??'')||a.key.localeCompare(b.key));
   const visible=all.filter(r=>!r.checkpointType.startsWith('custom:')||primary.has(r.key)),history=all.filter(r=>r.checkpointType.startsWith('custom:')&&!primary.has(r.key)&&!r.placeholder),upcoming=all.filter(r=>r.checkpointType.startsWith('custom:')&&!primary.has(r.key)&&r.placeholder);
   return <article className="weekly-stage-card weekly-non-card" key={id} data-weekly-non={first.scheduleId}>
-   <header><div><CardTitle name={first.contentName} version={first.versionNumber} reference={postReferences[first.scheduleId]}/><small>{first.reviewMode?reviewModeLabels[first.reviewMode]:'非推广复盘'} · 发布于 {first.publishedOn||(first.actualPublishAt?businessDate(first.actualPublishAt):'未记录')}</small></div></header>
+   <header><div><CardTitle name={first.contentName} version={first.versionNumber} reference={postReferences[first.scheduleId]}/><small>{first.reviewMode?reviewModeLabels[first.reviewMode]:'非推广复盘'}{rolesForCategory(first.categoryId).length?' · '+contentRoleLabel(first.contentRole):''} · 发布于 {first.publishedOn||(first.actualPublishAt?businessDate(first.actualPublishAt):'未记录')}</small></div></header>
    <div className={`weekly-non-compare ${visible.length===1?'single':''}`}>{visible.map(r=>node(r,primary.has(r.key)))}</div>
    {!!history.length&&<details className="weekly-source"><summary>往期自定义复盘 ({history.length})</summary>{history.map(r=>node(r,false))}</details>}
    {!!upcoming.length&&<details className="weekly-source"><summary>待复盘节点 ({upcoming.length})</summary>{upcoming.map(r=>node(r,false))}</details>}

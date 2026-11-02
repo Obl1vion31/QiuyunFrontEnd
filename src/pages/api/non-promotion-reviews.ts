@@ -1,3 +1,4 @@
+import {sameNonPromotionCohort} from '../../db/content-roles';
 import {lockPromotionWorkflow} from '../../db/promotion-pauses';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import {readNonPromotionFingerprint} from '../../db/non-promotion-record';
@@ -46,6 +47,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       const [identity] = await transaction.select({
         contentId: operationsContent.id,
         platformNoteId: operationsContent.platformNoteId,
+        contentRole:operationsContent.contentRole,
         actualPublishAt: operationsContentSchedule.actualPublishAt,
         isPromoted: operationsContentSchedule.isPromoted,
         contentName: operationsContentVersion.contentName,
@@ -62,6 +64,9 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       if (!identity?.actualPublishAt) {
         return { kind: 'invalid-schedule' as const };
       }
+      const [previousMetric]=await transaction.select().from(operationsContentPerformanceMetric).where(and(eq(operationsContentPerformanceMetric.scheduleId,result.data.scheduleId),eq(operationsContentPerformanceMetric.checkpointType,result.data.checkpointType)));
+      if(post.operationType==='promotion_then_continuous'&&(form.get('expectedStatisticsFrom')!==post.statisticsFrom||previousMetric&&previousMetric.statisticsFrom!==post.statisticsFrom))return {kind:'interval-changed' as const};
+      if(post.statisticsFrom&&result.data.recordedThrough<post.statisticsFrom)return {kind:'interval-changed' as const};
       const fingerprint=await readNonPromotionFingerprint(transaction,result.data.scheduleId,result.data.checkpointType);
       if(form.get('fingerprint')!==fingerprint)return {kind:'conflict' as const};
       const window=reviewNodeWindow(identity.actualPublishAt,node,shanghaiDateKey(new Date()));
@@ -87,12 +92,14 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         checkpointType: result.data.checkpointType,
         customCheckpointId:node.nodeId,exposureCount:result.data.exposureCount,readCount:result.data.readCount,
         recordedThrough: result.data.recordedThrough,
+        statisticsFrom:post.statisticsFrom,
         clickRate: result.data.clickRate?.toFixed(4)??null,
         threeSecondReadRate: result.data.threeSecondReadRate.toFixed(4),
       }).onConflictDoUpdate({
         target: [operationsContentPerformanceMetric.scheduleId, operationsContentPerformanceMetric.checkpointType],
         set: {
           recordedThrough: result.data.recordedThrough,
+          statisticsFrom:post.statisticsFrom,
           exposureCount:result.data.exposureCount,readCount:result.data.readCount,
           clickRate: result.data.clickRate?.toFixed(4)??null,
           threeSecondReadRate: result.data.threeSecondReadRate.toFixed(4),
@@ -102,11 +109,13 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 
       const cohortRows = await transaction.select({
         scheduleId: operationsContentPerformanceMetric.scheduleId,
+        subjectId:operationsContentVersion.subjectId,categoryId:operationsContentVersion.categoryId,contentRole:operationsContent.contentRole,readCount:operationsContentPerformanceMetric.readCount,
         clickRate: operationsContentPerformanceMetric.clickRate,
         readRate: operationsContentPerformanceMetric.threeSecondReadRate,
       }).from(operationsContentPerformanceMetric)
         .innerJoin(operationsContentSchedule, eq(operationsContentPerformanceMetric.scheduleId, operationsContentSchedule.id))
         .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
+        .innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id))
         .where(and(
           eq(operationsContentPerformanceMetric.checkpointType, result.data.checkpointType),
           eq(operationsContentVersion.subjectId, identity.subjectId),
@@ -115,11 +124,13 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         ));
       const cohortEvents = await readCheckpointEvents(transaction);
       const anchors=await activeReviewAnchorIds(transaction);
-      const comparableRows = node.kind==='custom'?[]:cohortRows.filter(row => anchors.has(row.scheduleId)&&cohortEvents.get(`${row.scheduleId}:${result.data.checkpointType}`)?.action !== 'skip');
+      const comparableRows = node.kind==='custom'?[]:cohortRows.filter(row => anchors.has(row.scheduleId)&&sameNonPromotionCohort(row,identity)&&cohortEvents.get(`${row.scheduleId}:${result.data.checkpointType}`)?.action !== 'skip');
       const cohortSnapshot = {
         subjectId: identity.subjectId,
         categoryId: identity.categoryId,
+        contentRole:identity.contentRole,statisticsFrom:post.statisticsFrom,recordedThrough:result.data.recordedThrough,scope:post.statisticsFrom?'version_interval':'post_cumulative',
         checkpointType: result.data.checkpointType,
+        reading:summarizeRates(comparableRows.flatMap(row=>row.readCount==null?[]:[row.readCount])),
         clickRate: summarizeRates(comparableRows.flatMap((row) => row.clickRate==null?[]:[Number(row.clickRate)])),
         threeSecondReadRate: summarizeRates(comparableRows.map((row) => Number(row.readRate))),
       };
@@ -169,6 +180,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       return { kind: 'saved' as const, id: review.id, versionNumber,fingerprint:await readNonPromotionFingerprint(transaction,result.data.scheduleId,result.data.checkpointType) };
     });
     if (saved.kind === 'invalid-schedule') return Response.json({ message: '只能复盘已实发、当前分类允许复盘的非推广内容。' }, { status: 409 });
+    if(saved.kind==='interval-changed')return Response.json({message:'统计区间已更新或属于旧口径，请刷新核对；原数据只读保留。'},{status:409});
     if(saved.kind==='conflict')return Response.json({code:'STALE_RECORD',message:'这条复盘已发生变化，当前输入已保留。请刷新页面核对最新记录后再填写。'},{status:409});
     if(saved.kind==='date-window')return Response.json({message:`数据截止日须在 ${saved.min} 至 ${saved.max}，且只能填写昨天及以前的数据。`,fields:{recordedThrough:['请选择窗口内的历史日期']}},{status:422});
     if (saved.kind === 'note-id-required') return Response.json({ message: '首次保存复盘前，请填写这篇帖子的小红书笔记 ID。', fields: { platformNoteId: ['请填写笔记 ID'] } }, { status: 422 });

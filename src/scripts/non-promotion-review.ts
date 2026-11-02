@@ -17,6 +17,7 @@ function initialize() {
   const controller = getInspector(inspector);
   inspector.addEventListener('input',event=>{
     const input=event.target as HTMLInputElement,form=input.closest<HTMLFormElement>('[data-review-form]');
+    if(form&&input.name==='recordedThrough'){const through=form.querySelector('[data-statistics-through]');if(through)through.textContent=input.value;}
     if(!form||!['exposureCount','readCount'].includes(input.name))return;
     const exposure=form.elements.namedItem('exposureCount') as HTMLInputElement,reads=form.elements.namedItem('readCount') as HTMLInputElement,rate=form.elements.namedItem('clickRate') as HTMLInputElement;
     rate.value=exposure.value!==''&&reads.value!==''&&Number(exposure.value)>0?(Number(reads.value)/Number(exposure.value)*100).toFixed(2):'—';
@@ -65,6 +66,7 @@ function initialize() {
   filters?.addEventListener('change', event => {
     const field = event.target as HTMLInputElement;
     if (field.name === 'subject') { const category = filters.elements.namedItem('category') as HTMLSelectElement; category.value = ''; category.disabled = true; }
+    if(field.name==='subject'||field.name==='category'){const role=filters.elements.namedItem('role') as HTMLSelectElement|null;if(role)role.value='';}
     filters.requestSubmit();
   });
   const refresh = async (reclaimed?:HTMLFormElement) => {
@@ -128,7 +130,7 @@ function initialize() {
       }
     }
     for(const figure of table.querySelectorAll<HTMLElement>('[data-reading-trend]')){
-      const points=data.tableRows.filter(item=>item.row.id===figure.dataset.readingTrend&&item.metric).map(item=>({key:item.key,through:item.metric!.recordedThrough,value:item.metric?.readCount??null})),trend=readingTrend(points);
+      const points=data.tableRows.filter(item=>item.row.id===figure.dataset.readingTrend&&!item.historical&&item.metric&&item.metric.statisticsFrom===data.tableRows.find(row=>row.row.id===figure.dataset.readingTrend)?.metric?.statisticsFrom).map(item=>({key:item.key,through:item.metric!.recordedThrough,value:item.metric?.readCount??null})),trend=readingTrend(points);
       figure.hidden=!trend.visible;
       figure.querySelector('[data-trend-maximum]')!.textContent='最高 '+trend.maximum.toLocaleString('zh-CN');
       figure.querySelector('[data-trend-first]')!.textContent=trend.first;figure.querySelector('[data-trend-last]')!.textContent=trend.last;

@@ -1,10 +1,11 @@
+import {contentRoleLabel,type ContentRole} from '../db/content-roles';
 import {operationTypeLabels,type OperationType} from '../db/operation-types';
 import {readBusiness} from './business-read';
 import {getInspector} from './business-inspector';
 import {cumulativeDays,reviewModeLabels,type ReviewMode} from '../db/non-promotion-nodes';
 import {businessDateTime} from './business-date';
 type Change={at:string;actor:string;before?:{dueOn?:string};after?:{dueOn?:string;action?:string};reason?:string};
-type View={operationType:OperationType|null;reviewActive:boolean;activatedOn:string|null;defaults?:{mode:ReviewMode;day7:boolean;day15:boolean};plan:{mode:ReviewMode;day7:boolean;day15:boolean;revision:number;draftDueOn:string|null;history:Array<{at:string;actor:string;before?:{operationType?:OperationType};after?:{operationType?:OperationType}}>}|null;anchorScheduleId:string;publishedOn:string|null;isPromoted:boolean;nodes:Array<{id:string;dueOn:string;revision:number;cancelledAt:string|null;completed:boolean;history:Change[]}>};
+type View={pendingCycle?:boolean;historicalCycle?:boolean;contentRole:ContentRole|null;statisticsFrom:string|null;operationType:OperationType|null;reviewActive:boolean;activatedOn:string|null;defaults?:{mode:ReviewMode;day7:boolean;day15:boolean};plan:{mode:ReviewMode;day7:boolean;day15:boolean;revision:number;draftDueOn:string|null;history:Array<{at:string;actor:string;before?:{operationType?:OperationType};after?:{operationType?:OperationType}}>}|null;anchorScheduleId:string;publishedOn:string|null;isPromoted:boolean;nodes:Array<{id:string;dueOn:string;revision:number;cancelledAt:string|null;completed:boolean;history:Change[]}>};
 type RecordView={id:string;actualPublishAt:string;isPromoted:boolean;contentName:string};
 const input=(host:HTMLElement,name:string)=>host.querySelector<HTMLInputElement|HTMLSelectElement>(`[name="${name}"]`)!;
 const el=<K extends keyof HTMLElementTagNameMap>(tag:K,text?:string)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;return node;};
@@ -34,11 +35,11 @@ function initialize(){
  const render=(data:View)=>{
   view=data;panel.hidden=!current?.actualPublishAt;if(panel.hidden)return;
   const mode=data.plan?.mode??data.defaults?.mode??'standard',owner=data.anchorScheduleId;
-  panel.querySelector('[data-review-plan-summary]')!.textContent=`${data.operationType?operationTypeLabels[data.operationType]:reviewModeLabels[mode]} · ${data.reviewActive?(data.activatedOn?'持续复盘自 '+data.activatedOn+' 启用':'已启用'):data.operationType==='promotion_then_continuous'?'推广中，持续复盘尚未启用':'推广日度复盘'} · 累计数据起点 ${data.publishedOn??'未记录'}`;
+  panel.querySelector('[data-review-plan-summary]')!.textContent=`${data.operationType?operationTypeLabels[data.operationType]:reviewModeLabels[mode]} · ${data.reviewActive?(data.activatedOn?'持续复盘自 '+data.activatedOn+' 启用':'已启用'):data.pendingCycle?'实发时间尚未生效':data.historicalCycle?'历史周期 · 只读保留':data.operationType==='promotion_then_continuous'?'持续复盘尚未启用':'推广日度复盘'}${data.contentRole?' · '+contentRoleLabel(data.contentRole):''} · 统计起点 ${data.statisticsFrom??data.publishedOn??'未记录'}`;
   form.action=`/api/operations-content/${owner}`;form.dataset.collaborationResource=`schedule:${owner}`;form.dataset.collaborationLabel=current!.contentName;
   (form.closest('details') as HTMLDetailsElement).hidden=!!data.operationType||!data.reviewActive;
   if(form.dataset.dirty!=='true')fill(form.querySelector('[data-review-plan-fields]')!,data);
-  add.hidden=mode!=='continuous'||!data.reviewActive;add.dataset.publishedOn=data.publishedOn??'';add.dataset.collaborationResource=`schedule:${owner}`;add.dataset.collaborationLabel=current!.contentName;input(add,'scheduleId').value=owner;(input(add,'dueOn') as HTMLInputElement).min=data.activatedOn??data.publishedOn??'';
+  add.hidden=mode!=='continuous'||!data.reviewActive;add.dataset.publishedOn=data.statisticsFrom??data.publishedOn??'';add.dataset.collaborationResource=`schedule:${owner}`;add.dataset.collaborationLabel=current!.contentName;input(add,'scheduleId').value=owner;(input(add,'dueOn') as HTMLInputElement).min=data.activatedOn??data.publishedOn??'';
   if(list.querySelector('form[data-dirty=true]'))return;
   list.replaceChildren();
   for(const node of data.nodes.filter(n=>!n.cancelledAt)){
@@ -49,12 +50,13 @@ function initialize(){
    const edit=el('form');edit.className='business-form';edit.dataset.reviewNodeForm='';edit.dataset.collaborationResource=`schedule:${owner}`;edit.dataset.collaborationLabel=current!.contentName;edit.dataset.businessOperation='schedule.edit';
    for(const [name,value]of Object.entries({scope:'schedule',scheduleId:owner,nodeId:node.id,expectedRevision:node.revision})){const field=el('input');field.type='hidden';field.name=name;field.value=String(value);edit.append(field);}
    const actionLabel=el('label','操作'),action=el('select');action.name='action';for(const [value,label]of [['reschedule','调整日期'],['cancel','取消这次复盘']]){const option=el('option',label);option.value=value;action.append(option);}actionLabel.append(action);edit.append(actionLabel);
-   const dateLabel=el('label','截止日期'),date=el('input');date.type='date';date.name='dueOn';date.value=node.dueOn;date.min=data.activatedOn??data.publishedOn??'';date.required=true;const days=el('small');days.dataset.reviewNodeDays='';days.textContent=data.publishedOn?'含发布当天，共 '+cumulativeDays(data.publishedOn,node.dueOn)+' 天':'';dateLabel.append(date,days);edit.append(dateLabel);
+   const dateLabel=el('label','截止日期'),date=el('input');date.type='date';date.name='dueOn';date.value=node.dueOn;date.min=data.activatedOn??data.publishedOn??'';date.required=true;const days=el('small');days.dataset.reviewNodeDays='';days.textContent=(data.statisticsFrom??data.publishedOn)?'统计区间共 '+cumulativeDays((data.statisticsFrom??data.publishedOn)!,node.dueOn)+' 天':'';dateLabel.append(date,days);edit.append(dateLabel);
    action.addEventListener('change',()=>{dateLabel.hidden=action.value==='cancel';date.disabled=action.value==='cancel';});
    const reasonLabel=el('label','原因'),reason=el('textarea');reason.name='reason';reason.rows=2;reason.maxLength=500;reason.required=true;reasonLabel.append(reason);edit.append(reasonLabel,el('output'));
    const save=el('button','保存调整');save.type='submit';save.className='business-action-secondary';edit.append(save);details.append(edit);block.append(details);list.append(block);
   }
   const types=data.plan?.history.filter(c=>c.after?.operationType)??[];if(types.length){const history=el('details');history.append(el('summary','运营类型记录'));for(const change of types)history.append(el('p',businessDateTime(change.at)+' · '+change.actor+' · '+(change.before?.operationType?operationTypeLabels[change.before.operationType]+' → ':'设置为 ')+operationTypeLabels[change.after!.operationType!]));list.append(history);}
+  const roles=(data.plan?.history??[]).filter(c=>'contentRole' in (c.after??{})) as Array<{at:string;actor:string;before?:{contentRole?:ContentRole|null};after:{contentRole?:ContentRole|null}}> ;if(roles.length){const history=el('details');history.append(el('summary','内容职能记录'));for(const change of roles)history.append(el('p',businessDateTime(change.at)+' · '+change.actor+' · '+contentRoleLabel(change.before?.contentRole)+' → '+contentRoleLabel(change.after.contentRole)));list.append(history);}
   const cancelled=data.nodes.filter(n=>n.cancelledAt);if(cancelled.length){const history=el('details');history.append(el('summary',`已取消的复盘 (${cancelled.length})`));for(const node of cancelled){const change=node.history.at(-1);history.append(el('p',`截至 ${node.dueOn} · 已取消${change?' · '+businessDateTime(change.at)+' · '+change.actor+' · '+(change.reason??''):''}`));}list.append(history);}
  };
  listen('business:schedule-selected',async event=>{

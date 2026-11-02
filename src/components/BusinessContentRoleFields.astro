@@ -1,0 +1,4 @@
+---
+import {contentRoles,contentRoleLabels} from '../db/content-roles';
+---
+<div class="field field-wide" data-content-role-field hidden><label for="contentRole">内容职能 <b>*</b></label><select id="contentRole" name="contentRole"><option value="">请选择内容职能</option>{contentRoles.map(role=><option value={role}>{contentRoleLabels[role]}</option>)}</select><input type="hidden" name="expectedContentRole"/><small data-error="contentRole"></small></div>

@@ -10,7 +10,7 @@ export function nonPromotionFingerprint(metric:unknown,review:unknown,event:unkn
 /** 兼容迁移新增的空字段不冒充历史源数据变更。 */
 export function nonPromotionSource(value:unknown):unknown{
  if(!value||typeof value!=='object')return value;
- return Object.fromEntries(Object.entries(value).filter(([key,item])=>!(item==null&&['customCheckpointId','exposureCount','readCount','exposureCountSnapshot','readCountSnapshot'].includes(key))));
+ return Object.fromEntries(Object.entries(value).filter(([key,item])=>!(item==null&&['statisticsFrom','contentRole','customCheckpointId','exposureCount','readCount','exposureCountSnapshot','readCountSnapshot'].includes(key))));
 }
 export async function readNonPromotionFingerprint(db:Database,scheduleId:string,checkpointType:string){
  const [metric]=await db.select().from(metrics).where(and(eq(metrics.scheduleId,scheduleId),eq(metrics.checkpointType,checkpointType)));

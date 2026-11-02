@@ -1,3 +1,4 @@
+import {contentRoleLabel} from './content-roles';
 import {operationTypeLabels,type OperationType} from './operation-types';
 import {businessDateTime} from '../scripts/business-date';
 import {operationLabels,type BusinessOperation} from '../auth/business-capabilities';
@@ -17,6 +18,7 @@ function fields(snapshot:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;na
     for(const [key,label] of [['plannedPublishAt','应发时间'],['actualPublishAt','实发时间']])result[label]=schedule[key]?businessDateTime(String(schedule[key])):'—';
     for(const [key,label] of [['isPromoted','推广帖'],['syncToMoments','同步朋友圈'],['publicationUrl','帖子链接']])result[label]=display(schedule[key]);
   }
+  if(snapshot.contentRole)result['内容职能']=contentRoleLabel(String(snapshot.contentRole));
   if(snapshot.operationType)result['运营类型']=operationTypeLabels[snapshot.operationType as OperationType];
   if(snapshot.momentsConfirmation){result['已发送朋友圈']='已确认';result['已发送对应需求']='已确认';}
   if(snapshot.reviewPlan){const plan=snapshot.reviewPlan as Record<string,unknown>;if(plan.draftDueOn)result['复盘截止日期']=String(plan.draftDueOn);result['复盘方式']=({standard:'常规复盘',instant:'即时复盘',continuous:'持续复盘'} as Record<string,string>)[String(plan.mode)]??String(plan.mode);result['7天复盘']=plan.day7?'启用':'关闭';result['15天复盘']=plan.day15?'启用':'关闭';}

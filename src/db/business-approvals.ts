@@ -1,3 +1,4 @@
+import {rolesForCategory} from './content-roles';
 import {reserveMonthlyProposal,withMonthlyProposal} from './monthly-plans';
 import {operationSetupChanged} from './operation-setup';
 import type {OperationType} from './operation-types';
@@ -77,6 +78,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
     if(parts[3]!=='change-requests'){
       if(values.monthlyPlanId){const [linked]=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,String(values.monthlyPlanId)),eq(s.operationsMonthlyPlanAssignment.scheduleId,current.id)));if(!linked||linked.itemId!==values.monthlyPlanItemId)operations.push('schedule.edit');}
       const [version]=await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,current.contentVersionId));
+      const [identity]=await db.select({contentRole:s.operationsContent.contentRole}).from(s.operationsContent).where(eq(s.operationsContent.id,version.contentId));if(values.contentRole!==undefined&&rolesForCategory(String(values.categoryId??'')).length&&(values.contentRole||null)!==identity.contentRole&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
       if(await operationSetupChanged(db,version.contentId,values as {operationType?:OperationType})&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
       if(['contentName','subjectId','categoryId','projectDocUrl'].some(key=>(values[key]||null)!==(version[key as keyof typeof version]||null))||current.isPromoted!==checked(values.isPromoted)||current.syncToMoments!==checked(values.syncToMoments))operations.push('schedule.edit');
       if(current.isPromoted&&!checked(values.isPromoted)){
@@ -115,7 +117,7 @@ async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>
   const customNodes=await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,version.contentId));
   const legacyShape=(row:Record<string,unknown>)=>Object.fromEntries(Object.entries(row).filter(([key,value])=>!(value==null&&['customCheckpointId','exposureCountSnapshot','readCountSnapshot'].includes(key))));
   return {schedule:withoutLegacyDelay(schedule),versions,campaigns,
-    ...(content.operationType?{operationType:content.operationType}:{}),...(reviewPlan?{reviewPlan:Object.fromEntries(Object.entries(reviewPlan).filter(([k,v])=>!(k==='draftDueOn'&&v==null)))}:{}),...(customNodes.length?{customReviewNodes:customNodes}:{}),
+    ...(content.operationType?{operationType:content.operationType}:{}),...(content.contentRole?{contentRole:content.contentRole}:{}),...(reviewPlan?{reviewPlan:Object.fromEntries(Object.entries(reviewPlan).filter(([k,v])=>!(k==='draftDueOn'&&v==null)))}:{}),...(customNodes.length?{customReviewNodes:customNodes}:{}),
     ...(momentsConfirmation?{momentsConfirmation}:{}),
     ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
     reasons:await db.select().from(s.operationsScheduleDelayReason).where(and(eq(s.operationsScheduleDelayReason.scheduleId,id),eq(s.operationsScheduleDelayReason.planRevision,schedule.planRevision))),

@@ -306,9 +306,10 @@ export const operationsContent = pgTable('operations_content', {
   id: uuid('id').defaultRandom().primaryKey(),
   platformNoteId: text('platform_note_id').unique(),
   operationType: text('operation_type').$type<import('./operation-types').OperationType>(),
+  contentRole: text('content_role').$type<import('./content-roles').ContentRole>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
+},table=>[check('operations_content_role_check',sql`${table.contentRole} IS NULL OR ${table.contentRole} IN ('score_analysis','celebration','notice','question_analysis','content_preview','score_prediction','engagement')`)]);
 
 export const operationsContentVersion = pgTable(
   'operations_content_version',
@@ -500,7 +501,7 @@ export const operationsNonPromotionCustomCheckpoint = pgTable('operations_non_pr
   cancelledAt: timestamp('cancelled_at',{withTimezone:true}),
   history: jsonb('history').$type<Array<Record<string,unknown>>>().notNull().default([]),
   createdAt: timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
-},table=>[index('operations_non_custom_content_idx').on(table.contentId),uniqueIndex('operations_non_custom_date_idx').on(table.contentId,table.dueOn).where(sql`${table.cancelledAt} IS NULL`)]);
+},table=>[index('operations_non_custom_content_idx').on(table.contentId),uniqueIndex('operations_non_custom_date_idx').on(table.scheduleId,table.dueOn).where(sql`${table.cancelledAt} IS NULL`)]);
 
 export const operationsNonPromotionCheckpointEvent = pgTable('operations_non_promotion_checkpoint_event', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -826,6 +827,7 @@ export const operationsContentPerformanceMetric = pgTable(
     scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
     checkpointType: text('checkpoint_type').notNull(),
     recordedThrough: date('recorded_through').notNull(),
+    statisticsFrom: date('statistics_from'),
     customCheckpointId: uuid('custom_checkpoint_id').references(()=>operationsNonPromotionCustomCheckpoint.id,{onDelete:'restrict'}),
     exposureCount: integer('exposure_count'), readCount: integer('read_count'),
     clickRate: numeric('click_rate', { precision: 7, scale: 4 }),
@@ -834,6 +836,7 @@ export const operationsContentPerformanceMetric = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
+    check('operations_performance_interval_check',sql`${table.statisticsFrom} IS NULL OR ${table.statisticsFrom} <= ${table.recordedThrough}`),
     uniqueIndex('operations_content_metric_schedule_checkpoint_idx').on(table.scheduleId, table.checkpointType),
     index('operations_content_metric_checkpoint_idx').on(table.checkpointType),
     check('operations_content_metric_checkpoint_check', sql`(${table.customCheckpointId} IS NULL AND ${table.checkpointType} IN ('day_7','day_15')) OR (${table.customCheckpointId} IS NOT NULL AND ${table.checkpointType} = 'custom:' || ${table.customCheckpointId}::text)`),

@@ -1,4 +1,6 @@
 ---
+import {nonPromotionGroupKey,rolesForCategory,contentRoleLabel} from '../db/content-roles';
+import {cumulativeDays} from '../db/non-promotion-nodes';
 import MetricCell from './MetricCell.astro';
 import {nonPromotionGroupLabel} from '../db/non-promotion-groups';
 import {reviewModeLabels} from '../db/non-promotion-nodes';
@@ -6,19 +8,20 @@ import {shanghaiDateKey} from '../db/stage-review-rules.mjs';
 import type {readNonPromotionReview} from '../db/non-promotion-read-model';
 interface Props {item:Awaited<ReturnType<typeof readNonPromotionReview>>['tableRows'][number];activeView:string;today:string;href:string;selected?:boolean;compact?:boolean;hidden?:boolean}
 const {item,activeView,today,href,selected=false,compact=false,hidden=false}=Astro.props;
+const start=item.metric?(item.metric.statisticsFrom??shanghaiDateKey(item.row.actualPublishAt)):(item.row.statisticsFrom??shanghaiDateKey(item.row.actualPublishAt)),oldScope=item.row.operationType==='promotion_then_continuous'&&!!item.metric&&!item.metric.statisticsFrom;
 const name=item.checkpoint.kind==='standard'?(item.checkpoint.type==='day_7'?'7 天':'15 天'):item.row.mode==='instant'?'即时':'累计';
 const value=(field:'clickRate'|'threeSecondReadRate')=>item.metric?.[field]==null?null:Number(item.metric[field]);
 const presentation=(value:number|null,mean:number|null)=>{const delta=value==null||mean==null?null:value-mean;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 const click=value('clickRate'),read=value('threeSecondReadRate');
 ---
-<div class:list={['review-row',{'selected':selected,'post-node-row':compact}]} hidden={hidden} role="row" tabindex="0" data-inspector-key={item.key} data-row-mode={item.row.mode} data-cohort-eligible={!item.row.legacy&&item.checkpoint.kind==='standard'&&!!item.review} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-collaboration-observe={`schedule:${item.row.id}:non:${item.checkpoint.type}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={href} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-due={item.dueOn} data-click={click??''} data-read={read??''} aria-label={`打开${item.row.contentName}${name}复盘`}>
- <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class="date-cell" title={`发布日期：${shanghaiDateKey(item.row.actualPublishAt)}；应复盘日期：${item.dueOn}`}>
-  <span class="review-date-range"><time datetime={shanghaiDateKey(item.row.actualPublishAt)} aria-label={`发布日期 ${shanghaiDateKey(item.row.actualPublishAt)}`}>{shanghaiDateKey(item.row.actualPublishAt)}</time><span><span class="review-date-separator" aria-hidden="true">至 </span><time datetime={item.dueOn} aria-label={`应复盘日期 ${item.dueOn}`}>{item.dueOn}</time></span></span>{!compact&&<mark class="mobile-node" aria-hidden="true">{name}</mark>}
-  {compact&&<small class="node-cumulative">累计 {item.checkpoint.days} 天{item.checkpoint.kind==='custom'&&item.row.mode==='continuous'?'':' · '+name}</small>}
+<div class:list={['review-row',{'selected':selected,'post-node-row':compact}]} hidden={hidden} role="row" tabindex="0" data-inspector-key={item.key} data-row-mode={item.row.mode} data-cohort-eligible={!item.row.legacy&&item.checkpoint.kind==='standard'&&!!item.review} data-category-key={nonPromotionGroupKey(item.row)} data-collaboration-observe={`schedule:${item.row.id}:non:${item.checkpoint.type}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={href} data-date={start} data-due={item.dueOn} data-click={click??''} data-read={read??''} aria-label={`打开${item.row.contentName}${name}复盘`}>
+ <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class="date-cell" title={`发布日期：${start}；应复盘日期：${item.dueOn}`}>
+  <span class="review-date-range"><time datetime={start} aria-label={`发布日期 ${start}`}>{start}</time><span><span class="review-date-separator" aria-hidden="true">至 </span><time datetime={item.dueOn} aria-label={`应复盘日期 ${item.dueOn}`}>{item.dueOn}</time></span></span>{!compact&&<mark class="mobile-node" aria-hidden="true">{name}</mark>}
+  {compact&&<small class="node-cumulative">累计 {cumulativeDays(start,item.dueOn)} 天{oldScope?' · 旧累计口径':item.row.legacy?' · 历史周期':''}{item.checkpoint.kind==='custom'&&item.row.mode==='continuous'?'':' · '+name}</small>}
  </span>
  <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class="post-cell" title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
   <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={`查看详情：${item.row.contentName} V${item.row.versionNumber} ${name}复盘`}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small></span>
-  <small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}{item.row.mode!=='standard'?' · '+reviewModeLabels[item.row.mode]:''}{item.row.legacy?' · 历史版本':''}</small>
+  <small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}{rolesForCategory(item.row.categoryId).length?' · '+contentRoleLabel(item.row.contentRole):''}{item.row.mode!=='standard'?' · '+reviewModeLabels[item.row.mode]:''}{item.row.legacy?' · 历史版本':''}</small>
  </span>
  <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{name}</mark></span>
  {activeView==='skipped'?<span role="cell" aria-colindex="4" class="review-reason" data-label="不复盘原因">{item.event?.reason||'—'}</span>:<>

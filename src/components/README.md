@@ -99,3 +99,5 @@ ContentTunnel.module.css
 `BusinessSheet` 是原生右侧抽屉外壳，提供固定头部与唯一正文滚动；编辑通过 `BusinessFormSheet` 保留表单规格，助手直接接入深蓝头部。
 
 `NonPromotionReviewRow`承载三种方式的同一事实行、缺失语义和Inspector入口，`NonPromotionCategoryMetric`展示独立有效样本的分类均值及比率细轨，`NonPromotionReadingTrend`展示持续复盘真实日期累计阅读量；不复制编辑表单或详情开关。
+
+- `BusinessContentRoleFields.astro`：两个合集的条件职能单选，复用排期表单字段；`BusinessUsageGuide.astro`：系统设置管理员只读说明，标签及标准节点来自业务代码。

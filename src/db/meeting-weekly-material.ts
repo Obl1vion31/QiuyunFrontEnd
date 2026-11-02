@@ -1,3 +1,4 @@
+import {sameNonPromotionCohort,type ContentRole} from './content-roles';
 import {rateComparison,type RateSample,type RateComparison} from './meeting-rate-comparison';
 import {readMonthlyMeeting,type MonthlyMeetingMaterial} from './monthly-meeting';
 import {readMonthlyPlan,type MonthlyPlanView} from './monthly-plans';
@@ -87,6 +88,7 @@ export interface WeeklyPromotionCard {
     }>;
 }
 export interface WeeklyNonPromotionCard {
+    contentRole?:ContentRole|null;statisticsFrom?:string|null;statisticsScope?:'version_interval'|'post_cumulative'|'legacy_cumulative';
     rateComparison?:RateComparison;
     actualPublishAt?:Date|string|null;
     key: string;
@@ -172,7 +174,7 @@ export function testingCheckpointDate(status: string, effectiveOn: string, previ
 export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, now = new Date()): Promise<WeeklyMaterial> {
     const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersionsIncludingInvalid, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
-        db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, operationType:contents.operationType,isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents,eq(versions.contentId,contents.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
+        db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, contentRole:contents.contentRole,operationType:contents.operationType,isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents,eq(versions.contentId,contents.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
         db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages),
     ]);
     const allVersions=allVersionsIncludingInvalid.filter(v=>!v.invalidatedAt);
@@ -271,7 +273,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     for (const card of pool) {
         card.rateAsOf=end;
         card.rateSamples=[...rateSources.values()].filter(s=>s.card.subjectId===card.subjectId&&s.card.categoryId===card.categoryId&&s.card.stageType===card.stageType).map(s=>s.sample);
-        const same = pool.filter(p => p.stageType === card.stageType && p.subjectId === card.subjectId && p.categoryId === card.categoryId);
+        const same = pool.filter(p => p.stageType === card.stageType && sameNonPromotionCohort(p,card));
         card.historical = benchPromotion(same.filter(p => (p as any)._cutoff && ((p as any)._cutoff < start)).map(p => ({ key: p.key, facts: (p as any)._historicalFacts as Fact[] })), card.key);
         card.peers = benchPromotion(same.filter(p => (p as any)._eligible && p.kind === 'current').map(p => ({ key: p.key, facts: p.facts })), card.key);
         const owned=new Set(context.campaigns.filter(c=>content.find(p=>p.scheduleId===c.scheduleId)?.contentId===card.contentId).map(c=>c.id));
@@ -285,8 +287,8 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     }
     for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total;card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
     const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [], excludedNonPromotions:NonNullable<WeeklyMaterial['excludedNonPromotions']>=[];
-    const nonPosts=anchorReviewPosts(content.map(p=>({...p,id:p.scheduleId})),planning.plans,context,shanghaiDateKey(now)).filter(p=>p.reviewActive);
-    const nodesFor=(post:typeof nonPosts[number])=>reviewNodes(post.actualPublishAt,post.enabledPlan,planning.custom.filter(n=>n.contentId===post.contentId)).filter(n=>!post.activatedOn||n.dueOn>=post.activatedOn);
+    const nonPosts=anchorReviewPosts(content.map(p=>({...p,id:p.scheduleId})),planning.plans,context,shanghaiDateKey(now),now).filter(p=>p.reviewActive);
+    const nodesFor=(post:typeof nonPosts[number])=>reviewNodes(post.actualPublishAt,post.enabledPlan,planning.custom.filter(n=>n.contentId===post.contentId&&(post.operationType!=='promotion_then_continuous'||n.scheduleId===post.id))).filter(n=>!post.activatedOn||n.dueOn>=post.activatedOn);
     for (const post of nonPosts)
         for (const node of nodesFor(post)) {
             const checkpointType=node.type;
@@ -299,12 +301,12 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
                 nonPool.push({...post,key,checkpointType,checkpointKind:node.kind,nodeId:node.nodeId,reviewMode:post.mode,publishedOn,dueOn,recordedThrough:null,firstRecordedAt:null,updatedAt:null,sourceHash:sourceHash({node,skipped}),kind:'supplement',label:'对照',clickRate:null,threeSecondReadRate:null,readCount:null,exposureCount:null,conclusion:'',cause:'',nextAction:'',skipped,previous:priorCards(key,'nonPromotions').map(p=>p.ref),historical:emptyBenchmark(),peers:emptyBenchmark(),ownHistory:[],placeholder:skipped?'skipped':dueOn>end||node.kind==='custom'&&dueOn>=shanghaiDateKey(now)?'future':'missing'});
                 continue;
             }
-            const cutoff = metric.recordedThrough, hash = sourceHash({ metric:nonPromotionSource(metric), review:nonPromotionSource(review)??undefined }), prior = priorCards(key, 'nonPromotions');
+            const cutoff = metric.recordedThrough, hash = sourceHash({ metric:nonPromotionSource(metric), review:nonPromotionSource(review)??undefined,...(post.contentRole?{contentRole:post.contentRole}:{}) }), prior = priorCards(key, 'nonPromotions');
             const current = between(cutoff, start, end) && !skipped;
             const latest = review && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt;
             const changed = prior.length ? !prior.some(p => p.card.sourceHash === hash || !p.card.sourceHash && latest <= p.savedAt) : !!lastFinalized && latest > lastFinalized;
-            const card: WeeklyNonPromotionCard = { ...post, key, checkpointType,checkpointKind:node.kind,nodeId:node.nodeId,reviewMode:post.mode,readCount:metric.readCount,exposureCount:metric.exposureCount,publishedOn,dueOn, recordedThrough: cutoff, firstRecordedAt: iso(metric.createdAt), updatedAt: iso(review?.updatedAt && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt), sourceHash: hash, kind: current ? 'current' : 'supplement', label: current ? '本期数据' : prior.length ? '往期数据更新' : '往期补录', clickRate: metric.clickRate==null?null:Number(metric.clickRate), threeSecondReadRate: Number(metric.threeSecondReadRate), conclusion: review?.conclusion ?? '', cause: review?.cause ?? '', nextAction: review?.nextAction ?? '', skipped, previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
-            (card as any)._eligible = current || !skipped && cutoff < start && changed;
+            const card: WeeklyNonPromotionCard = { ...post, key, checkpointType,checkpointKind:node.kind,nodeId:node.nodeId,reviewMode:post.mode,statisticsFrom:metric.statisticsFrom,statisticsScope:metric.statisticsFrom?'version_interval':post.operationType==='promotion_then_continuous'?'legacy_cumulative':'post_cumulative',readCount:metric.readCount,exposureCount:metric.exposureCount,publishedOn,dueOn, recordedThrough: cutoff, firstRecordedAt: iso(metric.createdAt), updatedAt: iso(review?.updatedAt && review.updatedAt > metric.updatedAt ? review.updatedAt : metric.updatedAt), sourceHash: hash, kind: current ? 'current' : 'supplement', label: current ? '本期数据' : prior.length ? '往期数据更新' : '往期补录', clickRate: metric.clickRate==null?null:Number(metric.clickRate), threeSecondReadRate: Number(metric.threeSecondReadRate), conclusion: review?.conclusion ?? '', cause: review?.cause ?? '', nextAction: review?.nextAction ?? '', skipped, previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
+            (card as any)._eligible = (post.operationType!=='promotion_then_continuous'||metric.statisticsFrom===post.statisticsFrom)&&(current || !skipped && cutoff < start && changed);
             nonPool.push(card);
         }
     // 本期二轮尚未处理时，将缺失的首轮作为同卡片流程的前置节点展示。
@@ -318,7 +320,7 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     for (const card of nonPool) {
         if(card.placeholder||card.checkpointKind==='custom')continue;
         card.ownHistory = nonPool.filter(p => p.contentId === card.contentId && p.versionNumber < card.versionNumber && p.checkpointType === card.checkpointType).map(p => ({ versionNumber: p.versionNumber, recordedThrough: p.recordedThrough, clickRate: p.clickRate, threeSecondReadRate: p.threeSecondReadRate }));
-        const same = nonPool.filter(p => !p.placeholder&&p.subjectId === card.subjectId && p.categoryId === card.categoryId && p.checkpointType === card.checkpointType && !p.skipped);
+        const same = nonPool.filter(p => !p.placeholder&&sameNonPromotionCohort(p,card) && p.checkpointType === card.checkpointType && !p.skipped);
         card.historical = benchNon(same.filter(p => p.recordedThrough! < start), card.key);
         card.peers = benchNon(same.filter(p => p.recordedThrough! >= start && p.recordedThrough! <= end), card.key);
         card.rateComparison=rateComparison(same.map(p=>({key:p.key,clickRate:p.clickRate,threeSecondReadRate:p.threeSecondReadRate!,through:p.recordedThrough!,sourceHash:p.sourceHash})),end);

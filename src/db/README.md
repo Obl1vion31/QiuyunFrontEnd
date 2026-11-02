@@ -62,3 +62,5 @@
 
 - `non-promotion-read-model.ts`：方式过滤、标准节点共享样本、分类汇总与后续安排，SSR／GET同源；不按展示方式改变基准。
 - `non-promotion-groups.ts`：三项指标各自的算术均值与有效分母；`non-promotion-trend.ts`为服务端和浏览器共用的纯坐标计算，按真实日期定位、缺失断线。
+
+- `content-roles.ts`／`content-role-workflow.ts`：原帖固定职能、条件选项、同类身份及排期事务保存与业务更正历史。推广后持续复盘复用计划当前排期指针，指标起点只存真实区间，不按新版回写旧数据。

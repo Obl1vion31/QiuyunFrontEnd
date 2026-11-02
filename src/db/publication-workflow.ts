@@ -16,7 +16,7 @@ import { operationsContent as contents, operationsNonPromotionReviewPlan as revi
   operationsPromotionWaitRange as ranges, operationsPromotionHold as holds, operationsScheduleChangeRequest as changes, operationsPromotionStartPlan as startPlans, operationsPromotionDayDecision as decisions, operationsPromotionTimelineAudit as audits } from './schema';
 import { count } from 'drizzle-orm';
 import { mayKeepEmptyPublicationLink } from './publication-rules.mjs';
-import {saveReviewPlan,reviewIdentity} from './non-promotion-plan';
+import {switchContinuousReviewCycle,saveReviewPlan,reviewIdentity} from './non-promotion-plan';
 
 const historyEntry=(status:string,actor:OperationsUser,now:Date,reason:string|null=null)=>[{status,actorId:actor.id,actorLabel:actor.username,at:now.toISOString(),reason}];
 function checkRevision(schedule:{planRevision:number;publicationRevision:number},input:{expectedPlanRevision:number;expectedPublicationRevision:number}) {
@@ -65,6 +65,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl,...(previousConfirmation?{momentsConfirmation:previousConfirmation}:{})};
     const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{})};
     if(JSON.stringify(before)===JSON.stringify(after)){
+      await switchContinuousReviewCycle(tx,version.contentId,id,actual,actor.username);
       if(input.reviewPlan)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
       return {kind:'saved' as const,unchanged:true};
     }
@@ -75,8 +76,10 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
       promotionDeferredThrough:promotionStatus==='awaiting_promotion'&&actualChanged?null:undefined,updatedAt:now}).where(eq(schedules.id,id));
     await tx.insert(events).values({scheduleId:id,revision:schedule.publicationRevision+1,before,after,reason:input.correctionReason||null,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
     const [content]=await tx.select().from(contents).where(eq(contents.id,version.contentId));
+    await switchContinuousReviewCycle(tx,version.contentId,id,actual,actor.username);
     const [configured]=await tx.select().from(reviewPlans).where(eq(reviewPlans.contentId,version.contentId));
-    if(!schedule.actualPublishAt&&content.operationType&&!schedule.isPromoted){
+    const priorPublished=await tx.select({id:schedules.id}).from(schedules).innerJoin(versions,eq(schedules.contentVersionId,versions.id)).where(and(eq(versions.contentId,version.contentId),ne(schedules.id,id),isNotNull(schedules.actualPublishAt)));
+    if(!schedule.actualPublishAt&&content.operationType&&!schedule.isPromoted&&!priorPublished.length){
       const mode=content.operationType==='non_promotion_instant'?'instant':'standard';
       const dueOn=input.reviewDueOn||input.reviewPlan?.dueOn||configured?.draftDueOn||'';
       if(mode==='instant'&&!dueOn)throw new WorkflowError('请补齐即时复盘截止日期。',422);

@@ -1,0 +1,6 @@
+DROP INDEX "operations_non_custom_date_idx";--> statement-breakpoint
+ALTER TABLE "operations_content" ADD COLUMN "content_role" text;--> statement-breakpoint
+ALTER TABLE "operations_content_performance_metric" ADD COLUMN "statistics_from" date;--> statement-breakpoint
+CREATE UNIQUE INDEX "operations_non_custom_date_idx" ON "operations_non_promotion_custom_checkpoint" USING btree ("schedule_id","due_on") WHERE "operations_non_promotion_custom_checkpoint"."cancelled_at" IS NULL;--> statement-breakpoint
+ALTER TABLE "operations_content" ADD CONSTRAINT "operations_content_role_check" CHECK ("operations_content"."content_role" IS NULL OR "operations_content"."content_role" IN ('score_analysis','celebration','notice','question_analysis','content_preview','score_prediction','engagement'));--> statement-breakpoint
+ALTER TABLE "operations_content_performance_metric" ADD CONSTRAINT "operations_performance_interval_check" CHECK ("operations_content_performance_metric"."statistics_from" IS NULL OR "operations_content_performance_metric"."statistics_from" <= "operations_content_performance_metric"."recorded_through");

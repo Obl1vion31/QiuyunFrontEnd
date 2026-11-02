@@ -224,7 +224,7 @@ flowchart LR
 
 WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未来占位冻结到新快照；readWeeklyMaterial只把启用且已到开放时间的缺项列为pending。自定义不入普通基准，历史修订不参与新样本。非推广发布计划与节点变更接入schedule.edit及审批重放；旧审批空新增字段通过nonPromotionSource保持指纹。
 
-运营类型贯穿接入：`operation-types`维护四种类型与标签；`operation-setup`保存原帖策略和未发布的日期草案；`non-promotion-plan`从统一推广回放推导持续资格。新建、编辑、发布、节点和指标接口共用这些入口，不在按钮事件里自动改用途。`BusinessOperationFields`接入新建／编辑，`BusinessReviewDateAdd`供排期详情及非推广待安排气泡复用。节点写入先取得推广工作流锁，再锁排期／原帖并复核资格。首次实发才将即时草案变为真实节点；已有改帖沿用原锚点。
+运营类型贯穿接入：`operation-types`维护四种类型与标签；`operation-setup`保存原帖策略和未发布的日期草案；`non-promotion-plan`从统一推广回放推导持续资格。新建、编辑、发布、节点和指标接口共用这些入口，不在按钮事件里自动改用途。`BusinessOperationFields`接入新建／编辑，`BusinessReviewDateAdd`供排期详情及非推广待安排气泡复用。节点写入先取得推广工作流锁，再锁排期／原帖并复核资格。首次实发才将即时草案变为真实节点；普通非推广改帖沿用原锚点；推广后持续由`switchContinuousReviewCycle`在实发事务记录当前版本，`anchorReviewPosts`按实际生效时间解析资格。
 
 非推广结果接入：`NonPromotionReviewRow`在分类明细、平铺和按帖视图复用真实行与Inspector键；`NonPromotionCategoryMetric`接收读模型的阅读量均值及各指标有效样本，客户端不另算入样条件。`mode`控制方式，`group`控制常规历史展示；服务端返回`sampleRows/categoryGroups`，分类共享标准样本与平铺方式过滤分别执行，切换只移动原节点。`NonPromotionReadingTrend`与保存刷新共用纯函数`non-promotion-trend`，按真实截至日定位并在缺失处断线；`business-data-motion`仅在首次可见时绘制细轨／趋势。
 
@@ -237,3 +237,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 - 员工预览调用原写入并回滚；`business-approvals`在真实申请落库后保留申请ID及首次受理时间，批准重放通过异步上下文识别该申请。名额占用与业务保存使用同一事务及原工作流锁。修改计划来源纳入`schedule.edit`权限，原排期改期继续使用原权限。
 - `GET /api/monthly-plans?month=…`读取执行；`?schedule=…`读取关联来源；`PATCH /api/monthly-private-data`维护人数；`GET/PATCH /api/monthly-cost-mapping`维护用途。`GET /api/meeting-reviews/:id/monthly-material`仅预览最新来源，携带指纹显式保存为新版本，不刷新原阶段卡。
 - `MonthlyPlanReference`在周会会前预览当前执行；计划版本变化时须明确确认引用，只有会后定稿才锁定原计划并冻结对照。`MonthlyPlanEditor`编辑时可读取已生效的追加，退出编辑仍回到该会议版本快照。PDF沿用同一信息组件，展开月度分类明细，并按完整人数／Week组控制分页。
+
+内容职能接入：`content-roles`共用固定选项、分组键与`sameNonPromotionCohort`；`BusinessContentRoleFields`及`operation-setup`只在两个合集显示单选，`content-role-workflow`在原排期事务保存并记录业务更正。新字段为空不改变旧审批指纹。`non-promotion-read-model`、指标保存及`meeting-weekly-material`共用职能入样条件；持续指标保存预期起点，旧数据以已存`statisticsFrom`冻结与展示。管理员`BusinessUsageGuide`由既有settings门禁覆盖。

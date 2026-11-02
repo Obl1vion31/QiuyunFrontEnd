@@ -1,4 +1,5 @@
 ---
+import {contentRoleLabels,contentRoleLabel,rolesForCategory} from '../../db/content-roles';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
@@ -10,7 +11,7 @@ import BusinessReviewDateAdd from '../../components/BusinessReviewDateAdd.astro'
 import NonPromotionReviewRow from '../../components/NonPromotionReviewRow.astro';
 import NonPromotionCategoryMetric from '../../components/NonPromotionCategoryMetric.astro';
 import NonPromotionReadingTrend from '../../components/NonPromotionReadingTrend.astro';
-import {reviewModeLabels} from '../../db/non-promotion-nodes';
+import {cumulativeDays,reviewModeLabels} from '../../db/non-promotion-nodes';
 import BusinessNonPromotionTableHead from '../../components/BusinessNonPromotionTableHead.astro';
 import {nonPromotionGroupLabel} from '../../db/non-promotion-groups';
 import BusinessInspector from '../../components/BusinessInspector.astro';
@@ -21,7 +22,7 @@ import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 
 export const prerender = false;
 const databaseStartedAt=performance.now();
-const {mode,sampleRows,upcoming,awaitingDates,subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
+const {roleOptions,selectedRole,mode,sampleRows,upcoming,awaitingDates,subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
 const renderRows=mode==='standard'&&activeView==='history'?[...tableRows,...sampleRows.filter(item=>!tableRows.some(row=>row.key===item.key))]:tableRows;
 const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,items:renderRows.filter(item=>item.row.id===id)}));
@@ -44,6 +45,7 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
       <label>复盘方式<select name="mode">{Object.entries(reviewModeLabels).map(([value,label])=><option value={value} selected={mode===value}>{label}</option>)}</select></label>
       <label>学科<select name="subject"><option value="">全部学科</option>{subjects.map(subject=><option value={subject.id} selected={subject.id===selectedSubject}>{subject.name}</option>)}</select></label>
       <label>帖子分类<select name="category" disabled={!selectedSubject}><option value="">{selectedSubject?'全部分类':'请先选择学科'}</option>{categoryOptions.map(category=><option value={category.id} selected={category.id===selectedCategory}>{category.name}</option>)}</select></label>
+      {roleOptions.length>0&&<label>内容职能<select name="role"><option value="">全部职能</option>{roleOptions.map(role=><option value={role} selected={selectedRole===role}>{contentRoleLabels[role]}</option>)}</select></label>}
       {activeView === 'history' && <input type="hidden" name="group" value={grouped?'1':'0'}/>}
       {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}&mode=${mode}`}>清除筛选</a>}
     </form>
@@ -72,24 +74,24 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
         {postGroups.map(group => mode==='standard'?<div class="review-record-container" role="rowgroup" data-review-group={group.id}>
           {group.items.map(item=><NonPromotionReviewRow hidden={!grouped&&item.row.mode!==mode} item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}
         </div>:<section class="post-result" data-review-group={group.id}>
-          <header class="post-result-heading"><div><h2><button type="button" data-post-open={group.items[0].key}>{group.items[0].row.contentName}</button><small>V{group.items[0].row.versionNumber}</small></h2><p><span>{nonPromotionGroupLabel(group.items[0].row.subjectName,group.items[0].row.categoryName)}</span><span class="post-origin">累计起点 <time>{shanghaiDateKey(group.items[0].row.actualPublishAt)}</time></span></p></div>{mode==='continuous'&&activeView==='history'&&<span class="post-result-tag">最近一次</span>}</header>
+          <header class="post-result-heading"><div><h2><button type="button" data-post-open={group.items[0].key}>{group.items[0].row.contentName}</button><small>V{group.items[0].row.versionNumber}</small></h2><p><span>{nonPromotionGroupLabel(group.items[0].row.subjectName,group.items[0].row.categoryName)}{rolesForCategory(group.items[0].row.categoryId).length?' · '+contentRoleLabel(group.items[0].row.contentRole):''}</span><span class="post-origin">{group.items[0].row.legacy?'历史周期':'统计起点'} <time>{group.items[0].row.statisticsFrom??group.items[0].metric?.statisticsFrom??shanghaiDateKey(group.items[0].row.actualPublishAt)}</time></span></p></div>{mode==='continuous'&&activeView==='history'&&<span class="post-result-tag">{group.items[0].row.legacy?'历史周期':'最近一次'}</span>}</header>
           <div class="post-metric-head" aria-hidden="true"><span>截止节点</span>{activeView==='skipped'?<span>不复盘原因</span>:<><span>阅读量</span><span>点击率</span><span>3 秒阅读率</span></>}<span>操作</span></div>
           {(mode==='continuous'&&activeView==='history'?group.items.slice(0,1):group.items).map(item=><NonPromotionReviewRow compact item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}
           {mode==='continuous'&&activeView==='history'&&group.items.length>1&&<details class="post-history" data-review-section data-post-history={group.id} open={group.items.slice(1).some(item=>item.key===selected?.key)}>
             <summary>往期节点 ({group.items.length-1})<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></summary>
-            <div data-disclosure-body><NonPromotionReadingTrend scheduleId={group.id} points={group.items.map(item=>({key:item.key,through:item.metric!.recordedThrough,value:item.metric?.readCount??null}))}/>{group.items.slice(1).map(item=><NonPromotionReviewRow compact item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}</div>
+            <div data-disclosure-body><NonPromotionReadingTrend scheduleId={group.id} points={group.items.filter(item=>!item.historical&&item.metric?.statisticsFrom===group.items[0].metric?.statisticsFrom).map(item=>({key:item.key,through:item.metric!.recordedThrough,value:item.metric?.readCount??null}))}/>{group.items.slice(1).map(item=><NonPromotionReviewRow compact item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}</div>
           </details>}
         </section>)}
         </div>
       </div></div>
         {!tableRows.length&&<div class="review-empty"><strong>{activeView==='pending'?'当前没有待复盘节点':activeView==='skipped'?'当前没有跳过的节点':'还没有复盘历史'}</strong></div>}
-      {activeView==='pending'&&upcoming.length>0&&<details class="continuous-awaiting" data-review-section data-upcoming-reviews><summary>未到期与后续节点 ({upcoming.length})</summary><div data-disclosure-body>{upcoming.map(({row,node})=><div class="upcoming-node"><div><strong>{row.contentName}</strong><small>{reviewModeLabels[row.mode]} · 累计 {node.days} 天</small></div><time>{node.dueOn}</time><span>{node.kind==='custom'&&node.dueOn>=today?'截止次日可录入':node.dueOn>today?'尚未到期':'等待前一节点完成'}</span></div>)}</div></details>}
-      {activeView==='pending'&&awaitingDates.length>0&&<details class="continuous-awaiting"><summary>持续复盘待安排 ({awaitingDates.length})</summary>{awaitingDates.map(row=><div class="continuous-awaiting-row" data-awaiting-review={row.id}><div><strong>{row.contentName} · V{row.versionNumber}</strong><p data-awaiting-status>持续复盘已启用{row.activatedOn?' · '+row.activatedOn:''} · 未设日期</p><p>累计数据起点 {shanghaiDateKey(row.actualPublishAt)}</p></div><span data-business-popover data-popover-kind="editor"><button type="button" class="review-entry-button" data-popover-trigger>设置日期</button><div popover="auto" class="review-date-popover" data-popover-panel role="dialog" aria-label="设置复盘日期"><BusinessReviewDateAdd scheduleId={row.id} publishedOn={shanghaiDateKey(row.actualPublishAt)} minimum={row.activatedOn??shanghaiDateKey(row.actualPublishAt)}/></div></span></div>)}</details>}
+      {activeView==='pending'&&upcoming.length>0&&<details class="continuous-awaiting" data-review-section data-upcoming-reviews><summary>未到期与后续节点 ({upcoming.length})</summary><div data-disclosure-body>{upcoming.map(({row,node})=><div class="upcoming-node"><div><strong>{row.contentName}</strong><small>{reviewModeLabels[row.mode]} · 累计 {cumulativeDays(row.statisticsFrom??shanghaiDateKey(row.actualPublishAt),node.dueOn)} 天</small></div><time>{node.dueOn}</time><span>{node.kind==='custom'&&node.dueOn>=today?'截止次日可录入':node.dueOn>today?'尚未到期':'等待前一节点完成'}</span></div>)}</div></details>}
+      {activeView==='pending'&&awaitingDates.length>0&&<details class="continuous-awaiting"><summary>持续复盘待安排 ({awaitingDates.length})</summary>{awaitingDates.map(row=><div class="continuous-awaiting-row" data-awaiting-review={row.id}><div><strong>{row.contentName} · V{row.versionNumber}</strong><p data-awaiting-status>持续复盘已启用{row.activatedOn?' · '+row.activatedOn:''} · 未设日期</p><p>统计起点 {row.statisticsFrom??shanghaiDateKey(row.actualPublishAt)}</p></div><span data-business-popover data-popover-kind="editor"><button type="button" class="review-entry-button" data-popover-trigger>设置日期</button><div popover="auto" class="review-date-popover" data-popover-panel role="dialog" aria-label="设置复盘日期"><BusinessReviewDateAdd scheduleId={row.id} publishedOn={row.statisticsFrom??shanghaiDateKey(row.actualPublishAt)} minimum={row.activatedOn??shanghaiDateKey(row.actualPublishAt)}/></div></span></div>)}</details>}
       </div>
 
       <BusinessInspector class="inspector" parameter="row" templates />
       {renderRows.map(selected => <template data-inspector-template={selected.key}>
-        <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 data-inspector-title>{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'} · V{selected.row.versionNumber}</p></div><a href={baseHref} data-close-inspector aria-label="关闭详情">×</a></header>
+        <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 data-inspector-title>{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'}{rolesForCategory(selected.row.categoryId).length?' · '+contentRoleLabel(selected.row.contentRole):''} · V{selected.row.versionNumber}</p></div><a href={baseHref} data-close-inspector aria-label="关闭详情">×</a></header>
         <section class="identity-panel review-resources" aria-label="帖子资料">
           <dl>
             <div><dt>项目文档</dt><dd>{selected.row.projectDocUrl?<a href={selected.row.projectDocUrl} target="_blank" rel="noopener noreferrer">打开项目文档 ↗</a>:<span class="resource-missing">未登记</span>}</dd></div>
@@ -104,6 +106,8 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
         {activeView!=='skipped'&&<form class="review-form business-form" data-review-form data-collaboration-resource={`schedule:${selected.row.id}:non:${selected.checkpoint.type}`} data-collaboration-label={`${selected.row.contentName} · ${names[selected.checkpoint.type]}`} data-success-href={viewHref('history')}>
           {selected.historical&&<p class="hint">历史口径 · 原始数据只读保留</p>}
           <fieldset disabled={selected.historical} style="border:0;padding:0;margin:0;min-width:0;width:100%;box-sizing:border-box;display:grid;gap:14px">
+          {selected.row.operationType==='promotion_then_continuous'&&<div class="review-statistics-interval"><span>{selected.metric&&!selected.metric.statisticsFrom?'旧累计口径':'统计区间'}</span><strong>{selected.metric?.statisticsFrom??(selected.metric?shanghaiDateKey(selected.row.actualPublishAt):selected.row.statisticsFrom)} 至 <time data-statistics-through>{selected.metric?.recordedThrough??(selected.window.defaultValue||selected.dueOn)}</time></strong></div>}
+          <input type="hidden" name="expectedStatisticsFrom" value={selected.row.statisticsFrom??''}/>
           <input type="hidden" name="fingerprint" value={selected.fingerprint}/>
           <input type="hidden" name="scheduleId" value={selected.row.id}/><input type="hidden" name="checkpointType" value={selected.checkpoint.type}/>
           {!selected.row.platformNoteId&&<label>小红书笔记 ID<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" autocomplete="off" required placeholder="24 位十六进制 ID"/></label>}
@@ -162,3 +166,7 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
 .review-resources>label{display:block}.review-resources>p{margin-top:6px}
 @media(max-width:480px){.review-controls{gap:16px}.review-display .business-view-switch{max-width:100%}}
 </style>
+
+<style>.review-statistics-interval{display:grid;gap:6px;padding:12px 0;border-bottom:1px solid var(--console-line);font:400 13px/20px var(--console-font)}.review-statistics-interval span{color:var(--console-muted)}.review-statistics-interval strong{font-weight:500;font-variant-numeric:tabular-nums}</style>
+
+<style>@media(max-width:360px){.review-filters>label,.review-filters>a{grid-column:1/-1}}</style>

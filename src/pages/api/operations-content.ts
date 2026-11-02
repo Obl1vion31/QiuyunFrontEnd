@@ -1,3 +1,4 @@
+import {saveContentRole} from '../../db/content-role-workflow';
 import {monthlyScheduleInput,claimMonthlySchedule} from '../../db/monthly-plans';
 import {workflowErrorResponse} from '../../db/workflow-api';
 import {saveOperationSetup} from '../../db/operation-setup';
@@ -56,6 +57,7 @@ export const POST: APIRoute = async ({ request, redirect, url, locals }) => {
         delayReason: null,
       }).returning({ id: operationsContentSchedule.id });
       await saveOperationSetup(transaction,schedule.id,result.data,locals.user!.username);
+      await saveContentRole(transaction,schedule.id,result.data,locals.user!.username);
       await claimMonthlySchedule(transaction,monthlyScheduleInput(form),schedule.id,locals.user!.username,true);
       return schedule;
     });

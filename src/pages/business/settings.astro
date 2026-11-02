@@ -1,4 +1,5 @@
 ---
+import BusinessUsageGuide from '../../components/BusinessUsageGuide.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
@@ -11,8 +12,8 @@ import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import {businessOperations,permissionModes} from '../../auth/business-capabilities';
 import {authUser} from '../../db/schema';
 export const prerender = false;
-const view=Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
-const accounts=await getDb().select({id:authUser.id,username:authUser.username,name:authUser.name,role:authUser.role,enabled:authUser.enabled,updatedAt:authUser.updatedAt}).from(authUser).orderBy(authUser.username);
+const view=Astro.url.searchParams.get('view')==='guide'?'guide':Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
+const accounts=view==='guide'?[]:await getDb().select({id:authUser.id,username:authUser.username,name:authUser.name,role:authUser.role,enabled:authUser.enabled,updatedAt:authUser.updatedAt}).from(authUser).orderBy(authUser.username);
 const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
 ---
 <!doctype html>
@@ -20,10 +21,11 @@ const grants=await Promise.all(accounts.map(async user=>({...user,permissions:aw
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>系统设置 · 内容发布控制台</title><SiteIcons /><BusinessConsoleFonts /></head>
 <body>
 <BusinessConsoleFrame active="settings">
-  <BusinessConsoleToolbar title="系统设置" subtitle="账号权限与操作授权" />
+  <BusinessConsoleToolbar title="系统设置" subtitle="账号权限、操作授权与使用说明" />
   <main class="business-console-content">
-    <nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a></nav>
-    <BusinessPageHeader title={view==='approvals'?'待审核变更':view==='accounts'?'账号管理':'操作授权'} />
+    <nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a><a href="?view=guide" aria-current={view==='guide'?'page':undefined}>使用说明</a></nav>
+    <BusinessPageHeader title={view==='guide'?'使用说明':view==='approvals'?'待审核变更':view==='accounts'?'账号管理':'操作授权'} />
+    {view==='guide'&&<BusinessUsageGuide/>}
     {view==='accounts'&&<BusinessAccountManagement accounts={accounts}/>}
     {view==='permissions'&&<section class="account-permissions business-form">
       <label>账号<select data-permission-account>{grants.map(user=><option value={user.id}>{user.username} · {user.role==='admin'?'管理员':'员工'}</option>)}</select></label>
