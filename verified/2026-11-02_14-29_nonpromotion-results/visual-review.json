@@ -1,0 +1,44 @@
+{
+  "batch": "verified/2026-11-02_14-29_nonpromotion-results",
+  "screenshots": 54,
+  "groups": [
+    "append-date",
+    "category",
+    "category-expanded",
+    "category-right",
+    "continuous",
+    "continuous-expanded",
+    "continuous-upcoming",
+    "employee-category",
+    "history",
+    "input",
+    "instant",
+    "save-failure",
+    "save-success",
+    "skipped",
+    "touch-inspector",
+    "touch-trend"
+  ],
+  "videos": [
+    {
+      "kind": "desktop",
+      "source": "videos/desktop.mp4",
+      "frames": "129",
+      "sheets": 6,
+      "actuallyReviewed": true
+    },
+    {
+      "kind": "mobile",
+      "source": "videos/mobile.mp4",
+      "frames": "126",
+      "sheets": 6,
+      "actuallyReviewed": true
+    }
+  ],
+  "sourceCommit": "35ae2d8cbbef1030f2bdeb6f76fe7e849b474b73",
+  "stableScreenshotsActuallyReviewed": true,
+  "dataSource": "isolated PGlite; fictional fixtures",
+  "browser": "Linux Chromium; mobile touch emulation",
+  "videoReview": "all 255 decoded frames, no sampling",
+  "status": "已自检，待用户反馈"
+}

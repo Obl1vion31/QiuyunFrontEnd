@@ -1,0 +1,61 @@
+{
+  "passed": true,
+  "readOnly": true,
+  "checkedAt": "2026-11-02T06:32:59.426Z",
+  "checks": [
+    {
+      "mode": "standard",
+      "view": "pending",
+      "rows": 1,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "standard",
+      "view": "history",
+      "rows": 70,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "standard",
+      "view": "skipped",
+      "rows": 72,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "instant",
+      "view": "pending",
+      "rows": 0,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "instant",
+      "view": "history",
+      "rows": 0,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "instant",
+      "view": "skipped",
+      "rows": 0,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "continuous",
+      "view": "pending",
+      "rows": 0,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "continuous",
+      "view": "history",
+      "rows": 0,
+      "standardReadingSamples": 0
+    },
+    {
+      "mode": "continuous",
+      "view": "skipped",
+      "rows": 0,
+      "standardReadingSamples": 0
+    }
+  ]
+}

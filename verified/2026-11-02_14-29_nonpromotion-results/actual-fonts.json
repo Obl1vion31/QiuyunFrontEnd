@@ -1,0 +1,10 @@
+{
+  "fonts": [
+    {
+      "familyName": "MiSans VF",
+      "postScriptName": "MiSansVF",
+      "isCustomFont": true,
+      "glyphCount": 4
+    }
+  ]
+}
