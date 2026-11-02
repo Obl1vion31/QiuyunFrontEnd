@@ -6,7 +6,7 @@
 
 - 建帖／编辑维护版本最终日期；推广正常结束次日起每7天及最终日期自动安排，原表单快速录入、旧NULL计划及已录事实保留。旧版实发生效退出与新统计区间沿用原规则。
 - 251项规则、真实HTTP完整周期／员工审批、同尾日期口径更正、原内容职能综合流程、共享UI和真实PostgreSQL0046→0047通过；五档16图与301帧录像已实际查看，MiSans平台字形已核对：[验收索引](verified/2026-11-02_20-40_weekly-continuous/README.md)。
-- 工作分支`codex/weekly-continuous-review`；当前交接为本机验收完成，正式迁移与发布结果完成后补充。
+- 应用`86abec1`，正式部署`dpl_5vVtPyyoYqiqfQD2ddbXWm78Y2n1`已READY并推广到正式域名；候选14项、正式121项与86资源哈希通过。正式0047迁移核对51表旧事实与冻结JSON保持，三方式正式待办读取通过。私有备份位于工作树`.tools/backups/before-weekly-continuous.json`。分支`codex/weekly-continuous-review`按授权同步main，保留原工作区月会未提交修改。
 
 ## 内容职能与持续复盘版本周期（2026-11-02）
 

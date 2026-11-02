@@ -1,0 +1,19 @@
+{
+  "sourceCommit": "86abec1",
+  "deployment": "dpl_5vVtPyyoYqiqfQD2ddbXWm78Y2n1",
+  "candidateURL": "https://qiuyun-frontend-q5fpzcp9y-opgobl1v-5358.vercel.app",
+  "formalURL": "https://qiuyun-frontend.vercel.app",
+  "status": "READY",
+  "candidateChecks": 14,
+  "formalChecks": 121,
+  "matchingAssets": 86,
+  "ruleTests": 251,
+  "migration": "0047_dear_nicolaos",
+  "oldFactTablesUnchanged": 51,
+  "readModes": [
+    "standard/pending",
+    "instant/pending",
+    "continuous/pending"
+  ],
+  "backup": ".tools/backups/before-weekly-continuous.json"
+}

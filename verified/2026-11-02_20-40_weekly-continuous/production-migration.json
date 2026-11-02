@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "migration": "0047_dear_nicolaos",
+  "checkedTables": 51,
+  "oldFactsAndFrozenJsonUnchanged": true,
+  "noFinalDateBackfill": true
+}
