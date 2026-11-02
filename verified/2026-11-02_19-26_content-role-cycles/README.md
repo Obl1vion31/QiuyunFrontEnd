@@ -24,3 +24,5 @@
 对应应用代码`9c6f95a`。正式迁移、回填和发布见本目录最终发布记录；私有备份和逐帖回填清单位于被忽略的本机目录，不进入验收图库或部署。
 
 正式发布：应用`9c6f95a`，部署`dpl_G1FNFSXi7eWgCHDB9B7BJrPevx32`；正式域名解析到本候选且READY。候选14项、正式121项与86个资源哈希核对通过，正式库九种方式／状态读取通过。0046兼容迁移及授权职能回填完成，51张非瞬态表的原字段与冻结JSON逐项保留，70条旧指标未补造统计起点；备份及逐帖清单继续私有保存。[发布记录](release.json)、[迁移核对](production-migration.json)、[回填核对](production-backfill.json)、[正式读模型](production-read-model.json)、[公网核对](public-smoke.json)。
+
+补充操作图（同一界面的隔离验收示例，已实际查看）：[推广正常结束后添加复盘日期](how-to/after-end-1440.png)、[按明确统计区间填写指标](how-to/continuous-input-1440.png)。示例曝光1000、阅读100时，点击率自动显示10.00%；复盘截止次日开放。
