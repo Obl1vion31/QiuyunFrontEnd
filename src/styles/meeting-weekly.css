@@ -140,6 +140,8 @@
 .weekly-discussion .weekly-card-writing textarea{height:80px;min-height:64px}.weekly-discussion .weekly-card-writing label{font-size:13px}
 .weekly-discussion-issues{table-layout:fixed}.weekly-discussion-issues th:first-child{width:30%}.weekly-discussion-issues th:nth-child(2){width:auto}.weekly-discussion-issues th:nth-child(3){width:118px}.weekly-discussion-issues th:nth-child(4){width:100px}.weekly-discussion-issues th:nth-child(5){width:40px}
 .weekly-discussion-issues td{vertical-align:top}.weekly-discussion-issues .weekly-discussion-text{font:400 14px/24px var(--console-font)}.weekly-discussion-issues input[type=checkbox]{margin:10px 0}
+.weekly-table :is(th,td):has(>.weekly-visually-hidden){position:relative}
+@media(max-width:900px){.weekly-report .weekly-report-actions{bottom:76px}}
 .weekly-discussion-host>.weekly-report-actions{margin-top:24px}
 
 .weekly-rate-difference{display:block;white-space:nowrap}.weekly-rate-comparison b>span{font:inherit;color:inherit}

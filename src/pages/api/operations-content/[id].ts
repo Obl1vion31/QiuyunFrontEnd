@@ -1,3 +1,4 @@
+import {monthlyScheduleInput,claimMonthlySchedule} from '../../../db/monthly-plans';
 import {saveOperationSetup} from '../../../db/operation-setup';
 import {readPostSchemas} from '../../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
@@ -266,6 +267,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:randomUUID(),businessDate:shanghaiDateKey(new Date()),action:'usage_change',reason:usageChangeReason||'调整推广身份',before:oldTimeline,after:await promotionSnapshot(transaction,schedule.id),changedById:locals.user!.id,changedByLabel:locals.user!.username});
       }
       await saveOperationSetup(transaction,saved.id,result.data,locals.user!.username,()=>requireBusinessOperation(transaction,locals.user!,'schedule.edit'));
+      await claimMonthlySchedule(transaction,monthlyScheduleInput(form),saved.id,locals.user!.username);
       return saved;
     });
     if (!updated) return Response.json({ message: '没有找到这条排期。' }, { status: 404 });

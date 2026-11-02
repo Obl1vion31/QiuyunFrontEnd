@@ -1,4 +1,6 @@
 ---
+import MonthlyCalendarPlan from '../../components/MonthlyCalendarPlan.astro';
+import MonthlyScheduleFields from '../../components/MonthlyScheduleFields.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import BusinessScheduleApprovals from '../../components/BusinessScheduleApprovals.astro';
@@ -299,6 +301,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         </div>
               }
 
+      <MonthlyCalendarPlan month={selectedMonth} calendar={selectedView==='schedule'&&selectedDisplay==='calendar'}/>
       {selectedView === 'schedule' && selectedDisplay === 'calendar' && <section class="calendar" aria-label={`${selectedMonth} 月历`}>
         <div class="calendar-legend" aria-label="月历颜色说明"><span class="publish-on_time">按时已发</span><span class="publish-delayed">延期已发</span><span class="publish-pending">待发布</span><span class="publish-missing">尚未登记</span><span class="promotion-identity promoted">推广</span></div>
         <div class="weekdays">{['日','一','二','三','四','五','六'].map((day) => <span>{day}</span>)}</div>
@@ -360,7 +363,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         <input type="hidden" name="recordId" /><input type="hidden" name="expectedPlanRevision" />
         <input type="hidden" name="sourceScheduleId" />
         <div class="sheet-body">
-        <section class="source-preview" data-source-preview hidden></section>
+        <section class="source-preview" data-source-preview hidden></section><MonthlyScheduleFields/>
         <div class="form-grid">
           <div class="field field-wide"><label for="contentName">内容名称 <b>*</b></label><input id="contentName" name="contentName" maxlength="200" required /><small data-error="contentName"></small></div>
           <div class="field"><label for="subjectId">学科 <b>*</b></label><select id="subjectId" name="subjectId" required><option value="">请选择学科</option>{subjects.map((subject) => <option value={subject.id}>{subject.name}</option>)}</select><small data-error="subjectId"></small></div>
@@ -600,6 +603,8 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         }
       };
       const openForm = (nextMode, record, selectedDate = '') => {
+        const carry=nextMode==='new'?document.querySelector('[data-monthly-plan-pool]')?.dataset.scheduleId:null;
+        if(carry){const original=rows.find(r=>r.id===carry);if(original){nextMode='edit';record=original;}}
         if(nextMode==='new'&&!mayOperate('schedule.create')||nextMode==='revision'&&!mayOperate('schedule.revise'))return;
         form.querySelectorAll('[data-permission-preserved]').forEach(node=>node.remove());
         form.querySelectorAll('input,select,textarea').forEach(control=>{control.disabled=false;control.readOnly=false;});
@@ -648,7 +653,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           sourcePreview.append(sourceTitle, sourceStatus);
         }
         configureDateTime(field('plannedPublishAt'),{value:field('plannedPublishAt').value,readOnly:false});
-        if(nextMode === 'new')field('plannedPublishDate').value=selectedDate;
+        if(selectedDate)configureDateTime(field('plannedPublishAt'),{value:`${selectedDate}T${field('plannedPublishAt').value.split('T')[1]||'09:00'}`});
         field('expectedPlanRevision').value = record?.planRevision ?? '';
         const planReason = document.querySelector('[data-plan-change-reason]');
         planReason.hidden = true; field('planChangeReason').required = false;
@@ -664,9 +669,19 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           }
         }
         dirty = false;
-        dialog.showModal();document.dispatchEvent(new CustomEvent('business:schedule-form-opened',{detail:{mode:nextMode,record}}));
+        dialog.showModal();document.dispatchEvent(new CustomEvent('business:schedule-form-opened',{detail:{mode:nextMode,record,selectedDate}}));
         field('contentName').focus();
       };
+      const switchMonthlyOriginal = async event => {
+        const detail=event.detail,original=rows.find(row=>row.id===detail.scheduleId);if(!original)return;
+        const hasNewPostInput=field('contentName').value.trim()||field('projectDocUrl').value.trim()||field('syncToMoments').checked||form.dataset.operationTouched==='true';
+        if(dirty&&hasNewPostInput&&!await window.businessConfirm('将切换到原帖改期，当前新建输入尚未保存。',{title:'使用遗留排期',confirmLabel:'切换原排期',cancelLabel:'继续新建'})){detail.cancel();return;}
+        const chosenTime=field('plannedPublishAt').value;
+        dirty=false;document.documentElement.dataset.unsaved='false';openForm('edit',original,detail.date);
+        if(chosenTime)configureDateTime(field('plannedPublishAt'),{value:chosenTime});form.dispatchEvent(new Event('input',{bubbles:true}));
+      };
+      document.addEventListener('business:monthly-schedule-switch',switchMonthlyOriginal);
+      document.addEventListener('astro:before-swap',()=>document.removeEventListener('business:monthly-schedule-switch',switchMonthlyOriginal),{once:true});
       const closeForm = async () => {
         if (dirty && !await window.businessConfirm('有尚未保存的修改，是否放弃？')) return;
         dirty = false;document.documentElement.dataset.unsaved='false';
@@ -676,7 +691,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       document.querySelectorAll('[data-calendar-new]').forEach(button=>button.addEventListener('click',()=>openForm('new',undefined,button.dataset.calendarNew)));
       document.querySelectorAll('[data-calendar-day]').forEach(cell=>cell.addEventListener('click',event=>{
         if(event.composedPath().some(node=>node instanceof Element&&node.matches('button,a,[data-inspect-id]')))return;
-        if(mayOperate('schedule.create'))openForm('new',undefined,cell.dataset.calendarDay);
+        if(mayOperate('schedule.create')||document.querySelector('[data-monthly-plan-pool]')?.dataset.scheduleId)openForm('new',undefined,cell.dataset.calendarDay);
       }));
       document.querySelectorAll('[data-inspect-id]').forEach((node) => {
         const inspect = () => openInspector(rows.find((row) => row.id === node.dataset.inspectId));
@@ -1016,7 +1031,7 @@ import '../../scripts/operation-setup';</script>
   .calendar-item{border-radius:7px}.calendar-item.selected{box-shadow:inset 0 0 0 2px var(--blue)}
   .calendar-legend{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);font:400 12px/18px var(--console-font)}
   .calendar-legend>span{padding:3px 8px;border-radius:6px}
-  .calendar-day[data-calendar-day]{cursor:pointer}.calendar-new{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:transparent;color:var(--ink);cursor:pointer;text-align:left;padding:0 2px 7px;margin:0}.calendar-new>span{font-size:16px;color:#71847a}.calendar-new:hover>span{color:var(--blue)}
+  .calendar-day[data-monthly-week-match]{background:#eef3ff}.calendar-day[data-calendar-day]{cursor:pointer}.calendar-new{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:transparent;color:var(--ink);cursor:pointer;text-align:left;padding:0 2px 7px;margin:0}.calendar-new>span{font-size:16px;color:#71847a}.calendar-new:hover>span{color:var(--blue)}
   .calendar-items{gap:4px}
   .calendar-item{display:grid;grid-template-columns:minmax(0,1fr);gap:3px;padding:6px;border-left:3px solid currentColor;line-height:1.4;width:100%;min-width:0;text-align:left}
   .calendar-item .calendar-item-meta{display:flex;align-items:center;justify-content:space-between;gap:5px;white-space:normal;overflow:visible}.calendar-item .calendar-item-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:500 13px/20px var(--console-font)}.calendar-item time{white-space:nowrap;font:400 12px/18px var(--console-font)}

@@ -1,5 +1,8 @@
 import {useEffect,useRef,useState} from 'react';
-import type {MonthlyOperations,MonthlyQuery} from '../db/monthly-operations';
+import MonthlyPrivatePanel from './MonthlyPrivatePanel';
+import {PlanExecutionSummary} from './MonthlyMeetingSections';
+import type {MonthlyWorkspace} from '../db/monthly-workspace';
+import type {MonthlyQuery} from '../db/monthly-operations';
 import {businessDateTime} from '../scripts/business-date';
 import styles from './BusinessMonthlyOperations.module.css';
 
@@ -13,7 +16,7 @@ type View='publication'|'promotion';
 type Detail='onTime'|'pending'|'planned'|'published'|'delayed'|'operationalDelayed'|'missing'|'severe'|'operational'|'changed'|'moved'|'all'|'wasted'|'gaps'|`subject:${string}`|`group:${string}`;
 const filters:Array<[Detail,string]>=[['planned','当前应发'],['onTime','按时已发布'],['pending','正常待发'],['published','本月发布'],['delayed','延期已发布'],['operationalDelayed','运营延期已发布'],['missing','尚未登记'],['severe','超过48小时'],['operational','运营原因'],['changed','改期后未登记'],['moved','改出本月']];
 const scheduleHref=(id:string)=>`/business/operations-schedule?display=ledger&row=${id}`;
-export default function BusinessMonthlyOperations({initial,query:initialQuery,error:initialError='',followCurrentMonth=false}:{initial:MonthlyOperations|null;query:MonthlyQuery;error?:string;followCurrentMonth?:boolean}){
+export default function BusinessMonthlyOperations({initial,query:initialQuery,error:initialError='',followCurrentMonth=false,admin=false}:{initial:MonthlyWorkspace|null;query:MonthlyQuery;error?:string;followCurrentMonth?:boolean;admin?:boolean}){
  const [data,setData]=useState(initial),[query,setQuery]=useState(initialQuery),[error,setError]=useState(initialError),[busy,setBusy]=useState(false);
  const [view,setView]=useState<View>('publication'),[detail,setDetail]=useState<Detail>('planned');
  const [delayScope,setDelayScope]=useState<'all'|'operational'>('all');
@@ -24,7 +27,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
   if(updateURL){const url=new URL(location.href);for(const [key,value] of Object.entries(next))value?url.searchParams.set(key,value):url.searchParams.delete(key);history.replaceState(history.state,'',url);}
   try{
    const {readBusiness}=await import('../scripts/business-read');
-   const result=await readBusiness(body.current!,async read=>{const response=await fetch('/api/monthly-operations?'+new URLSearchParams(next),{signal:read.signal});const value=await response.json();if(!response.ok)throw new Error(value.message||'读取失败，请重试。');return value as MonthlyOperations;},{label:`正在读取${monthLabel(next.month)}…`,isCurrent:()=>seq===generation.current});
+   const result=await readBusiness(body.current!,async read=>{const response=await fetch('/api/monthly-operations?'+new URLSearchParams(next),{signal:read.signal});const value=await response.json();if(!response.ok)throw new Error(value.message||'读取失败，请重试。');return value as MonthlyWorkspace;},{label:`正在读取${monthLabel(next.month)}…`,isCurrent:()=>seq===generation.current});
    if(result){setData(result);}
   }catch(e){if(seq===generation.current)setError(e instanceof Error?e.message:'读取失败，请重试。');}
   finally{if(seq===generation.current)setBusy(false);}
@@ -102,6 +105,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
       <div className={styles.postList}><header><h3>消耗组成</h3><span>{spendRows.length} 篇</span></header><div className={styles.tableScroll}><table className={styles.costTable}><thead><tr><th>帖子 / 版本</th><th>当前状态</th><th>本月消耗</th><th>测试空跑</th><th>实际开口</th><th>实际留资</th><th>原记录</th></tr></thead><tbody>{spendRows.map(row=><tr key={row.scheduleId} className={['test_discarded','formal_discarded'].includes(row.status)?styles.discarded:row.status==='ended'?styles.ended:''}><td><strong>{row.contentName} <small>V{row.versionNumber}</small></strong><span>{row.subjectName} · {row.categoryName??'未分类'}</span></td><td><span className={styles.tag}>{row.statusLabel}</span></td><td>{money(row.spend)}</td><td>{money(row.wasted)}</td><td>{count(row.actualOpenCount)}</td><td>{count(row.actualLeadCount)}</td><td><a href={scheduleHref(row.scheduleId)} target="_blank" rel="noopener">查看 ↗</a></td></tr>)}{!spendRows.length&&<tr><td colSpan={7} className={styles.empty}>当前范围暂无消耗记录</td></tr>}</tbody></table></div></div>
      </>}
     </section>
+    <MonthlyPrivatePanel data={data} admin={admin} onSaved={()=>load(query,false)}/>{data.planExecution?.firstFinalizedAt&&<PlanExecutionSummary plan={data.planExecution}/>}
     <p className={styles.bottomNote}>实时看板按当前有效排期和已登记事实计算；当前应发量不代表月初冻结计划。</p>
    </div>}
   </div>

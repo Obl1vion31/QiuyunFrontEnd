@@ -22,4 +22,5 @@ export function meetingFinalizationIssue(draft:WeeklyMeetingDraft,stage:'pre'|'p
  const incompleteIssue=draft.issues.findIndex(issue=>hasMeetingIssueContent(issue)&&!issue.problem.trim());
  if(incompleteIssue>=0)return {message:'请补充事项的问题，或删除该新增行。',target:{kind:'issue',index:incompleteIssue}};
  if(pendingKeys.length)return {message:'请补齐本期应处理的非推广数据，或明确标记不复盘。',target:{kind:'nonPromotion',key:pendingKeys[0]}};
+ if(stage==='post'&&draft.monthlyPlan){for(const content of [draft.monthlyPlan.content,...draft.monthlyPlan.additions.map(b=>b.content)])for(const group of content.groups){const items=content.items.filter(i=>i.groupId===group.id);if(items.length!==(group.quantity??0)||items.some(i=>!i.week))return {message:`${group.name} 请在会后定稿前分完Week，标题与具体日期可以后补。`,target:{kind:'material'}};}}
 }

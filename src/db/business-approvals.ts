@@ -1,3 +1,4 @@
+import {reserveMonthlyProposal,withMonthlyProposal} from './monthly-plans';
 import {operationSetupChanged} from './operation-setup';
 import type {OperationType} from './operation-types';
 import {readPostSchemas} from './taxonomy-store';
@@ -74,6 +75,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
     if(String(values.dailyReasons??'[]')!=='[]')operations.push('schedule.reason');
   }else{
     if(parts[3]!=='change-requests'){
+      if(values.monthlyPlanId){const [linked]=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,String(values.monthlyPlanId)),eq(s.operationsMonthlyPlanAssignment.scheduleId,current.id)));if(!linked||linked.itemId!==values.monthlyPlanItemId)operations.push('schedule.edit');}
       const [version]=await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,current.contentVersionId));
       if(await operationSetupChanged(db,version.contentId,values as {operationType?:OperationType})&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
       if(['contentName','subjectId','categoryId','projectDocUrl'].some(key=>(values[key]||null)!==(version[key as keyof typeof version]||null))||current.isPromoted!==checked(values.isPromoted)||current.syncToMoments!==checked(values.syncToMoments))operations.push('schedule.edit');
@@ -130,6 +132,7 @@ const pendingResponse=(id:string)=>Response.json({status:'pending_approval',requ
 export async function runBusinessWrite(context:Context,next:()=>Promise<Response>):Promise<Response>{
   try{
     if(context.request.headers.get('origin')!==context.url.origin)throw new AccessDenied('拒绝跨站写入。');
+    const reservationRequest=context.request.clone();
     const body=await context.request.clone().text();if(body.length>524288)return Response.json({message:'提交内容过长。'},{status:413});
     return await getDb().transaction(async tx=>withDatabase(tx,async()=>{
       await lockBusinessWrites(tx);await lockPromotionWorkflow(tx);
@@ -162,6 +165,7 @@ export async function runBusinessWrite(context:Context,next:()=>Promise<Response
         }));
       }catch(error){if(!(error instanceof RolledBack))throw error;if(!accepted(error.response))throw error;after=error.after;}
       const [created]=await tx.insert(s.operationsChangeProposal).values({requestedById:actor.id,requestedByLabel:actor.username,module:write.module,target:write.target,operations:write.operations,path,method:context.request.method,contentType:context.request.headers.get('content-type')??'',body,fingerprint,requestKey:key,before,after}).returning({id:s.operationsChangeProposal.id});
+      await reserveMonthlyProposal(tx,created.id,reservationRequest,actor.username);
       return pendingResponse(created.id);
     }));
   }catch(error){if(error instanceof RolledBack)return error.response;if(error instanceof SyntaxError||error instanceof TypeError)return Response.json({message:'提交格式无效。'},{status:422});return workflowErrorResponse(error);}
@@ -205,7 +209,7 @@ export async function decideProposal(id:string,approve:boolean,reason:string,act
     if(write.operations.some(operation=>permissions[operation]==='disabled')||stable(write.operations)!==stable(proposal.operations)||digest(await snapshot(tx,write))!==proposal.fingerprint)return finish('obsolete',null,'原内容或权限已变化，请重新提交。');
     try{
       const result=await tx.transaction(async apply=>withDatabase(apply,async()=>{
-        const response=await withBusinessExecution(owner,write.operations,()=>replay(proposal.path,proposal.method,request,owner));
+        const response=await withBusinessExecution(owner,write.operations,()=>withMonthlyProposal(proposal.id,()=>replay(proposal.path,proposal.method,request,owner)));
         if(!response.ok)throw new RolledBack(response);
         return await response.json() as Record<string,unknown>;
       }));

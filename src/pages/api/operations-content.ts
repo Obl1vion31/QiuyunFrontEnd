@@ -1,3 +1,5 @@
+import {monthlyScheduleInput,claimMonthlySchedule} from '../../db/monthly-plans';
+import {workflowErrorResponse} from '../../db/workflow-api';
 import {saveOperationSetup} from '../../db/operation-setup';
 import {readPostSchemas} from '../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
@@ -54,12 +56,12 @@ export const POST: APIRoute = async ({ request, redirect, url, locals }) => {
         delayReason: null,
       }).returning({ id: operationsContentSchedule.id });
       await saveOperationSetup(transaction,schedule.id,result.data,locals.user!.username);
+      await claimMonthlySchedule(transaction,monthlyScheduleInput(form),schedule.id,locals.user!.username,true);
       return schedule;
     });
     return wantsJson ? Response.json({ ok: true, id: created.id, version: 0 }, { status: 201 }) : redirect('/business/operations-schedule?created=1', 303);
   } catch (error) {
     console.error('operations content insert failed', error);
-    const response = { message: '数据库暂时不可用，请检查连接配置后重试。' };
-    return wantsJson ? Response.json(response, { status: 503 }) : new Response(response.message, { status: 503 });
+    return workflowErrorResponse(error);
   }
 };

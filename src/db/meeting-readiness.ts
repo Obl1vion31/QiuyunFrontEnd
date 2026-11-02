@@ -8,5 +8,6 @@ export function meetingReadiness(material:WeeklyMaterial):MeetingGap[]{
   href:`/business/daily-promotion-review?focus=${encodeURIComponent(row.scheduleId)}&date=${row.missingDates[0]}#daily-table`}));
  const non=material.pending.map(row=>({key:row.key,name:row.contentName,version:row.versionNumber??0,kind:checkpointLabel(row.checkpointType)+'复盘',dates:[row.dueOn??row.recordedThrough??''],
   href:`/business/non-promotion-review?view=pending&row=${encodeURIComponent(row.key)}`}));
- return [...promotion,...non];
+ const monthly=(material.monthly?.operations.missingRows??[]).map(row=>({key:`monthly:${row.campaignId}`,name:row.contentName,version:0,kind:'月度日度数据',dates:row.dates,href:`/business/daily-promotion-review?view=history&campaign=${row.campaignId}&from=${material.periodStart}&to=${material.periodEnd}`}));
+ return [...promotion,...non,...monthly];
 }

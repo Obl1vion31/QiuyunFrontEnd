@@ -1,3 +1,5 @@
+import {preserveMonthlyMeetingIdentity} from '../../../db/monthly-meeting';
+import {checkMonthlyPlan,deleteUnpublishedMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from '../../../db/monthly-plans';
 import {meetingReadiness} from '../../../db/meeting-readiness';
 import {reviseMeetingVersion,persistMeetingIssues} from '../../../db/meeting-version-workflow';
 import {discussionSchema,mergeDiscussion} from '../../../db/meeting-discussion';
@@ -69,6 +71,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        baseline=structuredClone(source.snapshot);
        draft=mergeDiscussion(baseline,discussion!.data!,source.id);
       }
+      preserveMonthlyMeetingIdentity(meeting,draft);
       if(meeting.status==='completed'&&!discussionMode)throw new WorkflowError('请通过最新版本的编辑模式保存修订。',422);
       if([6,7].includes(draft.workflowVersion??0))draft.hasRevisionDraft=(payload.action==='save_version_draft')&&meeting.status==='completed';
       if([6,7].includes(meeting.draftSnapshot.workflowVersion??0)&&![6,7].includes(draft.workflowVersion??0))throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
@@ -86,7 +89,10 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if(v4){
        if(discussionMode){snapshot={...baseline,draft,discussionSourceVersionId:payload.sourceVersionId};}
        else {
+       if(draft.monthlyPlan){const plan=await checkMonthlyPlan(transaction,draft.monthlyPlan,false);if(plan.meetingId!==meeting.id)throw new WorkflowError('月计划与会议不匹配。',422);}
        const fresh=await readWeeklyMaterial(transaction,target);
+       if(draft.monthlySchemaVersion===1&&(range.periodStart!==meeting.periodStart||range.periodEnd!==meeting.periodEnd))throw new WorkflowError('月会保留完整自然月区间。',422);
+       if(finalizing&&fresh.monthly?.operations.missingRows.length)throw new WorkflowError('本月推广日度仍有缺项，请先去月度运营补齐。',422);
        if(finalizing&&meetingReadiness(fresh).length)throw new WorkflowError('本次例会仍有待补数据，请返回准备区完成登记。',422);
        const cached=meeting.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
        if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new WorkflowError('来源数据已变化，请刷新数据并核对后再定稿。');
@@ -99,7 +105,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(finalizing&&draft.nonPromotionInputs)draft.nonPromotionInputs=Object.fromEntries(Object.entries(draft.nonPromotionInputs).map(([key,input])=>{const {platformNoteId:_id,...rest}=input;return [key,rest]}));
        const common=await assembleMeetingSnapshot(transaction,target,{...draft,nonPromotionSelections:[],promotionSnapshotIds:[]});
        draft.materialSnapshot=material as unknown as Record<string,unknown>;
-       snapshot={schemaVersion:4,meeting:common.meeting,draft,generated:{...selectWeeklyMaterial(material,draft.promotionSelections??[],draft.nonPromotionSelections),summary:material.summary,attachments:common.generated.attachments}};
+       snapshot={schemaVersion:4,meeting:common.meeting,draft,generated:{...selectWeeklyMaterial(material,draft.promotionSelections??[],draft.nonPromotionSelections),summary:material.summary,...(draft.monthlyPlanReference?{monthlyPlanExecution:await readReferencedMonthlyPlan(transaction,draft.monthlyPlanReference)}:{}),...(material.monthly?{monthly:material.monthly}:{}),attachments:common.generated.attachments}};
        if(finalizing)(snapshot.generated as any)=freezeRateComparisons(snapshot.generated as any,draft);
        }
        if(stage){
@@ -143,6 +149,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       const versionNumber = meeting.status === 'completed' ? meeting.currentVersionNumber + 1 : 0;
       const finalValues={pdfStatus:stage==='post'?'pending':null,snapshot:snapshot as Record<string,unknown>,changeSummary:stage==='pre'?'会前定稿':'会后定稿',finalizedByLabel:locals.operationsUser||'unknown',lifecycleStatus:'finalized',updatedAt,finalizedAt:updatedAt};
       const [frozenVersion]=targetDraft?await transaction.update(operationsReviewMeetingVersion).set(finalValues).where(eq(operationsReviewMeetingVersion.id,targetDraft.id)).returning({id:operationsReviewMeetingVersion.id}):await transaction.insert(operationsReviewMeetingVersion).values({...finalValues,meetingId:meeting.id,versionNumber}).returning({id:operationsReviewMeetingVersion.id});
+      if(stage==='post'&&draft.monthlyPlanReference){(snapshot as any).generated.monthlyPlanExecution=await lockReferencedMonthlyPlan(transaction,draft.monthlyPlanReference,frozenVersion.id);await transaction.update(operationsReviewMeetingVersion).set({snapshot}).where(eq(operationsReviewMeetingVersion.id,frozenVersion.id));}
       const issueResult=stage==='pre'?{persisted:draft.issues,effects:[]}:await persistMeetingIssues(transaction,meeting.id,draft.issues,[],locals.operationsUser||'unknown');
       const persistedIssues=issueResult.persisted;
       await transaction.update(operationsReviewMeetingVersion).set({businessEffects:issueResult.effects}).where(eq(operationsReviewMeetingVersion.id,frozenVersion.id));
@@ -168,6 +175,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
       if(!m||m.status!=='draft')return null;
       const rows=await tx.select().from(operationsReviewMeetingVersion).where(eq(operationsReviewMeetingVersion.meetingId,m.id));
       if(rows.some(v=>v.lifecycleStatus!=='draft'))return null;
+      await deleteUnpublishedMonthlyPlan(tx,m.id);
       await tx.delete(operationsReviewMeetingVersion).where(eq(operationsReviewMeetingVersion.meetingId,m.id));
       return (await tx.delete(operationsReviewMeeting).where(eq(operationsReviewMeeting.id,m.id)).returning({id:operationsReviewMeeting.id}))[0];
     });

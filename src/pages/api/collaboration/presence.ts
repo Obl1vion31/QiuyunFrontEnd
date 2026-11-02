@@ -7,7 +7,7 @@ import {cleanExpiredCollaboration,canonicalResources} from '../../../db/collabor
 import {workflowErrorResponse} from '../../../db/workflow-api';
 import {WorkflowError} from '../../../db/schedule-workflow';
 export const prerender=false;
-const pages=['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','settings'] as const;
+const pages=['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','monthly-operations','settings'] as const;
 const input=z.object({tabId:z.uuid(),page:z.enum(pages),resource:z.string().max(240).nullable(),field:z.string().max(80).nullable(),label:z.string().max(120).nullable(),visible:z.boolean()}).strict();
 export const PUT:APIRoute=async({request,url,locals})=>{
  try{

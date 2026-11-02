@@ -1,4 +1,7 @@
 import {readWeeklyMaterial,selectWeeklyMaterial} from '../../db/meeting-weekly-material';
+import {requireNewMonthlyPeriod} from '../../db/monthly-meeting';
+import {createMonthlyPlan,deleteUnpublishedMonthlyPlan} from '../../db/monthly-plans';
+import {workflowErrorResponse} from '../../db/workflow-api';
 import {defaultMeetingName} from '../../db/meeting-card-rules';
 import {readOpenMeetingIssues} from '../../db/meeting-snapshots';
 import {businessDate} from '../../db/promotion-wait-ranges';
@@ -21,19 +24,21 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
   if(!businessDate.safeParse(result.data.periodStart).success||!businessDate.safeParse(result.data.periodEnd).success||result.data.periodEnd>=shanghaiDateKey(new Date()))return Response.json({message:'例会只汇总今天以前的数据。'},{status:422});
   const name = result.data.name || defaultMeetingName(result.data.periodStart,result.data.periodEnd,result.data.meetingType);
   try {
+    if(result.data.meetingType==='monthly')requireNewMonthlyPeriod(result.data.periodStart,result.data.periodEnd,result.data.meetingAt);
     const meeting = await getDb().transaction(async tx => { const carried=await readOpenMeetingIssues(tx);const [created] = await tx.insert(operationsReviewMeeting).values({
       ...result.data, name, meetingType: result.data.meetingType, draftSnapshot: { schemaVersion: 4, workflowVersion:6, finalizationStage:'pre', candidatesConfirmed:false, promotionSelections: [], coreConclusion: '', nextAction: '', situation: '', strategy: '', promotionInputs: {}, issues: carried, nonPromotionSelections: [], promotionSnapshotIds: [], attachmentIds: [], temporaryNotes: '', temporaryLinks: [] }, createdByLabel: locals.operationsUser || 'unknown',
     }).returning();
+      if(created.meetingType==='monthly')created.draftSnapshot={...created.draftSnapshot,monthlySchemaVersion:1,monthlyPlan:await createMonthlyPlan(tx,created.id,created.meetingAt.toLocaleDateString('en-CA',{timeZone:'Asia/Shanghai'}).slice(0,7))};
       const material = await readWeeklyMaterial(tx, created);
       const draft={ ...created.draftSnapshot, materialFingerprint:material.fingerprint,materialSnapshot:material as unknown as Record<string,unknown> };
       await tx.update(operationsReviewMeeting).set({draftSnapshot:draft}).where(eq(operationsReviewMeeting.id, created.id));
-      await tx.insert(versions).values({meetingId:created.id,versionNumber:0,lifecycleStatus:'draft',changeSummary:'会前 V0 草稿',snapshot:{schemaVersion:4,finalizationStage:'pre',meeting:{name,periodStart:created.periodStart,periodEnd:created.periodEnd},draft,generated:{...selectWeeklyMaterial(material,[],[]),summary:material.summary}}});
+      await tx.insert(versions).values({meetingId:created.id,versionNumber:0,lifecycleStatus:'draft',changeSummary:'会前 V0 草稿',snapshot:{schemaVersion:4,finalizationStage:'pre',meeting:{name,periodStart:created.periodStart,periodEnd:created.periodEnd},draft,generated:{...selectWeeklyMaterial(material,[],[]),summary:material.summary,...(material.monthly?{monthly:material.monthly}:{})}}});
       return created;
     });
     return Response.json({ ok: true, id: meeting.id }, { status: 201 });
   } catch (error) {
     console.error('meeting review create failed', error);
-    return Response.json({ message: '数据库暂时不可用，请稍后重试。' }, { status: 503 });
+    return workflowErrorResponse(error);
   }
 };
 
@@ -51,6 +56,7 @@ export const DELETE: APIRoute = async ({ request, url }) => {
       if (meetings.some((meeting) => meeting.status !== 'draft')) throw new Error('finalized-meeting');
       const existing=await transaction.select().from(versions).where(inArray(versions.meetingId,ids)).for('update');
       if(existing.some(v=>v.lifecycleStatus!=='draft'))throw new Error('finalized-meeting');
+      for(const id of ids)await deleteUnpublishedMonthlyPlan(transaction,id);
       await transaction.delete(versions).where(inArray(versions.meetingId,ids));
       return transaction.delete(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids)).returning({ id: operationsReviewMeeting.id });
     });

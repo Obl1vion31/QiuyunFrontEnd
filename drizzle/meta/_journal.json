@@ -316,6 +316,13 @@
       "when": 1793596274120,
       "tag": "0044_hard_molecule_man",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793603411384,
+      "tag": "0045_stiff_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 import type {WeeklyMeetingDraft} from './schema';
 import type {Discussion} from './meeting-discussion';
-export function discussionFromDraft(draft:WeeklyMeetingDraft):Discussion{return {nonPromotionNotes:draft.nonPromotionNotes??{},coreConclusion:draft.coreConclusion,nextAction:draft.nextAction,situation:draft.situation??'',strategy:draft.strategy??'',promotionInputs:Object.fromEntries(Object.entries(draft.promotionInputs).map(([key,input])=>[key,{currentSituation:input.currentSituation,activeAction:input.activeAction}])),promotionDecisions:(draft.promotionDecisions??{}) as Discussion['promotionDecisions'],issues:draft.issues};}
+export function discussionFromDraft(draft:WeeklyMeetingDraft):Discussion{return {...(draft.monthlyPlan?{monthlyPlan:draft.monthlyPlan}:{}),...(draft.monthlyRefreshFingerprint?{monthlyRefreshFingerprint:draft.monthlyRefreshFingerprint}:{}),...(draft.monthlyPlanReference?{monthlyPlanReference:draft.monthlyPlanReference}:{}),nonPromotionNotes:draft.nonPromotionNotes??{},coreConclusion:draft.coreConclusion,nextAction:draft.nextAction,situation:draft.situation??'',strategy:draft.strategy??'',promotionInputs:Object.fromEntries(Object.entries(draft.promotionInputs).map(([key,input])=>[key,{currentSituation:input.currentSituation,activeAction:input.activeAction}])),promotionDecisions:(draft.promotionDecisions??{}) as Discussion['promotionDecisions'],issues:draft.issues};}
 
 /** 比较业务内容，不把聚焦、对象键顺序、空占位或首尾空格当作新修订。 */
 export function meetingValueKey(value:unknown):string{

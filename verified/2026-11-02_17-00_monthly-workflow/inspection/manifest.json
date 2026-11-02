@@ -1,0 +1,41 @@
+{
+  "screenshots": 54,
+  "groups": [
+    "calendar-carry-cross-week",
+    "calendar-occupied-confirm",
+    "calendar-pool",
+    "calendar-review-status",
+    "calendar-save-failure",
+    "cost-mapping",
+    "employee-unsaved",
+    "monthly-final-plan",
+    "monthly-locked-addition",
+    "monthly-original-frozen",
+    "monthly-overview",
+    "monthly-plan-edit",
+    "plan-execution",
+    "plan-execution-review-status",
+    "private-editor",
+    "private-failure",
+    "private-summary",
+    "weekly-reference-right",
+    "weekly-reference-updated"
+  ],
+  "pdfPages": 6,
+  "videos": [
+    {
+      "kind": "desktop",
+      "source": ".tools/test-artifacts/monthly-workflow/video/desktop.webm",
+      "duration": 43.76,
+      "method": "all decoded frames",
+      "sheets": 37
+    },
+    {
+      "kind": "mobile",
+      "source": ".tools/test-artifacts/monthly-workflow/video/mobile.webm",
+      "duration": 2.92,
+      "method": "all decoded frames",
+      "sheets": 3
+    }
+  ]
+}

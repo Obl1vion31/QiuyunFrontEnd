@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-02T09:00:15.353Z",
+  "unchangedTables": 48,
+  "liveChanges": [],
+  "newEmptyTables": [
+    "operations_monthly_cost_mapping",
+    "operations_monthly_plan",
+    "operations_monthly_plan_assignment",
+    "operations_monthly_private"
+  ],
+  "originalFactsRewritten": false
+}

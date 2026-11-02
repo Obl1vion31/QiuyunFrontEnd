@@ -1,4 +1,6 @@
 /** 定稿修订只合并文字；回溯在原生效日前原子撤销，并保留失效版本。 */
+import {checkMonthlyPlan,publishMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from './monthly-plans';
+import {readMonthlyMeeting,preserveMonthlyMeetingIdentity} from './monthly-meeting';
 import {and,eq,desc} from 'drizzle-orm';
 import type {Database} from './client';
 import type {Transaction} from './schedule-workflow';
@@ -80,8 +82,10 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const baseline:any=clone(active?.snapshot??originalSnapshot);baseline.draft=meetingVersionDraft(baseline,meeting.draftSnapshot);
   baseline.draft.promotionDecisions=active?canonicalDecisions(baseline):original;
   const draft=mergeDiscussion(baseline,parsed.data,source.id);
+  preserveMonthlyMeetingIdentity(meeting,draft);
   if(expired&&!same(original,draft.promotionDecisions))throw new WorkflowError('已过可编辑时间，下一步安排不可修改。',422);
   const finalizing=payload.action==='finalize_version_draft';
+  if(draft.monthlyPlan){const plan=await checkMonthlyPlan(tx,draft.monthlyPlan,finalizing&&payload.stage==='post');if(plan.meetingId!==meeting.id)throw new WorkflowError('月计划与会议不匹配。',422);}
   const stage=finalizing?payload.stage:baseline.finalizationStage;
   if(!['pre','post'].includes(stage)||originalSnapshot.finalizationStage==='post'&&stage!=='post'&&active?.versionKind!=='rollback')throw new WorkflowError('请使用当前版本对应的定稿阶段。',422);
   const firstPost=stage==='post'&&(originalSnapshot.finalizationStage!=='post'||active?.versionKind==='rollback');
@@ -94,6 +98,9 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const snapshot:any={...baseline,draft:{...draft,workflowVersion:6,hasRevisionDraft:false,finalizationStage:stage},finalizationStage:stage,decisionEffectiveOn:effectiveOn};
   if(!finalizing)snapshot.revisionSourceIssues=clone(originalSnapshot.draft.issues);else delete snapshot.revisionSourceIssues;
   snapshot.generated=clone(baseline.generated);delete snapshot.decisionPolicy;
+  if(draft.monthlyRefreshFingerprint&&draft.monthlyRefreshFingerprint!==baseline.generated.monthly?.fingerprint){const monthly=await readMonthlyMeeting(tx,meeting);if(monthly.fingerprint!==draft.monthlyRefreshFingerprint)throw new WorkflowError('月度来源又有变化，请更新月度材料并核对。',409);snapshot.generated.monthly=monthly;}
+  if(finalizing&&snapshot.generated.monthly?.operations.missingRows.length)throw new WorkflowError('本月推广日度仍有缺项，请先补齐。',422);
+  if(draft.monthlyPlanReference&&!same(draft.monthlyPlanReference,originalSnapshot.draft.monthlyPlanReference))snapshot.generated.monthlyPlanExecution=await readReferencedMonthlyPlan(tx,draft.monthlyPlanReference,now);
   const arrangementChanged=!same(original,draft.promotionDecisions);
   if(finalizing&&stage==='post'&&(firstPost||arrangementChanged)){
    if(expired)throw new WorkflowError('已过可编辑时间。',422);
@@ -115,6 +122,11 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const lifecycleStatus=finalizing?'finalized':'draft';
   const values={snapshot,lifecycleStatus,businessEffects,updatedAt,pdfStatus:finalizing&&stage==='post'?'pending':null,changeSummary:`${stage==='pre'?'会前':'会后'} V${targetNumber}${finalizing?'定稿':'草稿'} · 修订自 V${source.versionNumber}`,finalizedByLabel:finalizing?actor:null,finalizedAt:finalizing?now:null};
   const [created]=active?await tx.update(versions).set(values).where(eq(versions.id,active.id)).returning():await tx.insert(versions).values({...values,meetingId,versionNumber:targetNumber,sourceVersionId:source.id,versionKind:'revision'}).returning();
+  if(finalizing&&stage==='post'){
+   if(draft.monthlyPlan){snapshot.draft.monthlyPlan=await publishMonthlyPlan(tx,draft.monthlyPlan,meeting.id,created.id,actor,now);}
+   if(draft.monthlyPlanReference&&(firstPost||!same(draft.monthlyPlanReference,originalSnapshot.draft.monthlyPlanReference)))snapshot.generated.monthlyPlanExecution=await lockReferencedMonthlyPlan(tx,draft.monthlyPlanReference,created.id,now);
+   await tx.update(versions).set({snapshot}).where(eq(versions.id,created.id));
+  }
   await tx.update(meetings).set({...(finalizing?{currentVersionNumber:targetNumber,finalizedAt:now}:{}),draftSnapshot:snapshot.draft,updatedAt,status:'completed'}).where(eq(meetings.id,meetingId));
   return {versionNumber:targetNumber,versionId:created.id,stage,lifecycleStatus,updatedAt:updatedAt.toISOString()};
  },{isolationLevel:'repeatable read'});

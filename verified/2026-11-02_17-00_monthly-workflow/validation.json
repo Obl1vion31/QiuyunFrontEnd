@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "rules": 249,
+  "dbCheck": true,
+  "nodeTypeCheckBuild": true,
+  "vercelTypeCheckBuild": true,
+  "monthlyWorkflow": true,
+  "realPostgresMigrationConcurrency": true,
+  "regressions": [
+    "public-ui",
+    "publication",
+    "moments",
+    "monthly-operations",
+    "monthly-delay",
+    "operation-types",
+    "schedule-workflow",
+    "latest-delay",
+    "meeting-discussion-and-pdf",
+    "first-paint-17-cases"
+  ],
+  "visualInspection": {
+    "stableScreenshots": 54,
+    "pdfPages": 6,
+    "desktopDecodedFrames": 1094,
+    "mobileDecodedFrames": 73,
+    "firstPaintVideos": 2,
+    "widths": [
+      1920,
+      1440,
+      1024,
+      390,
+      320
+    ]
+  }
+}

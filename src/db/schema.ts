@@ -17,6 +17,7 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+import type {PrivateData,DemandType,PlanContent,PlanBatch,PlanAssignmentHistory} from './monthly-plan-types';
 
 // 内部账号与业务事实分开保存，两个角色共享团队数据。
 export const authUser = pgTable('auth_user', {
@@ -710,6 +711,10 @@ export const operationsPromotionPauseTarget = pgTable('operations_promotion_paus
 ]);
 
 export interface WeeklyMeetingDraft {
+  monthlySchemaVersion?:1;
+  monthlyPlan?:import('./monthly-plans').MonthlyPlanDraft;
+  monthlyRefreshFingerprint?:string;
+  monthlyPlanReference?:{id:string;expectedRevision:number};
   discussionSourceVersionId?:string;
   workflowVersion?:5|6|7;
   hasRevisionDraft?:boolean;
@@ -984,3 +989,28 @@ export const operationsMeetingAttachment = pgTable('operations_meeting_attachmen
   createdByLabel: text('created_by_label').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [uniqueIndex('operations_meeting_generated_pdf_idx').on(table.meetingVersionId).where(sql`${table.source} = 'generated'`),check('operations_meeting_attachment_source_check',sql`${table.source} IN ('image','manual','generated') AND (${table.source} = 'image' OR (${table.mimeType} = 'application/pdf' AND ${table.meetingVersionId} IS NOT NULL))`),check('operations_meeting_attachment_size_check', sql`${table.byteLength} > 0 AND ${table.byteLength} <= 3145728`), check('operations_meeting_attachment_type_check', sql`${table.mimeType} IN ('image/png','image/jpeg','image/webp','application/pdf')`)]);
+
+export const operationsMonthlyPrivate = pgTable('operations_monthly_private', {
+  month:text('month').primaryKey(), data:jsonb('data').$type<PrivateData>().notNull(), revision:integer('revision').notNull().default(0),
+  history:jsonb('history').$type<Array<{at:string;actor:string;data:PrivateData}>>().notNull().default([]),
+  updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(), updatedBy:text('updated_by').notNull(),
+});
+export const operationsMonthlyCostMapping = pgTable('operations_monthly_cost_mapping', {
+  id:text('id').primaryKey(), entries:jsonb('entries').$type<Record<string,DemandType|null>>().notNull(), revision:integer('revision').notNull().default(0),
+  history:jsonb('history').$type<Array<{at:string;actor:string;entries:Record<string,DemandType|null>}>>().notNull().default([]),
+  updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(), updatedBy:text('updated_by').notNull(),
+});
+export const operationsMonthlyPlan = pgTable('operations_monthly_plan', {
+  id:uuid('id').defaultRandom().primaryKey(), month:text('month').notNull().unique(), meetingId:uuid('meeting_id').notNull().references(()=>operationsReviewMeeting.id,{onDelete:'restrict'}),
+  content:jsonb('content').$type<PlanContent>().notNull().default({groups:[],items:[]}), additions:jsonb('additions').$type<PlanBatch[]>().notNull().default([]),
+  revision:integer('revision').notNull().default(0), sourceVersionId:uuid('source_version_id').references(()=>operationsReviewMeetingVersion.id,{onDelete:'restrict'}),
+  firstFinalizedAt:timestamp('first_finalized_at',{withTimezone:true}), lockedAt:timestamp('locked_at',{withTimezone:true}),
+  lockedByVersionId:uuid('locked_by_version_id').references(()=>operationsReviewMeetingVersion.id,{onDelete:'restrict'}),
+  updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(),
+});
+export const operationsMonthlyPlanAssignment = pgTable('operations_monthly_plan_assignment', {
+  id:uuid('id').defaultRandom().primaryKey(), planId:uuid('plan_id').notNull().references(()=>operationsMonthlyPlan.id,{onDelete:'restrict'}), itemId:uuid('item_id').notNull(),
+  scheduleId:uuid('schedule_id').references(()=>operationsContentSchedule.id,{onDelete:'restrict'}), proposalId:uuid('proposal_id').references(()=>operationsChangeProposal.id,{onDelete:'restrict'}),
+  firstSubmittedAt:timestamp('first_submitted_at',{withTimezone:true}), history:jsonb('history').$type<PlanAssignmentHistory[]>().notNull().default([]),
+  updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(),
+},table=>[uniqueIndex('operations_monthly_plan_item_assignment_idx').on(table.planId,table.itemId),uniqueIndex('operations_monthly_plan_schedule_assignment_idx').on(table.planId,table.scheduleId)]);

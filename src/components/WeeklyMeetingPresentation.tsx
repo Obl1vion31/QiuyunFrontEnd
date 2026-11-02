@@ -1,7 +1,9 @@
+import MonthlyPlanReference from './MonthlyPlanReference';
+import MonthlyMeetingSections,{PlanExecutionSummary} from './MonthlyMeetingSections';
 import {checkpointLabel} from '../db/non-promotion-nodes';
 import {withFrozenRateComparisons} from '../db/meeting-rate-comparison';
 import {DiscussionText} from './MeetingDiscussionText';
-import {useRef,type ReactNode} from 'react';
+import {useRef,useState,useEffect,type ReactNode} from 'react';
 import {PromotionCards,NonPromotionCards} from './WeeklyReviewCards';
 import type {WeeklyPostReference} from '../db/meeting-note-ids';
 import type {WeeklyMeetingDraft} from '../db/schema';
@@ -9,6 +11,10 @@ export default function WeeklyMeetingPresentation({snapshot,postReferences={},di
  snapshot=withFrozenRateComparisons(snapshot);
  if(effectiveOn)snapshot={...snapshot,decisionEffectiveOn:effectiveOn};
  const {generated={},draft={},meeting={}}=snapshot,summary=generated.summary??{},stage=snapshot.finalizationStage;
+ const [monthlyPreview,setMonthlyPreview]=useState(generated.monthly);
+ const [monthlyError,setMonthlyError]=useState(''),[monthlyBusy,setMonthlyBusy]=useState(false);
+ useEffect(()=>setMonthlyPreview(generated.monthly),[generated.monthly?.fingerprint]);
+ async function loadLegacyMonthly(){setMonthlyBusy(true);setMonthlyError('');try{const response=await fetch(`/api/meeting-reviews/${meeting.id}/monthly-material`),result=await response.json();if(!response.ok)throw new Error(result.message);setMonthlyPreview(result.monthly);onChange?.({...draft,monthlyRefreshFingerprint:result.monthly.fingerprint});}catch(e){setMonthlyError((e as Error).message);}finally{setMonthlyBusy(false);}}
  const keys=useRef<string[]>((draft.issues??[]).map((i:any,index:number)=>i.id??`initial-${index}`));
  const issueTable=useRef<HTMLTableElement>(null);
  const update=(key:string,value:any)=>onChange?.({...draft,[key]:value});
@@ -21,10 +27,13 @@ export default function WeeklyMeetingPresentation({snapshot,postReferences={},di
  return <article className={`weekly-frozen${editable?' weekly-discussion business-form':''}`} data-meeting-snapshot data-weekly-snapshot>
   <section className="weekly-paper weekly-results" data-print-long={(draft.coreConclusion?.length??0)+(draft.nextAction?.length??0)>800?'true':undefined} aria-label="本期结果">
    <header><div><h2>本期结果</h2><p>本期可复盘投放</p></div><span className={`weekly-final-stage ${stage==='post'?'post':''}`}>{stage==='pre'?'会前':stage==='post'?'会后':'历史'}{versionDraft?' · 草稿':'定稿'}</span></header>
-   <div className="weekly-summary"><div><span>实际跑量帖子</span><strong>{summary.posts??'—'}<small>篇</small></strong></div><div><span>本期总消耗</span><strong>{money(summary.spend)}</strong></div><div><span>实际开口成本</span><strong>{money(summary.actualOpenCost)}</strong></div><div><span>实际留资成本</span><strong>{money(summary.actualLeadCost)}</strong></div></div>
+   <div className="weekly-summary"><div><span>{generated.monthly?'可复盘阶段帖子':'实际跑量帖子'}</span><strong>{summary.posts??'—'}<small>篇</small></strong></div><div><span>{generated.monthly?'阶段卡消耗':'本期总消耗'}</span><strong>{money(summary.spend)}</strong></div><div><span>{generated.monthly?'阶段实际开口成本':'实际开口成本'}</span><strong>{money(summary.actualOpenCost)}</strong></div><div><span>{generated.monthly?'阶段实际留资成本':'实际留资成本'}</span><strong>{money(summary.actualLeadCost)}</strong></div></div>
    <p className="weekly-rate-legend">同类差值（pp）：<span className="positive">＋ 高于同类</span> · <span className="negative">− 低于同类</span></p>
    <div className="weekly-takeaways"><div className="weekly-core-conclusion"><h3>核心结论</h3>{writing('coreConclusion','核心结论')}</div><div className="weekly-next-action"><h3>下一步行动</h3>{writing('nextAction','下一步行动')}{stage==='pre'?<small>拟议安排 · 尚未生效</small>:stage==='post'&&snapshot.decisionEffectiveOn&&<small>已定安排 · 从 {snapshot.decisionEffectiveOn} 起</small>}</div></div>
   </section>
+  {!monthlyPreview&&meeting.meetingType==='monthly'&&editable&&<section className="monthly-section"><button type="button" disabled={monthlyBusy} onClick={()=>void loadLegacyMonthly()}>{monthlyBusy?'正在读取…':'更新月度材料'}</button>{monthlyError&&<p role="alert">{monthlyError}</p>}</section>}
+  {monthlyPreview&&<MonthlyMeetingSections monthly={monthlyPreview} onMaterialChange={setMonthlyPreview} draft={draft} editable={!!editable} onChange={onChange} allowRefresh={!!discussion&&!fullEditing} meetingId={meeting.id}/>}
+  {editable&&stage==='pre'&&draft.monthlyPlanReference?<MonthlyPlanReference key={draft.monthlyPlanReference.id} reference={draft.monthlyPlanReference} frozen={generated.monthlyPlanExecution} onChange={reference=>update('monthlyPlanReference',reference)}/>:generated.monthlyPlanExecution&&<PlanExecutionSummary plan={generated.monthlyPlanExecution}/>}
   {promotionSection??<section className="weekly-frozen-cards" aria-label="推广帖阶段复盘"><header className="weekly-section-heading"><h2>推广帖阶段复盘</h2><span>{generated.promotions?.length??0} 个阶段</span></header>
    <PromotionCards rows={generated.promotions??[]} inputs={draft.promotionInputs??{}} decisions={decisions} effectiveOn={snapshot.decisionEffectiveOn} decisionStage={stage} postReferences={postReferences} readonly arrangementsLocked={arrangementsLocked} discussion={discussion} onInput={(key,field,value)=>update('promotionInputs',{...draft.promotionInputs,[key]:{...draft.promotionInputs[key],[field]:value}})} onDecision={(key,value)=>update('promotionDecisions',{...draft.promotionDecisions,[key]:value})}/>
    {!generated.promotions?.length&&<p className="weekly-empty">本次未选推广阶段</p>}
@@ -34,6 +43,7 @@ export default function WeeklyMeetingPresentation({snapshot,postReferences={},di
    {generated.excludedNonPromotions?.length>0&&<details className="weekly-source"><summary>本期不复盘 ({generated.excludedNonPromotions.length} 项)</summary>{generated.excludedNonPromotions.map((n:any)=><p key={n.key}>{n.contentName} · {checkpointLabel(n.checkpointType)} · {n.reason}</p>)}</details>}
    {!generated.nonPromotions?.length&&<p className="weekly-empty">本次未选非推广节点</p>}
   </section>}
+  {monthlyPreview&&<MonthlyMeetingSections part="planning" monthly={snapshot.monthlyPlanLiveState?{...monthlyPreview,plan:{...monthlyPreview.plan,...snapshot.monthlyPlanLiveState}}:monthlyPreview} draft={draft} editable={!!editable} onChange={onChange}/>}
   <section className="weekly-paper weekly-support" aria-label="补充分析与事项"><header><h2>补充分析与事项</h2></header><div className="weekly-writing-grid">{[['衡量情况','situation'],['本期具体动作','strategy']].map(([title,key])=><div key={key}><h3>{title}</h3>{writing(key,title)}</div>)}</div>
    <h3>事项跟进</h3><div className="weekly-table-wrap"><table ref={issueTable} className={`weekly-table weekly-discussion-issues${editable?' weekly-issues-editing':''}`}><thead><tr><th>问题</th><th>解决方案</th><th>进度</th><th>是否已解决</th>{editable&&<th><span className="weekly-visually-hidden">操作</span></th>}</tr></thead><tbody>{draft.issues?.map((item:any,index:number)=><tr key={keys.current[index]??item.id??index} data-meeting-issue={index}><td>{editable?<textarea aria-label={fullEditing?'问题':`事项${index+1}问题`} value={item.problem} rows={2} onChange={e=>issue(index,'problem',e.target.value)}/>:<p>{item.problem}</p>}</td><td>{editable?<textarea aria-label={fullEditing?'解决方案':`事项${index+1}解决方案`} value={item.conclusion} rows={2} onChange={e=>issue(index,'conclusion',e.target.value)}/>:<p>{item.conclusion}</p>}</td><td>{editable?<select aria-label={`事项${index+1}进度`} value={item.status} onChange={e=>issue(index,'status',e.target.value)}>{Object.entries({pending:'待解决',validating:'进行中',resolved:'已解决',paused:'暂缓'}).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select>:({pending:'待解决',validating:'进行中',resolved:'已解决',paused:'暂缓'} as Record<string,string>)[item.status]}</td><td>{editable?<div className="weekly-issue-check"><input type="checkbox" aria-label={`事项${index+1}已解决`} checked={item.status==='resolved'} onChange={e=>issue(index,'status',e.target.checked?'resolved':'pending')}/></div>:item.status==='resolved'?'是':'否'}</td>{editable&&<td>{!item.id&&<button type="button" className="weekly-issue-remove" aria-label={`删除事项${index+1}`} onClick={()=>removeIssue(index)}>×</button>}</td>}</tr>)}{!draft.issues?.length&&<tr><td colSpan={editable?5:4}>本期无跟进事项</td></tr>}</tbody></table></div>
    {editable&&<button type="button" data-weekly-add-issue className="business-action-secondary" onClick={()=>{keys.current.push(crypto.randomUUID());update('issues',[...draft.issues,{problem:'',conclusion:'',status:'pending'}]);}}>{fullEditing?'新增事项':'＋ 新增事项'}</button>}

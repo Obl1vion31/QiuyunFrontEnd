@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "readOnly": true,
+  "checkedAt": "2026-11-02T08:58:00.806Z",
+  "pending": [
+    "0045_stiff_cassandra_nova"
+  ],
+  "legacyHashDifferences": [
+    "0009_the_plan"
+  ],
+  "existingTables": 52
+}

@@ -46,9 +46,9 @@ try{
    await shot(page,`${user.role}-all-${width}`);
    await scope.selectOption('operational');assert.equal(await card.locator('[data-value=delay-rate]').innerText(),'8.0%');assert.equal(await card.locator('em').innerText(),'运营延期/已发 2/25');assert.deepEqual(await card.boundingBox(),before);assert.equal(await page.evaluate(()=>scrollY),scroll);assert(await root!.evaluate((n:HTMLElement)=>n.isConnected));
    await shot(page,`${user.role}-operational-card-${width}`,card);
-   await page.getByRole('button',{name:/查看运营延期已发布明细/}).click();assert.equal(await page.getByLabel('发布明细范围').inputValue(),'operationalDelayed');assert.equal(await page.locator('tbody tr').count(),2);assert(!((await page.locator('tbody').innerText()).includes('尚未登记')));
+   await page.getByRole('button',{name:/查看运营延期已发布明细/}).click();assert.equal(await page.getByLabel('发布明细范围').inputValue(),'operationalDelayed');assert.equal(await page.getByRole('region',{name:'可追溯明细',exact:true}).locator('tbody tr').count(),2);assert(!((await page.getByRole('region',{name:'可追溯明细',exact:true}).locator('tbody').innerText()).includes('尚未登记')));
    if((user.role==='admin'&&width===1440)||(user.role==='employee'&&width===390))await shot(page,`${user.role}-operational-details-${width}`);
-   await scope.scrollIntoViewIfNeeded();await scope.selectOption('all');await page.getByRole('button',{name:/查看全部延期已发布明细/}).click();assert.equal(await page.locator('tbody tr').count(),7);
+   await scope.scrollIntoViewIfNeeded();await scope.selectOption('all');await page.getByRole('button',{name:/查看全部延期已发布明细/}).click();assert.equal(await page.getByRole('region',{name:'可追溯明细',exact:true}).locator('tbody tr').count(),7);
    const chart=page.locator('[data-monthly-chart=publication]');await chart.scrollIntoViewIfNeeded();
    assert.equal(await chart.locator('[data-publication-legend]').count(),4);
    assert.match(await chart.getByRole('img').getAttribute('aria-label'),/运营延期发布2篇，非运营延期发布5篇/);
@@ -56,7 +56,7 @@ try{
    const legend=chart.locator('[data-publication-legend=delayed]');assert.equal(await legend.locator('b').innerText(),'2/5');
    const readable=await legend.evaluate((n:HTMLElement)=>{const rect=n.getBoundingClientRect();return [...n.querySelectorAll('span,b')].every(part=>{const r=part.getBoundingClientRect();return r.left>=rect.left-1&&r.right<=rect.right+1;});});assert(readable,'延期图例文字与数量不溢出');
    if(user.role==='admin'||width===390)await shot(page,`${user.role}-distribution-${width}`,chart);
-   await legend.click();assert.equal(await page.getByLabel('发布明细范围').inputValue(),'delayed');assert.equal(await page.locator('tbody tr').count(),7);
+   await legend.click();assert.equal(await page.getByLabel('发布明细范围').inputValue(),'delayed');assert.equal(await page.getByRole('region',{name:'可追溯明细',exact:true}).locator('tbody tr').count(),7);
    checks.push({role:user.role,width,rate:'7/25 -> 2/25',cardStable:true,headingGap,details:[7,2],segments:[18,2,5,2,0],legend:4});
   }
   await page.setViewportSize({width:1440,height:1000});await page.goto(url);await ready(page);

@@ -1,4 +1,6 @@
 import {rateComparison,type RateSample,type RateComparison} from './meeting-rate-comparison';
+import {readMonthlyMeeting,type MonthlyMeetingMaterial} from './monthly-meeting';
+import {readMonthlyPlan,type MonthlyPlanView} from './monthly-plans';
 import {requiredPromotionStage} from './promotion-review-required';
 import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 /** 周例会 v4：实际日期候选、可核对的比较样本与不可变来源。 */
@@ -128,6 +130,8 @@ export interface WeeklyNonPromotionCard {
     }>;
 }
 export interface WeeklyMaterial {
+    monthly?:MonthlyMeetingMaterial;
+    monthlyPlans?:MonthlyPlanView[];
     schemaVersion: 4;
     periodStart: string;
     periodEnd: string;
@@ -330,7 +334,10 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
         delete (p as any)._eligible;
     const includedFacts=new Set(promotions.flatMap(p=>p.facts.map(f=>f.id)));
     const periodFacts = facts.filter(f => includedFacts.has(f.id)&&between(f.metricDate, start, end)), summary = { ...totals(periodFacts), posts: new Set(periodFacts.map(f => context.campaigns.find(c => c.id === f.campaignId)?.scheduleId ?? f.campaignId)).size, testingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'testing').map(f => f.campaignId)).size, scalingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'scaling').map(f => f.campaignId)).size };
-    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions };
+    const monthly=meeting.meetingType==='monthly'&&meeting.draftSnapshot.monthlySchemaVersion===1?await readMonthlyMeeting(db,meeting):undefined;
+    const months=[...new Set([start.slice(0,7),end.slice(0,7)])];
+    const monthlyPlans=meeting.meetingType==='weekly'?(await Promise.all(months.map(month=>readMonthlyPlan(db,month,now)))).filter((p):p is MonthlyPlanView=>!!p?.firstFinalizedAt):undefined;
+    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions,...(monthly?{monthly}:{}),...(monthlyPlans?.length?{monthlyPlans}:{}) };
     return { ...base, fingerprint: sourceHash(base) };
 }
 export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: string[], nonSelections: Array<{

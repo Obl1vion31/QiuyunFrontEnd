@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "readOnly": true,
+  "checkedAt": "2026-11-02T09:00:51.154Z",
+  "checks": [
+    {
+      "month": "2026-10",
+      "privateDataUnrecorded": true,
+      "noHistoricalPlansCreated": true
+    },
+    {
+      "month": "2026-11",
+      "privateDataUnrecorded": true,
+      "noHistoricalPlansCreated": true
+    },
+    {
+      "monthlyMaterialReadable": true,
+      "privateStatus": "missing",
+      "issues": 1
+    },
+    {
+      "mode": "standard",
+      "view": "pending",
+      "readable": true
+    },
+    {
+      "mode": "standard",
+      "view": "history",
+      "readable": true
+    },
+    {
+      "mode": "standard",
+      "view": "skipped",
+      "readable": true
+    },
+    {
+      "mode": "instant",
+      "view": "pending",
+      "readable": true
+    },
+    {
+      "mode": "instant",
+      "view": "history",
+      "readable": true
+    },
+    {
+      "mode": "instant",
+      "view": "skipped",
+      "readable": true
+    },
+    {
+      "mode": "continuous",
+      "view": "pending",
+      "readable": true
+    },
+    {
+      "mode": "continuous",
+      "view": "history",
+      "readable": true
+    },
+    {
+      "mode": "continuous",
+      "view": "skipped",
+      "readable": true
+    }
+  ]
+}

@@ -210,13 +210,13 @@ flowchart LR
 
 统计摘要接入：排期使用单行居中内容组；例会`.weekly-results`建立行内尺寸容器，宽度不足760px时将四项指标按两列组织，保留原字体与打印布局。协作写入从单轮扩为整篇时须取得覆盖整篇的租约，重叠的子级租约只表达冲突关系，不能充当上级写入权限。
 
-### 月度运营只读接入
+### 月度运营与月会接入
 
 `src/db/monthly-operations.ts` 同时服务 `/business/monthly-operations` 的SSR和 `GET /api/monthly-operations?month=YYYY-MM&subject=…&category=…`，共用查询边界校验、延期规则、推广回放／轮次及 `promotionTotals`。页面由 `BusinessMonthlyOperations` 保持筛选、图表和明细节点，异步刷新调用公共 `readBusiness`。费用按日度事实日期，不复用例会候选汇总；归因按当前修订，不以操作人推断负责人。原记录链接使用排期 `row` 选择参数。
 
 延期归因在读模型集中生成：`scheduleRows[].delayAttribution` 为`operational`／`nonOperational`／`unknown`，非延期记录为null；`publication`补充`operationalDelayed`、`nonOperationalDelayed`、`unattributedDelayed`与`operationalDelayRate`。这些计数仅含当前应发月的已发布延期任务，原`operational`关注项保留含未登记任务的语义。全部／运营延期率均除以`registered`。卡片、分布和`operationalDelayed`明细使用同源字段；卡片选择为组件本地`delayScope`，只改卡片，不触发请求、明细切换或图表重播，业务筛选与刷新不重置。
 
-桌面激活侧栏月度入口，手机放在现有账号菜单；只读查看不建立编辑租约。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
+桌面激活侧栏月度入口，手机放在现有账号菜单；查看不建立编辑租约，私域写入使用角色与预期版本检查。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
 
 侧栏新增同组模块应加入 `BusinessConsoleSidebar` 的 `groups.modules`，复用同一渲染和4px组内间距，不能在分组外追加独立链接。月度运营属于“复盘与沉淀”，手机继续在账号菜单进入；移动底栏的既有项目数保持。
 
@@ -227,3 +227,13 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 运营类型贯穿接入：`operation-types`维护四种类型与标签；`operation-setup`保存原帖策略和未发布的日期草案；`non-promotion-plan`从统一推广回放推导持续资格。新建、编辑、发布、节点和指标接口共用这些入口，不在按钮事件里自动改用途。`BusinessOperationFields`接入新建／编辑，`BusinessReviewDateAdd`供排期详情及非推广待安排气泡复用。节点写入先取得推广工作流锁，再锁排期／原帖并复核资格。首次实发才将即时草案变为真实节点；已有改帖沿用原锚点。
 
 非推广结果接入：`NonPromotionReviewRow`在分类明细、平铺和按帖视图复用真实行与Inspector键；`NonPromotionCategoryMetric`接收读模型的阅读量均值及各指标有效样本，客户端不另算入样条件。`mode`控制方式，`group`控制常规历史展示；服务端返回`sampleRows/categoryGroups`，分类共享标准样本与平铺方式过滤分别执行，切换只移动原节点。`NonPromotionReadingTrend`与保存刷新共用纯函数`non-promotion-trend`，按真实截至日定位并在缺失处断线；`business-data-motion`仅在首次可见时绘制细轨／趋势。
+
+
+月度贯通的共享入口：
+
+- `monthly-workspace`组合原`monthly-operations`、`monthly-private`及`monthly-plans`，SSR和GET共用。私域成本始终读取完整月份，不被帖子分类筛选误用作全站分子；`MonthlyPrivatePanel`通过静态公共`BusinessFormSheet`渲染录入，浏览器控制器在操作时动态加载，避免SSR执行window代码。
+- `monthly-meeting`生成月度材料及事项回放；`readWeeklyMaterial`仅对显式新版月会加入材料，普通周会返回可引用计划列表。`MonthlyMeetingSections`负责新增板块，`MonthlyPlanEditor`共享只读／编辑结构；`WeeklyMeetingPresentation`和PDF复用同一套组件。最新可编辑会议的锁定标记由SSR读取当前状态，历史量值仍来自冻结快照。
+- `monthly-plans`集中数量、Week、归属、锁定及占位；`monthly-plan-types`仅含浏览器安全的类型与日期规则。`MonthlyCalendarPlan`供月历呈现来源池，`MonthlyScheduleFields`接入原新做帖／编辑表单，`monthly-calendar`处理明确名额选择、跨Week原因及同日确认。接口用`monthlyPlanId/monthlyPlanItemId/monthlyRequestId/monthlyExpectedRevision/monthlyPlanReason`，不能按名称匹配。
+- 员工预览调用原写入并回滚；`business-approvals`在真实申请落库后保留申请ID及首次受理时间，批准重放通过异步上下文识别该申请。名额占用与业务保存使用同一事务及原工作流锁。修改计划来源纳入`schedule.edit`权限，原排期改期继续使用原权限。
+- `GET /api/monthly-plans?month=…`读取执行；`?schedule=…`读取关联来源；`PATCH /api/monthly-private-data`维护人数；`GET/PATCH /api/monthly-cost-mapping`维护用途。`GET /api/meeting-reviews/:id/monthly-material`仅预览最新来源，携带指纹显式保存为新版本，不刷新原阶段卡。
+- `MonthlyPlanReference`在周会会前预览当前执行；计划版本变化时须明确确认引用，只有会后定稿才锁定原计划并冻结对照。`MonthlyPlanEditor`编辑时可读取已生效的追加，退出编辑仍回到该会议版本快照。PDF沿用同一信息组件，展开月度分类明细，并按完整人数／Week组控制分页。

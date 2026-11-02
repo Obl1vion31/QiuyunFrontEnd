@@ -8,7 +8,7 @@ import {readMeetingDecisions} from './meeting-decisions';
 import { operationsPromotionPause as pauses, operationsPromotionPauseTarget as targets,
   operationsPromotionHold as holds, operationsPromotionCampaign as campaigns, operationsPromotionWaitRange as waitRanges, operationsPromotionDailyMetric as metrics, operationsPromotionDayDecision as decisions } from './schema';
 
-export const lockPromotionWorkflow = (transaction: Transaction) => transaction.execute(sql`select pg_advisory_xact_lock(739214502)`);
+export const lockPromotionWorkflow = (transaction: Pick<Database,'execute'>) => transaction.execute(sql`select pg_advisory_xact_lock(739214502)`);
 
 export async function readPromotionContext(database: Database | Transaction) {
   const [pauseRows, targetRows, holdRows, rangeRows, campaignRows, metricRows, stateChanges] = await Promise.all([

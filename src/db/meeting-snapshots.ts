@@ -8,12 +8,14 @@ import { addDays, shanghaiKey, sumPromotionMetrics } from './meeting-review-rule
 import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics, operationsNonPromotionReview as nonPromotions, operationsPromotionStageReviewVersion as stageVersions, operationsReviewActionItem as issues, operationsMeetingAttachment as attachments, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, type WeeklyMeetingDraft } from './schema';
 import type { StageSnapshot } from './promotion-stage-reviews';
 import {operationsReviewActionProgress as progress} from './schema';
+import {monthlyPlanDraftSchema} from './monthly-plans';
 export async function readOpenMeetingIssues(db:Database){
   const [items,updates]=await Promise.all([db.select().from(issues).where(ne(issues.status,'resolved')),db.select().from(progress).orderBy(desc(progress.createdAt))]);
   return items.map(item=>({id:item.id,problem:item.problem,conclusion:updates.find(p=>p.itemId===item.id)?.conclusion??'',status:item.status as 'pending'|'validating'|'paused'}));
 }
 const text = z.string().max(10000).default('');
 export const meetingDraftSchema = z.object({
+  monthlySchemaVersion:z.literal(1).optional(),monthlyPlan:monthlyPlanDraftSchema.optional(),monthlyRefreshFingerprint:z.string().max(64).optional(),monthlyPlanReference:z.object({id:z.uuid(),expectedRevision:z.number().int().nonnegative()}).optional(),
   discussionSourceVersionId:z.uuid().optional(),
   workflowVersion:z.union([z.literal(5),z.literal(6),z.literal(7)]).optional(),candidatesConfirmed:z.boolean().default(false),
   nonPromotionNotes:z.record(z.string(),text).optional(),
@@ -77,5 +79,5 @@ export async function assembleMeetingSnapshot(db: Database, meeting: typeof meet
     const known = await db.select({ id: issues.id }).from(issues).where(inArray(issues.id, draft.issues.flatMap(i => i.id ? [i.id] : [])));
     if (known.length !== draft.issues.filter(i => i.id).length) throw new WorkflowError('历史事项已更新，请刷新后重试。');
   }
-  return { schemaVersion: 3, meeting: { id: meeting.id, name: meeting.name, periodStart: meeting.periodStart, periodEnd: meeting.periodEnd, meetingAt: meeting.meetingAt.toISOString() }, generated: { activity: material.activity, promotionSnapshots, nonPromotions: selectedNonPromotions, attachments: media }, draft };
+  return { schemaVersion: 3, meeting: { id: meeting.id, name: meeting.name, meetingType:meeting.meetingType, periodStart: meeting.periodStart, periodEnd: meeting.periodEnd, meetingAt: meeting.meetingAt.toISOString() }, generated: { activity: material.activity, promotionSnapshots, nonPromotions: selectedNonPromotions, attachments: media }, draft };
 }

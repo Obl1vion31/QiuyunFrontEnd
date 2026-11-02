@@ -2,8 +2,9 @@
 import {z} from 'zod';
 import type {WeeklyMeetingDraft} from './schema';
 import {WorkflowError} from './schedule-workflow';
+import {monthlyPlanDraftSchema} from './monthly-plans';
 const text=z.string().max(10000);
-export const discussionSchema=z.object({coreConclusion:text,nextAction:text,situation:text,strategy:text,nonPromotionNotes:z.record(z.string(),text).optional(),promotionInputs:z.record(z.string(),z.object({currentSituation:text,activeAction:text}).strict()),promotionDecisions:z.record(z.string(),z.enum(['restart_testing','testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended'])),issues:z.array(z.object({id:z.uuid().optional(),problem:z.string().max(2000),conclusion:text,status:z.enum(['pending','validating','resolved','paused'])}).strict()).max(100)}).strict();
+export const discussionSchema=z.object({monthlyPlan:monthlyPlanDraftSchema.optional(),monthlyRefreshFingerprint:z.string().max(64).optional(),monthlyPlanReference:z.object({id:z.uuid(),expectedRevision:z.number().int().nonnegative()}).optional(),coreConclusion:text,nextAction:text,situation:text,strategy:text,nonPromotionNotes:z.record(z.string(),text).optional(),promotionInputs:z.record(z.string(),z.object({currentSituation:text,activeAction:text}).strict()),promotionDecisions:z.record(z.string(),z.enum(['restart_testing','testing','test_paused','test_pending','scaling','scaling_paused','test_discarded','formal_discarded','ended'])),issues:z.array(z.object({id:z.uuid().optional(),problem:z.string().max(2000),conclusion:text,status:z.enum(['pending','validating','resolved','paused'])}).strict()).max(100)}).strict();
 export type Discussion=z.infer<typeof discussionSchema>;
 export function mergeDiscussion(snapshot:any,input:Discussion,sourceVersionId:string):WeeklyMeetingDraft{
  const draft:WeeklyMeetingDraft=structuredClone(snapshot.draft),cards=snapshot.generated?.promotions??[];

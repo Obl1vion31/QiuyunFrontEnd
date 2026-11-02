@@ -1,3 +1,5 @@
+import {readNonPromotionFingerprint} from '../src/db/non-promotion-record';
+import {businessFetch as fetch} from './business-request.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 隔离 HTTP 与浏览器验收；只连接 auth.fixture 的内存 PostgreSQL。 */
 import assert from 'node:assert/strict';
@@ -17,6 +19,7 @@ async function login(account: typeof admin | typeof employee) {
 }
 async function request(path:string,method:string,cookie:string,fields?:Record<string,string>,expected=200) {
   if(path.endsWith('/publication')&&fields){const meta=await (await fetch(baseURL+path.replace('/publication','/workflow'),{headers:{Cookie:cookie}})).json();fields={expectedPlanRevision:String(meta.schedule.planRevision),expectedPublicationRevision:String(meta.schedule.publicationRevision),publicationUrl:'https://www.xiaohongshu.com/explore/'+'a'.repeat(24),...fields};}
+  if(path==='/api/non-promotion-reviews'&&fields)fields={exposureCount:'100',readCount:fields.clickRate,fingerprint:await readNonPromotionFingerprint(db,fields.scheduleId,fields.checkpointType),...fields};
   const response=await fetch(baseURL+path,{method,headers:{Origin:baseURL,Cookie:cookie,Accept:'application/json'},body:fields?form(fields):undefined});
   const body=await response.json();assert.equal(response.status,expected,`${path}: ${JSON.stringify(body)}`);return body;
 }
@@ -44,7 +47,8 @@ try {
   await request(`/api/operations-content/${approval.id}/change-requests`,'POST',employeeCookie,{expectedPlanRevision:'0',plannedPublishAt:inputTime(hours(72)),reason:'重复申请'},409);
   await request(`/api/business-change-proposals/${application.requestId}`,'PATCH',employeeCookie,{action:'approve'},403);
   const decisions=await Promise.all([0,1].map(()=>fetch(`${baseURL}/api/business-change-proposals/${application.requestId}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:adminCookie,'Content-Type':'application/json'},body:JSON.stringify({action:'approve'})})));
-  assert.deepEqual(decisions.map(response=>response.status).sort(),[200,200]);
+  // 独立会话各自取租约，重复审批被编辑互斥挡下；真实排期只生效一次。
+  assert.deepEqual(decisions.map(response=>response.status).sort(),[200,409]);
   const approved=await request(`/api/operations-content/${approval.id}/workflow`,'GET',employeeCookie);assert.equal(approved.overdueDays,0);assert.equal(approved.history.length,1);assert.equal(approved.days.length,0);
   const temporary=await create({subjectId:'temporary',categoryId:'temporary',contentName:'临时学科临时帖',plannedPublishAt:inputTime(hours(24))});
   assert.ok(temporary.id);
@@ -114,7 +118,7 @@ try {
   await page.locator('[data-module-href="/business/non-promotion-review"]').click();await page.waitForURL('**/non-promotion-review*');
   await page.locator('[name=subject]').selectOption('step');await page.waitForURL((url:URL)=>url.searchParams.get('subject')==='step');assert.equal(await page.locator('[name=category]').inputValue(),'');
   await page.goto(`${baseURL}/business/non-promotion-review?view=pending&subject=tmua&category=innovation&row=${skipped.id}:day_15`);
-  await page.locator('[data-inspector]').waitFor();assert.match(await page.locator('[data-inspector]>header').innerText(),/二轮/);
+  await page.locator('[data-inspector]').waitFor();assert.match(await page.locator('[data-inspector]>header').innerText(),/15 天/);
   await page.locator('.checkpoint-action summary').click();await page.locator('[data-checkpoint-form] textarea').fill('二轮数据也无法获取');await page.locator('[data-checkpoint-form] button').click();await page.waitForURL('**view=skipped**');
   await page.goto(`${baseURL}/business/non-promotion-review?view=skipped&subject=tmua&category=innovation&row=${skipped.id}:day_7`);
   await page.locator('[data-checkpoint-form] textarea').fill('平台数据恢复');await page.locator('[data-checkpoint-form] button').click();await page.waitForURL('**view=pending**');
@@ -128,7 +132,7 @@ try {
   for(const index of [0,1]){const day=page.locator('[data-delay-day]').nth(index);await day.locator(`input[type=radio][value=${index?'external':'self'}]`).check();await day.locator('textarea').fill(`浏览器第${index+1}天原因`);}
   await page.screenshot({path:'.tools/test-artifacts/publication-workflow-desktop.png',fullPage:true});
   const publicationResponse=page.waitForResponse((response:any)=>response.url().endsWith(`/api/operations-content/${browserPublication.id}/publication`)&&response.request().method()==='PATCH');
-  await page.locator('#publication-form button[type=submit]').click();assert.equal((await publicationResponse).status(),200);
+  await page.locator('#publication-form button[type=submit]').click();assert.equal((await publicationResponse).status(),200);await page.locator('#publication-dialog').waitFor({state:'hidden'});
   await page.goto(`${baseURL}/business/daily-promotion-review`);await page.locator('.lifecycle-card').waitFor();
   assert.equal(await page.locator('.lifecycle-card>header a').first().isVisible(),true,'生命周期名称保留可访问详情入口');
   await page.screenshot({path:'.tools/test-artifacts/daily-promotion-workflow-desktop.png',fullPage:true});await context.close();

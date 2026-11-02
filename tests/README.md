@@ -169,3 +169,12 @@ pnpm test:annual-plan
 非推广结果专项：`node --import tsx tests/non-promotion-results.browser.ts`使用隔离PGlite，覆盖三方式、双轮阅读均值和独立有效分母、共享即时标准样本、旧版本排除、分类／平铺节点保持、真实保存失败重试、方式旧链接及日期追加。五档分别检查分类及展开、即时、持续及断点趋势、后续安排与Inspector；手机触屏、员工减少动态效果另验。`RESULTS_EVIDENCE_DIR`可指定产物目录，截图与完整过程需实际查看后归档。`non-promotion-groups.test.ts`及`non-promotion-trend.test.ts`约束缺失、零、独立分母和真实时间间距。
 
 `node --import tsx tests/non-promotion-results-motion.browser.ts`录制桌面／手机首次进入、真实方式切换、分类展开和持续趋势，验证360ms首次可见动画与重复展开不重播；支持`RESULTS_MOTION_DIR`指定目录。
+
+
+## 月会与月计划贯通
+
+`pnpm test:monthly-workflow`在Node构建后运行正式接口及浏览器链路，数据只写隔离PGlite；`TEST_POSTGRES_URL=本机测试连接 pnpm test:monthly-workflow:postgres`从0044快照验证0045迁移、人数版本竞争、名额并发占用与锁定，不允许非本机地址。
+
+覆盖年度来源、总数含遗留、已有排期、Week分配、会后生效、月历落实、审核预览回滚、首次提交／48小时、周会锁定及冻结、跨周／跨月、追加与材料显式更新。私域检查三层独立人数、未知／零、用途权限和缺项；月内推广日度缺项阻止定稿，文字修订不得刷新原阶段卡。
+
+视觉按月会编辑／定稿、月历池与表单、私域摘要／抽屉及不同角色分别记录五档视口，实际审查截图及桌面／手机连续录像；首屏另测冷／暖刷新与字体。滚动验收包含隐藏无障碍节点、底部导航避让和内部滚动边界。旧月度回归的表格断言限定在“可追溯明细”区域，新增私域表不能改变原业务检查语义。
