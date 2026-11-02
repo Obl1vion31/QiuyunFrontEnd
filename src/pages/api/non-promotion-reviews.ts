@@ -1,3 +1,4 @@
+import {lockPromotionWorkflow} from '../../db/promotion-pauses';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import {readNonPromotionFingerprint} from '../../db/non-promotion-record';
 import type { APIRoute } from 'astro';
@@ -32,6 +33,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 
   try {
     const saved = await getDb().transaction(async (transaction) => {
+      await lockPromotionWorkflow(transaction);
       await lockSchedule(transaction, result.data.scheduleId);
       const [content] = await transaction.select({ id: operationsContentVersion.contentId }).from(operationsContentSchedule)
         .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
@@ -40,7 +42,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       // 不同版本共用一个笔记 ID，首次补齐必须在读取身份前锁住同一帖子。
       await transaction.select({ id: operationsContent.id }).from(operationsContent).where(eq(operationsContent.id, content.id)).for('update');
       const post=await reviewIdentity(transaction,result.data.scheduleId),node=post.nodes.find(n=>n.type===result.data.checkpointType);
-      if(post.id!==result.data.scheduleId||post.isPromoted||!node)return {kind:'invalid-schedule' as const};
+      if(post.id!==result.data.scheduleId||!post.reviewActive||!node)return {kind:'invalid-schedule' as const};
       const [identity] = await transaction.select({
         contentId: operationsContent.id,
         platformNoteId: operationsContent.platformNoteId,
@@ -183,5 +185,5 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 export const GET: APIRoute = async ({ url }) => {
   const model = await readNonPromotionReview(url);
   if (model.loadError) return new Response(JSON.stringify({message:model.loadError}), {status:503,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
-  return new Response(JSON.stringify({tableRows:model.tableRows,pendingCount:model.pending.length,completedCount:model.rows.reduce((sum,row)=>sum+row.completed.length,0)}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+  return new Response(JSON.stringify({awaitingDates:model.awaitingDates,tableRows:model.tableRows,pendingCount:model.pending.length,completedCount:model.rows.reduce((sum,row)=>sum+row.completed.length,0)}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 };

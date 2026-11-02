@@ -1,3 +1,4 @@
+import {lockPromotionWorkflow} from './promotion-pauses';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
@@ -33,9 +34,10 @@ export async function readCheckpointEvents(database: Database | Transaction, sch
 
 export async function changeCheckpointState(database: Database, input: Omit<z.infer<typeof checkpointActionSchema>,'scope'> & {scope?:'schedule'|'checkpoint'}, actor: OperationsUser, now = new Date()) {
   return database.transaction(async transaction => {
+    await lockPromotionWorkflow(transaction);
     const schedule = await lockSchedule(transaction, input.scheduleId);
     const post=await reviewIdentity(transaction,schedule.id),node=post.nodes.find(n=>n.type===input.checkpointType);
-    if (!schedule.actualPublishAt || post.isPromoted||post.id!==schedule.id||!node) throw new WorkflowError('请从原帖当前复盘节点处理。');
+    if (!schedule.actualPublishAt || !post.reviewActive||post.id!==schedule.id||!node) throw new WorkflowError('请从原帖当前复盘节点处理。');
     const latest = await readCheckpointEvents(transaction, schedule.id);
     const key = `${schedule.id}:${input.checkpointType}`;
     const current = latest.get(key);

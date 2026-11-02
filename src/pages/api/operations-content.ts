@@ -1,3 +1,4 @@
+import {saveOperationSetup} from '../../db/operation-setup';
 import {readPostSchemas} from '../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
 import { getDb } from '../../db/client';
@@ -13,7 +14,7 @@ import {
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, redirect, url }) => {
+export const POST: APIRoute = async ({ request, redirect, url, locals }) => {
   const origin = request.headers.get('origin');
   if (!origin || origin !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
 
@@ -52,6 +53,7 @@ export const POST: APIRoute = async ({ request, redirect, url }) => {
         completionStatus: 'pending',
         delayReason: null,
       }).returning({ id: operationsContentSchedule.id });
+      await saveOperationSetup(transaction,schedule.id,result.data,locals.user!.username);
       return schedule;
     });
     return wantsJson ? Response.json({ ok: true, id: created.id, version: 0 }, { status: 201 }) : redirect('/business/operations-schedule?created=1', 303);

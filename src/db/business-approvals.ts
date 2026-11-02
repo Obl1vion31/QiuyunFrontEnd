@@ -1,3 +1,5 @@
+import {operationSetupChanged} from './operation-setup';
+import type {OperationType} from './operation-types';
 import {readPostSchemas} from './taxonomy-store';
 import {createHash} from 'node:crypto';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
@@ -73,6 +75,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
   }else{
     if(parts[3]!=='change-requests'){
       const [version]=await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,current.contentVersionId));
+      if(await operationSetupChanged(db,version.contentId,values as {operationType?:OperationType})&&!operations.includes('schedule.edit'))operations.push('schedule.edit');
       if(['contentName','subjectId','categoryId','projectDocUrl'].some(key=>(values[key]||null)!==(version[key as keyof typeof version]||null))||current.isPromoted!==checked(values.isPromoted)||current.syncToMoments!==checked(values.syncToMoments))operations.push('schedule.edit');
       if(current.isPromoted&&!checked(values.isPromoted)){
         const campaigns=await db.select({id:s.operationsPromotionCampaign.id}).from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.scheduleId,current.id));
@@ -106,10 +109,11 @@ async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>
   const [publicationEvent]=await db.select({after:s.operationsPublicationEvent.after}).from(s.operationsPublicationEvent).where(eq(s.operationsPublicationEvent.scheduleId,id)).orderBy(desc(s.operationsPublicationEvent.revision)).limit(1);
   const momentsConfirmation=publicationEvent?.after.momentsConfirmation;
   const [reviewPlan]=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,version.contentId));
+  const [content]=await db.select().from(s.operationsContent).where(eq(s.operationsContent.id,version.contentId));
   const customNodes=await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,version.contentId));
   const legacyShape=(row:Record<string,unknown>)=>Object.fromEntries(Object.entries(row).filter(([key,value])=>!(value==null&&['customCheckpointId','exposureCountSnapshot','readCountSnapshot'].includes(key))));
   return {schedule:withoutLegacyDelay(schedule),versions,campaigns,
-    ...(reviewPlan?{reviewPlan}:{}),...(customNodes.length?{customReviewNodes:customNodes}:{}),
+    ...(content.operationType?{operationType:content.operationType}:{}),...(reviewPlan?{reviewPlan:Object.fromEntries(Object.entries(reviewPlan).filter(([k,v])=>!(k==='draftDueOn'&&v==null)))}:{}),...(customNodes.length?{customReviewNodes:customNodes}:{}),
     ...(momentsConfirmation?{momentsConfirmation}:{}),
     ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
     reasons:await db.select().from(s.operationsScheduleDelayReason).where(and(eq(s.operationsScheduleDelayReason.scheduleId,id),eq(s.operationsScheduleDelayReason.planRevision,schedule.planRevision))),

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checkedAt": "2026-11-02T05:49:50.291Z",
+  "unchangedTables": 48,
+  "liveChanges": [
+    "business_presence"
+  ],
+  "newEmptyTables": [],
+  "originalFactsRewritten": false
+}

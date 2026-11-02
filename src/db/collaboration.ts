@@ -37,7 +37,7 @@ export async function canonicalResources(db:Database,resources:string[]):Promise
    const rows=await db.select().from(s.operationsReviewMeetingVersion);const decision=rows.flatMap(row=>(row.snapshot as any)?.generated?.meetingDecisions??[]).find((row:any)=>row.id===resource.slice('decision:'.length));
    if(!decision)throw new WorkflowError('安排不存在。',404);result.push(`schedule:${decision.scheduleId}`);
   }else if(kind==='proposal'){
-   const [row]=await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,id));if(!row)throw new WorkflowError('申请不存在。',404);result.push(...await canonicalResources(db,[row.target.replace(/^annual:/,'plan:')]));
+   const [row]=await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,id));if(!row)throw new WorkflowError('申请不存在。',404);if(row.target==='new')result.push(resource);else result.push(...await canonicalResources(db,[row.target.replace(/^annual:/,'plan:')]));
   }else if(['schedule','meeting','year','account'].includes(kind))result.push(resource);
   else throw new WorkflowError('不支持此编辑对象。',422);
  }

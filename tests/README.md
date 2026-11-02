@@ -163,3 +163,5 @@ pnpm test:annual-plan
 `pnpm test:first-paint` 使用正式SSR／React与隔离PGlite，覆盖五档冷缓存直接进入、暖缓存刷新、核心字体脚本1200ms与提醒800ms延迟，以及提醒失败恢复。CDP早期截图不等待fonts.ready，强制核对实际使用MiSans，并比较逐帧文字宽度、提醒高度、导航位置；桌面／手机录像与稳定截图仍须实际查看。七个工作台页面复查共享head接入。
 
 非推广计划专项：pnpm test:non-promotion-plans使用正式HTTP和隔离PGlite，验证三方式、原帖跨版本身份、即时可选15天、累计截止与T+1、服务端计算、调整／取消／跳过恢复、员工审批和真实PDF。五档截图分别记录历史、原始量Inspector、持续计划、7天／15天合卡；失败重试与桌面／手机录像独立检查。TEST_POSTGRES_URL指向本机隔离服务后运行node --import tsx tests/non-promotion-plans.postgres.ts，按0042真实结构执行0043并核对旧事实、原唯一键和并发追加。自定义不计7／15基准，旧改版事实只读，不再沿用把每版作为独立新样本的旧断言。
+
+运营类型专项：`pnpm test:operation-types`使用真实HTTP、隔离库和浏览器，覆盖四类建帖、草案／发布校验、直接放量正常结束、淘汰不衔接、结束撤销、原帖累计、待安排气泡、原位新增与审批。五档分别记录四类建帖、结束前／后、待安排、浮层、录入及发布摘要，另验失败重试与手机追加。`tests/operation-types.postgres.ts`使用本机真实PostgreSQL从0043执行0044并核对旧事实与真实并发，不连接共享库。检查帮助文案的实际颜色、父级容器布局和新增记录是否进入排序集合，不能只看保存接口成功。

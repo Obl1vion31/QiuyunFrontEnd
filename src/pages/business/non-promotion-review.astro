@@ -6,6 +6,7 @@ import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astr
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
 import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
 import '../../styles/non-promotion-table.css';
+import BusinessReviewDateAdd from '../../components/BusinessReviewDateAdd.astro';
 import MetricCell from '../../components/MetricCell.astro';
 import BusinessNonPromotionTableHead from '../../components/BusinessNonPromotionTableHead.astro';
 import {nonPromotionGroupLabel} from '../../db/non-promotion-groups';
@@ -17,7 +18,7 @@ import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 
 export const prerender = false;
 const databaseStartedAt=performance.now();
-const {subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
+const {awaitingDates,subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
 const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
 ---
@@ -76,7 +77,9 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
         </div>
       </div></div>
         {!tableRows.length&&<div class="review-empty"><strong>{activeView==='pending'?'当前没有待复盘节点':activeView==='skipped'?'当前没有跳过的节点':'还没有复盘历史'}</strong></div>}
+      {activeView==='pending'&&awaitingDates.length>0&&<details class="continuous-awaiting"><summary>持续复盘待安排 ({awaitingDates.length})</summary>{awaitingDates.map(row=><div class="continuous-awaiting-row" data-awaiting-review={row.id}><div><strong>{row.contentName} · V{row.versionNumber}</strong><p data-awaiting-status>持续复盘已启用{row.activatedOn?' · '+row.activatedOn:''} · 未设日期</p><p>累计数据起点 {shanghaiDateKey(row.actualPublishAt)}</p></div><span data-business-popover data-popover-kind="editor"><button type="button" class="review-entry-button" data-popover-trigger>设置日期</button><div popover="auto" class="review-date-popover" data-popover-panel role="dialog" aria-label="设置复盘日期"><BusinessReviewDateAdd scheduleId={row.id} publishedOn={shanghaiDateKey(row.actualPublishAt)} minimum={row.activatedOn??shanghaiDateKey(row.actualPublishAt)}/></div></span></div>)}</details>}
       </div>
+
       <BusinessInspector class="inspector" parameter="row" templates />
       {tableRows.map(selected => <template data-inspector-template={selected.key}>
         <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 data-inspector-title>{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'} · V{selected.row.versionNumber}</p></div><a href={baseHref} data-close-inspector aria-label="关闭详情">×</a></header>

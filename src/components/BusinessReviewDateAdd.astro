@@ -1,0 +1,11 @@
+---
+interface Props{scheduleId?:string;publishedOn?:string;minimum?:string;hidden?:boolean}
+const {scheduleId='',publishedOn='',minimum='',hidden=false}=Astro.props;
+---
+<form class="business-form review-date-add" data-review-node-add data-shared-review-date-add data-published-on={publishedOn} data-business-operation="schedule.edit" data-collaboration-resource={scheduleId?'schedule:'+scheduleId:undefined} hidden={hidden}>
+ <input type="hidden" name="action" value="add"/><input type="hidden" name="scope" value="schedule"/><input type="hidden" name="scheduleId" value={scheduleId}/>
+ <label>复盘截止日期<input type="date" name="dueOn" min={minimum||publishedOn} required/><small data-review-node-days></small></label>
+ <output role="status"></output><button type="submit" class="business-action-primary">添加复盘日期</button>
+</form>
+<script>import '../scripts/review-date-add';</script>
+<style is:global>.review-date-add{display:grid;gap:12px;margin:0}.review-date-add label{display:grid;gap:6px;font:400 13px/20px var(--console-font)}.review-date-add input{width:100%;height:40px;font:400 14px/22px var(--console-font)}.review-date-add small,.review-date-add output{font:400 12px/18px var(--console-font)}.review-date-add small{color:var(--console-muted)}.review-date-popover{position:fixed;inset:auto;margin:0;padding:16px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface,#fff);color:var(--console-ink);box-shadow:0 12px 32px #14203320;font-family:var(--console-font);overflow:auto}.continuous-awaiting{border-top:1px solid var(--console-line);padding:16px 20px}.continuous-awaiting summary{font:500 14px/22px var(--console-font);cursor:pointer}.continuous-awaiting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px}.continuous-awaiting-row>div{min-width:0}.continuous-awaiting-row strong{font-size:14px;overflow-wrap:anywhere}.continuous-awaiting-row p{font-size:12px;color:var(--console-muted);margin:4px 0}.continuous-awaiting-row button{white-space:nowrap}@media(max-width:480px){.continuous-awaiting{padding:14px 12px}.continuous-awaiting-row{align-items:flex-start;flex-wrap:wrap}}</style>

@@ -1,3 +1,4 @@
+import {saveOperationSetup} from '../../../db/operation-setup';
 import {readPostSchemas} from '../../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
 import { lockPromotionWorkflow } from '../../../db/promotion-pauses';
@@ -42,7 +43,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
   try {
     const result = await getDb().transaction(async (transaction) => {
       const [schedule] = await transaction.select({
-        id: operationsContentSchedule.id,
+        actualPublishAt:operationsContentSchedule.actualPublishAt,id: operationsContentSchedule.id,
         versionId: operationsContentSchedule.contentVersionId,
       }).from(operationsContentSchedule)
         .where(eq(operationsContentSchedule.id, params.id!))
@@ -83,7 +84,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         transaction.select({value:count()}).from(operationsPromotionStartPlan).where(eq(operationsPromotionStartPlan.scheduleId,schedule.id)),
         transaction.select({value:count()}).from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.scheduleId,schedule.id)),
       ]);
-      const blockers = {reviewPlans:Number(reviewPlans[0]?.value??0),customNodes:Number(customNodes[0]?.value??0),startPlans:Number(startPlanRows[0]?.value??0),timelineAudits:Number(timelineAuditRows[0]?.value??0),
+      const blockers = {reviewPlans:schedule.actualPublishAt?Number(reviewPlans[0]?.value??0):0,customNodes:Number(customNodes[0]?.value??0),startPlans:Number(startPlanRows[0]?.value??0),timelineAudits:Number(timelineAuditRows[0]?.value??0),
         reservations:Number(reservationCountRow[0]?.value??0),publicationEvents:Number(publicationCountRow[0]?.value??0),
         versions: Number(versionCountRow?.[0]?.value ?? 0) > 1,
         campaigns: Number(campaignCountRow?.[0]?.value ?? 0),
@@ -97,6 +98,7 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
         return { kind: 'blocked' as const, blockers };
       }
 
+      await transaction.delete(operationsNonPromotionReviewPlan).where(eq(operationsNonPromotionReviewPlan.anchorScheduleId,schedule.id));
       await transaction.delete(operationsContentSchedule).where(eq(operationsContentSchedule.id, schedule.id));
       await transaction.delete(operationsContentVersion).where(eq(operationsContentVersion.id, version.id));
       await transaction.delete(operationsContent).where(eq(operationsContent.id, version.contentId));
@@ -135,7 +137,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   if(form.get('action')==='reviewPlan'){
     const parsed=reviewPlanSchema.safeParse(reviewPlanFromForm(form));
     if(!parsed.success)return Response.json({message:'请核对复盘计划。',fields:issuesByField(parsed.error.issues)},{status:422});
-    try{await getDb().transaction(async tx=>{await requireBusinessOperation(tx,locals.user!,'schedule.edit');await saveReviewPlan(tx,params.id!,parsed.data,locals.user!.username);});return Response.json({ok:true});}catch(error){return workflowErrorResponse(error);}
+    try{await getDb().transaction(async tx=>{await requireBusinessOperation(tx,locals.user!,'schedule.edit');await lockPromotionWorkflow(tx);await saveReviewPlan(tx,params.id!,parsed.data,locals.user!.username);});return Response.json({ok:true});}catch(error){return workflowErrorResponse(error);}
   }
   const result = (await readPostSchemas(getDb())).editScheduleSchema.safeParse(editScheduleInputFromForm(form));
   if (!result.success) {
@@ -255,7 +257,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
           : null,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, params.id!)).returning({ id: operationsContentSchedule.id });
-      if(schedule.isPromoted&&!result.data.isPromoted&&schedule.actualPublishAt){
+      if(!result.data.operationType&&schedule.isPromoted&&!result.data.isPromoted&&schedule.actualPublishAt){
         const post=await reviewIdentity(transaction,schedule.id);
         await saveReviewPlan(transaction,post.id,{mode:'continuous',day7:false,day15:false,expectedRevision:post.plan?.revision??-1},locals.user!.username);
       }
@@ -263,6 +265,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         await transaction.delete(operationsPromotionStartPlan).where(eq(operationsPromotionStartPlan.scheduleId,schedule.id));
         await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:randomUUID(),businessDate:shanghaiDateKey(new Date()),action:'usage_change',reason:usageChangeReason||'调整推广身份',before:oldTimeline,after:await promotionSnapshot(transaction,schedule.id),changedById:locals.user!.id,changedByLabel:locals.user!.username});
       }
+      await saveOperationSetup(transaction,saved.id,result.data,locals.user!.username,()=>requireBusinessOperation(transaction,locals.user!,'schedule.edit'));
       return saved;
     });
     if (!updated) return Response.json({ message: '没有找到这条排期。' }, { status: 404 });

@@ -1,0 +1,45 @@
+{
+  "screenshots": 58,
+  "groups": [
+    "after-end",
+    "awaiting-date",
+    "before-end",
+    "continuous-input",
+    "create-non_promotion_instant",
+    "create-non_promotion_standard",
+    "create-promotion_only",
+    "create-promotion_then_continuous",
+    "date-failure",
+    "date-popover",
+    "date-saved",
+    "employee-detail",
+    "mobile-append",
+    "publication-instant"
+  ],
+  "videos": [
+    {
+      "kind": "desktop",
+      "source": "videos/desktop.mp4",
+      "duration": 17.12,
+      "reviewMethod": "all decoded frames",
+      "sheets": 15,
+      "actuallyReviewed": true
+    },
+    {
+      "kind": "mobile",
+      "source": "videos/mobile.mp4",
+      "duration": 3.2,
+      "reviewMethod": "all decoded frames",
+      "sheets": 3,
+      "actuallyReviewed": true
+    }
+  ],
+  "stableScreenshotsActuallyReviewed": true,
+  "dataSource": "isolated PGlite and local PostgreSQL; fictional fixtures",
+  "browser": "Linux Chromium; mobile touch viewport emulation",
+  "sourceTests": [
+    "tests/operation-types.browser.ts",
+    "tests/operation-types.integration.ts",
+    "tests/operation-types.postgres.ts"
+  ]
+}

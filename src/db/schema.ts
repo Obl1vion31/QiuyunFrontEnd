@@ -304,6 +304,7 @@ export const operationsAnnualPlanVersion = pgTable(
 export const operationsContent = pgTable('operations_content', {
   id: uuid('id').defaultRandom().primaryKey(),
   platformNoteId: text('platform_note_id').unique(),
+  operationType: text('operation_type').$type<import('./operation-types').OperationType>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -483,6 +484,7 @@ export const operationsNonPromotionReviewPlan = pgTable('operations_non_promotio
   contentId: uuid('content_id').primaryKey().references(()=>operationsContent.id,{onDelete:'restrict'}),
   anchorScheduleId: uuid('anchor_schedule_id').notNull().references(()=>operationsContentSchedule.id,{onDelete:'restrict'}),
   mode: text('mode').$type<'standard'|'instant'|'continuous'>().notNull(),
+  draftDueOn: date('draft_due_on'),
   day7: boolean('day_7').notNull().default(true), day15: boolean('day_15').notNull().default(true),
   revision: integer('revision').notNull().default(0),
   history: jsonb('history').$type<Array<Record<string,unknown>>>().notNull().default([]),

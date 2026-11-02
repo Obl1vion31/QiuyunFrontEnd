@@ -223,3 +223,5 @@ flowchart LR
 非推广计划集中在non-promotion-plan.ts，浏览器安全的节点、窗口及类型键在non-promotion-nodes.ts；读模型统一原帖锚点，旧版本仅历史。BusinessNonPromotionPlanFields供发布登记及排期Inspector共用，non-promotion-plan控制计划／节点维护；不复制指标表单。标准键day_7/day_15保留，自定义使用custom:<UUID>并关联独立节点。保存、租约、跳过恢复、查帖与例会都使用根排期＋节点键。API非推广录入使用nonPromotionItemSchema计算点击率，SSR／GET共用readNonPromotionReview。
 
 WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未来占位冻结到新快照；readWeeklyMaterial只把启用且已到开放时间的缺项列为pending。自定义不入普通基准，历史修订不参与新样本。非推广发布计划与节点变更接入schedule.edit及审批重放；旧审批空新增字段通过nonPromotionSource保持指纹。
+
+运营类型贯穿接入：`operation-types`维护四种类型与标签；`operation-setup`保存原帖策略和未发布的日期草案；`non-promotion-plan`从统一推广回放推导持续资格。新建、编辑、发布、节点和指标接口共用这些入口，不在按钮事件里自动改用途。`BusinessOperationFields`接入新建／编辑，`BusinessReviewDateAdd`供排期详情及非推广待安排气泡复用。节点写入先取得推广工作流锁，再锁排期／原帖并复核资格。首次实发才将即时草案变为真实节点；已有改帖沿用原锚点。

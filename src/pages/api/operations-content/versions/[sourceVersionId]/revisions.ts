@@ -1,3 +1,4 @@
+import {isPromotionType} from '../../../../../db/operation-types';
 import {readPostSchemas} from '../../../../../db/taxonomy-store';
 import type { APIRoute } from 'astro';
 import { and, desc, eq, isNull } from 'drizzle-orm';
@@ -47,6 +48,8 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         .where(eq(operationsContentVersion.id, params.sourceVersionId!))
         .limit(1);
       if (!source) return { kind: 'missing' as const };
+      const [post]=await transaction.select().from(operationsContent).where(eq(operationsContent.id,source.contentId));
+      if(post.operationType){result.data.isPromoted=isPromotionType(post.operationType);result.data.operationType=post.operationType;}
 
       const [sourceSchedule] = await transaction.select({
         id: operationsContentSchedule.id,

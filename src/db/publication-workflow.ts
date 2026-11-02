@@ -10,7 +10,7 @@ import {requireBusinessOperation} from '../auth/business-permissions';
 import { lockSchedule, reasonSchema, readScheduleWorkflow, saveDelayReason, WorkflowError } from './schedule-workflow';
 import { lockPromotionWorkflow } from './promotion-pauses';
 import { publicationSchema, normalizeCompletionStatus } from './validation';
-import { operationsContentSchedule as schedules, operationsContentVersion as versions,
+import { operationsContent as contents, operationsNonPromotionReviewPlan as reviewPlans,operationsContentSchedule as schedules, operationsContentVersion as versions,
   operationsPublicationReservation as reservations, operationsPublicationEvent as events,
   operationsPromotionCampaign as campaigns, operationsPromotionDailyMetric as metrics,
   operationsPromotionWaitRange as ranges, operationsPromotionHold as holds, operationsScheduleChangeRequest as changes, operationsPromotionStartPlan as startPlans, operationsPromotionDayDecision as decisions, operationsPromotionTimelineAudit as audits } from './schema';
@@ -74,7 +74,17 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
       completionStatus:normalizeCompletionStatus({plannedPublishAt:schedule.plannedPublishAt,actualPublishAt:actual,delayThresholdHours:schedule.delayThresholdHours}),promotionStatus,
       promotionDeferredThrough:promotionStatus==='awaiting_promotion'&&actualChanged?null:undefined,updatedAt:now}).where(eq(schedules.id,id));
     await tx.insert(events).values({scheduleId:id,revision:schedule.publicationRevision+1,before,after,reason:input.correctionReason||null,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
-    if(input.reviewPlan)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
+    const [content]=await tx.select().from(contents).where(eq(contents.id,version.contentId));
+    const [configured]=await tx.select().from(reviewPlans).where(eq(reviewPlans.contentId,version.contentId));
+    if(!schedule.actualPublishAt&&content.operationType&&!schedule.isPromoted){
+      const mode=content.operationType==='non_promotion_instant'?'instant':'standard';
+      const dueOn=input.reviewDueOn||input.reviewPlan?.dueOn||configured?.draftDueOn||'';
+      if(mode==='instant'&&!dueOn)throw new WorkflowError('请补齐即时复盘截止日期。',422);
+      const root=await reviewIdentity(tx,id);
+      if(configured&&configured.anchorScheduleId!==root.id)await tx.update(reviewPlans).set({anchorScheduleId:root.id}).where(eq(reviewPlans.contentId,version.contentId));
+      await saveReviewPlan(tx,root.id,{mode,day7:configured?.day7??mode==='standard',day15:configured?.day15??mode==='standard',dueOn,expectedRevision:configured?.revision??-1},actor.username);
+      await tx.update(reviewPlans).set({draftDueOn:null}).where(eq(reviewPlans.contentId,version.contentId));
+    }else if(input.reviewPlan&&!content.operationType)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
     else if(!schedule.actualPublishAt&&!schedule.isPromoted){
       const [previous]=await tx.select({isPromoted:schedules.isPromoted}).from(schedules).innerJoin(versions,eq(schedules.contentVersionId,versions.id)).where(and(eq(versions.contentId,version.contentId),ne(schedules.id,id),isNotNull(schedules.actualPublishAt))).orderBy(desc(versions.versionNumber)).limit(1);
       if(previous?.isPromoted){const post=await reviewIdentity(tx,id);await saveReviewPlan(tx,post.id,{mode:'continuous',day7:false,day15:false,expectedRevision:post.plan?.revision??-1},actor.username);}

@@ -1,3 +1,4 @@
+import {operationTypes,isPromotionType} from './operation-types';
 import { z } from 'zod';
 import { extractPublicationLink } from './publication-link.mjs';
 import {reviewPlanSchema,reviewPlanFromForm} from './non-promotion-plan-input';
@@ -42,7 +43,7 @@ export const publicationUrlSchema = z.string().trim().min(1,'请粘贴对应的�
 export function createPostSchemas(taxonomy:{subjects:ReadonlyArray<{id:string}>;postCategories:ReadonlyArray<{id:string}>;subjectCategoryMappings:ReadonlyArray<{subjectId:string;categoryId:string}>}){
  const subjectIds=taxonomy.subjects.map(row=>row.id) as [string,...string[]],categoryIds=taxonomy.postCategories.map(row=>row.id) as [string,...string[]];
  const versionFields={contentName:z.string().trim().min(1,'请填写内容名称').max(200),subjectId:z.enum(subjectIds,{message:'请选择有效学科'}),categoryId:z.preprocess(emptyToNull,z.enum(categoryIds,{message:'请选择有效帖子分类'}).nullable()),projectDocUrl:optionalHttpUrl};
- const scheduleFields={syncToMoments:z.boolean(),isPromoted:z.boolean(),promotionStatus:z.enum(promotionStatuses,{message:'请选择有效推广状态'}),plannedPublishAt:shanghaiDateTime};
+ const scheduleFields={operationType:z.enum(operationTypes).optional(),reviewDueOn:z.string().default(''),reviewDay7:z.boolean().default(false),reviewDay15:z.boolean().default(false),expectedReviewRevision:z.coerce.number().int().min(-1).default(-1),syncToMoments:z.boolean(),isPromoted:z.boolean(),promotionStatus:z.enum(promotionStatuses,{message:'请选择有效推广状态'}),plannedPublishAt:shanghaiDateTime};
  const rules=<T extends z.ZodRawShape>(shape:T)=>z.object(shape).superRefine((data,context)=>{const v=data as {subjectId?:string;categoryId?:string|null};if(v.subjectId&&!v.categoryId)context.addIssue({code:'custom',path:['categoryId'],message:'请选择帖子分类'});else if(v.subjectId&&v.categoryId&&!taxonomy.subjectCategoryMappings.some(m=>m.subjectId===v.subjectId&&m.categoryId===v.categoryId))context.addIssue({code:'custom',path:['categoryId'],message:'帖子分类不属于所选学科'});});
  return {newPostSchema:rules({...versionFields,...scheduleFields}),editScheduleSchema:rules({...versionFields,...scheduleFields}),revisionSchema:rules({...versionFields,...scheduleFields,sourceScheduleId:z.uuid('来源排期无效'),revisionSummary:z.string().trim().min(1,'请填写具体改动说明').max(1000)})};
 }
@@ -51,6 +52,7 @@ export const {newPostSchema,editScheduleSchema,revisionSchema}=createPostSchemas
 
 export const publicationSchema = z.object({
   reviewPlan:reviewPlanSchema.optional(),
+  reviewDueOn:z.string().optional(),
   actualPublishAt: z.preprocess(emptyToNull,shanghaiDateTime.nullable().optional()),
   projectDocUrl: optionalHttpUrl.optional(),
   publicationUrl: z.preprocess(emptyToNull, publicationUrlSchema.nullable().optional()),
@@ -72,7 +74,8 @@ const commonInputFromForm = (form: FormData) => ({
   subjectId: form.get('subjectId'),
   categoryId: form.get('categoryId'),
   syncToMoments: form.get('syncToMoments') === 'on',
-  isPromoted: form.get('isPromoted') === 'on',
+  operationType:form.get('operationType')||undefined,reviewDueOn:String(form.get('reviewDueOn')||''),reviewDay7:form.get('reviewDay7')==='on',reviewDay15:form.get('reviewDay15')==='on',expectedReviewRevision:form.get('expectedReviewRevision')??-1,
+  isPromoted: form.get('operationType')?isPromotionType(form.get('operationType') as typeof operationTypes[number]):form.get('isPromoted') === 'on',
   promotionStatus: form.get('promotionStatus'),
   projectDocUrl: form.get('projectDocUrl'),
   plannedPublishAt: form.get('plannedPublishAt'),
@@ -87,7 +90,7 @@ export const revisionInputFromForm = (form: FormData) => ({
 });
 
 export const publicationInputFromForm = (form: FormData) => ({
-  reviewPlan:reviewPlanFromForm(form),
+  reviewPlan:reviewPlanFromForm(form),reviewDueOn:String(form.get('reviewDueOn')||''),
   actualPublishAt: form.get('actualPublishAt') ?? undefined,
   projectDocUrl: form.get('projectDocUrl') ?? undefined,
   publicationUrl: form.get('publicationUrl'),

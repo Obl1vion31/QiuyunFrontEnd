@@ -6,6 +6,9 @@ import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astr
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import {operationsContent} from '../../db/schema';
+import BusinessReviewDateAdd from '../../components/BusinessReviewDateAdd.astro';
+import BusinessOperationFields from '../../components/BusinessOperationFields.astro';
 import BusinessNonPromotionPlanFields from '../../components/BusinessNonPromotionPlanFields.astro';
 import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
@@ -103,7 +106,7 @@ const publishingState=(row:typeof rows[number])=>publicationState(row);
 let rows: Array<{
   id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
-  revisionSummary: string | null; projectDocUrl: string | null;
+  operationType:import('../../db/operation-types').OperationType|null; revisionSummary: string | null; projectDocUrl: string | null;
   syncToMoments: boolean; isPromoted: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
   completionStatus: string; planRevision: number; delayThresholdHours:number; publicationUrl:string|null;publicationRevision:number;
 }> = [];
@@ -113,7 +116,7 @@ try {
   [rows, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
     id: operationsContentSchedule.id,
     versionId: operationsContentVersion.id,
-    contentId: operationsContentVersion.contentId,
+    contentId: operationsContentVersion.contentId,operationType:operationsContent.operationType,
     versionNumber: operationsContentVersion.versionNumber,
     sourceVersionId: operationsContentVersion.sourceVersionId,
     workType: operationsContentVersion.workType,
@@ -135,7 +138,7 @@ try {
     completionStatus: operationsContentSchedule.completionStatus,
   }).from(operationsContentSchedule)
     .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
-    .innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
+    .innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt)),
   teamScheduleNotifications(database),
@@ -327,9 +330,9 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
                 <section class="non-plan-panel" data-review-plan-panel hidden aria-label="复盘计划">
-                  <h3>复盘计划</h3><p data-review-plan-summary></p>
+                  <h3>运营类型与复盘计划</h3><p data-review-plan-summary></p>
                   <details data-business-operation="schedule.edit"><summary>管理复盘方式</summary><form class="business-form" data-review-plan-form><input type="hidden" name="action" value="reviewPlan"/><BusinessNonPromotionPlanFields prefix="inspector-review"/><output role="status"></output><button type="submit" class="business-action-primary">保存复盘计划</button></form></details>
-                  <form class="business-form" data-review-node-add data-business-operation="schedule.edit" hidden><input type="hidden" name="action" value="add"/><input type="hidden" name="scope" value="schedule"/><input type="hidden" name="scheduleId"/><label>新增复盘截止日<input type="date" name="dueOn" required/><small data-review-node-days></small></label><output role="status"></output><button type="submit" class="business-action-secondary">新增复盘日期</button></form>
+                  <BusinessReviewDateAdd hidden/>
                   <div class="non-plan-nodes" data-review-node-list></div>
                 </section>
                 <details class="inspector-section inspector-reference" open><summary>相关资料</summary>
@@ -363,6 +366,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           <div class="field"><label for="subjectId">学科 <b>*</b></label><select id="subjectId" name="subjectId" required><option value="">请选择学科</option>{subjects.map((subject) => <option value={subject.id}>{subject.name}</option>)}</select><small data-error="subjectId"></small></div>
           <div class="field"><label for="categoryId">帖子分类 <b data-category-required>*</b></label><select id="categoryId" name="categoryId" required disabled><option value="">请先选择学科</option></select><small data-error="categoryId"></small><em data-category-help></em></div>
 
+          <BusinessOperationFields/>
           <fieldset class="revision-fields field-wide" data-revision-only hidden>
             <legend>本次改帖</legend>
             <div class="field revision-summary-field"><label for="revisionSummary">具体改动说明 <b>*</b></label><textarea id="revisionSummary" name="revisionSummary" rows="5" maxlength="1000"></textarea><small data-error="revisionSummary"></small>
@@ -379,7 +383,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           <BusinessDateTimeFields name="plannedPublishAt" dateName="plannedPublishDate" timeName="plannedPublishTime" dateLabel="应发日期" timeLabel="应发时间" label="应发时间" required><small data-error="plannedPublishAt"></small></BusinessDateTimeFields>
           <div class="field field-wide" data-plan-change-reason hidden><label for="planChangeReason">改期理由 <b>*</b></label><textarea id="planChangeReason" name="planChangeReason" rows="2" maxlength="500"></textarea><small data-error="planChangeReason"></small></div>
           <div class="field field-wide field-options" role="group" aria-label="发布选项">
-            <div class="promotion-field"><label class="promotion-toggle"><input type="checkbox" name="isPromoted"/>推广帖</label><input id="promotionStatus" name="promotionStatus" type="hidden" value="none"/><output class="promotion-preview" data-promotion-preview hidden>非推广</output></div>
+            <div class="promotion-field"><label class="promotion-toggle" hidden><input type="checkbox" name="isPromoted"/>推广帖</label><input id="promotionStatus" name="promotionStatus" type="hidden" value="none"/><output class="promotion-preview" data-promotion-preview hidden>非推广</output></div>
             <label><input type="checkbox" name="syncToMoments"/>同步朋友圈</label>
             <small data-error="isPromoted"></small><em data-promotion-help></em>
           </div>
@@ -580,10 +584,10 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         categorySelect.value = matching.some((category) => category.id === selectedValue) ? selectedValue : '';
       };
       const applyCategoryPromotionDefault = () => {
-        if (mode !== 'new') return;
+        if (mode !== 'new'||form.dataset.operationTouched==='true') return;
         const category = categories.find((candidate) => candidate.subjectId === field('subjectId').value && candidate.id === field('categoryId').value);
         if (!category) return;
-        field('isPromoted').checked = Boolean(category.defaultIsPromoted);
+        field('isPromoted').checked = Boolean(category.defaultIsPromoted);field('operationType').value=category.defaultIsPromoted?'promotion_only':'non_promotion_standard';form.dataset.operationAuto='true';field('operationType').dispatchEvent(new Event('change'));form.dataset.operationAuto='false';
         updatePromotionPreview();
       };
       const setRecordValues = (record) => {
@@ -652,7 +656,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         if(nextMode==='edit'){
           const overdue=!record.actualPublishAt&&Date.now()-new Date(`${record.plannedPublishAt}:00+08:00`).getTime()>=delayThresholdMs;
           configureDateTime(field('plannedPublishAt'),{readOnly:!mayOperate(overdue?'schedule.overdueReschedule':'schedule.reschedule')});
-          if(!mayOperate('schedule.edit'))for(const name of ['contentName','subjectId','categoryId','projectDocUrl','isPromoted','syncToMoments']){
+          if(!mayOperate('schedule.edit'))for(const name of ['contentName','subjectId','categoryId','projectDocUrl','isPromoted','syncToMoments','operationType','reviewDueOn','reviewDay7','reviewDay15']){
             const control=field(name);
             if(control.tagName==='SELECT'||control.type==='checkbox'){
               control.disabled=true;if(control.type!=='checkbox'||control.checked){const preserved=document.createElement('input');preserved.type='hidden';preserved.name=name;preserved.value=control.type==='checkbox'?'on':control.value;preserved.dataset.permissionPreserved='';form.append(preserved);}
@@ -660,7 +664,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           }
         }
         dirty = false;
-        dialog.showModal();
+        dialog.showModal();document.dispatchEvent(new CustomEvent('business:schedule-form-opened',{detail:{mode:nextMode,record}}));
         field('contentName').focus();
       };
       const closeForm = async () => {
@@ -887,7 +891,8 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     }
     </script>
     <script>import '../../scripts/operations-workflow';</script>
-<script>import '../../scripts/non-promotion-plan';</script>
+<script>import '../../scripts/non-promotion-plan';
+import '../../scripts/operation-setup';</script>
   </body>
 </html>
 
@@ -1093,3 +1098,5 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 <style>
 .publication-moments{min-width:0;margin:0;padding:0;border:0}.publication-moments legend{margin:0 0 6px;padding:0;font:500 13px/20px var(--console-font);color:var(--console-ink)}.publication-moments legend b{color:#a63b32}.publication-moments .checks{display:flex;flex-wrap:wrap;gap:8px 16px}.publication-moments .checks label{display:flex;align-items:center;gap:8px;min-height:40px;margin:0;font:400 14px/22px var(--console-font);white-space:nowrap;cursor:pointer}.publication-moments [data-publication-moments-error]{color:#a63b32;font:400 12px/18px var(--console-font)}
 </style>
+
+<style>.promotion-field:has([data-promotion-preview][hidden]){display:none}</style>

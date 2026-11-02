@@ -15,7 +15,7 @@ import {anchorReviewPosts,readReviewPlanning} from './non-promotion-plan';
 import {reviewNodes,type ReviewMode} from './non-promotion-nodes';
 import {nonPromotionSource} from './non-promotion-record';
 import {actualDataRange,cardDataRange,type ActualDataRange} from './meeting-card-rules';
-import { operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages } from './schema';
+import { operationsContent as contents,operationsContentSchedule as schedules, operationsContentVersion as versions, operationsSubject as subjects, operationsCategory as categories, operationsPromotionDailyMetric as daily, operationsContentPerformanceMetric as performance, operationsNonPromotionReview as reviews, operationsReviewMeeting as meetings, operationsReviewMeetingVersion as meetingVersions, operationsPromotionStage as stages } from './schema';
 export const sourceHash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, (_key, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b))) : v)).digest('hex');
 export type MeetingRecord = typeof meetings.$inferSelect;
 type Fact = typeof daily.$inferSelect;
@@ -168,7 +168,7 @@ export function testingCheckpointDate(status: string, effectiveOn: string, previ
 export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, now = new Date()): Promise<WeeklyMaterial> {
     const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersionsIncludingInvalid, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
-        db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
+        db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, operationType:contents.operationType,isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents,eq(versions.contentId,contents.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
         db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages),
     ]);
     const allVersions=allVersionsIncludingInvalid.filter(v=>!v.invalidatedAt);
@@ -281,8 +281,8 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     }
     for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total;card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
     const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [], excludedNonPromotions:NonNullable<WeeklyMaterial['excludedNonPromotions']>=[];
-    const nonPosts=anchorReviewPosts(content.map(p=>({...p,id:p.scheduleId})),planning.plans).filter(p=>!p.isPromoted);
-    const nodesFor=(post:typeof nonPosts[number])=>reviewNodes(post.actualPublishAt,post.enabledPlan,planning.custom.filter(n=>n.contentId===post.contentId));
+    const nonPosts=anchorReviewPosts(content.map(p=>({...p,id:p.scheduleId})),planning.plans,context,shanghaiDateKey(now)).filter(p=>p.reviewActive);
+    const nodesFor=(post:typeof nonPosts[number])=>reviewNodes(post.actualPublishAt,post.enabledPlan,planning.custom.filter(n=>n.contentId===post.contentId)).filter(n=>!post.activatedOn||n.dueOn>=post.activatedOn);
     for (const post of nonPosts)
         for (const node of nodesFor(post)) {
             const checkpointType=node.type;

@@ -117,7 +117,15 @@ function initialize() {
     arrange();
     } catch(error) {if(!read.isCurrent())return;throw error;} finally {read.finish();}
   };
-  inspector.addEventListener('business:edit-reclaimed',event=>{const target=event.target as HTMLFormElement;if(target.matches('[data-review-form]'))(event as CustomEvent).detail.waitUntil(refresh(target));});
+  const dateSaved=async()=>{
+   const response=await fetch(location.href),html=new DOMParser().parseFromString(await response.text(),'text/html');
+   for(const row of html.querySelectorAll<HTMLElement>('[data-row-href]'))if(!records.some(existing=>existing.dataset.inspectorKey===row.dataset.inspectorKey)){records.push(row);body.append(row);}
+   for(const template of html.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]'))if(!document.querySelector(`template[data-inspector-template="${CSS.escape(template.dataset.inspectorTemplate!)}"]`))inspector.after(template);
+   if(body.querySelector('[data-inspector-key]'))document.querySelector<HTMLElement>('.review-empty')?.setAttribute('hidden','');
+   const counts=html.querySelectorAll('.review-summary strong');document.querySelectorAll('.review-summary strong').forEach((node,index)=>{if(counts[index])node.textContent=counts[index].textContent;});
+   document.dispatchEvent(new Event('business:inspector-refresh'));arrange();
+  };document.addEventListener('business:review-date-saved',dateSaved);document.addEventListener('astro:before-swap',()=>document.removeEventListener('business:review-date-saved',dateSaved),{once:true});
+  inspector.addEventListener('business:edit-reclaimed' ,event=>{const target=event.target as HTMLFormElement;if(target.matches('[data-review-form]'))(event as CustomEvent).detail.waitUntil(refresh(target));});
   inspector.addEventListener('click', async event => {
     const copy = (event.target as Element).closest<HTMLButtonElement>('[data-copy-id]');
     if (copy) { await navigator.clipboard.writeText(copy.dataset.copyId!); copy.textContent = '已复制'; }
