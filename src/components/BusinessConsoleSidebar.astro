@@ -7,6 +7,7 @@ import QiuyunMark from './QiuyunMark';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
 interface Props { active: ModuleId }
 const { active } = Astro.props;
+const settingsHref=Astro.locals.user?.role==='employee'?'/business/settings?view=guide':'/business/settings';
 const groups = [
   {
     label: '计划与执行',
@@ -61,10 +62,10 @@ const iconPaths = {
       </div>
     </section>)}
 
-    {Astro.locals.user?.role === 'admin' && <section class="business-sidebar__group"><h2>系统管理</h2><div>    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href="/business/settings" data-module-id="settings" data-module-href="/business/settings" data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
+    <section class="business-sidebar__group"><h2>系统</h2><div>    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href={settingsHref} data-module-id="settings" data-module-href={settingsHref} data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
       <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.settings} /></svg>
       <strong>系统设置</strong>
-    </a></div></section>}
+    </a></div></section>
   </nav>
 
   <div class="business-sidebar__foot">
@@ -100,7 +101,8 @@ const iconPaths = {
       if (id) sessionStorage.setItem(storageKey(id), `${location.pathname}${location.search}${location.hash}`);
     };
     const restoreModuleHrefs = () => links.forEach((link) => {
-      const saved = sessionStorage.getItem(storageKey(link.dataset.moduleId!));
+      let saved = sessionStorage.getItem(storageKey(link.dataset.moduleId!));
+      if(link.dataset.moduleId==='settings'&&sidebar.dataset.accountRole==='employee'&&saved&&new URL(saved,location.origin).searchParams.get('view')!=='guide')saved=null;
       link.href = saved && new URL(saved, location.origin).pathname === new URL(link.dataset.moduleHref!, location.origin).pathname
         ? saved
         : link.dataset.moduleHref!;
@@ -218,7 +220,6 @@ const iconPaths = {
   @keyframes business-console-progress{0%{transform:translateX(-110%)}60%{transform:translateX(155%)}100%{transform:translateX(255%)}}
   @media(max-width:900px){.business-sidebar{position:fixed;inset:auto 0 0;width:100%;height:66px;display:block;padding:6px 8px;color:#17211c;background:#f7f8f5f2;border:0;border-top:1px solid #c9d1cc;backdrop-filter:blur(18px) saturate(135%)}.business-sidebar__brand,.business-sidebar__group h2,.business-sidebar__planned,.business-sidebar__hub{display:none}.business-sidebar__nav .business-sidebar__monthly{display:none}.business-sidebar__nav{height:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:2px}.business-sidebar__group{display:contents}.business-sidebar__group>div{display:contents}.business-sidebar__nav a,.business-sidebar__settings{min-height:0;height:54px;display:grid;grid-template-columns:1fr;place-items:center;align-content:center;gap:3px;padding:3px 2px;border-radius:9px;text-align:center}.business-sidebar__nav a:hover,.business-sidebar__settings:hover{background:transparent}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:scale(.96);background:#dce3de}.business-sidebar__nav a.active,.business-sidebar__settings.active{background:#dce5ff}.business-sidebar__nav strong,.business-sidebar__settings strong{max-width:100%;font-size:.58rem}.business-sidebar__icon{width:20px;height:20px}.business-sidebar__foot{display:none}.business-console-progress{left:0;top:61px}}
   @media(prefers-reduced-motion:reduce){.business-sidebar__nav a,.business-sidebar__settings,.business-console-progress{transition:none}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:none}.business-console-progress.is-visible i{animation:none;transform:none;width:100%}}
-  @media(max-width:900px){.business-sidebar[data-account-role="employee"] .business-sidebar__nav{grid-template-columns:repeat(5,1fr)}.business-sidebar[data-account-role="employee"] .business-sidebar__foot{display:none}}
   @media(prefers-reduced-transparency:reduce){.business-sidebar{backdrop-filter:none;background:#f7f8f5}}
   @media(max-width:900px){.business-sidebar__nav{overflow:visible;align-content:stretch}}
 </style>

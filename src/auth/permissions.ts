@@ -16,9 +16,9 @@ export function requireAdmin(user: OperationsUser | null | undefined) {
 export const deniedResponse = () => Response.json({ code: 'FORBIDDEN', message: '这项操作需要管理员权限。' }, { status: 403 });
 export const permissionErrorResponse = (error: unknown) => error instanceof AccessDenied ? Response.json({code:'FORBIDDEN',message:error.message},{status:403}) : null;
 
-export function requiresAdmin(path: string, method: string) {
+export function requiresAdmin(path: string, method: string, settingsView?: string | null) {
   const normalized = path.replace(/\/+$/, '');
-  if (normalized === '/business/settings') return true;
+  if (normalized === '/business/settings') return !(['GET','HEAD'].includes(method) && settingsView === 'guide');
   if (normalized.startsWith('/api/business-settings') || normalized === '/api/stage-reviews/category-policies') return true;
   if(normalized.startsWith('/api/admin/accounts'))return true;
   if(normalized.startsWith('/api/collaboration/'))return false;

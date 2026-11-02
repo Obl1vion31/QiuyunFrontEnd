@@ -28,7 +28,8 @@ try {
   const adminCookie = await login(admin); const employeeCookie = await login(employee);
   for (const path of ['/api/business-settings/category-policies', '/api/stage-reviews/category-policies', '/api/operations-annual-plans', '/api/operations-annual-plans/', '/api/operations-content/fictional/platform-note-id']) await status(await request(path, 'POST', form({ role: 'admin' }), employeeCookie), 403);
   for (const path of ['/api/meeting-reviews/fictional', '/api/stage-reviews/fictional']) await status(await request(path, 'DELETE', undefined, employeeCookie), 403);
-  await status(await request('/business/settings', 'GET', undefined, employeeCookie), 403);
+  await status(await request('/business/settings', 'GET', undefined, employeeCookie), 302);
+  await status(await request('/business/settings?view=accounts', 'GET', undefined, employeeCookie), 403);
   await status(await request('/business/settings', 'GET', undefined, adminCookie), 200);
 
   const fields = { contentName: '虚构权限验收帖', subjectId: 'tmua', categoryId: 'innovation', plannedPublishAt: '2026-10-01T10:00', projectDocUrl: '', isPromoted: 'on', promotionStatus: 'pending' };
@@ -97,7 +98,7 @@ try {
     await phone.screenshot({ path: `${evidenceDir}/login-${width}.png` });
     assert.ok(await phone.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await phone.locator('button[type=submit]').click(); await phone.waitForURL('**/business/operations-schedule');
-    assert.equal(await phone.locator('[data-module-id=settings]').count(), 0);
+    assert.equal(await phone.locator('[data-module-id=settings]').count(), 1);
     await phone.locator('.business-account--toolbar [data-account-trigger]').click(); await phone.locator('#business-account-toolbar:popover-open').waitFor();
     await phone.screenshot({ path: `${evidenceDir}/account-${width}.png` });
     await phone.locator('#business-account-toolbar [data-sign-out]').click(); await phone.waitForURL('**/login');

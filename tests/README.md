@@ -182,3 +182,7 @@ pnpm test:annual-plan
 内容职能与持续版本周期：`node --import tsx tests/content-role-cycles.integration.ts`覆盖真实建帖／更正／审批、标准同职能共享、普通V0保留和推广后V0→V1区间及旧表单拒绝；`tests/content-role-cycles.browser.ts`覆盖五档职能分组、筛选／前后退、只读历史、区间Inspector、趋势、管理员说明和员工门禁。`TEST_POSTGRES_URL=本机隔离连接 node --import tsx tests/content-role-cycles.postgres.ts`实际演练0045→0046、旧事实与指纹保留及同版本日期并发；连接仅允许localhost。浏览器夹具数据不写入共享库。
 
 每周持续复盘：Node构建后运行 `node --import tsx tests/weekly-continuous.browser.ts`，覆盖最终日期校验、生成／延长／缩短、真实表单保存、统计区间、结束撤销／更正、版本切换、旧表单、员工审批与同一尾日期口径更正；五档新建／详情／待办及320px说明实际截图。`TEST_POSTGRES_URL=本机隔离连接 node --import tsx tests/weekly-continuous.postgres.ts`验证0046→0047逐表保留。旧内容职能综合验收显式建立NULL最终日期的遗留计划，继续验证原自定义流程。
+
+`node --import tsx tests/usage-guide.browser.ts`在真实隔离HTTP与浏览器检查管理员／员工说明、GET／HEAD、默认跳转、员工管理页及API403、HTML省略维护内容和管理数据；覆盖1920／1440／1024／390／320px的对照表、右侧／折叠目录、首尾高亮、点击不重载、刷新锚点、前后退、手动滚动不写历史、键盘、页面往返与员工导航记忆、真实MiSans及减少动态效果。截图和目录操作录像位于`.tools/test-artifacts/usage-guide/`。
+
+`node --import tsx tests/usage-guide-first-paint.browser.ts`从首次绘制开始录制双角色1440／390px冷缓存、暖刷新、站内进入及慢字体／提醒，比较实际MiSans平台字形、文字宽度、正文与导航位置。首屏过程与稳定图分开保存至上述目录的`first-paint/`；需实际查看后再归档，不能以断言替代视觉检查。

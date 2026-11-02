@@ -24,6 +24,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   window.__businessInspectorHistoryReady = true;
   window.addEventListener('popstate', event => {
     if(window.__businessHistoryPop?.(event))return;
+    if(!document.dispatchEvent(new CustomEvent('business:local-history-pop',{cancelable:true,detail:event}))){event.stopImmediatePropagation();return;}
     const pane = document.querySelector('[data-inspector-ready="true"]');
     const parameter = pane?.dataset.inspectorParameter;
     if (!parameter || !pane.dataset.inspectorHistoryBase) return;
