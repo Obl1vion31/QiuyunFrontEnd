@@ -59,3 +59,6 @@
 - `backup-restore.ts`：私有备份摘要验证、独立空库预检与原子恢复；维护入口在根 scripts，不通过网页开放。
 
 `monthly-operations.ts` 共用月度页面SSR与只读API：发布执行按最新应发月，发布量按实发月，费用按指标日期；测试失败按有效阶段回放和稳定轮次归属。只读既有事实，不建立负责人、月计划快照或零指标。
+
+- `non-promotion-read-model.ts`：方式过滤、标准节点共享样本、分类汇总与后续安排，SSR／GET同源；不按展示方式改变基准。
+- `non-promotion-groups.ts`：三项指标各自的算术均值与有效分母；`non-promotion-trend.ts`为服务端和浏览器共用的纯坐标计算，按真实日期定位、缺失断线。

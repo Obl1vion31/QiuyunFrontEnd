@@ -183,7 +183,8 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 };
 
 export const GET: APIRoute = async ({ url }) => {
-  const model = await readNonPromotionReview(url);
+  // 未传方式的旧客户端继续取得完整队列；页面总是显式传递当前方式。
+  const model = await readNonPromotionReview(url,{includeAllModes:!url.searchParams.has('mode')});
   if (model.loadError) return new Response(JSON.stringify({message:model.loadError}), {status:503,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
-  return new Response(JSON.stringify({awaitingDates:model.awaitingDates,tableRows:model.tableRows,pendingCount:model.pending.length,completedCount:model.rows.reduce((sum,row)=>sum+row.completed.length,0)}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+  return new Response(JSON.stringify({mode:model.mode,upcoming:model.upcoming,categoryGroups:model.categoryGroups,sampleRows:model.sampleRows,awaitingDates:model.awaitingDates,tableRows:model.tableRows,pendingCount:model.pending.length,completedCount:model.rows.reduce((sum,row)=>sum+row.completed.length,0)}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
 };

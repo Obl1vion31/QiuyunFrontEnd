@@ -1,0 +1,10 @@
+---
+interface Props {value:number|null;count:number;total:number;field:'reading'|'click'|'read';round:string;column:number;index:number}
+const {value,count,total,field,round,column,index}=Astro.props;
+const text=value==null?'—':field==='reading'?value.toLocaleString('zh-CN',{maximumFractionDigits:1}):value.toFixed(2)+'%';
+---
+<span class:list={['category-metric',{'has-value':value!=null}]} style={`grid-column:${column};grid-row:${index+1}`} data-category-metric={field} data-round={round} title={`有效样本 ${count} 篇`}>
+ <strong data-category-reading={field==='reading'?round:undefined} data-category-click={field==='click'?round:undefined} data-category-read={field==='read'?round:undefined}>{text}</strong>
+ {field!=='reading'&&<span class="result-track" aria-hidden="true" hidden={value==null}><i data-result-track style={`width:${value??0}%`}></i></span>}
+ <small hidden={count===total}>有效 {count} 篇</small>
+</span>

@@ -2,27 +2,28 @@
 const reduced=matchMedia('(prefers-reduced-motion:reduce)');
 let currentView='',observer:IntersectionObserver|null=null,generation=0;
 const animations=new Set<Animation>();
+const seenViews=new Set<string>();
 const waiting=new Set<HTMLElement>();
 let resumeVisible:((target:HTMLElement)=>void)|undefined;
 const viewKey=()=>{
  const url=new URL(location.href),view=url.searchParams.get('view');
  if(url.pathname==='/business/daily-promotion-review')return view==='history'?'promotion-history':view==='stage'?'promotion-stage':'promotion-daily';
- if(url.pathname==='/business/non-promotion-review'&&view==='history')return 'nonpromotion-history';
+ if(url.pathname==='/business/non-promotion-review'&&view==='history')return 'nonpromotion-history:'+ (document.querySelector<HTMLElement>('.review-table')?.dataset.mode??url.searchParams.get('mode')??'standard');
  return '';
 };
 function remember(animation:Animation){animations.add(animation);animation.finished.catch(()=>{}).finally(()=>animations.delete(animation));}
 function stop(){generation++;observer?.disconnect();observer=null;waiting.clear();resumeVisible=undefined;for(const animation of animations)animation.cancel();animations.clear();}
 function enter(){
  const view=viewKey(),changed=view!==currentView;currentView=view;
- if(!changed||!view||reduced.matches)return;
+ if(!changed||!view||reduced.matches||seenViews.has(view))return;if(view.startsWith('nonpromotion-history:'))seenViews.add(view);
  const token=++generation;
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   if(token!==generation||reduced.matches||view!==viewKey())return;
-  const lifecycle=view!=='nonpromotion-history';
-  const targets=[...document.querySelectorAll<HTMLElement>(lifecycle?'.promotion-stage-nodes':'[data-nonpromotion-results] [data-result-metric]')];
+  const lifecycle=!view.startsWith('nonpromotion-history:');
+  const targets=[...document.querySelectorAll<HTMLElement>(lifecycle?'.promotion-stage-nodes':'[data-nonpromotion-results] :is([data-result-track],[data-result-line])')];
   const play=(target:HTMLElement)=>{
    if(token!==generation||reduced.matches||view!==viewKey()||!target.isConnected)return;if(document.visibilityState!=='visible'){waiting.add(target);return;}waiting.delete(target);
-   if(!lifecycle){remember(target.animate([{opacity:.45,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:240,easing:'cubic-bezier(.2,.8,.2,1)'}));return;}
+   if(!lifecycle){const frames=target.hasAttribute('data-result-line')?[{strokeDasharray:'1',strokeDashoffset:'1'},{strokeDasharray:'1',strokeDashoffset:'0'}]:[{transform:'scaleX(0)'},{transform:'scaleX(1)'}];remember(target.animate(frames,{duration:360,easing:'cubic-bezier(.2,.8,.2,1)'}));return;}
    const nodes=[...target.querySelectorAll<HTMLElement>('[data-stage-node]')],connectors=[...target.querySelectorAll<HTMLElement>('[data-stage-connector]')];
    const step=nodes.length>1?360/(nodes.length-1):0;
    nodes.forEach((node,index)=>remember(node.animate([{opacity:0,transform:'translateX(-4px)'},{opacity:1,transform:'none'}],{duration:160,delay:index*step,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'})));

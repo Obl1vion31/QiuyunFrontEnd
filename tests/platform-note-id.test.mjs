@@ -12,18 +12,6 @@ test('笔记 ID 归属帖子主体并由数据库保证格式与唯一性', asyn
   assert.match(migration, /CREATE UNIQUE INDEX/);
 });
 
-test('非推广表格使用实验日期、文档链接及共享同类指标单元格', async () => {
-  const page = await read('src/pages/business/non-promotion-review.astro');
-  for (const label of ['实验日期','笔记 ID','帖子','分类','节点','点击率','3 秒阅读率']) assert.match(page, new RegExp(label));
-  assert.match(page, /projectDocUrl/);
-  const cell = await read('src/components/MetricCell.astro');
-  assert.match(page, /<MetricCell/);
-  assert.match(cell, /同类均值/);
-  assert.match(cell, /font-variant-numeric:tabular-nums/);
-  assert.match(page, /<BusinessInspector/);
-  assert.match(page, /focus-visible/);
-});
-
 test('首次录入和统一更正都受服务端约束', async () => {
   const [nonPromotion, awaiting, daily, correction] = await Promise.all([
     read('src/pages/api/non-promotion-reviews.ts'), read('src/pages/api/promotion-awaiting.ts'),

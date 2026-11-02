@@ -226,14 +226,14 @@ try{
  },{campaignId:concurrent.campaign!.id,date:yesterday});assert.deepEqual(concurrentResults.map((result:any)=>result.status),[201,201]);assert.equal(concurrentResults[0].id,concurrentResults[1].id);
  await page.waitForLoadState('networkidle');const concurrentFacts=await fixture.db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,concurrent.campaign!.id));assert.equal(concurrentFacts.length,1);checks.push('concurrent-request-key-retry-produces-one-fact');
 
- // 非推广分类是单层六列，两轮上下排列；切换保留真实明细节点。
- await navigate(non);assert.equal(await page.getByText('分类均值查看',{exact:true}).count(),1);assert.equal(await page.getByText('历史数据总览',{exact:true}).count(),1);assert.equal(await page.locator('select[name=checkpoint]').count(),0);assert.equal(await page.locator('.category-group-head>span').count(),6,'汇总表头保持单层六列');
+ // 非推广分类是单层七列，两轮上下排列；切换保留真实明细节点。
+ await navigate(non);assert.equal(await page.getByText('分类均值查看',{exact:true}).count(),1);assert.equal(await page.getByText('历史数据总览',{exact:true}).count(),1);assert.equal(await page.locator('select[name=checkpoint]').count(),0);assert.equal(await page.locator('.category-group-head>span').count(),7,'汇总表头保持单层七列');
  const category=page.locator('[data-category-group="tmua:innovation"]');assert.match(await category.locator('[data-category-count=day_7]').innerText(),/2/);assert.match(await category.locator('[data-category-count=day_15]').innerText(),/1/);
  await capture('nonpromotion-summary-1440');await category.locator('summary').first().click();assert.equal(await category.locator('[data-row-href]').count(),3);await page.evaluate(()=>{(window as any).__v8OriginalRecord=document.querySelector('[data-category-group="tmua:innovation"] [data-row-href]');});await capture('nonpromotion-details-1440');
  await page.locator('[data-review-display] input[value="0"]').check();assert.equal(await page.evaluate(()=>(window as any).__v8OriginalRecord.isConnected),true);assert.equal(await page.locator('[data-review-body] [data-row-href]').count(),19);await capture('nonpromotion-history-1440');
  await page.locator('[data-review-display] input[value="1"]').check();assert.equal(await page.evaluate(()=>(window as any).__v8OriginalRecord===document.querySelector('[data-category-group="tmua:innovation"] [data-row-href]')),true);
  for(const width of [1920,1280,1024,736,390,320]){await page.setViewportSize({width,height:width<500?844:1000});await navigate(non);await capture(`nonpromotion-summary-${width}`);await assertNoOverflow();}
- checks.push('nonpromotion-six-column-summary, stacked-rounds, full-category-label, local-view-keeps-real-record-nodes');
+ checks.push('nonpromotion-seven-column-summary, stacked-rounds, full-category-label, local-view-keeps-real-record-nodes');
 
  // 真实计算字体和 CDP 实际字形来源。
  await page.setViewportSize({width:1440,height:1000});await navigate(daily);

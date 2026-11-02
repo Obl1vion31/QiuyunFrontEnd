@@ -7,7 +7,10 @@ import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.
 import BusinessToolbarSummary from '../../components/BusinessToolbarSummary.astro';
 import '../../styles/non-promotion-table.css';
 import BusinessReviewDateAdd from '../../components/BusinessReviewDateAdd.astro';
-import MetricCell from '../../components/MetricCell.astro';
+import NonPromotionReviewRow from '../../components/NonPromotionReviewRow.astro';
+import NonPromotionCategoryMetric from '../../components/NonPromotionCategoryMetric.astro';
+import NonPromotionReadingTrend from '../../components/NonPromotionReadingTrend.astro';
+import {reviewModeLabels} from '../../db/non-promotion-nodes';
 import BusinessNonPromotionTableHead from '../../components/BusinessNonPromotionTableHead.astro';
 import {nonPromotionGroupLabel} from '../../db/non-promotion-groups';
 import BusinessInspector from '../../components/BusinessInspector.astro';
@@ -18,9 +21,10 @@ import { shanghaiDateKey } from '../../db/stage-review-rules.mjs';
 
 export const prerender = false;
 const databaseStartedAt=performance.now();
-const {awaitingDates,subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
+const {mode,sampleRows,upcoming,awaitingDates,subjects, checkpointEvents, today, names, loadError, selectedSubject, categoryOptions, selectedCategory, rows, pending, activeView, grouped, viewHref, tableRows, selected, baseHref, categoryGroups, selectedGroup } = await readNonPromotionReview(Astro.url);
 Astro.response.headers.set('Server-Timing',`db;dur=${(performance.now()-databaseStartedAt).toFixed(1)}`);
-const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta=value==null||benchmark==null?null:value-benchmark;return {delta,state:delta==null||Math.abs(delta)<.01?'neutral' as const:delta>0?'positive' as const:'negative' as const};};
+const renderRows=mode==='standard'&&activeView==='history'?[...tableRows,...sampleRows.filter(item=>!tableRows.some(row=>row.key===item.key))]:tableRows;
+const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,items:renderRows.filter(item=>item.row.id===id)}));
 ---
 <!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>非推广复盘 · 内容发布控制台</title><SiteIcons /><BusinessConsoleFonts /></head><body>
 <BusinessConsoleFrame active="non-promotion-review">
@@ -37,51 +41,54 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
     <div class="review-controls">
     <form class="review-filters business-filter" method="get" data-review-filters aria-label="复盘筛选">
       <input type="hidden" name="view" value={activeView}/>
+      <label>复盘方式<select name="mode">{Object.entries(reviewModeLabels).map(([value,label])=><option value={value} selected={mode===value}>{label}</option>)}</select></label>
       <label>学科<select name="subject"><option value="">全部学科</option>{subjects.map(subject=><option value={subject.id} selected={subject.id===selectedSubject}>{subject.name}</option>)}</select></label>
       <label>帖子分类<select name="category" disabled={!selectedSubject}><option value="">{selectedSubject?'全部分类':'请先选择学科'}</option>{categoryOptions.map(category=><option value={category.id} selected={category.id===selectedCategory}>{category.name}</option>)}</select></label>
       {activeView === 'history' && <input type="hidden" name="group" value={grouped?'1':'0'}/>}
-      {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}`}>清除筛选</a>}
+      {(selectedSubject||selectedCategory)&&<a href={`?view=${activeView}&mode=${mode}`}>清除筛选</a>}
     </form>
-    {activeView==='history' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'分类均值查看',value:'1'},{label:'历史数据总览',value:'0'}]} data-review-display/></div>}
+    {activeView==='history' && mode==='standard' && <div class="review-display"><span>展示方式</span><BusinessViewSwitch label="复盘展示方式" name="review-display" value={grouped?'1':'0'} items={[{label:'分类均值查看',value:'1'},{label:'历史数据总览',value:'0'}]} data-review-display/></div>}
     </div>
     <section class="review-workspace" data-inspector-host>
-      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-view={activeView} data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
+      <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-mode={mode} data-view={activeView} data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
         <div data-flat-head hidden={grouped}><BusinessNonPromotionTableHead skipped={activeView==='skipped'}/></div>
         <div data-category-overview hidden={!grouped}>
-          <div class="category-grid category-group-head" aria-hidden="true"><span>帖子分类</span><span>轮次</span><span>样本</span><span>点击率</span><span>3 秒阅读率</span><span>明细</span></div>
+          <div class="category-grid category-group-head" aria-hidden="true"><span>帖子分类</span><span>轮次</span><span>样本</span><span>阅读量均值</span><span>点击率</span><span>3 秒阅读率</span><span>明细</span></div>
           {categoryGroups.map(group=><details class="review-category-group" data-category-details data-category-group={group.key} data-category-label={group.label} open={selectedGroup===group.key}>
-            <summary class="category-grid category-summary-row" data-custom-only={group.rounds.length===0||undefined}><strong class="category-name" title={group.label}>{group.label}</strong>{!group.rounds.length&&<span class="category-custom-note">自定义复盘 · 不计入7／15天均值</span>}{group.rounds.map((round,index)=><><span class="category-round" style={`grid-column:2;grid-row:${index+1}`}>{round.type==='day_7'?'7 天':'15 天'}</span><span class="category-sample" style={`grid-column:3;grid-row:${index+1}`} data-category-count={round.type}>{round.count} 篇</span><strong class="category-rate" style={`grid-column:4;grid-row:${index+1}`} data-category-click={round.type}>{round.click==null?'—':`${round.click.toFixed(2)}%`}</strong><strong class="category-rate" style={`grid-column:5;grid-row:${index+1}`} data-category-read={round.type}>{round.read==null?'—':`${round.read.toFixed(2)}%`}</strong></>)}<span class="category-detail-link"><span class="when-closed">查看</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span></summary>
+            <summary class="category-grid category-summary-row">
+              <span class="category-name" title={group.label}><small>{group.label.includes(' · ')?group.label.split(' · ')[0]:'帖子分类'}</small><strong>{group.label.includes(' · ')?group.label.split(' · ').slice(1).join(' · '):group.label}</strong></span>
+              {group.rounds.map((round,index)=><>
+                <span class="category-round" style={`grid-column:2;grid-row:${index+1}`}>{round.type==='day_7'?'7 天':'15 天'}</span>
+                <span class="category-sample" style={`grid-column:3;grid-row:${index+1}`} data-category-count={round.type}>{round.count} 篇</span>
+                <NonPromotionCategoryMetric field="reading" value={round.reading} count={round.readingCount} total={round.count} round={round.type} column={4} index={index}/>
+                <NonPromotionCategoryMetric field="click" value={round.click} count={round.clickCount} total={round.count} round={round.type} column={5} index={index}/>
+                <NonPromotionCategoryMetric field="read" value={round.read} count={round.readCount} total={round.count} round={round.type} column={6} index={index}/>
+              </>)}
+              <span class="category-detail-link"><span class="when-closed">查看</span><span class="when-open">收起</span><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
+            </summary>
             <div class="category-detail-body" data-disclosure-body><BusinessNonPromotionTableHead/><div data-category-records={group.key}></div></div>
           </details>)}
         </div><div data-review-body hidden={grouped}>
-        {[...new Set(tableRows.map(item=>item.row.id))].map(id=>({id,items:tableRows.filter(item=>item.row.id===id)})).map(group => <div class="review-record-container" role="rowgroup" data-review-group={group.id}>
-        {group.items.map((item) => {
-          const clickValue=item.metric?.clickRate==null?null:Number(item.metric.clickRate);const readValue=item.metric?Number(item.metric.threeSecondReadRate):null;
-          const click=metricPresentation(clickValue,item.click.mean);const read=metricPresentation(readValue,item.read.mean);
-          return <div class:list={['review-row',{selected:selected?.key===item.key}]} role="row" tabindex="0" data-inspector-key={item.key} data-category-key={`${item.row.subjectId}:${item.row.categoryId??'temporary'}`} data-collaboration-observe={`schedule:${item.row.id}:non:${item.checkpoint.type}`} data-schedule-id={item.row.id} data-checkpoint={item.checkpoint.type} data-row-href={viewHref(activeView,item.key)} data-date={shanghaiDateKey(item.row.actualPublishAt)} data-click={clickValue??''} data-read={readValue??''} aria-label={`打开${item.row.contentName}${names[item.checkpoint.type]}复盘`}>
-            <span role="cell" aria-colindex="1" data-review-common data-label="实验日期" class="date-cell" title={`发布日期：${shanghaiDateKey(item.row.actualPublishAt)}；应复盘日期：${item.dueOn}`}>
-              <span class="review-date-range"><time datetime={shanghaiDateKey(item.row.actualPublishAt)} aria-label={`发布日期 ${shanghaiDateKey(item.row.actualPublishAt)}`}>{shanghaiDateKey(item.row.actualPublishAt)}</time><span><span class="review-date-separator" aria-hidden="true">至 </span><time datetime={item.dueOn} aria-label={`应复盘日期 ${item.dueOn}`}>{item.dueOn}</time></span></span>
-            </span>
-            <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class:list={['post-cell',{'review-common-repeat':false}]}  title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
-              <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={'查看详情：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small></span><small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}</small>
-            </span>
-            <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{names[item.checkpoint.type]}</mark></span>
-            {activeView==='skipped'?<span role="cell" aria-colindex="4" class="review-reason" data-label="不复盘原因">{item.event?.reason||'—'}</span>:<><span role="cell" aria-colindex="4" data-label="阅读量" class="review-read-count"><span>阅读量</span><strong>{item.metric?.readCount==null?(item.metric?'未记录':'待录入'):item.metric.readCount.toLocaleString('zh-CN')}</strong></span><span role="cell" aria-colindex="5" data-label="点击率" class="metric"><MetricCell comparable={item.checkpoint.kind!=='custom'} recorded={!!item.metric} value={clickValue} benchmark={item.click.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={click.delta} sampleSize={item.click.count} state={click.state}/></span>
-            <span role="cell" aria-colindex="6" data-label="3 秒阅读率" class="metric"><MetricCell comparable={item.checkpoint.kind!=='custom'} value={readValue} benchmark={item.read.mean} round={activeView==='history'?names[item.checkpoint.type]:undefined} delta={read.delta} sampleSize={item.read.count} state={read.state}/></span>
-            </>}
-             <span role="cell" aria-colindex={activeView==='skipped'?5:7} class="review-action-cell" data-label="操作"><button type="button" class="review-entry-button" data-collaboration-action data-inspector-trigger aria-label={(activeView==='pending'?'点击录入':'查看详情')+'：'+item.row.contentName+' V'+item.row.versionNumber+' '+names[item.checkpoint.type]+'复盘'}>{activeView==='pending'?'点击录入':'查看详情'}</button></span>
-           </div>;
-        })}
-
-        </div>)}
+        {postGroups.map(group => mode==='standard'?<div class="review-record-container" role="rowgroup" data-review-group={group.id}>
+          {group.items.map(item=><NonPromotionReviewRow hidden={!grouped&&item.row.mode!==mode} item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}
+        </div>:<section class="post-result" data-review-group={group.id}>
+          <header class="post-result-heading"><div><h2><button type="button" data-post-open={group.items[0].key}>{group.items[0].row.contentName}</button><small>V{group.items[0].row.versionNumber}</small></h2><p><span>{nonPromotionGroupLabel(group.items[0].row.subjectName,group.items[0].row.categoryName)}</span><span class="post-origin">累计起点 <time>{shanghaiDateKey(group.items[0].row.actualPublishAt)}</time></span></p></div>{mode==='continuous'&&activeView==='history'&&<span class="post-result-tag">最近一次</span>}</header>
+          <div class="post-metric-head" aria-hidden="true"><span>截止节点</span>{activeView==='skipped'?<span>不复盘原因</span>:<><span>阅读量</span><span>点击率</span><span>3 秒阅读率</span></>}<span>操作</span></div>
+          {(mode==='continuous'&&activeView==='history'?group.items.slice(0,1):group.items).map(item=><NonPromotionReviewRow compact item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}
+          {mode==='continuous'&&activeView==='history'&&group.items.length>1&&<details class="post-history" data-review-section data-post-history={group.id} open={group.items.slice(1).some(item=>item.key===selected?.key)}>
+            <summary>往期节点 ({group.items.length-1})<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></summary>
+            <div data-disclosure-body><NonPromotionReadingTrend scheduleId={group.id} points={group.items.map(item=>({key:item.key,through:item.metric!.recordedThrough,value:item.metric?.readCount??null}))}/>{group.items.slice(1).map(item=><NonPromotionReviewRow compact item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}</div>
+          </details>}
+        </section>)}
         </div>
       </div></div>
         {!tableRows.length&&<div class="review-empty"><strong>{activeView==='pending'?'当前没有待复盘节点':activeView==='skipped'?'当前没有跳过的节点':'还没有复盘历史'}</strong></div>}
+      {activeView==='pending'&&upcoming.length>0&&<details class="continuous-awaiting" data-review-section data-upcoming-reviews><summary>未到期与后续节点 ({upcoming.length})</summary><div data-disclosure-body>{upcoming.map(({row,node})=><div class="upcoming-node"><div><strong>{row.contentName}</strong><small>{reviewModeLabels[row.mode]} · 累计 {node.days} 天</small></div><time>{node.dueOn}</time><span>{node.kind==='custom'&&node.dueOn>=today?'截止次日可录入':node.dueOn>today?'尚未到期':'等待前一节点完成'}</span></div>)}</div></details>}
       {activeView==='pending'&&awaitingDates.length>0&&<details class="continuous-awaiting"><summary>持续复盘待安排 ({awaitingDates.length})</summary>{awaitingDates.map(row=><div class="continuous-awaiting-row" data-awaiting-review={row.id}><div><strong>{row.contentName} · V{row.versionNumber}</strong><p data-awaiting-status>持续复盘已启用{row.activatedOn?' · '+row.activatedOn:''} · 未设日期</p><p>累计数据起点 {shanghaiDateKey(row.actualPublishAt)}</p></div><span data-business-popover data-popover-kind="editor"><button type="button" class="review-entry-button" data-popover-trigger>设置日期</button><div popover="auto" class="review-date-popover" data-popover-panel role="dialog" aria-label="设置复盘日期"><BusinessReviewDateAdd scheduleId={row.id} publishedOn={shanghaiDateKey(row.actualPublishAt)} minimum={row.activatedOn??shanghaiDateKey(row.actualPublishAt)}/></div></span></div>)}</details>}
       </div>
 
       <BusinessInspector class="inspector" parameter="row" templates />
-      {tableRows.map(selected => <template data-inspector-template={selected.key}>
+      {renderRows.map(selected => <template data-inspector-template={selected.key}>
         <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 data-inspector-title>{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'} · V{selected.row.versionNumber}</p></div><a href={baseHref} data-close-inspector aria-label="关闭详情">×</a></header>
         <section class="identity-panel review-resources" aria-label="帖子资料">
           <dl>
@@ -137,15 +144,15 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-controls{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:16px 24px;margin-bottom:16px}
 .review-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;min-width:0;margin:0}
 .review-filters>label,.review-display{display:grid;gap:6px;margin:0;color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
-.review-filters select{width:160px;max-width:100%;height:var(--console-control-compact);min-width:0;margin:0;border:1px solid #abb5af;border-radius:var(--console-control-radius);padding:6px 10px;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
-.review-filters label:has(select[name="category"]) select{width:clamp(204px,20vw,280px)}
+.review-filters select{width:132px;max-width:100%;height:var(--console-control-compact);min-width:0;margin:0;border:1px solid #abb5af;border-radius:var(--console-control-radius);padding:6px 10px;color:var(--console-ink);background:#fff;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+.review-filters label:has(select[name="category"]) select{width:clamp(188px,17vw,240px)}
 .review-filters a{display:flex;align-items:center;height:var(--console-control-compact);padding:0 8px;color:var(--console-blue);font-size:var(--console-caption)}
 .review-filters select:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
 .review-workspace{min-height:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
 .review-empty{padding:32px 16px;text-align:center;font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .review-form label{font-size:var(--console-text);line-height:var(--console-text-leading);color:var(--console-ink);font-weight:500}.review-workspace .review-form :is(input,textarea){min-height:var(--console-control-height);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .review-workspace .rate{height:var(--console-control-height)}.review-workspace .rate input{min-height:0;height:calc(var(--console-control-height) - 2px)}.review-workspace .rate b,.review-workspace .review-form>button{font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
-@media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters select,.review-filters label:has(select[name="category"]) select{width:100%}.review-display{width:100%}}
+@media(max-width:700px){.review-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:12px}.review-filters>label{min-width:0}.review-filters>label:has([name=mode]){grid-column:1/-1}.review-filters select,.review-filters label:has(select[name="category"]) select{width:100%}.review-display{width:100%}}
 .review-resources dl{display:grid;gap:10px;margin:0;font:400 13px/20px var(--console-font)}
 .review-resources dl>div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px;align-items:baseline}
 .review-resources dt{color:var(--console-muted)}.review-resources dd{min-width:0;margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
@@ -153,5 +160,5 @@ const metricPresentation=(value:number|null,benchmark:number|null)=>{const delta
 .review-resources .resource-missing{color:var(--console-muted)}
 .review-resources .review-schedule-link{display:inline-block;margin:12px 0 16px;font:400 13px/20px var(--console-font)}
 .review-resources>label{display:block}.review-resources>p{margin-top:6px}
-@media(max-width:480px){.review-filters{grid-template-columns:1fr}.review-controls{gap:16px}.review-display .business-view-switch{max-width:100%}}
+@media(max-width:480px){.review-controls{gap:16px}.review-display .business-view-switch{max-width:100%}}
 </style>

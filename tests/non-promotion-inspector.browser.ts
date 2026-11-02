@@ -133,7 +133,7 @@ try {
     assert.equal(await action.evaluate((n:HTMLElement)=>n===document.activeElement),true,'退出动效完成后关闭返回触发按钮');
     for(const entry of ['title','row','keyboard-button','keyboard-row']) {
       if(entry==='title')await r.locator('.review-title-button').click();
-      else if(entry==='row')await r.locator('[data-label=节点]').click();
+      else if(entry==='row')await r.locator('.date-cell').click();
       else if(entry==='keyboard-button'){await action.focus();await page.keyboard.press('Space');}
       else {await r.focus();await page.keyboard.press('Enter');}
       await pane.waitFor({state:'visible'});await assertIdentity(first.schedule.id);

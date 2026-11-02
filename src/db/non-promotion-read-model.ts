@@ -10,7 +10,7 @@ import {anchorReviewPosts,readReviewPlanning} from './non-promotion-plan';
 import {reviewNodes,reviewNodeWindow,nextEnabledNode,nodeCanRecord,type ReviewNode} from './non-promotion-nodes';
 
 /** SSR/API共用原帖锚点；旧改版事实只保留历史，不重新计入样本。 */
-export async function readNonPromotionReview(url:URL){
+export async function readNonPromotionReview(url:URL,{includeAllModes=false}={}){
  const db=getDb(),{subjects,postCategories,subjectCategoryMappings}=await readTaxonomy(db),today=shanghaiDateKey(new Date());
  const load=async()=>{
   const [schedules,metrics,reviews,checkpointEvents,planning]=await Promise.all([
@@ -38,23 +38,29 @@ export async function readNonPromotionReview(url:URL){
  const rows=anchors.filter(p=>p.reviewActive&&matches(p)).map(p=>buildRow(p));
  const legacy=schedules.filter(p=>(!anchorIds.has(p.id)||anchors.some(a=>a.id===p.id&&!a.reviewActive))&&p.actualPublishAt&&matches(p)&&reviews.some(r=>r.scheduleId===p.id)).map(p=>buildRow({...p,actualPublishAt:p.actualPublishAt!,reviewActive:false,activatedOn:null,latestScheduleId:p.id,mode:'standard' as const,plan:undefined,enabledPlan:{mode:'standard' as const,day7:true,day15:true}},true));
  const pending=rows.flatMap(row=>row.available.map(checkpoint=>({row,checkpoint})));
- const activeView=['history','skipped'].includes(url.searchParams.get('view')??'')?url.searchParams.get('view')!:'pending',selectedRound='',grouped=activeView==='history'&&url.searchParams.get('group')!=='0';
- const viewHref=(view:string,key?:string)=>{const q=new URLSearchParams({view});if(selectedSubject)q.set('subject',selectedSubject);if(selectedCategory)q.set('category',selectedCategory);if(view==='history')q.set('group',grouped?'1':'0');if(key)q.set('row',key);return '?'+q;};
+ const activeView=['history','skipped'].includes(url.searchParams.get('view')??'')?url.searchParams.get('view')!:'pending',selectedRound='';
  const names:Record<string,string>={day_7:'7 天',day_15:'15 天'};
  for(const node of custom)names['custom:'+node.id]='自定义';
- const tableRows=[...rows,...(activeView==='history'?legacy:[])].flatMap(row=>{
-  const visible=activeView==='pending'?row.available:row.checkpoints.filter(n=>(activeView==='history'?row.completed:row.skipped).includes(n.type));
-  return visible.map((checkpoint:ReviewNode)=>{
+ const allItems=[...rows,...legacy].flatMap(row=>{
+  return row.checkpoints.map((checkpoint:ReviewNode)=>{
    const key=`${row.id}:${checkpoint.type}`,metric=metricMap.get(key),window=reviewNodeWindow(row.actualPublishAt,checkpoint,today);
    const peers=checkpoint.kind==='custom'?[]:metrics.filter(m=>anchors.some(p=>p.id===m.scheduleId&&p.reviewActive)&&m.checkpointType===checkpoint.type&&m.subjectId===row.subjectId&&m.categoryId===row.categoryId&&checkpointEvents.get(`${m.scheduleId}:${m.checkpointType}`)?.action!=='skip');
    const storedMetric=metric&&Object.fromEntries(Object.entries(metric).filter(([name])=>!['subjectId','categoryId'].includes(name)));
    return {key,row,checkpoint,window,historical:row.legacy||!!row.activatedOn&&checkpoint.dueOn<row.activatedOn||checkpoint.type==='day_7'&&!row.enabledPlan.day7||checkpoint.type==='day_15'&&!row.enabledPlan.day15||!!metric&&(metric.recordedThrough<window.min||metric.recordedThrough>window.max),fingerprint:nonPromotionFingerprint(storedMetric,reviewMap.get(key),checkpointEvents.get(key)),dueOn:checkpoint.dueOn,metric,review:reviewMap.get(key),event:checkpointEvents.get(key),click:summarizeRates(peers.flatMap(m=>m.clickRate==null?[]:[Number(m.clickRate)])),read:summarizeRates(peers.flatMap(m=>m.threeSecondReadRate==null?[]:[Number(m.threeSecondReadRate)]))};
   });
  });
- const categoryGroups=nonPromotionGroups(tableRows.filter(r=>!r.row.legacy&&r.checkpoint.kind==='standard'));
- // 自定义仍可在分类内查看，但不纳入7/15天样本。
- for(const item of tableRows)if(!categoryGroups.some(g=>g.key===`${item.row.subjectId}:${item.row.categoryId??'temporary'}`))categoryGroups.push({key:`${item.row.subjectId}:${item.row.categoryId??'temporary'}`,label:item.row.subjectName+' · '+(item.row.categoryName??'临时帖'),rounds:[]});
+ const linked=allItems.find(item=>item.key===url.searchParams.get('row'));
+ const requestedMode=url.searchParams.get('mode');
+ const mode=requestedMode==='instant'||requestedMode==='continuous'||requestedMode==='standard'?requestedMode:linked?.row.mode??'standard';
+ const grouped=activeView==='history'&&mode==='standard'&&url.searchParams.get('group')!=='0';
+ const viewHref=(view:string,key?:string)=>{const q=new URLSearchParams({view,mode});if(selectedSubject)q.set('subject',selectedSubject);if(selectedCategory)q.set('category',selectedCategory);if(view==='history')q.set('group',url.searchParams.get('group')==='0'?'0':'1');if(key)q.set('row',key);return '?'+q;};
+ // 分类基准跨复盘方式共享，明细与均值使用完全相同的入样条件。
+ const standardHistory=allItems.filter(item=>!item.row.legacy&&item.checkpoint.kind==='standard'&&item.review&&item.event?.action!=='skip');
+ const categoryGroups=nonPromotionGroups(standardHistory);
+ const visible=allItems.filter(item=>activeView==='history'?!!item.review:!item.row.legacy&&(activeView==='skipped'?item.row.skipped.includes(item.checkpoint.type):item.row.available.some(n=>n.type===item.checkpoint.type)));
+ const tableRows=(grouped&&!includeAllModes?standardHistory:visible.filter(item=>includeAllModes||item.row.mode===mode)).sort((a,b)=>activeView==='pending'?a.dueOn.localeCompare(b.dueOn)||a.key.localeCompare(b.key):b.dueOn.localeCompare(a.dueOn)||a.key.localeCompare(b.key));
  const selectedGroup=categoryGroups.some(g=>g.key===url.searchParams.get('bucket'))?url.searchParams.get('bucket')!:null,selected=tableRows.find(r=>r.key===url.searchParams.get('row')),baseHref=viewHref(activeView);
- const awaitingDates=rows.filter(p=>p.mode==='continuous'&&!p.checkpoints.some(n=>!p.completed.includes(n.type)&&!p.skipped.includes(n.type)));
- return {awaitingDates,checkpointEvents,today,names,loadError,schedules,metrics,reviews,selectedSubject,categoryOptions,selectedCategory,rows,pending,activeView,selectedRound,grouped,viewHref,tableRows,selected,baseHref,categoryGroups,selectedGroup,subjects};
+ const awaitingDates=rows.filter(p=>p.mode==='continuous'&&(includeAllModes||mode==='continuous')&&!p.checkpoints.some(n=>!p.completed.includes(n.type)&&!p.skipped.includes(n.type)));
+ const upcoming=rows.filter(row=>row.mode===mode).flatMap(row=>row.checkpoints.filter(node=>!row.completed.includes(node.type)&&!row.skipped.includes(node.type)&&!row.available.some(n=>n.type===node.type)).map(node=>({row,node}))).sort((a,b)=>a.node.dueOn.localeCompare(b.node.dueOn));
+ return {mode,sampleRows:standardHistory,upcoming,awaitingDates,checkpointEvents,today,names,loadError,schedules,metrics,reviews,selectedSubject,categoryOptions,selectedCategory,rows,pending,activeView,selectedRound,grouped,viewHref,tableRows,selected,baseHref,categoryGroups,selectedGroup,subjects};
 }

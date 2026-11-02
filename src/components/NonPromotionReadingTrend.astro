@@ -1,0 +1,14 @@
+---
+import {readingTrend,type ReadingPoint} from '../db/non-promotion-trend';
+interface Props {scheduleId:string;points:ReadingPoint[]}
+const {scheduleId,points}=Astro.props,trend=readingTrend(points);
+---
+<figure class="reading-trend" data-reading-trend={scheduleId} hidden={!trend.visible} aria-label="同帖累计阅读量随数据截至日期变化">
+ <figcaption><span>累计阅读量</span><span data-trend-maximum>最高 {trend.maximum.toLocaleString('zh-CN')}</span></figcaption>
+ <svg viewBox="0 0 640 152" preserveAspectRatio="none" role="img" aria-label="累计阅读量趋势，完整数值见下方节点记录">
+  <path class="trend-grid" d="M16,20H624 M16,76H624 M16,132H624"/>
+  <g data-trend-lines>{trend.segments.map(d=><path d={d} pathLength="1" data-result-line/>)}</g>
+  <g data-trend-points>{trend.points.filter(point=>point.y!=null).map(point=><path class="trend-point" d={`M${point.x},${point.y}h0.01`}><title>{point.through} · {point.value!.toLocaleString('zh-CN')}</title></path>)}</g>
+ </svg>
+ <div class="trend-dates"><time data-trend-first>{trend.first}</time><time data-trend-last>{trend.last}</time></div>
+</figure>
