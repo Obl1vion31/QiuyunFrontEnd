@@ -1,0 +1,100 @@
+{
+  "screens": 37,
+  "firstPaintScreens": 28,
+  "sheets": [
+    "inspection/desktop-1.png",
+    "inspection/desktop-2.png",
+    "inspection/desktop-3.png",
+    "inspection/desktop-4.png",
+    "inspection/desktop-5.png",
+    "inspection/mobile-1.png",
+    "inspection/mobile-2.png",
+    "inspection/mobile-3.png",
+    "inspection/first-admin-1440.png",
+    "inspection/first-admin-390.png",
+    "inspection/first-employee-1440.png",
+    "inspection/first-employee-390.png"
+  ],
+  "videos": [
+    {
+      "file": "video/guide-1440.webm",
+      "frames": 47,
+      "sheets": [
+        "inspection/video-guide-1440-1.png"
+      ]
+    },
+    {
+      "file": "video/guide-390.webm",
+      "frames": 63,
+      "sheets": [
+        "inspection/video-guide-390-1.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/admin-entry-1440.webm",
+      "frames": 200,
+      "sheets": [
+        "inspection/video-admin-entry-1440-1.png",
+        "inspection/video-admin-entry-1440-2.png",
+        "inspection/video-admin-entry-1440-3.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/admin-slow-1440.webm",
+      "frames": 65,
+      "sheets": [
+        "inspection/video-admin-slow-1440-1.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/admin-entry-390.webm",
+      "frames": 194,
+      "sheets": [
+        "inspection/video-admin-entry-390-1.png",
+        "inspection/video-admin-entry-390-2.png",
+        "inspection/video-admin-entry-390-3.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/admin-slow-390.webm",
+      "frames": 90,
+      "sheets": [
+        "inspection/video-admin-slow-390-1.png",
+        "inspection/video-admin-slow-390-2.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/employee-entry-1440.webm",
+      "frames": 198,
+      "sheets": [
+        "inspection/video-employee-entry-1440-1.png",
+        "inspection/video-employee-entry-1440-2.png",
+        "inspection/video-employee-entry-1440-3.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/employee-slow-1440.webm",
+      "frames": 65,
+      "sheets": [
+        "inspection/video-employee-slow-1440-1.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/employee-entry-390.webm",
+      "frames": 192,
+      "sheets": [
+        "inspection/video-employee-entry-390-1.png",
+        "inspection/video-employee-entry-390-2.png",
+        "inspection/video-employee-entry-390-3.png"
+      ]
+    },
+    {
+      "file": "first-paint/video/employee-slow-390.webm",
+      "frames": 90,
+      "sheets": [
+        "inspection/video-employee-slow-390-1.png",
+        "inspection/video-employee-slow-390-2.png"
+      ]
+    }
+  ]
+}
