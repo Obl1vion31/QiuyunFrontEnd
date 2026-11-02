@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "3a86249529c79f46522ed7222f678c87a2ad059d",
+  "deploymentId": "dpl_AQvXWypJTv2eCEfdTsCpdYiFthUs",
+  "deploymentUrl": "https://qiuyun-frontend-7cgt9o2h3-opgobl1v-5358.vercel.app",
+  "productionUrl": "https://qiuyun-frontend.vercel.app",
+  "productionAliasMatches": true,
+  "readyState": "READY",
+  "checkedAt": "2026-11-02T05:52:53.931877+00:00",
+  "candidateChecks": 10,
+  "productionChecks": 109,
+  "matchingAssets": 79,
+  "compatibleMigration": "0044_hard_molecule_man",
+  "preservedNonTransientTables": 48,
+  "branch": "codex/operation-type-flow",
+  "mainPushed": true,
+  "productionTestBusinessWrites": false
+}

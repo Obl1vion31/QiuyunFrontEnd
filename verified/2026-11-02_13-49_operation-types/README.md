@@ -1,6 +1,6 @@
 # 建帖运营类型与推广后持续复盘
 
-状态：已自检，发布信息见下方。业务操作使用隔离 PGlite／本机 PostgreSQL，截图中的帖子、数据和账号均为测试样本，业务时钟固定在2026-11-24；正式站不写入测试记录。
+状态：已自检、已推送main并发布，待用户反馈。业务操作使用隔离 PGlite／本机 PostgreSQL，截图中的帖子、数据和账号均为测试样本，业务时钟固定在2026-11-24；正式站不写入测试记录。
 
 ## 查看效果
 
@@ -41,4 +41,4 @@
 
 ## 发布
 
-发布核对完成后在此记录正式版本与检查结果。
+应用实现`3a86249`，部署`dpl_AQvXWypJTv2eCEfdTsCpdYiFthUs`，正式入口为[内容工作台](https://qiuyun-frontend.vercel.app)。候选10项、正式109项及79个资源哈希核对通过；正式域名指向本部署且为READY。工作分支`codex/operation-type-flow`与main已同步。详见[发布记录](release.json)、[候选检查](candidate-smoke.json)及[正式检查](public-smoke.json)。
