@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "checkedTables": 51,
+  "oldFactsAndFrozenJsonUnchanged": true,
+  "legacyMetricsKeptNull": 70,
+  "threeSecondRateRequired": true
+}

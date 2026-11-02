@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "targetFingerprint": "e7b250bdfd7108e2",
+  "previousMigration": "0045_stiff_cassandra_nova",
+  "pendingMigration": "0046_fresh_imperial_guard",
+  "newColumnsAbsent": true,
+  "duplicateVersionDates": 0
+}

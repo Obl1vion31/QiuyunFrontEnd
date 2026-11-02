@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "unitRules": 251,
+  "typeCheck": true,
+  "nodeBuild": true,
+  "vercelBuild": true,
+  "dbCheck": true,
+  "isolatedApi": true,
+  "postgresMigration": true,
+  "sharedUi": true,
+  "publication": true,
+  "monthlyWorkflow": true,
+  "nonPromotionInspector": true,
+  "reviewWorkbench": true,
+  "operationTypes": true,
+  "nonPromotionPlans": true,
+  "firstPaintCases": 17,
+  "screenshots": 62,
+  "motionFrames": 364,
+  "runtimeMiSans": true
+}

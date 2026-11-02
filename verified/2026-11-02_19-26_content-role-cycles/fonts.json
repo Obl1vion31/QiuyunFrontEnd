@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "selector": "#guide-types h2",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 9
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "18px",
+        "weight": "600"
+      }
+    },
+    {
+      "selector": "label[for=contentRole]",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "14px",
+        "weight": "500"
+      }
+    },
+    {
+      "control": {
+        "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "14px"
+      }
+    }
+  ]
+}

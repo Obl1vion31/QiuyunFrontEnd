@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "9c6f95a",
+  "implementationCommits": [
+    "06f45a9",
+    "9c6f95a"
+  ],
+  "deploymentId": "dpl_G1FNFSXi7eWgCHDB9B7BJrPevx32",
+  "deploymentUrl": "https://qiuyun-frontend-bep78qn52-opgobl1v-5358.vercel.app",
+  "officialUrl": "https://qiuyun-frontend.vercel.app",
+  "readyState": "READY",
+  "officialResolvedToCandidate": true,
+  "candidateChecks": 14,
+  "publicChecks": 121,
+  "matchingAssets": 86,
+  "runtimePdfBytes": 202613,
+  "migration": "0046_fresh_imperial_guard",
+  "authorizedContentRolesBackfilled": 38,
+  "unresolvedContentRoles": 0,
+  "oldFactsAndFrozenJsonPreserved": true,
+  "privateBackups": true
+}

@@ -1,0 +1,34 @@
+{
+  "screens": 62,
+  "sheets": [
+    "inspection/screens-01.png",
+    "inspection/screens-02.png",
+    "inspection/screens-03.png",
+    "inspection/screens-04.png",
+    "inspection/screens-05.png",
+    "inspection/screens-06.png",
+    "inspection/screens-07.png"
+  ],
+  "videos": [
+    {
+      "file": "video/focused-1440.webm",
+      "frames": 186,
+      "sheets": [
+        "inspection/video-1440-01.png",
+        "inspection/video-1440-02.png",
+        "inspection/video-1440-03.png"
+      ]
+    },
+    {
+      "file": "video/focused-390.webm",
+      "frames": 178,
+      "sheets": [
+        "inspection/video-390-01.png",
+        "inspection/video-390-02.png",
+        "inspection/video-390-03.png"
+      ]
+    }
+  ],
+  "reviewed": true,
+  "sourceCommit": "9c6f95a"
+}
