@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "sourceCommit": "b5bf6ccf5acf97af8ebfdb6582cff176561f07ac",
+  "deploymentId": "dpl_DANTeJtFNn9XDVmxUgLtsm4sAp7L",
+  "deploymentUrl": "https://qiuyun-frontend-2h1ce2b9m-opgobl1v-5358.vercel.app",
+  "productionDomain": "https://qiuyun-frontend.vercel.app",
+  "resolvedFromProductionDomain": true,
+  "readyState": "READY",
+  "migration": "0045_stiff_cassandra_nova",
+  "candidateChecks": 14,
+  "productionChecks": 120,
+  "matchingAssets": 84
+}

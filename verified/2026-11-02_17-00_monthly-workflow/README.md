@@ -37,3 +37,5 @@
 - 发布包私有目录排除及资源核对见[preflight](preflight.json)。生产迁移、部署、正式资源核对结果由本批对应JSON记录。
 
 本批对应`codex/monthly-meeting-flow`实现；应用提交与正式部署记录见根目录handoff的本轮交接。
+
+正式交付：应用`b5bf6cc`，部署`dpl_DANTeJtFNn9XDVmxUgLtsm4sAp7L`已READY并由正式域名解析。候选14项、正式120项及84个资源哈希通过，见[发布记录](release.json)、[正式核对](public-smoke.json)。[迁移保留核对](migration-preservation.json)确认48张非瞬态旧表不变、新增4表为空；[正式只读模型](production-read-model.json)确认没有追造历史计划或人数。

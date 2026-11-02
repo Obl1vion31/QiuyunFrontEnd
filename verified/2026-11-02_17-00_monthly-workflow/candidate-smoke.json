@@ -1,0 +1,78 @@
+{
+  "deployment": "https://qiuyun-frontend-2h1ce2b9m-opgobl1v-5358.vercel.app",
+  "passed": true,
+  "sourceCommit": "b5bf6cc",
+  "checkedAt": "2026-11-02T09:05:03.967Z",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "path": "/api/monthly-plans?month=2026-11",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/monthly-private-data",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/monthly-cost-mapping",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/meeting-reviews/00000000-0000-0000-0000-000000000000/monthly-material",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/non-promotion-checkpoints",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/non-promotion-reviews",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/business/operations-schedule",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "status": 302,
+      "expected": 302
+    },
+    {
+      "path": "/.tools/",
+      "status": 404,
+      "expected": 404
+    }
+  ]
+}
