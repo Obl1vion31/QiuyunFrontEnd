@@ -1,0 +1,34 @@
+{
+  "sourceBase": "29670298e5d61f3950e3f86e0639949b9e78712c",
+  "sourceHashes": {
+    "src/components/MonthlyPlanEditor.tsx": "89a6814fa41dbe36e36cf0fea8161b9417212503ae88c90b5fb0c01b347dd103",
+    "src/components/MonthlyPlanSummary.tsx": "c77006b5c0d9fa9858b308cb890b920398960fde72d426303b1853e5cb19e14b",
+    "src/scripts/business-popover.ts": "aa3e6cbdbbe3bc883f509d7e38dec4932be7de9a53b35b3b4694f0774c694f6a",
+    "src/styles/monthly-meeting.css": "5981c51ef1439105ba73de785ec61cb8f7394a2a1e036b91bff66f05cf1bea23",
+    "tests/README.md": "d03b6f8df5ae0c70d17ae80ad9f366113329afdea8f34aec152c921f6f0137c8",
+    "tests/meeting-display.browser.ts": "5002f6ee34ff0cb435d6b17c78f1b6ed5d819025f73bbcb296340c1d8450ecb9",
+    "tests/monthly-workflow.browser.ts": "d16d4cbaf67b5df18cfd636fdd45111e0310c6ede739508350e116b718a3f368"
+  },
+  "rules": 259,
+  "nodeTypecheck": {
+    "errors": 0,
+    "warnings": 0,
+    "hints": 26
+  },
+  "dbCheck": true,
+  "workflowIntegration": true,
+  "workflowBrowser": true,
+  "meetingDisplay": true,
+  "publicUi": true,
+  "firstPaintCases": 17,
+  "productionBusinessWrites": false,
+  "migrations": false,
+  "viewports": [
+    1920,
+    1440,
+    1024,
+    390,
+    320
+  ],
+  "categorySharePreserved": true
+}

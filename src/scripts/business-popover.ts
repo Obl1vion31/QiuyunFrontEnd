@@ -8,7 +8,8 @@ function initialize(){
   const position=()=>{
     if(!active?.matches(':popover-open')||!trigger)return;
     const anchor=trigger.getBoundingClientRect(),group=trigger.closest<HTMLElement>('[data-business-popover]')!,card=group.dataset.popoverBoundary?trigger.closest(group.dataset.popoverBoundary)?.getBoundingClientRect():null;
-    if(anchor.bottom<0||anchor.top>innerHeight||!trigger.getClientRects().length){active.hidePopover();return;}
+    const scrollBoundary=trigger.closest<HTMLElement>('[data-popover-scroll-boundary]')?.getBoundingClientRect();
+    if(anchor.bottom<0||anchor.top>innerHeight||!trigger.getClientRects().length||scrollBoundary&&(anchor.bottom<=scrollBoundary.top||anchor.top>=scrollBoundary.bottom)){active.hidePopover();return;}
     const info=group.dataset.popoverKind==='reference',menu=group.dataset.popoverKind==='actions';
     const width=Math.min(menu?176:info?Math.min(340,card?card.width-32:340):card?card.width-32:340,innerWidth-24),below=innerHeight-anchor.bottom-20,above=anchor.top-20;
     const up=below<160&&above>below,available=Math.max(0,up?above:below);

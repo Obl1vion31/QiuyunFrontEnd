@@ -221,3 +221,37 @@
 @media(max-width:1100px){.monthly-plan-compact .monthly-planner{grid-template-columns:1fr}.monthly-plan-compact .monthly-plan-pool{order:-1}}
 @media(max-width:650px){.monthly-plan-compact .monthly-planner{gap:12px}.monthly-plan-compact .monthly-week{padding:10px 12px}.monthly-plan-compact .monthly-plan-pool{padding:10px}.monthly-plan-compact .monthly-plan-chip .weekly-detail-trigger{min-height:44px}.monthly-plan-compact .business-post-reference>.business-reference-trigger{width:44px;height:44px;min-height:44px}.monthly-plan-compact .monthly-source-quantity-row{grid-template-columns:minmax(0,1fr) 44px auto}.monthly-plan-compact .monthly-plan-add>.weekly-card-source>.weekly-detail-trigger{min-height:44px}.monthly-plan-compact .monthly-chip-week-choices button{min-height:44px}.business-form.business-form .monthly-chip-quantity input{font-size:16px}}
 @media print{.monthly-plan-step-actions,.monthly-plan-pool{display:none!important}.monthly-plan-compact .monthly-plan-board{display:grid;gap:8px}.monthly-plan-compact .monthly-week{break-inside:avoid;min-height:0;padding:10px}.monthly-plan-compact .monthly-plan-chip>.weekly-card-source{display:block!important}.monthly-plan-compact .monthly-plan-chip .weekly-detail-trigger{color:var(--console-ink);min-height:28px;padding:3px 8px}.monthly-plan-compact .monthly-plan-chip{break-inside:avoid}}
+
+/* Week决定外框尺寸；来源池不参与桌面行高计算。 */
+.monthly-plan-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;min-width:0}
+.monthly-section.monthly-plan-compact .monthly-pool-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;margin:0;padding:6px 8px;border:0;border-radius:6px;background:transparent;color:#46677f;font:500 13px/22px var(--console-font);white-space:nowrap}
+.monthly-section.monthly-plan-compact .monthly-pool-toggle:hover{background:#edf3f6;color:var(--console-blue)}
+.monthly-pool-toggle svg{flex:none}
+.monthly-plan-compact .monthly-planner[data-pool-open=false]{grid-template-columns:minmax(0,1fr)}
+.monthly-pool-shell{position:relative;min-width:0;min-height:0;align-self:stretch}
+.monthly-pool-shell[hidden]{display:none}
+.monthly-pool-shell>.monthly-plan-pool{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0;margin:0}
+.monthly-pool-shell>.monthly-plan-pool>header{flex:none}
+.monthly-pool-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#b6c6cd transparent;padding-right:4px}
+.monthly-plan-compact .monthly-plan-add{flex:none}
+.monthly-pool-carries:has(+.monthly-pool-subject){margin-bottom:14px}
+.monthly-plan-compact .monthly-plan-kind{display:inline-block;flex:none;padding:0 5px;border-radius:4px;background:#e5edf4;color:#3f607e;font:500 12px/20px var(--console-font);white-space:nowrap}
+.monthly-plan-compact .monthly-plan-kind[data-kind=carry]{background:#fff1d4;color:#815714}
+.monthly-plan-compact .monthly-chip-name,.monthly-source-quantity-row>strong{display:flex;align-items:baseline;gap:6px;min-width:0}
+.monthly-chip-title{min-width:0;overflow-wrap:anywhere}
+.monthly-plan-compact .monthly-source-quantity-row>strong>span:last-child{min-width:0}
+.monthly-carry-choices{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--console-line)}
+.monthly-carry-choices>h4{margin:0 0 6px;font:500 13px/22px var(--console-font)}
+.monthly-carry-option{display:grid;grid-template-columns:minmax(0,1fr) 24px;gap:6px;align-items:center;padding:5px 0}
+.business-form.business-form .monthly-carry-option>label{display:flex;align-items:baseline;gap:6px;margin:0;font:500 13px/22px var(--console-font);min-width:0;cursor:pointer}
+.business-form.business-form .monthly-carry-option input{flex:none;align-self:center;width:16px;height:16px;min-height:16px;margin:0}
+.monthly-carry-option>label>span:last-child{min-width:0;overflow-wrap:anywhere}
+@media(max-width:1100px){
+ .monthly-pool-shell{order:-1;height:min(var(--monthly-board-height,320px),50svh)}
+}
+@media(max-width:650px){
+ .monthly-section.monthly-plan-compact .monthly-pool-toggle{min-height:44px}
+ .monthly-carry-option{grid-template-columns:minmax(0,1fr) 44px;min-height:44px}
+ .business-form.business-form .monthly-carry-option>label{min-height:44px;align-items:center}
+}
+@media print{.monthly-pool-toggle,.monthly-pool-shell{display:none!important}}
