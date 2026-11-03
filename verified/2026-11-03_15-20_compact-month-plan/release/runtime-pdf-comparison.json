@@ -1,0 +1,51 @@
+{
+  "pages": 9,
+  "allPagesMatch": true,
+  "details": [
+    {
+      "pdf": "monthly",
+      "page": 1,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "monthly",
+      "page": 2,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "monthly",
+      "page": 3,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "monthly",
+      "page": 4,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "monthly",
+      "page": 5,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "monthly",
+      "page": 6,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "weekly",
+      "page": 1,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "weekly",
+      "page": 2,
+      "matchesNodeRender": true
+    },
+    {
+      "pdf": "weekly",
+      "page": 3,
+      "matchesNodeRender": true
+    }
+  ]
+}

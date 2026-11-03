@@ -1,8 +1,8 @@
 # 空跑来源精简与月计划轻量分周板
 
-状态：**已完成功能与视觉自检，待本轮视觉反馈，尚未发布。** 图片为实际运行页面和隔离 PGlite 测试数据，不代表正式业绩；未上传私有预览页。
+状态：**用户已确认发布，正式站已上线并核对。** 图片为实际运行页面和隔离 PGlite 测试数据，不代表正式业绩；未上传私有预览页。
 
-分支 `codex/meeting-visual-samples`，基线 `0ec7d81`；[源码指纹](checks/source-manifest.json)对应本批实现，仓库其他未提交工作保留。
+实施分支 `codex/meeting-visual-samples`，基线 `0ec7d81`；[实施阶段指纹](checks/source-manifest.json)保留原验收来源。发布分支 `codex/meeting-compact-release` 合并远端更新后已同步 main，正式功能版本 `593b8ad`；仓库其他未提交工作保留。
 
 ## 直接查看
 
@@ -44,3 +44,11 @@
 - 类型检查与构建：0 错误、0 警告，保留原有 25 条提示。本批没有接口或数据库结构变更。
 
 日志保留在 [checks](checks/)。复现沿用仓库 Node 22、`.tools/browsers`，分别运行 `pnpm test:monthly-workflow`、`node --import tsx tests/meeting-display.browser.ts`、`pnpm test:ui`、`pnpm test:first-paint` 及 `pnpm build`；原始浏览器产物位于 `.tools/test-artifacts/compact-plan-{flow,display,first-paint}/`。
+
+## 发布核对
+
+正式域名指向 READY 部署 `dpl_Bt8x8uWz7D4vKD6dHxuBerakpEaH`，功能版本 `593b8ad`。候选14项、正式122项访问及87个资源哈希核对通过；[发布记录](release/release.json)、[正式检查](release/public-smoke.json)。没有数据库迁移或生产业务写入。
+
+合并保留使用指南和每周持续复盘更新后，重新运行规则、结构、类型／构建、月计划、例会展示／PDF、公共UI、17个首屏及PostgreSQL并发。发布检查捕获并修正通用反馈把自动保存误关联到拖拽卡片的问题，原布局和业务流程保持；[慢保存时卡片](release/plan-background-save-1440.png)、[补充操作录像](release/plan-save-feedback.mp4)及51个连续采样帧已实际审查。
+
+正式运行包的React、Chromium压缩文件、内联中文字体及PDF打印通过，9页与本机渲染逐页像素一致并已查看；[运行包核对](release/runtime-bundle.json)、[逐页比较](release/runtime-pdf-comparison.json)、[合并验证与源码哈希](release/validation.json)。完整日志位于同目录。
