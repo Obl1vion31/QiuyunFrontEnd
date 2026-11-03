@@ -24,4 +24,4 @@ Week默认铺满，长箭头打开内容池；桌面右池随Week高度内部滚
 - 五档分别核对收起铺满、右池不撑高Week、窄屏高度上限、滚动保留与气泡清理；完整周／月会、公共UI及17个首屏场景通过。恢复分类占比后重新运行完整例会与月计划链路。
 - [源码与检查清单](validation/source-and-checks.json)、[月计划结果](validation/workflow-browser.json)、[例会结果](validation/display.json)保存实际结果。原始故障排查留在.tools，未混入最终截图。
 
-发布打包及正式域名核对进行中；发布结果将写入本批release目录。
+已发布并推送main。正式122项及87个资源哈希通过，部署READY并核对正式域名；[发布记录](release/README.md)。本批60张稳定截图、两段操作录像和16页PDF渲染已实际自检。

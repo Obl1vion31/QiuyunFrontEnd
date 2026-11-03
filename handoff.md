@@ -2,11 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 月计划折叠内容池与遗留入口（自检通过，2026-11-03）
+## 月计划折叠内容池与遗留入口（已发布，2026-11-03）
 
 - Week默认铺满，箭头展开右池；高度由Week决定，池内滚动，窄屏限高。上月未登记直接列在数量区顶部，显式勾选才计数，新／遗留为独立标记；保留原名额、关联、审批及锁定。阶段切换／折叠关闭资料气泡，滚出池清理气泡。
 - 帖子分类名称、占比及条形沿原实现保留，包括单分类100%。259项规则、schema、类型检查构建、月计划隔离接口／浏览器、例会／PDF、公共UI和17个首屏场景通过；五档截图与操作录像已实查：[验收索引](verified/2026-11-03_22-08_folded-month-plan/README.md)。无迁移或生产业务写入。
-- 在隔离发布工作树.tools/releases/meeting-compact-20261103、分支codex/month-plan-folded-pool完成，原工作区未提交修改保持。发布核对进行中。
+- 在隔离发布工作树.tools/releases/meeting-compact-20261103、分支codex/month-plan-folded-pool完成，原工作区未提交修改保持。应用967e7e2，正式部署dpl_GLajwf9Mv5HaE9AnQCQ7DZxctuwS为READY并核对域名；候选14项、正式122项和87资源哈希通过，分支与main已同步。
 
 ## 空跑来源精简与月计划轻量分周板（已发布，2026-11-03）
 

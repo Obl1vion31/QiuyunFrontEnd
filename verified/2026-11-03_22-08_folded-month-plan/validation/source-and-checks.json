@@ -30,5 +30,10 @@
     390,
     320
   ],
-  "categorySharePreserved": true
+  "categorySharePreserved": true,
+  "applicationCommit": "967e7e28b445302384bac91ecb1c03b2a1d3ec8b",
+  "finalScreenshots": 60,
+  "reviewedVideoFrames": 35,
+  "reviewedPdfPages": 16,
+  "selfReviewed": true
 }
