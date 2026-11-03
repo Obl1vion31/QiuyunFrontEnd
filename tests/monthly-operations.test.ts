@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {buildMonthlyOperations,monthlyQuery} from '../src/db/monthly-operations';
+import {buildMonthlyOperations,buildMonthlyWasteHistory,monthlyQuery} from '../src/db/monthly-operations';
 const now=new Date('2026-10-30T12:00:00+08:00'),query={month:'2026-10',subject:'',category:''};
 const post=(id:string,planned='2026-10-01T10:00:00+08:00',actual:string|null=null,extra={})=>({id,contentId:id,contentName:id,versionNumber:0,subjectId:'tmua',subjectName:'TMUA',categoryId:'temporary',categoryName:'临时帖',plannedPublishAt:new Date(planned),actualPublishAt:actual?new Date(actual):null,planRevision:1,isPromoted:false,promotionStatus:'none',...extra});
 const campaign=(id:string,scheduleId=id,extra={})=>({id,scheduleId,startedOn:'2026-10-01',dailyReviewEnabledOn:'2026-10-01',endedOn:null,initialStage:'testing',currentStage:'testing',currentStatus:'testing',...extra});
@@ -66,4 +66,14 @@ test('真实零值与缺失不同，分类筛选不混入别的学科',()=>{
  const zero=source([post('z'),post('other',undefined,null,{subjectId:'step',subjectName:'STEP'})],[campaign('z'),campaign('other')],[fact('z','z','2026-10-01','0',{actualOpenCount:0,actualLeadCount:0}),fact('o','other','2026-10-01','100')]);
  const data=buildMonthlyOperations(zero,{...query,subject:'tmua'},now);assert.equal(data.spend.spend,0);assert.equal(data.spend.actualOpenCost,null);assert.equal(data.publication.planned,1);assert.equal(data.missingRows[0].dates.includes('2026-10-02'),true);
  const empty=buildMonthlyOperations(source(),query,now);assert.equal(empty.spend.spend,null);assert.equal(empty.spend.wasted,null);assert.equal(empty.publication.planned,0);
+});
+
+
+test('五个月空跑按真实消耗归月，复用失败判定；缺月和真实零分开',()=>{
+ const campaigns=[campaign('failed','failed',{startedOn:'2026-09-28',endedOn:'2026-10-01',currentStatus:'test_discarded',currentStage:null}),campaign('zero','zero',{startedOn:'2026-07-01',endedOn:'2026-07-01',initialStage:'scaling',currentStage:null,currentStatus:'ended'})];
+ const metrics=[fact('sep','failed','2026-09-30','80',{sourceStageStartedOn:'2026-09-28'}),fact('oct','failed','2026-10-01','100',{sourceStageStartedOn:'2026-09-28',reviewDecision:'test_discarded'}),fact('residual','failed','2026-10-02','20',{sourceStageStartedOn:'2026-09-28',recordKind:'test_residual'}),fact('zero','zero','2026-07-01','0',{sourceStageStartedOn:'2026-07-01',stageTypeSnapshot:'scaling',actualOpenCount:0,actualLeadCount:0,reviewDecision:'ended'})];
+ const input=source([post('failed'),post('zero')],campaigns,metrics);
+ const history=buildMonthlyWasteHistory(input,query,new Date('2026-11-03T12:00:00+08:00'));
+ assert.deepEqual(history.map(p=>[p.month,p.spend]),[['2026-06',null],['2026-07',0],['2026-08',null],['2026-09',80],['2026-10',120]]);
+ assert.deepEqual(history[3].sourceKeys,history[4].sourceKeys);assert.equal(history[4].through,'2026-10-31');assert.equal(history[0].from,'2026-06-01');
 });

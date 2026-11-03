@@ -1,0 +1,68 @@
+{
+  "screenshots": {
+    "flow-": 40,
+    "display": 47
+  },
+  "videos": [
+    {
+      "name": "plan-flow",
+      "source": ".tools/test-artifacts/compact-plan-flow/video/desktop.webm",
+      "from": 7.349,
+      "through": 14.807,
+      "duration": 8.88,
+      "fps": 4,
+      "frames": 36
+    },
+    {
+      "name": "plan-touch",
+      "source": ".tools/test-artifacts/compact-plan-flow/video/plan-touch.webm",
+      "from": null,
+      "through": null,
+      "duration": 2.68,
+      "fps": 4,
+      "frames": 11
+    },
+    {
+      "name": "waste-info-sheet",
+      "source": ".tools/test-artifacts/compact-plan-display/video/page@5cb581fd19b56b9b777abb749a1cd4c5.webm",
+      "from": 24.008,
+      "through": 32.556,
+      "duration": 9.92,
+      "fps": 4,
+      "frames": 40
+    }
+  ],
+  "pdfs": [
+    {
+      "name": "monthly",
+      "pages": 6,
+      "links": [
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/000000000000000000000008",
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/000000000000000000000006",
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/000000000000000000000009",
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/00000000000000000000000a",
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/00000000000000000000000b",
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/00000000000000000000000c"
+      ]
+    },
+    {
+      "name": "weekly",
+      "pages": 3,
+      "links": []
+    },
+    {
+      "name": "monthly-plan-flow",
+      "pages": 5,
+      "links": [
+        "https://example.test/project",
+        "https://www.xiaohongshu.com/explore/aaaaaaaaaaaaaaaaaaaaaaaa"
+      ]
+    }
+  ]
+}

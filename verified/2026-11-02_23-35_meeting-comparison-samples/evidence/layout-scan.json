@@ -1,0 +1,10 @@
+{
+  "command": "impeccable detect --json --scope layout",
+  "targets": [
+    "src/components/WeeklyReviewCards.tsx",
+    "src/components/MonthlyCoreResults.tsx",
+    "src/components/BusinessMonthlyOperations.tsx"
+  ],
+  "findings": [],
+  "review": "结构扫描仅辅助；最终层级、间距和文字比较另以实际截图及录像审查。"
+}

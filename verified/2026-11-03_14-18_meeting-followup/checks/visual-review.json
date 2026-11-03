@@ -1,0 +1,33 @@
+{
+  "status": "self_reviewed_awaiting_user_feedback",
+  "viewportWidths": [
+    1920,
+    1440,
+    1024,
+    390,
+    320
+  ],
+  "screenshots": 181,
+  "pdfPages": {
+    "weekly": 3,
+    "monthly": 8
+  },
+  "videoContactSheets": 44,
+  "videoSampling": "all six full durations, 2fps for long clips and 4fps for short clips",
+  "primaryReviewed": [
+    "weekly-final-full-1440.png",
+    "weekly-final-full-1024.png",
+    "monthly-final-full-1440.png",
+    "monthly-full-1920.png",
+    "weekly-promotion-1920.png",
+    "weekly-promotion-320.png",
+    "monthly-section-execution-320.png",
+    "monthly-section-waste-390.png",
+    "flow-plan-partial-1920.png",
+    "flow-plan-partial-1440.png",
+    "flow-plan-partial-390.png",
+    "flow-plan-partial-320.png"
+  ],
+  "data": "isolated PGlite fixtures; not production outcomes",
+  "productionReleased": false
+}

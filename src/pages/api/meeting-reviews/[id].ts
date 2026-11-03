@@ -76,7 +76,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if([6,7].includes(draft.workflowVersion??0))draft.hasRevisionDraft=(payload.action==='save_version_draft')&&meeting.status==='completed';
       if([6,7].includes(meeting.draftSnapshot.workflowVersion??0)&&![6,7].includes(draft.workflowVersion??0))throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
       if (payload.expectedUpdatedAt && payload.expectedUpdatedAt !== meeting.updatedAt.toISOString()) throw new WorkflowError('会议已被更新，请刷新后再保存。');
-      for (const id of [...new Set(draft.nonPromotionSelections.map(item => item.scheduleId))].sort()) await lockSchedule(transaction, id);
+      for (const id of [...new Set((draft.monthlySchemaVersion?[]:draft.nonPromotionSelections).map(item => item.scheduleId))].sort()) await lockSchedule(transaction, id);
       if((meeting.draftSnapshot.schemaVersion===4)!==(draft.schemaVersion===4))throw new WorkflowError('请使用此会议对应版本的编辑器。',422);
       const v4=draft.schemaVersion===4;
       if(v4&&!payload.expectedUpdatedAt)throw new WorkflowError('缺少会议版本，请刷新后再保存。',422);
@@ -100,12 +100,12 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');
        material=await readWeeklyDraftStates(transaction,material);
        draft.promotionInputs=reconcileClickRateRanges(draft.promotionInputs,cached?.promotions??material.promotions,material.promotions,meeting.draftSnapshot.promotionInputs);
-       if((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType)))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
+       if(material.monthly?.layoutVersion!==2&&((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType))))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
        if([6,7].includes(draft.workflowVersion??0))draft.nonPromotionSelections=meetingNonPromotionSelections(material,draft.nonPromotionSelections);
        if(finalizing&&draft.nonPromotionInputs)draft.nonPromotionInputs=Object.fromEntries(Object.entries(draft.nonPromotionInputs).map(([key,input])=>{const {platformNoteId:_id,...rest}=input;return [key,rest]}));
        const common=await assembleMeetingSnapshot(transaction,target,{...draft,nonPromotionSelections:[],promotionSnapshotIds:[]});
        draft.materialSnapshot=material as unknown as Record<string,unknown>;
-       snapshot={schemaVersion:4,meeting:common.meeting,draft,generated:{...selectWeeklyMaterial(material,draft.promotionSelections??[],draft.nonPromotionSelections),summary:material.summary,...(draft.monthlyPlanReference?{monthlyPlanExecution:await readReferencedMonthlyPlan(transaction,draft.monthlyPlanReference)}:{}),...(material.monthly?{monthly:material.monthly}:{}),attachments:common.generated.attachments}};
+       snapshot={schemaVersion:4,meeting:common.meeting,draft,generated:{...(material.monthly?.layoutVersion===2?{promotions:[],nonPromotions:[]}:selectWeeklyMaterial(material,draft.promotionSelections??[],draft.nonPromotionSelections)),summary:material.summary,...(material.reportMetrics?{reportMetrics:material.reportMetrics}:{}),...(draft.monthlyPlanReference?{monthlyPlanExecution:await readReferencedMonthlyPlan(transaction,draft.monthlyPlanReference)}:{}),...(material.monthly?{monthly:material.monthly}:{}),attachments:common.generated.attachments}};
        if(finalizing)(snapshot.generated as any)=freezeRateComparisons(snapshot.generated as any,draft);
        }
        if(stage){

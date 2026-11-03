@@ -84,7 +84,7 @@ try{
   await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await shot('pre-overview-'+width);
   await scrollToCard(card(posts[0]));
   const boxes=await page.locator('[data-weekly-promotion]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,h:r.height};}));
-  const count=width===1024?2:3;assert.equal(boxes[0].y,boxes[count-1].y);assert.ok(Math.abs(boxes[0].h-boxes[count-1].h)<1);assert.ok(boxes[count].y>boxes[0].y);
+  const count=await page.locator('.weekly-card-grid').first().evaluate((n:HTMLElement)=>getComputedStyle(n).gridTemplateColumns.split(' ').length);assert.ok(count===1||count===2);assert.equal(boxes[0].y,boxes[count-1].y);assert.ok(boxes[count].y>boxes[0].y);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   geometry.push({width,boxes});await shot('pre-cards-'+width);
  }

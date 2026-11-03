@@ -1,0 +1,18 @@
+{
+  "baseline": "0ec7d8102701aca305602a0070a4b44bd4d2a034",
+  "branch": "codex/meeting-visual-samples",
+  "source_sha256": {
+    "src/components/WeeklyReviewCards.tsx": "0b09851d422895e8bd07543a009e6d5fc7fc3f1d112e338ab6fd79e4c2bf9a6e",
+    "src/components/MonthlyCoreResults.tsx": "76e0e935938e29e42fee2691b58530be093d83321a185ab887c1745e6747605c",
+    "src/components/BusinessMonthlyOperations.tsx": "d8da2ff92fbc330f3593a22c4582bed3212243547a5b033a8f1c3fcb043f7eb6",
+    "src/styles/meeting-weekly.css": "c16c7f2cffa309a65194aab2062543ea9e61633b80b00e90e01fb6be600a3989",
+    "src/styles/monthly-meeting.css": "0373ba659a5a36d3b4191ce75a5c90d8be48b7670b61514a409fcbf6556b2519",
+    "tests/meeting-display.browser.ts": "db6ece30fe071250c8ce3f86e8780f5f59d777cea67d0e57be466786f0fc1c82",
+    "AGENTS.md": "19b6a8e9e7a5d91079210abe53c27766cb5df940ba0e5bc4643525962bcd0287",
+    "docs/DESIGN.md": "2caf92d6811310eeff92afa35f299a86431068b44b1b704bc589d539e727b2f6",
+    "docs/code-study.md": "b4e86cf587a9ded6feff4711e9073481265fa01461f46c7fad9d9b3dbf160bc2",
+    "tests/README.md": "49496b8b049bdec48157017082b213e18a5a50ddbe79a5db8d166336e9b76827"
+  },
+  "screenshots": 39,
+  "status": "sample-self-reviewed-pending-user-direction-unpublished"
+}

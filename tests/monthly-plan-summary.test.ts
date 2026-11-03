@@ -1,0 +1,19 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import MonthlyPlanSummary from '../src/components/MonthlyPlanSummary';
+import type {PlanContent} from '../src/db/monthly-plan-types';
+
+const content:PlanContent={groups:[{id:'g',annualPlanId:null,annualVersion:null,name:'TMUA 案例',subjectId:'tmua',categoryId:'success-story',quantity:3,note:'',reason:''}],items:[{id:'one',groupId:'g',week:1,kind:'carry',scheduleId:'old'},{id:'two',groupId:'g',week:1,kind:'existing',scheduleId:'future'},{id:'three',groupId:'g',week:2,kind:'new',scheduleId:null}]};
+test('周次汇总使用真实登记，不将未来登记算未登记，遗留仍包含在总数中',()=>{
+ const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content,candidates:[{id:'old',name:'遗留原帖',plannedAt:'2026-10-28T02:00:00Z',actualAt:null},{id:'future',name:'已登记原帖',plannedAt:'2026-11-05T02:00:00Z',actualAt:'2026-11-05T02:00:00Z'}]}));
+ assert.match(html,/Week 1/);assert.match(html,/计划 <b>2<\/b> 篇/);assert.match(html,/未登记 <b>1<\/b> 篇/);assert.match(html,/上月遗留/);assert.match(html,/2026-11-01—2026-11-07/);assert.match(html,/查看详情/);assert.doesNotMatch(html,/负责人/);
+});
+test('旧材料缺少已关联排期状态时保持未知，不伪造未登记数',()=>{
+ const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content}));assert.match(html,/未登记 <b>—<\/b> 篇/);assert.match(html,/>未记录<\/td>/);
+});
+test('同名不同规划组不合并，未分周名额有独立入口',()=>{
+ const next:PlanContent={groups:[...content.groups,{...content.groups[0],id:'other'}],items:[...content.items,{...content.items[2],id:'four',groupId:'other',week:null}]};
+ const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content:next}));assert.equal((html.match(/data-plan-project=/g)||[]).length,3);assert.match(html,/>待分配<\/h3>/);
+});

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "reports-desktop",
+    "source": ".tools/test-artifacts/meeting-report-final/video/page@50fafa3c7648c83ffae1ac8684a803b6.webm",
+    "duration": 120.44
+  },
+  {
+    "name": "meetings-mobile",
+    "source": ".tools/test-artifacts/meeting-report-final/video/mobile/page@36a4f456aadef3c97bd366c7175e25e8.webm",
+    "duration": 3.84
+  },
+  {
+    "name": "month-change-desktop",
+    "source": ".tools/test-artifacts/meeting-report-final/video/monthly-1440/page@34f70f6cc97dcae37e8ff17f4de7cbac.webm",
+    "duration": 20.44
+  },
+  {
+    "name": "month-change-mobile",
+    "source": ".tools/test-artifacts/meeting-report-final/video/monthly-390/page@c65dafeb0b025ac73cf8cf6b26200bfc.webm",
+    "duration": 19.52
+  },
+  {
+    "name": "plan-flow-desktop",
+    "source": ".tools/test-artifacts/monthly-report-flow/video/desktop.webm",
+    "duration": 52.12
+  },
+  {
+    "name": "plan-flow-mobile",
+    "source": ".tools/test-artifacts/monthly-report-flow/video/mobile.webm",
+    "duration": 2.6
+  }
+]

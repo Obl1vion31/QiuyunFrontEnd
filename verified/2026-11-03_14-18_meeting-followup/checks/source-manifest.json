@@ -1,0 +1,1909 @@
+{
+  "head": "0ec7d8102701aca305602a0070a4b44bd4d2a034",
+  "files": [
+    {
+      "path": "src/README.md",
+      "sha256": "73f55d8ee5dd7e15a4f8515691daa36e1aa26782020196d4e076283622ef26f3"
+    },
+    {
+      "path": "src/auth/README.md",
+      "sha256": "4a4f2f9ec8457e475446bfee30eba00410d50b5d7c435861cbad6e62eed43bcd"
+    },
+    {
+      "path": "src/auth/auth.ts",
+      "sha256": "b4a95a31506b806131fe079c570d46b21022cf84cd7e91e589e62cd52db1118c"
+    },
+    {
+      "path": "src/auth/business-capabilities.ts",
+      "sha256": "d97fd7e73d05c440ff3afa6bbd12e052d69f3c4c334839b5cb726f182e03ace1"
+    },
+    {
+      "path": "src/auth/business-permissions.ts",
+      "sha256": "f0426b8a6a71b4e476353f2eb759a1b7ff43a04280ea40914565c1c7e2360064"
+    },
+    {
+      "path": "src/auth/client.ts",
+      "sha256": "592006394afb28ddd44c6aa6296ddd1d1a54b9e60227b4e6c69a241261a8821f"
+    },
+    {
+      "path": "src/auth/identifiers.ts",
+      "sha256": "8951518216cce7e21326f55dc685b2688b4b3d9f4b7d6346dbb0c8ecb75ef2e5"
+    },
+    {
+      "path": "src/auth/permissions.ts",
+      "sha256": "e172be954cf689a668104f72f21529e7c84ca1642268d95ec0c77d6587de9a05"
+    },
+    {
+      "path": "src/auth/provision.ts",
+      "sha256": "a9c165c8aac1aa1bbcc08bce3df7c1a2ec2d501d1bf5da3b9c2c34ec56acb190"
+    },
+    {
+      "path": "src/components/BusinessAccountManagement.astro",
+      "sha256": "bb3e154bf21b472aba0ef27d60074a2407d4c70b4e188680a862e7d6f06e9c4f"
+    },
+    {
+      "path": "src/components/BusinessAccountMenu.astro",
+      "sha256": "e19d13e680bdc5b2eb1eb0187e4367c0886cb5488fa9f0156f9ef1362f3f1388"
+    },
+    {
+      "path": "src/components/BusinessAccountRow.astro",
+      "sha256": "7f1502eb3d813cdecad8dfa81c80a5f42b93ddc52644a44a7228289c00171176"
+    },
+    {
+      "path": "src/components/BusinessAssistantEntry.astro",
+      "sha256": "6e48c86fe35911b65cf687f3a63751a341af4b92d8927e0e8cd7eabbadffda80"
+    },
+    {
+      "path": "src/components/BusinessChangeDiff.astro",
+      "sha256": "f44f1d8da8afc68c07cd8af4c8253c046f2dc90608c9eba41eac9462a0bafe7d"
+    },
+    {
+      "path": "src/components/BusinessConsoleFonts.astro",
+      "sha256": "29d70fe9f0f8a940bf02e0a3ca3fb660a6b23305264b7ffb99acef443360aaa4"
+    },
+    {
+      "path": "src/components/BusinessConsoleFrame.astro",
+      "sha256": "f0229c6f584315a6f49680c0ffb71118521e96d7bc1d24cec097c707cd2b89d6"
+    },
+    {
+      "path": "src/components/BusinessConsoleSidebar.astro",
+      "sha256": "a33ec5501adf7d3bef71181a25b6d3cf981e7b9592348e727a264f164a4e5cc4"
+    },
+    {
+      "path": "src/components/BusinessConsoleToolbar.astro",
+      "sha256": "7881e2d1cd271a4bc3132f4ba80c0d0e94d2d6c10ae1c3fd58948c5740056096"
+    },
+    {
+      "path": "src/components/BusinessContentRoleFields.astro",
+      "sha256": "55b9183e2736dfabc31a12a0a49e39295687229de63d404e02de0a918efa64e1"
+    },
+    {
+      "path": "src/components/BusinessDateTimeFields.astro",
+      "sha256": "c98d35fb699676c23d3b9b8b52fcf1a8bb57129c339b0c082b9c137a71cd88bd"
+    },
+    {
+      "path": "src/components/BusinessFormDialog.astro",
+      "sha256": "f56e5de021c3b9cd61d62d637ef886cf543fc459949d0901d8224db50034e5a3"
+    },
+    {
+      "path": "src/components/BusinessFormSheet.astro",
+      "sha256": "d962484335b23701d33594f6583fa8660e6032d4bec8554b5b41573d12a758c4"
+    },
+    {
+      "path": "src/components/BusinessInspector.astro",
+      "sha256": "546bbcbe764c8ec71ebf5fd353babdd34b970ee6f5dbdbe6434c5f8723811141"
+    },
+    {
+      "path": "src/components/BusinessMeetingDiscussion.tsx",
+      "sha256": "fb0d19b072a55db5e2e26824f55f407ef4a5e7670697c3e0cc431e7bac0efb43"
+    },
+    {
+      "path": "src/components/BusinessMeetingRecord.astro",
+      "sha256": "0bf3609413dbc4e634d0fd071dcb343fb387a55c215aa287393d027982463194"
+    },
+    {
+      "path": "src/components/BusinessMeetingSnapshot.astro",
+      "sha256": "d4395fe0ed8eaf6cef4caf81eaf72a97035a61f2bc63f4458f33b65c82fa193e"
+    },
+    {
+      "path": "src/components/BusinessMonthlyOperations.module.css",
+      "sha256": "1cb506d9390e5ce3d3952cb91cd40552fb07a5d9e51a3cd05cbe31a5c669903d"
+    },
+    {
+      "path": "src/components/BusinessMonthlyOperations.tsx",
+      "sha256": "8b9e91908f46102dcef3bd6e0bcc18cad52a3433fa1ddf61973dc3fcc62d8658"
+    },
+    {
+      "path": "src/components/BusinessNonPromotionPlanFields.astro",
+      "sha256": "9947f3f18fa88c0c55411436b16227f094a6fa042145f95163c5ad6bf1f77198"
+    },
+    {
+      "path": "src/components/BusinessNonPromotionTableHead.astro",
+      "sha256": "3fa174e02a0ecd895bed046f5deade420cd82932cb2d251115f6d1ba17e61861"
+    },
+    {
+      "path": "src/components/BusinessOperationFields.astro",
+      "sha256": "16c92f561106959b138e0b3cfeb9d1bdeb0d4210c73e87188697f749940cb487"
+    },
+    {
+      "path": "src/components/BusinessPageHeader.astro",
+      "sha256": "a85a7ca330a0139851cc42beeec82802d546052c4f6a612fabd26c3d38fb8b37"
+    },
+    {
+      "path": "src/components/BusinessPendingChanges.astro",
+      "sha256": "ce617bf2e38778832a7a9276dd37f8cb0a92d39a64da532b6305112a5fc26abc"
+    },
+    {
+      "path": "src/components/BusinessPostLookup.astro",
+      "sha256": "84af15e5de1f5cbfccdb27b91368dd591d2c229b974b48cbf408940c25d51a1e"
+    },
+    {
+      "path": "src/components/BusinessPostReferences.astro",
+      "sha256": "40d9d461e2eaf6a831e5de55c8bfa98e1fb8bad3debd937f563df7d69c902604"
+    },
+    {
+      "path": "src/components/BusinessPromotionDailyPosts.astro",
+      "sha256": "1b5c22a7e57c552bb2d3347efd999ec8ccbade07923af96546db16a0691ff0a3"
+    },
+    {
+      "path": "src/components/BusinessPromotionData.astro",
+      "sha256": "02f06d6687b5f7e34a7086cf518aa945aba3e2d468342d9302e6c4fd90a60abb"
+    },
+    {
+      "path": "src/components/BusinessPromotionDataTable.astro",
+      "sha256": "b1632038396fe12223527631579f51ea90cd360915abaec707dae6313f3d3389"
+    },
+    {
+      "path": "src/components/BusinessPromotionDecisionLabel.astro",
+      "sha256": "4ca593f22c2548728bb54a701d84644dfc0780a824a8601152ab4af8d6081bfc"
+    },
+    {
+      "path": "src/components/BusinessPromotionDetails.astro",
+      "sha256": "3ddeb3f1daff13429c99e2074ad922135a6bafbee4a4e90ec013a4e9689ffc57"
+    },
+    {
+      "path": "src/components/BusinessPromotionInitialRow.astro",
+      "sha256": "b978cc2293064071b92eb2a7a51f40401b263f9c646fadf889bb77967150f27f"
+    },
+    {
+      "path": "src/components/BusinessPromotionMetric.astro",
+      "sha256": "97226882e4116f1818e7e90b726887df38fb26b3d95d02ca194f53269b6ca108"
+    },
+    {
+      "path": "src/components/BusinessPromotionMetricForm.astro",
+      "sha256": "6041a3851848e8c142b7930b832b3f923a89511f88715ef6208f0e09d5c8d1ab"
+    },
+    {
+      "path": "src/components/BusinessPromotionPendingRows.astro",
+      "sha256": "98664c42baaf9e6d5dca8c72adeea8c32e2951e8c3ab6001c281ef913889464b"
+    },
+    {
+      "path": "src/components/BusinessPromotionReviewRecord.astro",
+      "sha256": "5436edd84120f20bbe1d19ffb829e3d8433f7ba6533da223950f32b49a9d53c8"
+    },
+    {
+      "path": "src/components/BusinessPromotionSnapshot.astro",
+      "sha256": "284e6ff15b399d0301eec522069357b9557d55c6776eb3658a1a21b6c2f44504"
+    },
+    {
+      "path": "src/components/BusinessPromotionStageView.astro",
+      "sha256": "47a8b8cee7314c6962a34a19a399465a4166288b72805df4df11b4d8c6f23c0c"
+    },
+    {
+      "path": "src/components/BusinessPromotionSummary.astro",
+      "sha256": "b221bdc97c4bfc3f269be0b454d035a31eb503a9b6968c3ee9e47f655d3799eb"
+    },
+    {
+      "path": "src/components/BusinessPromotionTimeline.astro",
+      "sha256": "7ae2ca6c6907d81c0fb68069b0a282c8be9853a051003b9c0cb3dac164a6c8a2"
+    },
+    {
+      "path": "src/components/BusinessPromotionToolbar.astro",
+      "sha256": "54d052d35c5ae2acd7e42a5f6c18b1b602b070af298a7b277e1abbc6cbd23fcb"
+    },
+    {
+      "path": "src/components/BusinessPromotionTotals.astro",
+      "sha256": "d442eed464c20e8040e53ee9cc2d43edcf2aa9048800d860f9b4584317cfb956"
+    },
+    {
+      "path": "src/components/BusinessPromotionWaitRanges.astro",
+      "sha256": "0b952761f5b132b1c266b4543df920ead1e74fddcf2ac27e66ac1b2ac9cac25b"
+    },
+    {
+      "path": "src/components/BusinessReviewDateAdd.astro",
+      "sha256": "c5f7c0ba26f5159a4f9973d2f26eb8c1f68582f723bd0ef730f5419b410b05b5"
+    },
+    {
+      "path": "src/components/BusinessScheduleApprovals.astro",
+      "sha256": "fadbe86292fba2bb1873f4a2ab7ac96588078659aa10209a82fc7af4d2583d4c"
+    },
+    {
+      "path": "src/components/BusinessScheduleNotifications.astro",
+      "sha256": "6d1286257952718c6ec59009b0aa6718e1115cb3fb60aa63fa057e577dc525f1"
+    },
+    {
+      "path": "src/components/BusinessSectionHeader.astro",
+      "sha256": "74bdbf89f162ad873d034f956aa62369bf41ee8d0d8df405e8b0f00130e8f164"
+    },
+    {
+      "path": "src/components/BusinessSheet.astro",
+      "sha256": "31b67b9b03eb81fb83b58023591f8b0f7bd165538059f51fe088e439ccc87473"
+    },
+    {
+      "path": "src/components/BusinessToolbarActions.astro",
+      "sha256": "f542e2fd7cd0fa0a7a904e8cd199839e61f500d0a1d6d97e1666cbc9fa34e0c5"
+    },
+    {
+      "path": "src/components/BusinessToolbarContext.astro",
+      "sha256": "c53b23a2922bc68cd6ff9e8b08ebab519c13dc9ede08e70f041f607671b36706"
+    },
+    {
+      "path": "src/components/BusinessToolbarPeriodNav.astro",
+      "sha256": "8ed62d47fce5d7d06cf66e02ce4908e5294cf2dfab3e9799b62ba83581142a99"
+    },
+    {
+      "path": "src/components/BusinessToolbarSegmented.astro",
+      "sha256": "dade974ab62026bac13358e7f1f508733ce818fb24913f307f5963c1e289db7f"
+    },
+    {
+      "path": "src/components/BusinessToolbarSummary.astro",
+      "sha256": "f38e63e0651e44dfcbcfcb7aa4ba2a286dd74e36f8c0f0e82dd70425f200de29"
+    },
+    {
+      "path": "src/components/BusinessUsageGuide.astro",
+      "sha256": "fb6601e564f57a5824efc52a9404ac9672a6199c61628c79dba43a6024b0dd6e"
+    },
+    {
+      "path": "src/components/BusinessViewSwitch.astro",
+      "sha256": "8e30cafe3bcc6fae452522150856179582174f6b75bb69edf066009d690e6942"
+    },
+    {
+      "path": "src/components/BusinessWeeklyMeeting.tsx",
+      "sha256": "3d0f0246ad95a9981d706bf85888db1e6d7aa3cfcca914d3b1de11e5c5738daf"
+    },
+    {
+      "path": "src/components/BusinessWeeklySnapshot.astro",
+      "sha256": "f18c12ddb1ba90845d6d159febbf08754189faf678e9a1037626ace6345d5fb1"
+    },
+    {
+      "path": "src/components/ContentTunnel.module.css",
+      "sha256": "6c1a5006803155ad538eb2a81cc2a549fa59d4f9222820429342fbc98db91c2d"
+    },
+    {
+      "path": "src/components/ContentTunnel.tsx",
+      "sha256": "39b412f9cafa08fe99f1c3968a3a9afcc0019a5500d0bd9841c01fb050be8e85"
+    },
+    {
+      "path": "src/components/MeetingDiscussionText.tsx",
+      "sha256": "7fcd0bab80282cd7cb069792005ca1594f56ba14c3873abf66f99a4b253c45af"
+    },
+    {
+      "path": "src/components/MeetingPdfArchive.tsx",
+      "sha256": "fe0b70194b17a41ed275a1ea56c19c7a39fa0770a613f649201934462b1eb2d9"
+    },
+    {
+      "path": "src/components/MetricCell.astro",
+      "sha256": "6a92d2edac8dd9269fb6dd6ecc16af543364c9cc8ef5ffe84986fbb6c8881d2b"
+    },
+    {
+      "path": "src/components/MonthlyCalendarPlan.astro",
+      "sha256": "d1bdfe289835f3f5ece87dcd168d11291330118dfa7e274e1d16b188ee2c8cc9"
+    },
+    {
+      "path": "src/components/MonthlyCoreResults.tsx",
+      "sha256": "ca6d7f5204d847e21ae398771732e6e3d41756014a0bdbb2f0fff19f6fb276d4"
+    },
+    {
+      "path": "src/components/MonthlyMeetingSections.tsx",
+      "sha256": "69d771166d8afcc2ef56d207721336d5e4ed3cd74de65c68ae7228371afcc8b9"
+    },
+    {
+      "path": "src/components/MonthlyOperationsCharts.tsx",
+      "sha256": "001a3a551d5ecd929b0da651ef3cb5d661812ebafb119cf1e5c256692ed19729"
+    },
+    {
+      "path": "src/components/MonthlyPlanEditor.tsx",
+      "sha256": "32d9ac2174428918fb44d2785798721185f12434c835a52ec0aa64f3c3e886db"
+    },
+    {
+      "path": "src/components/MonthlyPlanReference.tsx",
+      "sha256": "7ddc9397eecf52ff053eb112067851dce339ee43aaf503f9997c047b6c44613c"
+    },
+    {
+      "path": "src/components/MonthlyPlanSummary.tsx",
+      "sha256": "ad4b9cc23c372218e74344a334a088f4e2c38e3b832f99f192c2460809d8ca32"
+    },
+    {
+      "path": "src/components/MonthlyPrivatePanel.tsx",
+      "sha256": "a1ae6176be12ce4e16a79166af405910bed36a58500e6afbb4e962394558f222"
+    },
+    {
+      "path": "src/components/MonthlyReportVisuals.tsx",
+      "sha256": "165c0e51cbbeda45792a0ca158e2017fe027086e0c8c1cde3317afc661078e1a"
+    },
+    {
+      "path": "src/components/MonthlyScheduleFields.astro",
+      "sha256": "3fd9ff9a3b4e24bb847bdcdb0c15bf023a30a5fb48eb8b595ff7590bb6165b7c"
+    },
+    {
+      "path": "src/components/NonPromotionCategoryMetric.astro",
+      "sha256": "0fb621e401923a7235e55522bc7550710fba9c70a7d86f6565e23d18c678f512"
+    },
+    {
+      "path": "src/components/NonPromotionReadingTrend.astro",
+      "sha256": "05c9259e61f2e9c80398e92fdda04ff3a15d87ddf9487bb51798cfa3213d9b63"
+    },
+    {
+      "path": "src/components/NonPromotionReviewCard.astro",
+      "sha256": "7dbf35788eb526d1adb2aba7349775f4784dc82bfa2beade2a356a1a6a5a5bd7"
+    },
+    {
+      "path": "src/components/NonPromotionReviewRow.astro",
+      "sha256": "3a2356d7af3648443e180d8403830c3fa9e572812175358808c185c8b4e5a025"
+    },
+    {
+      "path": "src/components/QiuyunMark.module.css",
+      "sha256": "17e6f42371d5a3c2bcba70af22ba27bb5096a29f75660cc5309010c5ed49daae"
+    },
+    {
+      "path": "src/components/QiuyunMark.tsx",
+      "sha256": "c22aed05f5b15ce2400d803fa5cbb664a376c9721ad16a334554f193a6aecdc8"
+    },
+    {
+      "path": "src/components/README.md",
+      "sha256": "8877209a2ac76a8d83fd6452a76e16aba723a886fd9c73158f9d7436a75d55f6"
+    },
+    {
+      "path": "src/components/ReportCharts.tsx",
+      "sha256": "eefd429b71758330aba8bec8c8bef5ce14df5aae689e97eb7374dfb0850b4f81"
+    },
+    {
+      "path": "src/components/SiteIcons.astro",
+      "sha256": "3e97f80efbdeee3393893cc340a9f4ca5cb1a3fec47d9f36b11e5034b9491225"
+    },
+    {
+      "path": "src/components/WeeklyCardDetails.tsx",
+      "sha256": "dda2df6149d5686fc07ff9ad70b994aa399c4cedb9be7ad9962ec36a917cf4f1"
+    },
+    {
+      "path": "src/components/WeeklyMeetingPresentation.tsx",
+      "sha256": "f93a75080f5f069b5b2b72a274f4b69aaef29b6f7643375d8bfb1773b44708b0"
+    },
+    {
+      "path": "src/components/WeeklyResultOverview.tsx",
+      "sha256": "d45c7c461739c6a5d3d2e3024c1c365d555281dc8a3d29abb02d9aac7998c362"
+    },
+    {
+      "path": "src/components/WeeklyReviewCards.tsx",
+      "sha256": "d47e3dbbbe605af7efd5310b7150f6c3722f8936b6732d366d26a376981619c3"
+    },
+    {
+      "path": "src/data/README.md",
+      "sha256": "0ec52658ac7784c366f9e987f64eae974c3976c6c7784cb3b64370a7fc8ce1b0"
+    },
+    {
+      "path": "src/data/home.ts",
+      "sha256": "4688aa7a8c128b0474a6df195abc062a46b8a5784b1c43f999fd21bb0ccec520"
+    },
+    {
+      "path": "src/db/README.md",
+      "sha256": "4b7b4c0ff1349747b5d1aea958e59b0bf8bc6d18d54548f9493cc0e84bb76ad8"
+    },
+    {
+      "path": "src/db/annual-plan-rules.d.mts",
+      "sha256": "c0d8adf02a954426172059041c927adfdc863cecf7821d1eb944f1355aae907f"
+    },
+    {
+      "path": "src/db/annual-plan-rules.mjs",
+      "sha256": "7ef63b2aa6379da6c61924f2812c7f8dc39416f47351e2f2a18b2094548ce1be"
+    },
+    {
+      "path": "src/db/annual-plan-storage.ts",
+      "sha256": "e7cd1cdbfa5491d8dc89b64bd09dfedeefbfb56c45d2240bdfd3968275da59ae"
+    },
+    {
+      "path": "src/db/annual-plan.ts",
+      "sha256": "8a8ccbaff1ab26ed2273e20e74bd66d51e07677dd0ca9ca583bfaaae298a1b47"
+    },
+    {
+      "path": "src/db/backup-restore.ts",
+      "sha256": "ac3ec9c55b4217378ecd66a8c6054119f1fab0edf14b6e426014aa2ba83fed3a"
+    },
+    {
+      "path": "src/db/business-approvals.ts",
+      "sha256": "efcedf07255acb0b43af02ab80ef706cfff8ba4e08d8d46d8aea66477fb8d719"
+    },
+    {
+      "path": "src/db/client.ts",
+      "sha256": "615b750a94bce318f8b4d868567b017dc381f558e1830b10061f39835751aad3"
+    },
+    {
+      "path": "src/db/collaboration-resources.ts",
+      "sha256": "b5a49aa3ac268cef2d9d58b30d43e0b28506b187ecdf53c9ee535da4333fabe6"
+    },
+    {
+      "path": "src/db/collaboration.ts",
+      "sha256": "f946e00f5a37e783bb4be6779e9368a5214dc4da09d1e6f7733a0b744075d5b3"
+    },
+    {
+      "path": "src/db/content-role-workflow.ts",
+      "sha256": "e3db6ffe5308f1f82141a9440b74bc7d01b02b64d3494d858bab0270d15513a5"
+    },
+    {
+      "path": "src/db/content-roles.ts",
+      "sha256": "ad668b310b5f1be5874be32a3016ff242afeb80ecfa4cd40fc0303232d5675ec"
+    },
+    {
+      "path": "src/db/meeting-card-rules.ts",
+      "sha256": "2ee1b33700b34c8afe230f3f3d2bbf446421f039e3ae457b0730652ee694477f"
+    },
+    {
+      "path": "src/db/meeting-decision-rules.mjs",
+      "sha256": "db19525a47195346dd8e83a87571c5b7a9a87b965f0fb486fb7f9e8922a26bc5"
+    },
+    {
+      "path": "src/db/meeting-decisions.ts",
+      "sha256": "cd123395e57b66c2a4396e41fa6c19c0cce0a564c621f74be50d2c3d05a67130"
+    },
+    {
+      "path": "src/db/meeting-discussion-values.ts",
+      "sha256": "6d5d0a98f8ffdbdfad66bc09998f6887d3e93c751d9b5775fa75b1bae184ce65"
+    },
+    {
+      "path": "src/db/meeting-discussion.ts",
+      "sha256": "06a0998ee10a3d0b0d5a412b684875baef3ffa152f257701e0e7d818b01f4f7d"
+    },
+    {
+      "path": "src/db/meeting-finalization.ts",
+      "sha256": "700eeba6baac94d368b15e6e0d099c9264003fa20cd17a33cc93079b9665cfa6"
+    },
+    {
+      "path": "src/db/meeting-lead-trend.ts",
+      "sha256": "838719d02fe52220005a7037673b115c3fb66fa3710dd8ba0e2bcd39ce462f5c"
+    },
+    {
+      "path": "src/db/meeting-non-promotion.ts",
+      "sha256": "048eca2f319b36c540d412d37b2cfd69e64bdb3a7c727f045b8a0cb89962d455"
+    },
+    {
+      "path": "src/db/meeting-note-ids.ts",
+      "sha256": "5edeecbd42c2405035f194d3680e71acff31d0aa5c438bcbcf0baca760e041a8"
+    },
+    {
+      "path": "src/db/meeting-pdf-render.tsx",
+      "sha256": "32de1825823a0e70259c3054a142e9ea9f54ce6dcf83fd8c5cc9f27861cd22e5"
+    },
+    {
+      "path": "src/db/meeting-pdf.ts",
+      "sha256": "e3a6b6d2ea2569d3ae413a2452eea8670372b9997ac61da3727b8f84750e270a"
+    },
+    {
+      "path": "src/db/meeting-rate-comparison.ts",
+      "sha256": "a9b0359191acd2554f7b89ec941eecd97729019bc3050398f5bbcae7a41881b4"
+    },
+    {
+      "path": "src/db/meeting-readiness.ts",
+      "sha256": "e104be8b0b5fe4a0716959dcdda74d6d7a9d635aa255dd9d715421f3917587a6"
+    },
+    {
+      "path": "src/db/meeting-report-metrics.ts",
+      "sha256": "ba3e4f535dec69375b9872c8a155b5d2ace0fac7fce06950959332ac9801cbf9"
+    },
+    {
+      "path": "src/db/meeting-review-rules.d.ts",
+      "sha256": "600e0af92bae21794ac8cf4a7d91473279fe3bf62ce320a1e0b749602536cf01"
+    },
+    {
+      "path": "src/db/meeting-review-rules.mjs",
+      "sha256": "cb987df2448a2ceaf5253be229b09116e5965701ad8b2d315a95eb4d826b28e6"
+    },
+    {
+      "path": "src/db/meeting-snapshots.ts",
+      "sha256": "95e94f5d7bfdf0a8d412f937b2d2f9560fde5df4a78176b5953d37cd7373c580"
+    },
+    {
+      "path": "src/db/meeting-version-rules.ts",
+      "sha256": "85fb97ea1b9f51fe72c6b77ef53bee0f77df4a29da49c43bc58fa79457efbf0f"
+    },
+    {
+      "path": "src/db/meeting-version-workflow.ts",
+      "sha256": "ffbbcf5be377841f36ff2e59522efdc1f5aa61c4fa0f4421aa89d92867d856cd"
+    },
+    {
+      "path": "src/db/meeting-weekly-material.ts",
+      "sha256": "6502159c5a4931146fd74ff555276328692f0e75827cc07a33e45e174e57b243"
+    },
+    {
+      "path": "src/db/monthly-meeting.ts",
+      "sha256": "0561e986870362ccee4640ea9b1f792e0cbfab4a691c26d8b5b5032446d6e766"
+    },
+    {
+      "path": "src/db/monthly-operations.ts",
+      "sha256": "bc1fbf15ad8a0843bbba345f22c3650412e52b146c273b3118ee8e865a4d250b"
+    },
+    {
+      "path": "src/db/monthly-plan-types.ts",
+      "sha256": "c1d7dfc48bff8fa0e7c520c9765d53ee63e397cf7465e34a0b2f8c2567f79689"
+    },
+    {
+      "path": "src/db/monthly-plans.ts",
+      "sha256": "54a58a2c9e78ac8f33295df8a432dbc916fc823b9d979bea73f998a33da69bb2"
+    },
+    {
+      "path": "src/db/monthly-private.ts",
+      "sha256": "22e0b4d64456978aebd93283e5269de8e644fca57f7d9737e04703bf0a485d5f"
+    },
+    {
+      "path": "src/db/monthly-workspace.ts",
+      "sha256": "d4b355918a84bf6cc1ce6d0bd3c0c8266bbce33a46fff0435c2b1908581117f7"
+    },
+    {
+      "path": "src/db/non-promotion-groups.ts",
+      "sha256": "31e35fae64fd35de0099539848e521607611f9499856ba4312da62e4dfb8162a"
+    },
+    {
+      "path": "src/db/non-promotion-nodes.ts",
+      "sha256": "7c3e28278fd50b10cee67ddcd86467ee545fac07d1e448e051dbdbe5b96f8d90"
+    },
+    {
+      "path": "src/db/non-promotion-plan-input.ts",
+      "sha256": "c5c444851be449aaf9fcb6cb57ac6c4f46ca0a0faafa3c69b778af8d8ac2b4b4"
+    },
+    {
+      "path": "src/db/non-promotion-plan.ts",
+      "sha256": "8f9608c0dddd849a631f6f4c6535cae45349d17fabd115353a3aa2be9fc38937"
+    },
+    {
+      "path": "src/db/non-promotion-read-model.ts",
+      "sha256": "e12d6b18880f9b9ced8a0c306081cbdc382bfd644f3c085ad84725f85dc02445"
+    },
+    {
+      "path": "src/db/non-promotion-record.ts",
+      "sha256": "0c0a5ec9b8422cbc6df89639aa04b7c9e370710d57e377e9bf92a56c13313d78"
+    },
+    {
+      "path": "src/db/non-promotion-trend.ts",
+      "sha256": "1f2bd2812791a55e0691301b1eeb7ae6874f453ebe4208d112c7d0b9f80f020a"
+    },
+    {
+      "path": "src/db/non-promotion-workflow.ts",
+      "sha256": "0d8733d9da8d79e39ec9712cc21b5386ec2ab47c84588e85a55946da939b8793"
+    },
+    {
+      "path": "src/db/operation-setup.ts",
+      "sha256": "955b189540aed797f74c0f130116ac325b67baf3b963771a3a2dc5c1de7a19c2"
+    },
+    {
+      "path": "src/db/operation-types.ts",
+      "sha256": "9e739750943760a40edcb43cf59ccb8c55bbef7439e78a534bc2e9074f44c626"
+    },
+    {
+      "path": "src/db/platform-note-id.ts",
+      "sha256": "5ca8a899acdff84d0381c317db38008ffd66c249e982603ecba162cd7095c41b"
+    },
+    {
+      "path": "src/db/promotion-audit-view.ts",
+      "sha256": "7618553c1c7b62e350b29e8631d9a145ba68e00844dd5b9e0ab7ed8abf2066bd"
+    },
+    {
+      "path": "src/db/promotion-cycles.mjs",
+      "sha256": "96f725b539b8941cb5f79e5602ed93f2f4cc74763c965a33b0b94696a1ac3995"
+    },
+    {
+      "path": "src/db/promotion-daily-write.ts",
+      "sha256": "b41cbf43286da6a7dc4897b40c0712ac5112d2ae274b2b1bda743987f137da92"
+    },
+    {
+      "path": "src/db/promotion-overview.ts",
+      "sha256": "6dfd8a53839db7039ec8e1e2f0c337a0d114b616b1ba520205769d2dc6251f38"
+    },
+    {
+      "path": "src/db/promotion-pauses.ts",
+      "sha256": "173772d2a29201bb96383fb4a5929e0cb07fafadc522e5538f1f8e4f4f2d7684"
+    },
+    {
+      "path": "src/db/promotion-pending.ts",
+      "sha256": "acd1b8042536fa48fc32da0114749e51fa99915b578d9ab0025b35dcff250a67"
+    },
+    {
+      "path": "src/db/promotion-replay.mjs",
+      "sha256": "d119397ea4f6b15418c11d82d6c35471fe97e2229e60beecd1225607fb7f73dc"
+    },
+    {
+      "path": "src/db/promotion-review-days.ts",
+      "sha256": "263a0f31888e9f45ef94637be8c8428e0d97ed97ed0fa2ad0c95edf487bad89b"
+    },
+    {
+      "path": "src/db/promotion-review-required.ts",
+      "sha256": "b10142aaf96e8a7f73a2dbb7092765729623a8c850d50f50b13723cd3cd6a46a"
+    },
+    {
+      "path": "src/db/promotion-rules.d.ts",
+      "sha256": "3d7c8b44a0fb6ca99d8aeae6f8ae9a0a80e66f98833b57ed42fd68859b05ca8d"
+    },
+    {
+      "path": "src/db/promotion-rules.mjs",
+      "sha256": "c926df061e0c7ed1b4810b784ab89a4c602c743d49093a55713f77ce008ca88b"
+    },
+    {
+      "path": "src/db/promotion-stage-reviews.ts",
+      "sha256": "b4b8941856b542afec1404fbe2c37548940d4c3408bd36f3cad2e23b514a95b8"
+    },
+    {
+      "path": "src/db/promotion-state.d.mts",
+      "sha256": "2dd76f39e89ac27a636a326ece57f6862fd6ac4f8e31df058f28c3a462c9037c"
+    },
+    {
+      "path": "src/db/promotion-state.mjs",
+      "sha256": "921b65115f4f16a035e81831818e31dfbc3313f3ba110eddc54c094e408ce987"
+    },
+    {
+      "path": "src/db/promotion-successors.d.mts",
+      "sha256": "00ede59bb89833ca8d0598df77f3a025249f011497b98f8a789324db9d889f07"
+    },
+    {
+      "path": "src/db/promotion-successors.mjs",
+      "sha256": "7e52b1a29830e57020233e2cbd87c87237c84462b73f252d4ff34ccb608c243c"
+    },
+    {
+      "path": "src/db/promotion-timeline.ts",
+      "sha256": "9f868f611201e53b724b0dff34616a5c95df903848c28a367e8fa2c9a8b1d1e5"
+    },
+    {
+      "path": "src/db/promotion-validation.ts",
+      "sha256": "c70b034b235c223c8eacab453839513282cd17f0dc03067c43139b8efeb6b6f5"
+    },
+    {
+      "path": "src/db/promotion-wait-ranges.ts",
+      "sha256": "e970d3f8b7e0870fd4791c2526c8ba58522cd6f42ab66eaa14be103399e65dbd"
+    },
+    {
+      "path": "src/db/proposal-diff.ts",
+      "sha256": "a3af236ec87ea93ddec00a0fea838113700d8375ce2ac477dec88878cb26dac2"
+    },
+    {
+      "path": "src/db/publication-link.mjs",
+      "sha256": "770010f6d530d04ac246bcb5513703a56faf73e8003cf26759b669f2ae9f8ecd"
+    },
+    {
+      "path": "src/db/publication-rules.mjs",
+      "sha256": "4c007611ebca1a0f05411f659fe9a73b790625875baff68d4188c592ec297acd"
+    },
+    {
+      "path": "src/db/publication-workflow.ts",
+      "sha256": "2ec7b8a05fd4d64882264e1755c8fc50a85f5e45a1f5f9c3d0e81bb920ed9f36"
+    },
+    {
+      "path": "src/db/schedule-approvals.ts",
+      "sha256": "27e872dcf0f85bf1da7ff075df1eaf6d9e258e33756540c0240a2387b807b9a5"
+    },
+    {
+      "path": "src/db/schedule-delay-cleanup.ts",
+      "sha256": "83d150922399fe3ee1e503259ea35eb3e561476e7070398107d935de15a8b008"
+    },
+    {
+      "path": "src/db/schedule-rules.d.mts",
+      "sha256": "2e2e7c81957a038ef080d276c49cfe52a278bca5b5e2bd7ea3bf662cfa6654b5"
+    },
+    {
+      "path": "src/db/schedule-rules.mjs",
+      "sha256": "fbcd8a4c925ab52652e8b97bb529acd05ab3c659dea7769028eae61c6cf6de65"
+    },
+    {
+      "path": "src/db/schedule-workflow.ts",
+      "sha256": "550b0c7252ace8b99d559ed94b3945e79c77b3ca1488ed36c7cd387210643404"
+    },
+    {
+      "path": "src/db/schema.ts",
+      "sha256": "b21209d174870d13cf8a01a657b2325b50f59b55188ba9d031d318899f538b69"
+    },
+    {
+      "path": "src/db/stage-review-rules.d.ts",
+      "sha256": "ab9fea103a753430371e0ac32426ec1d4c51ac43287151d0bc58f77f1046241a"
+    },
+    {
+      "path": "src/db/stage-review-rules.mjs",
+      "sha256": "5c94fba4665165f06a66db1311c8c9bb5fb9b5f445a6a003c65c93d786986ef6"
+    },
+    {
+      "path": "src/db/stage-review-validation.ts",
+      "sha256": "69e0771a650caa092e8b84582b99b4f1bfb7472c3ed4240a20f94a022f9852ee"
+    },
+    {
+      "path": "src/db/taxonomy-store.ts",
+      "sha256": "a7a29f0381c51755ca7395562e44ab9c8f9bb497b409f48285bceaab43b95f19"
+    },
+    {
+      "path": "src/db/taxonomy.ts",
+      "sha256": "4d86400025d8b5345cffa0a16860bcec68c8681cea49774453b255b59ab61939"
+    },
+    {
+      "path": "src/db/validation.ts",
+      "sha256": "c9acb4ad44c07352d3ceae40d094498037b687ff612391be384e89d7b89fe0a0"
+    },
+    {
+      "path": "src/db/workflow-api.ts",
+      "sha256": "1c145f413d6638b2b87b84c110f9d7393a6877dfce9e3d985ca35d58585900b9"
+    },
+    {
+      "path": "src/env.d.ts",
+      "sha256": "f606b32555bcd9a291d9c2c9dacfa522e59208e2919446ea2909345def6d2c05"
+    },
+    {
+      "path": "src/middleware.ts",
+      "sha256": "cf07c430130a605594ddbbe18ce84135ee60a1511df2f7496d8b7e311c801521"
+    },
+    {
+      "path": "src/pages/api/admin/accounts/[id].ts",
+      "sha256": "cd24001db46fe93afd7f16f6b3ea55c7efe9d33b11ff2282bd36fc69959010ad"
+    },
+    {
+      "path": "src/pages/api/admin/accounts/index.ts",
+      "sha256": "3e1098a523c1ab301940029ffe79514d04a8521999592d2dd0b3c35d8a0d9f3d"
+    },
+    {
+      "path": "src/pages/api/auth/[...all].ts",
+      "sha256": "95ba94b20d6aa0f21ab55b374bdb7a73ad23038ffb8e17e0d731c7bd5caf9f37"
+    },
+    {
+      "path": "src/pages/api/business-change-proposals/[id].ts",
+      "sha256": "dcf1e3d74556f1685c3baf60f9aa6d96115a3585a67bfcc83fad7c0f68b434e3"
+    },
+    {
+      "path": "src/pages/api/business-notifications.ts",
+      "sha256": "fd824829a9a522986722ae08948a1b648308b0cf2699ea2a64f56a21b92b469a"
+    },
+    {
+      "path": "src/pages/api/business-settings/account-permissions.ts",
+      "sha256": "d62de3f3637486339e09263a88bf0ac0143d3e2bf663d69d07430e554d62c9f1"
+    },
+    {
+      "path": "src/pages/api/business-settings/category-policies.ts",
+      "sha256": "5865640f1c0d221992a99439cd5ce996ef4b24055529e077b8e1f5154eedd4ef"
+    },
+    {
+      "path": "src/pages/api/collaboration/locks.ts",
+      "sha256": "e79ed9d12648d0c62dfcaeedcc776d5a3ff47c6b29bc13a65aa330c1d4c25aa4"
+    },
+    {
+      "path": "src/pages/api/collaboration/presence.ts",
+      "sha256": "fd1595c282ced830320d037ebbeff13fe6a0952925d9ca8a709994e92bfbeb25"
+    },
+    {
+      "path": "src/pages/api/content-search.ts",
+      "sha256": "e877a3d9aabc4562fdb37d56295fa37a642647427a1fc8b47145ce840751dd7d"
+    },
+    {
+      "path": "src/pages/api/meeting-attachments/[id].ts",
+      "sha256": "305051b5844b15e229efb431cacaf4a1c82ec41c61fca2be1b92a8da4b6a5c08"
+    },
+    {
+      "path": "src/pages/api/meeting-attachments.ts",
+      "sha256": "34506992912ae5dde225d8a300d075b425196db821c4f9eac316bf2060bab166"
+    },
+    {
+      "path": "src/pages/api/meeting-decisions.ts",
+      "sha256": "1389c1a1186757b5de2214cb5c39ecb61f07061941a9d82a56cd3c926df14a24"
+    },
+    {
+      "path": "src/pages/api/meeting-reviews/[id]/material.ts",
+      "sha256": "7db479dbe5659a694c2dda2639d66a5a356ce8d3a269e812a72f662bcae0dd7d"
+    },
+    {
+      "path": "src/pages/api/meeting-reviews/[id]/monthly-material.ts",
+      "sha256": "5a67d6c15029047d2cf164f4f5c6cc548d104263511f59ade6cc55735b78ca4f"
+    },
+    {
+      "path": "src/pages/api/meeting-reviews/[id].ts",
+      "sha256": "889676d81f429fd57fea6610b63e95a09d52604246a7c2377a276fb0035d37e2"
+    },
+    {
+      "path": "src/pages/api/meeting-reviews.ts",
+      "sha256": "a26a57d2cd5736edf1b1893e02977d507efe6efc9a63cb4b705e1e18111519b0"
+    },
+    {
+      "path": "src/pages/api/meeting-versions/[id]/pdf.ts",
+      "sha256": "f3a1b9309052c2e278d78e261d939d965d5b3cf8695c0e64df434b4e15583aba"
+    },
+    {
+      "path": "src/pages/api/monthly-cost-mapping.ts",
+      "sha256": "7ebec333620f5e2e6679bfda80c2e1397926db149871cd8435f90cf4123086cb"
+    },
+    {
+      "path": "src/pages/api/monthly-operations.ts",
+      "sha256": "73de8a369663588197568da4a0eb45516324b58e273acda14fba14cb38555868"
+    },
+    {
+      "path": "src/pages/api/monthly-plans.ts",
+      "sha256": "94793a012c6b18bbdaaf299486e74b440da0193de9237b8310e34bf73a35ab62"
+    },
+    {
+      "path": "src/pages/api/monthly-private-data.ts",
+      "sha256": "724cb069acd51fc1e56a138a86ea60e8b2540e05f398658768792baa4d061288"
+    },
+    {
+      "path": "src/pages/api/non-promotion-checkpoints.ts",
+      "sha256": "a6fed4b77f90d8f8d96023171b32a9436ac9dd87537671f6fef93f97855dcc9c"
+    },
+    {
+      "path": "src/pages/api/non-promotion-reviews.ts",
+      "sha256": "9514dcd80a897b38491628a375475b51751c55b984176ae11953a0128913bad2"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans/[id]/restore.ts",
+      "sha256": "2239c9eb0091d477861304c6ffbccff78a516432996b2cc678a323a21f7bfb07"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans/[id]/versions/[versionNumber].ts",
+      "sha256": "ecfa2606166b350dc84c8c369dc1e1efe5064cac3ff55ca1d423550686e436b2"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans/[id]/versions/index.ts",
+      "sha256": "9e5f3d680773dc9df10933d81a8eaa9271bf8d50e6d449f910c2b4c4decd5b7f"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans/[id].ts",
+      "sha256": "5976f809141ed855805dbfa253bcd01d4fd4df79915ecaf2313e5ba902ba5a91"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans/year/[year]/copy.ts",
+      "sha256": "942d9f75d669a6564119622805fc6a84cddd97ec6800c2baa56d37ca637e30d7"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans/year/[year].ts",
+      "sha256": "f36aeb629b43a6f6d072a6cb7c71e3a4b6b183062e4a69b9caf04ef0528fa518"
+    },
+    {
+      "path": "src/pages/api/operations-annual-plans.ts",
+      "sha256": "f6750b013384d34de5887668284d14ffbb228361b3e4b1d916e39c34fb8202c1"
+    },
+    {
+      "path": "src/pages/api/operations-content/[contentId]/platform-note-id.ts",
+      "sha256": "fb7251e6e1d10eebffc0e38a5f946533974f56d790bb61bec2f1641def43645b"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/change-requests/[requestId].ts",
+      "sha256": "b75e441450a6170e61f250772da87518168a892ca28805d3a87c98b6373e1e96"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/change-requests.ts",
+      "sha256": "6c46fbfd5344adf30fad7d1292e1c47e828d82b104f21158bbeabce7511e8955"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/delay-reasons.ts",
+      "sha256": "3d6c2db34ff0b9649924257074c961889f73a6ac3f29b920a7bf0673559e5783"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/promotion-timeline.astro",
+      "sha256": "f7eba3c35080d237d54213f584a0d1e206990f6e95cd0f36a999ce671e996170"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/publication-reservations/[reservationId].ts",
+      "sha256": "20972fecf00a48d1942a78f5b5659c29cb902640ab0d830b86e77f29830fd8e5"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/publication-reservations.ts",
+      "sha256": "539e1a683ec2a3d8926dba48d9247eb9b257a45750253f2ca6b483d8a97415cd"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/publication.ts",
+      "sha256": "5893a8c56c7a35740de1b1aeb02e6206c60df1a198e0175c71d42776ef5c39b5"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id]/workflow.ts",
+      "sha256": "ec6d6c4efda75c4de716f859e8de9d9830bded80c876bf222ae7160c2093d41f"
+    },
+    {
+      "path": "src/pages/api/operations-content/[id].ts",
+      "sha256": "fa707eea66bc2232c6516a41921a955b6a7530503a9720cd2f9d39dbff21146e"
+    },
+    {
+      "path": "src/pages/api/operations-content/versions/[sourceVersionId]/revisions.ts",
+      "sha256": "60b552f700724b6f915d546f59fec28d9199214f975b23acf6f876f3bd264036"
+    },
+    {
+      "path": "src/pages/api/operations-content.ts",
+      "sha256": "b3a14338d5de3daf80c78137f43daee857c14aacf94a198e8d3540e44f0daf22"
+    },
+    {
+      "path": "src/pages/api/promotion-awaiting.ts",
+      "sha256": "62a07219425a9ceddac94e830ecac333210edb718e9fb1c5deac237f0a1e2c21"
+    },
+    {
+      "path": "src/pages/api/promotion-daily/[id].ts",
+      "sha256": "4fe5105ff4ba579d3e6db0b31ee904550ea7b1c6568a765307b61eb07502365f"
+    },
+    {
+      "path": "src/pages/api/promotion-daily/batch.ts",
+      "sha256": "baf81413efa0712fab4039eecab9f8eed82d2c60bc64004ef8eb098431423551"
+    },
+    {
+      "path": "src/pages/api/promotion-daily.ts",
+      "sha256": "44c94aa8b89da443464043cbae65bedafa705604633154952cf28d5846e99908"
+    },
+    {
+      "path": "src/pages/api/promotion-pauses/[id].ts",
+      "sha256": "431c9e60af8a86b613e6bd9761e3d89a1a5aeec3ec45d5c7914f37bb2c9b1df2"
+    },
+    {
+      "path": "src/pages/api/promotion-pauses.ts",
+      "sha256": "431c9e60af8a86b613e6bd9761e3d89a1a5aeec3ec45d5c7914f37bb2c9b1df2"
+    },
+    {
+      "path": "src/pages/api/promotion-stage-reviews/[id].ts",
+      "sha256": "f3b834941dd03776d1dff760d76872e90e50ad3bad79230677262f73fd260c8d"
+    },
+    {
+      "path": "src/pages/api/promotion-stage-reviews.ts",
+      "sha256": "a349d30a3f784a554945f10311568fddd884c33dec9d3be060ba563768bda844"
+    },
+    {
+      "path": "src/pages/api/promotion-timeline.ts",
+      "sha256": "e693e288a5f5190ebbda6e56a376cdc77ce02aef92f6c9134126e149861574dd"
+    },
+    {
+      "path": "src/pages/api/promotion-wait-ranges/[id].ts",
+      "sha256": "c3657329b394e6259982e3d3c433f225dd2ab62f2d33af5c000a304fe21df9f6"
+    },
+    {
+      "path": "src/pages/api/promotion-wait-ranges.ts",
+      "sha256": "c01f690bdf85a308c9cfc8400c73c1de30fee2ca828d085f06ae54b85e40d8c4"
+    },
+    {
+      "path": "src/pages/api/stage-reviews/[id].ts",
+      "sha256": "d523506defa77069513374dfb4f616a76ae85f9a738c9555d56fc83c24468de2"
+    },
+    {
+      "path": "src/pages/api/stage-reviews/category-policies.ts",
+      "sha256": "5865640f1c0d221992a99439cd5ce996ef4b24055529e077b8e1f5154eedd4ef"
+    },
+    {
+      "path": "src/pages/api/stage-reviews.ts",
+      "sha256": "ed567af3c63232d4c750789950da0ad6db8fbb24089848b3a4d2546f47b44224"
+    },
+    {
+      "path": "src/pages/api/taxonomy.ts",
+      "sha256": "4258c908ced860430a061938838516e9e840c06210f20354fffa50f04cc676a6"
+    },
+    {
+      "path": "src/pages/business/annual-plan.astro",
+      "sha256": "149dd63eb234c7b2fdce06813afd5f5a9fbbe80c1572cab409b63b914d57f600"
+    },
+    {
+      "path": "src/pages/business/daily-promotion-review.astro",
+      "sha256": "f75e51af511bd7d460698ab4e8ca94ea0e5909e90818e6778b8e112b5c5dfef9"
+    },
+    {
+      "path": "src/pages/business/meeting-review.astro",
+      "sha256": "25dd14b4fcab3c4cf8c26de06ca4df6f7cc4f682a7fe470c057562ea86430c2a"
+    },
+    {
+      "path": "src/pages/business/monthly-operations.astro",
+      "sha256": "29eb356ae4973a534f930d99d107078708f5bbb8378eb03caf64d1a2dcd9199c"
+    },
+    {
+      "path": "src/pages/business/non-promotion-review.astro",
+      "sha256": "e5fd494e1654d19d18dc29a3d24856d29c52b435f4bc534b6a376eca65d0c2d7"
+    },
+    {
+      "path": "src/pages/business/operations-schedule.astro",
+      "sha256": "8f12b10a7340c5e06284a92e28feada7c3d5e13885ad70c43e77bf8cd98d336d"
+    },
+    {
+      "path": "src/pages/business/promotion-stage-review.astro",
+      "sha256": "8b0cdb2a60bf6f863ce1e16e361982072d781aa8c1b5c106d4ae7c0211606242"
+    },
+    {
+      "path": "src/pages/business/settings.astro",
+      "sha256": "aae76f7c3c7d8fa49e3e719871d8fb22b7c88ff5a4232905ac07bd48ca19fbeb"
+    },
+    {
+      "path": "src/pages/business/stage-review.astro",
+      "sha256": "bb560354a2236d2aec664d88f2fc24dcb268ccd655a2dcfc19c0a206070668b2"
+    },
+    {
+      "path": "src/pages/fonts/business.css.ts",
+      "sha256": "81c380c40c447bb647ab3c87b7780e15947e42f221e05deef0b31edb5b7c6434"
+    },
+    {
+      "path": "src/pages/fonts/business.js.ts",
+      "sha256": "7add6de8ec0b342edf86f5b6ed4ba42fc003285d3d3d4bcefeef90338cb61dde"
+    },
+    {
+      "path": "src/pages/index.astro",
+      "sha256": "3f177fae828c79415fcc9f1731683da9a9e0ac2515646b8df3abaeb3c5e7d1e0"
+    },
+    {
+      "path": "src/pages/login.astro",
+      "sha256": "2baf1f0cc15243076f5c28d1610d90a14dd5835f9366350a212a43c53d9de183"
+    },
+    {
+      "path": "src/scripts/README.md",
+      "sha256": "3df597dc5ec06522412dbd9ee178a17b27bea53e6451d96d24cea8dc1545a0f9"
+    },
+    {
+      "path": "src/scripts/account-management.ts",
+      "sha256": "83a7ca42b4b1dfb3b0121caaf7974bd6088914aa0753b02c01068b40faf53996"
+    },
+    {
+      "path": "src/scripts/annual-plan.ts",
+      "sha256": "d980706cab98c76e771e31dcfd814be490bc21a679736b476d8c03fedbc8906e"
+    },
+    {
+      "path": "src/scripts/business-change-diff.ts",
+      "sha256": "b37c2d9b297010bc945fefca4b1f6291969a803976267f4d8bf1db03be6135f8"
+    },
+    {
+      "path": "src/scripts/business-collaboration.ts",
+      "sha256": "7ca6bd20a422a0cd7e6ceee7e56d7c5f85e1ad8655fd3d667b50c9fdf007ed43"
+    },
+    {
+      "path": "src/scripts/business-data-motion.ts",
+      "sha256": "4c44658ad347a168f1fcf5954932407bf29717bce2db370953346ed2e4ac9fd2"
+    },
+    {
+      "path": "src/scripts/business-date.ts",
+      "sha256": "dec4c9450b49091a8612fd4c77fe75af113fc07b4fdebe8e788cdaccb4df2022"
+    },
+    {
+      "path": "src/scripts/business-datetime.ts",
+      "sha256": "37cff663e77df3a935d21fb27d1b897dd58732e245704a8dd810ee01e398f57b"
+    },
+    {
+      "path": "src/scripts/business-dialog.ts",
+      "sha256": "57dd090966fae76a8e011521dcb25bc0f8be185c1554af70b101e9afd4f2c4ee"
+    },
+    {
+      "path": "src/scripts/business-inspector.ts",
+      "sha256": "2603496f7509c5edf60897c86007e0ae77a017af3aed46bca068fe8dc3842c78"
+    },
+    {
+      "path": "src/scripts/business-permissions.ts",
+      "sha256": "095274262d7f0fa8b42b7ea8d234e83c2b20aa5d4bf5cfe791dd890d25646c9d"
+    },
+    {
+      "path": "src/scripts/business-popover.ts",
+      "sha256": "091320a5fdfa1631022d483c1fb5dd056fba689643931058152b1580dda24548"
+    },
+    {
+      "path": "src/scripts/business-read.ts",
+      "sha256": "e3d545f055535aab6d3d2ac6bc0e40147cfb20768c06c3d9a478746cba0b75bc"
+    },
+    {
+      "path": "src/scripts/home-motion.ts",
+      "sha256": "5c251cd12186897a4988358b9847703a767897219dba55e1ac57f5f09181cf6f"
+    },
+    {
+      "path": "src/scripts/meeting-decision.ts",
+      "sha256": "d350a49e4ba5b844b6fee56472e294a6c67e8b39d9dca4ba189bc165d3510f59"
+    },
+    {
+      "path": "src/scripts/meeting-layout.ts",
+      "sha256": "050ca241874ff5a1d046cab442cefa03a0ef468045c1a2dad44e6260de9fb361"
+    },
+    {
+      "path": "src/scripts/monthly-calendar.ts",
+      "sha256": "353217609d3f8ded3cc707bdfd0c52d0924c2bb0f5b594337249ee62d5154e14"
+    },
+    {
+      "path": "src/scripts/non-promotion-plan.ts",
+      "sha256": "8509784463fe5ac1a98c1fe5b223e258a143db8f8664a66ae455c2b797153630"
+    },
+    {
+      "path": "src/scripts/non-promotion-review.ts",
+      "sha256": "6ce946e1aa6772bca1984c3098f9e6af8fe7b79c51c296bcacc36c2312a2e721"
+    },
+    {
+      "path": "src/scripts/operation-setup.ts",
+      "sha256": "bc80e704c9ec6743bdf06287e7e0f601581561ddc6db056e0f4d33668f9b0133"
+    },
+    {
+      "path": "src/scripts/operations-workflow.ts",
+      "sha256": "0f18f7d1309dab6fc2d83418ebce241e984103d166d084860082ea179f47d72e"
+    },
+    {
+      "path": "src/scripts/post-lookup.ts",
+      "sha256": "e6fc315ff3a426581f4f61a7f7b9c0bf4a1fc63d0e00c0814ec6c201693d6eea"
+    },
+    {
+      "path": "src/scripts/promotion-daily-form.ts",
+      "sha256": "6478fd7c527d0322ee7332263df042798812087db929f0d01a18bfef2a4bcbab"
+    },
+    {
+      "path": "src/scripts/promotion-disclosure.ts",
+      "sha256": "b0f72a71b7e30bcd861c7905248dcb18855e21181cb8bc73d87b79b269865acf"
+    },
+    {
+      "path": "src/scripts/promotion-editor-lifecycle.ts",
+      "sha256": "7498890decbafbeb8521d37432eade06da0119f6016d8702978188972770119a"
+    },
+    {
+      "path": "src/scripts/promotion-initial-arrangement.ts",
+      "sha256": "744eb74f93b1ded59efc4460e6e823334188ccfd000be07ecd00b570d9083f71"
+    },
+    {
+      "path": "src/scripts/promotion-note-id.ts",
+      "sha256": "3046557575872bf04b73af9047d0ca07892d337b8914ddb843bb86a0278fa7a0"
+    },
+    {
+      "path": "src/scripts/promotion-residual.ts",
+      "sha256": "093adcc7780f051fdc55594e9bb834c1a62b08fdaa15e449f9811006d2a5bc0f"
+    },
+    {
+      "path": "src/scripts/promotion-review-days.ts",
+      "sha256": "cd7ebe3374ba9bd2d0e4655cb4216ba77231daf95d944042f66b45a4c608d1a6"
+    },
+    {
+      "path": "src/scripts/promotion-timeline.ts",
+      "sha256": "44cf4ebc6355c639e54a69c310e532553e093425882138046c97b6b31a1ceb31"
+    },
+    {
+      "path": "src/scripts/review-date-add.ts",
+      "sha256": "fee0a8510435b7ba14e9ec1eea4dba6dc35afed101d5ed749db326626f71fb6c"
+    },
+    {
+      "path": "src/scripts/schedule-approvals.ts",
+      "sha256": "bc9dc01f0fe156b658eef634ad804f509afe347c618477087ea8525893029d1f"
+    },
+    {
+      "path": "src/scripts/schedule-notifications.ts",
+      "sha256": "cf576ac8823e077d9f71342837010e4839a6efe43fd6f925c0227689c848b947"
+    },
+    {
+      "path": "src/styles/README.md",
+      "sha256": "941805a2d273838fa660f2695aa108880c4418ec4c01695d6b607382cbe7c8e0"
+    },
+    {
+      "path": "src/styles/business-changes.css",
+      "sha256": "af8c8fd72a975a2040e7aa65562825b2daabc1c4ccf417e5b2891293a9004e57"
+    },
+    {
+      "path": "src/styles/business-collaboration.css",
+      "sha256": "a8fd7325b253f8daf232808dc2279cde637c335d581826541709e67cbd1db074"
+    },
+    {
+      "path": "src/styles/business-font-assets.ts",
+      "sha256": "6f4b05c2938fdd78770d4fae0e2192e27b791f3b22007dc2c4b789ebbc5abd56"
+    },
+    {
+      "path": "src/styles/business-forms.css",
+      "sha256": "2547712daef50eca4d0bb2f1ca6142ad159a795bb64a4a27600dedd208df35c0"
+    },
+    {
+      "path": "src/styles/business-popover.css",
+      "sha256": "d08625452de4127069ff89a59d88ffafa85a28363f727d0b7252d115a7e6f5a2"
+    },
+    {
+      "path": "src/styles/business-tokens.css",
+      "sha256": "bc10cb972f025f7382da1b6c4efdcaa0742378c78f360b4e87fa8f862ba49890"
+    },
+    {
+      "path": "src/styles/business-typography.css",
+      "sha256": "e580382ee45550049c10ab391ea77f1bd0f9e5ce5b1fd71b0bea2663d56a61d8"
+    },
+    {
+      "path": "src/styles/home.css",
+      "sha256": "b497a3f76867e483b8dd45322fcd4c9cd2fe5626b14042e2cecd11fd41e16a6c"
+    },
+    {
+      "path": "src/styles/meeting-records.css",
+      "sha256": "52d8ab6b40584b870f85de0dce550992c9667cd6da257c3e8d1ef50ada277f09"
+    },
+    {
+      "path": "src/styles/meeting-weekly.css",
+      "sha256": "b31dc23164946946198657484edf63788151be9afe36c09d700a709396e99121"
+    },
+    {
+      "path": "src/styles/metric-change.css",
+      "sha256": "4ad8876ff60ae8c3b63f07fa3e51fb9b788ac7b2f19a33ebf38c0076b6008716"
+    },
+    {
+      "path": "src/styles/monthly-meeting.css",
+      "sha256": "2ca386dbbe84970791e0eb11a81e60bd3ef907fc8803e60d156c427a76c802f2"
+    },
+    {
+      "path": "src/styles/non-promotion-table.css",
+      "sha256": "f335b2a7dca6224621984e2a63487e997ff34722173c2f30be57cd2d908aef6e"
+    },
+    {
+      "path": "src/styles/promotion-overview.css",
+      "sha256": "44c6fc756b6d13e5b900fc138b18b9226b23072c8a033a6856be31012d8277e6"
+    },
+    {
+      "path": "src/styles/promotion-pending.css",
+      "sha256": "6f81a6c1117d41a4f8fe6f9f11aec03e1e19f9b585b9f85c7a5adb137263ad53"
+    },
+    {
+      "path": "src/styles/report-presentation.css",
+      "sha256": "c6889fc3f1898673127e68460cc395b7ad501db1124d93594dbf68af943d7fb9"
+    },
+    {
+      "path": "tests/README.md",
+      "sha256": "4afbb4a5667ba9d7e411decd388d2ee29a011f8ac6b4c3b7d7ad23cf628659a2"
+    },
+    {
+      "path": "tests/account-identifiers.browser.ts",
+      "sha256": "5c2057ea13d0ff803a0100fe0df0a4dfb218654193f0cf4ba19200560b3f2433"
+    },
+    {
+      "path": "tests/annual-plan-migration.test.ts",
+      "sha256": "5357926609ec7a0cb3022cffd8dbffa932261d27617228553c67673916d13c18"
+    },
+    {
+      "path": "tests/annual-plan-validation.test.ts",
+      "sha256": "9dd1a3ad52195b6011cf8cf0a0b12a8d0f30a3541bdb37a2a27a5d16d947c851"
+    },
+    {
+      "path": "tests/annual-plan.browser.ts",
+      "sha256": "474dc7d4c8184b5f4d09f853280cd37d0aeabd7dc57a1ca8ad86caf40cf8c8a1"
+    },
+    {
+      "path": "tests/annual-plan.test.mjs",
+      "sha256": "d52d6e5fc4a0f8370c9ecd445853e03775fc9fcf971cfb4f0f907af4cc7b9f23"
+    },
+    {
+      "path": "tests/auth.browser.ts",
+      "sha256": "8e46b8813605ec70067672efd375cf9d1d7fa4927681e7485ba8f0b4675d12cb"
+    },
+    {
+      "path": "tests/auth.fixture.ts",
+      "sha256": "5406e017da72b4624adecd5461ad2a41c0549d272fc47205a16fbcace4844631"
+    },
+    {
+      "path": "tests/auth.test.ts",
+      "sha256": "724949365120d2788a02778ee9b2e1a0a3f0759c242e4bce21c2069712d319e3"
+    },
+    {
+      "path": "tests/business-confirm.helper.ts",
+      "sha256": "fb84f133e3621525e8fb5aa7673dbd88806eda85dfd6d0c9913772ace44d7ff5"
+    },
+    {
+      "path": "tests/business-date.test.ts",
+      "sha256": "96a20c49176a493de2a18f6328d7d691a0a101128859046333e4de9ccc846ac5"
+    },
+    {
+      "path": "tests/business-datetime.helper.ts",
+      "sha256": "939b1d4b77eff928444cdeeb3e2d4598023818a777c5b590947ffe50ac0e934a"
+    },
+    {
+      "path": "tests/business-first-paint.browser.ts",
+      "sha256": "b5ff84e0321c91828c1ff5da54e0e7047b0f30fb9a035608f36f0de7ec8604e0"
+    },
+    {
+      "path": "tests/business-permissions.test.ts",
+      "sha256": "9c3559d924a348c0479fec7c21b5472a0740d858205671c5decd7b406a923cef"
+    },
+    {
+      "path": "tests/business-read.browser.ts",
+      "sha256": "a898024b9f98658de3e04d3d4362b9ee74b4ac7e2d9df55a2304778e8e357f73"
+    },
+    {
+      "path": "tests/business-request.helper.ts",
+      "sha256": "bdc17859ae99df79396aa9eb9400218fc534e9b3b23d6525df86076d7afcd1cf"
+    },
+    {
+      "path": "tests/business-sidebar.test.mjs",
+      "sha256": "7d17e0f41334bf3c120b50a80feabe9e3751602fbcc8291c53d3385ccc72adb2"
+    },
+    {
+      "path": "tests/business-ui.browser.ts",
+      "sha256": "ffb44a9101d9c4cff7942351fe0e8e3b664b50d537bdb61854d220d57b79bb81"
+    },
+    {
+      "path": "tests/clock.fixture.mjs",
+      "sha256": "4ae81da888e27aabaa94d879150ad22edddae472fb079fe0f4997612fa41258a"
+    },
+    {
+      "path": "tests/collaboration-lookup.browser.ts",
+      "sha256": "660be1e2f31610a12fa3af300efa29b3327df1a598902bfde80476bacd3d201c"
+    },
+    {
+      "path": "tests/content-role-cycles.browser.ts",
+      "sha256": "305f004af838691a7b30d27b3ec1c6319bbf4397c85cc2aa6375cfd529ec8bc3"
+    },
+    {
+      "path": "tests/content-role-cycles.integration.ts",
+      "sha256": "dc49280bc9fa30ef327c3ee1e34cf5fa02485265daa98c7064d6197b6c5f878d"
+    },
+    {
+      "path": "tests/content-role-cycles.postgres.ts",
+      "sha256": "3918bcc1aae80c498531a34efb9b7cee0992a1a90d73b4208af7adc2b6cf263a"
+    },
+    {
+      "path": "tests/content-role-cycles.test.ts",
+      "sha256": "0617c6ebc442279d81b444edbe76ca8eef547c0b8d3ae8fc1c3dd7be84eb8bf3"
+    },
+    {
+      "path": "tests/data-interface.browser.ts",
+      "sha256": "fd5a4228ca547951f71bbea738f5cc474d24b9dccd55d17b0ca35d27b8ba67dd"
+    },
+    {
+      "path": "tests/deployment-origin.test.mjs",
+      "sha256": "1f5a3bfc92e770042325acd52dccbd6bebb1ac7b5f208e1c384ac3fb52a2e5b9"
+    },
+    {
+      "path": "tests/home.browser.mjs",
+      "sha256": "3899d04d84e4b1004fb19a80b6107cc03c4dbf6502cf95b5e78fabff9cc9df97"
+    },
+    {
+      "path": "tests/initial-arrangement.browser.ts",
+      "sha256": "e586b7631150b0b17e5bc0e3211fd885baa6c8e77560c30f387caae3a7f7459e"
+    },
+    {
+      "path": "tests/interaction-consistency.browser.ts",
+      "sha256": "8334767b1e55937c48b44741872f81ab55a0ebc00bd559f6ca8b0e663c2cd7a2"
+    },
+    {
+      "path": "tests/latest-delay.browser.ts",
+      "sha256": "a1cd65c4becaa9a8e7c65d2347b6aa320fc5ca54b3507529ec793353f8adcc4f"
+    },
+    {
+      "path": "tests/meeting-arrangement.browser.ts",
+      "sha256": "7e9f91799da51b4bd7a0680210f13d66e4a961ea018ded9bc1e74bdceb51b5c2"
+    },
+    {
+      "path": "tests/meeting-card-rules.test.ts",
+      "sha256": "471d5836feeb238b4b82cb83a6bfbcd4f79833cd6b2e2540af3baeaef443975c"
+    },
+    {
+      "path": "tests/meeting-compact.browser.ts",
+      "sha256": "76bfed9e28a0b8431a72c0f707466a68b54ec8707199008795f73c83c3d15c2a"
+    },
+    {
+      "path": "tests/meeting-create.browser.ts",
+      "sha256": "3e0ec96dbf8d7bd1b972dfd3a2914f087078d5b8f2b34e1e124f39d2fdcf1f91"
+    },
+    {
+      "path": "tests/meeting-create.test.ts",
+      "sha256": "dfef987cfe929e7bc0d9554a7ae0d96e84ab78764a73e33c15d5473d5ec43e1d"
+    },
+    {
+      "path": "tests/meeting-decisions.test.ts",
+      "sha256": "73b853b9f893b99a7957507d1d41254551d804f18fa81017d60d128a8603d5c2"
+    },
+    {
+      "path": "tests/meeting-discussion.browser.ts",
+      "sha256": "1318f1c8cc20aef15b3a22dac3d745abaf56bb23d7471b4090962467bbb8ea28"
+    },
+    {
+      "path": "tests/meeting-display.browser.ts",
+      "sha256": "d4b63931666c7f8ce91cacda5f12308af5c7315a8699fda73a464e72507c0daf"
+    },
+    {
+      "path": "tests/meeting-draft-migration.test.ts",
+      "sha256": "a6dc0d53afa893841da860b4edeac30a5e96f15a86ebeaa73072edb6e7d7a23f"
+    },
+    {
+      "path": "tests/meeting-finalization.browser.ts",
+      "sha256": "cb4c87f3a5240695b55469454353a64fd8b03e7e5e3ac3193074ca6fcc311e86"
+    },
+    {
+      "path": "tests/meeting-inline.browser.ts",
+      "sha256": "f2a93b050178b4a38ec9fb62214b5f64756951842319ff132dd60c559d9307a5"
+    },
+    {
+      "path": "tests/meeting-lead-trend.test.ts",
+      "sha256": "6ea79c7d6df3e0039d34c7c5ef1eaf4180747c833bfb7b62a3af953933826235"
+    },
+    {
+      "path": "tests/meeting-ledger.browser.ts",
+      "sha256": "87201e0095e2555f236a5e92b90c68ba989f2f18f4bf91420e537421dcef5428"
+    },
+    {
+      "path": "tests/meeting-non-promotion.browser.ts",
+      "sha256": "7bf54e528104ad8568b4f270c52f6b002e3f80225009e108813967182e329ce7"
+    },
+    {
+      "path": "tests/meeting-non-promotion.test.ts",
+      "sha256": "80d984a72360894eb23afd833722f7b5eebf833e6222ac3ed4ee97c8aeafcf57"
+    },
+    {
+      "path": "tests/meeting-pdf.test.ts",
+      "sha256": "6f76aa31b3331ca7f2980bca85372bd7baf926038ec1384d9a717e4d41b1ce47"
+    },
+    {
+      "path": "tests/meeting-presentation.browser.ts",
+      "sha256": "c8d13e1f1680f69b6e7346f4882c624ca04aa24e51b710dcf1c8fcafb67e9abd"
+    },
+    {
+      "path": "tests/meeting-rate-comparison.test.ts",
+      "sha256": "9bcf3866f33af19c619340b158264e3533a691225e7392aeebd7215e74a3d8d6"
+    },
+    {
+      "path": "tests/meeting-rate-material.test.ts",
+      "sha256": "a43368d2d702e25ea9369ee10390ad7fe6ee07d884c49eb1d1ee983c78aa75b0"
+    },
+    {
+      "path": "tests/meeting-report-metrics.test.ts",
+      "sha256": "547f2809a75c935e84ad66bba21bc8635ce7f6257017b18714e6bd08e2a302cc"
+    },
+    {
+      "path": "tests/meeting-review-rules.test.mjs",
+      "sha256": "378de76103fb0941dd4c3e56470b484927fcb460b270b3926ae5ba19ad9dd5a9"
+    },
+    {
+      "path": "tests/meeting-version-workflow.test.ts",
+      "sha256": "37263c88060d42dd1800531ff1244de10ae201b115f3211dd332bc0f38157c0d"
+    },
+    {
+      "path": "tests/meeting-weekly.browser.ts",
+      "sha256": "8ccfe2c1a4e961230bb2c09e3173cc2d3ec029d663b77cb40c63f9a48e7b2cd4"
+    },
+    {
+      "path": "tests/meeting-weekly.test.ts",
+      "sha256": "db5002f617079cd4c89a5e90093dd06716a58aa3bd24cd61f38727a52f258086"
+    },
+    {
+      "path": "tests/meeting-write.helper.ts",
+      "sha256": "31d4ac1366ccda6ab25602d5ceedbf9713d2992e96c472161188f91630ed09bf"
+    },
+    {
+      "path": "tests/migrate-fixture.ts",
+      "sha256": "48dbc7dc8b460a6e79a772be8ce0099f93eb1000e9d33f1d0ce07b0f9c708006"
+    },
+    {
+      "path": "tests/monthly-delay.browser.ts",
+      "sha256": "980dce1dd75347d55b275b3ead8a0b421e04003e1dbd94cec40cf90277849f8b"
+    },
+    {
+      "path": "tests/monthly-operations.browser.ts",
+      "sha256": "14fc972405a1c6b0c851075ff14ddff972345dca13509a88140831d2060995b8"
+    },
+    {
+      "path": "tests/monthly-operations.test.ts",
+      "sha256": "394e96d302e9a2c2d7321d7adac085afef7b0746994e2b24b0b5f5e41de27e4f"
+    },
+    {
+      "path": "tests/monthly-plan-summary.test.ts",
+      "sha256": "2cb1aa670111d521ea87328b3622b842bb8db056825ebe1e5d4c41b1bfa39a85"
+    },
+    {
+      "path": "tests/monthly-workflow.browser.ts",
+      "sha256": "8128cf8b7365ccec9d812adaeeef45324e71fe322f31281b5ec37fdf019a61fd"
+    },
+    {
+      "path": "tests/monthly-workflow.integration.ts",
+      "sha256": "638bba5d35d6d6d05c92ae919918cf5b9a6cd02f3b2f44b8fb82e5211dc64e72"
+    },
+    {
+      "path": "tests/monthly-workflow.postgres.ts",
+      "sha256": "cf417075dfb387902692730508abfa773be7c684a469549d3c043240e78c78bc"
+    },
+    {
+      "path": "tests/monthly-workflow.test.ts",
+      "sha256": "70553158cd23620ddf2cb746dc720e26d592cbe36f56f3fc0aef2ea3dde3aed0"
+    },
+    {
+      "path": "tests/non-promotion-groups.test.ts",
+      "sha256": "82eaabe3a50f6cd5adcb490735435c30876a11cefa5b695cc73c9cb8ce279a15"
+    },
+    {
+      "path": "tests/non-promotion-inspector.browser.ts",
+      "sha256": "b18bf33cc0f9b81b44deaaef5ba568ad941f75ef887a0ce387c0786571aad3fa"
+    },
+    {
+      "path": "tests/non-promotion-plans.browser.ts",
+      "sha256": "dece1c966adb9430734473036e0cde4942492ddc7cf901ae8b643d6b52dcb998"
+    },
+    {
+      "path": "tests/non-promotion-plans.integration.ts",
+      "sha256": "84ed1bcfa5a8a5269d0af3256484f23b464f67d1d927f3fc8aef9e7ff0635068"
+    },
+    {
+      "path": "tests/non-promotion-plans.postgres.ts",
+      "sha256": "9a4520bd8a6fbc02c3e44609b47ec23ed8711833fa8049e0d39282748ee3a0de"
+    },
+    {
+      "path": "tests/non-promotion-plans.test.ts",
+      "sha256": "55ee597ebd481aa75bc54823acc300160c18349dd63f0f1e6128378abf76dbf8"
+    },
+    {
+      "path": "tests/non-promotion-results-motion.browser.ts",
+      "sha256": "bcaa6c9a202eed8639a0e46c2d41e0d1f0db863f06d2f553a096cf52d2dc3e5e"
+    },
+    {
+      "path": "tests/non-promotion-results.browser.ts",
+      "sha256": "cc52db09aa645610179d7eadaabc1b8e58ff9c08987c4c03113526d9da6c3795"
+    },
+    {
+      "path": "tests/non-promotion-trend.test.ts",
+      "sha256": "5484d9e4de2a6b4d5f864422d1b27b6643a6e99161bd4cd8c69b15af4f3872f5"
+    },
+    {
+      "path": "tests/operation-types.browser.ts",
+      "sha256": "f52fe64944d930ba2fef0a34def74aecb9c86ffcf47ab8c9a172566c3ea89f7e"
+    },
+    {
+      "path": "tests/operation-types.integration.ts",
+      "sha256": "b6a0263a4c8046fddb31a31e2b99a5f4a0feb6f234055badcdbad10a96679198"
+    },
+    {
+      "path": "tests/operation-types.postgres.ts",
+      "sha256": "5f9e325637ef6d283d3739ebeca74cd547c3f8628e0a2318f3911919b05a25cb"
+    },
+    {
+      "path": "tests/operation-types.test.ts",
+      "sha256": "9122ed6badfed08404e46e81db17e7f670f07bb45d191f98c62633efa8fa1ef6"
+    },
+    {
+      "path": "tests/operations-schedule.test.mjs",
+      "sha256": "1064895d4036f085284b33de6ff052f55fd7f671ef229a31455f9bcba7bba2dd"
+    },
+    {
+      "path": "tests/panel-motion.browser.ts",
+      "sha256": "2efa07f4d38555ecbdda4b0340be0f958c5b63abaa327699e5d0095f25dc06ef"
+    },
+    {
+      "path": "tests/platform-note-id.test.mjs",
+      "sha256": "34a48958cfc83d140ce23f5b03b02bf34c11f9eae130b6d6e5e8548b27f6b1e1"
+    },
+    {
+      "path": "tests/postgres.fixture.ts",
+      "sha256": "30ea2cd94d0440bebd4423c3adfbbc6eb4359c71e60c2ed672adc8ecd4ee766b"
+    },
+    {
+      "path": "tests/promotion-audit-view.test.ts",
+      "sha256": "76454180a41b6db9b5b1a50dd92c0ae53b8b988e14b99684947b4816c87844e1"
+    },
+    {
+      "path": "tests/promotion-card.browser.ts",
+      "sha256": "2221d1f0a0ed2ee5f64da1845dcae5f0f75717ac8dea6c013f1bae1578d43109"
+    },
+    {
+      "path": "tests/promotion-intervals-snapshots.test.ts",
+      "sha256": "b7a871065efe91a2805819f054195232bac660969f73283c2d518d9ab557235a"
+    },
+    {
+      "path": "tests/promotion-overview.browser.ts",
+      "sha256": "6cdfa5adcb94691874812727d30d6a7890d93fa9f523d32e926173f627aca0ab"
+    },
+    {
+      "path": "tests/promotion-overview.test.ts",
+      "sha256": "bd73ee5e4d139c069d77f1012774f0fa0cc182edc43e295a8931a355ec37e8af"
+    },
+    {
+      "path": "tests/promotion-pauses-migration.test.ts",
+      "sha256": "51d05f99157de30534203cd3fbecfd065194a5423f4a95d2797d9bc3cd6fd5f0"
+    },
+    {
+      "path": "tests/promotion-pauses.browser.ts",
+      "sha256": "a3345e8e4b10144a545b6d24d8f7aeb3a3d3f4a22579f3e5d6ecc9aa395f29f7"
+    },
+    {
+      "path": "tests/promotion-pauses.test.ts",
+      "sha256": "0b68727409fd5d6a52bca5eac3939e6cbb677f5b5a6783ac7afaace503b7dc2e"
+    },
+    {
+      "path": "tests/promotion-pending.browser.ts",
+      "sha256": "e30b118db8d65b2a89636449e02c942040cc8ade2888c68e953b84939c68a7a8"
+    },
+    {
+      "path": "tests/promotion-precise-state.test.ts",
+      "sha256": "31d603dedeeaeed96d861286216e65adf31681dbd94fb72f59f1a29351d9afd1"
+    },
+    {
+      "path": "tests/promotion-review-days.test.ts",
+      "sha256": "b7bd2826cb4312045db871a75c5cae10f74c60c73108069e418753abc0bfc65f"
+    },
+    {
+      "path": "tests/promotion-rules.test.mjs",
+      "sha256": "2737931fbc64d78e5b7b3aa13d0fdf10e03a3493833c189d470b5ff07cef7e19"
+    },
+    {
+      "path": "tests/promotion-status-correction.browser.ts",
+      "sha256": "ea0eed3103d23097d13af87901ab53f27adf2fce909a8a2f6c71a6ef2411ddd2"
+    },
+    {
+      "path": "tests/promotion-timeline-migration.test.ts",
+      "sha256": "39751479031c06dc64b71541de8511eabf726a9fc43322184cf5e2d618743122"
+    },
+    {
+      "path": "tests/promotion-timeline.browser.ts",
+      "sha256": "5d61da724f34225d96827044945a8085aae74de7fdf7e3e39d957f450aaf3925"
+    },
+    {
+      "path": "tests/promotion-timeline.test.ts",
+      "sha256": "3411467392db41eba6ea40bc4bc245fbd4a7a206dabead5aa83f45b70c5c6cf7"
+    },
+    {
+      "path": "tests/promotion-validation.test.mjs",
+      "sha256": "0017d9cfb14cd3c31efa002e71e657c77abdfaf010e0fc4a278f8b42444fde96"
+    },
+    {
+      "path": "tests/publication-migration.test.ts",
+      "sha256": "c0eb9b8118f0cd169d713e43f67f0e80bc1eb2aa128e542961a66a97ebdb37cc"
+    },
+    {
+      "path": "tests/publication-moments.browser.ts",
+      "sha256": "f78cd80f5b13273d748deffe4056772b371a2c8375f34c9ef4621732a301c5ce"
+    },
+    {
+      "path": "tests/publication-workflow.test.ts",
+      "sha256": "7fbdcae05e00371ed9377f6142e9032b53a1c557983d932ff540f4dba2cb76e8"
+    },
+    {
+      "path": "tests/publication.browser.ts",
+      "sha256": "7110433ab6c1d6eb8907911d1c955470333a55cf3acc1499f3b24ff8299fc01c"
+    },
+    {
+      "path": "tests/registration-deadline.browser.ts",
+      "sha256": "524f16fbe28d07b6139c1ea59e6372fc375fef2a68f32689231efd9797efb8bb"
+    },
+    {
+      "path": "tests/registration-deadline.test.ts",
+      "sha256": "c20116291928891a9b36abcd128be2b7272cf0d028fe728a6d8f37fe69797c5a"
+    },
+    {
+      "path": "tests/review-intervals-migration.test.ts",
+      "sha256": "1ac9ff52049e99eb135d698f150519e38d328851303c4019777640506333bef0"
+    },
+    {
+      "path": "tests/review-intervals.browser.ts",
+      "sha256": "aa7ad5b698f4973e66e409c8e86de53251613c3aa63741f35c594cce57bf7a6b"
+    },
+    {
+      "path": "tests/review-v8.browser.ts",
+      "sha256": "92f7406fa5637893f6a6fe648e8836168d051f4f2acee99a59d3661e35e3e2f7"
+    },
+    {
+      "path": "tests/review-workbench.browser.ts",
+      "sha256": "43c660c02d590c1b929b5fdf64fafd20f582327f09ba46fe1c971fa2a85e79f1"
+    },
+    {
+      "path": "tests/schedule-approvals.test.ts",
+      "sha256": "05b844cbda62a68db8f50a73edd47efbe1432c1880084dfac1bea1b122940aac"
+    },
+    {
+      "path": "tests/schedule-inspector-loading.browser.ts",
+      "sha256": "15a3761dcb18ff8722fd09bb9fdb2fa42473361e49ddf6039d264c41f56129f5"
+    },
+    {
+      "path": "tests/schedule-workflow-migration.test.ts",
+      "sha256": "2d4551f0e8aeece091c68fb0262da13730f59e28f7f9f02975724096f4591b00"
+    },
+    {
+      "path": "tests/schedule-workflow.browser.ts",
+      "sha256": "4486da604b0203d111ecfb25a9e9f7eb0be24e79f65fec045211545ca4680ee3"
+    },
+    {
+      "path": "tests/schedule-workflow.test.ts",
+      "sha256": "cc194abc4f4b731ca2302d32ff0e014aa4fa5e8daf81e63ccffca078a934be98"
+    },
+    {
+      "path": "tests/settings-taxonomy-retest.browser.ts",
+      "sha256": "5bf6ed5c659de5a7313b607f03fbb235862bcc3ad43b5500c82d7f34cf5edae6"
+    },
+    {
+      "path": "tests/settings-taxonomy-retest.test.ts",
+      "sha256": "773cbfbfc0f118a96d852571cbe4d661a941bd1db05ab7d818319fc703358f85"
+    },
+    {
+      "path": "tests/stage-review-rules.test.mjs",
+      "sha256": "17b073e9b84844b7680ad606c2af01860f9d0a1be5672e0d084ce707837f9416"
+    },
+    {
+      "path": "tests/summary-controls.browser.ts",
+      "sha256": "6b2ad73620d01a0cd5f1f4f97ca80760c6f0a7fed1d3b9889d20733c65272c16"
+    },
+    {
+      "path": "tests/summary-peer.browser.ts",
+      "sha256": "92274bf754463d86fc563388a6ef002c3b8e8a4e855d7d46e3f78f9df0d9e3c2"
+    },
+    {
+      "path": "tests/workspace-assistant.browser.ts",
+      "sha256": "b8f84b7946761a23dce6bd17d15f03946c2cea324ee18db68659927107203d93"
+    },
+    {
+      "path": "tests/workspace-collaboration.test.ts",
+      "sha256": "eafb18a195b90b00a214b3dab3ce1a324e26a338824fe6dd9ccf595c07aff31e"
+    },
+    {
+      "path": "tests/workspace-upgrade.browser.ts",
+      "sha256": "2c2770d427cb00edeeab08a0cee13b0b44ff4f264865912af2552a75db228862"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "sha256": "c63ff87e3255af811b9c0e7b76d35e9d951e50b415c57d59201defc401acc766"
+    },
+    {
+      "path": "docs/DESIGN.md",
+      "sha256": "02bc01f44d71a719b68ebdef2cf6e0fe40895e8094bf10b92909ccdc03ee9d32"
+    },
+    {
+      "path": "docs/README.md",
+      "sha256": "7b250023e1686555a45b8422f28fe0f9777eeee71a61e5c02be75d0096183d64"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "sha256": "4af039f3435335aec637d304bd344bc474ac967b98fe184f82e85b484d010c6b"
+    },
+    {
+      "path": "docs/archive/20260731-stage-summary.md",
+      "sha256": "a4f50cf828a59106d527fab36619cf2e906f6534509444e48d85b074f57413fb"
+    },
+    {
+      "path": "docs/archive/README.md",
+      "sha256": "9c4c7427c05e8a38a4de8cb8b42d29b6a001e8944ff3fff41d0b7746b118076a"
+    },
+    {
+      "path": "docs/archive/plans/2MVP.md",
+      "sha256": "31f76cb1132774bbc5a3425b82ed23f6027d6efda2f96f54121116c4e9e4a819"
+    },
+    {
+      "path": "docs/archive/plans/README.md",
+      "sha256": "9838850f50f6c55d53d2123ebf6221a1bcb46ae4858ddab7aa175a14d94fad49"
+    },
+    {
+      "path": "docs/archive/plans/phase-02-business-system.md",
+      "sha256": "ecd6f8e4baf7f60037607e29a7eebffc0b37fa3666c1526acf194b1daaebfdae"
+    },
+    {
+      "path": "docs/archive/plans/phase-03-content-publishing-console.md",
+      "sha256": "657491205fd3d7509384dccc0233a2b4fd0d6317abd57c6315295c7bea47ddfa"
+    },
+    {
+      "path": "docs/archive/plans/phase-04-the-plan.md",
+      "sha256": "d76d0ae96fe0db92953502132c2072d002f3ed8a8eb3c234d7119b769e89642e"
+    },
+    {
+      "path": "docs/archive/plans/phase-05-daily-promotion-review.md",
+      "sha256": "14bb0281dafbbfbe4d7cea3e98e7080afed94cb6dbfb095c3a19767d123f3651"
+    },
+    {
+      "path": "docs/archive/plans/phase-06-meeting-and-weekly-review.md",
+      "sha256": "a01c651ecbd875d344dd4df445348a1f953cbbd3f50d580903c97ae507b97820"
+    },
+    {
+      "path": "docs/archive/plans/phase-07-monthly-review-and-moments-schedule.md",
+      "sha256": "8c4eb04d26996f2243d67ef5ad121ffe02b088c8bddc6fb05728dd43ef3fa455"
+    },
+    {
+      "path": "docs/archive/results/20260829跟进内容.md",
+      "sha256": "242491b5e36f31c30bfb6e7eed467853d7f9ff9aea5d6c08c354cc73bc6e109e"
+    },
+    {
+      "path": "docs/archive/results/20260830跟进内容.md",
+      "sha256": "b26bcd04fe9049f4ebc6ca12a7c12c9fd494b81a021981b876c7ea15015682fe"
+    },
+    {
+      "path": "docs/archive/results/20260831跟进内容.md",
+      "sha256": "bbc394fc9b82bd22a110587912aaaeb8fe1ebfbcf67278cf902e53ee3bfb5255"
+    },
+    {
+      "path": "docs/archive/results/20260902跟进内容.md",
+      "sha256": "1fe37c234df94e771e9f07c0cf77442ba560514a75d8dde34304d28fe12ca38a"
+    },
+    {
+      "path": "docs/archive/results/20261014跟进内容.md",
+      "sha256": "13360e3d3fe6c0e5ce6c3a5b619495a27a0f99cf92d8a68093c0e6893e84eae4"
+    },
+    {
+      "path": "docs/archive/results/20261015跟进内容.md",
+      "sha256": "57ff561c8b8ef04c1b4083470eb28bff80cc2bd6be1de84b8a307f399065c28d"
+    },
+    {
+      "path": "docs/archive/results/README.md",
+      "sha256": "ca95bc45253a5df026c4b76a5f42e0205b5f19e26b791a9122815aa8e093f29d"
+    },
+    {
+      "path": "docs/archive/results/phase-02-business-system.md",
+      "sha256": "7b005c1f5edbd0fe4334efe0fe3b2f1f672a26d1ba6a6042048bcd3646a8d87f"
+    },
+    {
+      "path": "docs/archive/results/phase-03-content-publishing-console.md",
+      "sha256": "be3ffdd7330136c8bfb19c4559035e851a536a17595a6d532783630f5fc2814f"
+    },
+    {
+      "path": "docs/archive/results/phase-04-the-plan.md",
+      "sha256": "c79b03429e9027c53846f2b640d5e0009d4270a2fbdfc0383462f95f5c83fc7d"
+    },
+    {
+      "path": "docs/archive/results/phase-05-daily-promotion-review.md",
+      "sha256": "5a94ac9d2249cd5b2bbcba46d2d1bc21ff711ee8e18e77e3402b2e77b8eba588"
+    },
+    {
+      "path": "docs/archive/results/phase-06-meeting-and-weekly-review.md",
+      "sha256": "fde4f63d316451e0a7aaf3fe056392b52391d7d01b5b8c34d3fa669d903061a6"
+    },
+    {
+      "path": "docs/code-study.md",
+      "sha256": "38ccd801277bd0627821a05dfd438895c76589e9099f5d3ca350f8505b79030b"
+    },
+    {
+      "path": "docs/data-model/01_database_er_diagram.dot",
+      "sha256": "4824d53534531662bf7373c89d6ae052795acf937a3d35973c146c4b7b1e5902"
+    },
+    {
+      "path": "docs/data-model/01_database_er_diagram.dot:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/01_database_er_diagram.png",
+      "sha256": "aa30be19a061f38b08fd648a878b88e803366ef804e5e35afd98fd4c3b311252"
+    },
+    {
+      "path": "docs/data-model/01_database_er_diagram.png:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/01_database_er_diagram.svg",
+      "sha256": "44931fcbce248647f9a3324908d4e8904fda570ff17303df470ff77cc277ff83"
+    },
+    {
+      "path": "docs/data-model/01_database_er_diagram.svg:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/02_promotion_state_machine.dot",
+      "sha256": "3a6e8b31563ada4beeb886300854d788ebd73843b91bc557d9d8115ab6563ba7"
+    },
+    {
+      "path": "docs/data-model/02_promotion_state_machine.dot:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/02_promotion_state_machine.png",
+      "sha256": "6e7b7ff19ae097692bc3baae065ee8f4174fd867219a2612c2ee1558e71219ee"
+    },
+    {
+      "path": "docs/data-model/02_promotion_state_machine.png:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/02_promotion_state_machine.svg",
+      "sha256": "5cfc1c66f02ce10b2fdeaf43958e902973904cd0cacf1ae59c2f802b19feb19f"
+    },
+    {
+      "path": "docs/data-model/02_promotion_state_machine.svg:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/03_version_lineage_diagram.dot",
+      "sha256": "c14e020edef8bb922a9f12914edc2338a43f497fad6570f06f9cca10edf4986f"
+    },
+    {
+      "path": "docs/data-model/03_version_lineage_diagram.dot:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/03_version_lineage_diagram.png",
+      "sha256": "655bf3a4be2157cb06d1dbf874465bac46380698e4d24b328ba0c76ab4a5cb97"
+    },
+    {
+      "path": "docs/data-model/03_version_lineage_diagram.png:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/03_version_lineage_diagram.svg",
+      "sha256": "9c67102b77fcd4d32e19f17d7c0556fdb97f3823e0d653a58a63ce443dde8d03"
+    },
+    {
+      "path": "docs/data-model/03_version_lineage_diagram.svg:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/data-model/DATA-MODEL.md",
+      "sha256": "2b00dc16f85e2cf570c4593eb8f33d2f795efa9b02acdfce7468770915ca385f"
+    },
+    {
+      "path": "docs/data-model/README.md",
+      "sha256": "0f88f5bc175a5c9001589ab4280370b09a44d9347fc9ced261c8d62f3cd2b388"
+    },
+    {
+      "path": "docs/data-model/README.txt:Zone.Identifier",
+      "sha256": "b952d24cf701bc4e7a7d21e1ae85c611824e80579a89836c0cb49b193446ccfe"
+    },
+    {
+      "path": "docs/database-guide.md",
+      "sha256": "e899e400b23be4e057c868b4559e27e204c7055afce66f34e50fcfd2fa43e7f9"
+    },
+    {
+      "path": "docs/deployment.md",
+      "sha256": "564467f67a91712ac69bcc5ae0f56d4d128987571f8be4c315468803c5fc9983"
+    },
+    {
+      "path": "docs/home-code-study.md",
+      "sha256": "de3d1ad109f1aebef3a034cb181bc3acd7ad1fb129a20e24e867e73e4c7f0c13"
+    }
+  ]
+}

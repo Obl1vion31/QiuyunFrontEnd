@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: PDF失败与中断可独立重试，同版本并发生成只归档一次，不重复定稿
+ok 1 - PDF失败与中断可独立重试，同版本并发生成只归档一次，不重复定稿
+  ---
+  duration_ms: 2299.800918
+  type: 'test'
+  ...
+# Subtest: 0038兼容迁移保留旧冻结JSON和图片，旧应用仍可按原字段写图片
+ok 2 - 0038兼容迁移保留旧冻结JSON和图片，旧应用仍可按原字段写图片
+  ---
+  duration_ms: 1113.011452
+  type: 'test'
+  ...
+# Subtest: 旧模板重建失败保留原PDF，成功原子替换且不覆盖手工附件
+ok 3 - 旧模板重建失败保留原PDF，成功原子替换且不覆盖手工附件
+  ---
+  duration_ms: 1402.76323
+  type: 'test'
+  ...
+# Subtest: 周度总览读取全部事实，按排期版本去重并加权计算成本，不受阶段卡候选影响
+ok 4 - 周度总览读取全部事实，按排期版本去重并加权计算成本，不受阶段卡候选影响
+  ---
+  duration_ms: 23.978192
+  type: 'test'
+  ...
+# Subtest: 等长比较不假定自然周；真实零、空数据和缺填分别保留
+ok 5 - 等长比较不假定自然周；真实零、空数据和缺填分别保留
+  ---
+  duration_ms: 1.422495
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6552.363268

@@ -5,13 +5,14 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {eq,and} from 'drizzle-orm';
+import {startPostgresFixture} from './postgres.fixture';
 import {startFixture,employee} from './auth.fixture';
 import {respondToBusinessConfirm} from './business-confirm.helper';
 import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 import * as s from '../src/db/schema';
 const folder=process.env.MEETING_DISCUSSION_DIR||'.tools/test-artifacts/meeting-discussion';await mkdir(folder,{recursive:true});
 const clockFile=new URL('../'+folder+'/clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-10-25T18:00:00+08:00');
-const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;let browser:any;const checks:string[]=[],errors:string[]=[];
+const fixture=await (process.env.TEST_POSTGRES_URL?startPostgresFixture({clockFile}):startFixture({clockFile})),{db,baseURL}=fixture;let browser:any;const checks:string[]=[],errors:string[]=[];
 try{
  const login=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(employee)});assert.equal(login.status,200);const cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
  async function api(path:string,body?:any,status=200){const res=await fetch(baseURL+path,{method:body?'PATCH':'GET',headers:{Origin:baseURL,Cookie:cookie,'Content-Type':'application/json'},body:body?JSON.stringify(await versionDraftPayload(db,path,body)):undefined}),json=await res.json();assert.equal(res.status,status,JSON.stringify(json));return json;}
@@ -45,7 +46,7 @@ try{
  const nav=async(path:string)=>{await page.evaluate(()=>document.documentElement.dataset.unsaved='false').catch(()=>{});await page.goto(baseURL+path);await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);};
  await nav('/business/meeting-review?meeting='+id);
  assert.equal(await page.locator('.weekly-frozen textarea').count(),0);assert.equal(await page.locator('.version-nav .meeting-pdf-archive').count(),0);
- assert.ok(await page.getByText('同类样本 9 份',{exact:true}).count()>0);assert.equal(await page.getByText(/较同类|同类均值/).count(),0);
+ assert.ok(await page.getByText('同类样本 9 份',{exact:true}).count()>0);assert.ok(await page.locator('.weekly-rate-comparison').filter({hasText:'较同类'}).count()>0);
  await page.getByRole('radio',{name:'编辑模式',exact:true}).check();
  const saveButton=page.getByRole('button',{name:'保存草稿',exact:true});
  assert.equal(await saveButton.isDisabled(),true);assert.equal(await page.getByRole('button',{name:'会前定稿 V1',exact:true}).isDisabled(),true);

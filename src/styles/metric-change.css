@@ -1,0 +1,3 @@
+/* The text supplies a real baseline; the icon stays within its line box. */
+.business-value-change{display:inline-block;position:relative;padding-inline-start:1.05em;white-space:nowrap;vertical-align:baseline;font-variant-numeric:tabular-nums}
+.business-value-change>svg{position:absolute;inset-inline-start:0;top:50%;transform:translateY(-50%);width:1em;height:1em}

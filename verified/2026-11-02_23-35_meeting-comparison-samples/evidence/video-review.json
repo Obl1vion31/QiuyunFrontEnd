@@ -1,0 +1,34 @@
+[
+  {
+    "label": "desktop",
+    "path": "/home/obl1vion/projects/qiuyunFrontend/.tools/test-artifacts/meeting-display/video/page@345a583d7af3013bcbc5f5c43aa64d01.webm",
+    "duration": "53.320000",
+    "reviewFps": 8,
+    "sheets": 15,
+    "archive": "video/meeting-desktop.webm"
+  },
+  {
+    "label": "touch",
+    "path": "/home/obl1vion/projects/qiuyunFrontend/.tools/test-artifacts/meeting-display/video/mobile/page@a21e57fef8ca4eae43aea15f3a44686f.webm",
+    "duration": "3.960000",
+    "reviewFps": 12,
+    "sheets": 2,
+    "archive": "video/meeting-touch-390.webm"
+  },
+  {
+    "label": "month-desktop",
+    "path": "/home/obl1vion/projects/qiuyunFrontend/.tools/test-artifacts/meeting-display/video/monthly-1440/page@a4494a7a84ae586b1d1fb76abf749532.webm",
+    "duration": "20.640000",
+    "reviewFps": 12,
+    "sheets": 9,
+    "archive": "video/monthly-switch-1440.webm"
+  },
+  {
+    "label": "month-touch",
+    "path": "/home/obl1vion/projects/qiuyunFrontend/.tools/test-artifacts/meeting-display/video/monthly-390/page@26ee44be4f7275721c70042df4358e79.webm",
+    "duration": "20.520000",
+    "reviewFps": 12,
+    "sheets": 9,
+    "archive": "video/monthly-switch-390.webm"
+  }
+]

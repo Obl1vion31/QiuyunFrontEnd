@@ -3,8 +3,8 @@ let cleanup:(()=>void)|undefined;
 let sequence=0;
 function initialize(){
   cleanup?.();
-  let active:HTMLElement|null=null, trigger:HTMLButtonElement|null=null, frame=0,hideTimer=0,pinned=false,restoringFocus=false;
-  const restoreFocus=(button:HTMLButtonElement)=>{restoringFocus=true;button.focus({preventScroll:true});restoringFocus=false;};
+  let active:HTMLElement|null=null, trigger:HTMLElement|null=null, frame=0,hideTimer=0,pinned=false,restoringFocus=false;
+  const restoreFocus=(button:HTMLElement)=>{restoringFocus=true;button.focus({preventScroll:true});restoringFocus=false;};
   const position=()=>{
     if(!active?.matches(':popover-open')||!trigger)return;
     const anchor=trigger.getBoundingClientRect(),group=trigger.closest<HTMLElement>('[data-business-popover]')!,card=group.dataset.popoverBoundary?trigger.closest(group.dataset.popoverBoundary)?.getBoundingClientRect():null;
@@ -18,7 +18,7 @@ function initialize(){
     active.style.top=(up?Math.max(12,anchor.top-8-active.getBoundingClientRect().height):anchor.bottom+8)+'px';
   };
   const follow=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(position);};
-  const open=(button:HTMLButtonElement,pin:boolean)=>{
+  const open=(button:HTMLElement,pin:boolean)=>{
     clearTimeout(hideTimer);
     const panel=button.nextElementSibling as HTMLElement;
     if(active===panel&&panel.matches(':popover-open')){pinned ||=pin;return;}
@@ -32,7 +32,7 @@ function initialize(){
     const copy=(event.target as Element).closest<HTMLButtonElement>('[data-copy-note-id]');
     if(copy){event.preventDefault();const panel=copy.closest<HTMLElement>('[data-popover-panel]')!,value=panel.querySelector<HTMLElement>('[data-reference-note-id]')!,out=panel.querySelector<HTMLOutputElement>('[data-reference-message]')!;void Promise.resolve().then(()=>navigator.clipboard.writeText(value.textContent??'')).then(()=>{out.textContent='已复制';position();}).catch(()=>{const range=document.createRange();range.selectNodeContents(value);getSelection()?.removeAllRanges();getSelection()?.addRange(range);out.textContent='请选择并复制 ID。';position();});return;}
 
-    const button=(event.target as Element).closest<HTMLButtonElement>('[data-popover-trigger]');
+    const button=(event.target as Element).closest<HTMLElement>('[data-popover-trigger]');
     if(!button)return;event.preventDefault();
     const panel=button.nextElementSibling as HTMLElement;
     if(active===panel&&panel.matches(':popover-open')&&pinned){panel.hidePopover();return;}
@@ -41,7 +41,7 @@ function initialize(){
   const enter=(event:PointerEvent|FocusEvent)=>{
     const group=(event.target as Element).closest?.('[data-business-popover][data-popover-kind=reference]');
     if(!group||restoringFocus||pinned)return;
-    clearTimeout(hideTimer);open(group.querySelector<HTMLButtonElement>('[data-popover-trigger]')!,false);
+    clearTimeout(hideTimer);open(group.querySelector<HTMLElement>('[data-popover-trigger]')!,false);
   };
   const leave=(event:PointerEvent|FocusEvent)=>{
     const group=(event.target as Element).closest?.('[data-business-popover][data-popover-kind=reference]');
@@ -51,7 +51,7 @@ function initialize(){
   const toggle=(event:Event)=>{
     const panel=event.target as HTMLElement;
     if(!panel.hasAttribute?.('data-popover-panel'))return;
-    const button=panel.previousElementSibling as HTMLButtonElement;
+    const button=panel.previousElementSibling as HTMLElement;
     button.setAttribute('aria-expanded',String(panel.matches(':popover-open')));
     if(!panel.matches(':popover-open')&&active===panel){
       if(panel.contains(document.activeElement))restoreFocus(button);

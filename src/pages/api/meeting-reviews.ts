@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       const material = await readWeeklyMaterial(tx, created);
       const draft={ ...created.draftSnapshot, materialFingerprint:material.fingerprint,materialSnapshot:material as unknown as Record<string,unknown> };
       await tx.update(operationsReviewMeeting).set({draftSnapshot:draft}).where(eq(operationsReviewMeeting.id, created.id));
-      await tx.insert(versions).values({meetingId:created.id,versionNumber:0,lifecycleStatus:'draft',changeSummary:'会前 V0 草稿',snapshot:{schemaVersion:4,finalizationStage:'pre',meeting:{name,periodStart:created.periodStart,periodEnd:created.periodEnd},draft,generated:{...selectWeeklyMaterial(material,[],[]),summary:material.summary,...(material.monthly?{monthly:material.monthly}:{})}}});
+      await tx.insert(versions).values({meetingId:created.id,versionNumber:0,lifecycleStatus:'draft',changeSummary:'会前 V0 草稿',snapshot:{schemaVersion:4,finalizationStage:'pre',meeting:{name,periodStart:created.periodStart,periodEnd:created.periodEnd},draft,generated:{...selectWeeklyMaterial(material,[],[]),summary:material.summary,...(material.reportMetrics?{reportMetrics:material.reportMetrics}:{}),...(material.monthly?{monthly:material.monthly}:{})}}});
       return created;
     });
     return Response.json({ ok: true, id: meeting.id }, { status: 201 });

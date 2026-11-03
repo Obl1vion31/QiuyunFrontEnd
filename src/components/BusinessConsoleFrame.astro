@@ -110,11 +110,13 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
       const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
       const write = !['GET', 'HEAD'].includes(method);
       // 读取由具体容器提供延迟反馈，永不改写最近点击的卡片或链接。
-      const trigger = write && performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
+      // React草稿保存由本区反馈，不能把最近拖拽／点选的卡片当作提交按钮改写。
+      const localFeedback = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined)).get('X-Business-Feedback') === 'local';
+      const trigger = write && !localFeedback && performance.now() - recentTriggerAt < 1200 ? recentTrigger : null;
       recentTrigger = null; recentTriggerAt = 0;
       const id = Symbol('business-operation');
       const label = trigger?.dataset?.loadingLabel || trigger?.closest?.('form')?.dataset?.loadingLabel || defaultLabel(method);
-      if(write)tasks.set(id, label);
+      if(write&&!localFeedback)tasks.set(id, label);
       if (trigger && !trigger.matches('a')) {
         const state = triggers.get(trigger) || { count: 0, wasDisabled: trigger.disabled, markup: trigger.innerHTML, changedLabel: !trigger.textContent.includes('正在') };
         state.count += 1; triggers.set(trigger, state);
@@ -130,7 +132,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
         }
         return response;
       } catch (error) {
-        if(write)showError('连接失败，请检查网络后重试。当前输入已保留。');
+        if(write&&!localFeedback)showError('连接失败，请检查网络后重试。当前输入已保留。');
         throw error;
       } finally {
         tasks.delete(id);

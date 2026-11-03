@@ -146,7 +146,7 @@ flowchart LR
 
 周例会 React 岛复用 Frame、Toolbar、BusinessDateTimeFields、表单变量与 `businessConfirm`；异步候选调用公共 `readBusiness`，保留当前人工输入和勾选，区间变动使旧响应失效。条件筛选仅设置卡片 hidden，完整事实／比较来源由服务端保存到 v4 JSON，不增加表结构。新模式用 `tests/meeting-weekly.browser.ts` 验证正式组件和隔离业务数据，旧 v2/v3 与旧阶段只读兼容继续由 `test:reviews` 验证。
 
-例会内联模式：`WeeklyReviewCards` 在卡片确认／修改，`BusinessWeeklyMeeting` 保存未确认草稿并使用公共读取与确认反馈；CSS Grid 保持同组同行卡片等高。`PATCH /api/meeting-reviews/:id` 的 `finalize_version_draft` 的 pre／post 分别冻结材料和发布次日决定，`meeting-decisions.ts` 按生效日合并不可变版本；`promotion-review-days.ts` 将决定接入每日表单，`meeting-decision.ts` 只在填写理由后更正并保留数字输入。`tests/meeting-inline.browser.ts` 验证正式组件、跨日、内联草稿与锁定，`meeting-decisions.test.ts` 验证版本优先级及终态日期。
+例会内联模式：`WeeklyReviewCards` 在卡片确认／修改，`BusinessWeeklyMeeting` 保存未确认草稿并使用公共读取与确认反馈；CSS Grid 依据内容容器组织当前双卡／单列，记录自然高度；阅读及比较规则统一参见 DESIGN“会议阅读与编辑”。`PATCH /api/meeting-reviews/:id` 的 `finalize_version_draft` 的 pre／post 分别冻结材料和发布次日决定，`meeting-decisions.ts` 按生效日合并不可变版本；`promotion-review-days.ts` 将决定接入每日表单，`meeting-decision.ts` 只在填写理由后更正并保留数字输入。`tests/meeting-inline.browser.ts` 验证正式组件、跨日、内联草稿与锁定，`meeting-decisions.test.ts` 验证版本优先级及终态日期。
 
 例会明细使用 `WeeklyCardDetails`＋`meeting-layout` 的原生非模态 popover，编辑与无 hydration 的冻结卡共用；触发按钮留在原位，不测全页卡高。Toolbar 的 `layout="title"` 为没有居中控件的对象页保留完整标题宽度，不改变公共高度。`meeting-note-ids` 通过 SSR 与 material GET 的独立 `noteIds` 返回实时主体 ID，不进入材料、指纹或新冻结快照。
 
@@ -164,11 +164,11 @@ flowchart LR
 
 `WeeklyMeetingPresentation` 共用会前／会后阅读、最新版本编辑与打印布局。`BusinessMeetingDiscussion` 监听公共 `BusinessViewSwitch`，默认只读，保存 `save_version_draft` 首次建立下一版草稿，重复保存更新同一行；`finalize_version_draft` 按 pre／post 在同一行定稿。`meeting-version-workflow` 事务锁定来源版本与更新时间，合并白名单、固定生效日、记录事项前后值；`rollback_version` 仅生效日前确认回溯，保留失效版本并创建待重新定稿的会前恢复版本。`meeting-decision-rules` 跳过失效版本与纯文字继承事件，防止重复执行或盖掉日度更正。
 
-`meeting-rate-comparison.withFrozenRateComparisons` 只从旧定稿自身材料补齐缺失比较信息，页面和PDF共用，不查询实时指标或写快照。卡片显示pp和一处样本数。
+`meeting-rate-comparison.withFrozenRateComparisons` 只从旧定稿自身材料补齐缺失比较信息，页面和PDF共用，不查询实时指标或写快照。主值旁常显同类pp；推广精确基准保留原始记录，非推广精确基准／区间／样本在原有详情分别读取，不在主值下堆辅助行。`metric-change.css`让文字提供真实基线，箭头只在同行盒内定位；网页与PDF共用。
 
-`meeting-pdf-render.tsx` 将同一React展示组件、共享视觉变量、打印样式及MiSans内联，以本地serverless Chromium打印A4横向三列。禁止外网请求，不复制登录会话；`meeting-pdf` 按内容／模板指纹和版本租约生成，成功替换旧自动文件，独立上传保留。`MeetingPdfArchive` 仅在总览和折叠历史中提供操作。`tests/meeting-discussion.browser.ts` 与 `meeting-version-workflow.test.ts` 覆盖新模式、冻结、期限、回溯和打印流程。
+`meeting-pdf-render.tsx` 将同一React展示组件、共享视觉变量、打印样式及MiSans内联，以本地serverless Chromium打印A4横向报告，按内容与分页组织。禁止外网请求，不复制登录会话；`meeting-pdf` 按内容／模板指纹和版本租约生成，成功替换旧自动文件，独立上传保留。`MeetingPdfArchive` 仅在总览和折叠历史中提供操作。`tests/meeting-discussion.browser.ts` 与 `meeting-version-workflow.test.ts` 覆盖新模式、冻结、期限、回溯和打印流程。
 
-版本草稿接入：`lifecycleStatus` 与 `finalizationStage` 分别表达是否定稿、会前／会后，`activeMeetingDraft` 选择续填入口，`currentVersionNumber` 仍指最新有效定稿。初始编辑器通过 `WeeklyMeetingPresentation` 的卡片插槽复用正文与事项表；修订只合并白名单。草稿不参与均值、决定或 PDF；回溯的撤销日志独立保存，不能依赖可编辑快照执行。`meeting-draft-migration.test.ts` 覆盖兼容迁移；编辑表格测真实控件中线，率与 pp 测同行和溢出，四档截图仍需人工审阅。
+版本草稿接入：`lifecycleStatus` 与 `finalizationStage` 分别表达是否定稿、会前／会后，`activeMeetingDraft` 选择续填入口，`currentVersionNumber` 仍指最新有效定稿。初始编辑器通过 `WeeklyMeetingPresentation` 的卡片插槽复用正文与事项表；修订只合并白名单。草稿不参与均值、决定或 PDF；回溯的撤销日志独立保存，不能依赖可编辑快照执行。`meeting-draft-migration.test.ts` 覆盖兼容迁移；编辑表格测真实控件中线，率与 pp 测默认态相邻可见和溢出，五档截图仍需人工审阅。
 
 `meeting-discussion-values.meetingDiscussionKey` 在浏览器及修订事务共用实际值比较，忽略空占位、对象键序与首尾空格；打开编辑器不置脏，改回原值取消未保存状态。初次建修订草稿及每次定稿接入 `businessConfirm`，同版草稿正常保存；事务拒绝空修订，允许现存草稿同号定稿及会前转会后维持原方案。待确认草稿的安排优先于执行快照，避免重开时被旧决定覆盖。
 
@@ -244,3 +244,22 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 标准基准资格由`anchorReviewPosts.standardCohortEligible`统一推导，读模型、指标保存与例会材料复用；客户端使用服务端`cohortEligible`组织原位明细，不将推广后持续遗留的标准事实重新归入分类均值。
 
 持续每周安排接入：`continuous-schedule`统一保存版本最终日期及协调真实节点；推广日度、时间线、待定区间和排期修改在原事务内调用，读取不生成节点。`BusinessOperationFields`显示最终日期；审批快照复用排期字段，旧NULL字段不改变待审指纹；普通／旧持续计划保留原日期入口。
+
+月度结果与计划接入更新：
+
+- `readMonthlyWorkspace`同一份推广来源派生所选月、全站核心及上月结果；`core`始终全站，`spend`等原字段保留明细筛选语义。相关学科／用途来自`promotionScope`与已有私域行，录入与完整度共用，不能分别遍历全字典。
+- `MonthlyCoreResults`用于看板和`layoutVersion:2`月会；历史复用静态`BusinessFormSheet`，只读查看不取编辑权。月会材料冻结`core.comparison`并纳入指纹，读取时间不入指纹。空跑来源链接一并冻结。
+- `MonthlyPlanEditor`填总数直接维护稳定名额，源表拖动每次分配一篇，已有帖子多选复用同一名额；Week移动只改`week`。旧名额、已提交关联、首次定稿时间、追加批次均保持。自动保存捕获当次草稿，响应不能将请求期间的新输入标为已保存；失败不循环重试或禁用正文。
+- 新月会准备、服务端定稿及执行决定同用月度结构分支：不能只隐藏卡片仍执行旧决定。周会保留原口径，按帖双卡或单列展示节点与常显比较，不以全宽或等高作为通过条件。
+
+```tsx
+// 核心结果用统一范围，明细继续使用workspace中受筛选的字段。
+<MonthlyCoreResults core={workspace.core} />
+<MonthlyPrivatePanel data={workspace} summaryOnly admin={admin} onSaved={refresh} />
+```
+
+月度展示接入：`BusinessMonthlyOperations` 保留四项执行KPI、关注条与双图，私域在明细前。图表播放绑定成功显示的 `data.query.month`，布局阶段准备待播放状态并在可见时播放；不重挂报表，原请求代次继续阻止旧响应。月会与历史Sheet共用 `MonthlyCoreResults`，人数／成本变化在主值旁，完整对照表只补原值。
+
+月计划会议阅读由`MonthlyPlanSummary`的cards变体按Week展示紧凑名称卡，资料在共享气泡；其他执行摘要保留group汇总。原计划和追加在会议中投影到同一块Week板，写入仍归属各批次。`MonthlyPlanEditor`以editorSteps记录确认数量／分周／已确认，确认回调复用父会议保存，不创建第二套写入接口；新做量与遗留相加、已有排期占名额。编辑时读取当前执行数据，只读仍使用冻结材料。执行摘要复用`readMonthlyPlan`，新月度材料可选携带`executionPlan`并冻结；原快照没有登记状态时显示未记录，不查询当前数据库回填。来源池按未关联新做组显示×N，每次拖动解析一个真实item ID；补帖和已有排期各自独立，×0保留，不为未选择的零来源留位。周次与移回使用同一写入函数，默认不常显下拉。新增只打开新来源数量，旧分配不重开；具体名额、遗留、审批、跨周和48小时在气泡内查看，不新增负责人。BusinessWeeklyMeeting明确传入planEditing，只读草稿不冒充编辑布局。会议草稿保存由React管理局部状态，BusinessWeeklyMeeting和BusinessMeetingDiscussion的写入带X-Business-Feedback: local；共享Frame跳过最近触发器的按钮改写，认证失效仍由公共提示处理。
+
+周度总览读取`meeting-report-metrics`的全量事实，原summary及阶段卡语义保持。`WeeklyResultOverview`和`ReportCharts`负责差值与真实日期走势；新增字段仅进入新快照。`MonthlyOperationsCharts`由共享发布及投入面板组成：月度运营继续双图并接定位回调，月会将发布与四张执行数字卡并排，投入移到分类区，避免复制图形或让表单按钮规则覆盖只读图例。`MonthlyReportVisuals`消费同一空跑与分类读模型，周构成及可选的五个月空跑序列保留在月度材料中，历史序列复用一次事实读取按月份构建；PDF复用组件及编译后图表样式。空跑来源预览5／3条，金额默认仅本月；标题旁WeeklyCardDetails info以当前行作为boundary，完整资料与整轮依据按需显示。只读资料触发器带键盘语义，在禁用编辑fieldset中仍可读取，不参与导航。完整冻结名单通过页面公共Sheet显示，保持相同排序和行布局，正文一层滚动、关闭回原按钮；打印另输出资料链接。周会`leadCostTrend`从真实定稿选出的同原帖同阶段记录构建，按版本／区间去重，不直接使用含累计摘要的`ownHistory`；图点通过共享资料气泡支持悬停、键盘和点击。

@@ -91,18 +91,19 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const firstPost=stage==='post'&&(originalSnapshot.finalizationStage!=='post'||active?.versionKind==='rollback');
   // 草稿可直接同号定稿，会前转会后也可维持原方案；其余新修订必须真正改过内容。
   if(!active&&!firstPost&&meetingDiscussionKey({...originalSnapshot.draft,promotionDecisions:original})===meetingDiscussionKey(draft))throw new WorkflowError('尚无实际修改，无需生成新版本。',422);
-  if(finalizing&&firstPost&&expired)throw new WorkflowError('已过安排生效时间，不能重新发布旧安排。',422);
+  if(finalizing&&firstPost&&expired&&!(draft.monthlySchemaVersion&&(baseline.generated.monthly?.layoutVersion===2||draft.monthlyRefreshFingerprint)))throw new WorkflowError('已过安排生效时间，不能重新发布旧安排。',422);
   if(finalizing&&draft.issues.some(i=>!i.problem.trim()))throw new WorkflowError('请补充事项的问题，或删除新增空行。',422);
-  if(finalizing){const issue=meetingFinalizationIssue(draft,stage,[]);if(issue)throw new WorkflowError(issue.message,422);}
+  if(finalizing){const issue=meetingFinalizationIssue(draft,stage,[],baseline.generated.monthly?.layoutVersion===2||!!draft.monthlyRefreshFingerprint);if(issue)throw new WorkflowError(issue.message,422);}
   const targetNumber=active?.versionNumber??versionNumber;
   const snapshot:any={...baseline,draft:{...draft,workflowVersion:6,hasRevisionDraft:false,finalizationStage:stage},finalizationStage:stage,decisionEffectiveOn:effectiveOn};
   if(!finalizing)snapshot.revisionSourceIssues=clone(originalSnapshot.draft.issues);else delete snapshot.revisionSourceIssues;
   snapshot.generated=clone(baseline.generated);delete snapshot.decisionPolicy;
   if(draft.monthlyRefreshFingerprint&&draft.monthlyRefreshFingerprint!==baseline.generated.monthly?.fingerprint){const monthly=await readMonthlyMeeting(tx,meeting);if(monthly.fingerprint!==draft.monthlyRefreshFingerprint)throw new WorkflowError('月度来源又有变化，请更新月度材料并核对。',409);snapshot.generated.monthly=monthly;}
+  if(snapshot.generated.monthly?.layoutVersion===2){snapshot.generated.promotions=[];snapshot.generated.nonPromotions=[];snapshot.generated.meetingDecisions=[];}
   if(finalizing&&snapshot.generated.monthly?.operations.missingRows.length)throw new WorkflowError('本月推广日度仍有缺项，请先补齐。',422);
   if(draft.monthlyPlanReference&&!same(draft.monthlyPlanReference,originalSnapshot.draft.monthlyPlanReference))snapshot.generated.monthlyPlanExecution=await readReferencedMonthlyPlan(tx,draft.monthlyPlanReference,now);
   const arrangementChanged=!same(original,draft.promotionDecisions);
-  if(finalizing&&stage==='post'&&(firstPost||arrangementChanged)){
+  if(finalizing&&stage==='post'&&snapshot.generated.monthly?.layoutVersion!==2&&(firstPost||arrangementChanged)){
    if(expired)throw new WorkflowError('已过可编辑时间。',422);
    const context=await readPromotionContext(tx),today=shanghaiDateKey(now),decisions:any[]=[];
    for(const card of snapshot.generated.promotions??[]){

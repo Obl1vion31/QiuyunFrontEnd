@@ -1,4 +1,6 @@
-import {useEffect,useRef,useState} from 'react';
+import MonthlyOperationsCharts from './MonthlyOperationsCharts';
+import '../styles/report-presentation.css';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import MonthlyPrivatePanel from './MonthlyPrivatePanel';
 import {PlanExecutionSummary} from './MonthlyMeetingSections';
 import type {MonthlyWorkspace} from '../db/monthly-workspace';
@@ -11,16 +13,16 @@ const count=(value:number|null)=>value==null?'—':value.toLocaleString('zh-CN')
 const monthLabel=(month:string)=>`${month.slice(0,4)}年${Number(month.slice(5))}月`;
 const currentMonth=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit'}).format(new Date());
 const reasonLabels:Record<string,string>={self:'运营原因',external:'非运营原因',requester:'非运营原因',unknown:'未知'};
-const delayColors={operational:'#b85b65',nonOperational:'#e6b6bb',unknown:'#9ba3ae'};
 type View='publication'|'promotion';
 type Detail='onTime'|'pending'|'planned'|'published'|'delayed'|'operationalDelayed'|'missing'|'severe'|'operational'|'changed'|'moved'|'all'|'wasted'|'gaps'|`subject:${string}`|`group:${string}`;
 const filters:Array<[Detail,string]>=[['planned','当前应发'],['onTime','按时已发布'],['pending','正常待发'],['published','本月发布'],['delayed','延期已发布'],['operationalDelayed','运营延期已发布'],['missing','尚未登记'],['severe','超过48小时'],['operational','运营原因'],['changed','改期后未登记'],['moved','改出本月']];
 const scheduleHref=(id:string)=>`/business/operations-schedule?display=ledger&row=${id}`;
+const useChartLayoutEffect=typeof window==='undefined'?useEffect:useLayoutEffect;
 export default function BusinessMonthlyOperations({initial,query:initialQuery,error:initialError='',followCurrentMonth=false,admin=false}:{initial:MonthlyWorkspace|null;query:MonthlyQuery;error?:string;followCurrentMonth?:boolean;admin?:boolean}){
  const [data,setData]=useState(initial),[query,setQuery]=useState(initialQuery),[error,setError]=useState(initialError),[busy,setBusy]=useState(false);
  const [view,setView]=useState<View>('publication'),[detail,setDetail]=useState<Detail>('planned');
  const [delayScope,setDelayScope]=useState<'all'|'operational'>('all');
- const root=useRef<HTMLDivElement>(null),body=useRef<HTMLDivElement>(null),details=useRef<HTMLElement>(null),activeQuery=useRef(query),follow=useRef(followCurrentMonth),seen=useRef(new Set<string>()),generation=useRef(0);
+ const root=useRef<HTMLDivElement>(null),body=useRef<HTMLDivElement>(null),details=useRef<HTMLElement>(null),activeQuery=useRef(query),follow=useRef(followCurrentMonth),generation=useRef(0);
  activeQuery.current=query;
  async function load(next:MonthlyQuery,updateURL=true){
   setQuery(next);activeQuery.current=next;setError('');setBusy(true);const seq=++generation.current;
@@ -40,12 +42,17 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
   document.addEventListener('visibilitychange',onVisible);window.addEventListener('popstate',onPop);
   return()=>{clearTimeout(timer);document.removeEventListener('visibilitychange',onVisible);window.removeEventListener('popstate',onPop);};
  },[]);
- useEffect(()=>{
+ useChartLayoutEffect(()=>{
   if(!data||!root.current)return;
-  const animations:Animation[]=[];
-  const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const key=(entry.target as HTMLElement).dataset.monthlyChart!;if(seen.current.has(key))continue;seen.current.add(key);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)entry.target.querySelectorAll<HTMLElement>('[data-chart-fill]').forEach((bar,i)=>animations.push(bar.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:620,delay:i*45,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'})));entry.target.removeAttribute('data-chart-pending');observer.unobserve(entry.target);}}, {threshold:.15});
-  root.current.querySelectorAll('[data-monthly-chart]').forEach(n=>observer.observe(n));return()=>{observer.disconnect();animations.forEach(a=>a.cancel());};
- },[Boolean(data)]);
+  const animations:Animation[]=[],motion=matchMedia('(prefers-reduced-motion: reduce)');
+  const pending=new Set(root.current.querySelectorAll<HTMLElement>('[data-monthly-chart]'));
+  const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting||document.hidden||!pending.has(entry.target as HTMLElement))continue;pending.delete(entry.target as HTMLElement);if(!motion.matches)entry.target.querySelectorAll<HTMLElement>('[data-chart-fill]').forEach((bar,i)=>animations.push(bar.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:620,delay:i*45,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'})));entry.target.removeAttribute('data-chart-pending');observer.unobserve(entry.target);}}, {threshold:.15});
+  pending.forEach(n=>{n.toggleAttribute('data-chart-pending',!motion.matches);observer.observe(n);});
+  const reduce=()=>{if(motion.matches){animations.forEach(a=>a.cancel());pending.forEach(n=>n.removeAttribute('data-chart-pending'));}};
+  const visible=()=>{if(!document.hidden)pending.forEach(n=>{observer.unobserve(n);observer.observe(n);});};
+  motion.addEventListener('change',reduce);document.addEventListener('visibilitychange',visible);
+  return()=>{observer.disconnect();animations.forEach(a=>a.cancel());pending.forEach(n=>n.removeAttribute('data-chart-pending'));motion.removeEventListener('change',reduce);document.removeEventListener('visibilitychange',visible);};
+ },[data?.query.month]);
  function show(next:View,filter:Detail){setView(next);setDetail(filter);requestAnimationFrame(()=>{details.current?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});details.current?.focus({preventScroll:true});});}
  const taxonomy=data?.taxonomy;
  const categories=taxonomy?.postCategories.filter(c=>!query.subject||taxonomy.subjectCategoryMappings.some(m=>m.subjectId===query.subject&&m.categoryId===c.id))??[];
@@ -53,20 +60,17 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
  const spendRows=data?.spendRows.filter(row=>detail==='wasted'?row.wasted>0:detail.startsWith('subject:')?row.subjectId===detail.slice(8):detail.startsWith('group:')?data.categories.find(g=>g.key===detail.slice(6))?.scheduleIds.includes(row.scheduleId):true)??[];
  const pub=data?.publication,spend=data?.spend;
  const delayRate=pub&&(delayScope==='all'?pub.delayRate:pub.operationalDelayRate),delayCount=pub&&(delayScope==='all'?pub.delayed:pub.operationalDelayed);
- const distribution=pub?[{key:'onTime',label:'按时已发布',value:pub.onTime,color:'#3d8d72'},{key:'operational',label:'运营延期发布',value:pub.operationalDelayed,color:delayColors.operational},{key:'nonOperational',label:'非运营延期发布',value:pub.nonOperationalDelayed,color:delayColors.nonOperational},...(pub.unattributedDelayed?[{key:'unknown',label:'延期未归因',value:pub.unattributedDelayed,color:delayColors.unknown}]:[]),{key:'missing',label:'尚未登记',value:pub.missing,color:'#d6aa42'},{key:'pending',label:'正常待发',value:pub.pending,color:'#95acd9'}]:[];
- const legend=pub?[{key:'onTime',label:'按时已发布',value:pub.onTime,color:'#3d8d72'},{key:'delayed',label:'运营/非运营延期',value:`${pub.operationalDelayed}/${pub.nonOperationalDelayed}`,color:delayColors.operational},{key:'missing',label:'尚未登记',value:pub.missing,color:'#d6aa42'},{key:'pending',label:'正常待发',value:pub.pending,color:'#95acd9'}]:[];
  return <div ref={root} className={styles.root} data-monthly-operations>
   <form className={`business-filter ${styles.filters}`} onSubmit={e=>{e.preventDefault();void load(query);}} aria-label="月度运营筛选">
    <label>月份<input type="month" name="month" value={query.month} required onChange={e=>{if(!e.target.value)return;follow.current=false;void load({...query,month:e.target.value});}}/></label>
    <label>学科<select name="subject" value={query.subject} onChange={e=>void load({...query,subject:e.target.value,category:''})}><option value="">全部学科</option>{taxonomy?.subjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
    <label>帖子分类<select name="category" value={query.category} onChange={e=>void load({...query,category:e.target.value})}><option value="">全部分类</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-   <div className={styles.filterActions}><button type="submit" disabled={busy}>刷新</button><button type="button" onClick={()=>{follow.current=true;void load({...query,month:currentMonth()});}}>本月</button></div>
-  </form>
+    <div className={styles.filterActions}><button type="submit" disabled={busy}>刷新</button><button type="button" onClick={()=>{follow.current=true;void load({...query,month:currentMonth()});}}>本月</button></div>  </form>
   <div ref={body} className={styles.body}>
    {error&&<div className={styles.error} role="alert"><span>{error}{data&&` 当前仍显示${monthLabel(data.query.month)}的数据。`}</span><button onClick={()=>void load(query)}>重试</button></div>}
    {data&&pub&&spend&&<div data-report-month={data.query.month}>
     <div className={styles.dateline}><span>{monthLabel(data.query.month)}<span className={styles.muted}> · 自然月</span></span><span>更新于 {businessDateTime(data.generatedAt)}</span></div>
-    <section className={styles.metrics} aria-label="月度核心指标">
+    <section className={styles.metrics} aria-label="发布执行指标">
      <button className={styles.metric} onClick={()=>show('publication','planned')}><span>当前本月应发</span><strong data-value="planned">{count(pub.planned)}<small>篇</small></strong><em><span>已登记 {pub.registered}</span><span>待登记 {pub.planned-pub.registered}</span></em></button>
      <button className={styles.metric} onClick={()=>show('publication','published')}><span>本月发布量</span><strong data-value="published">{count(pub.published)}<small>篇</small></strong><em><span>新做 {pub.newPublished}</span><span>改帖 {pub.revisionPublished}</span>{pub.crossMonthPublished>0&&<span>跨月 {pub.crossMonthPublished}</span>}</em></button>
      <div className={`${styles.metric} ${styles.delayMetric}`} data-delay-card>
@@ -74,7 +78,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
       <button type="button" className={styles.delayValue} aria-label={`${delayRate==null?'暂无已发布记录':delayRate.toFixed(1)+'%'}，${delayScope==='all'?'查看全部延期已发布明细':'查看运营延期已发布明细'}`} onClick={()=>show('publication',delayScope==='all'?'delayed':'operationalDelayed')}><strong data-value="delay-rate">{delayRate==null?'—':delayRate.toFixed(1)+'%'}</strong></button>
       <em>{pub.registered?`${delayScope==='all'?'延期':'运营延期'}/已发 ${delayCount}/${pub.registered}`:'暂无已发布记录'}</em>
      </div>
-     <button className={`${styles.metric} ${styles.spendMetric}`} onClick={()=>show('promotion','all')}><span>已登记推广消耗</span><strong data-value="spend">{money(spend.spend)}</strong><em>其中已确认空跑 {money(spend.wasted)}</em></button>
+     <button className={`${styles.metric} ${styles.spendMetric}`} onClick={()=>show('promotion','all')}><span>{query.subject||query.category?'筛选范围消耗':'已登记推广消耗'}</span><strong data-value="spend">{money(spend.spend)}</strong><em>其中已确认空跑 {money(spend.wasted)}</em></button>
     </section>
     <section className={styles.attention} aria-label="执行关注项">
      <button className={pub.severe?styles.warning:''} onClick={()=>show('publication','severe')}><span>未登记 &gt;48小时</span><b>{pub.severe}<small>篇</small></b></button>
@@ -82,21 +86,8 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
      <button onClick={()=>show('publication','changed')}><span>改期后仍未登记</span><b>{pub.changedPending}<small>篇</small></b></button>
      <button onClick={()=>show('publication','moved')}><span>改出本月未登记</span><b>{pub.movedOut}<small>篇</small></b></button>
     </section>
-    <section className={styles.charts} aria-label="执行与消耗分布">
-     <div className={styles.panel} data-monthly-chart="publication" data-chart-pending=""><header><h2>发布执行</h2><span>{pub.planned} 篇当前应发</span></header><p className={styles.caption}>按最新应发日期归月；尚未登记与确认延期分开。</p>
-      <div className={styles.distribution} role="img" aria-label={distribution.map(d=>`${d.label}${d.value}篇`).join('，')}>{distribution.filter(d=>d.value>0).map(d=><i key={d.key} data-chart-fill data-publication-segment={d.key} style={{width:pub.planned?`${d.value/pub.planned*100}%`:'0%',background:d.color}}/>)}</div>
-      <div className={styles.legend}>{legend.map(d=><button key={d.key} type="button" data-publication-legend={d.key} className={d.key==='delayed'?styles.delayLegend:undefined} aria-label={d.key==='delayed'?`运营延期发布${pub.operationalDelayed}篇，非运营延期发布${pub.nonOperationalDelayed}篇${pub.unattributedDelayed?`，未归因${pub.unattributedDelayed}篇`:''}，查看全部延期明细`:undefined} onClick={()=>show('publication',d.key as Detail)}>
-       {d.key==='delayed'?<span className={styles.delaySwatches} aria-hidden="true"><i style={{background:delayColors.operational}}/><i style={{background:delayColors.nonOperational}}/></span>:<i aria-hidden="true" style={{background:d.color}}/>}
-       {d.key==='delayed'?<span className={styles.delayLegendLabel}><span>运营/非运营</span><span>延期</span></span>:<span>{d.label}</span>}<b>{d.value}</b>
-       {d.key==='delayed'&&pub.unattributedDelayed>0&&<small className={styles.unattributed}><i aria-hidden="true" style={{background:delayColors.unknown}}/>未归因 {pub.unattributedDelayed}</small>}
-      </button>)}</div>
-      <p className={styles.footnote}>本月发布量按登记的实发日期统计，可包含其他月份应发的帖子。</p>
-     </div>
-     <div className={styles.panel} data-monthly-chart="spend" data-chart-pending=""><header><h2>投入去向</h2><button className={styles.textButton} onClick={()=>show('promotion','wasted')}>查看空跑明细 →</button></header><p className={styles.caption}>按消耗日期归月 · 淡粉为已确认测试空跑</p>
-      {data.subjects.length?<div className={styles.bars}>{data.subjects.map(subject=><button key={subject.id} className={styles.barRow} onClick={()=>show('promotion',`subject:${subject.id}`)}><span className={styles.barLabel}>{subject.name}</span><span className={styles.barTrack}><i data-chart-fill style={{width:`${subject.spend/Math.max(1,...data.subjects.map(s=>s.spend))*100}%`}}><i style={{width:subject.spend?`${subject.wasted/subject.spend*100}%`:'0%'}}/></i></span><b>{money(subject.spend)}</b></button>)}</div>:<div className={styles.empty}>本月尚无已登记推广消耗</div>}
-      <div className={styles.spendFoot}><span>实际开口 <b>{count(spend.actualOpenCount)}</b> 人</span><span>实际留资 <b>{count(spend.actualLeadCount)}</b> 人</span><button className={styles.textButton} onClick={()=>show('promotion','gaps')}>待补 {data.missingRows.reduce((n,r)=>n+r.dates.length,0)} 条日度数据</button></div>
-     </div>
-    </section>
+    <MonthlyOperationsCharts data={data} onSelect={(view,detail)=>show(view,detail as Detail)}/>
+    <MonthlyPrivatePanel data={data} admin={admin} onSaved={()=>load(query,false)}/>
     <section ref={details} tabIndex={-1} className={styles.details} aria-label="可追溯明细">
      <header className={styles.detailHeader}><h2>可追溯明细</h2><div className={styles.switch} role="group" aria-label="明细类型"><button aria-pressed={view==='publication'} onClick={()=>{setView('publication');setDetail('planned');}}>发布执行</button><button aria-pressed={view==='promotion'} onClick={()=>{setView('promotion');setDetail('all');}}>推广消耗</button></div></header>
      <div className={styles.detailFilters}>{view==='publication'?<><label>查看<select aria-label="发布明细范围" value={detail} onChange={e=>setDetail(e.target.value as Detail)}>{filters.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label><span>每篇按排期版本计数；运营原因包含混合归因。</span></>:<><button aria-pressed={detail==='all'} onClick={()=>setDetail('all')}>全部消耗</button><button aria-pressed={detail==='wasted'} onClick={()=>setDetail('wasted')}>测试空跑</button><button aria-pressed={detail==='gaps'} onClick={()=>setDetail('gaps')}>待补数据</button>{detail.startsWith('subject:')&&<span>{data.subjects.find(s=>s.id===detail.slice(8))?.name}</span>}<span>成本＝合计消耗 ÷ 合计人数；缺失不补零。</span></>}</div>
@@ -105,7 +96,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
       <div className={styles.postList}><header><h3>消耗组成</h3><span>{spendRows.length} 篇</span></header><div className={styles.tableScroll}><table className={styles.costTable}><thead><tr><th>帖子 / 版本</th><th>当前状态</th><th>本月消耗</th><th>测试空跑</th><th>实际开口</th><th>实际留资</th><th>原记录</th></tr></thead><tbody>{spendRows.map(row=><tr key={row.scheduleId} className={['test_discarded','formal_discarded'].includes(row.status)?styles.discarded:row.status==='ended'?styles.ended:''}><td><strong>{row.contentName} <small>V{row.versionNumber}</small></strong><span>{row.subjectName} · {row.categoryName??'未分类'}</span></td><td><span className={styles.tag}>{row.statusLabel}</span></td><td>{money(row.spend)}</td><td>{money(row.wasted)}</td><td>{count(row.actualOpenCount)}</td><td>{count(row.actualLeadCount)}</td><td><a href={scheduleHref(row.scheduleId)} target="_blank" rel="noopener">查看 ↗</a></td></tr>)}{!spendRows.length&&<tr><td colSpan={7} className={styles.empty}>当前范围暂无消耗记录</td></tr>}</tbody></table></div></div>
      </>}
     </section>
-    <MonthlyPrivatePanel data={data} admin={admin} onSaved={()=>load(query,false)}/>{data.planExecution?.firstFinalizedAt&&<PlanExecutionSummary plan={data.planExecution}/>}
+    {data.planExecution?.firstFinalizedAt&&<PlanExecutionSummary plan={data.planExecution}/>}
     <p className={styles.bottomNote}>实时看板按当前有效排期和已登记事实计算；当前应发量不代表月初冻结计划。</p>
    </div>}
   </div>

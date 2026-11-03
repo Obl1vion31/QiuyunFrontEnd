@@ -13,7 +13,7 @@ import {formatSlotRange,normalizeBlock} from './annual-plan-rules.mjs';
 const groupSchema=z.object({id:z.string().min(1),annualPlanId:z.uuid().nullable(),annualVersion:z.number().int().nullable(),name:z.string().min(1).max(200),subjectId:z.string(),categoryId:z.string(),note:z.string().max(4000),reason:z.string().max(2000),quantity:z.number().int().min(0).max(1000).nullable()}).strict();
 const itemSchema=z.object({id:z.uuid(),groupId:z.string(),week:z.number().int().min(1).max(5).nullable(),kind:z.enum(['new','carry','existing']),scheduleId:z.uuid().nullable()}).strict();
 export const planContentSchema=z.object({groups:z.array(groupSchema).max(200),items:z.array(itemSchema).max(2000)}).strict();
-export const monthlyPlanDraftSchema=z.object({id:z.uuid(),expectedRevision:z.number().int().nonnegative(),content:planContentSchema,additions:z.array(z.object({id:z.uuid(),reason:z.string().max(2000),content:planContentSchema})).max(100)}).strict();
+export const monthlyPlanDraftSchema=z.object({id:z.uuid(),expectedRevision:z.number().int().nonnegative(),editorSteps:z.record(z.string(),z.enum(['quantity','weeks','confirmed'])).optional(),content:planContentSchema,additions:z.array(z.object({id:z.uuid(),reason:z.string().max(2000),content:planContentSchema})).max(100)}).strict();
 export type MonthlyPlanDraft=z.infer<typeof monthlyPlanDraftSchema>;
 const proposalScope=new AsyncLocalStorage<string>();
 export const withMonthlyProposal=<T>(id:string,action:()=>Promise<T>)=>proposalScope.run(id,action);
@@ -42,6 +42,7 @@ export async function checkMonthlyPlan(db:Database,draft:MonthlyPlanDraft,finali
  if(plan.firstFinalizedAt&&draft.content.items.some(i=>!plan.content.items.some(old=>old.id===i.id)))throw new WorkflowError('首次定稿后新增任务须单列追加，不能补入原名额。',422);
  if(plan.firstFinalizedAt&&draft.content.items.some(i=>i.scheduleId!==plan.content.items.find(old=>old.id===i.id)?.scheduleId))throw new WorkflowError('定稿后纳入已有排期须作为追加项。',422);
  if(plan.lockedAt&&sourceHash(plan.content)!==sourceHash(draft.content))throw new WorkflowError('首次周会已经锁定原计划，只能修改说明或新增追加项。',422);
+ if(finalizing&&draft.editorSteps){const ids=[...(!plan.lockedAt?['original']:[]),...draft.additions.filter(b=>!plan.additions.some(old=>old.id===b.id)).map(b=>b.id)];if(ids.some(id=>draft.editorSteps?.[id]&&draft.editorSteps[id]!=='confirmed'))throw new WorkflowError('请先确认数量、分完Week并确认安排，再定稿。',422);}
  const taxonomy=await db.select().from(s.operationsSubjectCategory);const candidates=await monthlyPlanCandidates(db,plan.month);const scheduleIds=new Set<string>(),ids=new Set<string>(),groupIds=new Set<string>();
  const annual=await db.select().from(s.operationsAnnualPlan),knownGroups=allPlanGroups(plan),knownItems=allPlanItems(plan);
  for(const content of [draft.content,...draft.additions.map(a=>a.content)]){

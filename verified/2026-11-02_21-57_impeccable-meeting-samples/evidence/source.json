@@ -1,0 +1,19 @@
+{
+  "baseCommit": "0ec7d8102701aca305602a0070a4b44bd4d2a034",
+  "branch": "codex/meeting-visual-samples",
+  "state": "样张已自检，待用户确认视觉方向；未发布",
+  "skill": {
+    "repo": "pbakaus/impeccable",
+    "version": "4.8.0",
+    "commit": "e89e3ada3e875a89ac2c5d33d11e65ebef6fe285"
+  },
+  "sourceSha256": {
+    "src/components/MonthlyCoreResults.tsx": "73f09f87364775b385a85dc79f26f8fc36a8372ae5d59b16761edceb2309c6b6",
+    "src/components/BusinessWeeklyMeeting.tsx": "bb57359a20d9b2d1dc62b2832e0cfa360bf69b6ad5316caaedb698a45c129c5c",
+    "src/components/WeeklyMeetingPresentation.tsx": "71179e567fd863ea5b36e9acb20d67ccf0566a72c59c10168a9b80c9727be78b",
+    "src/components/WeeklyReviewCards.tsx": "95112afb9e4a5a0614532a01ea9e18fe5b04dee946504a78f343257b48f7d9b4",
+    "src/pages/business/meeting-review.astro": "6ca75030d5ced33b69c69784b548e8941d2b6d5d2fb0adb1f4cdc8484aa93e61",
+    "src/styles/meeting-weekly.css": "936e08aff538b2ffb06a33efe5a03439cf005d86de125551588688f65c788b50",
+    "src/styles/monthly-meeting.css": "676fc5da941887519c4612990aacee6266d5931a57399d6cc9f35ef7d5ccf66e"
+  }
+}

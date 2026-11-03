@@ -1,3 +1,4 @@
+import {monthWeeks,adjacentMonth} from './monthly-plan-types';
 import {eq} from 'drizzle-orm';
 import {z} from 'zod';
 import type {Database} from './client';
@@ -17,7 +18,7 @@ export type DelayAttribution='operational'|'nonOperational'|'unknown';
 type Context=Awaited<ReturnType<typeof readPromotionContext>>;
 export interface MonthlyPost {
  id:string;contentId:string;contentName:string;versionNumber:number;subjectId:string;subjectName:string;categoryId:string|null;categoryName:string|null;
- plannedPublishAt:Date;actualPublishAt:Date|null;planRevision:number;isPromoted:boolean;promotionStatus:string;
+ projectDocUrl?:string|null;publicationUrl?:string|null;plannedPublishAt:Date;actualPublishAt:Date|null;planRevision:number;isPromoted:boolean;promotionStatus:string;
 }
 interface MonthlySource {
  posts:MonthlyPost[];history:typeof s.operationsSchedulePlanHistory.$inferSelect[];reasons:typeof s.operationsScheduleDelayReason.$inferSelect[];
@@ -63,7 +64,7 @@ export function buildMonthlyOperations(source:MonthlySource,query:MonthlyQuery,n
  const facts=source.metrics.filter(m=>campaignMap.has(m.campaignId));
  const monthlyFacts=facts.filter(m=>inMonth(m.metricDate));
  const wastedIds=new Set<string>();
- const wastedRows:Array<{key:string;scheduleId:string;contentName:string;versionNumber:number;subjectName:string;categoryName:string|null;cycle:number;startedOn:string;discardedOn:string;monthSpend:number;totalSpend:number;residualSpend:number}>=[];
+ const wastedRows:Array<{key:string;scheduleId:string;contentName:string;versionNumber:number;subjectName:string;categoryName:string|null;cycle:number;startedOn:string;discardedOn:string;monthSpend:number;totalSpend:number;residualSpend:number;projectDocUrl?:string|null;publicationUrl?:string|null}>=[];
  const missingRows:Array<{campaignId:string;scheduleId:string;contentName:string;versionNumber:number;dates:string[]}>=[];
  const statuses=new Map<string,string>();
  for(const campaign of campaigns){
@@ -80,7 +81,7 @@ export function buildMonthlyOperations(source:MonthlySource,query:MonthlyQuery,n
    const monthFacts=cycleFacts.filter(m=>inMonth(m.metricDate));
    for(const m of monthFacts)wastedIds.add(m.id);
    if(monthFacts.length)wastedRows.push({key:`${campaign.id}:${cycle.startedOn}`,scheduleId:post.id,contentName:post.contentName,versionNumber:post.versionNumber,subjectName:post.subjectName,categoryName:post.categoryName,
-    cycle:cycle.number,startedOn:cycle.startedOn,discardedOn,monthSpend:promotionTotals(monthFacts).spend??0,totalSpend:promotionTotals(cycleFacts).spend??0,residualSpend:promotionTotals(monthFacts.filter(m=>m.recordKind==='test_residual')).spend??0});
+    projectDocUrl:post.projectDocUrl,publicationUrl:post.publicationUrl,cycle:cycle.number,startedOn:cycle.startedOn,discardedOn,monthSpend:promotionTotals(monthFacts).spend??0,totalSpend:promotionTotals(cycleFacts).spend??0,residualSpend:promotionTotals(monthFacts.filter(m=>m.recordKind==='test_residual')).spend??0});
   }
   const dates:string[]=[],end=[through,previousDateKey(today),campaign.endedOn??'9999-12-31'].sort()[0];
   const recorded=new Set(related.filter(m=>m.recordKind!=='test_residual').map(m=>m.metricDate));
@@ -103,17 +104,29 @@ export function buildMonthlyOperations(source:MonthlySource,query:MonthlyQuery,n
  const subjects=[...new Set(spendRows.map(r=>r.subjectId))].map(id=>{const rows=spendRows.filter(r=>r.subjectId===id);return {id,name:rows[0].subjectName,spend:cents(rows.reduce((n,r)=>n+(r.spend??0),0)),wasted:cents(rows.reduce((n,r)=>n+r.wasted,0))};}).sort((a,b)=>b.spend-a.spend);
  return {query,generatedAt:now.toISOString(),from,through,today,taxonomy:source.taxonomy,publication,scheduleRows,
   spend:{...promotionTotals(monthlyFacts),wasted:monthlyFacts.length?promotionTotals(monthlyFacts.filter(m=>wastedIds.has(m.id))).spend??0:null,testing:promotionTotals(monthlyFacts.filter(m=>m.stageTypeSnapshot==='testing')).spend,scaling:promotionTotals(monthlyFacts.filter(m=>m.stageTypeSnapshot==='scaling')).spend},
+  promotionScope:posts.filter(p=>p.isPromoted&&monthOf(p.plannedPublishAt)===query.month||campaigns.some(c=>c.scheduleId===p.id&&c.startedOn<=through&&(!c.endedOn||c.endedOn>=from))||spendRows.some(r=>r.scheduleId===p.id)).map(p=>({subjectId:p.subjectId,categoryId:p.categoryId})),
+  wasteWeeks:monthWeeks(query.month).map(w=>({...w,spend:monthlyFacts.length?cents(monthlyFacts.filter(m=>wastedIds.has(m.id)&&m.metricDate>=w.from&&m.metricDate<=w.through).reduce((n,m)=>n+Number(m.spend),0)):null})),
   spendRows,categories,subjects,wastedRows:wastedRows.sort((a,b)=>b.monthSpend-a.monthSpend),missingRows};
+}
+export interface MonthlyWasteHistoryPoint {month:string;from:string;through:string;spend:number|null;sourceKeys:string[]}
+/** 共用已读取事实及同一个失败判定时点，旧月份不依赖是否曾召开月会。 */
+export function buildMonthlyWasteHistory(source:MonthlySource,query:MonthlyQuery,now=new Date()):MonthlyWasteHistoryPoint[]{
+ return Array.from({length:5},(_,i)=>{
+  const month=adjacentMonth(query.month,i-4),ops=buildMonthlyOperations(source,{...query,month},now);
+  return {month,from:ops.from,through:ops.through,spend:ops.spend.wasted,sourceKeys:ops.wastedRows.map(r=>r.key)};
+ });
 }
 export type MonthlyOperations=ReturnType<typeof buildMonthlyOperations>;
 
-export async function readMonthlyOperations(db:Database,query:MonthlyQuery,now=new Date()):Promise<MonthlyOperations>{
+export async function readMonthlySource(db:Database){
  const [posts,history,reasons,metrics,context,taxonomy]=await Promise.all([
   db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,
    subjectId:s.operationsContentVersion.subjectId,subjectName:s.operationsSubject.name,categoryId:s.operationsContentVersion.categoryId,categoryName:s.operationsCategory.name,
-   plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,actualPublishAt:s.operationsContentSchedule.actualPublishAt,planRevision:s.operationsContentSchedule.planRevision,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus})
+   projectDocUrl:s.operationsContentVersion.projectDocUrl,publicationUrl:s.operationsContentSchedule.publicationUrl,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,actualPublishAt:s.operationsContentSchedule.actualPublishAt,planRevision:s.operationsContentSchedule.planRevision,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus})
    .from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)),
   db.select().from(s.operationsSchedulePlanHistory),db.select().from(s.operationsScheduleDelayReason),db.select().from(s.operationsPromotionDailyMetric),readPromotionContext(db),readTaxonomy(db),
  ]);
- return buildMonthlyOperations({posts,history,reasons,metrics,context,taxonomy},query,now);
+ return {posts,history,reasons,metrics,context,taxonomy};
 }
+
+export async function readMonthlyOperations(db:Database,query:MonthlyQuery,now=new Date()):Promise<MonthlyOperations>{return buildMonthlyOperations(await readMonthlySource(db),query,now);}

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "weekly-and-monthly",
+    "duration": 163.08,
+    "reviewFps": 2,
+    "sheets": 21,
+    "source": ".tools/test-artifacts/meeting-followup-render-final/video/page@3f3f6f0a80e72a719124effe5e5e86fe.webm"
+  },
+  {
+    "name": "monthly-desktop",
+    "duration": 20.16,
+    "reviewFps": 4,
+    "sheets": 6,
+    "source": ".tools/test-artifacts/meeting-followup-render-final/video/monthly-1440/page@86eb25d4b086aaf94a0c9a3f3ea18874.webm"
+  },
+  {
+    "name": "monthly-phone",
+    "duration": 21.8,
+    "reviewFps": 4,
+    "sheets": 6,
+    "source": ".tools/test-artifacts/meeting-followup-render-final/video/monthly-390/page@9f05e8e08d7ad541ba43d31a17f3a4a4.webm"
+  },
+  {
+    "name": "touch-trend",
+    "duration": 4.4,
+    "reviewFps": 4,
+    "sheets": 2,
+    "source": ".tools/test-artifacts/meeting-followup-render-final/video/mobile/page@69774ea90386cd25f3b0431ed0ee4299.webm"
+  },
+  {
+    "name": "plan-flow",
+    "duration": 59.64,
+    "reviewFps": 2,
+    "sheets": 8,
+    "source": ".tools/test-artifacts/meeting-followup-plan-final/video/desktop.webm"
+  },
+  {
+    "name": "plan-phone",
+    "duration": 3.08,
+    "reviewFps": 4,
+    "sheets": 1,
+    "source": ".tools/test-artifacts/meeting-followup-plan-final/video/mobile.webm"
+  }
+]

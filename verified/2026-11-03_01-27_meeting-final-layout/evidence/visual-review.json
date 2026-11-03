@@ -1,0 +1,29 @@
+{
+  "stableScreenshots": 57,
+  "workflowScreenshots": 5,
+  "pdfPagesReviewed": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "widths": [
+    1920,
+    1440,
+    1024,
+    390,
+    320
+  ],
+  "method": "all archived screenshots examined in review sheets; key stable pages and states also opened at full size; continuous video sampling separate from stable images",
+  "videoSampling": {
+    "meeting-desktop.webm": "entire 1 fps",
+    "meeting-touch-390.webm": "entire 12 fps",
+    "monthly-switch-1440.webm": "entire 1 fps, plus 3-6s at 10 fps",
+    "monthly-switch-390.webm": "entire 1 fps, plus 0-8s at 10 fps",
+    "workflow-desktop.webm": "entire 1 fps",
+    "workflow-touch-390.webm": "entire 12 fps"
+  },
+  "mobile": "Linux Chromium touch emulation, not physical device",
+  "rawReviewFrames": ".tools/test-artifacts/meeting-refine/review-frames",
+  "publication": "pending user review, no private preview upload"
+}

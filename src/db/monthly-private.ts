@@ -35,18 +35,19 @@ export async function saveCostMapping(db:Database,input:z.infer<typeof mappingIn
  });
 }
 export function privateCosts(spend:number|null,value:PrivateCounts){return Object.fromEntries(['added','consulted','converted'].map(k=>[k,spend!=null&&value[k as keyof PrivateCounts]!=null&&value[k as keyof PrivateCounts]!>0?Math.round(spend/value[k as keyof PrivateCounts]!*100)/100:null])) as Record<keyof PrivateCounts,number|null>;}
-export async function readMonthlyPrivate(db:Database,base:{query:{month:string;subject:string};taxonomy:Awaited<ReturnType<typeof readTaxonomy>>;categories:Array<{key:string;subjectId:string;spend:number|null}>;spend:{spend:number|null}}){
+export async function readMonthlyPrivate(db:Database,base:{query:{month:string;subject:string};taxonomy:Awaited<ReturnType<typeof readTaxonomy>>;categories:Array<{key:string;subjectId:string;spend:number|null}>;spend:{spend:number|null};promotionScope?:Array<{subjectId:string;categoryId:string|null}>}){
  const [row]=await db.select().from(privateTable).where(eq(privateTable.month,base.query.month));const mapping=await readCostMapping(db);
  const data:PrivateData=row?.data??{total:emptyCounts(),rows:[],note:''};
- const subjects=base.taxonomy.subjects.filter(s=>!base.query.subject||s.id===base.query.subject).map(subject=>{
+ const scope=base.promotionScope??base.categories.map(c=>({subjectId:c.subjectId,categoryId:c.key.split(':')[1]}));
+ const activeSubjects=new Set([...scope.map(s=>s.subjectId),...data.rows.map(r=>r.subjectId)]);
+ const subjects=base.taxonomy.subjects.filter(s=>activeSubjects.has(s.id)&&(!base.query.subject||s.id===base.query.subject)).map(subject=>{
   const categories=base.categories.filter(c=>c.subjectId===subject.id);const spend=categories.some(c=>c.spend!==null)?categories.reduce((n,c)=>n+(c.spend??0),0):null;
   const total=data.rows.find(r=>r.subjectId===subject.id&&r.demand==='total')??emptyCounts();
-  const demands=demandTypes.map(demand=>{const groups=categories.filter(c=>mapping.entries[c.key]===demand);const amount=groups.some(c=>c.spend!==null)?groups.reduce((n,c)=>n+(c.spend??0),0):null;const value=data.rows.find(r=>r.subjectId===subject.id&&r.demand===demand)??emptyCounts();return {demand,label:demandLabels[demand],spend:amount,counts:value,costs:privateCosts(amount,value)};});
+  const demands=demandTypes.filter(d=>scope.some(s=>s.subjectId===subject.id&&mapping.entries[`${s.subjectId}:${s.categoryId}`]===d)||data.rows.some(r=>r.subjectId===subject.id&&r.demand===d)).map(demand=>{const groups=categories.filter(c=>mapping.entries[c.key]===demand);const amount=groups.some(c=>c.spend!==null)?groups.reduce((n,c)=>n+(c.spend??0),0):null;const value=data.rows.find(r=>r.subjectId===subject.id&&r.demand===demand)??emptyCounts();return {demand,label:demandLabels[demand],spend:amount,counts:value,costs:privateCosts(amount,value)};});
   return {id:subject.id,name:subject.name,spend,counts:total,costs:privateCosts(spend,total),demands,unmapped:categories.filter(c=>!mapping.entries[c.key]).reduce((n,c)=>n+(c.spend??0),0)};
  });
  const active=data.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null));const values=[...Object.values(data.total),...active.flatMap(r=>[r.added,r.consulted,r.converted])];
- const suppliedSubjects=new Set([...active.map(r=>r.subjectId),...base.categories.map(c=>c.subjectId)]);
- const completeSubjects=[...suppliedSubjects].every(id=>['total',...demandTypes].every(d=>data.rows.some(r=>r.subjectId===id&&r.demand===d&&[r.added,r.consulted,r.converted].every(v=>v!==null))));
- const status=!values.some(v=>v!==null)?'missing':values.every(v=>v!==null)&&suppliedSubjects.size>0&&completeSubjects?'complete':'partial';
+ const completeSubjects=subjects.every(s=>[s.counts,...s.demands.map(d=>d.counts)].every(v=>Object.values(v).filter(n=>typeof n!=='string').every(n=>n!==null)));
+ const status=!values.some(v=>v!==null)?'missing':values.every(v=>v!==null)&&completeSubjects?'complete':'partial';
  return {data,revision:row?.revision??-1,updatedAt:row?.updatedAt.toISOString()??null,updatedBy:row?.updatedBy??null,status,totalCosts:privateCosts(base.spend.spend,data.total),subjects,unmapped:subjects.reduce((n,s)=>n+s.unmapped,0),mappingRevision:mapping.revision};
 }

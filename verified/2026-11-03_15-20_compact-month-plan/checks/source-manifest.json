@@ -1,0 +1,19 @@
+{
+  "createdAt": "2026-11-03T15:32:44.852321+08:00",
+  "head": "0ec7d8102701aca305602a0070a4b44bd4d2a034",
+  "branch": "codex/meeting-visual-samples",
+  "files": {
+    "src/components/MonthlyReportVisuals.tsx": "71ac56f853bda579aa339ec602e5ed6c932892c9dfbcded2f5d458624f50e1bf",
+    "src/components/MonthlyPlanEditor.tsx": "29b8e1cde144cbfe8bd3edc7c5f2ab2ea1aabb62889f4e427ed746c467674cb0",
+    "src/components/MonthlyPlanSummary.tsx": "5682cb93a6b280ff3eb3858abc9fa80311f5613d3d20fc3c4af38bf7492b3348",
+    "src/components/WeeklyCardDetails.tsx": "2e567bcd3f2a5ffb5bedf7ac17cf014457f6ef92f11f408331cd771dbd01c70f",
+    "src/components/WeeklyMeetingPresentation.tsx": "08b6d53e009b7230adf403b4e192780e15ae4550c5343b2814236e27fca77595",
+    "src/components/BusinessWeeklyMeeting.tsx": "987e20d78f41070f5e993b88a7992c61aea1a848cb0ccf1c6ecfb0a1b588d4e4",
+    "src/scripts/business-popover.ts": "60925a0720007ce8514c3fc0bccaa1c5ef94098a6ff90395be3255a4730a1f6f",
+    "src/styles/monthly-meeting.css": "996d5380bf25f4628364e49b3ae48fe53ccf8289ba24d3ada1d7d0ae23a030fd",
+    "src/styles/report-presentation.css": "fa99d23b0c00d9d5449d5961e23e1371a9bbd4631b651c2e8c6ac8382b05a77c",
+    "tests/monthly-workflow.browser.ts": "dccf01b11bf63a8628536f2b42b096837227283f4e9f73081f8fd6a230c451bf",
+    "tests/meeting-display.browser.ts": "d7aef297fa99865a6eec6b18719f998867af45e265f8d8de9b3938cc7f6daaa2"
+  },
+  "postVerificationChange": "仅规范化文件末尾换行，无语义变化。"
+}

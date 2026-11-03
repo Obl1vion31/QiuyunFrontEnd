@@ -1,0 +1,72 @@
+{
+  "page_url": "https://chatgpt.com/space/page_9e3fab4b34288191994cb594035f8093",
+  "page_id": "page_9e3fab4b34288191994cb594035f8093",
+  "private": true,
+  "images": [
+    {
+      "file": "monthly-read-1440.png",
+      "reference": "library-file:fde1_bGliZmlsZV83OGREeFRGaVY2YTljMGwxWElRVHlR_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "e11a54517acffbd5c7eb74b2e50f0a42236bc6337c551d34b876d1ae035a6777",
+      "byte_size": 144926,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "weekly-promotion-1440.png",
+      "reference": "library-file:fde1_bGliZmlsZV90bm5vVlNNT1FjMzNYNVFGYXV3TkJR_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "85815de736d1dc1ec921067b99b71697809a802f12cddf66e380927cc04a8c41",
+      "byte_size": 160611,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "weekly-non-promotion-1440.png",
+      "reference": "library-file:fde1_bGliZmlsZV8yVUxkMi1SclhYa1NsTFppSTBGYVpR_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "b2d2134ffabd384dea17ea8cbdc4e6a3df4ee7fb3f3180787f2cb6876374ca63",
+      "byte_size": 148018,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "monthly-read-390.png",
+      "reference": "library-file:fde1_bGliZmlsZV9yQTZzY3dYNFJhMzlKYjdrUV9lNGl3_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "33c8eb10887cdc2c232f9a8c303a298c121b05d9ebe5dbda051fd95c198750d2",
+      "byte_size": 78915,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "weekly-promotion-390.png",
+      "reference": "library-file:fde1_bGliZmlsZV9oNFlMZmI1NlV5cUlfX0liTWo2QlR3_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "ac7e400f1b1d227b6e43890cc2dd66263e015d2eb6597725c211dfcc668de4c8",
+      "byte_size": 81248,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "weekly-non-promotion-390.png",
+      "reference": "library-file:fde1_bGliZmlsZV9pLTg1OXpKTDJ3OS1la2ZIUDh1aHJB_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "807d63da2d6267e958a430c855260f998e3e5bf31596ded6826f6ada5888e3f1",
+      "byte_size": 75925,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "monthly-draft-1440.png",
+      "reference": "library-file:fde1_bGliZmlsZV9FOGc2c0ctSUxZZm5taTlYemF6bGFB_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "cbe62a23ccdbf3c00e4dc34f47eebf7f5e30d9ef906f53ae0eadc952c962dac4",
+      "byte_size": 131193,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "weekly-future-320.png",
+      "reference": "library-file:fde1_bGliZmlsZV9sYklOazJEUUpHMTdkaENNWnllM3FR_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "5337a939f5ff2c8dc9c36662f34cb7534e4720d019d4621d356641e125b730a1",
+      "byte_size": 65745,
+      "file_access_confirmed": true
+    },
+    {
+      "file": "monthly-operations-1440.png",
+      "reference": "library-file:fde1_bGliZmlsZV9IdEYwSGFudWtCY1lUeDhrTEhTUzdB_FileDrive_72dd8c440e3c8191a31191dbefa211c4",
+      "sha256": "dad64a61d440879a52739e109058bcbfcf24c9dc2957aec0a25ec221800dc741",
+      "byte_size": 140760,
+      "file_access_confirmed": true
+    }
+  ],
+  "readback_all_embeds": true,
+  "cloud_image_readback": true
+}

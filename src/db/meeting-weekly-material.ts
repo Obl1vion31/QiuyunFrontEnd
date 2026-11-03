@@ -1,3 +1,5 @@
+import {promotionLeadCostTrend,type LeadCostPoint,type LeadCostReview} from './meeting-lead-trend';
+import {weeklyReportMetrics,type WeeklyReportMetrics} from './meeting-report-metrics';
 import {sameNonPromotionCohort,type ContentRole} from './content-roles';
 import {rateComparison,type RateSample,type RateComparison} from './meeting-rate-comparison';
 import {readMonthlyMeeting,type MonthlyMeetingMaterial} from './monthly-meeting';
@@ -41,6 +43,7 @@ export interface Benchmark {
     samples?: Array<Record<string, unknown>>;
 }
 export interface WeeklyPromotionCard {
+    leadCostTrend?:LeadCostPoint[];
     rateSamples?:RateSample[];rateAsOf?:string;rateComparison?:RateComparison;
     testCycleNumber?:number;
     testCycleEndedOn?:string|null;
@@ -78,6 +81,7 @@ export interface WeeklyPromotionCard {
     historical: Benchmark;
     peers: Benchmark;
     ownHistory: Array<{
+        from?:string;through?:string;
         stageType?:string;
         periodLabel?:string;
         name: string;
@@ -133,6 +137,7 @@ export interface WeeklyNonPromotionCard {
     }>;
 }
 export interface WeeklyMaterial {
+    reportMetrics?:WeeklyReportMetrics;
     monthly?:MonthlyMeetingMaterial;
     monthlyPlans?:MonthlyPlanView[];
     schemaVersion: 4;
@@ -173,6 +178,12 @@ const benchNon = (rows: WeeklyNonPromotionCard[], excluded: string): Benchmark =
 /** 实际状态 D 日变化；待定／放量／暂停从 D 日起，终止前一日测试。 */
 export function testingCheckpointDate(status: string, effectiveOn: string, previousActive: boolean, lastActive: string | null) { return status === 'test_discarded' && previousActive ? effectiveOn : previousActive ? previousDateKey(effectiveOn) : lastActive; }
 export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, now = new Date()): Promise<WeeklyMaterial> {
+    if(meeting.meetingType==='monthly'&&meeting.draftSnapshot.monthlySchemaVersion===1){
+        const monthly=await readMonthlyMeeting(db,meeting);
+        const base={schemaVersion:4 as const,periodStart:meeting.periodStart,periodEnd:meeting.periodEnd,summary:{...monthly.operations.spend,posts:monthly.operations.spendRows.length,testingPosts:0,scalingPosts:0},promotions:[],nonPromotions:[],nonPromotionContext:[],pending:[],excludedNonPromotions:[],monthly};
+        return {...base,fingerprint:sourceHash({periodStart:meeting.periodStart,periodEnd:meeting.periodEnd,monthly:monthly.fingerprint})};
+    }
+
     const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersionsIncludingInvalid, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
         db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, contentRole:contents.contentRole,operationType:contents.operationType,isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents,eq(versions.contentId,contents.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
@@ -184,6 +195,16 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
     const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.lifecycleStatus!=='draft' && !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
     const priorCards = (key: string, type: 'promotions' | 'nonPromotions', origin = false) => previous.flatMap(p => { const g = (p.version!.snapshot as any)?.generated; const cards = (type === 'promotions' ? [...(g?.promotions ?? []), ...(g?.promotionSnapshots ?? []).flatMap((ref: any) => (ref.snapshot?.rows ?? []).map((r: any) => ({ ...r, originKey: `${r.campaignId}:${r.stageType}:${r.originalStageStartedOn ?? r.startedOn}` })))] : g?.nonPromotions ?? []) as Array<any>; return cards.map(c => ({ ...c, key: c.key ?? `${c.scheduleId}:${c.checkpointType ?? `day_${c.checkpoint}`}` })).filter(c => (origin ? c.originKey : c.key) === key && !c.comparisonOnly).map(card => ({ card, savedAt: p.version!.createdAt, ref: { meetingId: p.meeting.id, name: p.meeting.name, versionNumber: p.version!.versionNumber, periodEnd: p.meeting.periodEnd } })); });
+    const leadReviews:LeadCostReview[]=previous.flatMap(p=>{
+        const snapshot=p.version!.snapshot as any;
+        const generated=snapshot.generated;
+        const cards=[...(generated?.promotions??[]),...(generated?.promotionSnapshots??[]).flatMap((ref:any)=>ref.snapshot?.rows??[])] as Array<Omit<WeeklyPromotionCard,'total'>&{total?:WeeklyPromotionCard['total'];actualLeadCost?:number|null}>;
+        return cards.flatMap(card=>{
+            const post=content.find(c=>c.scheduleId===card.scheduleId),range=card.dataRange===undefined&&card.facts?actualDataRange(card.facts):card.dataRange;
+            if(!range||!post)return [];
+            return [{key:`${p.meeting.id}:${card.key}`,contentId:post.contentId,scheduleId:card.scheduleId,stageType:card.stageType,versionNumber:post.versionNumber,from:range.from,through:range.through,value:card.total?card.total.actualLeadCost:card.actualLeadCost??null,meetingId:p.meeting.id,meetingVersion:p.version!.versionNumber,finalizedAt:(p.version!.finalizedAt??p.version!.createdAt).toISOString()}];
+        });
+    });
     const lastFinalized = previous[0]?.version?.createdAt;
     const pool: WeeklyPromotionCard[] = [];
     for (const campaign of context.campaigns) {
@@ -278,15 +299,19 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
         card.historical = benchPromotion(same.filter(p => (p as any)._cutoff && ((p as any)._cutoff < start)).map(p => ({ key: p.key, facts: (p as any)._historicalFacts as Fact[] })), card.key);
         card.peers = benchPromotion(same.filter(p => (p as any)._eligible && p.kind === 'current').map(p => ({ key: p.key, facts: p.facts })), card.key);
         const owned=new Set(context.campaigns.filter(c=>content.find(p=>p.scheduleId===c.scheduleId)?.contentId===card.contentId).map(c=>c.id));
-        const earlierCycles=pool.filter(p=>p.contentId===card.contentId&&p.campaignId===card.campaignId&&p.stageType==='testing'&&p.startedOn<card.startedOn).map(p=>({name:p.contentName,versionNumber:p.versionNumber,stageType:p.stageType,periodLabel:`测试第${p.testCycleNumber??1}轮 · ${p.dataRange?.from??p.startedOn}—${p.dataRange?.through??p.testCycleEndedOn??p.endedOn}`,spend:p.total.spend,actualOpenCost:p.total.actualOpenCost,actualLeadCost:p.total.actualLeadCost}));
-        card.ownHistory = [...earlierCycles,...(['testing','scaling'] as const).flatMap(stageType=>{
+        const earlierCycles=pool.filter(p=>p.contentId===card.contentId&&p.campaignId===card.campaignId&&p.stageType==='testing'&&p.startedOn<card.startedOn).map(p=>({name:p.contentName,versionNumber:p.versionNumber,stageType:p.stageType,from:cardDataRange(p)?.from,through:cardDataRange(p)?.through,periodLabel:`测试第${p.testCycleNumber??1}轮 · ${p.dataRange?.from??p.startedOn}—${p.dataRange?.through??p.testCycleEndedOn??p.endedOn}`,spend:p.total.spend,actualOpenCost:p.total.actualOpenCost,actualLeadCost:p.total.actualLeadCost}));
+        card.ownHistory = [...earlierCycles.sort((a,b)=>(b.through??'').localeCompare(a.through??'')),...(['testing','scaling'] as const).flatMap(stageType=>{
           const before=facts.filter(f=>owned.has(f.campaignId)&&f.metricDate<start&&f.stageTypeSnapshot===stageType);
           if(!before.length)return [];
           const t=totals(before);
-          return [{name:card.contentName,versionNumber:card.versionNumber,stageType,periodLabel:before[0].metricDate+'—'+before.at(-1)!.metricDate,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost}];
+          return [{name:card.contentName,versionNumber:card.versionNumber,stageType,from:before[0].metricDate,through:before.at(-1)!.metricDate,periodLabel:before[0].metricDate+'—'+before.at(-1)!.metricDate,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost}];
         })];
     }
-    for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total;card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
+    for(const card of pool){const last=priorCards(card.originKey,'promotions',true)[0];if(last?.card?.total){const t=last.card.total,range=cardDataRange(last.card);card.ownHistory.unshift({name:card.contentName,versionNumber:card.versionNumber,stageType:card.stageType,from:range?.from,through:range?.through,periodLabel:'上期 '+last.ref.periodEnd,spend:t.spend,actualOpenCost:t.actualOpenCost,actualLeadCost:t.actualLeadCost});}}
+    for(const card of pool){
+        const range=cardDataRange(card)??{from:card.startedOn,through:card.endedOn};
+        card.leadCostTrend=promotionLeadCostTrend({key:card.key,contentId:card.contentId,scheduleId:card.scheduleId,stageType:card.stageType,versionNumber:card.versionNumber,...range,value:card.total.actualLeadCost,finalizedAt:now.toISOString()},leadReviews);
+    }
     const nonPool: WeeklyNonPromotionCard[] = [], pending: WeeklyMaterial['pending'] = [], excludedNonPromotions:NonNullable<WeeklyMaterial['excludedNonPromotions']>=[];
     const nonPosts=anchorReviewPosts(content.map(p=>({...p,id:p.scheduleId})),planning.plans,context,shanghaiDateKey(now),now).filter(p=>p.reviewActive);
     const nodesFor=(post:typeof nonPosts[number])=>reviewNodes(post.actualPublishAt,post.enabledPlan,planning.custom.filter(n=>n.contentId===post.contentId&&(post.operationType!=='promotion_then_continuous'||n.scheduleId===post.id))).filter(n=>!post.activatedOn||n.dueOn>=post.activatedOn);
@@ -337,10 +362,9 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
         delete (p as any)._eligible;
     const includedFacts=new Set(promotions.flatMap(p=>p.facts.map(f=>f.id)));
     const periodFacts = facts.filter(f => includedFacts.has(f.id)&&between(f.metricDate, start, end)), summary = { ...totals(periodFacts), posts: new Set(periodFacts.map(f => context.campaigns.find(c => c.id === f.campaignId)?.scheduleId ?? f.campaignId)).size, testingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'testing').map(f => f.campaignId)).size, scalingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'scaling').map(f => f.campaignId)).size };
-    const monthly=meeting.meetingType==='monthly'&&meeting.draftSnapshot.monthlySchemaVersion===1?await readMonthlyMeeting(db,meeting):undefined;
     const months=[...new Set([start.slice(0,7),end.slice(0,7)])];
     const monthlyPlans=meeting.meetingType==='weekly'?(await Promise.all(months.map(month=>readMonthlyPlan(db,month,now)))).filter((p):p is MonthlyPlanView=>!!p?.firstFinalizedAt):undefined;
-    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions,...(monthly?{monthly}:{}),...(monthlyPlans?.length?{monthlyPlans}:{}) };
+    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, reportMetrics:weeklyReportMetrics(context,facts,start,end,now), promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions,...(monthlyPlans?.length?{monthlyPlans}:{}) };
     return { ...base, fingerprint: sourceHash(base) };
 }
 export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: string[], nonSelections: Array<{
