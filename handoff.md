@@ -2,11 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 月计划常驻内容池与加高 Week（已自检，2026-11-03）
+## 月计划常驻内容池与加高 Week（已发布，2026-11-03）
 
 - 按用户修订将编辑内容池常驻，确认安排后保留；空 Week 初始高度54→108px，桌面右池由Week决定高度并内部滚动。手机沿用上下排列，CSS按周数直接确定限高，首屏51帧无测高跳动；只读／PDF保留紧凑结构。分类占比包括100%原样保留。
 - 259项规则、schema、类型检查与Node／Vercel构建、完整月计划隔离流程和例会／PDF通过。五档54图、两段录像37张连续取样与16页PDF已实际审查：[验收索引](verified/2026-11-03_22-37_persistent-month-plan/README.md)。无迁移或生产业务写入。
-- 本轮分支`codex/month-plan-persistent-pool`，隔离工作树`.tools/releases/meeting-compact-20261103`；原工作区修改保持。发布核对中。
+- 本轮分支`codex/month-plan-persistent-pool`，隔离工作树`.tools/releases/meeting-compact-20261103`；原工作区修改保持。应用`25a31e8`已推送main；正式部署`dpl_BBznGg97JnKd17hJsMFfTaYdZ2CM`为READY且域名核对一致，候选14项、正式122项与87个资源哈希通过。
 
 ## 月计划折叠内容池与遗留入口（前序，2026-11-03）
 
