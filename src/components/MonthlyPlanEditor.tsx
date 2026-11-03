@@ -1,6 +1,6 @@
 import MonthlyPlanSummary from './MonthlyPlanSummary';
 import WeeklyCardDetails from './WeeklyCardDetails';
-import {useEffect,useState,useRef} from 'react';
+import {useEffect,useState,useRef,type CSSProperties} from 'react';
 import type {MonthlyPlanDraft} from '../db/monthly-plans';
 import type {MonthlyMeetingMaterial} from '../db/monthly-meeting';
 import {businessDate,businessDateTime} from '../scripts/business-date';
@@ -13,16 +13,10 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
  const [locked,setLocked]=useState(!!material.plan?.lockedAt),[finalized,setFinalized]=useState(!!material.plan?.firstFinalizedAt);
  const [effectiveBatches,setEffectiveBatches]=useState(material.plan?.effectiveBatchIds??[]),[execution,setExecution]=useState(material.executionPlan?.items);
  const [revision,setRevision]=useState(material.plan?.revision??draft.expectedRevision),[canonicalAdditions,setCanonicalAdditions]=useState<MonthlyPlanDraft['additions']>([]);
- const [message,setMessage]=useState(''),[busy,setBusy]=useState(false),[holding,setHolding]=useState<Record<string,Step>>({}),[poolOpen,setPoolOpen]=useState(false);
+ const [message,setMessage]=useState(''),[busy,setBusy]=useState(false),[holding,setHolding]=useState<Record<string,Step>>({});
  const [drag,setDrag]=useState<string|null>(null),[dragTarget,setDragTarget]=useState<string|null>(null),[annualSource,setAnnualSource]=useState('');
  const [quantityGroups,setQuantityGroups]=useState(()=>new Set([draft.content,...draft.additions.map(b=>b.content)].flatMap(c=>c.groups.filter(g=>g.quantity==null||!c.items.some(i=>i.groupId===g.id&&i.week)).map(g=>g.id))));
- const taxonomy=material.operations.taxonomy,host=useRef<HTMLElement>(null),board=useRef<HTMLDivElement>(null),poolToggle=useRef<HTMLButtonElement>(null);
- useEffect(()=>{
-  const element=board.current,section=host.current;if(!editable||!element||!section)return;
-  // 窄屏改为上下排列后，来源池仍以Week的实际高度为上限。
-  const measure=()=>section.style.setProperty('--monthly-board-height',element.getBoundingClientRect().height+'px');
-  measure();const observer=new ResizeObserver(measure);observer.observe(element);return()=>observer.disconnect();
- },[editable,draft.id]);
+ const taxonomy=material.operations.taxonomy,host=useRef<HTMLElement>(null);
  const [temporary,setTemporary]=useState({name:'',subjectId:taxonomy.subjects[0]?.id??'',categoryId:'',reason:''});
  useEffect(()=>{
   if(!editable)return;
@@ -61,8 +55,8 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
   setHolding(oldSteps);setBusy(true);setMessage('');
   try{
    if(!onConfirm||!await onConfirm(value)){onChange({...value,editorSteps:{...value.editorSteps,...oldSteps}});setMessage('安排尚未确认，输入及分配已保留。请核对保存反馈后重试。');return;}
-   setHolding({});if(next==='weeks')setQuantityGroups(new Set());else setPoolOpen(false);
-   requestAnimationFrame(()=>{if(next==='confirmed'){poolToggle.current?.focus({preventScroll:true});return;}const scroll=host.current?.querySelector<HTMLElement>('.monthly-pool-scroll');if(scroll)scroll.scrollTop=0;host.current?.querySelector<HTMLElement>('.monthly-plan-pool [data-plan-source][draggable=true] [data-popover-trigger]')?.focus({preventScroll:true});});
+   setHolding({});if(next==='weeks')setQuantityGroups(new Set());
+   requestAnimationFrame(()=>{if(next==='confirmed'){host.current?.querySelector<HTMLElement>('.monthly-plan-step-actions button')?.focus({preventScroll:true});return;}const scroll=host.current?.querySelector<HTMLElement>('.monthly-pool-scroll');if(scroll)scroll.scrollTop=0;host.current?.querySelector<HTMLElement>('.monthly-plan-pool [data-plan-source][draggable=true] [data-popover-trigger]')?.focus({preventScroll:true});});
   }catch(e){onChange({...value,editorSteps:{...value.editorSteps,...oldSteps}});setMessage((e as Error).message||'保存失败，当前输入已保留。');}
   finally{setBusy(false);}
  }
@@ -122,7 +116,7 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
   const targets=active.filter(b=>b.step==='confirmed'&&b.content.items.length);
   if(!await window.businessConfirm('将清空可修改计划的Week分配；数量、补帖、已有排期和审批记录保留。',{title:'重新排期',confirmLabel:'重新排期',cancelLabel:'保留当前安排'}))return;
   let value=current();for(const b of targets)value=apply(value,b,{...b.content,items:b.content.items.map(i=>({...i,week:null}))});
-  setHolding({});setPoolOpen(true);update({...value,editorSteps:{...value.editorSteps,...Object.fromEntries(targets.map(b=>[b.key,'weeks' as Step]))}});
+  setHolding({});update({...value,editorSteps:{...value.editorSteps,...Object.fromEntries(targets.map(b=>[b.key,'weeks' as Step]))}});
  }
  function addGroup(button:HTMLElement){
   const original=draft.content.groups.find(g=>g.id===annualSource);
@@ -165,14 +159,14 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
  const remaining=active.filter(b=>b.step==='weeks').reduce((n,b)=>n+b.content.items.filter(i=>!i.week).length,0);
  const visibleGroup=(g:PlanGroup)=>!g.id.startsWith('carry:')&&(step==='quantity'&&quantityGroups.has(g.id)||combined.items.some(i=>i.groupId===g.id&&i.kind!=='carry'));
  const subjects=[...new Set(combined.groups.filter(visibleGroup).map(g=>g.subjectId))];
- return <section className="monthly-section monthly-plan-compact" ref={host} data-monthly-plan-editor><header><div className="monthly-plan-heading"><h2>{material.executionMonth} 执行月计划</h2>{locked&&editable&&<span className="monthly-status">原计划已锁定</span>}</div>{editable&&<button type="button" className="monthly-pool-toggle" ref={poolToggle} aria-expanded={poolOpen} aria-controls={"monthly-plan-pool-"+draft.id} onClick={()=>{if(poolOpen)closePoolDetails();setPoolOpen(!poolOpen);}}><span>{poolOpen?'收起内容池':'查看待安排'}</span><svg aria-hidden="true" width="50" height="16" viewBox="0 0 50 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d={poolOpen?'M48 8H3m5-5L3 8l5 5':'M2 8h45m-5-5 5 5-5 5'}/></svg></button>}</header>
+ return <section className="monthly-section monthly-plan-compact" ref={host} data-monthly-plan-editor><header><div className="monthly-plan-heading"><h2>{material.executionMonth} 执行月计划</h2>{locked&&editable&&<span className="monthly-status">原计划已锁定</span>}</div></header>
   {!editable?<MonthlyPlanSummary cards month={material.executionMonth} content={combined} execution={material.executionPlan?.items} progressKnown={'executionPlan' in material} candidates={material.candidates}/>:<div className="monthly-plan-workflow" data-plan-workflow="original" data-plan-step={step}>
-   <div className="monthly-planner" data-pool-open={poolOpen}><div className="monthly-plan-board" ref={board}>{weeks.map(w=><section className="monthly-week" key={w.week} data-week={w.week} data-drop-target={dragTarget===String(w.week)||undefined}
+   <div className="monthly-planner" style={{'--monthly-week-count':weeks.length} as CSSProperties}><div className="monthly-plan-board">{weeks.map(w=><section className="monthly-week" key={w.week} data-week={w.week} data-drop-target={dragTarget===String(w.week)||undefined}
     onDragEnter={()=>{if(step==='weeks'&&drag)setDragTarget(String(w.week));}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragTarget(null);}} onDragOver={e=>{if(step==='weeks'&&drag)e.preventDefault();}} onDrop={e=>{e.preventDefault();drop(drag??e.dataTransfer.getData('text/plain'),w.week);}}>
     <header><h3>Week {w.week}</h3><span>{w.from.slice(5)} 至 {w.through.slice(5)}</span><b>{combined.items.filter(i=>i.week===w.week).length}篇</b></header>
     {combined.items.some(i=>i.week===w.week)&&<div className="monthly-week-items">{batches.flatMap(b=>b.content.items.filter(i=>i.week===w.week).map(i=>card(b,b.content.groups.find(g=>g.id===i.groupId)!,[i])))}</div>}
    </section>)}</div>
-   <div className="monthly-pool-shell" hidden={!poolOpen}><aside className="monthly-plan-pool" id={"monthly-plan-pool-"+draft.id} aria-label="待分配来源" data-drop-target={dragTarget==='pool'||undefined}
+   <div className="monthly-pool-shell"><aside className="monthly-plan-pool" id={"monthly-plan-pool-"+draft.id} aria-label="待分配来源" data-drop-target={dragTarget==='pool'||undefined}
     onDragEnter={()=>{if(step==='weeks'&&drag)setDragTarget('pool');}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragTarget(null);}} onDragOver={e=>{if(step==='weeks'&&drag)e.preventDefault();}} onDrop={e=>{e.preventDefault();drop(drag??e.dataTransfer.getData('text/plain'),null);}}>
     <header><h3>{step==='quantity'?'计划数量':'待分配'}</h3><span className="monthly-status">{step==='quantity'?`共 ${combined.items.length} 篇`:`剩余 ${remaining} 篇`}</span></header>
     <div className="monthly-pool-scroll" data-popover-scroll-boundary>

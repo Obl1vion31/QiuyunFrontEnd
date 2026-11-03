@@ -1,0 +1,10 @@
+{
+  "frames": 51,
+  "minPoolHeight": 500,
+  "maxPoolHeight": 500,
+  "viewport": {
+    "width": 390,
+    "height": 1000
+  },
+  "raw": ".tools/test-artifacts/persistent-final-workflow/plan-first-paint.json"
+}

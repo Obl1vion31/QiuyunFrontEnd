@@ -156,6 +156,8 @@
 .monthly-plan-compact .monthly-planner{grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start;margin-top:0}
 .monthly-plan-compact .monthly-plan-board{display:grid;grid-template-columns:1fr;gap:10px;min-width:0}
 .monthly-plan-compact .monthly-week{padding:12px 14px;min-height:54px;background:#f5f8f9;border:1px solid #e0e7e9;border-radius:10px;min-width:0}
+.monthly-plan-workflow{--monthly-week-height:108px;--monthly-week-gap:10px}
+.monthly-plan-workflow .monthly-week{min-height:var(--monthly-week-height)}
 .monthly-plan-compact .monthly-week>header{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
 .monthly-plan-compact .monthly-week>header h3{margin:0;font:500 14px/22px var(--console-font)}
 .monthly-plan-compact .monthly-week>header :is(span,time){font:400 12px/20px var(--console-font);color:var(--console-muted)}
@@ -224,12 +226,7 @@
 
 /* Week决定外框尺寸；来源池不参与桌面行高计算。 */
 .monthly-plan-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;min-width:0}
-.monthly-section.monthly-plan-compact .monthly-pool-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:36px;margin:0;padding:6px 8px;border:0;border-radius:6px;background:transparent;color:#46677f;font:500 13px/22px var(--console-font);white-space:nowrap}
-.monthly-section.monthly-plan-compact .monthly-pool-toggle:hover{background:#edf3f6;color:var(--console-blue)}
-.monthly-pool-toggle svg{flex:none}
-.monthly-plan-compact .monthly-planner[data-pool-open=false]{grid-template-columns:minmax(0,1fr)}
 .monthly-pool-shell{position:relative;min-width:0;min-height:0;align-self:stretch}
-.monthly-pool-shell[hidden]{display:none}
 .monthly-pool-shell>.monthly-plan-pool{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0;margin:0}
 .monthly-pool-shell>.monthly-plan-pool>header{flex:none}
 .monthly-pool-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#b6c6cd transparent;padding-right:4px}
@@ -247,11 +244,10 @@
 .business-form.business-form .monthly-carry-option input{flex:none;align-self:center;width:16px;height:16px;min-height:16px;margin:0}
 .monthly-carry-option>label>span:last-child{min-width:0;overflow-wrap:anywhere}
 @media(max-width:1100px){
- .monthly-pool-shell{order:-1;height:min(var(--monthly-board-height,320px),50svh)}
+ .monthly-pool-shell{order:-1;height:min(calc(var(--monthly-week-count) * (var(--monthly-week-height) + var(--monthly-week-gap)) - var(--monthly-week-gap)),50svh)}
 }
 @media(max-width:650px){
- .monthly-section.monthly-plan-compact .monthly-pool-toggle{min-height:44px}
  .monthly-carry-option{grid-template-columns:minmax(0,1fr) 44px;min-height:44px}
  .business-form.business-form .monthly-carry-option>label{min-height:44px;align-items:center}
 }
-@media print{.monthly-pool-toggle,.monthly-pool-shell{display:none!important}}
+@media print{.monthly-pool-shell{display:none!important}.monthly-plan-workflow .monthly-week{min-height:0}}

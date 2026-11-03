@@ -1,0 +1,17 @@
+{
+  "base": "815991b45004ad0dd7f81b625a409c09aa933ca2",
+  "sourceHashes": {
+    "src/components/MonthlyPlanEditor.tsx": "d5252ad67376a866b0e44219382055e7cae4820285d91f8aecf7c980a7f3be2a",
+    "src/styles/monthly-meeting.css": "4a84e433e058301ab4b5488df1d534acaa39592a24abc0b812dc32f101c52cd3",
+    "tests/README.md": "f07d3ca0a88f769935c2d4b0a86010d8384be8270a7910f182eee85f8c7b70cb",
+    "tests/monthly-workflow.browser.ts": "5302a4a359c54b73f3747b5a67f50178c9ee2ea7f6ac059e44ed59d50bf820f9"
+  },
+  "rules": 259,
+  "schemaCheck": true,
+  "typecheck": true,
+  "workflow": true,
+  "display": true,
+  "migrations": false,
+  "productionBusinessWrites": false,
+  "screenshots": 54
+}
