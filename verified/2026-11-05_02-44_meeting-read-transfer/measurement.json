@@ -21,7 +21,7 @@
     {
       "name": "meeting-decisions",
       "version": "candidate",
-      "databaseToAppBytes": 9129,
+      "databaseToAppBytes": 9130,
       "appToDatabaseBytes": 991,
       "queries": 2,
       "tables": {
@@ -50,7 +50,7 @@
     {
       "name": "promotion-context",
       "version": "candidate",
-      "databaseToAppBytes": 12699,
+      "databaseToAppBytes": 12700,
       "appToDatabaseBytes": 2542,
       "queries": 9,
       "tables": {
@@ -68,7 +68,7 @@
     {
       "name": "promotion-timeline",
       "version": "baseline",
-      "databaseToAppBytes": 4624166,
+      "databaseToAppBytes": 4624168,
       "appToDatabaseBytes": 4796,
       "queries": 14,
       "tables": {
@@ -89,7 +89,7 @@
     {
       "name": "promotion-timeline",
       "version": "candidate",
-      "databaseToAppBytes": 21098,
+      "databaseToAppBytes": 21101,
       "appToDatabaseBytes": 4909,
       "queries": 14,
       "tables": {
@@ -110,7 +110,7 @@
     {
       "name": "weekly-material",
       "version": "baseline",
-      "databaseToAppBytes": 13916533,
+      "databaseToAppBytes": 13916529,
       "appToDatabaseBytes": 8757,
       "queries": 29,
       "tables": {
@@ -137,7 +137,7 @@
     {
       "name": "weekly-material",
       "version": "candidate",
-      "databaseToAppBytes": 258266,
+      "databaseToAppBytes": 258268,
       "appToDatabaseBytes": 9693,
       "queries": 20,
       "tables": {
@@ -164,7 +164,7 @@
     {
       "name": "legacy-material",
       "version": "baseline",
-      "databaseToAppBytes": 4683477,
+      "databaseToAppBytes": 4683475,
       "appToDatabaseBytes": 2873,
       "queries": 7,
       "tables": {
@@ -180,7 +180,7 @@
     {
       "name": "legacy-material",
       "version": "candidate",
-      "databaseToAppBytes": 9305,
+      "databaseToAppBytes": 9307,
       "appToDatabaseBytes": 3398,
       "queries": 6,
       "tables": {
@@ -195,7 +195,7 @@
     {
       "name": "monthly-issues",
       "version": "baseline",
-      "databaseToAppBytes": 4676317,
+      "databaseToAppBytes": 4676313,
       "appToDatabaseBytes": 597,
       "queries": 2,
       "tables": {
@@ -217,7 +217,7 @@
     {
       "name": "monthly-material",
       "version": "baseline",
-      "databaseToAppBytes": 9308670,
+      "databaseToAppBytes": 9308668,
       "appToDatabaseBytes": 8319,
       "queries": 32,
       "tables": {
@@ -245,7 +245,7 @@
     {
       "name": "monthly-material",
       "version": "candidate",
-      "databaseToAppBytes": 30661,
+      "databaseToAppBytes": 30664,
       "appToDatabaseBytes": 8886,
       "queries": 32,
       "tables": {
@@ -271,9 +271,9 @@
       }
     },
     {
-      "name": "/api/content-search?id=efdf41cb-bb3c-43ca-a994-3e496277fad5",
+      "name": "/api/content-search?id=1275dca3-f888-4415-aacb-e95f84565c55",
       "version": "baseline",
-      "databaseToAppBytes": 4599076,
+      "databaseToAppBytes": 4599074,
       "appToDatabaseBytes": 8787,
       "queries": 17,
       "tables": {
@@ -293,9 +293,9 @@
       }
     },
     {
-      "name": "/api/content-search?id=efdf41cb-bb3c-43ca-a994-3e496277fad5",
+      "name": "/api/content-search?id=1275dca3-f888-4415-aacb-e95f84565c55",
       "version": "candidate",
-      "databaseToAppBytes": 86520,
+      "databaseToAppBytes": 86518,
       "appToDatabaseBytes": 9043,
       "queries": 17,
       "tables": {
@@ -315,7 +315,7 @@
       }
     },
     {
-      "name": "/api/operations-content/efdf41cb-bb3c-43ca-a994-3e496277fad5/workflow",
+      "name": "/api/operations-content/1275dca3-f888-4415-aacb-e95f84565c55/workflow",
       "version": "baseline",
       "databaseToAppBytes": 4625135,
       "appToDatabaseBytes": 7919,
@@ -343,9 +343,9 @@
       }
     },
     {
-      "name": "/api/operations-content/efdf41cb-bb3c-43ca-a994-3e496277fad5/workflow",
+      "name": "/api/operations-content/1275dca3-f888-4415-aacb-e95f84565c55/workflow",
       "version": "candidate",
-      "databaseToAppBytes": 22067,
+      "databaseToAppBytes": 22068,
       "appToDatabaseBytes": 8032,
       "queries": 23,
       "tables": {
@@ -399,7 +399,7 @@
     {
       "name": "/business/operations-schedule?month=2026-10",
       "version": "candidate",
-      "databaseToAppBytes": 25037,
+      "databaseToAppBytes": 25038,
       "appToDatabaseBytes": 9512,
       "queries": 25,
       "tables": {
@@ -425,7 +425,7 @@
     {
       "name": "/business/daily-promotion-review",
       "version": "baseline",
-      "databaseToAppBytes": 9319781,
+      "databaseToAppBytes": 9319783,
       "appToDatabaseBytes": 10855,
       "queries": 29,
       "tables": {
@@ -446,7 +446,7 @@
     {
       "name": "/business/daily-promotion-review",
       "version": "candidate",
-      "databaseToAppBytes": 100946,
+      "databaseToAppBytes": 100949,
       "appToDatabaseBytes": 8539,
       "queries": 20,
       "tables": {
@@ -467,7 +467,7 @@
     {
       "name": "/business/non-promotion-review",
       "version": "baseline",
-      "databaseToAppBytes": 4624920,
+      "databaseToAppBytes": 4624918,
       "appToDatabaseBytes": 7017,
       "queries": 20,
       "tables": {
@@ -494,7 +494,7 @@
     {
       "name": "/business/non-promotion-review",
       "version": "candidate",
-      "databaseToAppBytes": 21852,
+      "databaseToAppBytes": 21851,
       "appToDatabaseBytes": 7130,
       "queries": 20,
       "tables": {
@@ -521,7 +521,7 @@
     {
       "name": "/business/monthly-operations?month=2026-10",
       "version": "baseline",
-      "databaseToAppBytes": 4631846,
+      "databaseToAppBytes": 4631848,
       "appToDatabaseBytes": 7440,
       "queries": 30,
       "tables": {
@@ -549,7 +549,7 @@
     {
       "name": "/business/monthly-operations?month=2026-10",
       "version": "candidate",
-      "databaseToAppBytes": 28778,
+      "databaseToAppBytes": 28781,
       "appToDatabaseBytes": 7553,
       "queries": 30,
       "tables": {
@@ -577,7 +577,7 @@
     {
       "name": "/business/meeting-review",
       "version": "baseline",
-      "databaseToAppBytes": 164152,
+      "databaseToAppBytes": 164149,
       "appToDatabaseBytes": 2093,
       "queries": 6,
       "tables": {
@@ -589,7 +589,7 @@
     {
       "name": "/business/meeting-review",
       "version": "candidate",
-      "databaseToAppBytes": 6956,
+      "databaseToAppBytes": 6955,
       "appToDatabaseBytes": 1284,
       "queries": 5,
       "tables": {
@@ -599,9 +599,9 @@
       }
     },
     {
-      "name": "/business/meeting-review?meeting=1d70eecb-d5b2-4c77-aa17-9ac6620d6efb",
+      "name": "/business/meeting-review?meeting=2c70e520-f152-4f1a-a325-efc83f053a31",
       "version": "baseline",
-      "databaseToAppBytes": 14365701,
+      "databaseToAppBytes": 14365693,
       "appToDatabaseBytes": 12782,
       "queries": 39,
       "tables": {
@@ -629,9 +629,9 @@
       }
     },
     {
-      "name": "/business/meeting-review?meeting=1d70eecb-d5b2-4c77-aa17-9ac6620d6efb",
+      "name": "/business/meeting-review?meeting=2c70e520-f152-4f1a-a325-efc83f053a31",
       "version": "candidate",
-      "databaseToAppBytes": 391162,
+      "databaseToAppBytes": 391160,
       "appToDatabaseBytes": 14321,
       "queries": 31,
       "tables": {
@@ -658,9 +658,9 @@
       }
     },
     {
-      "name": "/business/meeting-review?meeting=249e067d-7f3c-4b35-a079-5e90a2141ff0&version=0",
+      "name": "/business/meeting-review?meeting=71a3fc7e-6ac4-4884-8062-083409ca665a&version=0",
       "version": "baseline",
-      "databaseToAppBytes": 1112671,
+      "databaseToAppBytes": 1112667,
       "appToDatabaseBytes": 4025,
       "queries": 10,
       "tables": {
@@ -673,9 +673,9 @@
       }
     },
     {
-      "name": "/business/meeting-review?meeting=249e067d-7f3c-4b35-a079-5e90a2141ff0&version=0",
+      "name": "/business/meeting-review?meeting=71a3fc7e-6ac4-4884-8062-083409ca665a&version=0",
       "version": "candidate",
-      "databaseToAppBytes": 268920,
+      "databaseToAppBytes": 268918,
       "appToDatabaseBytes": 4101,
       "queries": 10,
       "tables": {
@@ -695,6 +695,7 @@
     "legacy-material 输出一致",
     "monthly-issues 输出一致",
     "monthly-material 输出一致",
+    "旧V4草稿缺缓存材料时仍可选择阶段快照，实际页面与基线一致",
     "同库 HTTP JSON一致、日度决定只读一次、管理员和员工读取、真实查帖关联例会与五档视口"
   ],
   "contentChecks": [
@@ -719,14 +720,14 @@
       "characters": 614
     },
     {
-      "path": "/business/meeting-review?meeting=1d70eecb-d5b2-4c77-aa17-9ac6620d6efb",
+      "path": "/business/meeting-review?meeting=2c70e520-f152-4f1a-a325-efc83f053a31",
       "characters": 471
     },
     {
-      "path": "/business/meeting-review?meeting=249e067d-7f3c-4b35-a079-5e90a2141ff0&version=0",
+      "path": "/business/meeting-review?meeting=71a3fc7e-6ac4-4884-8062-083409ca665a&version=0",
       "characters": 37988
     }
   ],
-  "videoPath": "/home/obl1vion/projects/qiuyunFrontend/.tools/releases/snapshot-transfer-20261105/.tools/test-artifacts/meeting-read-transfer/videos/page@beec5a3a937d67dc12ade65e9063f0ec.webm",
+  "videoPath": "/home/obl1vion/projects/qiuyunFrontend/.tools/releases/snapshot-transfer-20261105/.tools/test-artifacts/meeting-read-transfer/videos/page@1fae31c333885cec50d82c3994f0d264.webm",
   "pageErrors": []
 }

@@ -18,7 +18,8 @@
     "17 first-paint cases and 7 font consumers",
     "12 optimistic concurrency groups",
     "301516ms native foreground/background observation",
-    "bundled React/Chromium/fonts and 5 monthly/3 weekly PDF pages"
+    "bundled React/Chromium/fonts and 5 monthly/3 weekly PDF pages",
+    "legacy V4 draft without cached material retains the stage snapshot picker; baseline/candidate rendered content equal"
   ],
   "data": "isolated PostgreSQL / PGlite only",
   "visualReview": "screenshots, operation video, slow-first-paint recordings and all 8 PDF pages actually inspected"

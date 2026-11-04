@@ -15,6 +15,7 @@ import {readPromotionTimeline} from '../src/db/promotion-timeline';
 import {readWeeklyMaterial,selectWeeklyMaterial} from '../src/db/meeting-weekly-material';
 import {readMeetingMaterial} from '../src/db/meeting-snapshots';
 import {readMonthlyIssues,readMonthlyMeeting} from '../src/db/monthly-meeting';
+import {generateStageSnapshot} from '../src/db/promotion-stage-reviews';
 import * as s from '../src/db/schema';
 
 const dir=process.env.MEETING_TRANSFER_DIR||'.tools/test-artifacts/meeting-read-transfer';
@@ -174,6 +175,20 @@ try{
   }
   const employeeCookie=await login(baseURL,'test_employee','fictional-employee-password');
   const employeeResult=await request(baseURL,employeeCookie,'/api/content-search?id='+posts[0].id);assert.ok(employeeResult.meetings.length);
+  // 旧V4草稿缺少缓存材料时仍走原兼容表单，阶段快照选择器不能被省掉。
+  const stage=await generateStageSnapshot(db,'2026-10-01','2026-10-24','隔离旧草稿快照选择器');
+  const [stageReview]=await db.insert(s.operationsPromotionStageReview).values({requestKey:crypto.randomUUID(),name:stage.name,periodStart:stage.periodStart,periodEnd:stage.periodEnd,createdByLabel:'fixture'}).returning();
+  const [stageVersion]=await db.insert(s.operationsPromotionStageReviewVersion).values({reviewId:stageReview.id,versionNumber:0,snapshot:stage as unknown as Record<string,unknown>,createdByLabel:'fixture'}).returning();
+  await db.update(s.operationsReviewMeeting).set({draftSnapshot:{...draft,promotionSnapshotIds:[stageVersion.id]}}).where(eq(s.operationsReviewMeeting.id,current.id));
+  await page.setViewportSize({width:1440,height:1000});
+  for(const [target,url] of [[page,baseURL],[oldPage,oldURL]]){
+    await target.goto(url+'/business/meeting-review?meeting='+current.id);await target.waitForLoadState('networkidle');await settleBusinessUI(target);
+    await target.locator('#promotion details.picker>summary').click();
+    assert.equal(await target.locator('input[data-stage-ref][value="'+stageVersion.id+'"]').isChecked(),true);
+  }
+  assert.equal(await page.locator('.business-console-content').innerText(),await oldPage.locator('.business-console-content').innerText(),'旧草稿兼容表单与阶段引用保持一致');
+  await page.screenshot({path:dir+'/legacy-draft-picker-1440.png'});
+  checks.push('旧V4草稿缺缓存材料时仍可选择阶段快照，实际页面与基线一致');
   assert.equal(errors.length,0);
   const videoPath=await page.video()?.path();await context.close();await oldBrowserContext.close();
   checks.push('同库 HTTP JSON一致、日度决定只读一次、管理员和员工读取、真实查帖关联例会与五档视口');

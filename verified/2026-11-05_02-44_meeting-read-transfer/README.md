@@ -1,6 +1,6 @@
 # 例会大快照读取优化
 
-状态：本地已自检，发布核对完成后补记。源码基线 `c245840`（应用 `3ebc25d`），候选源码 `提交后补记`。独立工作树 `.tools/releases/snapshot-transfer-20261105`，分支 `codex/meeting-read-projections`。
+状态：已发布，正式域名与独立部署已核对为 READY。源码基线 `c245840`（应用 `3ebc25d`），候选源码 `7922fca58da4b52e3a39d4eb5b469f22b902517e`。独立工作树 `.tools/releases/snapshot-transfer-20261105`，分支 `codex/meeting-read-projections`。
 
 ## 发现与修复
 
@@ -34,7 +34,7 @@
 | 当前周会草稿 | 14.37 MB | 391.2 KB | 97.28% |
 | 例会历史版本 | 1.11 MB | 268.9 KB | 75.83% |
 
-[原始测量](measurement.json)保留查询次数、表名计数及正文核对范围。版本继承／替换／重置、失效版撤销、旧版本更正不覆盖新版、更正新版生效、上海月界、深层引用和非字符串排除均实测。
+[原始测量](measurement.json)保留查询次数、表名计数及正文核对范围。版本继承／替换／重置、失效版撤销、旧版本更正不覆盖新版、更正新版生效、上海月界、深层引用和非字符串排除均实测。另补测缺缓存材料的V4旧草稿，阶段快照选择器与原版完整保留。
 
 ## 功能与视觉验证
 
@@ -44,7 +44,7 @@
 
 - [推广原版](screenshots/promotion-baseline-1440.png)／[候选](screenshots/promotion-1440.png)
 - [例会原版](screenshots/meeting-list-baseline-1440.png)／[候选](screenshots/meeting-list-1440.png)
-- [查帖详情](screenshots/post-lookup-1440.png)
+- [查帖详情](screenshots/post-lookup-1440.png)、[旧草稿兼容选择器](screenshots/legacy-draft-picker-1440.png)
 - [当前草稿](screenshots/meeting-draft-1440.png)／[历史版本](screenshots/meeting-history-1440.png)
 - [原版与候选并排](review/comparisons.jpg)、[例会视口](review/viewports.jpg)
 - [公共页面1920](review/workspace-1920.jpg)／[1440](review/workspace-1440.jpg)／[1024](review/workspace-1024.jpg)
@@ -54,4 +54,4 @@
 
 ## 发布
 
-按既有Vercel流程执行候选检查、同步main、提升正式域名并核对部署。发布编号及核对结果记录于本目录 `release/`。没有数据库迁移或生产业务数据操作，原工作区无关修改保留。
+应用 `7922fca` 已同步main并发布；正式域名与独立部署均为 `dpl_5jne82V8GqhLZgpkv75rDzwmvwao`／READY。候选16项、正式131项及86个资源哈希匹配通过。详见[发布记录](release/deployment.json)、[候选检查](release/candidate-smoke.json)和[正式检查](release/public-smoke.json)。没有数据库迁移或生产业务数据操作，原工作区无关修改保留。
