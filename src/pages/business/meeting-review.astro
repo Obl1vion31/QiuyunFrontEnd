@@ -10,7 +10,7 @@ import MeetingPdfArchive from '../../components/MeetingPdfArchive';
 import BusinessMeetingRecord from '../../components/BusinessMeetingRecord.astro';
 import '../../styles/meeting-records.css';
 import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astro';
-import { and,desc, eq, ne, sql } from 'drizzle-orm';
+import { and,desc, eq, getTableColumns, ne, sql } from 'drizzle-orm';
 import BusinessFormDialog from '../../components/BusinessFormDialog.astro';
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import { businessDateTime } from '../../scripts/business-date';
@@ -33,7 +33,8 @@ import { operationsReviewMeeting as meetingsTable, operationsReviewMeetingVersio
 export const prerender = false;
 const now = new Date(), today = shanghaiDateKey(now);
 const monthlyMonth=adjacentMonth(today.slice(0,7),-1),monthlyRange={from:monthlyMonth+'-01',to:monthWeeks(monthlyMonth).at(-1)!.through};
-let meetings: Array<typeof meetingsTable.$inferSelect> = [], versions: Array<typeof versionsTable.$inferSelect> = [], stageSnapshots: Array<typeof stageVersions.$inferSelect> = [], openIssues: Array<typeof issuesTable.$inferSelect> = [], images: Array<{ id: string; name: string }> = [];
+const meetingSummary={id:meetingsTable.id,name:meetingsTable.name,meetingType:meetingsTable.meetingType,meetingAt:meetingsTable.meetingAt,periodStart:meetingsTable.periodStart,periodEnd:meetingsTable.periodEnd,status:meetingsTable.status,currentVersionNumber:meetingsTable.currentVersionNumber,updatedAt:meetingsTable.updatedAt};
+let meetings: Array<Pick<typeof meetingsTable.$inferSelect,keyof typeof meetingSummary>> = [], versions: Array<typeof versionsTable.$inferSelect> = [], stageSnapshots: Array<typeof stageVersions.$inferSelect> = [], openIssues: Array<typeof issuesTable.$inferSelect> = [], images: Array<{ id: string; name: string }> = [];
 let selected: typeof meetingsTable.$inferSelect | undefined;
 let historicalVersions:Array<{meetingId:string;versionNumber:number;changeSummary:string;createdAt:Date;lifecycleStatus:string;stage:string|null;id:string;pdfStatus:string|null;invalidatedAt:Date|null}>=[];
 let material: Awaited<ReturnType<typeof readMeetingMaterial>> = { activity: [], candidates: [] };
@@ -44,17 +45,30 @@ let weeklyDraftMaterial:WeeklyMaterial|undefined;
 let pdfFiles:Array<{id:string;name:string;meetingVersionId:string|null;source:string}>=[];
 try {
   const db = getDb();
-  meetings = await db.select().from(meetingsTable).orderBy(desc(meetingsTable.meetingAt));
-  const requested=Astro.url.searchParams.get('meeting');selected=meetings.find(m=>m.id===requested);if(!selected&&requested&&/^[0-9a-f-]{36}$/i.test(requested))[selected]=await db.select().from(meetingsTable).where(eq(meetingsTable.id,requested));
+  meetings = await db.select(meetingSummary).from(meetingsTable).orderBy(desc(meetingsTable.meetingAt));
+  const requested=Astro.url.searchParams.get('meeting');if(requested&&/^[0-9a-f-]{36}$/i.test(requested))[selected]=await db.select().from(meetingsTable).where(eq(meetingsTable.id,requested));
   pdfFiles=await db.select({id:attachmentsTable.id,name:attachmentsTable.name,meetingVersionId:attachmentsTable.meetingVersionId,source:attachmentsTable.source}).from(attachmentsTable).where(eq(attachmentsTable.mimeType,'application/pdf'));
   if(!selected)historicalVersions=await db.select({id:versionsTable.id,lifecycleStatus:versionsTable.lifecycleStatus,pdfStatus:versionsTable.pdfStatus,invalidatedAt:versionsTable.invalidatedAt,meetingId:versionsTable.meetingId,versionNumber:versionsTable.versionNumber,changeSummary:versionsTable.changeSummary,createdAt:versionsTable.createdAt,stage:sql<string>`${versionsTable.snapshot}->>'finalizationStage'`}).from(versionsTable).orderBy(desc(versionsTable.createdAt),desc(versionsTable.versionNumber));
   if (selected) [versions, stageSnapshots, openIssues, images, material] = await Promise.all([
-    db.select().from(versionsTable).where(eq(versionsTable.meetingId, selected.id)).orderBy(desc(versionsTable.versionNumber)),
-    db.select().from(stageVersions).orderBy(desc(stageVersions.createdAt)),
+    db.select({...getTableColumns(versionsTable),snapshot:sql<Record<string,unknown>>`jsonb_build_object(
+      'finalizationStage',${versionsTable.snapshot}->'finalizationStage',
+      'decisionEffectiveOn',${versionsTable.snapshot}->'decisionEffectiveOn',
+      'generated',jsonb_build_object('meetingDecisions',${versionsTable.snapshot}#>'{generated,meetingDecisions}'))`})
+      .from(versionsTable).where(eq(versionsTable.meetingId, selected.id)).orderBy(desc(versionsTable.versionNumber)),
+    selected.draftSnapshot.schemaVersion===4?Promise.resolve([]):db.select().from(stageVersions).orderBy(desc(stageVersions.createdAt)),
     db.select().from(issuesTable).where(ne(issuesTable.status, 'resolved')),
     db.select({ id: attachmentsTable.id, name: attachmentsTable.name }).from(attachmentsTable).where(and(eq(attachmentsTable.meetingId, selected.id),ne(attachmentsTable.mimeType,'application/pdf'))),
     selected.draftSnapshot.schemaVersion===4?Promise.resolve({activity:[],candidates:[]}):readMeetingMaterial(db, selected),
   ]);
+  if(selected){
+    // 沿原选择规则确定当前版本；其他版本只供导航、决定生效日与回溯摘要使用。
+    const shown=versions.find(v=>String(v.versionNumber)===Astro.url.searchParams.get('version'))??activeMeetingDraft(versions)??latestValidMeetingVersion(versions);
+    if(shown){
+      const [full]=await db.select().from(versionsTable).where(eq(versionsTable.id,shown.id));
+      if(!full)return Astro.redirect('/business/meeting-review');
+      versions=versions.map(v=>v.id===full.id?full:v);
+    }
+  }
   if(selected?.draftSnapshot.schemaVersion===4){
     const cached=selected.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
     if(selected.status==='draft')weeklyDraftMaterial=await readWeeklyMaterial(db,selected);
@@ -83,7 +97,7 @@ if (!selected?.draftSnapshot?.issues?.length && selected?.status === 'draft' && 
 const selectedKeys = new Set(draft.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`));
 const refs = stageSnapshots.filter(s => draft.promotionSnapshotIds?.includes(s.id));
 const promotionRows = [...new Map<string, { campaignId: string; contentName: string; versionNumber: number }>([...material.activity.map(a => [a.campaignId, a] as const), ...refs.flatMap(ref => (ref.snapshot as unknown as StageSnapshot).rows.map(row => [row.campaignId, row] as const))]).values()];
-const previousSnapshot = previousMeeting ? await getDb().select().from(versionsTable).where(and(eq(versionsTable.meetingId, previousMeeting.id),eq(versionsTable.lifecycleStatus,'finalized'),sql`${versionsTable.invalidatedAt} IS NULL`)).orderBy(desc(versionsTable.versionNumber)).limit(1).then(r => r[0]?.snapshot as any) : null;
+const previousSnapshot = selected?.status==='draft'&&previousMeeting ? await getDb().select({snapshot:sql`jsonb_build_object('draft',jsonb_build_object('nextAction',${versionsTable.snapshot}#>'{draft,nextAction}'))`}).from(versionsTable).where(and(eq(versionsTable.meetingId, previousMeeting.id),eq(versionsTable.lifecycleStatus,'finalized'),sql`${versionsTable.invalidatedAt} IS NULL`)).orderBy(desc(versionsTable.versionNumber)).limit(1).then(r => r[0]?.snapshot as any) : null;
 const dateTime = businessDateTime(now).replace(' ','T');
 const requestedFrom=Astro.url.searchParams.get('from'),requestedTo=Astro.url.searchParams.get('to');
 const defaultEnd=requestedTo&&/^\d{4}-\d{2}-\d{2}$/.test(requestedTo)&&requestedTo<today?requestedTo:previousDateKey(today);

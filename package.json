@@ -58,7 +58,8 @@
     "test:monthly-workflow:postgres": "node --import tsx tests/monthly-workflow.postgres.ts",
     "test:collaboration-continuity": "node --import tsx tests/optimistic-editing.browser.ts",
     "test:optimistic-editing": "node --import tsx tests/optimistic-editing.browser.ts",
-    "test:network-transfer": "node --import tsx tests/network-transfer.browser.ts"
+    "test:network-transfer": "node --import tsx tests/network-transfer.browser.ts",
+    "test:meeting-transfer": "node --import tsx tests/meeting-read-transfer.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

@@ -1,5 +1,5 @@
 import type {APIRoute} from 'astro';
-import {desc,eq,ilike,inArray,or} from 'drizzle-orm';
+import {and,desc,eq,ilike,inArray,isNull,or,sql} from 'drizzle-orm';
 import {z} from 'zod';
 import {getDb} from '../../db/client';
 import * as s from '../../db/schema';
@@ -10,11 +10,6 @@ import {workflowErrorResponse} from '../../db/workflow-api';
 export const prerender=false;
 const selection={id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:s.operationsCategory.name,planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
 function posts(){return getDb().select(selection).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId));}
-function references(value:unknown,ids:Set<string>):boolean{
- if(!value||typeof value!=='object')return false;
- if(Array.isArray(value))return value.some(item=>references(item,ids));
- const record=value as Record<string,unknown>;return typeof record.scheduleId==='string'&&ids.has(record.scheduleId)||Object.values(record).some(item=>references(item,ids));
-}
 export const GET:APIRoute=async({url})=>{
  try{
   const id=url.searchParams.get('id');
@@ -32,10 +27,14 @@ export const GET:APIRoute=async({url})=>{
    getDb().select().from(s.operationsContentPerformanceMetric).where(inArray(s.operationsContentPerformanceMetric.scheduleId,versions.map(v=>v.id))),
    getDb().select().from(s.operationsNonPromotionCheckpointEvent).where(inArray(s.operationsNonPromotionCheckpointEvent.scheduleId,versions.map(v=>v.id))).orderBy(desc(s.operationsNonPromotionCheckpointEvent.sequence)),
    getDb().select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,id)).orderBy(desc(s.operationsPromotionTimelineAudit.createdAt)),
-   getDb().select({id:s.operationsReviewMeeting.id,name:s.operationsReviewMeeting.name,version:s.operationsReviewMeetingVersion.versionNumber,status:s.operationsReviewMeetingVersion.lifecycleStatus,snapshot:s.operationsReviewMeetingVersion.snapshot,invalidatedAt:s.operationsReviewMeetingVersion.invalidatedAt}).from(s.operationsReviewMeetingVersion).innerJoin(s.operationsReviewMeeting,eq(s.operationsReviewMeetingVersion.meetingId,s.operationsReviewMeeting.id)).orderBy(desc(s.operationsReviewMeetingVersion.createdAt)),
+   getDb().select({id:s.operationsReviewMeeting.id,name:s.operationsReviewMeeting.name,version:s.operationsReviewMeetingVersion.versionNumber,status:s.operationsReviewMeetingVersion.lifecycleStatus})
+    .from(s.operationsReviewMeetingVersion).innerJoin(s.operationsReviewMeeting,eq(s.operationsReviewMeetingVersion.meetingId,s.operationsReviewMeeting.id))
+    // strict 保留原来的字符串相等语义，不把 scheduleId 数组自动解包为命中。
+    .where(and(isNull(s.operationsReviewMeetingVersion.invalidatedAt),sql`jsonb_path_exists(${s.operationsReviewMeetingVersion.snapshot}, 'strict $.** ? (@.scheduleId.type() == "string" && @.scheduleId == $scheduleId)', jsonb_build_object('scheduleId', ${id}::text), true)`))
+    .orderBy(desc(s.operationsReviewMeetingVersion.createdAt)),
    readScheduleWorkflow(getDb(),id),
   ]);
   const history=audits.map(promotionAuditView).filter(row=>row.visible).map(({title,beforeLabel,afterLabel,reason,createdAt})=>({title,beforeLabel,afterLabel,reason,createdAt}));
-  return Response.json({post,versions,stages,metrics,totals:promotionTotals(metrics),non,checkpointEvents:checkpointEvents.filter((row,index,all)=>all.findIndex(item=>item.checkpointType===row.checkpointType)===index),history,publicationHistory:workflow.publicationHistory,planHistory:workflow.history,meetings:meetingVersions.filter(row=>!row.invalidatedAt&&references(row.snapshot,new Set([id]))).map(({snapshot,invalidatedAt,...row})=>row)},{headers:{'Cache-Control':'private, no-store'}});
+  return Response.json({post,versions,stages,metrics,totals:promotionTotals(metrics),non,checkpointEvents:checkpointEvents.filter((row,index,all)=>all.findIndex(item=>item.checkpointType===row.checkpointType)===index),history,publicationHistory:workflow.publicationHistory,planHistory:workflow.history,meetings:meetingVersions},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){if(error instanceof z.ZodError)return Response.json({message:'查询条件无效。'},{status:422});return workflowErrorResponse(error);}
 };

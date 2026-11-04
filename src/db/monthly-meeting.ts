@@ -8,6 +8,7 @@ import {adjacentMonth,monthWeeks} from './monthly-plan-types';
 import {shanghaiDateKey} from './promotion-rules.mjs';
 import {meetingValueKey} from './meeting-discussion-values';
 import {WorkflowError} from './schedule-workflow';
+import {and,asc,desc,eq,inArray,isNull,lt,sql} from 'drizzle-orm';
 
 export function preserveMonthlyMeetingIdentity(meeting:Pick<typeof s.operationsReviewMeeting.$inferSelect,'meetingType'|'draftSnapshot'>,draft:s.WeeklyMeetingDraft){
  if(meeting.draftSnapshot.monthlySchemaVersion===1){draft.monthlySchemaVersion=1;draft.monthlyPlan??=structuredClone(meeting.draftSnapshot.monthlyPlan);if(!draft.monthlyPlan)throw new WorkflowError('月计划身份缺失，请重新打开月会。',422);}
@@ -20,12 +21,17 @@ export function requireNewMonthlyPeriod(start:string,end:string,meetingAt:Date,n
  if(start!==`${month}-01`||end!==weeks.at(-1)!.through||shanghaiDateKey(meetingAt).slice(0,7)!==adjacentMonth(month,1))throw new WorkflowError('月例会只能在下个月召开，统计上一个完整自然月。',422);
 }
 export async function readMonthlyIssues(db:Database,month:string){
- const meetings=await db.select().from(s.operationsReviewMeeting),versions=await db.select().from(s.operationsReviewMeetingVersion);
+ const meetings=await db.select({id:s.operationsReviewMeeting.id,name:s.operationsReviewMeeting.name,meetingAt:s.operationsReviewMeeting.meetingAt}).from(s.operationsReviewMeeting)
+  .where(lt(s.operationsReviewMeeting.meetingAt,new Date(adjacentMonth(month,1)+'-01T00:00:00+08:00')));
+ const versions=meetings.length?await db.selectDistinctOn([s.operationsReviewMeetingVersion.meetingId],{
+  meetingId:s.operationsReviewMeetingVersion.meetingId,issues:sql<s.WeeklyMeetingDraft['issues']>`${s.operationsReviewMeetingVersion.snapshot}#>'{draft,issues}'`,
+ }).from(s.operationsReviewMeetingVersion).where(and(inArray(s.operationsReviewMeetingVersion.meetingId,meetings.map(m=>m.id)),eq(s.operationsReviewMeetingVersion.lifecycleStatus,'finalized'),isNull(s.operationsReviewMeetingVersion.invalidatedAt),sql`${s.operationsReviewMeetingVersion.snapshot}->>'finalizationStage' = 'post'`))
+  .orderBy(asc(s.operationsReviewMeetingVersion.meetingId),desc(s.operationsReviewMeetingVersion.versionNumber)):[];
  const eligible=meetings.filter(m=>shanghaiDateKey(m.meetingAt).slice(0,7)<=month).sort((a,b)=>a.meetingAt.getTime()-b.meetingAt.getTime());
  const state=new Map<string,{id:string;problem:string;conclusion:string;status:string;meetingId:string;meetingName:string;recordedOn:string;newThisMonth:boolean;mentioned:boolean}>();
- for(const m of eligible){const version=versions.filter(v=>v.meetingId===m.id&&v.lifecycleStatus==='finalized'&&!v.invalidatedAt&&(v.snapshot as any).finalizationStage==='post').sort((a,b)=>b.versionNumber-a.versionNumber)[0];if(!version)continue;
+ for(const m of eligible){const version=versions.find(v=>v.meetingId===m.id);if(!version)continue;
   const within=shanghaiDateKey(m.meetingAt).startsWith(month);
-  for(const issue of (version.snapshot as any).draft?.issues??[]){if(!issue.id)continue;const old=state.get(issue.id);state.set(issue.id,{...issue,meetingId:m.id,meetingName:m.name,recordedOn:shanghaiDateKey(m.meetingAt),newThisMonth:old?.newThisMonth??within,mentioned:(old?.mentioned??false)||within});}
+  for(const issue of version.issues??[]){if(!issue.id)continue;const old=state.get(issue.id);state.set(issue.id,{...issue,id:issue.id,meetingId:m.id,meetingName:m.name,recordedOn:shanghaiDateKey(m.meetingAt),newThisMonth:old?.newThisMonth??within,mentioned:(old?.mentioned??false)||within});}
  }
  return [...state.values()].filter(i=>i.mentioned||i.status!=='resolved');
 }

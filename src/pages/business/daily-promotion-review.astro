@@ -169,7 +169,7 @@ try {
   readPromotionContext(database),
   database.select().from(operationsPromotionTimelineAudit).orderBy(desc(operationsPromotionTimelineAudit.createdAt)),
   ]) as [typeof campaigns, typeof stages, typeof metrics, typeof promotionContext,typeof timelineAudits];
-  timelineRows=await readPromotionTimeline(database,now);
+  timelineRows=await readPromotionTimeline(database,now,undefined,promotionContext);
   campaigns = campaigns.map(campaign => {
     if (!promotionContext.waitRanges.some(range => range.campaignId === campaign.id)) return campaign;
     const state = promotionStateOn(campaign, promotionContext, today);

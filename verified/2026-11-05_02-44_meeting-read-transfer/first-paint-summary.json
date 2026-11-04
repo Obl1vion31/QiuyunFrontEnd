@@ -1,0 +1,1352 @@
+{
+  "passed": true,
+  "caseCount": 17,
+  "notificationRetry": true,
+  "sharedFontConsumers": 7,
+  "database": "isolated PGlite",
+  "cases": [
+    {
+      "name": "cold-1920",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 122,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 2008.3999999985099,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "warm-1920",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 119,
+      "firstFrame": {
+        "t": 0.19999999552965164,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1971.5999999940395,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-1920",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 122,
+      "firstFrame": {
+        "t": 0.30000000447034836,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 2013.7000000029802,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cold-1440",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 121,
+      "firstFrame": {
+        "t": 0.3999999985098839,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1987.6999999955297,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "warm-1440",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 121,
+      "firstFrame": {
+        "t": 0.20000000298023224,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 2000.2000000029802,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-1440",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 123,
+      "firstFrame": {
+        "t": 0.20000000298023224,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 2041.5,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-reload-1440",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 120,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 2022.8999999985099,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cold-1024",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 120,
+      "firstFrame": {
+        "t": 0.3999999985098839,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1980.5999999940395,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "warm-1024",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 119,
+      "firstFrame": {
+        "t": 0.19999999552965164,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1967.8999999985099,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-1024",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 119,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1967.1999999955297,
+        "fontReady": true,
+        "card": 106,
+        "nav": 198.578125,
+        "texts": [
+          {
+            "width": 38.75,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "32px",
+            "weight": "600"
+          },
+          {
+            "width": 162.203125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "29px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cold-390",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 118,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1931.3999999985099,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "warm-390",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 117,
+      "firstFrame": {
+        "t": 0.30000000447034836,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1917.8000000044703,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-390",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 117,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1925.0999999940395,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-reload-390",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 118,
+      "firstFrame": {
+        "t": 0.10000000149011612,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1921.1000000014901,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 36.8125,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "30px",
+            "weight": "600"
+          },
+          {
+            "width": 135,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "25px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "cold-320",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 118,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 34.90625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "28px",
+            "weight": "600"
+          },
+          {
+            "width": 127.40625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "23px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1924.7000000029802,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 34.90625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "28px",
+            "weight": "600"
+          },
+          {
+            "width": 127.40625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "23px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "warm-320",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 116,
+      "firstFrame": {
+        "t": 0.19999999552965164,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 34.90625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "28px",
+            "weight": "600"
+          },
+          {
+            "width": 127.40625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "23px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1901.5,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 34.90625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "28px",
+            "weight": "600"
+          },
+          {
+            "width": 127.40625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "23px",
+            "weight": "600"
+          }
+        ]
+      }
+    },
+    {
+      "name": "slow-320",
+      "fonts": [
+        {
+          "selector": "[data-value=\"planned\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 2
+            }
+          ]
+        },
+        {
+          "selector": "[data-value=\"spend\"]",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 10
+            }
+          ]
+        },
+        {
+          "selector": ".business-toolbar__title strong",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        }
+      ],
+      "frames": 118,
+      "firstFrame": {
+        "t": 0.29999999701976776,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 34.90625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "28px",
+            "weight": "600"
+          },
+          {
+            "width": 127.40625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "23px",
+            "weight": "600"
+          }
+        ]
+      },
+      "lastFrame": {
+        "t": 1925.7999999970198,
+        "fontReady": true,
+        "card": 0,
+        "nav": 841,
+        "texts": [
+          {
+            "width": 34.90625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "28px",
+            "weight": "600"
+          },
+          {
+            "width": 127.40625,
+            "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+            "size": "23px",
+            "weight": "600"
+          }
+        ]
+      }
+    }
+  ]
+}

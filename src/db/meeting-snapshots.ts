@@ -1,5 +1,6 @@
 /** 例会事实只由服务端读取；客户端只能传引用编号和人工文字。 */
-import { asc, desc, eq, ne, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, ne, inArray, isNull } from 'drizzle-orm';
+import {meetingNonPromotionSelections} from './meeting-history';
 import { z } from 'zod';
 import type { Database } from './client';
 import { WorkflowError } from './schedule-workflow';
@@ -35,14 +36,15 @@ export const meetingDraftSchema = z.object({
   for (const values of [v.promotionSelections, v.promotionSnapshotIds, v.attachmentIds, v.nonPromotionSelections.map(s => `${s.scheduleId}:${s.checkpointType}`), v.issues.flatMap(i => i.id ? [i.id] : [])]) if (values.length !== new Set(values).size) ctx.addIssue({ code: 'custom', message: '引用或勾选重复' });
 });
 export async function readMeetingMaterial(db: Database, meeting: typeof meetings.$inferSelect) {
-  const [content, campaignRows, daily, reviews, checkpointEvents, priorVersions, meetingRows] = await Promise.all([
+  const [content, campaignRows, daily, reviews, checkpointEvents, priorVersions] = await Promise.all([
     db.select({ scheduleId: schedules.id, contentVersionId: versions.id, contentId: versions.contentId, versionNumber: versions.versionNumber, contentName: versions.contentName, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, projectDocUrl: versions.projectDocUrl, isPromoted: schedules.isPromoted, plannedPublishAt: schedules.plannedPublishAt, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
-    db.select().from(campaigns), db.select().from(metrics).orderBy(asc(metrics.metricDate)), db.select().from(nonPromotions), readCheckpointEvents(db), db.select().from(meetingVersions), db.select().from(meetings),
+    db.select().from(campaigns), db.select().from(metrics).orderBy(asc(metrics.metricDate)), db.select().from(nonPromotions), readCheckpointEvents(db),
+    db.select({selections:meetingNonPromotionSelections}).from(meetingVersions).innerJoin(meetings,and(eq(meetings.id,meetingVersions.meetingId),eq(meetings.currentVersionNumber,meetingVersions.versionNumber)))
+      .where(and(eq(meetings.status,'completed'),ne(meetings.id,meeting.id),ne(meetingVersions.lifecycleStatus,'draft'),isNull(meetingVersions.invalidatedAt))),
   ]);
   const previousCounts = new Map<string, number>();
-  for (const m of meetingRows.filter(m => m.status === 'completed' && m.id !== meeting.id)) {
-    const v = priorVersions.find(v => !v.invalidatedAt && v.lifecycleStatus!=='draft' && v.lifecycleStatus!=='draft' && !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber);
-    const selected = ((v?.snapshot as any)?.generated?.nonPromotions ?? []) as Array<{ scheduleId: string; checkpointType?: string; checkpoint?: number }>;
+  for (const v of priorVersions) {
+    const selected = v.selections as Array<{ scheduleId: string; checkpointType?: string; checkpoint?: number }>;
     for (const row of selected) { const key = `${row.scheduleId}:${row.checkpointType ?? `day_${row.checkpoint}`}`; previousCounts.set(key, (previousCounts.get(key) ?? 0) + 1); }
   }
   const activity = campaignRows.flatMap(c => {

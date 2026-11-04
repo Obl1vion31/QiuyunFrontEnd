@@ -9,7 +9,7 @@ import * as schema from '../src/db/schema';
 const folder=process.env.ASSISTANT_EVIDENCE_DIR||'.tools/test-artifacts/workspace-assistant';
 await mkdir(folder,{recursive:true});
 const fixture=await startFixture(),{db,baseURL}=fixture;
-let browser:any;const checks:string[]=[],errors:string[]=[];
+let browser:any;const checks:string[]=[],errors:string[]=[],collaborationRequests:string[]=[];
 const shot=async(page:any,name:string)=>{await settleBusinessUI(page);await page.screenshot({path:`${folder}/${name}.png`});};
 const close=async(page:any)=>{await page.keyboard.press('Escape');await page.locator('[data-post-lookup]').waitFor({state:'hidden'});};
 try{
@@ -25,7 +25,7 @@ try{
  const cookies=response.headers.getSetCookie().map(value=>{const pair=value.split(';')[0],i=pair.indexOf('=');return {name:pair.slice(0,i),value:pair.slice(i+1),url:baseURL};});
  const playwright=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await playwright.chromium.launch({headless:true});
  for(const width of [1920,1440,1024,390,320]){
-  const context=await browser.newContext({viewport:{width,height:width<500?780:1000},...(width<500?{isMobile:true,hasTouch:true}:{}),...(width===1440||width===390?{recordVideo:{dir:folder+'/video',size:{width:Math.min(width,1440),height:width<500?780:1000}}}:{})});await context.addCookies(cookies);const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));
+  const context=await browser.newContext({viewport:{width,height:width<500?780:1000},...(width<500?{isMobile:true,hasTouch:true}:{}),...(width===1440||width===390?{recordVideo:{dir:folder+'/video',size:{width:Math.min(width,1440),height:width<500?780:1000}}}:{})});await context.addCookies(cookies);const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));page.on('request',(request:any)=>{if(new URL(request.url()).pathname.startsWith('/api/collaboration/'))collaborationRequests.push(request.method()+' '+request.url());});
   for(const path of ['daily-promotion-review','operations-schedule']){
    await page.goto(baseURL+'/business/'+path);await settleBusinessUI(page);
    assert.equal(await page.locator('.business-tools,[data-tools-trigger]').count(),0);
@@ -53,7 +53,7 @@ try{
   await openPostLookup(page);assert.equal(await page.locator('.lookup-result').count(),23);await page.locator('[data-post-lookup] input').fill('不存在的助手验收样本');await page.locator('[data-post-lookup] button[type=submit]').click();await page.getByText('没有找到匹配的帖子',{exact:true}).waitFor();await shot(page,`search-empty-${width}`);
   await page.route('**/api/content-search?q=*',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'查找暂时不可用，请重试。'})}));await page.locator('[data-post-lookup] input').fill('助手验收样本');await page.locator('[data-post-lookup] button[type=submit]').click();await page.getByText('查找暂时不可用，请重试。',{exact:true}).waitFor();assert.equal(await page.locator('[data-post-lookup] input').inputValue(),'助手验收样本');await shot(page,`search-failure-${width}`);await page.unroute('**/api/content-search?q=*');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('.lookup-result').nth(19).waitFor();await close(page);
   checks.push(`${width}px分页、详情末尾、返回位置、原指标草稿与节点、空态及失败重试`);
-  const released=page.waitForResponse((response:any)=>response.url().includes('/api/collaboration/locks')&&response.request().method()==='DELETE');await page.locator('[data-module-id=annual-plan]').click();await page.locator('[data-confirm-accept]').click();await page.waitForURL('**/business/annual-plan');await released;
+  await page.locator('[data-module-id=annual-plan]').click();await page.locator('[data-confirm-accept]').click();await page.waitForURL('**/business/annual-plan');assert.deepEqual(collaborationRequests,[],'编辑及导航不取锁、轮询或释放旧租约');
   await context.close();
  }
  const context=await browser.newContext({viewport:{width:1024,height:600},reducedMotion:'reduce'});await context.addCookies(cookies);const page=await context.newPage();

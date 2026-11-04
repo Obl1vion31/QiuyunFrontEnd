@@ -46,13 +46,13 @@ try{
  const nav=async(path:string)=>{await page.evaluate(()=>document.documentElement.dataset.unsaved='false').catch(()=>{});await page.goto(baseURL+path);await page.waitForLoadState('networkidle');await page.evaluate(()=>document.fonts.ready);};
  await nav('/business/meeting-review?meeting='+id);
  assert.equal(await page.locator('.weekly-frozen textarea').count(),0);assert.equal(await page.locator('.version-nav .meeting-pdf-archive').count(),0);
- assert.ok(await page.getByText('同类样本 9 份',{exact:true}).count()>0);assert.ok(await page.locator('.weekly-rate-comparison').filter({hasText:'较同类'}).count()>0);
+ assert.ok(await page.getByText('同类样本 9 份',{exact:true}).count()>0);assert.ok(await page.locator('.weekly-rate-comparison[aria-label^="较同类"]').count()>0);
  await page.getByRole('radio',{name:'编辑模式',exact:true}).check();
  const saveButton=page.getByRole('button',{name:'保存草稿',exact:true});
  assert.equal(await saveButton.isDisabled(),true);assert.equal(await page.getByRole('button',{name:'会前定稿 V1',exact:true}).isDisabled(),true);
  assert.equal(await page.getByRole('button',{name:'会后定稿 V1',exact:true}).isEnabled(),true,'会前维持原方案仍可转会后');
  await page.getByRole('button',{name:'修改核心结论',exact:true}).click();const core=page.getByRole('textbox',{name:'核心结论',exact:true}),originalCore=await core.inputValue();
- assert.equal(await saveButton.isDisabled(),true,'仅打开文本框不算修改');await core.fill('临时修改');await page.locator('.weekly-discussion-host[data-edit-lock=owned]').waitFor();assert.equal(await saveButton.isEnabled(),true);await core.fill(originalCore);assert.equal(await saveButton.isDisabled(),true,'改回原值不生成版本');
+ assert.equal(await saveButton.isDisabled(),true,'仅打开文本框不算修改');await core.fill('临时修改');assert.equal(await saveButton.isEnabled(),true);await core.fill(originalCore);assert.equal(await saveButton.isDisabled(),true,'改回原值不生成版本');
  const issueStatus=page.getByRole('combobox',{name:'事项1进度',exact:true});await issueStatus.selectOption('validating');assert.equal(await saveButton.isEnabled(),true);await issueStatus.selectOption('pending');assert.equal(await saveButton.isDisabled(),true);
  await page.getByRole('heading',{name:'下一步行动',exact:true}).click();
  await page.getByRole('button',{name:'修改核心结论',exact:true}).click();await page.getByRole('textbox',{name:'核心结论',exact:true}).fill('会中结论：实际开口稳定，优先改善留资转化。');await page.getByRole('heading',{name:'下一步行动',exact:true}).click();

@@ -1,0 +1,63 @@
+{
+  "durationMs": 301516,
+  "completeFiveMinutes": true,
+  "visibility": [
+    "visible",
+    "hidden",
+    "visible"
+  ],
+  "backgroundMode": "native-background-tab",
+  "observations": [
+    {
+      "collaboration": 0,
+      "notifications": 6,
+      "other": 0
+    },
+    {
+      "collaboration": 0,
+      "notifications": 0,
+      "other": 0
+    },
+    {
+      "collaboration": 0,
+      "notifications": 6,
+      "other": 0
+    }
+  ],
+  "before": [
+    {
+      "relname": "business_edit_lease",
+      "seq_scan": "3",
+      "idx_scan": "0",
+      "n_tup_ins": "0",
+      "n_tup_upd": "0",
+      "n_tup_del": "0"
+    },
+    {
+      "relname": "business_presence",
+      "seq_scan": "3",
+      "idx_scan": "0",
+      "n_tup_ins": "0",
+      "n_tup_upd": "0",
+      "n_tup_del": "0"
+    }
+  ],
+  "after": [
+    {
+      "relname": "business_edit_lease",
+      "seq_scan": "3",
+      "idx_scan": "0",
+      "n_tup_ins": "0",
+      "n_tup_upd": "0",
+      "n_tup_del": "0"
+    },
+    {
+      "relname": "business_presence",
+      "seq_scan": "3",
+      "idx_scan": "0",
+      "n_tup_ins": "0",
+      "n_tup_upd": "0",
+      "n_tup_del": "0"
+    }
+  ]
+}

@@ -1,0 +1,732 @@
+{
+  "isolatedPostgres": true,
+  "baselineSource": "/home/obl1vion/projects/qiuyunFrontend/.tools/releases/network-transfer-20261105",
+  "seed": {
+    "posts": 6,
+    "meetingVersions": 24,
+    "paddingBytes": 18400
+  },
+  "measurements": [
+    {
+      "name": "meeting-decisions",
+      "version": "baseline",
+      "databaseToAppBytes": 4612197,
+      "appToDatabaseBytes": 878,
+      "queries": 2,
+      "tables": {
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "meeting-decisions",
+      "version": "candidate",
+      "databaseToAppBytes": 9129,
+      "appToDatabaseBytes": 991,
+      "queries": 2,
+      "tables": {
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "promotion-context",
+      "version": "baseline",
+      "databaseToAppBytes": 4615767,
+      "appToDatabaseBytes": 2429,
+      "queries": 9,
+      "tables": {
+        "operations_promotion_pause": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "promotion-context",
+      "version": "candidate",
+      "databaseToAppBytes": 12699,
+      "appToDatabaseBytes": 2542,
+      "queries": 9,
+      "tables": {
+        "operations_promotion_pause": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "promotion-timeline",
+      "version": "baseline",
+      "databaseToAppBytes": 4624166,
+      "appToDatabaseBytes": 4796,
+      "queries": 14,
+      "tables": {
+        "operations_content_schedule": 2,
+        "operations_promotion_pause": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_stage": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_promotion_start_plan": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "promotion-timeline",
+      "version": "candidate",
+      "databaseToAppBytes": 21098,
+      "appToDatabaseBytes": 4909,
+      "queries": 14,
+      "tables": {
+        "operations_content_schedule": 2,
+        "operations_promotion_pause": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_stage": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_promotion_start_plan": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "weekly-material",
+      "version": "baseline",
+      "databaseToAppBytes": 13916533,
+      "appToDatabaseBytes": 8757,
+      "queries": 29,
+      "tables": {
+        "operations_promotion_pause": 2,
+        "operations_content_performance_metric": 1,
+        "operations_promotion_pause_target": 2,
+        "operations_non_promotion_review": 1,
+        "operations_promotion_hold": 2,
+        "operations_review_meeting": 1,
+        "operations_promotion_wait_range": 2,
+        "operations_review_meeting_version": 3,
+        "operations_promotion_campaign": 2,
+        "operations_promotion_stage": 1,
+        "operations_promotion_daily_metric": 3,
+        "operations_promotion_day_decision": 2,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_timeline_audit": 2,
+        "operations_non_promotion_review_plan": 1,
+        "operations_non_promotion_custom_checkpoint": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "weekly-material",
+      "version": "candidate",
+      "databaseToAppBytes": 258266,
+      "appToDatabaseBytes": 9693,
+      "queries": 20,
+      "tables": {
+        "operations_promotion_wait_range": 1,
+        "operations_review_meeting_version": 2,
+        "operations_promotion_pause": 1,
+        "operations_content_performance_metric": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_non_promotion_review": 1,
+        "operations_promotion_hold": 1,
+        "operations_review_meeting": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_stage": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_day_decision": 1,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_non_promotion_review_plan": 1,
+        "operations_non_promotion_custom_checkpoint": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "legacy-material",
+      "version": "baseline",
+      "databaseToAppBytes": 4683477,
+      "appToDatabaseBytes": 2873,
+      "queries": 7,
+      "tables": {
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_non_promotion_review": 1,
+        "operations_review_meeting_version": 1,
+        "operations_review_meeting": 1
+      }
+    },
+    {
+      "name": "legacy-material",
+      "version": "candidate",
+      "databaseToAppBytes": 9305,
+      "appToDatabaseBytes": 3398,
+      "queries": 6,
+      "tables": {
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_non_promotion_review": 1,
+        "operations_review_meeting_version": 1
+      }
+    },
+    {
+      "name": "monthly-issues",
+      "version": "baseline",
+      "databaseToAppBytes": 4676317,
+      "appToDatabaseBytes": 597,
+      "queries": 2,
+      "tables": {
+        "operations_review_meeting": 1,
+        "operations_review_meeting_version": 1
+      }
+    },
+    {
+      "name": "monthly-issues",
+      "version": "candidate",
+      "databaseToAppBytes": 1376,
+      "appToDatabaseBytes": 1051,
+      "queries": 2,
+      "tables": {
+        "operations_review_meeting": 1,
+        "operations_review_meeting_version": 1
+      }
+    },
+    {
+      "name": "monthly-material",
+      "version": "baseline",
+      "databaseToAppBytes": 9308670,
+      "appToDatabaseBytes": 8319,
+      "queries": 32,
+      "tables": {
+        "operations_promotion_pause": 1,
+        "operations_content_schedule": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_schedule_plan_history": 1,
+        "operations_promotion_hold": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_subject": 3,
+        "operations_category": 3,
+        "operations_subject_category": 3,
+        "operations_review_meeting_version": 2,
+        "operations_promotion_timeline_audit": 1,
+        "operations_monthly_private": 2,
+        "operations_monthly_cost_mapping": 2,
+        "operations_review_meeting": 2,
+        "operations_monthly_plan": 2
+      }
+    },
+    {
+      "name": "monthly-material",
+      "version": "candidate",
+      "databaseToAppBytes": 30661,
+      "appToDatabaseBytes": 8886,
+      "queries": 32,
+      "tables": {
+        "operations_promotion_pause": 1,
+        "operations_content_schedule": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_schedule_plan_history": 1,
+        "operations_promotion_hold": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_subject": 3,
+        "operations_category": 3,
+        "operations_subject_category": 3,
+        "operations_review_meeting_version": 2,
+        "operations_promotion_timeline_audit": 1,
+        "operations_monthly_private": 2,
+        "operations_monthly_cost_mapping": 2,
+        "operations_review_meeting": 2,
+        "operations_monthly_plan": 2
+      }
+    },
+    {
+      "name": "/api/content-search?id=efdf41cb-bb3c-43ca-a994-3e496277fad5",
+      "version": "baseline",
+      "databaseToAppBytes": 4599076,
+      "appToDatabaseBytes": 8787,
+      "queries": 17,
+      "tables": {
+        "operations_content_schedule": 3,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_stage": 1,
+        "operations_content_performance_metric": 1,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_review_meeting_version": 1,
+        "operations_schedule_plan_history": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_schedule_change_request": 1,
+        "operations_publication_reservation": 1,
+        "operations_publication_event": 1
+      }
+    },
+    {
+      "name": "/api/content-search?id=efdf41cb-bb3c-43ca-a994-3e496277fad5",
+      "version": "candidate",
+      "databaseToAppBytes": 86520,
+      "appToDatabaseBytes": 9043,
+      "queries": 17,
+      "tables": {
+        "operations_content_schedule": 3,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_stage": 1,
+        "operations_content_performance_metric": 1,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_review_meeting_version": 1,
+        "operations_schedule_plan_history": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_schedule_change_request": 1,
+        "operations_publication_reservation": 1,
+        "operations_publication_event": 1
+      }
+    },
+    {
+      "name": "/api/operations-content/efdf41cb-bb3c-43ca-a994-3e496277fad5/workflow",
+      "version": "baseline",
+      "databaseToAppBytes": 4625135,
+      "appToDatabaseBytes": 7919,
+      "queries": 23,
+      "tables": {
+        "operations_content_schedule": 2,
+        "operations_schedule_plan_history": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_schedule_change_request": 2,
+        "operations_publication_reservation": 1,
+        "operations_publication_event": 1,
+        "operations_subject": 1,
+        "operations_category": 1,
+        "operations_subject_category": 1,
+        "operations_promotion_pause": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_change_proposal": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "/api/operations-content/efdf41cb-bb3c-43ca-a994-3e496277fad5/workflow",
+      "version": "candidate",
+      "databaseToAppBytes": 22067,
+      "appToDatabaseBytes": 8032,
+      "queries": 23,
+      "tables": {
+        "operations_content_schedule": 2,
+        "operations_schedule_plan_history": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_schedule_change_request": 2,
+        "operations_publication_reservation": 1,
+        "operations_publication_event": 1,
+        "operations_subject": 1,
+        "operations_category": 1,
+        "operations_subject_category": 1,
+        "operations_promotion_pause": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_change_proposal": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "/business/operations-schedule?month=2026-10",
+      "version": "baseline",
+      "databaseToAppBytes": 4628105,
+      "appToDatabaseBytes": 9399,
+      "queries": 25,
+      "tables": {
+        "operations_subject": 2,
+        "operations_category": 2,
+        "operations_subject_category": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_content_schedule": 2,
+        "operations_schedule_delay_reason": 1,
+        "operations_schedule_change_request": 1,
+        "operations_change_proposal": 2,
+        "operations_promotion_pause": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_campaign": 2,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "/business/operations-schedule?month=2026-10",
+      "version": "candidate",
+      "databaseToAppBytes": 25037,
+      "appToDatabaseBytes": 9512,
+      "queries": 25,
+      "tables": {
+        "operations_subject": 2,
+        "operations_category": 2,
+        "operations_subject_category": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_content_schedule": 2,
+        "operations_schedule_delay_reason": 1,
+        "operations_schedule_change_request": 1,
+        "operations_change_proposal": 2,
+        "operations_promotion_pause": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_campaign": 2,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "/business/daily-promotion-review",
+      "version": "baseline",
+      "databaseToAppBytes": 9319781,
+      "appToDatabaseBytes": 10855,
+      "queries": 29,
+      "tables": {
+        "operations_promotion_campaign": 3,
+        "operations_promotion_daily_metric": 4,
+        "operations_promotion_pause": 2,
+        "operations_promotion_timeline_audit": 3,
+        "operations_promotion_pause_target": 2,
+        "operations_promotion_hold": 2,
+        "operations_promotion_wait_range": 2,
+        "operations_promotion_day_decision": 2,
+        "operations_promotion_stage": 2,
+        "operations_review_meeting_version": 2,
+        "operations_content_schedule": 2,
+        "operations_promotion_start_plan": 1
+      }
+    },
+    {
+      "name": "/business/daily-promotion-review",
+      "version": "candidate",
+      "databaseToAppBytes": 100946,
+      "appToDatabaseBytes": 8539,
+      "queries": 20,
+      "tables": {
+        "operations_promotion_campaign": 2,
+        "operations_promotion_daily_metric": 3,
+        "operations_promotion_pause": 1,
+        "operations_promotion_timeline_audit": 2,
+        "operations_promotion_pause_target": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_promotion_stage": 2,
+        "operations_review_meeting_version": 1,
+        "operations_content_schedule": 2,
+        "operations_promotion_start_plan": 1
+      }
+    },
+    {
+      "name": "/business/non-promotion-review",
+      "version": "baseline",
+      "databaseToAppBytes": 4624920,
+      "appToDatabaseBytes": 7017,
+      "queries": 20,
+      "tables": {
+        "operations_subject": 1,
+        "operations_category": 1,
+        "operations_subject_category": 1,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_pause": 1,
+        "operations_content_performance_metric": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_non_promotion_review": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_non_promotion_review_plan": 1,
+        "operations_non_promotion_custom_checkpoint": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "/business/non-promotion-review",
+      "version": "candidate",
+      "databaseToAppBytes": 21852,
+      "appToDatabaseBytes": 7130,
+      "queries": 20,
+      "tables": {
+        "operations_subject": 1,
+        "operations_category": 1,
+        "operations_subject_category": 1,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_pause": 1,
+        "operations_content_performance_metric": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_non_promotion_review": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_daily_metric": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_non_promotion_review_plan": 1,
+        "operations_non_promotion_custom_checkpoint": 1,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1
+      }
+    },
+    {
+      "name": "/business/monthly-operations?month=2026-10",
+      "version": "baseline",
+      "databaseToAppBytes": 4631846,
+      "appToDatabaseBytes": 7440,
+      "queries": 30,
+      "tables": {
+        "operations_promotion_pause": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_schedule_plan_history": 1,
+        "operations_promotion_hold": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_subject": 3,
+        "operations_category": 3,
+        "operations_subject_category": 3,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_monthly_private": 2,
+        "operations_monthly_cost_mapping": 2,
+        "operations_review_meeting": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "/business/monthly-operations?month=2026-10",
+      "version": "candidate",
+      "databaseToAppBytes": 28778,
+      "appToDatabaseBytes": 7553,
+      "queries": 30,
+      "tables": {
+        "operations_promotion_pause": 1,
+        "operations_content_schedule": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_schedule_plan_history": 1,
+        "operations_promotion_hold": 1,
+        "operations_schedule_delay_reason": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_day_decision": 1,
+        "operations_subject": 3,
+        "operations_category": 3,
+        "operations_subject_category": 3,
+        "operations_review_meeting_version": 1,
+        "operations_promotion_timeline_audit": 1,
+        "operations_monthly_private": 2,
+        "operations_monthly_cost_mapping": 2,
+        "operations_review_meeting": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "/business/meeting-review",
+      "version": "baseline",
+      "databaseToAppBytes": 164152,
+      "appToDatabaseBytes": 2093,
+      "queries": 6,
+      "tables": {
+        "operations_review_meeting": 1,
+        "operations_meeting_attachment": 1,
+        "operations_review_meeting_version": 2
+      }
+    },
+    {
+      "name": "/business/meeting-review",
+      "version": "candidate",
+      "databaseToAppBytes": 6956,
+      "appToDatabaseBytes": 1284,
+      "queries": 5,
+      "tables": {
+        "operations_review_meeting": 1,
+        "operations_meeting_attachment": 1,
+        "operations_review_meeting_version": 1
+      }
+    },
+    {
+      "name": "/business/meeting-review?meeting=1d70eecb-d5b2-4c77-aa17-9ac6620d6efb",
+      "version": "baseline",
+      "databaseToAppBytes": 14365701,
+      "appToDatabaseBytes": 12782,
+      "queries": 39,
+      "tables": {
+        "operations_review_meeting": 2,
+        "operations_meeting_attachment": 2,
+        "operations_review_meeting_version": 5,
+        "operations_promotion_stage_review_version": 1,
+        "operations_review_action_item": 1,
+        "operations_promotion_pause": 2,
+        "operations_content_performance_metric": 1,
+        "operations_promotion_pause_target": 2,
+        "operations_non_promotion_review": 1,
+        "operations_promotion_hold": 2,
+        "operations_promotion_wait_range": 2,
+        "operations_promotion_campaign": 2,
+        "operations_promotion_stage": 1,
+        "operations_promotion_daily_metric": 3,
+        "operations_promotion_day_decision": 2,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 2,
+        "operations_promotion_timeline_audit": 2,
+        "operations_non_promotion_review_plan": 1,
+        "operations_non_promotion_custom_checkpoint": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "/business/meeting-review?meeting=1d70eecb-d5b2-4c77-aa17-9ac6620d6efb",
+      "version": "candidate",
+      "databaseToAppBytes": 391162,
+      "appToDatabaseBytes": 14321,
+      "queries": 31,
+      "tables": {
+        "operations_review_meeting": 3,
+        "operations_meeting_attachment": 2,
+        "operations_review_meeting_version": 5,
+        "operations_review_action_item": 1,
+        "operations_promotion_wait_range": 1,
+        "operations_promotion_pause": 1,
+        "operations_content_performance_metric": 1,
+        "operations_promotion_pause_target": 1,
+        "operations_non_promotion_review": 1,
+        "operations_promotion_hold": 1,
+        "operations_promotion_campaign": 1,
+        "operations_promotion_stage": 1,
+        "operations_promotion_daily_metric": 2,
+        "operations_promotion_day_decision": 1,
+        "operations_non_promotion_checkpoint_event": 1,
+        "operations_content_schedule": 2,
+        "operations_promotion_timeline_audit": 1,
+        "operations_non_promotion_review_plan": 1,
+        "operations_non_promotion_custom_checkpoint": 1,
+        "operations_monthly_plan": 1
+      }
+    },
+    {
+      "name": "/business/meeting-review?meeting=249e067d-7f3c-4b35-a079-5e90a2141ff0&version=0",
+      "version": "baseline",
+      "databaseToAppBytes": 1112671,
+      "appToDatabaseBytes": 4025,
+      "queries": 10,
+      "tables": {
+        "operations_review_meeting": 1,
+        "operations_meeting_attachment": 2,
+        "operations_review_meeting_version": 2,
+        "operations_promotion_stage_review_version": 1,
+        "operations_review_action_item": 1,
+        "operations_content_schedule": 1
+      }
+    },
+    {
+      "name": "/business/meeting-review?meeting=249e067d-7f3c-4b35-a079-5e90a2141ff0&version=0",
+      "version": "candidate",
+      "databaseToAppBytes": 268920,
+      "appToDatabaseBytes": 4101,
+      "queries": 10,
+      "tables": {
+        "operations_review_meeting": 2,
+        "operations_meeting_attachment": 2,
+        "operations_review_meeting_version": 2,
+        "operations_review_action_item": 1,
+        "operations_content_schedule": 1
+      }
+    }
+  ],
+  "checks": [
+    "meeting-decisions 输出一致",
+    "promotion-context 输出一致",
+    "promotion-timeline 输出一致",
+    "weekly-material 输出一致",
+    "legacy-material 输出一致",
+    "monthly-issues 输出一致",
+    "monthly-material 输出一致",
+    "同库 HTTP JSON一致、日度决定只读一次、管理员和员工读取、真实查帖关联例会与五档视口"
+  ],
+  "contentChecks": [
+    {
+      "path": "/business/operations-schedule?month=2026-10",
+      "characters": 391
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "characters": 644
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "characters": 323
+    },
+    {
+      "path": "/business/monthly-operations?month=2026-10",
+      "characters": 1333
+    },
+    {
+      "path": "/business/meeting-review",
+      "characters": 614
+    },
+    {
+      "path": "/business/meeting-review?meeting=1d70eecb-d5b2-4c77-aa17-9ac6620d6efb",
+      "characters": 471
+    },
+    {
+      "path": "/business/meeting-review?meeting=249e067d-7f3c-4b35-a079-5e90a2141ff0&version=0",
+      "characters": 37988
+    }
+  ],
+  "videoPath": "/home/obl1vion/projects/qiuyunFrontend/.tools/releases/snapshot-transfer-20261105/.tools/test-artifacts/meeting-read-transfer/videos/page@beec5a3a937d67dc12ade65e9063f0ec.webm",
+  "pageErrors": []
+}

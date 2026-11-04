@@ -144,6 +144,10 @@ flowchart LR
 
 ### 周例会卡片与读取反馈
 
+`meeting-decisions.ts` 仅投影决定策略、生效日、决定数组、撤销事件和必要排序字段，再调用原决定回放；不能因缩小读取而排除带撤销事件的草稿或失效版。`meeting-history.ts` 为周会比较及旧版候选计数投影 JSON，保留缺失／null 与原事实，避免重复传输卡片的比较证据。`monthly-meeting.ts` 的事项读取按上海月界筛选，取每场最新有效会后事项。`content-search.ts` 在 PostgreSQL 内递归匹配字符串 scheduleId，只返回关联例会元信息。
+
+推广日度将已读上下文交给 `readPromotionTimeline`；周会将上下文交给 `readReviewPlanning`，复用仅在本次请求内。例会总览只读摘要，选中后才取该场草稿及当前显示版本的完整快照，其他版本仅取导航、决定与回溯摘要；上一期行动只读行动文字。版本展示、回溯和 PDF 仍读取对应完整冻结快照，保存版本凭据不做缓存。
+
 周例会 React 岛复用 Frame、Toolbar、BusinessDateTimeFields、表单变量与 `businessConfirm`；异步候选调用公共 `readBusiness`，保留当前人工输入和勾选，区间变动使旧响应失效。条件筛选仅设置卡片 hidden，完整事实／比较来源由服务端保存到 v4 JSON，不增加表结构。新模式用 `tests/meeting-weekly.browser.ts` 验证正式组件和隔离业务数据，旧 v2/v3 与旧阶段只读兼容继续由 `test:reviews` 验证。
 
 例会内联模式：`WeeklyReviewCards` 在卡片确认／修改，`BusinessWeeklyMeeting` 保存未确认草稿并使用公共读取与确认反馈；CSS Grid 依据内容容器组织当前双卡／单列，记录自然高度；阅读及比较规则统一参见 DESIGN“会议阅读与编辑”。`PATCH /api/meeting-reviews/:id` 的 `finalize_version_draft` 的 pre／post 分别冻结材料和发布次日决定，`meeting-decisions.ts` 按生效日合并不可变版本；`promotion-review-days.ts` 将决定接入每日表单，`meeting-decision.ts` 只在填写理由后更正并保留数字输入。`tests/meeting-inline.browser.ts` 验证正式组件、跨日、内联草稿与锁定，`meeting-decisions.test.ts` 验证版本优先级及终态日期。

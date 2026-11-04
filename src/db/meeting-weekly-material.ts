@@ -8,7 +8,8 @@ import {requiredPromotionStage} from './promotion-review-required';
 import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 /** 周例会 v4：实际日期候选、可核对的比较样本与不可变来源。 */
 import { createHash } from 'node:crypto';
-import { eq, asc, desc } from 'drizzle-orm';
+import { and, eq, asc, desc, isNull, ne } from 'drizzle-orm';
+import {weeklyHistorySnapshot} from './meeting-history';
 import type { Database } from './client';
 import { readPromotionContext } from './promotion-pauses';
 import { promotionStateOn, promotionLabels } from './promotion-state.mjs';
@@ -187,10 +188,14 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     const [context, facts, content, performanceRows, reviewRows, events, allMeetings, allVersionsIncludingInvalid, stageRows] = await Promise.all([
         readPromotionContext(db), db.select().from(daily).orderBy(asc(daily.metricDate), asc(daily.id)),
         db.select({ scheduleId: schedules.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectId: versions.subjectId, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, contentRole:contents.contentRole,operationType:contents.operationType,isPromoted: schedules.isPromoted, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents,eq(versions.contentId,contents.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
-        db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db), db.select().from(meetings).orderBy(desc(meetings.periodEnd)), db.select().from(meetingVersions), db.select().from(stages),
+        db.select().from(performance), db.select().from(reviews), readCheckpointEvents(db),
+        db.select({id:meetings.id,meetingType:meetings.meetingType,status:meetings.status,periodEnd:meetings.periodEnd,meetingAt:meetings.meetingAt,currentVersionNumber:meetings.currentVersionNumber,name:meetings.name}).from(meetings).orderBy(desc(meetings.periodEnd)),
+        db.select({id:meetingVersions.id,meetingId:meetingVersions.meetingId,versionNumber:meetingVersions.versionNumber,createdAt:meetingVersions.createdAt,finalizedAt:meetingVersions.finalizedAt,lifecycleStatus:meetingVersions.lifecycleStatus,invalidatedAt:meetingVersions.invalidatedAt,snapshot:weeklyHistorySnapshot})
+          .from(meetingVersions).where(and(ne(meetingVersions.meetingId,meeting.id),ne(meetingVersions.lifecycleStatus,'draft'),isNull(meetingVersions.invalidatedAt))),
+        db.select().from(stages),
     ]);
     const allVersions=allVersionsIncludingInvalid.filter(v=>!v.invalidatedAt);
-    const planning=await readReviewPlanning(db);
+    const planning=await readReviewPlanning(db,context);
     const start = meeting.periodStart, end = meeting.periodEnd;
     content.sort((a, b) => a.scheduleId.localeCompare(b.scheduleId));
     const previous = allMeetings.filter(m => m.id !== meeting.id && m.meetingType === meeting.meetingType && m.status === 'completed' && m.periodEnd <= end && m.meetingAt <= meeting.meetingAt).map(m => ({ meeting: m, version: allVersions.find(v => v.lifecycleStatus!=='draft' && !v.invalidatedAt && v.meetingId === m.id && v.versionNumber === m.currentVersionNumber) })).filter(p => p.version);
