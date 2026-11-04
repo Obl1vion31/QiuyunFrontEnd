@@ -1,6 +1,6 @@
 # 例会大快照读取优化
 
-状态：已发布，正式域名与独立部署已核对为 READY。源码基线 `c245840`（应用 `3ebc25d`），候选源码 `7922fca58da4b52e3a39d4eb5b469f22b902517e`。独立工作树 `.tools/releases/snapshot-transfer-20261105`，分支 `codex/meeting-read-projections`。
+状态：已发布，正式域名与独立部署已核对为 READY。源码基线 `c245840`（应用 `3ebc25d`），候选源码 `841ee3edb5d1f445b0df92eeaf07c42542467cbd`。独立工作树 `.tools/releases/snapshot-transfer-20261105`，分支 `codex/meeting-read-projections`。
 
 ## 发现与修复
 
@@ -54,4 +54,4 @@
 
 ## 发布
 
-应用 `7922fca` 已同步main并发布；正式域名与独立部署均为 `dpl_5jne82V8GqhLZgpkv75rDzwmvwao`／READY。候选16项、正式131项及86个资源哈希匹配通过。详见[发布记录](release/deployment.json)、[候选检查](release/candidate-smoke.json)和[正式检查](release/public-smoke.json)。没有数据库迁移或生产业务数据操作，原工作区无关修改保留。
+应用 `841ee3e` 已同步main并发布；正式域名与独立部署均为 `dpl_DVczbTNb1o7G5nfyN48HNWzWhP8N`／READY。候选16项、正式131项及86个资源哈希匹配通过。详见[发布记录](release/deployment.json)、[候选检查](release/candidate-smoke.json)和[正式检查](release/public-smoke.json)。没有数据库迁移或生产业务数据操作，原工作区无关修改保留。

@@ -1,7 +1,7 @@
 {
   "origin": "https://qiuyun-frontend.vercel.app",
-  "sourceCommit": "7922fca58da4b52e3a39d4eb5b469f22b902517e",
-  "checkedAt": "2026-11-04T19:06:06.051Z",
+  "sourceCommit": "841ee3edb5d1f445b0df92eeaf07c42542467cbd",
+  "checkedAt": "2026-11-04T19:17:34.528Z",
   "passed": true,
   "checks": 131,
   "matchingAssets": 86,
@@ -635,7 +635,7 @@
     },
     {
       "path": "/api/collaboration/locks",
-      "method": "GET",
+      "method": "POST",
       "expected": 410,
       "status": 410,
       "contentType": "application/json",
@@ -643,7 +643,7 @@
     },
     {
       "path": "/api/collaboration/locks",
-      "method": "POST",
+      "method": "GET",
       "expected": 410,
       "status": 410,
       "contentType": "application/json",
@@ -691,6 +691,14 @@
     },
     {
       "path": "/api/collaboration/presence",
+      "method": "PUT",
+      "expected": 410,
+      "status": 410,
+      "contentType": "application/json",
+      "passed": true
+    },
+    {
+      "path": "/api/collaboration/presence",
       "method": "PATCH",
       "expected": 410,
       "status": 410,
@@ -700,14 +708,6 @@
     {
       "path": "/api/collaboration/presence",
       "method": "DELETE",
-      "expected": 410,
-      "status": 410,
-      "contentType": "application/json",
-      "passed": true
-    },
-    {
-      "path": "/api/collaboration/presence",
-      "method": "PUT",
       "expected": 410,
       "status": 410,
       "contentType": "application/json",

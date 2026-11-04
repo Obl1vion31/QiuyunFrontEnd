@@ -1,8 +1,8 @@
 {
-  "deployment": "https://qiuyun-frontend-1ple580hd-opgobl1v-5358.vercel.app",
+  "deployment": "https://qiuyun-frontend-evw1enfc2-opgobl1v-5358.vercel.app",
   "passed": true,
-  "sourceCommit": "7922fca58da4b52e3a39d4eb5b469f22b902517e",
-  "checkedAt": "2026-11-04T19:04:30.789Z",
+  "sourceCommit": "841ee3edb5d1f445b0df92eeaf07c42542467cbd",
+  "checkedAt": "2026-11-04T19:15:48.500Z",
   "checks": [
     {
       "path": "/",
