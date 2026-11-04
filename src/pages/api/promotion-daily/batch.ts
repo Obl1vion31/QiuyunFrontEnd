@@ -1,3 +1,4 @@
+import {StaleWriteError} from '../../../db/schedule-workflow';
 import type { APIRoute } from 'astro';
 import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
@@ -40,7 +41,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
                 for (const row of rows.filter(r => info.find(c => c.campaignId === r.campaignId)!.scheduleId === scheduleId)) {
                     currentKey = `${row.campaignId}:${row.metricDate}`;
                     if (!repeats.some(a => a.requestKey === row.requestKey) && row.fingerprint !== baseline)
-                        throw new WorkflowError('推广记录已变化，请刷新后核对。');
+                        throw new StaleWriteError('推广记录已变化，请刷新后核对。');
                 }
             }
             const byContent = new Map<string, string>();
@@ -78,7 +79,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
             };
         };
         if (error instanceof WorkflowError)
-            return Response.json({ message: error.message, key: currentKey }, { status: error.status });
+            return Response.json({ message: error.message, key: currentKey,...(error.code?{code:error.code}:{}) }, { status: error.status });
         if ((pg.code ?? pg.cause?.code) === '23505')
             return Response.json({ message: '日期已保存或笔记 ID 已被其他帖子使用，请核对。', key: currentKey }, { status: 409 });
         console.error('promotion batch save failed', error);

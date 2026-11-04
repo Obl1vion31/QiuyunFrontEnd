@@ -149,7 +149,7 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
     if (restored.kind === 'invalid-snapshot') return Response.json({ message: '历史快照不符合当前规划规则。' }, { status: 409 });
     if (restored.kind === 'invalid-context') return Response.json({ message: '历史版本使用的学科或分类关系已失效。' }, { status: 409 });
     if (restored.kind === 'conflict') {
-      return Response.json({ message: `规划行已更新到 V${restored.version}，请刷新后重试。` }, { status: 409 });
+      return Response.json({ code:'STALE_WRITE', message: `规划行已更新到 V${restored.version}，请刷新后重试。` }, { status: 409 });
     }
     return Response.json({ ok: true, version: restored.version });
   } catch (error) {

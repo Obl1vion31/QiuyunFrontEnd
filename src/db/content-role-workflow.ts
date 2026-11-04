@@ -1,6 +1,7 @@
+import {StaleWriteError} from './schedule-workflow';
 import {eq} from 'drizzle-orm';
 import type {Database} from './client';
-import {WorkflowError,type Transaction} from './schedule-workflow';
+import {type Transaction} from './schedule-workflow';
 import * as s from './schema';
 import {rolesForCategory,type ContentRole} from './content-roles';
 /** 原帖职能沿用排期编辑的权限与审批；历史沿用原帖计划事件。 */
@@ -11,7 +12,7 @@ export async function saveContentRole(db:Database|Transaction,scheduleId:string,
  if(!rolesForCategory(input.categoryId).length)return;
  const next=input.contentRole;
  if(next===undefined||next===content.contentRole)return;
- if(input.expectedContentRole!==undefined&&input.expectedContentRole!==content.contentRole)throw new WorkflowError('内容职能已更新，请刷新核对；当前输入已保留。');
+ if(input.expectedContentRole!==undefined&&input.expectedContentRole!==content.contentRole)throw new StaleWriteError('内容职能已更新，请刷新核对；当前输入已保留。');
  await db.update(s.operationsContent).set({contentRole:next,updatedAt:new Date()}).where(eq(s.operationsContent.id,content.id));
  const [plan]=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,content.id));
  const event={at:new Date().toISOString(),actor,before:{contentRole:content.contentRole},after:{contentRole:next}};

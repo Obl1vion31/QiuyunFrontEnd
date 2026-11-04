@@ -1,10 +1,10 @@
 import {testingCycleOn} from '../../../db/promotion-cycles.mjs';
 import {promotionNextOptions} from '../../../db/promotion-successors.mjs';
 import {meetingDecisionOn,meetingNextDecision} from '../../../db/meeting-decision-rules.mjs';
-import {WorkflowError} from '../../../db/schedule-workflow';
+import {WorkflowError,StaleWriteError} from '../../../db/schedule-workflow';
 import type { APIRoute } from 'astro';
 import {randomUUID} from 'node:crypto';
-import {promotionSnapshot} from '../../../db/promotion-timeline';
+import {promotionSnapshot,timelineFingerprint} from '../../../db/promotion-timeline';
 import { requireAdmin, permissionErrorResponse } from '../../../auth/permissions';
 import { and, asc, eq, inArray,sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
@@ -62,6 +62,8 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       const [campaign] = await transaction.select().from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.id, existing.campaignId)).limit(1);
       if (!campaign) return { kind: 'missing' as const };
+      if(parsed.data.expectedUpdatedAt!==existing.updatedAt.toISOString())throw new StaleWriteError();
+      if(!parsed.data.fingerprint||timelineFingerprint(await promotionSnapshot(transaction,campaign.scheduleId))!==parsed.data.fingerprint)throw new StaleWriteError();
       const residual=existing.recordKind==='test_residual';
       if(parsed.data.actualStatusSnapshot&&existing.actualStatusSnapshot&&parsed.data.actualStatusSnapshot!==existing.actualStatusSnapshot)throw new WorkflowError('请通过修改当日状态更正实际状态。',422);
       if(parsed.data.recordKind==='test_residual'&&!residual)throw new WorkflowError('记录类型不能更改。',422);
@@ -120,7 +122,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         actualLeadCount: parsed.data.actualLeadCount,
         reviewDecision: parsed.data.reviewDecision,
         note: parsed.data.note ?? null,
-        updatedAt: new Date(),
+        updatedAt: new Date(Math.max(Date.now(),existing.updatedAt.getTime()+1)),
       }).where(eq(operationsPromotionDailyMetric.id, existing.id));
 
       if (!lifecycleChanged) return { kind: 'saved' as const, deleted: 0 };
@@ -158,7 +160,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
     return Response.json({ ok: true, deleted: result.deleted });
   } catch (error) {
     const denied = permissionErrorResponse(error); if (denied) return denied;
-    if(error instanceof WorkflowError)return Response.json({message:error.message},{status:error.status});
+    if(error instanceof WorkflowError)return Response.json({message:error.message,...(error.code?{code:error.code}:{})},{status:error.status});
     console.error('promotion daily update failed', error);
     return Response.json({ message: '历史日度数据保存失败，请稍后重试。' }, { status: 503 });
   }

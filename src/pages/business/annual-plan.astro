@@ -387,7 +387,7 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
     </BusinessFormDialog>
 
     <BusinessFormDialog id="year-dialog" labelledby="year-dialog-title" width={680} darkHeader>
-      <form id="year-form" class="business-form">
+      <form id="year-form" class="business-form" data-updated-at={yearInfo?.updatedAt.toISOString()??''}>
         <header class="dialog-head"><div><h2 id="year-dialog-title">{selectedYear} 年规划说明</h2></div><button type="button" data-close-year aria-label="关闭">×</button></header>
         <div class="year-form-body form-dialog-body">
           <label>规划说明<textarea name="instructions" rows="8" maxlength="3000">{yearInfo?.instructions ?? ''}</textarea></label>

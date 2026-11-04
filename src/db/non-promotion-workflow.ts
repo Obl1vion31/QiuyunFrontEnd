@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {lockPromotionWorkflow} from './promotion-pauses';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -41,7 +42,7 @@ export async function changeCheckpointState(database: Database, input: Omit<z.in
     const latest = await readCheckpointEvents(transaction, schedule.id);
     const key = `${schedule.id}:${input.checkpointType}`;
     const current = latest.get(key);
-    if ((current?.id ?? null) !== (input.expectedEventId ?? null)) throw new WorkflowError('节点状态已更新，请刷新后重试。');
+    if ((current?.id ?? null) !== (input.expectedEventId ?? null)) throw new StaleWriteError('节点状态已更新，请刷新后重试。');
     const completed = [
       ...await transaction.select({ type: reviews.checkpointType }).from(reviews).where(eq(reviews.scheduleId, schedule.id)),
       ...(input.action==='skip'?await transaction.select({ type: metrics.checkpointType }).from(metrics).where(eq(metrics.scheduleId, schedule.id)):[]),
@@ -49,7 +50,7 @@ export async function changeCheckpointState(database: Database, input: Omit<z.in
     if(input.scope==='schedule'){
       if(!input.expectedEvents)throw new WorkflowError('请刷新后重新核对整篇复盘状态。');
       const affected=post.nodes.map(n=>n.type).filter(type=>!completed.some(row=>row.type===type));
-      for(const type of affected){const event=latest.get(`${schedule.id}:${type}`);if((event?.id??null)!==(input.expectedEvents[type]??null))throw new WorkflowError('节点状态已更新，请刷新后重试。');}
+      for(const type of affected){const event=latest.get(`${schedule.id}:${type}`);if((event?.id??null)!==(input.expectedEvents[type]??null))throw new StaleWriteError('节点状态已更新，请刷新后重试。');}
       const targets=affected.filter(type=>input.action==='skip'?latest.get(`${schedule.id}:${type}`)?.action!=='skip':latest.get(`${schedule.id}:${type}`)?.action==='skip');
       if(!targets.length)throw new WorkflowError('该篇没有可处理的未完成节点。');
       await transaction.insert(events).values(targets.map(checkpointType=>({scheduleId:schedule.id,checkpointType,customCheckpointId:customCheckpointId(checkpointType),action:input.action,reason:input.reason,changedById:actor.id,changedByLabel:actor.username,createdAt:now})));

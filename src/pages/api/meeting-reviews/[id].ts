@@ -1,3 +1,4 @@
+import {StaleWriteError} from '../../../db/schedule-workflow';
 import {preserveMonthlyMeetingIdentity} from '../../../db/monthly-meeting';
 import {checkMonthlyPlan,deleteUnpublishedMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from '../../../db/monthly-plans';
 import {meetingReadiness} from '../../../db/meeting-readiness';
@@ -75,7 +76,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if(meeting.status==='completed'&&!discussionMode)throw new WorkflowError('请通过最新版本的编辑模式保存修订。',422);
       if([6,7].includes(draft.workflowVersion??0))draft.hasRevisionDraft=(payload.action==='save_version_draft')&&meeting.status==='completed';
       if([6,7].includes(meeting.draftSnapshot.workflowVersion??0)&&![6,7].includes(draft.workflowVersion??0))throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
-      if (payload.expectedUpdatedAt && payload.expectedUpdatedAt !== meeting.updatedAt.toISOString()) throw new WorkflowError('会议已被更新，请刷新后再保存。');
+      if (!payload.expectedUpdatedAt || payload.expectedUpdatedAt !== meeting.updatedAt.toISOString()) throw new StaleWriteError('会议已被更新，请刷新后再保存。');
       for (const id of [...new Set((draft.monthlySchemaVersion?[]:draft.nonPromotionSelections).map(item => item.scheduleId))].sort()) await lockSchedule(transaction, id);
       if((meeting.draftSnapshot.schemaVersion===4)!==(draft.schemaVersion===4))throw new WorkflowError('请使用此会议对应版本的编辑器。',422);
       const v4=draft.schemaVersion===4;
@@ -95,7 +96,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(finalizing&&fresh.monthly?.operations.missingRows.length)throw new WorkflowError('本月推广日度仍有缺项，请先去月度运营补齐。',422);
        if(finalizing&&meetingReadiness(fresh).length)throw new WorkflowError('本次例会仍有待补数据，请返回准备区完成登记。',422);
        const cached=meeting.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
-       if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new WorkflowError('来源数据已变化，请刷新数据并核对后再定稿。');
+       if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new StaleWriteError('来源数据已变化，请刷新数据并核对后再定稿。');
        let material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
        if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');
        material=await readWeeklyDraftStates(transaction,material);
@@ -170,9 +171,11 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
   if (!params.id) return Response.json({ message: '缺少会议编号。' }, { status: 400 });
   try {
+    const payload=await request.json().catch(()=>null);
     const deleted=await getDb().transaction(async tx=>{
       const [m]=await tx.select().from(operationsReviewMeeting).where(eq(operationsReviewMeeting.id,params.id!)).for('update');
       if(!m||m.status!=='draft')return null;
+      if(payload?.expectedUpdatedAt!==m.updatedAt.toISOString())throw new StaleWriteError();
       const rows=await tx.select().from(operationsReviewMeetingVersion).where(eq(operationsReviewMeetingVersion.meetingId,m.id));
       if(rows.some(v=>v.lifecycleStatus!=='draft'))return null;
       await deleteUnpublishedMonthlyPlan(tx,m.id);
@@ -185,6 +188,6 @@ export const DELETE: APIRoute = async ({ params, request, url }) => {
     return Response.json({ message: '已定稿会议不允许删除。' }, { status: 409 });
   } catch (error) {
     console.error('meeting review delete failed', error);
-    return Response.json({ message: '草稿删除失败，请稍后重试。' }, { status: 503 });
+    return workflowErrorResponse(error);
   }
 };

@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {and,eq,inArray} from 'drizzle-orm';
 import {z} from 'zod';
 import {AsyncLocalStorage} from 'node:async_hooks';
@@ -36,7 +37,7 @@ export async function createMonthlyPlan(db:Database,meetingId:string,month:strin
 }
 export async function checkMonthlyPlan(db:Database,draft:MonthlyPlanDraft,finalizing=false){
  const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,draft.id)).for('update');if(!plan)throw new WorkflowError('月计划不存在。',404);
- if(plan.revision!==draft.expectedRevision){if(sourceHash(plan.content)!==sourceHash(draft.content))throw new WorkflowError('月计划已更新，请刷新并核对，输入已保留。',409);draft.expectedRevision=plan.revision;}
+ if(plan.revision!==draft.expectedRevision){if(sourceHash(plan.content)!==sourceHash(draft.content))throw new StaleWriteError('月计划已更新，请刷新并核对，输入已保留。');draft.expectedRevision=plan.revision;}
  for(const old of plan.additions){const supplied=draft.additions.find(b=>b.id===old.id);if(supplied&&(sourceHash(supplied.content)!==sourceHash(old.content)||supplied.reason!==old.reason))throw new WorkflowError('已有追加任务保留原记录，请另加追加批次。',422);}
  draft.additions=[...plan.additions.map(({id,reason,content})=>({id,reason,content})),...draft.additions.filter(b=>!plan.additions.some(old=>old.id===b.id))];
  if(plan.firstFinalizedAt&&draft.content.items.some(i=>!plan.content.items.some(old=>old.id===i.id)))throw new WorkflowError('首次定稿后新增任务须单列追加，不能补入原名额。',422);
@@ -89,7 +90,7 @@ export async function readMonthlyPlan(db:Database,month:string,now=new Date()){
 }
 export type MonthlyPlanView=NonNullable<Awaited<ReturnType<typeof readMonthlyPlan>>>;
 async function checkedMonthlyReference(db:Database,ref:{id:string;expectedRevision:number}){
- const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,ref.id)).for('update');if(!plan?.firstFinalizedAt)throw new WorkflowError('请先完成月计划会后定稿。',422);if(plan.revision!==ref.expectedRevision)throw new WorkflowError('月计划已变化，请刷新核对后再定稿。',409);return plan;
+ const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,ref.id)).for('update');if(!plan?.firstFinalizedAt)throw new WorkflowError('请先完成月计划会后定稿。',422);if(plan.revision!==ref.expectedRevision)throw new StaleWriteError('月计划已变化，请刷新核对后再定稿。');return plan;
 }
 export async function readReferencedMonthlyPlan(db:Database,ref:{id:string;expectedRevision:number},now=new Date()){const plan=await checkedMonthlyReference(db,ref);return readMonthlyPlan(db,plan.month,now);}
 export async function lockReferencedMonthlyPlan(db:Database,ref:{id:string;expectedRevision:number}|undefined,versionId:string,now=new Date()){
@@ -106,7 +107,7 @@ export function monthlyScheduleInput(form:FormData):MonthlyScheduleInput|null{
 }
 async function claim(db:Database,input:MonthlyScheduleInput,scheduleId:string|null,proposalId:string|null,actor:string,details:{subjectId:string;categoryId:string|null;name:string;plannedAt:Date},now=new Date()){
  await lockPromotionWorkflow(db);const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,input.planId)).for('update');if(!plan?.firstFinalizedAt)throw new WorkflowError('月计划尚未会后定稿。',422);
- if(plan.revision!==input.expectedRevision&&!proposalId)throw new WorkflowError('月计划已变化，请刷新核对，输入已保留。',409);
+ if(plan.revision!==input.expectedRevision&&!proposalId)throw new StaleWriteError('月计划已变化，请刷新核对，输入已保留。');
  const itemId=input.itemId||input.requestId;let item=allPlanItems(plan).find(i=>i.id===itemId),group=item&&allPlanGroups(plan).find(g=>g.id===item!.groupId);
  if(!item){if(input.itemId||!input.reason)throw new WorkflowError('计划外追加请填写原因。',422);const content:PlanContent={groups:[{id:itemId,annualPlanId:null,annualVersion:null,name:details.name,subjectId:details.subjectId,categoryId:details.categoryId!,quantity:1,note:'',reason:input.reason}],items:[{id:itemId,groupId:itemId,week:weekOf(dateKey(details.plannedAt)),kind:'new',scheduleId:null}]};
   const batch={id:itemId,at:now.toISOString(),actor,reason:input.reason,content};await db.update(s.operationsMonthlyPlan).set({additions:[...plan.additions,batch],revision:plan.revision+1,updatedAt:now}).where(eq(s.operationsMonthlyPlan.id,plan.id));item=content.items[0];group=content.groups[0];

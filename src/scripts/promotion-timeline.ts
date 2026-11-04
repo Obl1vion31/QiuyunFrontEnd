@@ -40,6 +40,10 @@ function replacePromotionRow(old:Element,next:Element){
   const sourceFields=[...source.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input:not([type=hidden]),select,textarea')],targetFields=[...target.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('input:not([type=hidden]),select,textarea')];
   sourceFields.forEach((field,index)=>{const live=field.name?target.elements.namedItem(field.name):targetFields[index];if(live instanceof HTMLInputElement||live instanceof HTMLSelectElement||live instanceof HTMLTextAreaElement){live.value=field.value;if(live instanceof HTMLInputElement&&field instanceof HTMLInputElement)live.checked=field.checked;}});
   target.dataset.dirty='true';
+  if(source.dataset.fingerprint)target.dataset.fingerprint=source.dataset.fingerprint;
+  for(const field of source.querySelectorAll<HTMLInputElement>('input[type=hidden][name=fingerprint],input[type=hidden][name=expectedUpdatedAt]')){
+   const held=target.elements.namedItem(field.name);if(held instanceof HTMLInputElement)held.value=field.value;
+  }
  }
 
  const opened=new Set([...old.querySelectorAll<HTMLDetailsElement>('details[open][data-promotion-data]')].map(node=>node.dataset.promotionData));
@@ -76,8 +80,8 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
    const oldDecision=oldForm.querySelector('.review-decision'),nextDecision=nextForm.querySelector('.review-decision');
    const meetingChanged=!!(nextDecision?.querySelector('[data-meeting-change]')||oldDecision?.querySelector('[data-meeting-change]'));
    if(meetingChanged&&nextDecision)oldDecision?.replaceWith(nextDecision.cloneNode(true));
-   for(const [key,value]of Object.entries(nextForm.dataset))if(!['dailyReady','dirty'].includes(key))oldForm.dataset[key]=value;
-   for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field&&(input.name!=='platformNoteId'||input.value||!field.value))field.value=input.value;}
+   for(const [key,value]of Object.entries(nextForm.dataset))if(!['dailyReady','dirty'].includes(key)&&!(key==='fingerprint'&&oldForm.dataset.dirty==='true'))oldForm.dataset[key]=value;
+   for(const input of nextForm.querySelectorAll<HTMLInputElement>('input[type=hidden][name]')){if(oldForm.dataset.dirty==='true'&&['fingerprint','expectedUpdatedAt'].includes(input.name))continue;const field=oldForm.elements.namedItem(input.name) as HTMLInputElement|null;if(field&&(input.name!=='platformNoteId'||input.value||!field.value))field.value=input.value;}
    if(changed){
     if(nextForm.dataset.defaultZero==='true'&&oldForm.dataset.dirty!=='true'&&['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].every(name=>(oldForm.elements.namedItem(name) as HTMLInputElement).value===''))for(const name of ['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'])(oldForm.elements.namedItem(name) as HTMLInputElement).value='0';
     const trigger=oldForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!,newTrigger=nextForm.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;

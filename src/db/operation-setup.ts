@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints,saveFinalReviewDate} from './continuous-schedule';
 import {eq,desc} from 'drizzle-orm';
 import type {Database} from './client';
@@ -24,7 +25,7 @@ export async function saveOperationSetup(db:Database|Transaction,scheduleId:stri
  if(!row)throw new WorkflowError('没有找到帖子。',404);
  await db.select({id:s.operationsContent.id}).from(s.operationsContent).where(eq(s.operationsContent.id,row.content.id)).for('update');
  const [plan]=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,row.content.id));
- if((plan?.revision??-1)!==input.expectedReviewRevision)throw new WorkflowError('运营类型或复盘配置已更新，请刷新核对。');
+ if((plan?.revision??-1)!==input.expectedReviewRevision)throw new StaleWriteError('运营类型或复盘配置已更新，请刷新核对。');
  const latest=await db.select({id:s.operationsContentSchedule.id}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).where(eq(s.operationsContentVersion.contentId,row.content.id)).orderBy(desc(s.operationsContentVersion.versionNumber));
  if(row.content.operationType!==input.operationType&&latest[0]?.id!==scheduleId)throw new WorkflowError('请在最新版本的排期详情中调整运营类型。',422);
  if(input.operationType==='promotion_then_continuous'&&row.content.operationType!=='promotion_then_continuous'&&!row.schedule.finalReviewOn)throw new WorkflowError('请选择最终复盘日期。',422);

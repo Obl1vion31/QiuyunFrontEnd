@@ -1,4 +1,5 @@
 import type {APIRoute} from 'astro';
+import {realtimeEditingEnabled,collaborationDisabledResponse} from '../../../db/editing-policy';
 import {and,eq,gt} from 'drizzle-orm';
 import {z} from 'zod';
 import {getDb} from '../../../db/client';
@@ -10,6 +11,7 @@ export const prerender=false;
 const pages=['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','monthly-operations','settings'] as const;
 const input=z.object({tabId:z.uuid(),page:z.enum(pages),resource:z.string().max(240).nullable(),field:z.string().max(80).nullable(),label:z.string().max(120).nullable(),visible:z.boolean()}).strict();
 export const PUT:APIRoute=async({request,url,locals})=>{
+ if(!realtimeEditingEnabled)return collaborationDisabledResponse();
  try{
   if(request.headers.get('origin')!==url.origin)throw new WorkflowError('拒绝跨站操作。',403);
   const data=input.parse(await request.json());
@@ -22,6 +24,7 @@ export const PUT:APIRoute=async({request,url,locals})=>{
  }catch(error){if(error instanceof z.ZodError)return Response.json({message:'位置请求无效。'},{status:422});return workflowErrorResponse(error);}
 };
 export const GET:APIRoute=async({url,locals})=>{
+ if(!realtimeEditingEnabled)return collaborationDisabledResponse();
  const meeting=url.searchParams.get('meeting');
  if(locals.user!.role!=='admin'&&!meeting)return Response.json({message:'需要管理员权限。'},{status:403});
  try{

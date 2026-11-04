@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {promotionTotals} from './promotion-overview';
 import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -89,7 +90,7 @@ export async function saveStageSnapshot(db: Database, input: z.infer<typeof stag
     if (existing && (existing.periodStart !== input.periodStart || existing.periodEnd !== input.periodEnd)) throw new WorkflowError('快照时间段已固定，请另存为新的阶段复盘。');
     const previous = existing ? await tx.select().from(snapshots).where(eq(snapshots.reviewId, existing.id)) : [];
     const currentVersion = Math.max(-1, ...previous.map(v => v.versionNumber));
-    if (existing && currentVersion !== input.expectedVersion) throw new WorkflowError('快照版本已更新，请刷新后重试。');
+    if (existing && currentVersion !== input.expectedVersion) throw new StaleWriteError('快照版本已更新，请刷新后重试。');
     const snapshot = await generateStageSnapshot(tx, input.periodStart, input.periodEnd, existing?.name || input.name);
     const [review] = existing ? [existing] : await tx.insert(reviews).values({ requestKey: input.requestKey, name: snapshot.name, periodStart: input.periodStart, periodEnd: input.periodEnd, createdByLabel: actor }).returning();
     const [version] = await tx.insert(snapshots).values({ reviewId: review.id, versionNumber: currentVersion + 1, snapshot: snapshot as unknown as Record<string, unknown>, createdByLabel: actor }).returning();

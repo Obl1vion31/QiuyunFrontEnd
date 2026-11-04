@@ -33,7 +33,7 @@
 
 `promotion-note-id.ts` 负责首次 ID 的锚定气泡和只读查看，确认由同 contentId 草稿同步；已有 ID 更正仍走原确认入口。
 
-`business-collaboration.ts` 在共享 Frame 中统一接入，记录位置元数据、取得／续期／释放租约并为写请求携带凭据；不发送录入值。`data-collaboration-resource` 绑定稳定对象，展示模式保留对象标记以供管理员观察，退出编辑通过活动标记和共享事件释放；失败保留输入。
+`business-collaboration.ts` 保留原实现，由统一配置暂停初始化，不创建监听、轮询或租约请求。`business-save-conflict.ts` 仅处理409／STALE_WRITE，暂停对象重试并调用公共单按钮刷新提示；`business-dialog.ts` 在明确确认后直接刷新，跳过重复的未保存确认。业务校验409和网络错误沿原容器处理。
 
 `post-lookup.ts` 负责只读查帖、版本回溯和原页链接；`account-management.ts` 负责现有账号改名、启停、密码重置与会话撤销，不创建账号或改变角色。
 

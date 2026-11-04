@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import {promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
@@ -79,7 +80,7 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     if(!schedule.isPromoted||!schedule.actualPublishAt)throw new WorkflowError('只能处理已发布的推广帖。',422);
     const before=await promotionSnapshot(tx,schedule.id),fingerprint=timelineFingerprint(before);
     if(!before.campaigns.length&&schedule.promotionStatus!=='awaiting_promotion')throw new WorkflowError('该帖已有历史推广状态，不能作为首次安排重新开始。');
-    if(input.fingerprint&&input.fingerprint!==fingerprint)throw new WorkflowError('推广记录已变化，请刷新后核对。');
+    if(input.fingerprint&&input.fingerprint!==fingerprint)throw new StaleWriteError('推广记录已变化，请刷新后核对。');
     if(input.confirmImpact&&!input.fingerprint)throw new WorkflowError('请重新预览本次修改的影响。');
     const publishedOn=shanghaiDateKey(schedule.actualPublishAt),today=shanghaiDateKey(now),date=input.reviewDate;
     if(date<publishedOn)throw new WorkflowError('业务日期不能早于实际发布日期。',422);
@@ -220,6 +221,6 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     await syncContinuousCheckpoints(tx,schedule.id,actor.username,now);
     const after=await promotionSnapshot(tx,schedule.id);
     await tx.insert(s.operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:input.requestKey,businessDate:date,action:input.action,reason:input.reason||'首次推广安排',before,after,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
-    return {ok:true,businessDate:date,archived:removed.length};
+    return {ok:true,businessDate:date,archived:removed.length,fingerprint:timelineFingerprint(after)};
   });}catch(error){if(error instanceof ImpactPreview)return error.result;throw error;}
 }

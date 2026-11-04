@@ -19,7 +19,12 @@ type Schedule = typeof schedules.$inferSelect;
 type Plan = typeof plans.$inferSelect;
 type Reason = typeof reasons.$inferSelect;
 export class WorkflowError extends Error {
+  readonly code?: 'STALE_WRITE';
   constructor(message: string, public status = 409, public approvalRequired = false) { super(message); }
+}
+export class StaleWriteError extends WorkflowError {
+  override readonly code = 'STALE_WRITE' as const;
+  constructor(message = '记录已更新，本次未保存，请刷新页面后重试。') { super(message,409); }
 }
 export const reasonSchema = z.object({
   planRevision: z.coerce.number().int().min(0), dayNumber: z.coerce.number().int().min(1),
@@ -70,13 +75,13 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
 
 export async function saveDelayReason(transaction: Transaction, schedule: Schedule, input: z.infer<typeof reasonSchema>, actor: OperationsUser, now = new Date(), actualOverride?: Date) {
   const workflow = await readScheduleWorkflow(transaction, schedule.id, actualOverride, now);
-  if(input.planRevision!==workflow.schedule.planRevision)throw new WorkflowError('排期已更新，请刷新后填写最新排期的原因。');
+  if(input.planRevision!==workflow.schedule.planRevision)throw new StaleWriteError('排期已更新，请刷新后填写最新排期的原因。');
   const day = workflow.days.find(item => item.planRevision === input.planRevision && item.dayNumber === input.dayNumber);
   if (!day || day.archived) throw new WorkflowError('这一天尚未进入延期，或排期已变化，请刷新后重试。');
   const current = day.saved;
   if ((current?.updatedAt.toISOString() ?? null) !== (input.expectedUpdatedAt ?? null)
     || (current && current.history.length !== input.expectedHistoryLength)) {
-    throw new WorkflowError('这一天的理由已被更新，请刷新后重试。');
+    throw new StaleWriteError('这一天的理由已被更新，请刷新后重试。');
   }
   const values = { responsibility: input.responsibility, reason: input.reason, source: 'manual' as const,
     changedById: actor.id, changedByLabel: actor.username, updatedAt: now };
@@ -127,12 +132,12 @@ export async function createChangeRequest(database: Database, scheduleId: string
     const schedule = await lockSchedule(transaction, scheduleId);
     const operation=requiresPlanApproval(schedule,now)?'schedule.overdueReschedule':'schedule.reschedule';
     if(hasBusinessExecution(actor,operation)){
-      if(schedule.planRevision!==input.expectedPlanRevision)throw new WorkflowError('排期已更新，请刷新后重新申请。');
+      if(schedule.planRevision!==input.expectedPlanRevision)throw new StaleWriteError('排期已更新，请刷新后重新申请。');
       await changeSchedulePlan(transaction,schedule,input.plannedPublishAt,input.reason,actor,now);
       return {id:schedule.id,applied:true};
     }
     if (!requiresPlanApproval(schedule, now)) throw new WorkflowError('当前改期无需审批，请直接编辑排期。');
-    if (schedule.planRevision !== input.expectedPlanRevision) throw new WorkflowError('排期已更新，请刷新后重新申请。');
+    if (schedule.planRevision !== input.expectedPlanRevision) throw new StaleWriteError('排期已更新，请刷新后重新申请。');
     if (input.plannedPublishAt <= now) throw new WorkflowError('请选择未来的发送时间。', 422);
     if (input.plannedPublishAt.getTime() === schedule.plannedPublishAt.getTime()) throw new WorkflowError('新的应发时间与当前时间相同。', 422);
     const [pending] = await transaction.select({ id: requests.id }).from(requests)

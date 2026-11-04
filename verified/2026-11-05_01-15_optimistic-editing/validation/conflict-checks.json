@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "排期文字修改拒绝旧版本，不同对象独立保存",
+    "真实 PostgreSQL 同时提交：只有一个保存成功",
+    "年度说明防覆盖，旧租约写入拒绝，所有协作接口410",
+    "新建子版本和日度保存都会使旧整帖凭据失效",
+    "日度新增幂等、同日抢先保存及历史更正均防覆盖",
+    "批量中一个对象冲突，其他对象全部回滚",
+    "例会旧草稿删除被拦截，批量删除保持原子性",
+    "月度人数、账号修改保留版本检查，登录与跨站保护正常",
+    "断网保留输入并可重试，普通业务409不弹刷新",
+    "管理员与员工同时填写；五档只有刷新按钮，Esc 不会关闭提示，旧输入未覆盖",
+    "确认后直接刷新，不重复弹出原生未保存确认；协作请求为零",
+    "前台、多标签与真实后台无协作API或协作表访问，业务提醒单独计数"
+  ],
+  "images": [
+    "ordinary-validation-keeps-input-1440.png",
+    "employee-editing-1440.png",
+    "conflict-1920.png",
+    "conflict-1440.png",
+    "conflict-1024.png",
+    "conflict-390.png",
+    "conflict-320.png",
+    "conflict-required-refresh-1440.png",
+    "confirmed-refresh-1440.png",
+    "schedule-no-status-1440.png",
+    "schedule-no-status-1920.png",
+    "schedule-no-status-1024.png"
+  ],
+  "pageErrors": [],
+  "fixture": "isolated PostgreSQL; fictional accounts; no shared Neon writes"
+}

@@ -38,6 +38,7 @@ export default function BusinessMeetingDiscussion({snapshot,draft:initial,source
   return ()=>{host.current?.removeEventListener('business:edit-reclaimed',reclaim);controls?.removeEventListener('change',switchMode);clearInterval(timer);};
  },[]);
  const save=async(stage?:'pre'|'post',background=false)=>{
+  if(host.current?.dataset.staleWrite==='true'){setError(true);setMessage('会议已更新，请刷新页面后继续。当前输入尚未保存。');return false;}
   if(writing.current)return false;
   const modified=meetingDiscussionKey(live.current)!==baselineKey;
   if(!modified&&(!stage||!workingDraft&&!(stage==='post'&&snapshot.finalizationStage==='pre'))){setMessage('尚无实际修改');return;}

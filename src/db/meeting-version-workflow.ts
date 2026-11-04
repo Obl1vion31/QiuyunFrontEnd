@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 /** 定稿修订只合并文字；回溯在原生效日前原子撤销，并保留失效版本。 */
 import {checkMonthlyPlan,publishMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from './monthly-plans';
 import {readMonthlyMeeting,preserveMonthlyMeetingIdentity} from './monthly-meeting';
@@ -52,7 +53,7 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const now=at??new Date();
   const [meeting]=await tx.select().from(meetings).where(eq(meetings.id,meetingId)).for('update');
   if(!meeting)throw new WorkflowError('会议不存在。',404);
-  if(!payload.expectedUpdatedAt||payload.expectedUpdatedAt!==meeting.updatedAt.toISOString())throw new WorkflowError('会议已更新，输入已保留，请重新打开最新版本。');
+  if(!payload.expectedUpdatedAt||payload.expectedUpdatedAt!==meeting.updatedAt.toISOString())throw new StaleWriteError('会议已更新，输入已保留，请重新打开最新版本。');
   const all=await tx.select().from(versions).where(eq(versions.meetingId,meetingId)).orderBy(desc(versions.versionNumber));
   if(!['save_version_draft','finalize_version_draft','rollback_version'].includes(payload.action))throw new WorkflowError('例会流程已更新，请刷新页面后继续，输入已保留。',409);
   const current=latestValidMeetingVersion(all),active=activeMeetingDraft(all),source=all.find(v=>v.id===payload.sourceVersionId);

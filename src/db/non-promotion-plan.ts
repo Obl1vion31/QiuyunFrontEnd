@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {readPromotionContext} from './promotion-pauses';
 import {promotionStateOn} from './promotion-state.mjs';
 import {nextDateKey} from './promotion-rules.mjs';
@@ -63,7 +64,7 @@ export async function saveReviewPlan(db:Reader,scheduleId:string,input:ReviewPla
  if(!post.reviewActive)throw new WorkflowError('当前推广阶段尚未转入非推广复盘。',422);
  if(post.operationType&&input.mode!==operationMode(post.operationType))throw new WorkflowError('请通过编辑排期调整运营类型。',422);
  if(post.operationType==='promotion_then_continuous'&&(input.day7||input.day15))throw new WorkflowError('推广后持续复盘使用自定义截止日期。',422);
- if((current?.revision??-1)!==input.expectedRevision)throw new WorkflowError('复盘计划已更新，请刷新核对；当前输入已保留。');
+ if((current?.revision??-1)!==input.expectedRevision)throw new StaleWriteError('复盘计划已更新，请刷新核对；当前输入已保留。');
  const dueOn=input.dueOn||null;
  if(dueOn&&dueOn<(post.activatedOn??shanghaiDateKey(post.actualPublishAt)))throw new WorkflowError('截止日期不能早于原帖实际发布日期。',422);
  const values={mode:input.mode,day7:input.mode==='standard'||input.day7,day15:input.mode==='standard'||input.day15};
@@ -99,7 +100,7 @@ export async function mutateCustomNode(db:Reader,scheduleId:string,input:{action
  if(post.operationType==='promotion_then_continuous'&&configuration?.finalReviewOn)throw new WorkflowError('自动复盘节点请通过最终复盘日期调整。',422);
 
  if(post.id!==scheduleId||!post.reviewActive||!node||node.scheduleId!==post.id||node.cancelledAt)throw new WorkflowError('该节点不属于当前可编辑的非推广复盘。');
- if(node.revision!==input.expectedRevision)throw new WorkflowError('节点已更新，请刷新核对。');
+ if(node.revision!==input.expectedRevision)throw new StaleWriteError('节点已更新，请刷新核对。');
  const saved=await db.select({id:s.operationsContentPerformanceMetric.id}).from(s.operationsContentPerformanceMetric).where(eq(s.operationsContentPerformanceMetric.customCheckpointId,node.id));
  if(saved.length)throw new WorkflowError('已有复盘数据，截止日只读保留；请使用指标更正。');
  if(!input.reason.trim())throw new WorkflowError('请填写调整或取消原因。',422);

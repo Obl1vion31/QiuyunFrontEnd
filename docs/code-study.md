@@ -186,8 +186,10 @@ flowchart LR
 
 ### 协作与来源准备接入
 
-- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，申请中允许本地输入，写请求等待对应资源的pending；续期及业务保存回执以请求时的页面与token核对响应，离开清理本地持有状态并等待释放，返回／可见时合并恢复任务并立即核实，取消挂起的协作GET／PATCH／位置PUT，取锁及释放仍按原顺序；协作请求设置有限等待，保存等待本次恢复，避免后台旧响应中断新权。自然过期仅以普通申请衔接空闲对象并复用`business:edit-reclaimed`核对业务数据；他人有效占用或已确认失锁保持公共接管确认。Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
-- `collaboration-resources.ts` 的写入目标映射由浏览器和服务端共用，`collaboration.ts` 把活动、指标、内容版本等映射到稳定排期身份；服务端在写事务内验证租约，原业务版本检查继续保留。新增写入口同步检查映射及实际表单聚焦状态。
+暂停实时共享时也不加载协作样式，避免旧占用容器的定位规则干扰业务气泡；原脚本、样式和表保留，恢复时须整体重新验收。
+
+- `BusinessConsoleFrame` 接入查帖、公共确认和 `business-save-conflict.ts`。`editing-policy.ts` 统一暂停实时共享，`business-collaboration.ts` 保留但不初始化监听、定时器或取锁；例会共享提示不渲染。现有 `data-collaboration-resource` 保留为稳定对象标记，也用于冲突后停止该对象自动保存，不作为占用展示。
+- `collaboration-resources.ts` 共用写入目标映射，`collaboration.ts` 保留事务级 `lockWriteResources`，只在保存期间保护“读取版本、比较、写入”。中间件在审批截取请求之前校验排期凭据，`schedule-write-version.ts` 与页面内容同次读取；各业务继续使用修订号、更新时间或来源指纹，补齐删除、恢复、状态更正与批量校验。旧协作API直接410，旧租约头不能绕过新协议。
 - `meeting-readiness.ts` 共用例会缺项口径，`promotion-review-required.ts` 共用日度应填日期；例会仅引用 `non-promotion-record.ts` 指纹对应的正式事实。准备区只提供原入口链接，不能重新复制指标表单。
 - `BusinessPostLookup` 与 `post-lookup.ts` 只读查帖；动态生成的结果使用专用全局样式，避免 Astro 作用域属性缺失导致后加载节点无样式。
 
@@ -199,7 +201,7 @@ flowchart LR
 
 `BusinessAssistantEntry` 共用桌面侧栏与手机账号菜单入口，`data-post-lookup-open` 直接打开Frame中的 `BusinessPostLookup`。`post-lookup.ts` 维护展开状态与原触发焦点；手机原生账号popover关闭后返回其账号按钮，Astro换页清理监听并重置持久侧栏入口状态。首屏引导和未开放能力与结果／详情分开显示，分页、版本回退及原页草稿沿用只读控制器；不新增悬浮菜单、页面宽度补偿或独立查帖流程。`test:assistant` 验证五档真实页面、短窗口、触屏、查询失败与草稿连续性。
 
-只读列表用`data-collaboration-observe`映射现有租约资源，`data-collaboration-action`复用原操作位；它们不参与编辑取锁。编辑容器继续使用resource属性，窄字段姓名角标按实测宽度退为圆点。首次输入验收直接延迟真实取锁请求并记录禁用／焦点帧，保存仍走真实API。
+首次输入不再申请编辑租约。新写入口必须从显示给用户的同次读取取得版本凭据，成功后采用本次返回的新版本；片段刷新保留未保存表单原来的凭据，禁止在提交前取最新版本后强行保存旧输入。
 
 非推广列表布局集中在`non-promotion-table.css`，沿公共正文全宽组织。待复盘表头及`NonPromotionReviewRow`直接不渲染结果单元格，按帖与手机布局同步去掉空指标轨道，完整录入继续使用原Inspector；历史缺值统一“—”，SSR与保存刷新同步，主值、细轨及样本各自共用轨道；跳过视图向共享表头传`skipped`，渲染原因而不生成MetricCell。保存刷新只更新实际存在的指标节点。例会列表沿正文边界使用白底区块，名称与版本组成主入口；历史保持两层折叠、版本项复用同一记录外壳。稳定截图复用测试辅助`settleBusinessUI`等待字体和有限动画，动态过程另行录像，仍须实际打开图像和审查关键录像。
 
@@ -266,6 +268,6 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 月计划快捷接入：`compactPlanItems`只合并同来源／种类且无独立排期或审批进展的展示，不改变ID。编辑及只读Week板共用分组；左侧`data-plan-return`右上角叉号直接调用分周函数移回一篇，右侧`PlanQuantity`桌面采用88×28px浅边框数量器、触屏保持原点击范围，只改变未分配新做名额及组总量，已分周和已关联项保留。按钮／输入不参与拖动，0时只有减号禁用，来源加号仍可恢复。遗留只有一个真实名额，不提供数量器。已提交／生效／锁定继续保护。`confirmed`可保存未分完的草稿，拖动或调量后回到分周但不重开数量表；会后定稿仍走服务端完整性校验。
 
-协作连续性：可见编辑器的字段聚焦和业务保存通过同一个`ensure`／pending任务取得编辑权；不能在保存拦截器另行取同一份锁，否则旧保存释放与迟到取锁回执会重新留下失效凭证。无可见编辑器的写入仍沿用原按资源申请逻辑，服务端租约和版本检查保持。
+保存连续性：过期对象在公共请求层停止自动重试，提示刷新；其他对象的版本独立。旧实时共享控制器只作保留实现，当前不调用ensure、恢复、接管或释放流程。
 
 首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。

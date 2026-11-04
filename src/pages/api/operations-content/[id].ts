@@ -1,3 +1,4 @@
+import {StaleWriteError} from '../../../db/schedule-workflow';
 import {saveContentRole} from '../../../db/content-role-workflow';
 import {monthlyScheduleInput,claimMonthlySchedule} from '../../../db/monthly-plans';
 import {saveOperationSetup} from '../../../db/operation-setup';
@@ -12,7 +13,7 @@ import { workflowErrorResponse } from '../../../db/workflow-api';
 import {requireBusinessOperation} from '../../../auth/business-permissions';
 import {reviewPlanSchema,reviewPlanFromForm} from '../../../db/non-promotion-plan-input';
 import {saveReviewPlan,reviewIdentity} from '../../../db/non-promotion-plan';
-import { and, count, eq, inArray, isNull } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull,sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
   operationsContent, operationsNonPromotionReviewPlan,operationsNonPromotionCustomCheckpoint,
@@ -165,7 +166,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if (!schedule) return null;
       const planChanged = schedule.plannedPublishAt.getTime() !== result.data.plannedPublishAt.getTime();
       if (planChanged) {
-        if (form.get('expectedPlanRevision') === null || Number(form.get('expectedPlanRevision')) !== schedule.planRevision) throw new WorkflowError('排期已更新，请刷新后重试。');
+        if (form.get('expectedPlanRevision') === null || Number(form.get('expectedPlanRevision')) !== schedule.planRevision) throw new StaleWriteError('排期已更新，请刷新后重试。');
         if (!String(form.get('planChangeReason') ?? '').trim()) throw new WorkflowError('请填写改期理由。', 422);
       }
 
@@ -199,7 +200,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
         subjectId: result.data.subjectId,
         categoryId: result.data.categoryId,
         projectDocUrl: result.data.projectDocUrl,
-        updatedAt: new Date(),
+        updatedAt: sql`greatest(clock_timestamp(), ${operationsContentVersion.updatedAt} + interval '1 millisecond')`,
       }).where(eq(operationsContentVersion.id, schedule.versionId));
 
       if (endCampaigns) {
@@ -257,7 +258,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
             ? undefined
             : null
           : null,
-        updatedAt: new Date(),
+        updatedAt: sql`greatest(clock_timestamp(), ${operationsContentSchedule.updatedAt} + interval '1 millisecond')`,
       }).where(eq(operationsContentSchedule.id, params.id!)).returning({ id: operationsContentSchedule.id });
       if(!result.data.operationType&&schedule.isPromoted&&!result.data.isPromoted&&schedule.actualPublishAt){
         const post=await reviewIdentity(transaction,schedule.id);

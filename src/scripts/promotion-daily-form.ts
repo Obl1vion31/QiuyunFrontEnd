@@ -15,7 +15,7 @@ const values=(form:HTMLFormElement):Values=>Object.fromEntries(fields(form).map(
 const formKey=(form:HTMLFormElement)=>form.dataset.pendingRecord!;
 const metricNames=['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'];
 const cost=(spend:number,count:number)=>count>0?`¥${(spend/count).toFixed(2)}`:'—';
-type StateDraft={key:string;form:HTMLFormElement;owner:HTMLFormElement;trigger:HTMLButtonElement;original:string;target:string;reason:string;saved:boolean;busy:boolean;requestKey:string};
+type StateDraft={key:string;form:HTMLFormElement;owner:HTMLFormElement;trigger:HTMLButtonElement;original:string;fingerprint:string;target:string;reason:string;saved:boolean;busy:boolean;requestKey:string};
 const stateDrafts=new Map<string,StateDraft>();
 const setUnsaved=()=>{document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));};
 const label=(status:string)=>promotionActualLabels[status]??status;
@@ -58,7 +58,7 @@ async function openStateBubble(owner:HTMLFormElement){
  const preview=document.createElement('div');preview.className='review-state-preview';preview.dataset.statePreview='';
  const message=document.createElement('p');message.dataset.stateMessage='';message.setAttribute('role','status');body.append(before,targetLabel,reasonLabel,preview,message);
  const footer=document.createElement('footer'),cancel=document.createElement('button'),submit=document.createElement('button');cancel.type='button';cancel.dataset.stateCancel='';cancel.className='business-action-secondary';cancel.textContent='取消';submit.type='submit';submit.className='business-action-primary';submit.textContent='保存变更';const again=document.createElement('button');again.type='button';again.className='business-action-secondary';again.dataset.stateAgain='';again.textContent='再次修改';again.hidden=true;footer.append(cancel,again,submit);form.append(header,body,footer);document.body.append(form);
- const current:StateDraft={key,form,owner,trigger,original,target:'',reason:'',saved:false,busy:false,requestKey:randomRequestKey()};stateDrafts.set(key,current);
+ const current:StateDraft={key,form,owner,trigger,original,fingerprint:owner.dataset.fingerprint??'',target:'',reason:'',saved:false,busy:false,requestKey:randomRequestKey()};stateDrafts.set(key,current);
  again.addEventListener('click',()=>{const owner=current.owner;current.form.remove();stateDrafts.delete(key);openStateBubble(owner);});
  close.addEventListener('click',()=>void dismissStateBubble(current));
  cancel.addEventListener('click',()=>void dismissStateBubble(current));
@@ -66,11 +66,13 @@ async function openStateBubble(owner:HTMLFormElement){
  const changed=()=>{current.target=select.value;current.reason=reason.value;message.textContent='';updateBubble(current);};form.addEventListener('input',changed);form.addEventListener('change',changed);
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(current.busy||current.saved||!form.reportValidity())return;current.busy=true;updateBubble(current);message.textContent='正在保存…';
-  const payload={scheduleId:current.owner.dataset.scheduleId,reviewDate:(current.owner.elements.namedItem('metricDate') as HTMLInputElement).value,action:'status',targetStatus:current.target,reason:current.reason,requestKey:current.requestKey,fingerprint:current.owner.dataset.fingerprint,confirmImpact:false};
+  const payload={scheduleId:current.owner.dataset.scheduleId,reviewDate:(current.owner.elements.namedItem('metricDate') as HTMLInputElement).value,action:'status',targetStatus:current.target,reason:current.reason,requestKey:current.requestKey,fingerprint:current.fingerprint,confirmImpact:false};
   const send=()=>fetch('/api/promotion-timeline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   try{let response=await send(),result=await response.json();if(result.confirmationRequired&&await businessConfirm(result.message??'该更正会影响后续已保存记录，确认继续？',{title:'确认历史影响',confirmLabel:'确认更正'})){payload.confirmImpact=true;response=await send();result=await response.json();}
    if(!response.ok){message.textContent=result.message??'保存失败，输入已保留。';return;}
    current.saved=true;message.textContent='变更已保存';form.dataset.dirty='false';updateBubble(current);
+   // 仅采用本次成功写入返回的版本；后续 GET 不能替旧输入提升保存凭据。
+   if(result.fingerprint&&!result.repeated)current.owner.dataset.fingerprint=result.fingerprint;
    // 指标草稿留在原节点；状态与合法的次日选项由新服务端片段同步。
    const owner=current.owner;
    await refreshPromotionSchedule(String(payload.scheduleId));current.owner=(owner.isConnected?owner:document.querySelector<HTMLFormElement>(`#daily-table [data-metric-form][data-pending-record="${CSS.escape(key)}"]`))??owner;

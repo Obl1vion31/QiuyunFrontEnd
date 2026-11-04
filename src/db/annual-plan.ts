@@ -77,6 +77,7 @@ export const restoreAnnualPlanSchema = z.object({
 export const annualPlanYearSchema = z.object({
   year: z.int().min(2000).max(9999),
   instructions: optionalText(3000),
+  expectedUpdatedAt:z.string().nullable().optional(),
 });
 
 export type AnnualPlanInput = z.infer<typeof createAnnualPlanSchema>;

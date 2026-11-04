@@ -1,4 +1,6 @@
 import {readNonPromotionFingerprint} from '../src/db/non-promotion-record';
+import {readScheduleVersion} from './schedule-read.helper';
+import {promotionSnapshot,timelineFingerprint} from '../src/db/promotion-timeline';
 import {businessFetch as fetch} from './business-request.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 隔离 HTTP 与浏览器验收；只连接 auth.fixture 的内存 PostgreSQL。 */
@@ -18,8 +20,10 @@ async function login(account: typeof admin | typeof employee) {
   assert.equal(response.status,200); return response.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ');
 }
 async function request(path:string,method:string,cookie:string,fields?:Record<string,string>,expected=200) {
+  if(['PATCH','DELETE'].includes(method)&&/^\/api\/operations-content\/[^/]+(?:\/publication)?$/.test(path))fields={expectedWriteVersion:(await readScheduleVersion(db,path.split('/')[3]))!,...fields};
   if(path.endsWith('/publication')&&fields){const meta=await (await fetch(baseURL+path.replace('/publication','/workflow'),{headers:{Cookie:cookie}})).json();fields={expectedPlanRevision:String(meta.schedule.planRevision),expectedPublicationRevision:String(meta.schedule.publicationRevision),publicationUrl:'https://www.xiaohongshu.com/explore/'+'a'.repeat(24),...fields};}
   if(path==='/api/non-promotion-reviews'&&fields)fields={exposureCount:'100',readCount:fields.clickRate,fingerprint:await readNonPromotionFingerprint(db,fields.scheduleId,fields.checkpointType),...fields};
+  if(path==='/api/promotion-daily'&&fields){const [campaign]=await db.select().from(schema.operationsPromotionCampaign).where(eq(schema.operationsPromotionCampaign.id,fields.campaignId));fields={fingerprint:timelineFingerprint(await promotionSnapshot(db,campaign.scheduleId)),...fields};}
   const response=await fetch(baseURL+path,{method,headers:{Origin:baseURL,Cookie:cookie,Accept:'application/json'},body:fields?form(fields):undefined});
   const body=await response.json();assert.equal(response.status,expected,`${path}: ${JSON.stringify(body)}`);return body;
 }
@@ -47,8 +51,8 @@ try {
   await request(`/api/operations-content/${approval.id}/change-requests`,'POST',employeeCookie,{expectedPlanRevision:'0',plannedPublishAt:inputTime(hours(72)),reason:'重复申请'},409);
   await request(`/api/business-change-proposals/${application.requestId}`,'PATCH',employeeCookie,{action:'approve'},403);
   const decisions=await Promise.all([0,1].map(()=>fetch(`${baseURL}/api/business-change-proposals/${application.requestId}`,{method:'PATCH',headers:{Origin:baseURL,Cookie:adminCookie,'Content-Type':'application/json'},body:JSON.stringify({action:'approve'})})));
-  // 独立会话各自取租约，重复审批被编辑互斥挡下；真实排期只生效一次。
-  assert.deepEqual(decisions.map(response=>response.status).sort(),[200,409]);
+  // 同一申请重复审批返回原结果，事务内只生效一次。
+  assert.deepEqual(decisions.map(response=>response.status).sort(),[200,200]);
   const approved=await request(`/api/operations-content/${approval.id}/workflow`,'GET',employeeCookie);assert.equal(approved.overdueDays,0);assert.equal(approved.history.length,1);assert.equal(approved.days.length,0);
   const temporary=await create({subjectId:'temporary',categoryId:'temporary',contentName:'临时学科临时帖',plannedPublishAt:inputTime(hours(24))});
   assert.ok(temporary.id);

@@ -1,0 +1,17 @@
+{
+  "videos": 3,
+  "sampledFrames": 17,
+  "pdfs": [
+    {
+      "name": "monthly",
+      "pages": 5,
+      "textCharacters": 2149
+    },
+    {
+      "name": "weekly",
+      "pages": 3,
+      "textCharacters": 1470
+    }
+  ],
+  "source": "real browser operations and generated report PDFs; review contacts do not replace the source recordings"
+}

@@ -4,6 +4,8 @@ import { annualPlanYearSchema } from '../../../../db/annual-plan';
 import { getDb } from '../../../../db/client';
 import { lockAnnualPlanWrites } from '../../../../db/annual-plan-storage';
 import { operationsAnnualPlanYear } from '../../../../db/schema';
+import {StaleWriteError} from '../../../../db/schedule-workflow';
+import {workflowErrorResponse} from '../../../../db/workflow-api';
 
 export const prerender = false;
 
@@ -20,13 +22,16 @@ export const PATCH: APIRoute = async ({ params, request, url }) => {
   try {
     await getDb().transaction(async transaction => {
       await lockAnnualPlanWrites(transaction);
+      const [current]=await transaction.select().from(operationsAnnualPlanYear).where(sql`${operationsAnnualPlanYear.year} = ${parsed.data.year}`).for('update');
+      if(parsed.data.expectedUpdatedAt!==(current?.updatedAt.toISOString()??null))throw new StaleWriteError();
+      const updatedAt=new Date(Math.max(Date.now(),(current?.updatedAt.getTime()??0)+1));
       await transaction.insert(operationsAnnualPlanYear).values({
       year: parsed.data.year,
       instructions: parsed.data.instructions,
-      updatedAt: new Date(),
+      updatedAt,
     }).onConflictDoUpdate({
       target: operationsAnnualPlanYear.year,
-      set: { instructions: parsed.data.instructions, updatedAt: new Date() },
+      set: { instructions: parsed.data.instructions, updatedAt },
     });
     });
     const [saved] = await getDb().select({
@@ -36,6 +41,7 @@ export const PATCH: APIRoute = async ({ params, request, url }) => {
     }).from(operationsAnnualPlanYear).where(sql`${operationsAnnualPlanYear.year} = ${parsed.data.year}`).limit(1);
     return Response.json({ ok: true, year: saved });
   } catch (error) {
+    if(error instanceof StaleWriteError)return workflowErrorResponse(error);
     console.error('annual plan year update failed', error);
     return Response.json({ message: '数据库暂时不可用，请稍后重试。' }, { status: 503 });
   }

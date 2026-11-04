@@ -1,4 +1,5 @@
 import {writeResources} from '../db/collaboration-resources';
+import {realtimeEditingEnabled} from '../db/editing-policy';
 import {businessConfirm} from './business-dialog';
 type Lease={resource:string;token:string;expiresAt:string};
 type Occupant={resource:string;own:boolean;name:string;role:string;revision:string;expiresAt:string;field:string|null};
@@ -8,7 +9,7 @@ type Control=HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement|HTMLButtonEl
 const state=window as typeof window&{__collaborationReady?:boolean};
 export const shortName=(name:string)=>{const first=name.trim().split(/\s+/)[0]||name;return [...first].length>10?[...first].slice(0,10).join('')+'…':first;};
 const overlaps=(a:string,b:string)=>a===b||a.startsWith(b+':')||b.startsWith(a+':')||a.startsWith('campaign:')&&b.includes(':'+a)||b.startsWith('campaign:')&&a.includes(':'+b);
-if(!state.__collaborationReady){
+if(realtimeEditingEnabled&&!state.__collaborationReady){
  state.__collaborationReady=true;
  const tabId=crypto.randomUUID(),baseFetch=window.fetch.bind(window),leases=new Map<string,Lease>(),aliases=new Map<string,string[]>(),sources=new Map<string,HTMLElement>(),pending=new Map<string,Promise<void>>(),lost=new Set<string>();
  let active:Scope|undefined,field:string|null=null,lastPresence=0,polling=false,occupants:Occupant[]=[],confirming=false;

@@ -1,3 +1,4 @@
+import {StaleWriteError} from '../../../../db/schedule-workflow';
 import type {APIRoute} from 'astro';
 import {and,eq,sql} from 'drizzle-orm';
 import {z} from 'zod';
@@ -28,7 +29,7 @@ export const PATCH:APIRoute=async({request,url,params,locals})=>{
    await tx.execute(sql`select pg_advisory_xact_lock(719301)`);
    const [target]=await tx.select().from(authUser).where(eq(authUser.id,params.id!)).for('update');
    if(!target)throw new WorkflowError('没有找到这个账号。',404);
-   if(target.updatedAt.toISOString()!==input.expectedUpdatedAt)throw new WorkflowError('账号已被更新，请重新打开核对。输入已保留。',409);
+   if(target.updatedAt.toISOString()!==input.expectedUpdatedAt)throw new StaleWriteError('账号已被更新，请重新打开核对。输入已保留。');
    if(input.action==='status'&&!input.enabled){
     if(target.id===locals.user!.id)throw new WorkflowError('不能停用当前登录账号。',422);
     const admins=await tx.select({id:authUser.id}).from(authUser).where(and(eq(authUser.role,'admin'),eq(authUser.enabled,true)));

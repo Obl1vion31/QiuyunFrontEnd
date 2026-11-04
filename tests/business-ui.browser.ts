@@ -160,7 +160,7 @@ try {
     assert.deepEqual(readonly,{border:'dashed',fill:'rgb(248, 249, 251)'},'只读信息与可编辑字段明确区分');
     await inspector.locator('.correction summary').click();
     assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
-    await inspector.locator('[name=conclusion]').focus();await inspector.locator('[data-review-form][data-edit-lock=owned]').waitFor();await inspector.locator('[name=conclusion]').fill('尚未保存');assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
+    await inspector.locator('[name=conclusion]').focus();await inspector.locator('[data-review-form]').waitFor();await inspector.locator('[name=conclusion]').fill('尚未保存');assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await page.getByRole('link',{name:'待复盘',exact:true}).click();await answered;}assert.equal(new URL(page.url()).searchParams.get('view'),'history','取消离开保留当前视图');
     {const answered=respondToBusinessConfirm(page);await page.goBack();await answered;}await page.waitForURL((url:URL)=>url.searchParams.get('row')===`${ids[0]}:day_7`);assert.equal(new URL(page.url()).searchParams.get('row'),`${ids[0]}:day_7`);assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');
     {const answered=respondToBusinessConfirm(page);await inspector.locator('[data-close-inspector]').click();await answered;}assert.equal(await inspector.isVisible(),true,'未保存取消关闭');

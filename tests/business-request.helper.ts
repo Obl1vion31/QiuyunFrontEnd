@@ -1,7 +1,9 @@
 /** HTTP 回归按真实编辑协议取锁、写入、释放；未登录和跨站请求保持原样。 */
 import {randomUUID} from 'node:crypto';
 import {writeResources} from '../src/db/collaboration-resources';
+import {realtimeEditingEnabled} from '../src/db/editing-policy';
 export async function businessFetch(input: string | URL | Request, init?: RequestInit): Promise<Response> {
+  if(!realtimeEditingEnabled)return globalThis.fetch(input,init);
   const url=new URL(input instanceof Request?input.url:String(input));
   const method=(init?.method??'GET').toUpperCase(),headers=new Headers(init?.headers);
   if(['GET','HEAD','OPTIONS'].includes(method)||!headers.has('Cookie')||headers.get('Origin')!==url.origin||url.pathname.startsWith('/api/collaboration/'))return globalThis.fetch(input,init);

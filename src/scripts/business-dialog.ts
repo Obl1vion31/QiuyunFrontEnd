@@ -1,7 +1,17 @@
 import { navigate } from 'astro:transitions/client';
 
-export type ConfirmOptions = { title?:string; confirmLabel?:string; cancelLabel?:string };
-declare global { interface Window { businessConfirm:typeof businessConfirm; businessDateTime:(value:Date|string)=>string;__businessHistoryPop?:(event:PopStateEvent)=>boolean } }
+export type ConfirmOptions = { title?:string; confirmLabel?:string; cancelLabel?:string; dismissible?:boolean };
+declare global { interface Window { businessConfirm:typeof businessConfirm; businessDateTime:(value:Date|string)=>string;__businessHistoryPop?:(event:PopStateEvent)=>boolean;__businessConfirmedReload?:boolean } }
+/** 用户已确认放弃当前页输入，避免刷新时重复出现原生离开确认。 */
+export function reloadBusinessPage(){
+  window.__businessConfirmedReload=true;
+  document.dispatchEvent(new Event('business:navigation-discard'));
+  document.documentElement.dataset.unsaved='false';
+  // 他人完成复盘后记录可能已离开当前队列，刷新时退出过期详情，保留列表筛选。
+  const parameter=document.querySelector<HTMLElement>('[data-inspector].is-open')?.dataset.inspectorParameter;
+  if(parameter){const url=new URL(location.href);url.searchParams.delete(parameter);history.replaceState(history.state,'',url);}
+  location.reload();
+}
 let pending: Promise<boolean> | undefined;
 /** 同一时刻只显示一次确认；取消不会改变调用方的输入和选择。 */
 export function businessConfirm(message:string, options:ConfirmOptions = {}):Promise<boolean> {
@@ -13,15 +23,16 @@ export function businessConfirm(message:string, options:ConfirmOptions = {}):Pro
   const cancel=dialog.querySelector<HTMLButtonElement>('[data-confirm-cancel]')!;
   const accept=dialog.querySelector<HTMLButtonElement>('[data-confirm-accept]')!;
   cancel.textContent=options.cancelLabel??'继续编辑'; accept.textContent=options.confirmLabel??'放弃修改';
+  cancel.hidden=options.dismissible===false;
   pending=new Promise<boolean>(resolve=>{
     const finish=async(value:boolean)=>{
       dialog.removeEventListener('cancel',onCancel);cancel.onclick=null;accept.onclick=null;
       await closeBusinessDialog(dialog);pending=undefined;
       if(source?.isConnected)source.focus({preventScroll:true});resolve(value);
     };
-    const onCancel=(event:Event)=>{event.preventDefault();void finish(false);};
+    const onCancel=(event:Event)=>{event.preventDefault();if(options.dismissible!==false)void finish(false);};
     dialog.addEventListener('cancel',onCancel);cancel.onclick=()=>void finish(false);accept.onclick=()=>void finish(true);
-    dialog.showModal();cancel.focus({preventScroll:true});
+    dialog.showModal();(options.dismissible===false?accept:cancel).focus({preventScroll:true});
   });
   return pending;
 }
@@ -132,4 +143,4 @@ document.addEventListener('submit',async event=>{
   event.preventDefault();event.stopImmediatePropagation();
   if(await businessConfirm('有尚未保存的修改，是否放弃？')){document.dispatchEvent(new Event('business:navigation-discard'));document.documentElement.dataset.unsaved='false';form.requestSubmit();}
 },true);
-window.addEventListener('beforeunload',event=>{if(document.documentElement.dataset.unsaved==='true')event.preventDefault();});
+window.addEventListener('beforeunload',event=>{if(!window.__businessConfirmedReload&&document.documentElement.dataset.unsaved==='true')event.preventDefault();});

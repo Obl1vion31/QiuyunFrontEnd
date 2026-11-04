@@ -19,7 +19,7 @@ import {
 import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/promotion-validation';
 import { lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
 import { effectivePromotionStatus } from '../../db/promotion-state.mjs';
-import { WorkflowError } from '../../db/schedule-workflow';
+import { WorkflowError,StaleWriteError } from '../../db/schedule-workflow';
 
 export const prerender = false;
 
@@ -130,6 +130,7 @@ export const POST: APIRoute = async ({ request, url,locals }) => {
   try {
     const saved = await getDb().transaction(async (transaction) => {
       await lockPromotionWorkflow(transaction);
+      if(!result.data.fingerprint)throw new StaleWriteError('缺少保存版本，请刷新页面后继续。');
       return writePromotionDaily(transaction,result.data,locals.user!);
     });
 
@@ -146,7 +147,7 @@ export const POST: APIRoute = async ({ request, url,locals }) => {
     }
     return Response.json({ ok: true, id: saved.id, nextStatus: saved.nextStatus }, { status: 201 });
   } catch (error) {
-    if (error instanceof WorkflowError) return Response.json({ message: error.message }, { status: error.status });
+    if (error instanceof WorkflowError) return Response.json({ message: error.message,...(error.code?{code:error.code}:{}) }, { status: error.status });
     const postgresError = error as { code?: string;cause?:{code?:string} };
     if ((postgresError.code??postgresError.cause?.code) === '23505') {
       return Response.json({ message: '这一天已经完成复盘，或笔记 ID 已属于另一篇帖子，请刷新并核对。' }, { status: 409 });

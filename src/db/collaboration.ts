@@ -43,7 +43,7 @@ export async function canonicalResources(db:Database,resources:string[]):Promise
  }
  return [...new Set(result)].sort();
 }
-async function lockRoots(db:Database,resources:string[]){
+export async function lockWriteResources(db:Database,resources:string[]){
  for(const root of [...new Set(resources.map(value=>value.split(':').slice(0,2).join(':')))].sort())await db.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`edit:${root}`},0))`);
 }
 const revision=(token:string)=>createHash('sha256').update(token).digest('hex');
@@ -54,7 +54,7 @@ export async function leaseOccupants(db:Database,identity:LeaseIdentity,raw:stri
  return rows.filter(row=>resources.some(resource=>overlaps(resource,row.resource))).map(row=>({resource:row.resource,own:row.sessionId===identity.sessionId&&row.tabId===identity.tabId,name:row.role==='admin'?'Admin':row.name,role:row.role,revision:revision(row.token),expiresAt:row.expiresAt.toISOString(),field:positions.find(position=>position.sessionId===row.sessionId&&position.tabId===row.tabId)?.field??null}));
 }
 export async function acquireLeases(db:Database,identity:LeaseIdentity,raw:string[],now=new Date(),takeover?:Record<string,string>){
- const resources=await canonicalResources(db,raw);await lockRoots(db,resources);
+ const resources=await canonicalResources(db,raw);await lockWriteResources(db,resources);
  const existing=await db.select().from(s.businessEditLease).where(gt(s.businessEditLease.expiresAt,now));
  const conflicts=existing.filter(lease=>resources.some(resource=>overlaps(lease.resource,resource))&&(lease.sessionId!==identity.sessionId||lease.tabId!==identity.tabId));
  if(conflicts.length){
@@ -69,7 +69,7 @@ export async function acquireLeases(db:Database,identity:LeaseIdentity,raw:strin
  return leases;
 }
 export async function verifyLeases(db:Database,identity:LeaseIdentity,resources:string[],tokens:Record<string,string>,now=new Date()){
- await lockRoots(db,resources);
+ await lockWriteResources(db,resources);
  const leases=await db.select().from(s.businessEditLease).where(gt(s.businessEditLease.expiresAt,now));
  for(const resource of resources){const lease=leases.find(row=>overlaps(row.resource,resource)&&row.sessionId===identity.sessionId&&row.tabId===identity.tabId&&tokens[row.resource]===row.token&&(row.resource===resource||resource.startsWith(row.resource+':')));
   if(!lease||leases.some(row=>overlaps(row.resource,resource)&&(row.sessionId!==identity.sessionId||row.tabId!==identity.tabId)))throw new WorkflowError('编辑权限已失效，请重新取得编辑权并核对最新数据。输入已保留。',409);
@@ -83,7 +83,7 @@ export async function requestResources(db:Database,request:Request){
  return canonicalResources(db,writeResources(new URL(request.url).pathname,request.method,data));
 }
 export async function renewLeases(db:Database,identity:LeaseIdentity,tokens:Record<string,string>){
- const resources=Object.keys(tokens);await lockRoots(db,resources);
+ const resources=Object.keys(tokens);await lockWriteResources(db,resources);
  const rows=resources.length?await db.select().from(s.businessEditLease).where(inArray(s.businessEditLease.resource,resources)):[];
  const expiresAt=new Date(Date.now()+leaseTime),valid=rows.filter(row=>row.sessionId===identity.sessionId&&row.tabId===identity.tabId&&row.token===tokens[row.resource]&&row.expiresAt>new Date());
  if(valid.length)await db.update(s.businessEditLease).set({expiresAt}).where(inArray(s.businessEditLease.resource,valid.map(row=>row.resource)));

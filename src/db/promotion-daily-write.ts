@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
 import {testingCycleOn} from './promotion-cycles.mjs';
 /** 单条与批量复盘共用同一事务写入，调用方持有推广工作流锁。 */
@@ -52,7 +53,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     }
     const before = data.requestKey || data.fingerprint ? await promotionSnapshot(transaction, campaign.scheduleId) : null;
     if (!fingerprintChecked && data.fingerprint && timelineFingerprint(before) !== data.fingerprint)
-        throw new WorkflowError('推广记录已变化，请刷新后核对。');
+        throw new StaleWriteError('推广记录已变化，请刷新后核对。');
     if (campaign.platformNoteId && data.platformNoteId && campaign.platformNoteId !== data.platformNoteId)
         throw new WorkflowError('已有笔记 ID 不能在每日复盘中覆盖，请使用资料更正入口。', 422);
     if (!campaign.platformNoteId && !data.platformNoteId)

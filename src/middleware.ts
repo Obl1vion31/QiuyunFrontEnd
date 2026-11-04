@@ -4,13 +4,17 @@ import { getAuth } from './auth/auth';
 import { deniedResponse, requiresAdmin } from './auth/permissions';
 import {isBusinessWrite,runBusinessWrite} from './db/business-approvals';
 import {getDb,withDatabase} from './db/client';
-import {requestResources,verifyLeases} from './db/collaboration';
+import {requestResources,verifyLeases,lockWriteResources} from './db/collaboration';
+import {realtimeEditingEnabled,collaborationDisabledResponse} from './db/editing-policy';
 import {authUser,authSession} from './db/schema';
 import {and,eq,sql} from 'drizzle-orm';
-import {WorkflowError} from './db/schedule-workflow';
+import {WorkflowError,StaleWriteError} from './db/schedule-workflow';
 import {workflowErrorResponse} from './db/workflow-api';
+import {checkScheduleRequestVersion} from './db/schedule-write-version';
 
 export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
+  // 旧标签页仍可能轮询；退役接口在身份查询前返回，不再消耗协作数据库读写。
+  if(!realtimeEditingEnabled&&url.pathname.startsWith('/api/collaboration/'))return collaborationDisabledResponse();
   const protectedPath = url.pathname === '/business' || url.pathname.startsWith('/business/')
     || (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/'));
   if (!protectedPath && url.pathname !== '/login') return next();
@@ -51,12 +55,17 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
     const [account]=await tx.select({enabled:authUser.enabled}).from(authUser).where(eq(authUser.id,locals.user!.id)).for('share');
     const [session]=await tx.select({id:authSession.id}).from(authSession).where(and(eq(authSession.id,locals.session!.id),eq(authSession.userId,locals.user!.id)));
     if(!account?.enabled||!session)throw new WorkflowError('登录已失效，请重新登录。',401);
+    if(!realtimeEditingEnabled&&(request.headers.has('X-Edit-Tab')||request.headers.has('X-Edit-Leases')))throw new StaleWriteError('编辑方式已更新，请刷新页面后继续。');
     const resources=await requestResources(tx,request);
     if(resources.length){
+     if(!realtimeEditingEnabled)await lockWriteResources(tx,resources);
+     else{
      const tabId=request.headers.get('X-Edit-Tab');let tokens:Record<string,string>={};try{tokens=JSON.parse(request.headers.get('X-Edit-Leases')??'{}');}catch{}
      if(!tabId)throw new WorkflowError('页面已更新，请刷新后继续。当前输入已保留。',409);
      await verifyLeases(tx,{userId:locals.user!.id,sessionId:locals.session!.id,tabId},resources,tokens);
+     }
     }
+    if(!realtimeEditingEnabled)await checkScheduleRequestVersion(tx,request);
     return execute();
    }));}catch(error){response=workflowErrorResponse(error);}
   }else response=await execute();

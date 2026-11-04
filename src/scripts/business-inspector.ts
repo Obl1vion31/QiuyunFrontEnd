@@ -186,7 +186,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if(dirty()&&id!==selected){history.pushState({...history.state},'',currentUrl);void mayLeave().then(accepted=>{if(accepted)apply();});}
     else apply();
   }, { signal });
-  window.addEventListener('beforeunload', event => { if (dirty()) event.preventDefault(); }, { signal });
+  window.addEventListener('beforeunload', event => { if (!window.__businessConfirmedReload&&dirty()) event.preventDefault(); }, { signal });
   const guardNavigation = (event:Event) => {
     if (!dirty()) return;
     if(event instanceof MouseEvent && (event.button!==0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey))return;

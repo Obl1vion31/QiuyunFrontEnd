@@ -6,7 +6,7 @@ import { changeCheckpointState, checkpointActionSchema } from '../../db/non-prom
 import { workflowErrorResponse, workflowForm } from '../../db/workflow-api';
 import {z} from 'zod';
 import {addCustomNode,mutateCustomNode,reviewIdentity,anchorReviewPosts} from '../../db/non-promotion-plan';
-import {WorkflowError} from '../../db/schedule-workflow';
+import {WorkflowError,StaleWriteError} from '../../db/schedule-workflow';
 import * as s from '../../db/schema';
 import {operationsContent} from '../../db/schema';
 import {eq} from 'drizzle-orm';
@@ -41,6 +41,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
     }
     const input = await workflowForm(request, url, checkpointActionSchema);
     if (input.error) return input.error;
+    if(!form.has('expectedEventId'))throw new StaleWriteError('缺少节点版本，请刷新页面后继续。');
     await changeCheckpointState(getDb(), input.data!, locals.user!);
     return Response.json({ ok: true });
   } catch (error) { return workflowErrorResponse(error); }

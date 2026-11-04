@@ -125,7 +125,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
     if (saved.kind === 'missing') return Response.json({ message: '没有找到这条规划行。' }, { status: 404 });
     if (saved.kind === 'invalid-context') return Response.json({ message: '学科或帖子分类关系无效。' }, { status: 422 });
     if (saved.kind === 'conflict') {
-      return Response.json({ message: `规划行已更新到 V${saved.version}，请刷新后重试。` }, { status: 409 });
+      return Response.json({ code:'STALE_WRITE', message: `规划行已更新到 V${saved.version}，请刷新后重试。` }, { status: 409 });
     }
     return Response.json({ ok: true, version: saved.version, unchanged: saved.kind === 'unchanged' });
   } catch (error) {

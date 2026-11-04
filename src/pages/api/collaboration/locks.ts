@@ -1,4 +1,5 @@
 import type {APIRoute} from 'astro';
+import {realtimeEditingEnabled,collaborationDisabledResponse} from '../../../db/editing-policy';
 import {z} from 'zod';
 import {getDb} from '../../../db/client';
 import {acquireLeases,releaseLeases,renewLeases,canonicalResources,leaseOccupants} from '../../../db/collaboration';
@@ -9,6 +10,7 @@ export const prerender=false;
 const resourcesSchema=z.array(z.string().min(1).max(240)).max(200);
 const input=z.object({tabId:z.uuid(),resources:resourcesSchema.default([]),tokens:z.record(z.string(),z.uuid()).default({}),takeover:z.record(z.string(),z.string().regex(/^[a-f0-9]{64}$/)).optional()}).strict();
 const handle:APIRoute=async({request,url,locals})=>{
+ if(!realtimeEditingEnabled)return collaborationDisabledResponse();
  try{
   if(request.headers.get('origin')!==url.origin)throw new WorkflowError('拒绝跨站操作。',403);
   const data=input.parse(await request.json());
@@ -31,6 +33,7 @@ const handle:APIRoute=async({request,url,locals})=>{
  }catch(error){if(error instanceof z.ZodError)return Response.json({message:'编辑请求无效。'},{status:422});return workflowErrorResponse(error);}
 };
 export const GET:APIRoute=async({url,locals})=>{
+ if(!realtimeEditingEnabled)return collaborationDisabledResponse();
  try{
   const resources=resourcesSchema.parse(url.searchParams.getAll('resource')),tabId=z.uuid().parse(url.searchParams.get('tabId'));
   if(locals.user!.role!=='admin'&&resources.some(value=>value.startsWith('account:')||value==='taxonomy'))throw new WorkflowError('需要管理员权限。',403);

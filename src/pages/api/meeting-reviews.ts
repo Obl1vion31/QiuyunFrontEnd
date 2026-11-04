@@ -2,6 +2,7 @@ import {readWeeklyMaterial,selectWeeklyMaterial} from '../../db/meeting-weekly-m
 import {requireNewMonthlyPeriod} from '../../db/monthly-meeting';
 import {createMonthlyPlan,deleteUnpublishedMonthlyPlan} from '../../db/monthly-plans';
 import {workflowErrorResponse} from '../../db/workflow-api';
+import {StaleWriteError} from '../../db/schedule-workflow';
 import {defaultMeetingName} from '../../db/meeting-card-rules';
 import {readOpenMeetingIssues} from '../../db/meeting-snapshots';
 import {businessDate} from '../../db/promotion-wait-ranges';
@@ -44,15 +45,16 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 
 export const DELETE: APIRoute = async ({ request, url }) => {
   if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
-  let payload: { ids?: unknown };
+  let payload: { ids?: unknown;expectedUpdatedAt?:Record<string,string> };
   try { payload = await request.json(); } catch { return Response.json({ message: '请求格式无效。' }, { status: 400 }); }
   const ids = Array.isArray(payload.ids) ? [...new Set(payload.ids.filter((id): id is string => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 100) : [];
   if (!ids.length) return Response.json({ message: '请选择要删除的草稿。' }, { status: 422 });
   try {
     const deleted = await getDb().transaction(async (transaction) => {
-      const meetings = await transaction.select({ id: operationsReviewMeeting.id, status: operationsReviewMeeting.status })
+      const meetings = await transaction.select({ id: operationsReviewMeeting.id, status: operationsReviewMeeting.status, updatedAt:operationsReviewMeeting.updatedAt })
         .from(operationsReviewMeeting).where(inArray(operationsReviewMeeting.id, ids)).orderBy(operationsReviewMeeting.id).for('update');
       if (meetings.length !== ids.length) throw new Error('meeting-missing');
+      if(meetings.some(meeting=>payload.expectedUpdatedAt?.[meeting.id]!==meeting.updatedAt.toISOString()))throw new StaleWriteError();
       if (meetings.some((meeting) => meeting.status !== 'draft')) throw new Error('finalized-meeting');
       const existing=await transaction.select().from(versions).where(inArray(versions.meetingId,ids)).for('update');
       if(existing.some(v=>v.lifecycleStatus!=='draft'))throw new Error('finalized-meeting');
@@ -63,6 +65,7 @@ export const DELETE: APIRoute = async ({ request, url }) => {
     return Response.json({ ok: true, deleted: deleted.length });
   } catch (error) {
     if ((error as Error).message === 'meeting-missing') return Response.json({ message: '部分草稿已不存在，请刷新后重试。' }, { status: 404 });
+    if(error instanceof StaleWriteError)return workflowErrorResponse(error);
     if ((error as Error).message === 'finalized-meeting') return Response.json({ message: '已定稿会议不允许删除。' }, { status: 409 });
     console.error('meeting review delete failed', error);
     return Response.json({ message: '草稿删除失败，请稍后重试。' }, { status: 503 });

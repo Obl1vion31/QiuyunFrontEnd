@@ -1,4 +1,5 @@
 ---
+import {scheduleWriteVersion} from '../../db/schedule-write-version';
 import BusinessContentRoleFields from '../../components/BusinessContentRoleFields.astro';
 import MonthlyCalendarPlan from '../../components/MonthlyCalendarPlan.astro';
 import MonthlyScheduleFields from '../../components/MonthlyScheduleFields.astro';
@@ -107,7 +108,7 @@ const rowStatus = (row: { id: string; promotionStatus: string }) => {
 };
 const publishingState=(row:typeof rows[number])=>publicationState(row);
 let rows: Array<{
-  id: string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
+  id: string; writeVersion:string; versionId: string; contentId: string; versionNumber: number; sourceVersionId: string | null;
   workType: string; contentName: string; subjectId: string; subjectName: string; categoryId: string | null; categoryName: string | null;
   contentRole:import('../../db/content-roles').ContentRole|null;operationType:import('../../db/operation-types').OperationType|null; revisionSummary: string | null; projectDocUrl: string | null;
   syncToMoments: boolean; isPromoted: boolean; promotionStatus: string; plannedPublishAt: Date; actualPublishAt: Date | null;
@@ -117,7 +118,7 @@ const databaseStartedAt = performance.now();
 try {
   const database = getDb();
   [rows, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
-    id: operationsContentSchedule.id,
+    id: operationsContentSchedule.id,writeVersion:scheduleWriteVersion,
     versionId: operationsContentVersion.id,
     contentId: operationsContentVersion.contentId,contentRole:operationsContent.contentRole,operationType:operationsContent.operationType,
     versionNumber: operationsContentVersion.versionNumber,
@@ -361,7 +362,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           <div><span id="dialog-context" hidden>新建内容</span><h2 id="dialog-title">新做帖</h2></div>
           <div class="dialog-head-actions"><span class="dialog-version">V0</span><button type="button" class="close-button" data-close aria-label="关闭">×</button></div>
         </header>
-        <input type="hidden" name="recordId" /><input type="hidden" name="expectedPlanRevision" />
+        <input type="hidden" name="recordId" /><input type="hidden" name="expectedWriteVersion" /><input type="hidden" name="expectedPlanRevision" />
         <input type="hidden" name="sourceScheduleId" />
         <div class="sheet-body">
         <section class="source-preview" data-source-preview hidden></section><MonthlyScheduleFields/>
@@ -408,7 +409,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         <div class="sheet-body">
         <div class="publication-context"><strong data-publication-name></strong><span data-publication-planned></span></div>
         <div class="form-grid">
-          <input type="hidden" name="expectedPublicationRevision"/>
+          <input type="hidden" name="expectedPublicationRevision"/><input type="hidden" name="expectedWriteVersion"/>
           <BusinessDateTimeFields name="actualPublishAt" id="publicationActualPublishAt" dateName="actualPublishDate" timeName="actualPublishTime" dateLabel="发布日期" timeLabel="发布时间" label="发布时间" required><small data-publication-error="actualPublishAt"></small><div class="datetime-followup" data-correction-toggle hidden><label class="time-correction-toggle"><input type="checkbox" name="correctTime"/>更正已有实发时间</label></div></BusinessDateTimeFields>
           <div class="field field-wide publication-status-field"><label>完成情况</label><output class="status-preview" data-publication-status>待登记</output></div>
           <div class="field field-wide"><label for="publicationUrl">小红书帖子链接 <b data-publication-link-required>*</b></label><textarea id="publicationUrl" name="publicationUrl" rows="3" maxlength="4000" required placeholder="可直接粘贴小红书完整分享文案"></textarea><output data-publication-link-preview aria-live="polite"></output><small data-publication-error="publicationUrl"></small></div>
@@ -655,7 +656,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         }
         configureDateTime(field('plannedPublishAt'),{value:field('plannedPublishAt').value,readOnly:false});
         if(selectedDate)configureDateTime(field('plannedPublishAt'),{value:`${selectedDate}T${field('plannedPublishAt').value.split('T')[1]||'09:00'}`});
-        field('expectedPlanRevision').value = record?.planRevision ?? '';
+        field('expectedPlanRevision').value = record?.planRevision ?? '';field('expectedWriteVersion').value=record?.writeVersion??'';
         const planReason = document.querySelector('[data-plan-change-reason]');
         planReason.hidden = true; field('planChangeReason').required = false;
         updatePromotionPreview();
@@ -712,7 +713,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         try {
           const response = await fetch(`/api/operations-content/${record.id}`, {
             method: 'DELETE',
-            headers: { Accept: 'application/json' },
+            headers: { Accept: 'application/json','Content-Type':'application/json' },body:JSON.stringify({expectedWriteVersion:record.writeVersion}),
           });
           const result = await response.json();
           if (response.ok) {document.documentElement.dataset.unsaved='false'; window.location.reload(); return; }
@@ -763,7 +764,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         publicationControl('plannedPublishAt').value=record.plannedPublishAt;
         configureDateTime(publicationControl('actualPublishAt'),{value:record.actualPublishAt||''});
         publicationControl('projectDocUrl').value=record.projectDocUrl||'';publicationControl('publicationUrl').value=record.publicationUrl||'';
-        publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;
+        publicationControl('expectedWriteVersion').value=record.writeVersion;publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;
         updatePublicationFields();publicationDialog.showModal();
         publicationControl(record.actualPublishAt?'publicationUrl':'actualPublishDate').focus();
         document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));

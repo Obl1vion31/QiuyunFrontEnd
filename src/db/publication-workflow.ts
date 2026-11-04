@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {randomUUID} from 'node:crypto';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 import {promotionSnapshot} from './promotion-timeline';
@@ -20,7 +21,7 @@ import {switchContinuousReviewCycle,saveReviewPlan,reviewIdentity} from './non-p
 
 const historyEntry=(status:string,actor:OperationsUser,now:Date,reason:string|null=null)=>[{status,actorId:actor.id,actorLabel:actor.username,at:now.toISOString(),reason}];
 function checkRevision(schedule:{planRevision:number;publicationRevision:number},input:{expectedPlanRevision:number;expectedPublicationRevision:number}) {
-  if(schedule.planRevision!==input.expectedPlanRevision || schedule.publicationRevision!==input.expectedPublicationRevision)throw new WorkflowError('排期或发布记录已更新，请刷新后重试。');
+  if(schedule.planRevision!==input.expectedPlanRevision || schedule.publicationRevision!==input.expectedPublicationRevision)throw new StaleWriteError('排期或发布记录已更新，请刷新后重试。');
 }
 /** 统一发布登记；允许定时发布的未来时间，保存后直接已发送。 */
 export async function registerPublication(db:Database,id:string,input:z.infer<typeof publicationSchema>,dailyReasons:z.infer<typeof reasonSchema>[],confirmReset:boolean,actor:OperationsUser,now=new Date()) {

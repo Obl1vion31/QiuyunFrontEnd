@@ -12,6 +12,6 @@ export const PATCH:APIRoute=async({request,url,locals})=>{
   try{
     const parsed=input.safeParse(await request.json());if(!parsed.success)return Response.json({message:'请选择完整且有效的账号权限。'},{status:422});
     const saved=await updateAccountPermissions(getDb(),locals.user!,parsed.data.userId,parsed.data.permissions as Parameters<typeof updateAccountPermissions>[3],parsed.data.expected as Parameters<typeof updateAccountPermissions>[4]);
-    return saved?Response.json({ok:true}):Response.json({message:'权限已被其他管理员更新，请刷新后重试。'},{status:409});
+    return saved?Response.json({ok:true}):Response.json({code:'STALE_WRITE',message:'权限已被其他管理员更新，请刷新后重试。'},{status:409});
   }catch(error){return workflowErrorResponse(error);}
 };

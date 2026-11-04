@@ -1,3 +1,4 @@
+import {StaleWriteError} from './schedule-workflow';
 import {eq} from 'drizzle-orm';
 import type {Database} from './client';
 import {WorkflowError,type Transaction} from './schedule-workflow';
@@ -27,7 +28,7 @@ export async function saveFinalReviewDate(db:Reader,scheduleId:string,final:stri
  if(authorize)await authorize();
  await db.select({id:s.operationsContent.id}).from(s.operationsContent).where(eq(s.operationsContent.id,row.content.id)).for('update');
  const [plan]=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,row.content.id));
- if((plan?.revision??-1)!==expected)throw new WorkflowError('复盘配置已更新，请刷新核对。');
+ if((plan?.revision??-1)!==expected)throw new StaleWriteError('复盘配置已更新，请刷新核对。');
  const metrics=await db.select().from(s.operationsContentPerformanceMetric).where(eq(s.operationsContentPerformanceMetric.scheduleId,scheduleId));
  if(metrics.some(m=>m.recordedThrough>final))throw new WorkflowError('最终日期不能早于已保存结果的截止日。',422);
  if(!row.schedule.actualPublishAt&&final<shanghaiDateKey(row.schedule.plannedPublishAt))throw new WorkflowError('最终复盘日期不能早于应发日期。',422);

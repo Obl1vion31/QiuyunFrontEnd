@@ -21,7 +21,7 @@ function PlanQuantity({name,value,max,disabled,onChange}:{name:string;value:numb
 export default function MonthlyPlanEditor({draft,material,editable,onChange,onConfirm}:{draft:MonthlyPlanDraft;material:MonthlyMeetingMaterial;editable:boolean;onChange:(next:MonthlyPlanDraft)=>void;onConfirm?:(next:MonthlyPlanDraft)=>Promise<boolean>}){
  const [locked,setLocked]=useState(!!material.plan?.lockedAt),[finalized,setFinalized]=useState(!!material.plan?.firstFinalizedAt);
  const [effectiveBatches,setEffectiveBatches]=useState(material.plan?.effectiveBatchIds??[]),[execution,setExecution]=useState(material.executionPlan?.items);
- const [revision,setRevision]=useState(material.plan?.revision??draft.expectedRevision),[canonicalAdditions,setCanonicalAdditions]=useState<MonthlyPlanDraft['additions']>([]);
+ const [revision]=useState(draft.expectedRevision),[canonicalAdditions,setCanonicalAdditions]=useState<MonthlyPlanDraft['additions']>([]);
  const [message,setMessage]=useState(''),[busy,setBusy]=useState(false),[holding,setHolding]=useState<Record<string,Step>>({});
  const [drag,setDrag]=useState<string|null>(null),[dragTarget,setDragTarget]=useState<string|null>(null),[annualSource,setAnnualSource]=useState('');
  const taxonomy=material.operations.taxonomy,host=useRef<HTMLElement>(null);
@@ -35,7 +35,7 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
     const response=await fetch('/api/monthly-plans?month='+material.executionMonth,{signal:read.signal}),result=await response.json();
     if(!response.ok)throw new Error(result.message);return result;
    },{signal:controller.signal});
-   if(result?.plan){setExecution(result.plan.items);setLocked(!!result.plan.lockedAt);setFinalized(!!result.plan.firstFinalizedAt);setCanonicalAdditions(result.plan.additions);setEffectiveBatches(result.plan.additions.map((b:{id:string})=>b.id));setRevision(result.plan.revision);}
+   if(result?.plan){setExecution(result.plan.items);setLocked(!!result.plan.lockedAt);setFinalized(!!result.plan.firstFinalizedAt);setCanonicalAdditions(result.plan.additions);setEffectiveBatches(result.plan.additions.map((b:{id:string})=>b.id));}
   })().catch(e=>setMessage('读取计划状态失败：'+e.message+'，输入已保留。'));
   return()=>controller.abort();
  },[editable,draft.id]);

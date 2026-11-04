@@ -8,6 +8,7 @@ import {campaignPauseWindows,campaignWaitWindows,countPromotionDays,dateInWindow
 import {calculateActualPromotionCosts,nextDateKey,previousDateKey,promotionStageShares} from './promotion-rules.mjs';
 
 export interface PromotionFact {
+ updatedAt?:Date|string;
  id:string;campaignId:string;metricDate:string;dailyStatus:string;stageTypeSnapshot:string;
  spend:string|number;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;
  reviewDecision:string;note:string|null;actualStatusSnapshot?:string|null;recordKind?:string;sourceStageStartedOn?:string|null;

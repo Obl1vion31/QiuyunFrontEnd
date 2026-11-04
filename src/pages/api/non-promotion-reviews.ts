@@ -180,8 +180,8 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       return { kind: 'saved' as const, id: review.id, versionNumber,fingerprint:await readNonPromotionFingerprint(transaction,result.data.scheduleId,result.data.checkpointType) };
     });
     if (saved.kind === 'invalid-schedule') return Response.json({ message: '只能复盘已实发、当前分类允许复盘的非推广内容。' }, { status: 409 });
-    if(saved.kind==='interval-changed')return Response.json({message:'统计区间已更新或属于旧口径，请刷新核对；原数据只读保留。'},{status:409});
-    if(saved.kind==='conflict')return Response.json({code:'STALE_RECORD',message:'这条复盘已发生变化，当前输入已保留。请刷新页面核对最新记录后再填写。'},{status:409});
+    if(saved.kind==='interval-changed')return Response.json({code:'STALE_WRITE',message:'统计区间已更新或属于旧口径，请刷新核对；原数据只读保留。'},{status:409});
+    if(saved.kind==='conflict')return Response.json({code:'STALE_WRITE',message:'这条复盘已发生变化，当前输入已保留。请刷新页面核对最新记录后再填写。'},{status:409});
     if(saved.kind==='date-window')return Response.json({message:`数据截止日须在 ${saved.min} 至 ${saved.max}，且只能填写昨天及以前的数据。`,fields:{recordedThrough:['请选择窗口内的历史日期']}},{status:422});
     if (saved.kind === 'note-id-required') return Response.json({ message: '首次保存复盘前，请填写这篇帖子的小红书笔记 ID。', fields: { platformNoteId: ['请填写笔记 ID'] } }, { status: 422 });
     if (saved.kind === 'skipped') return Response.json({ message: '请先恢复这个节点，再补录复盘。' }, { status: 409 });

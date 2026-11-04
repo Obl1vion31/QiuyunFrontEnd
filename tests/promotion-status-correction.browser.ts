@@ -28,7 +28,7 @@ try{
   const metric=(item:typeof items[number])=>page.locator(`#daily-table [data-metric-form][data-schedule-id="${item.post.id}"]`);
   const save=async(form:any,target:string,reason:string)=>{
    const bubble=page.locator('[data-day-state-form]:visible');await bubble.locator('[name=targetStatus]').selectOption(target);await bubble.locator('[name=reason]').fill(reason);
-   const response=page.waitForResponse((r:any)=>r.url().endsWith('/api/promotion-timeline')&&r.request().method()==='POST');await bubble.locator('[type=submit]').click();const result=await response;assert.equal(result.status(),200,await result.text());
+   const [result]=await Promise.all([page.waitForResponse((r:any)=>r.url().endsWith('/api/promotion-timeline')&&r.request().method()==='POST'),bubble.locator('[type=submit]').click()]);assert.equal(result.status(),200,await result.text());
    await page.waitForFunction(({scheduleId,target}:{scheduleId:string;target:string})=>document.querySelector(`#daily-table [data-metric-form][data-schedule-id="${scheduleId}"]`)?.getAttribute('data-actual-status')===target,{scheduleId:await form.getAttribute('data-schedule-id'),target});
    await bubble.locator('[data-state-message]').filter({hasText:'变更已保存'}).waitFor();await page.waitForLoadState('networkidle');
   };
@@ -65,4 +65,4 @@ try{
  const snapshot=[];
  for(const item of items){const [campaign]=await fixture.db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,item.campaign.id));assert.equal(campaign.currentStatus,item.stage);assert.equal(campaign.endedOn,null);snapshot.push({stage:item.stage,endedOn:campaign.endedOn});}
  await writeFile(folder+'/results.json',JSON.stringify({checks,snapshot,isolatedData:true},null,2));console.log(JSON.stringify({passed:true,checks:checks.length,widths:[1440,1024,390,320],isolatedData:true}));
-}catch(error){console.error(fixture.logs());throw error;}finally{if(browser)await browser.close();await fixture.stop();}
+}catch(error){if(browser)for(const [i,context]of browser.contexts().entries())for(const [j,page]of context.pages().entries()){await page.screenshot({path:`${folder}/failure-${i}-${j}.png`});await writeFile(`${folder}/failure-${i}-${j}.json`,JSON.stringify(await page.evaluate(()=>({url:location.href,dialog:document.querySelector('[data-business-confirm][open]')?.textContent,forms:[...document.querySelectorAll<HTMLFormElement>('[data-metric-form],[data-day-state-form]')].map(f=>({data:{...f.dataset},message:f.querySelector('[data-state-message],output')?.textContent,valid:f.checkValidity()}))})),null,2));}console.error(fixture.logs());throw error;}finally{if(browser)await browser.close();await fixture.stop();}

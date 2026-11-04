@@ -49,7 +49,7 @@ try {
   await request('/api/operations-annual-plans/year/2026/copy', 'POST', { targetYear: 2027 }, cookie, 409);
   const concurrent = await Promise.all([0, 1].map(() => fetch(baseURL + '/api/operations-annual-plans/year/2026/copy', { method: 'POST', headers: { Origin: baseURL, Cookie: cookie, 'Content-Type': 'application/json' }, body: JSON.stringify({ targetYear: 2028 }) })));
   assert.deepEqual(concurrent.map(response => response.status).sort(), [201, 409]);
-  await request('/api/operations-annual-plans/year/2029', 'PATCH', { instructions: '已有年度说明' }, cookie, 200);
+  await request('/api/operations-annual-plans/year/2029', 'PATCH', { instructions: '已有年度说明', expectedUpdatedAt:null }, cookie, 200);
   await request('/api/operations-annual-plans/year/2026/copy', 'POST', { targetYear: 2029 }, cookie, 409);
   assert.equal((await db.select().from(plans).where(eq(plans.year, 2029))).length, 0);
   const renamedInput={...row('旧分类恢复验收',[],'non-promotional-handout'),year:2032,subjectId:'interview',sectionKey:'subject:interview',sectionLabel:'面试课 细致规划'};

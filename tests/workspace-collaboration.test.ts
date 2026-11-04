@@ -65,13 +65,13 @@ test('真实复盘保存拒绝旧页面覆盖与未来日期，保留当前指�
  const [metric]=await db.select().from(s.operationsContentPerformanceMetric).where(eq(s.operationsContentPerformanceMetric.scheduleId,schedule.id));assert.equal(Number(metric.clickRate),9);
  assert.equal((await db.select().from(s.operationsNonPromotionReviewVersion)).length,2);
 });
-test('位置接口拒绝输入值，员工不能读取人员位置，管理员响应只有位置元数据',async()=>{
+test('停用的位置接口对两种角色均返回410，不再保存或返回人员位置',async()=>{
  const payload={tabId:identity.tabId,page:'non-promotion-review',resource:`schedule:${schedule.id}:non:day_7`,field:'点击率',label:'隔离并发复盘',visible:true};
  const request=(data:unknown)=>({request:new Request(origin+'/api/collaboration/presence',{method:'PUT',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(data)}),url:new URL(origin+'/api/collaboration/presence'),locals:{user:employee,session:{id:identity.sessionId}}} as any);
- assert.equal((await withDatabase(db,async()=>putPresence(request({...payload,value:'123'})))).status,422);
- assert.equal((await withDatabase(db,async()=>putPresence(request(payload)))).status,200);
- assert.equal((await withDatabase(db,async()=>readPresence({url:new URL(origin+'/api/collaboration/presence'),locals:{user:employee}} as any))).status,403);
- const result=await withDatabase(db,async()=>readPresence({url:new URL(origin+'/api/collaboration/presence'),locals:{user:admin}} as any));const data=await result.json();assert.equal(data.rows[0].field,'点击率');assert.ok(!JSON.stringify(data).includes('password'));assert.ok(!('value'in data.rows[0]));
+ assert.equal((await withDatabase(db,async()=>putPresence(request({...payload,value:'123'})))).status,410);
+ assert.equal((await withDatabase(db,async()=>putPresence(request(payload)))).status,410);
+ for(const user of [employee,admin]){const result=await withDatabase(db,async()=>readPresence({url:new URL(origin+'/api/collaboration/presence'),locals:{user}} as any));assert.equal(result.status,410);assert.equal((await result.json()).code,'COLLABORATION_DISABLED');}
+ assert.equal((await db.select().from(s.businessPresence)).length,0);
 });
 test('账号重置撤销旧会话，停用阻止登录，姓名更新保留账号身份',async()=>{
  const manage=async(payload:Record<string,unknown>)=>{

@@ -1,3 +1,4 @@
+import {StaleWriteError} from '../../db/schedule-workflow';
 import type {APIRoute} from 'astro';
 import {z} from 'zod';
 import {getDb} from '../../db/client';
@@ -20,8 +21,8 @@ export const POST:APIRoute=async({request,url,locals})=>{
   const [repeat]=await tx.select().from(audits).where(eq(audits.requestKey,parsed.data.requestKey));
   if(repeat){if(repeat.changedById!==locals.user!.id||repeat.reason!==parsed.data.reason||((repeat.after as any).meetingDecision?.action==='restart_testing'?'restart_testing':(repeat.after as any).meetingDecision?.targetStatus)!==parsed.data.targetStatus||(repeat.after as any).meetingDecision?.id!==parsed.data.id)throw new WorkflowError('请求已被使用。');return;}
   const context=await readPromotionContext(tx),decision=context.meetingDecisions.find(d=>d.id===parsed.data.id);
-  if(!decision)throw new WorkflowError('例会决定已变化，请刷新后核对。');
-  if((decision.action==='restart_testing'?'restart_testing':decision.targetStatus)!==parsed.data.expectedTargetStatus||decision.versionNumber!==parsed.data.expectedVersionNumber)throw new WorkflowError('例会安排已被更新，请刷新后核对。');
+  if(!decision)throw new StaleWriteError('例会决定已变化，请刷新后核对。');
+  if((decision.action==='restart_testing'?'restart_testing':decision.targetStatus)!==parsed.data.expectedTargetStatus||decision.versionNumber!==parsed.data.expectedVersionNumber)throw new StaleWriteError('例会安排已被更新，请刷新后核对。');
   const today=shanghaiDateKey(new Date());
   if(decision.effectiveOn<today||context.metrics.some(m=>m.campaignId===decision.campaignId&&m.metricDate>=decision.effectiveOn))throw new WorkflowError('该安排已有历史事实，请通过历史更正入口核对，不能覆盖指标。',422);
   const campaign=context.campaigns.find(c=>c.id===decision.campaignId)!;
