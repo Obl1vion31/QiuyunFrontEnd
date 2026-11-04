@@ -186,7 +186,7 @@ flowchart LR
 
 ### 协作与来源准备接入
 
-- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，申请中允许本地输入，写请求等待对应资源的pending；续期以请求时的页面与token核对响应，离开清理本地持有状态并等待释放，返回／可见时立即核实。自然过期仅以普通申请衔接空闲对象并复用`business:edit-reclaimed`核对业务数据；他人有效占用或已确认失锁保持公共接管确认。Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
+- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，申请中允许本地输入，写请求等待对应资源的pending；续期及业务保存回执以请求时的页面与token核对响应，离开清理本地持有状态并等待释放，返回／可见时合并恢复任务并立即核实，取消挂起的协作GET／PATCH／位置PUT，取锁及释放仍按原顺序；协作请求设置有限等待，保存等待本次恢复，避免后台旧响应中断新权。自然过期仅以普通申请衔接空闲对象并复用`business:edit-reclaimed`核对业务数据；他人有效占用或已确认失锁保持公共接管确认。Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
 - `collaboration-resources.ts` 的写入目标映射由浏览器和服务端共用，`collaboration.ts` 把活动、指标、内容版本等映射到稳定排期身份；服务端在写事务内验证租约，原业务版本检查继续保留。新增写入口同步检查映射及实际表单聚焦状态。
 - `meeting-readiness.ts` 共用例会缺项口径，`promotion-review-required.ts` 共用日度应填日期；例会仅引用 `non-promotion-record.ts` 指纹对应的正式事实。准备区只提供原入口链接，不能重新复制指标表单。
 - `BusinessPostLookup` 与 `post-lookup.ts` 只读查帖；动态生成的结果使用专用全局样式，避免 Astro 作用域属性缺失导致后加载节点无样式。
@@ -265,3 +265,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 周度总览读取`meeting-report-metrics`的全量事实，原summary及阶段卡语义保持。`WeeklyResultOverview`和`ReportCharts`负责差值与真实日期走势；新增字段仅进入新快照。`MonthlyOperationsCharts`由共享发布及投入面板组成：月度运营继续双图并接定位回调，月会将发布与四张执行数字卡并排，投入移到分类区，避免复制图形或让表单按钮规则覆盖只读图例。`MonthlyReportVisuals`消费同一空跑与分类读模型，周构成及可选的五个月空跑序列保留在月度材料中，历史序列复用一次事实读取按月份构建；PDF复用组件及编译后图表样式。空跑来源预览5／3条，金额默认仅本月；标题旁WeeklyCardDetails info以当前行作为boundary，完整资料与整轮依据按需显示。只读资料触发器带键盘语义，在禁用编辑fieldset中仍可读取，不参与导航。完整冻结名单通过页面公共Sheet显示，保持相同排序和行布局，正文一层滚动、关闭回原按钮；打印另输出资料链接。周会`leadCostTrend`从真实定稿选出的同原帖同阶段记录构建，按版本／区间去重，不直接使用含累计摘要的`ownHistory`；图点通过共享资料气泡支持悬停、键盘和点击。
 
 首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。
+
+月计划快捷接入：`compactPlanItems`只合并同来源／种类且无独立排期或审批进展的展示，不改变ID。编辑及只读Week板共用分组；`WeeklyCardDetails variant="actions"`复用公共176px动作气泡。×菜单逐篇移回／删除并返回来源焦点，删除同步减组数量且保留原帖子；已提交／生效／锁定继续保护。`confirmed`可保存未分完的草稿，拖动剩余自动回到分周；会后定稿仍走服务端完整性校验。

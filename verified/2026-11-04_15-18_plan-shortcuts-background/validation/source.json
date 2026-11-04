@@ -1,0 +1,16 @@
+{
+  "base": "1ddd1845dff0482ca3b9ed1d6a89125195916a25",
+  "hashes": {
+    "src/components/MonthlyPlanEditor.tsx": "059b888b17cd7790db29b6ddd3d6a46e82b9aa9e994a4b42253444d654425e90",
+    "src/components/MonthlyPlanSummary.tsx": "6c80435e0edb48c10d399ac49908f1c8f864680b8d880573779dad8812f9e79e",
+    "src/components/WeeklyCardDetails.tsx": "3be563eaeee57acb840dbd38a6ac57e5c03550ce839286ab124c6387b50fd1c1",
+    "src/db/monthly-plan-types.ts": "81721e841cdc1c62d8f1fc03748a9926c50d24079d4c83a6938cd455f25870b9",
+    "src/scripts/business-collaboration.ts": "5e27e25eb7cc3d8a86751f96f45eb47c2de4c92e0824c032b30629c1947bd686",
+    "src/styles/monthly-meeting.css": "e061cbcfa50307cb4fa471b46d5354e91bcc74d4aaf44d972da6565d5656c0e9"
+  },
+  "screenshots": 35,
+  "videoFrames": 103,
+  "rules": 261,
+  "databaseMigrations": false,
+  "productionBusinessWrites": false
+}

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import MonthlyPlanSummary from '../src/components/MonthlyPlanSummary';
-import type {PlanContent} from '../src/db/monthly-plan-types';
+import {compactPlanItems,type PlanContent} from '../src/db/monthly-plan-types';
 
 const content:PlanContent={groups:[{id:'g',annualPlanId:null,annualVersion:null,name:'TMUA 案例',subjectId:'tmua',categoryId:'success-story',quantity:3,note:'',reason:''}],items:[{id:'one',groupId:'g',week:1,kind:'carry',scheduleId:'old'},{id:'two',groupId:'g',week:1,kind:'existing',scheduleId:'future'},{id:'three',groupId:'g',week:2,kind:'new',scheduleId:null}]};
 test('周次汇总使用真实登记，不将未来登记算未登记，遗留仍包含在总数中',()=>{
@@ -16,4 +16,15 @@ test('旧材料缺少已关联排期状态时保持未知，不伪造未登记�
 test('同名不同规划组不合并，未分周名额有独立入口',()=>{
  const next:PlanContent={groups:[...content.groups,{...content.groups[0],id:'other'}],items:[...content.items,{...content.items[2],id:'four',groupId:'other',week:null}]};
  const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content:next}));assert.equal((html.match(/data-plan-project=/g)||[]).length,3);assert.match(html,/>待分配<\/h3>/);
+});
+
+test('同周同来源空名额合并计数，已关联的不同帖子保持独立',()=>{
+ const next:PlanContent={...content,items:[...content.items,{...content.items[2],id:'four'}]};
+ const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content:next,cards:true}));
+ assert.equal((html.match(/data-plan-project=/g)||[]).length,3);assert.match(html,/×2/);assert.match(html,/data-plan-count="2"/);
+});
+
+test('已提交或有落实记录的名额独立显示，不把审批进展藏入合并卡',()=>{
+ const items=[content.items[2],{...content.items[2],id:'other'}];
+ assert.equal(compactPlanItems(items,new Set(['other'])).length,2);
 });
