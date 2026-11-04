@@ -1,6 +1,6 @@
 # 暂停实时编辑共享，保存时检查冲突
 
-状态：已自检，待发布。数据均为隔离样本。源码基线为`d0bae7a`，工作分支`codex/optimistic-editing`；实际源码摘要见[版本记录](validation/source.json)。本次沿用 Impeccable 的交互与视觉检查，未接入 Unslop 候选。
+状态：已自检并发布。数据均为隔离样本。源码基线为`d0bae7a`，应用`f4a470b`已同步main；实际源码摘要见[版本记录](validation/source.json)。本次沿用 Impeccable 的交互与视觉检查，未接入 Unslop 候选。
 
 - 编辑姓名、字段占用、位置、接管及轮询／取锁／续期统一暂停，旧协作接口直接410；原表和实现保留。
 - 多人可同时填写，保存事务内比较原版本，先保存者生效；整帖包含子版本、推广指标及非推广节点。批量任一冲突整批回滚，幂等、权限和审批保留。
@@ -25,4 +25,4 @@
 
 [操作录像1](video/operation-1.mp4) · [操作录像2](video/operation-2.mp4) · [操作录像3](video/operation-3.mp4)。三段均为真实浏览器操作，已审查17个连续取样帧；固定视口截图另行查看。实际运行包月会5页、周会3页PDF已逐页渲染检查：[月会](review/pdf-monthly.jpg) · [周会](review/pdf-weekly.jpg)。
 
-发布核对归入`release/`；不包含生产虚构写入或数据库迁移。
+正式部署`dpl_5uPwrF2tb1AEkZdTAdEx4CkE2P6R`为READY，正式域名解析到同一部署。[候选16项](release/candidate-smoke.json)、[正式131项及87个资源哈希](release/public-smoke.json)通过；协作两接口所有方法410，真实同源表单401、跨站403，发布不包含生产虚构写入或数据库迁移。旧标签页刷新一次加载新脚本。
