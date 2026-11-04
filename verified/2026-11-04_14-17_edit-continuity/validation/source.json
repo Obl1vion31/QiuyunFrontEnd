@@ -1,0 +1,13 @@
+{
+  "base": "95bba67a1a3b509d338091a56a54bb6d3ea0df46",
+  "hashes": {
+    "src/scripts/business-collaboration.ts": "4fb4ebdda833b60ba96ce43fd271ae58da93ca1445bb798737a0d950b6cb20e7",
+    "tests/collaboration-continuity.browser.ts": "7c106f4f977bcad26214f4b0ba011df709766562941819d0b9000bb3fd37f85b",
+    "tests/collaboration-lookup.browser.ts": "838bb67e5a58678504f23cd4a22ff36b2fae36133da8d773ce7a3772e7f59eb4"
+  },
+  "screenshots": 45,
+  "videoFrames": 62,
+  "rules": 259,
+  "databaseMigrations": false,
+  "productionBusinessWrites": false
+}

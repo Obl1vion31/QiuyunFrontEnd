@@ -1,0 +1,7 @@
+
+> qiuyun-frontend-system@0.1.0 db:check /home/obl1vion/projects/qiuyunFrontend/.tools/releases/collaboration-lease-20261104
+> drizzle-kit check
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/obl1vion/projects/qiuyunFrontend/.tools/releases/collaboration-lease-20261104/drizzle.config.ts'
+Everything's fine 🐶🔥

@@ -186,7 +186,7 @@ flowchart LR
 
 ### 协作与来源准备接入
 
-- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，申请中允许本地输入，写请求等待对应资源的pending；Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
+- `BusinessConsoleFrame` 统一接入查帖、协作脚本和协作样式。编辑容器用 `data-collaboration-resource` 声明对象、`data-collaboration-label` 声明业务名称；共享脚本负责编辑入口取锁、范围占用查询、续期、确认接管及释放，不复制页面专用轮询。有效租约决定禁用，申请中允许本地输入，写请求等待对应资源的pending；续期以请求时的页面与token核对响应，离开清理本地持有状态并等待释放，返回／可见时立即核实。自然过期仅以普通申请衔接空闲对象并复用`business:edit-reclaimed`核对业务数据；他人有效占用或已确认失锁保持公共接管确认。Presence 只描述位置；`business:edit-reclaimed` 通过 `detail.waitUntil(promise)` 等待当前对象读取最新保存值，旧草稿冲突时保留并阻止静默覆盖。
 - `collaboration-resources.ts` 的写入目标映射由浏览器和服务端共用，`collaboration.ts` 把活动、指标、内容版本等映射到稳定排期身份；服务端在写事务内验证租约，原业务版本检查继续保留。新增写入口同步检查映射及实际表单聚焦状态。
 - `meeting-readiness.ts` 共用例会缺项口径，`promotion-review-required.ts` 共用日度应填日期；例会仅引用 `non-promotion-record.ts` 指纹对应的正式事实。准备区只提供原入口链接，不能重新复制指标表单。
 - `BusinessPostLookup` 与 `post-lookup.ts` 只读查帖；动态生成的结果使用专用全局样式，避免 Astro 作用域属性缺失导致后加载节点无样式。

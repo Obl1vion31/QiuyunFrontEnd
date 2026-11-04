@@ -55,7 +55,8 @@
     "test:monthly": "node --import tsx tests/monthly-operations.browser.ts && node --import tsx tests/monthly-delay.browser.ts",
     "test:first-paint": "node --import tsx tests/business-first-paint.browser.ts",
     "test:monthly-workflow": "node --import tsx tests/monthly-workflow.integration.ts && node --import tsx tests/monthly-workflow.browser.ts",
-    "test:monthly-workflow:postgres": "node --import tsx tests/monthly-workflow.postgres.ts"
+    "test:monthly-workflow:postgres": "node --import tsx tests/monthly-workflow.postgres.ts",
+    "test:collaboration-continuity": "node --import tsx tests/collaboration-continuity.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

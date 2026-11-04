@@ -12,10 +12,11 @@ if(!state.__collaborationReady){
  state.__collaborationReady=true;
  const tabId=crypto.randomUUID(),baseFetch=window.fetch.bind(window),leases=new Map<string,Lease>(),aliases=new Map<string,string[]>(),sources=new Map<string,HTMLElement>(),pending=new Map<string,Promise<void>>(),lost=new Set<string>();
  let active:Scope|undefined,field:string|null=null,lastPresence=0,polling=false,occupants:Occupant[]=[],confirming=false;
+ let pageVersion=0,leaseVersion=0,releasing:Promise<void>=Promise.resolve(),renewing:Promise<void>|undefined;
  const page=()=>location.pathname.split('/').at(-1)!;
  const admin=()=>document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole==='admin';
  const visible=(element:HTMLElement)=>element.isConnected&&element.dataset.collaborationActive!=='false'&&!element.closest('[hidden],dialog:not([open]),astro-island[ssr]')&&element.getClientRects().length>0;
- const json=async(path:string,method:string,body?:unknown)=>{const res=await baseFetch(path,{method,headers:{'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await res.json();if(!res.ok)throw Object.assign(new Error(data.message??'协作服务暂时不可用'),{status:res.status});return data;};
+ const json=async(path:string,method:string,body?:unknown,keepalive=false)=>{const res=await baseFetch(path,{method,keepalive,headers:{'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await res.json();if(!res.ok)throw Object.assign(new Error(data.message??'协作服务暂时不可用'),{status:res.status});return data;};
  const fieldName=(node:Element)=>(node.getAttribute('aria-label')??node.closest('label')?.childNodes[0]?.textContent??node.getAttribute('name')??'字段').trim().slice(0,80);
  const isField=(node:Element)=>node.matches('input:not([type=hidden]):not([type=search]):not([readonly]),textarea:not([readonly]),select');
  function scopeFor(node:Element):Scope|undefined{
@@ -66,23 +67,26 @@ if(!state.__collaborationReady){
   for(const [raw,keys]of aliases)if(keys.includes(key)){lost.add(raw);const element=sources.get(key);if(element)render({resource:raw,label:element.dataset.collaborationLabel??'当前记录',element});}
   lost.add(key);renderRelated(key);
  };
- const release=async(keys:string[])=>{
+ const release=async(keys:string[],keepalive=false)=>{
   const tokens=Object.fromEntries(keys.flatMap(key=>leases.has(key)?[[key,leases.get(key)!.token]]:[]));
-  for(const key of keys){leases.delete(key);sources.delete(key);}
+  if(keys.length)leaseVersion++;
+  for(const key of keys){const element=sources.get(key);if(element)delete element.dataset.editEntered;leases.delete(key);sources.delete(key);}
   for(const [raw,values]of aliases)if(values.some(key=>keys.includes(key))){aliases.delete(raw);if(active?.resource===raw){active=undefined;field=null;}}
-  if(keys.length)try{await json('/api/collaboration/locks','DELETE',{tabId,resources:keys,tokens});}catch{/* 关闭页失联时由现有租约到期释放。 */}finally{for(const key of keys)renderRelated(key);}
+  if(keys.length){releasing=releasing.then(()=>json('/api/collaboration/locks','DELETE',{tabId,resources:keys,tokens},keepalive)).catch(()=>{/* 关闭页失联时由现有租约到期释放。 */});await releasing;for(const key of keys)renderRelated(key);}
  };
- async function ensure(scope:Scope,takeover?:Record<string,string>){
+ async function ensure(scope:Scope,takeover?:Record<string,string>,resuming=false){
   if(isLost(scope.resource)&&takeover===undefined)throw new Error('当前输入已保留，请重新取得编辑权。');
   if(owned(scope)&&takeover===undefined)return;
-  const running=pending.get(scope.resource);if(running)return running;
+  const running=pending.get(scope.resource);if(running){await running;if(owned(scope))return;}
+  resuming ||= !!aliases.get(scope.resource)?.some(key=>leases.has(key)&&Date.parse(leases.get(key)!.expiresAt)<=Date.now());
   // 取锁期间允许本地输入；写请求仍等待本次租约，真正占用或失锁才禁用。
   const task=(async()=>{
+   await releasing;const enteredPage=pageVersion;
    const result=await json('/api/collaboration/locks','POST',{tabId,resources:[scope.resource],...(takeover===undefined?{}:{takeover})});
-   if(!visible(scope.element)||scope.element.dataset.collaborationResource!==scope.resource){await json('/api/collaboration/locks','DELETE',{tabId,resources:result.leases.map((lease:Lease)=>lease.resource),tokens:Object.fromEntries(result.leases.map((lease:Lease)=>[lease.resource,lease.token]))});return;}
-   const keys:string[]=[];for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);sources.set(lease.resource,scope.element);lost.delete(lease.resource);keys.push(lease.resource);}
+   if(enteredPage!==pageVersion||!visible(scope.element)||scope.element.dataset.collaborationResource!==scope.resource){await json('/api/collaboration/locks','DELETE',{tabId,resources:result.leases.map((lease:Lease)=>lease.resource),tokens:Object.fromEntries(result.leases.map((lease:Lease)=>[lease.resource,lease.token]))});return;}
+   leaseVersion++;const keys:string[]=[];for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);sources.set(lease.resource,scope.element);lost.delete(lease.resource);keys.push(lease.resource);}
    aliases.set(scope.resource,keys);
-   if(takeover!==undefined){const updates:Promise<unknown>[]=[];scope.element.dispatchEvent(new CustomEvent('business:edit-reclaimed',{bubbles:true,detail:{waitUntil:(task:Promise<unknown>)=>updates.push(task)}}));try{await Promise.all(updates);if(!scope.element.isConnected){const replacement=scopes().find(next=>next.resource===scope.resource);if(replacement){scope.element=replacement.element;for(const key of keys)sources.set(key,scope.element);}else{await release(keys);return;}}}catch(error){lost.add(scope.resource);await release(keys);render(scope);throw error;}}
+   if(takeover!==undefined||resuming){const updates:Promise<unknown>[]=[];scope.element.dispatchEvent(new CustomEvent('business:edit-reclaimed',{bubbles:true,detail:{waitUntil:(task:Promise<unknown>)=>updates.push(task)}}));try{await Promise.all(updates);if(!scope.element.isConnected){const replacement=scopes().find(next=>next.resource===scope.resource);if(replacement){scope.element=replacement.element;for(const key of keys)sources.set(key,scope.element);}else{await release(keys);return;}}}catch(error){lost.add(scope.resource);await release(keys);render(scope);throw error;}}
    for(const key of lost)if(overlaps(key,scope.resource))lost.delete(key);occupants=occupants.filter(row=>!keys.some(key=>overlaps(key,row.resource)));render(scope);
   })().finally(()=>{pending.delete(scope.resource);if(scope.element.dataset.collaborationResource===scope.resource)render(scope);renderRelated(scope.resource);});pending.set(scope.resource,task);return task;
  }
@@ -113,14 +117,16 @@ if(!state.__collaborationReady){
   try{await json('/api/collaboration/presence','PUT',{tabId,page:page(),resource,field:active&&owned(active)?field:null,label:active?.label.slice(0,120)??null,visible:!document.hidden});}catch{/* 位置读取不改变业务写入保护。 */}
  };
  async function poll(){
-  if(polling||!document.querySelector('.business-console-frame'))return;polling=true;
+  if(polling||!document.querySelector('.business-console-frame'))return;polling=true;const enteredPage=pageVersion;
   try{
    discover();await release([...sources].filter(([key,element])=>!visible(element)||!aliases.get(element.dataset.collaborationResource??'')?.includes(key)).map(([key])=>key));
    if(active&&!visible(active.element)){active=undefined;field=null;}
-   await position();if(document.hidden)return;
+   await position();if(document.hidden||enteredPage!==pageVersion)return;
    const current=scopes(),query=new URLSearchParams({tabId}),meetingId=new URL(location.href).searchParams.get('meeting');for(const resource of new Set([...current.map(scope=>scope.resource),...observers().map(element=>element.dataset.collaborationObserve!),...(meetingId?[`meeting:${meetingId}`]:[])]))query.append('resource',resource);
-   occupants=(await json('/api/collaboration/locks?'+query,'GET')).rows;
-   for(const keys of aliases.values())for(const key of keys){const lease=leases.get(key);if(lease&&(Date.parse(lease.expiresAt)<=Date.now()||occupants.some(row=>!row.own&&overlaps(row.resource,key))))markLost(key);}
+   const beforeRead=leaseVersion,result=await json('/api/collaboration/locks?'+query,'GET');
+   if(enteredPage!==pageVersion||beforeRead!==leaseVersion)return;occupants=result.rows;
+   for(const keys of aliases.values())for(const key of keys)if(leases.has(key)&&occupants.some(row=>!row.own&&overlaps(row.resource,key)))markLost(key);
+   if([...leases.values()].some(lease=>Date.parse(lease.expiresAt)<=Date.now()))void renew().catch(()=>{});
    for(const scope of current)render(scope);renderObservers();
    if(admin()){
     const {rows}=await json('/api/collaboration/presence','GET') as {rows:Presence[]};
@@ -165,11 +171,13 @@ if(!state.__collaborationReady){
   const resources=writeResources(target.pathname,method,data);if(!resources.length)return baseFetch(input,init);
   let acquired:string[]=[];
   try{
+   if([...leases.values()].some(lease=>Date.parse(lease.expiresAt)<=Date.now()))await renew();
+   await releasing;
    await Promise.all([...pending].filter(([resource])=>resources.some(key=>overlaps(resource,key))).map(([,task])=>task));
    if(resources.some(resource=>[...lost].some(key=>overlaps(key,resource))))throw new Error('当前输入已保留，请重新取得编辑权。');
    // 子字段租约不能覆盖整篇操作；campaign别名只接受对应的完整租约。
    const missing=resources.filter(resource=>![...leases.values()].some(lease=>lease.resource===resource||resource.startsWith(lease.resource+':')||resource.startsWith('campaign:')&&lease.resource.endsWith(':'+resource)));
-   if(missing.length){const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}
+   if(missing.length){leaseVersion++;const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}
    const used=[...leases.keys()].filter(key=>resources.some(resource=>overlaps(key,resource)));
    const headers=new Headers(init?.headers??(input instanceof Request?input.headers:undefined));headers.set('X-Edit-Tab',tabId);headers.set('X-Edit-Leases',JSON.stringify(Object.fromEntries([...leases].map(([key,value])=>[key,value.token]))));
    const response=await baseFetch(input,{...init,headers});
@@ -179,16 +187,33 @@ if(!state.__collaborationReady){
   }catch(error){await release(acquired.filter(key=>!sources.has(key)));return Response.json({code:'EDIT_CONFLICT',message:error instanceof Error?error.message:'编辑服务暂不可用，输入已保留。'},{status:409});}
  };
  setInterval(()=>void poll().catch(()=>{}),3000);
- setInterval(async()=>{
-  if(!leases.size)return;
-  try{const result=await json('/api/collaboration/locks','PATCH',{tabId,tokens:Object.fromEntries([...leases].map(([key,value])=>[key,value.token]))});for(const lease of result.leases as Lease[])leases.set(lease.resource,lease);for(const key of result.lost as string[])markLost(key);}
-  catch{/* 网络失败不冒充他人接管；有效期内保留草稿，过期后停止提交。 */for(const [key,lease]of leases)if(Date.parse(lease.expiresAt)<=Date.now())markLost(key);}
- },15000);
- document.addEventListener('visibilitychange',()=>{void position(true);if(!document.hidden)refresh();});
- document.addEventListener('astro:before-swap',()=>{if(page()!=='annual-plan')void json('/api/collaboration/presence','PUT',{tabId,page:page(),resource:null,field:null,label:null,visible:false}).catch(()=>{});void release([...leases.keys()]);active=undefined;field=null;occupants=[];lost.clear();});
+ async function renew(){
+  if(renewing)return renewing;if(!leases.size)return;
+  const sent=new Map(leases),enteredPage=pageVersion;
+  const task=(async()=>{
+   const result=await json('/api/collaboration/locks','PATCH',{tabId,tokens:Object.fromEntries([...sent].map(([key,value])=>[key,value.token]))});
+   if(enteredPage!==pageVersion)return;
+   for(const lease of result.leases as Lease[])if(leases.get(lease.resource)?.token===sent.get(lease.resource)?.token)leases.set(lease.resource,lease);
+   for(const key of result.lost as string[]){
+    const previous=sent.get(key);if(!previous||leases.get(key)?.token!==previous.token)continue;
+    const element=sources.get(key),scope=element&&scopeFor(element);
+    if(Date.parse(previous.expiresAt)>Date.now()||!scope||remote(scope).length){markLost(key);continue;}
+    // 到期只重新申请空闲对象；已被接管的凭证不能自动夺回，业务指纹仍须核对。
+    leases.delete(key);
+    try{await ensure(scope,undefined,true);}catch(error){if(error instanceof Error&&'status'in error&&error.status===409)markLost(key);throw error;}
+   }
+  })().finally(()=>{if(renewing===task)renewing=undefined;});renewing=task;return task;
+ }
+ const resume=()=>void renew().catch(()=>{}).finally(refresh);
+ setInterval(()=>void renew().catch(()=>{}),15000);
+ document.addEventListener('visibilitychange',()=>{void position(true);if(!document.hidden)resume();});
+ const leave=()=>{pageVersion++;renewing=undefined;for(const scope of scopes())delete scope.element.dataset.editEntered;active=undefined;field=null;occupants=[];lost.clear();};
+ document.addEventListener('astro:before-swap',()=>{if(page()!=='annual-plan')void json('/api/collaboration/presence','PUT',{tabId,page:page(),resource:null,field:null,label:null,visible:false}).catch(()=>{});leave();void release([...leases.keys()]);});
+ window.addEventListener('focus',resume);
+ window.addEventListener('pageshow',event=>{if(event.persisted)resume();});
  document.addEventListener('astro:page-load',refresh);
  window.addEventListener('resize',()=>{for(const scope of scopes())render(scope);});
  document.addEventListener('scroll',()=>{for(const scope of scopes())if(remote(scope).length)render(scope);},true);
- window.addEventListener('pagehide',()=>{void baseFetch('/api/collaboration/locks',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({tabId,resources:[...leases.keys()],tokens:Object.fromEntries([...leases].map(([key,value])=>[key,value.token]))}),keepalive:true});});
+ window.addEventListener('pagehide',()=>{leave();void release([...leases.keys()],true);});
  refresh();
 }
