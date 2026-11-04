@@ -1,0 +1,81 @@
+{
+  "status": "已自检并发布，正式部署READY且域名版本一致",
+  "data": "隔离PGlite；虚构验收内容仅用于测试，生产业务库未写入",
+  "geometry": {
+    "states": 105,
+    "widths": [
+      2560,
+      1920,
+      1440,
+      1280,
+      1024,
+      390,
+      320
+    ],
+    "maxDeviationPx": 0,
+    "actualPrimaryAreas": true,
+    "sidebarNavigation": 7
+  },
+  "visual": {
+    "defaultModules": "七模块逐一检查2560/1920/1440/1024，390/320仅明显回归",
+    "otherViews": "推广帖子/日历史、非推广分类/平铺/跳过及设置三页签：1920/1024对照，2560关键单图",
+    "meeting": "周/月非空编辑及只读正文，四档桌面；关键计划/详情原图",
+    "monthly": "双角色、空月、长分类、长金额与横滚、读取失败/恢复、加载；四档桌面及两档手机抽查；修正后补看2560/1920/1440/1024的金额明细和1024横滚右侧",
+    "fixes": [
+      "权限名称与下拉就近",
+      "1024账号角色与状态完整横排",
+      "1024金额不拆位且不遮挡相邻列"
+    ],
+    "reviewMethod": "渲染接触表、关键单图和连续录像取样；独立复核月度/会议及修正后的单图"
+  },
+  "firstPaint": {
+    "cases": 17,
+    "sharedFontConsumers": 7,
+    "stage": "公共宽度调整完成时录制；后续仅表格数字列和账号列作局部修正，未重新录制首屏专项",
+    "scenarios": "直接进入、站内导航、硬刷新、冷/暖缓存、字体/数据慢请求和侧栏提醒失败恢复"
+  },
+  "video": [
+    {
+      "name": "navigation",
+      "source": ".tools/test-artifacts/workspace-width/video/page@6e2ca442a412ae1117e623b426370ce3.webm",
+      "duration": 4.4,
+      "sampleRate": 8,
+      "frames": 35
+    },
+    {
+      "name": "inspector",
+      "source": ".tools/test-artifacts/category-motion/page@7286d8d53f5b06d47335389fc2e0aee6.webm",
+      "duration": 15.72,
+      "sampleRate": 4,
+      "frames": 63
+    },
+    {
+      "name": "monthly",
+      "source": ".tools/test-artifacts/monthly-operations/video/desktop.webm",
+      "duration": 3.12,
+      "sampleRate": 4,
+      "frames": 12
+    },
+    {
+      "name": "first-paint-desktop",
+      "source": ".tools/test-artifacts/first-paint/video/slow-1440.webm",
+      "duration": 4.96,
+      "sampleRate": 4,
+      "frames": 20
+    },
+    {
+      "name": "first-paint-mobile",
+      "source": ".tools/test-artifacts/first-paint/video/slow-390.webm",
+      "duration": 7.36,
+      "sampleRate": 4,
+      "frames": 29
+    }
+  ],
+  "pdf": {
+    "monthlyPages": 5,
+    "weeklyPages": 3,
+    "source": "最终Vercel运行包",
+    "reviewedPages": 8
+  },
+  "mobile": "遵从桌面优先规则，只核查明显遮挡/页面级溢出及本次回归，不声称完整手机填写验收"
+}

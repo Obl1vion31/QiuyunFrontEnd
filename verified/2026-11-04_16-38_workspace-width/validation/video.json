@@ -1,0 +1,37 @@
+[
+  {
+    "name": "navigation",
+    "source": ".tools/test-artifacts/workspace-width/video/page@6e2ca442a412ae1117e623b426370ce3.webm",
+    "duration": 4.4,
+    "sampleRate": 8,
+    "frames": 35
+  },
+  {
+    "name": "inspector",
+    "source": ".tools/test-artifacts/category-motion/page@7286d8d53f5b06d47335389fc2e0aee6.webm",
+    "duration": 15.72,
+    "sampleRate": 4,
+    "frames": 63
+  },
+  {
+    "name": "monthly",
+    "source": ".tools/test-artifacts/monthly-operations/video/desktop.webm",
+    "duration": 3.12,
+    "sampleRate": 4,
+    "frames": 12
+  },
+  {
+    "name": "first-paint-desktop",
+    "source": ".tools/test-artifacts/first-paint/video/slow-1440.webm",
+    "duration": 4.96,
+    "sampleRate": 4,
+    "frames": 20
+  },
+  {
+    "name": "first-paint-mobile",
+    "source": ".tools/test-artifacts/first-paint/video/slow-390.webm",
+    "duration": 7.36,
+    "sampleRate": 4,
+    "frames": 29
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "commit": "c6ee76d4c116db53f295d7bdbbb0a4fcfefd97ed",
+  "files": {
+    "AGENTS.md": "037a6c913b1e289e2cd4db969a118d42e7ef8d758b5b93b21d5a4912a90a84ba",
+    "README.md": "13216b8a77c5f7f4e55c575a6faadcea035d87c3d086efd7b8c314e3ece711f5",
+    "docs/DECISIONS.md": "8eaf78dd1ba308b65c591b665f21ec0478e1aa4bfcfe9977679abca289d13e87",
+    "docs/DESIGN.md": "38fa890442f2905d698ff058bd9e0fc0043866a0e2e4774cd8d0ae024dfa448a",
+    "docs/code-study.md": "acf0209d8af52e2553fda1790ffcf48eb4dc2907ca28a50c956b11b739ac0dc5",
+    "src/components/BusinessAccountManagement.astro": "f056999b94583198fcbff224c4e3f94c72b65de4364d616bbe3504d210c25c15",
+    "src/components/BusinessMonthlyOperations.module.css": "1dff6c3c27cc54cb625abfd5217d0de7d46e1bcea5f622e9300fac1ecd56e6ab",
+    "src/pages/business/daily-promotion-review.astro": "d6d2f03113f2a8c465f9e7e8fa2a15df069f6928f8bfaf1c281b30356183f6ee",
+    "src/pages/business/monthly-operations.astro": "66958fb64ea316a1c2a071993681fb965c8dc9af5e001f3e2b2a4871a8c42880",
+    "src/pages/business/settings.astro": "0e09fc990c6e01751af058797843953b31fedf1eaccaa2608bc4bb2ab22df80e",
+    "src/styles/meeting-weekly.css": "c2702e8b0af09bc804c2550b903ecbd4816344cfc2c29d0e7fa0bfb4ecb05109",
+    "tests/README.md": "75b4108765922055e980f31312b9ac9f8d94c2c88cce06a4571bd2bed26b090c",
+    "tests/business-content.helper.ts": "21cf0c8f16268d359f55da1ed66ff3fc9c9457eec1a4237fca92ff8d3d351e69",
+    "tests/business-ui.browser.ts": "3cf589ec64d0654a4c2d14bd5824e6b353b414c796de018299e4a65761062579",
+    "tests/meeting-display.browser.ts": "8d485e035fe006cb907eca977391c2ef8209336c7a012e7e2caa923da2b9532f",
+    "tests/monthly-operations.browser.ts": "288348aa71265ae21b2ad63ff48870de50940d84a8cd97545bc5adac85193d63"
+  },
+  "data": "isolated PGlite; network delays/failures only are injected; no production writes"
+}
