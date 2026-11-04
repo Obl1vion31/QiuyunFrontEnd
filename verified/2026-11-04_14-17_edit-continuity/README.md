@@ -1,6 +1,6 @@
 # 编辑权连续性修复
 
-已自检，发布核对中。此批沿用原界面、权限、60秒租约与业务版本校验，无数据库迁移或生产业务写入。
+已自检并发布，正式域名核对通过。此批沿用原界面、权限、60秒租约与业务版本校验，无数据库迁移或生产业务写入。
 
 ## 根因与修复
 
@@ -28,3 +28,5 @@
 | 专项过程 | [管理员](video/continuity-1.mp4) · [员工](video/continuity-2.mp4) |
 
 原始产物在`.tools/test-artifacts/continuity-final/`和`collaboration-regression/`，[源码与覆盖](validation/source.json)。复现命令：设置本机`TEST_POSTGRES_URL`后运行`pnpm test:collaboration-continuity`、`pnpm test:collaboration-lookup`；使用项目Node22与Playwright缓存。
+
+[正式发布依据](release/README.md)：应用`5dde368`，候选14项、正式122项和87个资源哈希通过。

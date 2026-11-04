@@ -2,11 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 编辑权连续性（已自检，2026-11-04）
+## 编辑权连续性（已发布，2026-11-04）
 
 - 修复本地租约到期直接永久失锁、pagehide释放后缓存仍留旧凭证，以及旧续期／占用响应干扰返回后的新编辑权。返回／聚焦立即核实，自然到期只重新申请空闲对象并保留原回读／指纹校验；真实接管不自动夺回，原输入保留。共享控制器覆盖两种角色及全部业务编辑入口。
 - 隔离真实PostgreSQL同时推进客户端／服务端61秒复现旧版失败；新专项与完整协作回归通过。259项规则、schema、类型检查、Node／Vercel构建与运行包检查通过。五档45张稳定图及两段录像62帧已实查：[验收索引](verified/2026-11-04_14-17_edit-continuity/README.md)。返回缓存验证为事件处理器测试，不声称真实命中BFCache。无迁移或生产业务写入。
-- 在隔离工作树`.tools/releases/collaboration-lease-20261104`、分支`codex/collaboration-lease-continuity`完成，保留原工作区未提交修改。发布核对中。
+- 在隔离工作树`.tools/releases/collaboration-lease-20261104`、分支`codex/collaboration-lease-continuity`完成，保留原工作区未提交修改。应用`5dde368`已推送main；正式部署`dpl_78cDgtVfWhQJbVsoQZUadt4KEJxG`为READY且与域名核对一致，候选14项、正式122项和87个资源哈希通过。
 
 ## 月计划常驻内容池与加高 Week（已发布，2026-11-03）
 
