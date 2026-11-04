@@ -73,7 +73,7 @@ flowchart LR
 
 | 场景 | 真实实现 | 修改入口 |
 | --- | --- | --- |
-| 应用壳层与正文留白 | [Frame](../src/components/BusinessConsoleFrame.astro)、[排期](../src/pages/business/operations-schedule.astro) | `main.business-console-content` 使用 Frame 变量，业务样式只作用于正文内部；横向裁切使用 clip，避免创建滚动祖先导致覆盖详情打开后工具栏失去吸顶 |
+| 应用壳层与正文留白 | [Frame](../src/components/BusinessConsoleFrame.astro)、[排期](../src/pages/business/operations-schedule.astro) | 七页统一使用`main.business-console-content`与Frame变量，业务样式只作用于正文内部；月度运营由Astro的公共main包裹React Island，React根节点不再限宽或设置页面级padding；推广、例会和设置不覆盖公共main的宽度。`tests/business-content.helper.ts`比较公共正文及真实面板边界；横向裁切使用 clip，避免创建滚动祖先导致覆盖详情打开后工具栏失去吸顶 |
 | 说明目录与局部章节历史 | [说明组件](../src/components/BusinessUsageGuide.astro)、[目录控制器](../src/scripts/usage-guide.ts)、[Frame](../src/components/BusinessConsoleFrame.astro) | 服务端按角色输出章节与两处目录，正文保留对照表；窄屏复用`business-popover`。点击push锚点、滚动只改高亮；Frame在公共草稿保护后派发可取消的`business:local-history-pop`，本页认领同路径查询的章节前后退，避免Astro重复换页。离开清理监听、观察器及待执行帧；共享Inspector历史照常处理 |
 | 公共标题和视角切换 | [Toolbar](../src/components/BusinessConsoleToolbar.astro)、[推广顶栏](../src/components/BusinessPromotionToolbar.astro) | 命名插槽组合控件；推广 `transition:persist` 保留顶栏及按钮，切换后同步激活态 |
 | 已加载详情模板 | [非推广](../src/pages/business/non-promotion-review.astro)、[推广每日与历史](../src/pages/business/daily-promotion-review.astro) | 行 `data-inspector-key`，行内标题／动作按钮加 `data-inspector-trigger`（不重复行键），惰性 `template[data-inspector-template]`，`BusinessInspector parameter="row" templates`；公共控制器在稳定父容器委托事件，本帖局部刷新后仍可打开详情；阅读详情不触发外部草稿离开确认，清理面板时保留其他表单的未保存保护 |

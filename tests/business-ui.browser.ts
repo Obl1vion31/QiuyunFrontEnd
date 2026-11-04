@@ -1,10 +1,11 @@
+import {assertBusinessContent} from './business-content.helper';
 import {businessFetch as fetch} from './business-request.helper';
 import {respondToBusinessConfirm,openPostLookup,settleBusinessUI} from './business-confirm.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
 /** 真实浏览器验证公共节点、几何与详情交互。数据只写隔离 PGlite。 */
 import assert from 'node:assert/strict';
 import { and, eq } from 'drizzle-orm';
-import { mkdir } from 'node:fs/promises';
+import { mkdir,writeFile } from 'node:fs/promises';
 import { startFixture, admin } from './auth.fixture';
 import * as schema from '../src/db/schema';
 import { previousDateKey, shanghaiDateKey } from '../src/db/promotion-rules.mjs';
@@ -37,14 +38,14 @@ try {
   assert.equal((await fetch(baseURL+'/api/non-promotion-reviews')).status,401);
   const playwright=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);
   browser=await playwright.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});
-  const errors:string[]=[];
-  for(const width of [1440,1280,390,320]) {
+  const errors:string[]=[];const contentGeometry:unknown[]=[];await mkdir('.tools/test-artifacts/workspace-width/screenshots',{recursive:true});
+  for(const width of [2560,1920,1440,1280,1024,390,320]) {
     const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',...(width===1440?{recordVideo:{dir:'.tools/test-artifacts/category-motion',size:{width:1440,height:900}}}:{})});
     await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));
     const page=await context.newPage();
     page.on('pageerror',(error:Error)=>errors.push(error.message));
     let geometry:any;
-    for(const path of ['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','settings']) {
+    for(const path of ['annual-plan','operations-schedule','daily-promotion-review','non-promotion-review','meeting-review','monthly-operations','settings']) {
       await page.goto(baseURL+'/business/'+path+(path==='settings'?'?view=permissions':''));await page.locator('.business-toolbar').waitFor();
       const brand=page.locator('.business-sidebar__brand');assert.equal(await brand.getAttribute('href'),'/');assert.match(await brand.innerText(),/QIUYUN/);assert.equal(await brand.isVisible(),width>900);
       assert(await brand.locator('[data-qiuyun-mark]').evaluate((node:HTMLImageElement)=>node.complete&&node.naturalWidth>0),'侧栏共享品牌图形实际加载');
@@ -64,7 +65,12 @@ try {
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${path} ${width} 页面无横向溢出`);
       assert.equal(await page.locator('.business-page-header__copy>span').count(),0,'页面标题没有装饰性英文眉题');
       const controlFonts=await page.locator('button:visible,input:visible,select:visible,textarea:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({label:node.getAttribute('aria-label')||node.textContent?.slice(0,18),family:getComputedStyle(node).fontFamily})));assert.ok(controlFonts.every((item:any)=>item.family.includes('system-ui')&&!item.family.includes('monospace')),`${path} 控件字体统一 ${JSON.stringify(controlFonts.filter((item:any)=>!item.family.includes('system-ui')||item.family.includes('monospace')))}`);
+      await settleBusinessUI(page);contentGeometry.push(await assertBusinessContent(page,path));await page.screenshot({path:`.tools/test-artifacts/workspace-width/screenshots/${path}-${width}.png`});
       if(path==='settings') {
+        if(width>900){
+          const distance=await page.locator('.permissions-table tbody tr').first().evaluate((n:HTMLElement)=>{const label=n.querySelector('label')!.getBoundingClientRect(),input=n.querySelector('select')!.getBoundingClientRect();return input.left-label.right;});
+          assert(distance>=12&&distance<=400,'权限控件与所属操作就近 '+distance);
+        }
         const controls=await page.locator('.business-form input:not([type=checkbox]):not([type=hidden]):visible,.business-form select:visible').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({height:node.getBoundingClientRect().height,size:getComputedStyle(node).fontSize})));
         const options=await page.locator('.checks input[type=checkbox]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.getBoundingClientRect().width));assert.ok(options.every((width:number)=>width===18),'独立选项统一为 18px');assert.ok(controls.length>=3);assert.ok(controls.every((c:{height:number;size:string})=>c.height===40&&c.size==='14px'),'系统设置接入公共表单规格');
         await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/settings-ui-${width}.png`,fullPage:true});
@@ -95,6 +101,14 @@ try {
         await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/annual-dialog-ui-${width}.png`});await dialog.locator('[data-close-row]').first().click();
       }
 
+    }
+    for(const query of ['daily-promotion-review?view=history','daily-promotion-review?view=history&mode=day','non-promotion-review?view=history&group=1','non-promotion-review?view=history&group=0','non-promotion-review?view=skipped','settings?view=accounts','settings?view=guide']){
+      await page.goto(baseURL+'/business/'+query);await settleBusinessUI(page);contentGeometry.push(await assertBusinessContent(page,query));
+      if(query==='settings?view=accounts'&&width>900){
+        const labels=await page.locator('.account-table [data-account-role],.account-table [data-account-status]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>{const text=document.createRange();text.selectNodeContents(n);return {text:n.textContent,height:text.getBoundingClientRect().height,line:parseFloat(getComputedStyle(n).lineHeight)};}));
+        assert(labels.length>0&&labels.every((label:any)=>label.height<=label.line+1),'账号角色与状态完整一行 '+JSON.stringify(labels));
+      }
+      await page.screenshot({path:`.tools/test-artifacts/workspace-width/screenshots/${query.replace(/[?=&]/g,'-')}-${width}.png`});
     }
     await page.goto(baseURL+'/business/daily-promotion-review');
     await page.evaluate(()=>{(window as any).__toolbar=document.querySelector('[data-promotion-toolbar]');(window as any).__tabs=document.querySelector('.toolbar-segmented');(window as any).__document=document;});
@@ -193,5 +207,13 @@ try {
     await context.close();
     await db.update(schema.operationsContentPerformanceMetric).set({clickRate:'12.23',readCount:1223,exposureCount:10000}).where(and(eq(schema.operationsContentPerformanceMetric.scheduleId,ids[0]),eq(schema.operationsContentPerformanceMetric.checkpointType,'day_15')));
   }
-  assert.deepEqual(errors,[]);console.log('business UI shared geometry and inline category checks passed');
+  const navigation=await browser.newContext({viewport:{width:1920,height:1000},recordVideo:{dir:'.tools/test-artifacts/workspace-width/video',size:{width:1920,height:1000}}});
+  await navigation.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));
+  const walking=await navigation.newPage();await walking.goto(baseURL+'/business/annual-plan');
+  for(const [module,path]of [['annual-plan','annual-plan'],['schedule','operations-schedule'],['daily-promotion','daily-promotion-review'],['non-promotion-review','non-promotion-review'],['meeting-review','meeting-review'],['monthly-operations','monthly-operations'],['settings','settings']]){
+    await walking.locator(`.business-sidebar [data-module-id="${module}"]`).click();await walking.waitForURL((url:URL)=>url.pathname==='/business/'+path);await settleBusinessUI(walking);
+    contentGeometry.push(await assertBusinessContent(walking,'navigation-'+path));await walking.screenshot({path:`.tools/test-artifacts/workspace-width/screenshots/navigation-${path}-1920.png`});
+  }
+  await navigation.close();
+  await writeFile('.tools/test-artifacts/workspace-width/geometry.json',JSON.stringify(contentGeometry,null,2));assert.deepEqual(errors,[]);console.log('business UI shared geometry and inline category checks passed');
 }finally{await browser?.close();await fixture.stop();}

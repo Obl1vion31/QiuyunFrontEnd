@@ -22,6 +22,7 @@ const {accounts}=Astro.props;
 .account-management .account-table{overflow:auto;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface)}
 .account-management table{width:100%;border-collapse:collapse;font:400 14px/22px var(--console-font)}
 .account-management :is(th,td){padding:14px 16px;text-align:left;border-bottom:1px solid var(--console-line)}
+.account-management :is(th,td):is(:nth-child(3),:nth-child(4)){white-space:nowrap}
 .account-management thead{background:var(--console-surface-subtle);color:var(--console-muted)}.account-management th{font-weight:500}
 .account-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:260px}.account-management output{display:block;color:var(--console-muted);font-size:13px}.account-management output:empty{display:none}
 .account-management [data-account-editor-note],.account-create-fields small,.account-create-fields p{font:400 13px/20px var(--console-font);color:var(--console-muted)}
