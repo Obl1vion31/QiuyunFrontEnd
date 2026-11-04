@@ -12,8 +12,10 @@
     "src/pages/business/operations-schedule.astro": "3491cfccab3fff117c783d76373982de29a685b820b72ba76dfe40c1364da00e",
     "src/scripts/README.md": "2d73881d0291a8a41e67e12976a3f6f860ab8cf5f8ffb21de7fde991680ea4a0",
     "src/scripts/schedule-notifications.ts": "51d4f7aa78a5768317a22658f0b75ade457c57c87322a6fb44ae1d340977c869",
-    "tests/network-transfer.browser.ts": "e82ddf7422aa7c4ffddbb772a403fe820bc48d171b9958f574e6009acc577a07"
+    "tests/network-transfer.browser.ts": "18f5f9bff947f8c4525f4c82c3e233e27b43ddc60b27170d0c4c2ece02a1ac0e"
   },
   "databaseMigrations": false,
-  "productionBusinessWrites": false
+  "productionBusinessWrites": false,
+  "applicationCommit": "3ebc25de690eef96905f577a8f41499798e19af1",
+  "defaultPlaywrightResolutionVerified": true
 }

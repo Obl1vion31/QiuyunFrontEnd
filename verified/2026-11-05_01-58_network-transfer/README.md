@@ -1,6 +1,6 @@
 # 减少动态页面与提醒的无效读取
 
-状态：已自检，待发布。基线`261b269`，分支`codex/network-transfer`；保留原工作区修改。全部业务样本来自独立PostgreSQL／PGlite，不写共享Neon。
+状态：已自检并发布。基线`261b269`，应用`3ebc25d`已同步main，分支`codex/network-transfer`；保留原工作区修改。全部业务样本来自独立PostgreSQL／PGlite，不写共享Neon。
 
 ## 改动与结果
 
@@ -26,6 +26,8 @@
 
 ## 视觉与过程
 
-沿用Impeccable检查实际字体、布局、反馈和导航连续性。桌面1920／1440／1024已实查；390／320仅检查关键入口、遮挡与新增溢出。
+沿用Impeccable检查实际字体、布局、反馈和导航连续性。桌面1920／1440／1024已实查；390／320仅检查关键入口、遮挡与新增溢出。实际操作录像的10个连续取样帧及运行包8页PDF已查看，稳定图另行核对。
 
 [1920](screenshots/schedule-1920.png) · [1440](screenshots/schedule-1440.png) · [1024](screenshots/schedule-1024.png) · [390](screenshots/schedule-390.png) · [320](screenshots/schedule-320.png) · [失败保留计数](screenshots/notification-error-1440.png)。[真实操作录像](video/network-operations.webm)及取样图保留；首屏17场景和全部业务回归的原始输出在validation。正式运行包月／周8页PDF与依赖／字体打包另行核对，见release和review。
+
+正式部署`dpl_7bqBmt7VY4EcL1gbj7JT9g6c1rGz`为READY，正式域名解析到同一部署。[候选16项](release/candidate-smoke.json)、[正式131项与86个资源哈希](release/public-smoke.json)通过；提醒API未登录401、协作接口410、同源表单401及跨站403。旧页面刷新一次加载新脚本。

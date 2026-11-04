@@ -43,7 +43,7 @@ try{
  const transfer=[];for(let i=0;i<3;i++){const before={received,sent};result=await get();transfer.push({databaseToAppBytes:received-before.received,appToDatabaseBytes:sent-before.sent});}
  const employeeResult=await get(employee);assert.equal(employeeResult.overdue,result.overdue);assert.equal(employeeResult.missingReasons,result.missingReasons);
  if(!baseline&&process.env.NETWORK_BASELINE_RESULT){const previous=JSON.parse(await readFile(process.env.NETWORK_BASELINE_RESULT,'utf8'));const normalize=(data:Record<string,unknown>)=>Object.fromEntries(Object.entries(data).filter(([key])=>key!=='serverTime').map(([key,value])=>[key,Array.isArray(value)?[...value].sort():value]));assert.deepEqual(normalize(result),normalize(previous.notifications),'与正式基线的全部提醒字段一致');assert.ok(transfer[1].databaseToAppBytes<previous.transfer[1].databaseToAppBytes/2,'提醒读取不重新传输历史正文');}
- const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);browser=await chromium.launch({headless:true});
+ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:1440,height:1000},recordVideo:{dir:dir+'/videos',size:{width:1440,height:1000}}});
  await context.addInitScript('window.__name=(fn)=>fn');
  await context.addCookies(admin.split('; ').map(c=>{const at=c.indexOf('=');return {name:c.slice(0,at),value:c.slice(at+1),url:baseURL};}));
