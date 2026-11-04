@@ -1,6 +1,7 @@
+import {assertBusinessContent} from './business-content.helper';
 /** 月度看板真实读模型、双角色和响应式验收；写入只发生在隔离PGlite。 */
 import assert from 'node:assert/strict';
-import {eq} from 'drizzle-orm';
+import {eq,getTableName} from 'drizzle-orm';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {startFixture,admin,employee} from './auth.fixture';
 import {settleBusinessUI} from './business-confirm.helper';
@@ -39,7 +40,7 @@ try{
  let api=await context.request.get(baseURL+'/api/monthly-operations?month=2026-10');assert.equal(api.status(),200,await api.text());const expected=await api.json();assert.equal(expected.spend.spend,12346083.9);assert.equal(expected.spend.wasted,125);assert.equal(expected.wastedRows.length,1);assert.equal(expected.wastedRows[0].totalSpend,175);assert.equal(expected.publication.operational,1);assert.equal(expected.publication.movedOut,1);assert.equal(expected.publication.changedPending,1);assert.equal(expected.publication.severe,2);assert.equal(expected.scheduleRows.find((r:any)=>r.id===late.id).mixed,true);assert.equal((await context.request.get(baseURL+'/api/monthly-operations?month=2026-13')).status(),422);
  checks.push('真实数据库/API：自然月消耗、测试淘汰/残留/V1/放量淘汰、混合归因去重、改期和48小时边界');
  const page=await context.newPage();page.on('pageerror',(e:Error)=>errors.push(e.message));page.setDefaultTimeout(15000);
- async function shot(name:string){await page.mouse.move(0,0);await settleBusinessUI(page);await page.screenshot({path:`${folder}/screenshots/${name}.png`});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,name);}
+ async function shot(name:string){await page.mouse.move(0,0);await settleBusinessUI(page);await assertBusinessContent(page,name);await page.screenshot({path:`${folder}/screenshots/${name}.png`});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,name);}
  async function top(){await page.evaluate(()=>scrollTo(0,0));}
  async function checkNavigation(p:any,width:number){
   if(width<=900){assert.equal(await p.locator('.business-sidebar__monthly').isVisible(),false);return;}
@@ -49,7 +50,7 @@ try{
   });assert.ok(Math.abs(layout.previousGap-layout.monthlyGap)<=1,JSON.stringify(layout));measurements.push({navigation:layout,width});
  }
 
- for(const width of [1920,1440,1024,390,320]){
+ for(const width of [2560,1920,1440,1024,390,320]){
   await page.setViewportSize({width,height:width<500?900:1050});await page.goto(baseURL+'/business/annual-plan');await checkNavigation(page,width);await shot(`annual-sidebar-${width}`);await page.goto(baseURL+'/business/monthly-operations');await checkNavigation(page,width);await page.locator('astro-island[component-export=default]:not([ssr])').waitFor();await page.locator('[data-value=spend]').waitFor();assert.equal(await page.locator('[data-value=spend]').innerText(),'¥12,346,083.90');await shot(`admin-overview-${width}`);
   const sizes=await page.locator('[data-value]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>{const box=n.getBoundingClientRect(),r=document.createRange();r.selectNodeContents(n);const text=r.getBoundingClientRect();return {key:n.dataset.value,width:box.width,textWidth:text.width,height:box.height,font:getComputedStyle(n).fontFamily};}));assert.ok(sizes.every((n:any)=>n.textWidth<=n.width+1&&n.height<=42&&n.font.includes('MiSans')),JSON.stringify({width,sizes}));measurements.push({width,sizes});
   await page.locator('[data-monthly-chart=publication]').scrollIntoViewIfNeeded();await shot(`admin-charts-${width}`);
@@ -66,15 +67,30 @@ try{
  checks.push('学科/分类真实筛选、分类组成与图形钻取，根节点连续保留');await page.goto(baseURL+'/business/monthly-operations');await page.locator('astro-island:not([ssr])').first().waitFor();
  await page.route('**/api/monthly-operations?*',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'模拟读取失败，请重试。'})}));await page.getByRole('button',{name:'刷新',exact:true}).click();await page.getByRole('alert').waitFor();assert.equal(await page.locator('[name=month]').inputValue(),'2026-10');await shot('read-failure-1440');await page.unroute('**/api/monthly-operations?*');await page.getByRole('button',{name:'重试',exact:true}).click();await page.getByRole('alert').waitFor({state:'hidden'});
  // 慢响应和快速切换只控制网络，不替换正式统计逻辑。
+ let releaseLoading!:()=>void;const loadingGate=new Promise<void>(resolve=>{releaseLoading=resolve;});
+ await page.route('**/api/monthly-operations?*',async(route:any)=>{await loadingGate;await route.continue();});
+ const loadingResponse=page.waitForResponse((r:any)=>r.url().includes('/api/monthly-operations?'));
+ await page.getByRole('button',{name:'刷新',exact:true}).click();await page.waitForTimeout(600);await shot('loading-1440');releaseLoading();await loadingResponse;await page.unroute('**/api/monthly-operations?*');
  await page.route('**/api/monthly-operations?*',async(route:any)=>{if(new URL(route.request().url()).searchParams.get('month')==='2026-09')await new Promise(resolve=>setTimeout(resolve,800));try{await route.continue();}catch{}});
  await page.locator('[name=month]').fill('2026-09');await page.locator('[name=month]').fill('2026-11');await page.locator('[data-report-month="2026-11"]').waitFor();await page.waitForTimeout(1000);assert.equal(await page.locator('[data-report-month]').getAttribute('data-report-month'),'2026-11');await page.unroute('**/api/monthly-operations?*');checks.push('五档默认/图表/原因展开/分类消耗/空跑/空态、长金额、读取失败保留重试与旧响应隔离');
  await page.goto(baseURL+'/business/monthly-operations');await page.locator('astro-island:not([ssr])').first().waitFor();await page.getByRole('button',{name:/运营原因延期/}).click();const popup=page.waitForEvent('popup');await page.getByRole('region',{name:'可追溯明细',exact:true}).locator('tbody a').first().click();const record=await popup;await record.locator('[data-inspector][data-selected-id]').waitFor();assert.equal(await record.locator('[data-inspector]').getAttribute('data-selected-id'),late.id);await record.close();
  const staff=await browser.newContext({locale:'zh-CN',reducedMotion:'reduce'});assert.equal((await staff.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:employee})).status(),200);const staffData=await (await staff.request.get(baseURL+'/api/monthly-operations?month=2026-10')).json();assert.deepEqual(staffData,expected);
- const ep=await staff.newPage();ep.on('pageerror',(e:Error)=>errors.push(e.message));for(const width of [1920,1440,1024,390,320]){await ep.setViewportSize({width,height:width<500?900:1050});await ep.goto(baseURL+'/business/monthly-operations');await checkNavigation(ep,width);await settleBusinessUI(ep);await ep.screenshot({path:`${folder}/screenshots/employee-overview-${width}.png`});assert.match(await ep.locator('[data-value=planned]').innerText(),new RegExp('^'+expected.publication.planned+'\\s*篇$'));}
+ const ep=await staff.newPage();ep.on('pageerror',(e:Error)=>errors.push(e.message));for(const width of [2560,1920,1440,1024,390,320]){await ep.setViewportSize({width,height:width<500?900:1050});await ep.goto(baseURL+'/business/monthly-operations');await checkNavigation(ep,width);await settleBusinessUI(ep);await ep.screenshot({path:`${folder}/screenshots/employee-overview-${width}.png`});assert.match(await ep.locator('[data-value=planned]').innerText(),new RegExp('^'+expected.publication.planned+'\\s*篇$'));}
  await ep.setViewportSize({width:390,height:900});await ep.goto(baseURL+'/business/operations-schedule');await ep.locator('.business-account--toolbar [data-account-trigger]').click();await settleBusinessUI(ep);await ep.screenshot({path:`${folder}/screenshots/mobile-account-entry-390.png`});await ep.locator('.business-account__monthly').last().click();await ep.waitForURL('**/business/monthly-operations');checks.push('员工/管理员同数据五档对照、原记录定位及手机账号入口');
  // 跨午夜自动读取新月，服务端与浏览器使用同一隔离时钟。
  await writeFile(clockFile,'2026-10-31T23:59:59+08:00');await page.clock.install({time:new Date('2026-10-31T23:59:59+08:00')});await page.goto(baseURL+'/business/monthly-operations');await page.locator('astro-island:not([ssr])').first().waitFor();await writeFile(clockFile,'2026-11-01T00:00:01+08:00');await page.clock.runFor(1300);await page.locator('[data-report-month="2026-11"]').waitFor();checks.push('默认月份跨上海零点自动进入新月');
  await context.close();await staff.close();await writeFile(clockFile,'2026-10-30T12:00:00+08:00');
  for(const mobile of [false,true]){const tag=mobile?'mobile':'desktop',width=mobile?390:1440,height=mobile?900:1050;const c=await browser.newContext({viewport:{width,height},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width,height}},...(mobile?{isMobile:true,hasTouch:true}:{})});await c.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:mobile?employee:admin});const p=await c.newPage();await p.goto(baseURL+'/business/monthly-operations');await p.locator('astro-island:not([ssr])').first().waitFor();await p.waitForTimeout(850);await p.locator('[data-monthly-chart=publication]').scrollIntoViewIfNeeded();await p.waitForTimeout(850);await p.getByRole('button',{name:'查看空跑明细 →'}).click();await settleBusinessUI(p);await p.waitForTimeout(500);await p.getByRole('button',{name:'全部消耗',exact:true}).click();await p.waitForTimeout(300);await p.evaluate(()=>scrollTo(0,0));await p.locator('[name=subject]').selectOption('step');await p.locator('[data-value=spend]').filter({hasText:'¥0.00'}).waitFor();await p.waitForTimeout(300);assert.equal(await p.locator('[data-chart-fill]').evaluateAll((nodes:HTMLElement[])=>nodes.flatMap(n=>n.getAnimations()).length),0,'筛选后图表不重复播放');const video=p.video();await c.close();if(video){const path=`${folder}/video/${tag}.webm`;await video.saveAs(path);videos.push(path);}}
+ const failureContext=await browser.newContext({viewport:{width:1440,height:1050},locale:'zh-CN'});
+ assert.equal((await failureContext.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:admin})).status(),200);
+ const failedPage=await failureContext.newPage(),table=getTableName(s.operationsPromotionDailyMetric);
+ // 只在隔离库临时隐藏业务表，使真实SSR读取失败；认证及页面渲染照常执行。
+ await fixture.pg.exec(`ALTER TABLE "${table}" RENAME TO "width_failure_metric"`);
+ try{
+  await failedPage.goto(baseURL+'/business/monthly-operations');await failedPage.getByRole('alert').waitFor();await settleBusinessUI(failedPage);await assertBusinessContent(failedPage,'initial-read-failure');
+  await failedPage.screenshot({path:`${folder}/screenshots/initial-read-failure-1440.png`});
+ }finally{await fixture.pg.exec(`ALTER TABLE "width_failure_metric" RENAME TO "${table}"`);}
+ await failedPage.reload();await failedPage.locator('[data-report-month]').waitFor();await settleBusinessUI(failedPage);await assertBusinessContent(failedPage,'initial-read-recovered');await failedPage.screenshot({path:`${folder}/screenshots/initial-read-recovered-1440.png`});await failureContext.close();
+ checks.push('初始SSR真实读取失败及恢复沿同一公共画布');
  assert.deepEqual(errors,[]);await writeFile(folder+'/result.json',JSON.stringify({passed:true,checks,measurements,videos,businessWrites:'isolated PGlite only',databaseMigrations:false},null,2));console.log(JSON.stringify({passed:true,checks,folder}));
 }catch(error){console.error(fixture.logs().slice(-5000));throw error;}finally{await browser?.close();await fixture.stop();}
