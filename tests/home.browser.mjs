@@ -55,4 +55,33 @@ async function loop(){
  await page.waitForFunction(()=>+document.querySelector('[data-home-hero]').dataset.phase-window.__loop.phaseStart>=9.02,null,{timeout:55000});
  const loop=await page.evaluate(()=>{window.__loopSampling=false;return window.__loop;});assert.deepEqual(loop.unsafe,[]);assert.equal(new Set(loop.wraps).size,9);results.flatLoop={allNineWrapped:true,unsafeVisibleWraps:0,frames:loop.frames,phaseAdvance:+(await snap(page)).phase-loop.phaseStart};await context.close();
 }
-try{if(!recordOnly)await Promise.all([capture(),loop()]);await record();assert.deepEqual(results.errors,[]);await writeFile(resolve(batch,'checks.json'),JSON.stringify(results,null,2));console.log(recordOnly?'最终录屏已独立采集。':'通过：三档桌面、9图完整平带循环、连续横移、六阶段、暂停/键盘、往返、离场停止、减少动态与缺图。');}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
+async function tilt(){
+ results.tilt=[];
+ for(const width of [1920,1440,1024]){
+  const context=await browser.newContext({viewport:{width,height:900},...(width===1440?{recordVideo:{dir:resolve(batch,'motion/tilt'),size:{width,height:900}}}:{})}),page=await context.newPage();await ready(page);
+  await page.getByRole('button',{name:'暂停封面轮播',exact:true}).click();
+  const initial=await snap(page),card=page.locator('[data-home-cover="3"]'),face=card.locator('[data-home-cover-face]');
+  const projection=async(x,y)=>face.evaluate((node,{x,y})=>{const m=new DOMMatrix(getComputedStyle(node).transform);return{z:m.transformPoint({x:(x-.5)*node.offsetWidth,y:(y-.5)*node.offsetHeight}).z,opposite:m.transformPoint({x:(.5-x)*node.offsetWidth,y:(.5-y)*node.offsetHeight}).z};},{x,y});
+  const aim=async(x,y)=>{const r=await card.boundingBox();await page.mouse.move(r.x+r.width*x,r.y+r.height*y);await page.waitForTimeout(380);const result=await projection(x,y);assert(result.z<-2&&result.opposite>2,'光标所在角向内退 '+JSON.stringify({x,y,result}));};
+  for(const [mode,progress]of [['arc',0],['unfold',.5],['flat',.83]]){
+   await page.mouse.move(2,2);await page.evaluate(y=>scrollTo(0,y),initial.distance*progress);await settle(page);
+   for(const [corner,x,y]of [['top-right',.8,.2],['top-left',.2,.2],['bottom-left',.2,.8],['bottom-right',.8,.8]]){await aim(x,y);await page.screenshot({path:resolve(batch,`screenshots/tilt-${mode}-${corner}-${width}.png`)});}
+   const r=await card.boundingBox();await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.waitForTimeout(500);const center=await projection(.8,.2);assert(Math.abs(center.z)<.15,'中心恢复平面');
+   await aim(.8,.2);
+   await page.evaluate(()=>{window.__tiltReturn=[];const start=performance.now();function frame(t){const n=document.querySelector('[data-home-cover="3"] [data-home-cover-face]');window.__tiltReturn.push({t:t-start,z:new DOMMatrix(getComputedStyle(n).transform).m13});if(t-start<650)requestAnimationFrame(frame);}requestAnimationFrame(frame);});
+   await page.mouse.move(2,2);await page.waitForTimeout(720);const samples=await page.evaluate(()=>window.__tiltReturn);assert(samples.some(n=>n.z>0),'阻尼回正含轻微回弹');assert(Math.abs(samples.at(-1).z)<.001,'移出后收敛');assert.equal(await face.evaluate(n=>n.style.transform),'');
+   assert.equal((await snap(page)).phase,initial.phase,'暂停只冻结横向播放，指针动画仍可运行');results.tilt.push({width,mode,corners:true,center:true,returnSamples:samples});
+  }
+  await aim(.8,.2);const next=page.locator('[data-home-cover="4"]'),nextBounds=await next.boundingBox();await page.mouse.move(nextBounds.x+nextBounds.width*.8,nextBounds.y+nextBounds.height*.2);await page.waitForTimeout(650);assert.equal(await face.evaluate(n=>n.style.transform),'');assert.notEqual(await next.locator('[data-home-cover-face]').evaluate(n=>n.style.transform),'','快速跨图反馈属于新封面');
+  await page.getByRole('button',{name:'播放封面轮播',exact:true}).click();const r=await card.boundingBox(),point={x:r.x+r.width*.8,y:r.y+r.height*.2};await page.mouse.move(point.x,point.y);
+  await page.evaluate(point=>{window.__hoveredCovers=[];const start=performance.now();function sample(t){const n=document.elementFromPoint(point.x,point.y)?.closest('[data-home-cover]');if(n)window.__hoveredCovers.push({id:n.dataset.homeCover,transform:n.querySelector('[data-home-cover-face]').style.transform});if(t-start<5800)requestAnimationFrame(sample);}requestAnimationFrame(sample);},point);
+  await page.waitForTimeout(6000);const hovered=await page.evaluate(()=>window.__hoveredCovers);assert(new Set(hovered.map(n=>n.id)).size>=2,'平带经过静止光标时自动跟随当前封面');assert(hovered.filter(n=>n.transform).length>20);
+  await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));await page.waitForTimeout(100);assert(await page.locator('[data-home-cover-face]').evaluateAll(nodes=>nodes.every(n=>!n.style.transform)),'离场清空倾斜');
+  await page.evaluate(()=>scrollTo(0,0));await settle(page);await page.emulateMedia({reducedMotion:'reduce'});await page.mouse.move(width/2,630);await page.waitForTimeout(150);assert(await page.locator('[data-home-cover-face]').evaluateAll(nodes=>nodes.every(n=>!n.style.transform)),'减少动态效果关闭倾斜');await context.close();
+ }
+ for(const width of [390,320]){
+  const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true}),page=await context.newPage();await ready(page);assert.equal(await page.evaluate(()=>matchMedia('(hover:hover) and (pointer:fine)').matches),false);
+  await page.touchscreen.tap(width/2,590);await page.evaluate(()=>scrollTo(0,600));await settle(page);assert(await page.locator('[data-home-cover-face]').evaluateAll(nodes=>nodes.every(n=>!n.style.transform)));assert.equal(await page.locator('[data-home-interactive=true]').count(),0);await page.screenshot({path:resolve(batch,`screenshots/touch-${width}.png`)});results.tilt.push({width,coarsePointerStatic:true});await context.close();
+ }
+}
+try{if(!recordOnly){await Promise.all([capture(),loop()]);await tilt();}await record();assert.deepEqual(results.errors,[]);await writeFile(resolve(batch,'checks.json'),JSON.stringify(results,null,2));console.log(recordOnly?'最终录屏已独立采集。':'通过：桌面与触屏、四角下凹及阻尼回弹、静止光标跟随、9图完整平带循环、六阶段、暂停/键盘、离场停止、减少动态与缺图。');}finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

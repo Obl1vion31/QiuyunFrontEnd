@@ -3,11 +3,14 @@ export function attachHomeMotion(hero: HTMLElement): () => void {
   const frame = hero.querySelector<HTMLElement>('[data-home-frame]')!;
   const scene = hero.querySelector<HTMLElement>('[data-home-scene]')!;
   const cards = [...hero.querySelectorAll<HTMLElement>('[data-home-cover]')];
+  const faces = cards.map(card => card.querySelector<HTMLElement>('[data-home-cover-face]')!);
+  const tilts = cards.map(() => ({x:0,y:0,vx:0,vy:0,offset:0}));
   const stages = [...hero.querySelectorAll<HTMLElement>('[data-home-stage]')];
   const activeText = hero.querySelector<HTMLElement>('[data-home-active-stage]')!;
   const controls = hero.querySelector<HTMLElement>('[data-home-controls]')!;
   const toggle = hero.querySelector<HTMLButtonElement>('[data-home-toggle]')!;
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
+  const pointerCapability = matchMedia('(hover: hover) and (pointer: fine)');
   const hold = 2600, move = 1150, cycle = hold + move, flatRate = .22, count = cards.length;
   const clamp = (n: number) => Math.max(0, Math.min(1, n));
   const smooth = (n: number) => n * n * (3 - 2 * n);
@@ -17,15 +20,47 @@ export function attachHomeMotion(hero: HTMLElement): () => void {
   const idlePhase = (t: number) => Math.floor(t / cycle) + ease(clamp((t % cycle - hold) / move));
   let request = 0, last = 0, elapsed = 0, phase = 0, visible = true, paused = false;
   let currentStage = -1, dirty = true, lastPhase = -1, lastProgress = -1;
+  let pointer: {x:number;y:number}|null = null;
+  const resetFace = (index:number) => {
+    const tilt=tilts[index];tilt.x=tilt.y=tilt.vx=tilt.vy=0;
+    faces[index].style.removeProperty('transform');faces[index].style.removeProperty('will-change');
+  };
+  const resetTilt = () => {pointer=null;cards.forEach((card,index)=>{resetFace(index);card.removeAttribute('data-home-interactive');});};
+  const drawTilt = (dt:number,enabled:boolean) => {
+    if(!enabled)return false;
+    // Hit testing stays on the moving outer figure; the visual face never changes its hit area.
+    const hit=pointer?document.elementFromPoint(pointer.x,pointer.y)?.closest<HTMLElement>('[data-home-cover]'):null;
+    const rect=hit&&cards.includes(hit)?hit.getBoundingClientRect():null;
+    let moving=false;
+    cards.forEach((card,index)=>{
+      const tilt=tilts[index],face=faces[index],target=card===hit&&rect&&pointer;
+      const x=target?-(clamp((pointer!.y-rect!.top)/rect!.height)*2-1)*5:0;
+      const y=target?(clamp((pointer!.x-rect!.left)/rect!.width)*2-1)*5:0;
+      // Small integration steps keep the same damped spring on slow and fast displays.
+      const steps=Math.max(1,Math.ceil(dt*120)),step=dt/steps;
+      for(let i=0;i<steps;i++){
+        tilt.vx+=(324*(x-tilt.x)-28.08*tilt.vx)*step;
+        tilt.vy+=(324*(y-tilt.y)-28.08*tilt.vy)*step;
+        tilt.x+=tilt.vx*step;tilt.y+=tilt.vy*step;
+      }
+      const unsettled=Math.abs(x-tilt.x)+Math.abs(y-tilt.y)>.005||Math.abs(tilt.vx)+Math.abs(tilt.vy)>.02;
+      moving ||= unsettled;
+      if(!unsettled&&!target){resetFace(index);return;}
+      face.style.transform=`perspective(900px) rotateX(${tilt.x.toFixed(4)}deg) rotateY(${tilt.y.toFixed(4)}deg)`;
+      if(unsettled)face.style.willChange='transform';else face.style.removeProperty('will-change');
+    });
+    return moving;
+  };
   const draw = (timestamp: number) => {
     request = 0;
     if (!visible || document.hidden) { last = 0; return; }
     const bounds = hero.getBoundingClientRect(), distance = Math.max(1, hero.offsetHeight - frame.offsetHeight);
     const reduced = preference.matches, p = reduced ? 0 : clamp(-bounds.top / distance);
     const settle = reduced ? 0 : smooth(clamp((p - .2) / .55));
+    const dt=last?Math.min(64,timestamp-last)/1000:1/60;
     if (last && !paused && !reduced) {
-      const dt = Math.min(64, timestamp - last), before = idlePhase(elapsed);
-      elapsed += dt; phase += mix(idlePhase(elapsed) - before, dt / 1000 * flatRate, settle);
+      const before = idlePhase(elapsed);
+      elapsed += dt*1000; phase += mix(idlePhase(elapsed) - before, dt * flatRate, settle);
     }
     last = timestamp;
     const stage = reduced ? 0 : Math.min(stages.length - 1, Math.floor(p * stages.length));
@@ -52,19 +87,31 @@ export function attachHomeMotion(hero: HTMLElement): () => void {
         const angle = -d * 2.2 * (1 - settle), yaw = -d * 10 * (1 - settle);
         card.style.left = '0'; card.style.top = '0';
         card.style.transform = `translate3d(${(x - card.offsetWidth / 2).toFixed(3)}px,${(y - card.offsetHeight / 2).toFixed(3)}px,0) perspective(1100px) rotateY(${yaw.toFixed(3)}deg) rotate(${angle.toFixed(3)}deg) scale(${scale.toFixed(5)})`;
-        card.style.opacity = mix(edge, 1, settle).toFixed(5); card.style.zIndex = String(Math.round(100 - a * 10));
+        const opacity=mix(edge,1,settle);
+        card.style.opacity = opacity.toFixed(5); card.style.zIndex = String(Math.round(100 - a * 10));
+        if(Math.abs(d-tilts[i].offset)>count/2||opacity<.01)resetFace(i);
+        tilts[i].offset=d;
+        const interactive=String(!reduced&&pointerCapability.matches&&opacity>.05);
+        if(card.dataset.homeInteractive!==interactive)card.dataset.homeInteractive=interactive;
       });
       hero.dataset.progress = p.toFixed(5); hero.dataset.phase = shownPhase.toFixed(6);
       hero.dataset.settle = settle.toFixed(5); hero.dataset.motionReady = 'true';
       lastPhase = shownPhase; lastProgress = p; dirty = false;
     }
     hero.dataset.playback = reduced ? 'reduced' : paused ? 'paused' : settle === 1 ? 'flat-loop' : settle > 0 ? 'unfolding' : elapsed % cycle < hold ? 'hold' : 'advance';
-    if (!paused && !reduced) request = requestAnimationFrame(draw);
+    const tiltMoving=drawTilt(dt,!reduced&&pointerCapability.matches);
+    if ((!paused && !reduced)||tiltMoving) request = requestAnimationFrame(draw);
   };
-  const update = () => { dirty = true; if (visible && !document.hidden && !request) request = requestAnimationFrame(draw); };
+  const wake = () => {if (visible && !document.hidden && !request) request = requestAnimationFrame(draw);};
+  const update = () => { dirty = true; wake(); };
+  const pointerMove = (event:PointerEvent) => {
+    if(preference.matches||!pointerCapability.matches||event.pointerType==='touch')return;
+    pointer={x:event.clientX,y:event.clientY};wake();
+  };
+  const pointerLeave = () => {pointer=null;wake();};
   const observer = new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting; last = 0;
-    if (visible) update(); else if (request) { cancelAnimationFrame(request); request = 0; }
+    if (visible) update(); else hide();
   }, { rootMargin: '0px' });
   observer.observe(frame);
   const resizeObserver = new ResizeObserver(update); resizeObserver.observe(frame); resizeObserver.observe(scene);
@@ -75,9 +122,9 @@ export function attachHomeMotion(hero: HTMLElement): () => void {
     toggle.firstElementChild!.textContent = paused ? '▷' : 'Ⅱ';
     if (paused && request) { cancelAnimationFrame(request); request = 0; } update();
   };
-  const visibility = () => { last = 0; if (document.hidden && request) { cancelAnimationFrame(request); request = 0; } else update(); };
-  const preferenceChange = () => { last = 0; update(); };
-  const hide = () => { if (request) cancelAnimationFrame(request); request = 0; last = 0; };
+  const visibility = () => { if(document.hidden)hide();else{last=0;update();} };
+  const preferenceChange = () => { resetTilt();last = 0; update(); };
+  const hide = () => { if (request) cancelAnimationFrame(request); request = 0; last = 0;resetTilt(); };
   const show = () => { last = 0; update(); };
   const imageCleanups = cards.map(card => {
     const img = card.querySelector('img'), failed = () => { card.dataset.imageFailed = 'true'; };
@@ -86,11 +133,15 @@ export function attachHomeMotion(hero: HTMLElement): () => void {
     return () => img?.removeEventListener('error', failed);
   });
   toggle.addEventListener('click', pause); addEventListener('scroll', update, { passive: true }); addEventListener('resize', update);
+  hero.addEventListener('pointermove',pointerMove,{passive:true});hero.addEventListener('pointerleave',pointerLeave);hero.addEventListener('pointercancel',pointerLeave);
+  addEventListener('blur',pointerLeave);pointerCapability.addEventListener('change',preferenceChange);
   document.addEventListener('visibilitychange', visibility); preference.addEventListener('change', preferenceChange);
   addEventListener('pagehide', hide); addEventListener('pageshow', show); update();
   return () => {
     hide(); observer.disconnect(); resizeObserver.disconnect(); imageCleanups.forEach(cleanup => cleanup());
     toggle.removeEventListener('click', pause); removeEventListener('scroll', update); removeEventListener('resize', update);
+    hero.removeEventListener('pointermove',pointerMove);hero.removeEventListener('pointerleave',pointerLeave);hero.removeEventListener('pointercancel',pointerLeave);
+    removeEventListener('blur',pointerLeave);pointerCapability.removeEventListener('change',preferenceChange);
     document.removeEventListener('visibilitychange', visibility); preference.removeEventListener('change', preferenceChange);
     removeEventListener('pagehide', hide); removeEventListener('pageshow', show);
   };

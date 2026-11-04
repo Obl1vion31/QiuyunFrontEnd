@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "report": [
+    {
+      "kind": "desktop",
+      "firstVisible": true,
+      "noReplay": true,
+      "animations": [
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": true,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        }
+      ]
+    },
+    {
+      "kind": "mobile",
+      "firstVisible": true,
+      "noReplay": true,
+      "animations": [
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": false,
+          "duration": 360
+        },
+        {
+          "line": true,
+          "duration": 360
+        }
+      ]
+    }
+  ]
+}

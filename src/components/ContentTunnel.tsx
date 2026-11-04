@@ -35,9 +35,11 @@ export default function ContentTunnel(props: Props) {
         <div className={`${styles.scene} shell`} aria-label="内容封面" data-home-scene>
           {covers.map((cover, index) => (
             <figure key={cover.id} className={styles.cover} data-home-cover={index} style={initialCoverStyle(index, covers.length)}>
+              <div className={styles.coverFace} data-home-cover-face>
               {cover.image && <img src={cover.image} alt={`${cover.label}：${cover.caption}`} width="1080" height="1443" fetchPriority={index >= 2 && index <= 4 ? 'high' : 'auto'} />}
-              <figcaption>{cover.label}</figcaption>
               <div className={styles.fallback} aria-hidden="true" data-home-fallback>{cover.label}<strong>{cover.caption}</strong></div>
+              </div>
+              <figcaption>{cover.label}</figcaption>
             </figure>
           ))}
         </div>

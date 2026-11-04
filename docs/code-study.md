@@ -201,7 +201,7 @@ flowchart LR
 
 只读列表用`data-collaboration-observe`映射现有租约资源，`data-collaboration-action`复用原操作位；它们不参与编辑取锁。编辑容器继续使用resource属性，窄字段姓名角标按实测宽度退为圆点。首次输入验收直接延迟真实取锁请求并记录禁用／焦点帧，保存仍走真实API。
 
-非推广列表布局集中在`non-promotion-table.css`；跳过视图向共享表头传`skipped`，渲染原因而不生成MetricCell。保存刷新只更新实际存在的指标节点。例会列表沿正文边界使用白底区块，名称与版本组成主入口；历史保持两层折叠、版本项复用同一记录外壳。稳定截图复用测试辅助`settleBusinessUI`等待字体和有限动画，动态过程另行录像，仍须实际打开图像和审查关键录像。
+非推广列表布局集中在`non-promotion-table.css`，沿公共正文全宽组织。待复盘表头及`NonPromotionReviewRow`直接不渲染结果单元格，按帖与手机布局同步去掉空指标轨道，完整录入继续使用原Inspector；历史缺值统一“—”，SSR与保存刷新同步，主值、细轨及样本各自共用轨道；跳过视图向共享表头传`skipped`，渲染原因而不生成MetricCell。保存刷新只更新实际存在的指标节点。例会列表沿正文边界使用白底区块，名称与版本组成主入口；历史保持两层折叠、版本项复用同一记录外壳。稳定截图复用测试辅助`settleBusinessUI`等待字体和有限动画，动态过程另行录像，仍须实际打开图像和审查关键录像。
 
 非推广分类汇总和展开明细由同一 `.review-table` 负责宽度，只有外层 `.table-scroll` 横滚；平铺窄屏卡片仍独立适配。例会记录通过 `MeetingPdfArchive` 将直接读取与更多维护分级，详情版本栏保持自身布局。
 
@@ -227,7 +227,7 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 运营类型贯穿接入：`operation-types`维护四种类型与标签；`operation-setup`保存原帖策略和未发布的日期草案；`non-promotion-plan`从统一推广回放推导持续资格。新建、编辑、发布、节点和指标接口共用这些入口，不在按钮事件里自动改用途。`BusinessOperationFields`接入新建／编辑，`BusinessReviewDateAdd`供排期详情及非推广待安排气泡复用。节点写入先取得推广工作流锁，再锁排期／原帖并复核资格。首次实发才将即时草案变为真实节点；普通非推广改帖沿用原锚点；推广后持续由`switchContinuousReviewCycle`在实发事务记录当前版本，`anchorReviewPosts`按实际生效时间解析资格。
 
-非推广结果接入：`NonPromotionReviewRow`在分类明细、平铺和按帖视图复用真实行与Inspector键；`NonPromotionCategoryMetric`接收读模型的阅读量均值及各指标有效样本，客户端不另算入样条件。`mode`控制方式，`group`控制常规历史展示；服务端返回`sampleRows/categoryGroups`，分类共享标准样本与平铺方式过滤分别执行，切换只移动原节点。`NonPromotionReadingTrend`与保存刷新共用纯函数`non-promotion-trend`，按真实截至日定位并在缺失处断线；`business-data-motion`仅在首次可见时绘制细轨／趋势。
+非推广结果接入：`NonPromotionReviewRow`在分类明细、平铺和按帖视图复用真实行与Inspector键；`NonPromotionCategoryMetric`接收读模型的阅读量均值及各指标有效样本，客户端不另算入样条件。`mode`控制方式，`group`控制常规历史展示；服务端返回`sampleRows/categoryGroups`，分类共享标准样本与平铺方式过滤分别执行，切换只移动原节点。`NonPromotionCategoryMetric`在缺值时隐藏重复的有效零样本，有值而样本不完整时仍显示依据。`NonPromotionReadingTrend`与保存刷新共用纯函数`non-promotion-trend`，按真实截至日定位并在缺失处断线；`business-data-motion`仅在首次可见时绘制细轨／趋势。
 
 
 月度贯通的共享入口：
@@ -267,3 +267,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 月计划快捷接入：`compactPlanItems`只合并同来源／种类且无独立排期或审批进展的展示，不改变ID。编辑及只读Week板共用分组；左侧`data-plan-return`减号直接调用分周函数移回一篇，右侧`PlanQuantity`只改变未分配新做名额及组总量，已分周和已关联项保留。按钮／输入不参与拖动，0时只有减号禁用，来源加号仍可恢复。遗留只有一个真实名额，不提供数量器。已提交／生效／锁定继续保护。`confirmed`可保存未分完的草稿，拖动或调量后回到分周但不重开数量表；会后定稿仍走服务端完整性校验。
 
 协作连续性：可见编辑器的字段聚焦和业务保存通过同一个`ensure`／pending任务取得编辑权；不能在保存拦截器另行取同一份锁，否则旧保存释放与迟到取锁回执会重新留下失效凭证。无可见编辑器的写入仍沿用原按资源申请逻辑，服务端租约和版本检查保持。
+
+首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。
