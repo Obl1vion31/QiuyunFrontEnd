@@ -1,6 +1,7 @@
 {
   "screenshots": 31,
-  "videoFramesAtHalfSecond": 49,
+  "videoFramesAtHalfSecond": 48,
+  "videoSeconds": 20.988,
   "widths": [
     1920,
     1440,
@@ -8,6 +9,13 @@
     390,
     320
   ],
-  "videoSeconds": 21.514,
-  "status": "reviewed screenshots and all half-second video frames"
+  "newChangedImages": [
+    "monthly-locked-addition-1440.png",
+    "plan-quantity-1920.png",
+    "plan-initial-390.png",
+    "plan-add-preserved-1440.png"
+  ],
+  "blankInputSavesZero": true,
+  "quantityPreservesPlacedOrder": true,
+  "status": "reviewed all final images and half-second video frames"
 }

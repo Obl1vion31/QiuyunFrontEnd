@@ -103,8 +103,14 @@ try{
  const addedSource=pool.locator('[data-source-group="'+newGroupId+'"]');assert(await editor.getByRole('spinbutton').count()>1,'all source quantity controls remain available');await addedSource.getByRole('spinbutton').fill('1');await editor.getByRole('button',{name:'保存数量安排',exact:true}).click();await addedSource.locator('[data-plan-source][draggable=true]').waitFor();
  assert.deepEqual(await original.locator('[data-plan-item]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>[n.dataset.planItem,n.closest<HTMLElement>('[data-week]')?.dataset.week])),placedBeforeAdd);
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});await editor.evaluate((n:HTMLElement)=>scrollTo(0,n.getBoundingClientRect().top+scrollY-100));await shot('plan-add-preserved-'+width);}await page.setViewportSize({width:1440,height:1000});
+ // Quantity changes cannot reorder cards already placed beside a different source.
+ await chooseWeek(addedSource.locator('[data-plan-source][draggable=true]'),1);
+ const beforeQuantity=await original.locator('[data-plan-item]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.dataset.planItem));
+ await plus.click();assert.deepEqual(await original.locator('[data-plan-item]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.dataset.planItem)),beforeQuantity);
+ await minus.click();assert.deepEqual(await original.locator('[data-plan-item]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.dataset.planItem)),beforeQuantity);
+ const addedItem=beforeQuantity.find((id:string)=>!placedBeforeAdd.some((p:string[])=>p[0]===id));await original.locator('[data-plan-item="'+addedItem+'"] [data-plan-return]').click();
  // Correct the source with its inline quantity control, including zero.
- await addedSource.getByRole('spinbutton').fill('0');await addedSource.getByRole('spinbutton').blur();await page.getByRole('status').filter({hasText:'草稿已保存'}).waitFor();await original.getByRole('button',{name:'确认安排',exact:true}).click();await original.getByRole('button',{name:'重新排期',exact:true}).waitFor();
+ await addedSource.getByRole('spinbutton').fill('');await addedSource.getByRole('spinbutton').blur();assert.equal(await addedSource.getByRole('spinbutton').inputValue(),'0');await page.getByRole('status').filter({hasText:'草稿已保存'}).waitFor();await original.getByRole('button',{name:'确认安排',exact:true}).click();await original.getByRole('button',{name:'重新排期',exact:true}).waitFor();
  checks.push('纯新增正数量保留旧Week/ID，单板追加、数量更正至0与保存；统一数量器保持可见');
  const beforeReset=(await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,monthly.id)))[0].draftSnapshot!.monthlyPlan!.content.items.map(i=>[i.id,i.scheduleId]);
  await original.getByRole('button',{name:'重新排期',exact:true}).click();await respondToBusinessConfirm(page,false);assert.equal(await original.locator('[data-plan-item]').count(),3);

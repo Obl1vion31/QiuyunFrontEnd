@@ -70,12 +70,13 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
  }
  function quantity(b:Batch,g:PlanGroup,value:string){
   if(!b.canQuantity||busy)return;
-  const n=value===''?null:Number(value);if(n!==null&&(!Number.isInteger(n)||n<0||n>1000))return;
+  const n=Number(value);if(!Number.isInteger(n)||n<0||n>1000)return;
   const old=b.content.items.filter(i=>i.groupId===g.id),free=old.filter(i=>i.kind==='new'&&!i.scheduleId&&!i.week),kept=old.filter(i=>!free.includes(i));
-  if(kept.length+(n??0)>1000){setMessage('该来源计划总量不能超过1000篇。');return;}
-  const items=free.slice(0,n??0);
-  while(items.length<(n??0))items.push({id:crypto.randomUUID(),groupId:g.id,week:null,kind:'new',scheduleId:null});
-  updateContent(b,{...b.content,groups:b.content.groups.map(row=>row.id===g.id?{...row,quantity:n==null&&!kept.length?null:kept.length+(n??0)}:row),items:[...b.content.items.filter(i=>i.groupId!==g.id),...kept,...items]},b.step==='confirmed'?'weeks':b.step);
+  if(kept.length+n>1000){setMessage('该来源计划总量不能超过1000篇。');return;}
+  const items=free.slice(0,n);
+  while(items.length<n)items.push({id:crypto.randomUUID(),groupId:g.id,week:null,kind:'new',scheduleId:null});
+  const removed=new Set(free.slice(n).map(i=>i.id));
+  updateContent(b,{...b.content,groups:b.content.groups.map(row=>row.id===g.id?{...row,quantity:kept.length+n}:row),items:[...b.content.items.filter(i=>!removed.has(i.id)),...items.slice(free.length)]},b.step==='confirmed'?'weeks':b.step);
  }
  function include(b:Batch,g:PlanGroup,scheduleId:string){
   if(!b.canQuantity||busy)return;

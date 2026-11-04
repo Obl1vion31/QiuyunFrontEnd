@@ -6,7 +6,7 @@
 
 - Week右上减号直接移回一篇；右侧常驻减号／可输入待分配量／加号，各阶段保留同一控件，归零禁减禁拖但仍可增加。保留Week内／关联ID、单篇遗留及锁定追加规则。手机名称与完整数量器分两行，防止长名称挤成竖排。
 - 完整流程三次复现输入聚焦与保存重复取锁，迟到取锁回执复活已释放凭证；现可见编辑器与写入共用ensure。完整月计划、真实PG双角色／后台专项、公共UI、261项规则、schema、类型检查及Node／Vercel构建通过。
-- 五档31图与两段录像49帧已实际审查：[验收索引](verified/2026-11-04_16-04_month-plan-quantity/README.md)。沿用隔离工作树`.tools/releases/plan-shortcuts-20261104`，分支`codex/month-plan-quantity-controls`，保留原工作区修改。无迁移或生产业务写入；正式发布核对待收尾。
+- 五档31图与两段录像48帧已实际审查：[验收索引](verified/2026-11-04_16-04_month-plan-quantity/README.md)。沿用隔离工作树`.tools/releases/plan-shortcuts-20261104`，分支`codex/month-plan-quantity-controls`，保留原工作区修改。无迁移或生产业务写入；正式发布核对待收尾。
 
 ## 非推广任务列表与首页指针交互（已发布，2026-11-04）
 
