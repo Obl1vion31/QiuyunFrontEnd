@@ -1,0 +1,229 @@
+
+> qiuyun-frontend-system@0.1.0 build /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-width-20261104
+> ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build
+
+16:27:20 [@astrojs/node] Enabling sessions with filesystem storage
+16:27:20 [content] Syncing content
+16:27:20 [content] Synced content
+16:27:20 [types] Generated 62ms
+16:27:20 [check] Getting diagnostics for Astro files in /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-width-20261104...
+[96msrc/components/MonthlyCalendarPlan.astro[0m:[93m9[0m:[93m9[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m9[0m <script type="application/json" data-monthly-calendar-plan set:html={JSON.stringify(plan).replace(/</g,'\\u003c')}/>
+[7m [0m [93m        ~~~~[0m
+
+[96msrc/components/MonthlyMeetingSections.tsx[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'businessDateTime' is declared but its value is never read.
+
+[7m5[0m import {businessDateTime} from '../scripts/business-date';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/db/monthly-meeting.ts[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'readMonthlyPrivate' is declared but its value is never read.
+
+[7m5[0m import {readMonthlyPrivate} from './monthly-private';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/business/operations-schedule.astro[0m:[93m403[0m:[93m13[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m403[0m     <script type="application/json" data-schedule-records set:html={JSON.stringify(clientRows).replace(/</g,'\\u003c')}/>
+[7m   [0m [93m            ~~~~[0m
+
+[96msrc/scripts/operation-setup.ts[0m:[93m12[0m:[93m33[0m - [93mwarning[0m[90m ts(6133): [0m'event' is declared but its value is never read.
+
+[7m12[0m  type.addEventListener('change',event=>{if(form.dataset.operationAuto!=='true'){form.dataset.operationTouched='true';for(const name of ['operationType','reviewDay7','reviewDay15'])touched.add(name);(field('reviewDay7') as HTMLInputElement).checked=false;(field('reviewDay15') as HTMLInputElement).checked=false;}sync();});form.addEventListener('input',event=>{const target=event.target as HTMLInputElement;if(target.closest('[data-operation-setup],[data-content-role-field]'))touched.add(target.name);sync();});
+[7m  [0m [93m                                ~~~~~[0m
+
+[96mtests/home.browser.mjs[0m:[93m49[0m:[93m78[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m49[0m  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));await context.close();const video=await page.video().path(),deltas=frames.map(n=>n.dt).filter(n=>n>0).sort((a,b)=>a-b);
+[7m  [0m [93m                                                                             ~~~~~~~~[0m
+[96mtests/home.browser.mjs[0m:[93m46[0m:[93m188[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m46[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('[data-home-hero]');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-home-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                                                                                                                                                                           ~~~~~~~~[0m
+[96mtests/home.browser.mjs[0m:[93m46[0m:[93m34[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m46[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('[data-home-hero]');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-home-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                 ~~~~~~~~[0m
+
+[96mtests/meeting-compact.browser.ts[0m:[93m2[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'discussionFromDraft' is declared but its value is never read.
+
+[7m2[0m import {discussionFromDraft} from '../src/db/meeting-discussion-values';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/meeting-finalization.browser.ts[0m:[93m1[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'discussionFromDraft' is declared but its value is never read.
+
+[7m1[0m import {discussionFromDraft} from '../src/db/meeting-discussion-values';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/monthly-workflow.integration.ts[0m:[93m38[0m:[93m8[0m - [93mwarning[0m[90m ts(6133): [0m'monthRow' is declared but its value is never read.
+
+[7m38[0m  const monthRow=await meeting(monthly.id);const fresh=await api('/api/meeting-reviews/'+monthly.id+'/monthly-material');cookie=staff;await api('/api/monthly-private-data',{month:'2026-10',expectedRevision:0,data:{...privateData,total:{added:25,consulted:30,converted:5}}},200,'PATCH');cookie=boss;const updated=await api('/api/meeting-reviews/'+monthly.id+'/monthly-material');assert.notEqual(updated.monthly.fingerprint,fresh.monthly.fingerprint);await post(monthly.id,d=>{d.monthlyRefreshFingerprint=updated.monthly.fingerprint;});assert.deepEqual((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,(await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,monthly.id))).find(v=>v.versionNumber===1)!.id)))[0].snapshot,original);assert.equal(((await current(monthly.id)).snapshot as any).generated.monthly.privateData.data.total.added,25);checks.push('补充私域显式刷新成新版本，原月会和原计划均未改写');
+[7m  [0m [93m       ~~~~~~~~[0m
+
+[96mtests/monthly-workflow.postgres.ts[0m:[93m2[0m:[93m234[0m - [93mwarning[0m[90m ts(6133): [0m'eq' is declared but its value is never read.
+
+[7m2[0m import assert from 'node:assert/strict';import {readFile,writeFile} from 'node:fs/promises';import {randomUUID} from 'node:crypto';import postgres from 'postgres';import {generateDrizzleJson,generateMigration} from 'drizzle-kit/api';import {eq} from 'drizzle-orm';import {createDatabase} from '../src/db/client';import * as s from '../src/db/schema';import {savePrivate} from '../src/db/monthly-private';import {claimMonthlySchedule,lockReferencedMonthlyPlan,checkMonthlyPlan,readMonthlyPlan,type MonthlyPlanDraft} from '../src/db/monthly-plans';import {lockPromotionWorkflow} from '../src/db/promotion-pauses';
+[7m [0m [93m                                                                                                                                                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/non-promotion-results.browser.ts[0m:[93m5[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'businessFetch' is declared but its value is never read.
+
+[7m5[0m import {businessFetch} from './business-request.helper';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96mtests/non-promotion-results.browser.ts[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'eq' is declared but its value is never read.
+
+[7m3[0m import {eq} from 'drizzle-orm';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/operation-types.browser.ts[0m:[93m4[0m:[93m316[0m - [93mwarning[0m[90m ts(6133): [0m'checks' is declared but its value is never read.
+
+[7m4[0m const dir='.tools/test-artifacts/operation-types';await mkdir(dir,{recursive:true});const clockFile=new URL('../'+dir+'/browser-clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-24T12:00:00+08:00');const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;let cookie='',index=0;const checks:string[]=[];
+[7m [0m [93m                                                                                                                                                                                                                                                                                                                           ~~~~~~[0m
+[96mtests/operation-types.browser.ts[0m:[93m3[0m:[93m231[0m - [93mwarning[0m[90m ts(6192): [0mAll imports in import declaration are unused.
+
+[7m3[0m import {startFixture,admin,employee} from './auth.fixture';import {businessFetch} from './business-request.helper';import {withDatabase} from '../src/db/client';import {readWeeklyMaterial} from '../src/db/meeting-weekly-material';import {effectiveBusinessPermissions,updateAccountPermissions} from '../src/auth/business-permissions';import * as s from '../src/db/schema';
+[7m [0m [93m                                                                                                                                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96mtests/operation-types.browser.ts[0m:[93m3[0m:[93m162[0m - [93mwarning[0m[90m ts(6133): [0m'readWeeklyMaterial' is declared but its value is never read.
+
+[7m3[0m import {startFixture,admin,employee} from './auth.fixture';import {businessFetch} from './business-request.helper';import {withDatabase} from '../src/db/client';import {readWeeklyMaterial} from '../src/db/meeting-weekly-material';import {effectiveBusinessPermissions,updateAccountPermissions} from '../src/auth/business-permissions';import * as s from '../src/db/schema';
+[7m [0m [93m                                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96mtests/operation-types.browser.ts[0m:[93m3[0m:[93m116[0m - [93mwarning[0m[90m ts(6133): [0m'withDatabase' is declared but its value is never read.
+
+[7m3[0m import {startFixture,admin,employee} from './auth.fixture';import {businessFetch} from './business-request.helper';import {withDatabase} from '../src/db/client';import {readWeeklyMaterial} from '../src/db/meeting-weekly-material';import {effectiveBusinessPermissions,updateAccountPermissions} from '../src/auth/business-permissions';import * as s from '../src/db/schema';
+[7m [0m [93m                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/operation-types.integration.ts[0m:[93m2[0m:[93m116[0m - [93mwarning[0m[90m ts(6133): [0m'withDatabase' is declared but its value is never read.
+
+[7m2[0m import {startFixture,admin,employee} from './auth.fixture';import {businessFetch} from './business-request.helper';import {withDatabase} from '../src/db/client';import {readWeeklyMaterial} from '../src/db/meeting-weekly-material';import {effectiveBusinessPermissions,updateAccountPermissions} from '../src/auth/business-permissions';import * as s from '../src/db/schema';
+[7m [0m [93m                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96mtests/weekly-continuous.browser.ts[0m:[93m8[0m:[93m16[0m - [93mwarning[0m[90m ts(6133): [0m'legacyCreate' is declared but its value is never read.
+
+[7m8[0m async function legacyCreate(type='non_promotion_standard',role='content_preview',category='first-analysis-series'){return api('/api/operations-content',{contentName:'隔离内容职能 '+(++serial),subjectId:'tmua',categoryId:category,contentRole:role,plannedPublishAt:'2026-11-01T10:00',promotionStatus:'none',projectDocUrl:'https://example.test/doc',operationType:type,...type==='non_promotion_instant'?{reviewDueOn:'2026-11-02',reviewDay7:'on'}:{}},201);}
+[7m [0m [93m               ~~~~~~~~~~~~[0m
+
+[96mverified/2026-10-23_13-16_home-cinematic/source/capture.mjs[0m:[93m45[0m:[93m78[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m45[0m  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));
+[7m  [0m [93m                                                                             ~~~~~~~~[0m
+[96mverified/2026-10-23_13-16_home-cinematic/source/capture.mjs[0m:[93m41[0m:[93m177[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,progress:+h.dataset.progress,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent,cards:[...document.querySelectorAll('[data-cover]')].map(n=>({transform:n.style.transform,opacity:+n.style.opacity}))});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                                                                                                                                                                ~~~~~~~~[0m
+[96mverified/2026-10-23_13-16_home-cinematic/source/capture.mjs[0m:[93m41[0m:[93m34[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,progress:+h.dataset.progress,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent,cards:[...document.querySelectorAll('[data-cover]')].map(n=>({transform:n.style.transform,opacity:+n.style.opacity}))});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                 ~~~~~~~~[0m
+
+[96mverified/2026-10-23_13-42_home-loop/source/capture.mjs[0m:[93m44[0m:[93m78[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m44[0m  const frames=await page.evaluate(()=>{window.__sampling=false;return window.__frames;});await writeFile(resolve(raw,'recorded-frames.json'),JSON.stringify(frames));await context.close();const video=await page.video().path(),deltas=frames.map(n=>n.dt).filter(n=>n>0).sort((a,b)=>a-b);
+[7m  [0m [93m                                                                             ~~~~~~~~[0m
+[96mverified/2026-10-23_13-42_home-loop/source/capture.mjs[0m:[93m41[0m:[93m177[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                                                                                                                                                                ~~~~~~~~[0m
+[96mverified/2026-10-23_13-42_home-loop/source/capture.mjs[0m:[93m41[0m:[93m34[0m - [93mwarning[0m[90m ts(2568): [0mProperty '__frames' may not exist on type 'Window & typeof globalThis'. Did you mean 'frames'?
+
+[7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
+[7m  [0m [93m                                 ~~~~~~~~[0m
+
+Result (430 files):
+- 0 errors
+- 0 warnings
+- 26 hints
+
+16:27:41 [@astrojs/node] Enabling sessions with filesystem storage
+16:27:41 [content] Syncing content
+16:27:41 [content] Synced content
+16:27:41 [types] Generated 48ms
+16:27:41 [build] output: "server"
+16:27:41 [build] mode: "server"
+16:27:41 [build] directory: /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-width-20261104/dist/
+16:27:41 [build] adapter: @astrojs/node
+16:27:41 [build] Collecting build info...
+16:27:41 [build] ✓ Completed in 100ms.
+16:27:41 [build] Building server entrypoints...
+16:27:45 [vite] ✓ built in 4.20s
+16:27:45 [build] ✓ Completed in 4.23s.
+
+ building client (vite)
+16:27:46 [vite] transforming...
+16:27:47 [vite] ✓ 154 modules transformed.
+16:27:47 [vite] rendering chunks...
+16:27:47 [vite] computing gzip size...
+16:27:47 [vite] dist/client/_astro/client.B9YBqyHK.js                                                              0.03 kB │ gzip:  0.05 kB
+16:27:47 [vite] dist/client/_astro/page.DWjkjaoM.js                                                                0.07 kB │ gzip:  0.08 kB
+16:27:47 [vite] dist/client/_astro/meeting-review.astro_astro_type_script_index_0_lang.CbFyD9YB.js                 0.08 kB │ gzip:  0.10 kB
+16:27:47 [vite] dist/client/_astro/annual-plan.2a1a2ace.CihPWSFE.js                                                0.10 kB │ gzip:  0.10 kB
+16:27:47 [vite] dist/client/_astro/promotion-editor-lifecycle.ChKbKqc0.js                                          0.19 kB │ gzip:  0.16 kB
+16:27:47 [vite] dist/client/_astro/non-promotion-nodes.CKPU0Rj_.js                                                 0.23 kB │ gzip:  0.22 kB
+16:27:47 [vite] dist/client/_astro/business-date.CvCuF-15.js                                                       0.44 kB │ gzip:  0.35 kB
+16:27:47 [vite] dist/client/_astro/content-roles.DrA8x3ZQ.js                                                       0.44 kB │ gzip:  0.32 kB
+16:27:47 [vite] dist/client/_astro/business-permissions.BcHyGTbB.js                                                0.67 kB │ gzip:  0.40 kB
+16:27:47 [vite] dist/client/_astro/monthly-plan-types.IjbaCEgK.js                                                  0.83 kB │ gzip:  0.53 kB
+16:27:47 [vite] dist/client/_astro/login.astro_astro_type_script_index_0_lang.lfRSADdN.js                          0.83 kB │ gzip:  0.50 kB
+16:27:47 [vite] dist/client/_astro/index.95d291e9.qz21F_Rw.js                                                      0.86 kB │ gzip:  0.44 kB
+16:27:47 [vite] dist/client/_astro/client.CEsBDP4Q.js                                                              1.00 kB │ gzip:  0.63 kB
+16:27:47 [vite] dist/client/_astro/jsx-runtime.ClP7wGfN.js                                                         1.00 kB │ gzip:  0.62 kB
+16:27:47 [vite] dist/client/_astro/BusinessDateTimeFields.astro_astro_type_script_index_0_lang.B--8MwvI.js         1.25 kB │ gzip:  0.55 kB
+16:27:47 [vite] dist/client/_astro/promotion-successors.DwNHEL_u.js                                                1.48 kB │ gzip:  0.57 kB
+16:27:47 [vite] dist/client/_astro/ClientRouter.astro_astro_type_script_index_0_lang._QSiuP-R.js                   1.69 kB │ gzip:  0.85 kB
+16:27:47 [vite] dist/client/_astro/BusinessAccountMenu.astro_astro_type_script_index_0_lang.CB2xzdER.js            1.74 kB │ gzip:  0.98 kB
+16:27:47 [vite] dist/client/_astro/BusinessPromotionWaitRanges.astro_astro_type_script_index_0_lang.ZQ8Eof8U.js    1.76 kB │ gzip:  1.08 kB
+16:27:47 [vite] dist/client/_astro/business-read.lHADWRqp.js                                                       1.78 kB │ gzip:  0.93 kB
+16:27:47 [vite] dist/client/_astro/monthly-operations.f8f5534d.Cw_8Ylug.js                                         1.84 kB │ gzip:  0.77 kB
+16:27:47 [vite] dist/client/_astro/BusinessReviewDateAdd.astro_astro_type_script_index_0_lang.BLbAQvB-.js          1.86 kB │ gzip:  1.03 kB
+16:27:47 [vite] dist/client/_astro/client.B8feUfe4.js                                                              1.87 kB │ gzip:  0.93 kB
+16:27:47 [vite] dist/client/_astro/index.CMSLJNQe.js                                                               2.34 kB │ gzip:  1.07 kB
+16:27:47 [vite] dist/client/_astro/BusinessScheduleApprovals.astro_astro_type_script_index_0_lang.BCQVIpag.js      2.63 kB │ gzip:  1.24 kB
+16:27:47 [vite] dist/client/_astro/BusinessUsageGuide.astro_astro_type_script_index_0_lang.D8LZCbeq.js             3.26 kB │ gzip:  1.37 kB
+16:27:47 [vite] dist/client/_astro/BusinessConsoleSidebar.astro_astro_type_script_index_0_lang.B5hI_QBm.js         3.27 kB │ gzip:  1.29 kB
+16:27:47 [vite] dist/client/_astro/MeetingPdfArchive.CZbrzAj8.js                                                   3.41 kB │ gzip:  1.44 kB
+16:27:47 [vite] dist/client/_astro/BusinessPostReferences.astro_astro_type_script_index_0_lang.lga9vyTA.js         3.94 kB │ gzip:  1.45 kB
+16:27:47 [vite] dist/client/_astro/BusinessPromotionSummary.astro_astro_type_script_index_0_lang.BRKaioHO.js       4.71 kB │ gzip:  1.87 kB
+16:27:47 [vite] dist/client/_astro/BusinessPromotionInitialRow.astro_astro_type_script_index_0_lang.CU2euV5S.js    5.37 kB │ gzip:  1.96 kB
+16:27:47 [vite] dist/client/_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.PjsdHS3T.js            5.95 kB │ gzip:  2.46 kB
+16:27:47 [vite] dist/client/_astro/BusinessAccountManagement.astro_astro_type_script_index_0_lang.CFDkIdxK.js      6.05 kB │ gzip:  2.36 kB
+16:27:47 [vite] dist/client/_astro/business-dialog.CDYGoVHR.js                                                     6.45 kB │ gzip:  2.09 kB
+16:27:47 [vite] dist/client/_astro/index.DK-fsZOb.js                                                               6.81 kB │ gzip:  2.73 kB
+16:27:47 [vite] dist/client/_astro/BusinessPromotionDailyPosts.astro_astro_type_script_index_0_lang.BkxLVoae.js    7.12 kB │ gzip:  2.91 kB
+16:27:47 [vite] dist/client/_astro/BusinessPostLookup.astro_astro_type_script_index_0_lang.Y1OCw1il.js             7.55 kB │ gzip:  3.28 kB
+16:27:47 [vite] dist/client/_astro/BusinessMeetingDiscussion.BFMk0wFU.js                                           7.94 kB │ gzip:  3.46 kB
+16:27:47 [vite] dist/client/_astro/ContentTunnel.BXcFKZqE.js                                                       9.65 kB │ gzip:  3.96 kB
+16:27:47 [vite] dist/client/_astro/BusinessPromotionMetricForm.astro_astro_type_script_index_0_lang.CRg1PG2Y.js    9.84 kB │ gzip:  3.60 kB
+16:27:47 [vite] dist/client/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.BWx_4F9o.js             10.61 kB │ gzip:  3.93 kB
+16:27:47 [vite] dist/client/_astro/router.CxpQgbQp.js                                                             11.54 kB │ gzip:  4.05 kB
+16:27:47 [vite] dist/client/_astro/operations-schedule.astro_astro_type_script_index_0_lang.CSygoERN.js           15.95 kB │ gzip:  5.62 kB
+16:27:47 [vite] dist/client/_astro/non-promotion-review.astro_astro_type_script_index_0_lang.Bqyo33pQ.js          16.01 kB │ gzip:  5.64 kB
+16:27:47 [vite] dist/client/_astro/BusinessPromotionTimeline.astro_astro_type_script_index_0_lang.D73O6ykr.js     17.92 kB │ gzip:  5.48 kB
+16:27:47 [vite] dist/client/_astro/BusinessConsoleFrame.astro_astro_type_script_index_0_lang.DpQAdlUp.js          18.20 kB │ gzip:  6.70 kB
+16:27:47 [vite] dist/client/_astro/BusinessMonthlyOperations.CUvlBA4V.js                                          19.03 kB │ gzip:  5.97 kB
+16:27:47 [vite] dist/client/_astro/operations-schedule.astro_astro_type_script_index_1_lang.B7iDTWCG.js           19.30 kB │ gzip:  7.09 kB
+16:27:47 [vite] dist/client/_astro/annual-plan.astro_astro_type_script_index_0_lang.DLxonXD5.js                   19.47 kB │ gzip:  7.01 kB
+16:27:47 [vite] dist/client/_astro/BusinessWeeklyMeeting.C__gPhLR.js                                              20.61 kB │ gzip:  7.06 kB
+16:27:47 [vite] dist/client/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.BCM2X7YL.js        23.28 kB │ gzip:  7.70 kB
+16:27:47 [vite] dist/client/_astro/meeting-finalization.BWfyKxXI.js                                               47.01 kB │ gzip: 14.38 kB
+16:27:47 [vite] dist/client/_astro/MonthlyMeetingSections.iBO8zWFd.js                                             66.44 kB │ gzip: 19.63 kB
+16:27:47 [vite] dist/client/_astro/index.xK5eoQS5.js                                                             134.65 kB │ gzip: 43.22 kB
+16:27:47 [vite] ✓ built in 1.30s
+
+ prerendering static routes
+16:27:47 λ src/pages/fonts/business.css.ts
+16:27:47   └─ /fonts/business.css (+535ms)
+16:27:47 λ src/pages/fonts/business.js.ts
+16:27:47   └─ /fonts/business.js (+6ms)
+16:27:47 ▶ src/pages/index.astro
+16:27:47   └─ /index.html (+14ms)
+16:27:47 ✓ Completed in 617ms.
+
+16:27:47 [build] Rearranging server assets...
+16:27:47 [build] Server built in 6.29s
+16:27:47 [build] Complete!

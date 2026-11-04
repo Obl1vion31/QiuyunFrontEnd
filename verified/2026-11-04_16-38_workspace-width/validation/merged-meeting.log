@@ -1,0 +1,19 @@
+
+> qiuyun-frontend-system@0.1.0 test:meeting-display /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-width-20261104
+> node --import tsx tests/meeting-display.browser.ts
+
+{"baseURL":"http://127.0.0.1:35429","monthly":"add8f5ac-55ca-4ead-a3ab-70f7a0b6ce06","weekly":"f2099851-860b-4e7b-b16e-a20196db949a","non":4,"context":10}
+first frames 66 { time: 0, top: 194, presence: '' } { time: 1205, top: 194, presence: '正在查看：Admin' }
+月会主值旁人数/成本变化、草稿首屏、材料设置及真实输入/后台保存
+月会执行左发布右四卡、投入移位、五个月断月/零值，来源抽屉桌面手机及Esc焦点返回
+同帖V0/V1留资成本真实定稿点、无历史灰态及共享气泡悬停/键盘
+完整月会/周会五档长截图、Week项目汇总、遗留/已登记/未安排、详情桌面与手机、原编辑来源池
+周会多帖双卡/单列、同节点常显pp、正负差、未来与真实零值五档渲染
+推广点击率真实修改、确认保存及原位回显
+手机展开、修改保存、减少动态效果
+周会真实会前定稿只读整页与月会全部模块手机分段，非截断首屏样张
+月度运营保留四卡/关注条/双图，私域位于图表后明细前
+桌面/触屏11→10→11，视口外播放、同月刷新/筛选不重播，慢请求/失败重试/快速切月/减少动态效果及中途取消
+手机从首帧到协作姓名加载完成，正文起点误差不超过1px
+独立手机触屏录像：月度对照、周会节点与详情展开
+旧冻结材料无空跑序列：五档3条来源、明确无往期，不补实时历史

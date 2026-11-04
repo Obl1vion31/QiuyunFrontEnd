@@ -1,0 +1,12 @@
+[
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\workspace-width-20261104\\src\\styles\\meeting-weekly.css",
+    "line": 70,
+    "snippet": "border-left:3px solid var(--console-blue)"
+  }
+]
