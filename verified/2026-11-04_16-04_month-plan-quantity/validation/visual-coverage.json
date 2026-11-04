@@ -1,0 +1,13 @@
+{
+  "screenshots": 31,
+  "videoFramesAtHalfSecond": 49,
+  "widths": [
+    1920,
+    1440,
+    1024,
+    390,
+    320
+  ],
+  "videoSeconds": 21.514,
+  "status": "reviewed screenshots and all half-second video frames"
+}

@@ -1,0 +1,91 @@
+{
+  "events": [
+    {
+      "at": 1793779056115,
+      "event": "request",
+      "method": "POST",
+      "resources": [
+        "meeting:27669332-f86b-4664-a91c-30d544ca8caf"
+      ],
+      "tokens": {}
+    },
+    {
+      "at": 1793779056147,
+      "event": "response",
+      "method": "POST",
+      "status": 200,
+      "leases": [
+        {
+          "resource": "meeting:27669332-f86b-4664-a91c-30d544ca8caf",
+          "token": "9d6dc0ad",
+          "expiresAt": "2026-11-03T04:01:00.000Z"
+        }
+      ]
+    },
+    {
+      "at": 1793779056270,
+      "event": "request",
+      "method": "POST",
+      "resources": [
+        "meeting:27669332-f86b-4664-a91c-30d544ca8caf"
+      ],
+      "tokens": {}
+    },
+    {
+      "at": 1793779056297,
+      "event": "save",
+      "status": 200,
+      "tokens": {
+        "meeting:27669332-f86b-4664-a91c-30d544ca8caf": "9d6dc0ad"
+      }
+    },
+    {
+      "at": 1793779056298,
+      "event": "request",
+      "method": "DELETE",
+      "resources": [
+        "meeting:27669332-f86b-4664-a91c-30d544ca8caf"
+      ],
+      "tokens": {
+        "meeting:27669332-f86b-4664-a91c-30d544ca8caf": "9d6dc0ad"
+      }
+    },
+    {
+      "at": 1793779056329,
+      "event": "response",
+      "method": "POST",
+      "status": 200,
+      "leases": [
+        {
+          "resource": "meeting:27669332-f86b-4664-a91c-30d544ca8caf",
+          "token": "9d6dc0ad",
+          "expiresAt": "2026-11-03T04:01:00.000Z"
+        }
+      ]
+    },
+    {
+      "at": 1793779056370,
+      "event": "response",
+      "method": "DELETE",
+      "status": 200,
+      "leases": []
+    },
+    {
+      "at": 1793779056492,
+      "event": "save",
+      "status": 409,
+      "tokens": {
+        "meeting:27669332-f86b-4664-a91c-30d544ca8caf": "9d6dc0ad"
+      }
+    }
+  ],
+  "leases": [],
+  "client": [
+    {
+      "resource": "meeting:27669332-f86b-4664-a91c-30d544ca8caf",
+      "state": "blocked"
+    }
+  ],
+  "syntheticOnly": true,
+  "tokenRepresentation": "sha256 prefix"
+}

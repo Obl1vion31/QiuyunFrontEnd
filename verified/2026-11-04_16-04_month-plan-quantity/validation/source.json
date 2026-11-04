@@ -1,0 +1,11 @@
+{
+  "base": "eac36527129ea05c563ff59271333b62854fab65",
+  "hashes": {
+    "src/components/MonthlyPlanEditor.tsx": "6a38c373bfb8a3765447e6fae27b2907aad6013b2ba3f6605dc18b1a116754d8",
+    "src/components/WeeklyCardDetails.tsx": "df3abcc65fb0fac656681ed8e36405f3fc4a1f54236b018fe629740c6a050482",
+    "src/scripts/business-collaboration.ts": "d51beb67e9d4fe30275d9ade78f590f59451b6375899cf955ea28daf4a94f51e",
+    "src/styles/monthly-meeting.css": "8ab5a230114114049bb7bc882404897d321262e8c9db0333804e808255257e4b"
+  },
+  "databaseMigrations": false,
+  "productionBusinessWrites": false
+}
