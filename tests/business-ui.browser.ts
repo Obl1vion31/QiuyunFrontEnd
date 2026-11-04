@@ -103,7 +103,12 @@ try {
 
     }
     for(const query of ['daily-promotion-review?view=history','daily-promotion-review?view=history&mode=day','non-promotion-review?view=history&group=1','non-promotion-review?view=history&group=0','non-promotion-review?view=skipped','settings?view=accounts','settings?view=guide']){
-      await page.goto(baseURL+'/business/'+query);await settleBusinessUI(page);contentGeometry.push(await assertBusinessContent(page,query));await page.screenshot({path:`.tools/test-artifacts/workspace-width/screenshots/${query.replace(/[?=&]/g,'-')}-${width}.png`});
+      await page.goto(baseURL+'/business/'+query);await settleBusinessUI(page);contentGeometry.push(await assertBusinessContent(page,query));
+      if(query==='settings?view=accounts'&&width>900){
+        const labels=await page.locator('.account-table [data-account-role],.account-table [data-account-status]').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>{const text=document.createRange();text.selectNodeContents(n);return {text:n.textContent,height:text.getBoundingClientRect().height,line:parseFloat(getComputedStyle(n).lineHeight)};}));
+        assert(labels.length>0&&labels.every((label:any)=>label.height<=label.line+1),'账号角色与状态完整一行 '+JSON.stringify(labels));
+      }
+      await page.screenshot({path:`.tools/test-artifacts/workspace-width/screenshots/${query.replace(/[?=&]/g,'-')}-${width}.png`});
     }
     await page.goto(baseURL+'/business/daily-promotion-review');
     await page.evaluate(()=>{(window as any).__toolbar=document.querySelector('[data-promotion-toolbar]');(window as any).__tabs=document.querySelector('.toolbar-segmented');(window as any).__document=document;});
