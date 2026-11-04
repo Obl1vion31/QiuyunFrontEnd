@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "baseline": "c24584090edc96ecba89751b092aeb843ee60a7e",
+  "checks": [
+    "261 rule tests",
+    "schema",
+    "type check (0 errors, 0 warnings, 26 existing hints)",
+    "Node build",
+    "Vercel build",
+    "16 same-PostgreSQL comparisons and 7 rendered pages",
+    "public UI",
+    "monthly workflow integration and browser",
+    "meeting discussion and report display",
+    "non-promotion inspector",
+    "workspace assistant",
+    "9 promotion status-correction checks",
+    "schedule workflow",
+    "17 first-paint cases and 7 font consumers",
+    "12 optimistic concurrency groups",
+    "301516ms native foreground/background observation",
+    "bundled React/Chromium/fonts and 5 monthly/3 weekly PDF pages"
+  ],
+  "data": "isolated PostgreSQL / PGlite only",
+  "visualReview": "screenshots, operation video, slow-first-paint recordings and all 8 PDF pages actually inspected"
+}
