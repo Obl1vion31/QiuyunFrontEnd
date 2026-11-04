@@ -1,7 +1,7 @@
 {
   "screenshots": 17,
   "videoFramesAtHalfSecond": 43,
-  "videoSeconds": 17.902,
+  "videoSeconds": 18.534,
   "desktopWidths": [
     1920,
     1440,
@@ -11,5 +11,9 @@
     390,
     320
   ],
-  "status": "reviewed all 17 screenshots and 43 sampled video frames"
+  "status": "reviewed all 17 final screenshots and 43 sampled video frames; 1920 four-digit input and 1440 corner inspected at native size",
+  "videoFramesByClip": {
+    "plan-desktop": 37,
+    "plan-phone": 6
+  }
 }

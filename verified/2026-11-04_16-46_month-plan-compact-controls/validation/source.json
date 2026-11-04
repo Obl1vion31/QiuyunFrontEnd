@@ -2,9 +2,12 @@
   "base": "b934f0b361bd11baabe47cf65399ba5a90921323",
   "hashes": {
     "src/components/MonthlyPlanEditor.tsx": "f2bb86ff8144d88fa70d8ab6014a63d6ba03203dc9f3a27bce48a78dab9ed6b7",
-    "src/styles/monthly-meeting.css": "461863e420b592808af00ddc6ab131ce47db0ac050107a79386504f0e50737ed"
+    "src/styles/monthly-meeting.css": "cd74081306f3800cfbe1cb1672b1edce8b7cb15b8b79592c26eb9dd5091cc130",
+    "src/styles/meeting-weekly.css": "c2702e8b0af09bc804c2550b903ecbd4816344cfc2c29d0e7fa0bfb4ecb05109"
   },
   "behaviorChanged": false,
   "databaseMigrations": false,
-  "productionBusinessWrites": false
+  "productionBusinessWrites": false,
+  "integratedMain": "a8d3fb3bf5baa6385cdaa6125267b89e0c1d35d0",
+  "validatedAgainst": "c6ee76d"
 }
