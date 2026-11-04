@@ -1,0 +1,10 @@
+{
+  "base": "b934f0b361bd11baabe47cf65399ba5a90921323",
+  "hashes": {
+    "src/components/MonthlyPlanEditor.tsx": "f2bb86ff8144d88fa70d8ab6014a63d6ba03203dc9f3a27bce48a78dab9ed6b7",
+    "src/styles/monthly-meeting.css": "461863e420b592808af00ddc6ab131ce47db0ac050107a79386504f0e50737ed"
+  },
+  "behaviorChanged": false,
+  "databaseMigrations": false,
+  "productionBusinessWrites": false
+}

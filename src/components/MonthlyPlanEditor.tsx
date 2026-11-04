@@ -163,7 +163,7 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
     <strong>{text}</strong>{choices(b,item)}{bound?evidence(b,g,items[0]):pool?sourceInfo(b,g):evidence(b,g,items[0])}
    </WeeklyCardDetails>
    {pool&&!bound&&quantityInput(b,g)}
-   {!pool&&item&&b.canEdit&&step!=='quantity'&&<button type="button" className="monthly-chip-return" data-plan-return aria-label={'移回1篇'+name+'到待分配'} title="移回待分配" disabled={busy} draggable={false} onClick={()=>{distribute(b,item,null);if(items.length>1)requestAnimationFrame(()=>host.current?.querySelector<HTMLElement>(`[data-plan-item="${items[1].id}"] [data-plan-return]`)?.focus({preventScroll:true}));else focusPool(g,item);}}><svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10"/></svg></button>}
+   {!pool&&item&&b.canEdit&&step!=='quantity'&&<button type="button" className="monthly-chip-return" data-plan-return aria-label={'移回1篇'+name+'到待分配'} title="移回待分配" disabled={busy} draggable={false} onClick={()=>{distribute(b,item,null);if(items.length>1)requestAnimationFrame(()=>host.current?.querySelector<HTMLElement>(`[data-plan-item="${items[1].id}"] [data-plan-return]`)?.focus({preventScroll:true}));else focusPool(g,item);}}><svg aria-hidden="true" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m3 3 10 10M13 3 3 13"/></svg></button>}
    {pool&&carry&&<WeeklyCardDetails variant="info" boundary=".monthly-plan-pool" label={'查看'+name+'遗留资料'}>{evidence(b,g,items[0])}</WeeklyCardDetails>}
   </div>;
  }

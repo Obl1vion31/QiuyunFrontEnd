@@ -1,0 +1,15 @@
+{
+  "screenshots": 17,
+  "videoFramesAtHalfSecond": 43,
+  "videoSeconds": 17.902,
+  "desktopWidths": [
+    1920,
+    1440,
+    1024
+  ],
+  "mobileRegressionWidths": [
+    390,
+    320
+  ],
+  "status": "reviewed all 17 screenshots and 43 sampled video frames"
+}
