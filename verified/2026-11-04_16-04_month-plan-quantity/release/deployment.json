@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "112301fea2ad1a8abbbe7917290da3651d081f1c",
+  "integratedMain": "6358bdb",
+  "deploymentId": "dpl_HHupVESyG9AY2fBPaQR5szhLnudq",
+  "state": "READY",
+  "url": "qiuyun-frontend-r9pvmh40i-opgobl1v-5358.vercel.app",
+  "domain": "https://qiuyun-frontend.vercel.app",
+  "domainMatchesDeployment": true,
+  "businessWrites": false,
+  "databaseMigrations": false
+}

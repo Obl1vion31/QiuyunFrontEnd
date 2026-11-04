@@ -182,6 +182,8 @@ if(!state.__collaborationReady){
    await releasing;
    await Promise.all([...pending].filter(([resource])=>resources.some(key=>overlaps(resource,key))).map(([,task])=>task));
    if(resources.some(resource=>[...lost].some(key=>overlaps(key,resource))))throw new Error('当前输入已保留，请重新取得编辑权。');
+   // 可见编辑器的输入和保存共用取锁任务，避免保存释放后迟到的取锁回执复活旧凭证。
+   await Promise.all(scopes().filter(scope=>resources.some(resource=>resource===scope.resource||resource.startsWith(scope.resource+':'))).map(scope=>ensure(scope)));
    // 子字段租约不能覆盖整篇操作；campaign别名只接受对应的完整租约。
    const missing=resources.filter(resource=>![...leases.values()].some(lease=>lease.resource===resource||resource.startsWith(lease.resource+':')||resource.startsWith('campaign:')&&lease.resource.endsWith(':'+resource)));
    if(missing.length){leaseVersion++;const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}
