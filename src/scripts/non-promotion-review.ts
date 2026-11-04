@@ -92,7 +92,12 @@ function initialize() {
     for (const item of refreshRows) {
       const row = table.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(item.key)}"]`);
       if (!row) continue;
-      const reading=row.querySelector<HTMLElement>('[data-label=阅读量] strong');if(reading){reading.textContent=item.metric?.readCount==null?(item.metric?'未记录':'待录入'):item.metric.readCount.toLocaleString('zh-CN');reading.parentElement!.classList.toggle('has-value',item.metric?.readCount!=null);}
+      const reading=row.querySelector<HTMLElement>('[data-label=阅读量] strong');if(reading){
+        const hasValue=item.metric?.readCount!=null;
+        reading.textContent=hasValue?item.metric!.readCount!.toLocaleString('zh-CN'):'—';
+        if(hasValue)reading.removeAttribute('aria-label');else reading.setAttribute('aria-label','阅读量未记录');
+        reading.toggleAttribute('data-result-metric',hasValue);reading.parentElement!.classList.toggle('has-value',hasValue);
+      }
       for (const [key, field, cohort] of [['click','clickRate',item.click],['read','threeSecondReadRate',item.read]] as const) {
         const value = item.metric?.[field]==null?null:Number(item.metric[field]);
         row.dataset[key] = value == null ? '' : String(value);
@@ -103,9 +108,9 @@ function initialize() {
         cell.classList.remove('positive','negative','neutral');
         cell.classList.add(delta == null || Math.abs(delta)<.01 ? 'neutral' : delta>0 ? 'positive' : 'negative');
         cell.title = `${checkpointLabel(item.checkpoint.type)}同类均值 ${cohort.mean?.toFixed(2) ?? '—'}% · n=${cohort.count} 篇`;
-        cell.querySelector('strong')!.textContent = value == null ? (item.metric?'未记录':'待录入') : `${value.toFixed(2)}%`;
+        cell.querySelector('strong')!.textContent = value == null ? '—' : `${value.toFixed(2)}%`;
         const track=cell.querySelector<HTMLElement>('.result-track')!;track.hidden=value==null;track.querySelector<HTMLElement>('i')!.style.width=`${value??0}%`;
-        const em=cell.querySelector('em');if(em){em.hidden=cohort.mean==null;const label=document.createElement('span'),mean=document.createElement('span'),sample=document.createElement('span');label.className='metric-reference-label';label.textContent='同类均值 ';mean.textContent=cohort.mean==null?'— ':`${cohort.mean.toFixed(2)}% `;sample.textContent=`· ${cohort.count} 篇`;em.replaceChildren(label,mean,sample);}
+        const em=cell.querySelector('em');if(em){em.hidden=value==null||cohort.mean==null;const label=document.createElement('span'),mean=document.createElement('span'),sample=document.createElement('span');label.className='metric-reference-label';label.textContent='同类均值 ';mean.textContent=cohort.mean==null?'— ':`${cohort.mean.toFixed(2)}% `;sample.textContent=`· ${cohort.count} 篇`;em.replaceChildren(label,mean,sample);}
         const difference=cell.querySelector('small');if(difference){difference.hidden=value==null||delta==null;difference.textContent=delta==null?'':`${delta>0?'+':''}${delta.toFixed(2)}pp`;}
       }
       const template = [...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node => node.dataset.inspectorTemplate === item.key);
@@ -124,7 +129,7 @@ function initialize() {
           const cell=summary.querySelector<HTMLElement>(`[data-category-metric="${field}"][data-round="${round.type}"]`)!;
           cell.classList.toggle('has-value',value!=null);cell.title=`有效样本 ${count} 篇`;
           cell.querySelector('strong')!.textContent=value==null?'—':field==='reading'?value.toLocaleString('zh-CN',{maximumFractionDigits:1}):value.toFixed(2)+'%';
-          const sample=cell.querySelector('small')!;sample.hidden=count===round.count;sample.textContent=`有效 ${count} 篇`;
+          const sample=cell.querySelector('small')!;sample.hidden=value==null||count===round.count;sample.textContent=`有效 ${count} 篇`;
           const track=cell.querySelector<HTMLElement>('.result-track');if(track){track.hidden=value==null;track.querySelector<HTMLElement>('i')!.style.width=`${value??0}%`;}
         }
       }

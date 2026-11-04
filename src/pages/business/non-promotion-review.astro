@@ -53,7 +53,7 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
     </div>
     <section class="review-workspace" data-inspector-host>
       <div class="table-pane"><div class="table-scroll" role="region" aria-label="非推广复盘表格" tabindex="0"><div class="review-table" role="table" data-mode={mode} data-view={activeView} data-grouped={String(grouped)} data-category={selectedGroup??''} data-nonpromotion-results={activeView==='history'||undefined}>
-        <div data-flat-head hidden={grouped}><BusinessNonPromotionTableHead skipped={activeView==='skipped'}/></div>
+        <div data-flat-head hidden={grouped}><BusinessNonPromotionTableHead skipped={activeView==='skipped'} pending={activeView==='pending'}/></div>
         <div data-category-overview hidden={!grouped}>
           <div class="category-grid category-group-head" aria-hidden="true"><span>帖子分类</span><span>轮次</span><span>样本</span><span>阅读量均值</span><span>点击率</span><span>3 秒阅读率</span><span>明细</span></div>
           {categoryGroups.map(group=><details class="review-category-group" data-category-details data-category-group={group.key} data-category-label={group.label} open={selectedGroup===group.key}>
@@ -75,7 +75,7 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
           {group.items.map(item=><NonPromotionReviewRow hidden={!grouped&&item.row.mode!==mode} item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}
         </div>:<section class="post-result" data-review-group={group.id}>
           <header class="post-result-heading"><div><h2><button type="button" data-post-open={group.items[0].key}>{group.items[0].row.contentName}</button><small>V{group.items[0].row.versionNumber}</small></h2><p><span>{nonPromotionGroupLabel(group.items[0].row.subjectName,group.items[0].row.categoryName)}{rolesForCategory(group.items[0].row.categoryId).length?' · '+contentRoleLabel(group.items[0].row.contentRole):''}</span><span class="post-origin">{group.items[0].row.legacy?'历史周期':'统计起点'} <time>{group.items[0].row.statisticsFrom??group.items[0].metric?.statisticsFrom??shanghaiDateKey(group.items[0].row.actualPublishAt)}</time></span></p></div>{mode==='continuous'&&activeView==='history'&&<span class="post-result-tag">{group.items[0].row.legacy?'历史周期':'最近一次'}</span>}</header>
-          <div class="post-metric-head" aria-hidden="true"><span>截止节点</span>{activeView==='skipped'?<span>不复盘原因</span>:<><span>阅读量</span><span>点击率</span><span>3 秒阅读率</span></>}<span>操作</span></div>
+          <div class="post-metric-head" aria-hidden="true"><span>截止节点</span>{activeView==='skipped'?<span>不复盘原因</span>:activeView==='history'&&<><span>阅读量</span><span>点击率</span><span>3 秒阅读率</span></>}<span>操作</span></div>
           {(mode==='continuous'&&activeView==='history'?group.items.slice(0,1):group.items).map(item=><NonPromotionReviewRow compact item={item} activeView={activeView} today={today} href={viewHref(activeView,item.key)} selected={selected?.key===item.key}/>)}
           {mode==='continuous'&&activeView==='history'&&group.items.length>1&&<details class="post-history" data-review-section data-post-history={group.id} open={group.items.slice(1).some(item=>item.key===selected?.key)}>
             <summary>往期节点 ({group.items.length-1})<svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></summary>

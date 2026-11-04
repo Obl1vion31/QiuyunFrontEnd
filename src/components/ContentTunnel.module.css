@@ -172,8 +172,14 @@
   aspect-ratio:3/4;
   will-change:transform;
   transform-origin:center;
+  isolation:isolate
+}
+.coverFace {
+  width:100%;
+  height:100%;
+  position:relative;
   border-radius:7px;
-  isolation:isolate;
+  pointer-events:none;
   border:1px solid #f5f7f436;
   box-shadow:0 18px 36px #020a165c;
   background:#d7e3e8
@@ -186,7 +192,7 @@
   object-fit:cover;
   opacity:.9
 }
-.cover:after {
+.coverFace:after {
   content:"";
   position:absolute;
   inset:0;
@@ -399,16 +405,18 @@
 }
 .cover {
   width:clamp(142px,12vw,174px);
+  will-change:transform,opacity
+}
+.coverFace {
   border-radius:8px;
   box-shadow:0 22px 42px #0005;
-  will-change:transform,opacity;
   border-color:#f5f7f447
 }
 .cover img {
   opacity:1;
   border-radius:7px
 }
-.cover:after {
+.coverFace:after {
   background:linear-gradient(145deg,#c6e0ff0a,transparent 65%,#0717261c)
 }
 .ambient:after {
@@ -468,8 +476,11 @@
 .cover img {
   object-fit:contain
 }
-.cover {
+.coverFace {
   background:#f6f3e9
+}
+@media(hover:hover) and (pointer:fine) {
+  .cover[data-home-interactive="true"] {pointer-events:auto}
 }
 .controls {
   bottom:120px

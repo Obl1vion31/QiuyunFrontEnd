@@ -1,8 +1,7 @@
 /* 同一画布承载分类汇总与真实节点，展开不改变父级边界。 */
-.business-console-content:has(.review-controls){max-width:1228px;margin-inline:auto}
 .table-pane{min-width:0;container-type:inline-size;container-name:nonpromotion-table}
 .table-scroll{overflow:auto;outline:none}.table-scroll:focus-visible{box-shadow:inset 0 0 0 2px var(--console-blue)}
-.review-table{--review-columns:224px minmax(180px,1fr) 60px 144px 176px 176px 112px;width:100%;margin-inline:auto}
+.review-table{--review-columns:224px minmax(180px,1.35fr) 60px minmax(144px,.85fr) minmax(176px,1fr) minmax(176px,1fr) 112px;width:100%;margin-inline:auto}
 .review-row{display:grid;grid-template-columns:var(--review-columns);align-items:start;column-gap:12px;min-width:1144px;min-height:84px;border-bottom:1px solid var(--console-line);color:var(--console-ink);background:var(--console-surface);font:400 14px/22px var(--console-font)}
 .review-row>span{min-width:0;padding:18px 6px;text-align:center}.review-row>.date-cell,.review-row>.post-cell,.review-row>.review-action-cell,.review-row>[data-label=节点]{align-self:center}
 .table-head{position:sticky;top:0;z-index:2;min-height:46px;background:#f7f9fc;color:var(--console-muted);font:500 13px/20px var(--console-font);align-items:stretch}
@@ -19,7 +18,7 @@
 .review-workspace [hidden]{display:none!important}.review-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .review-table[data-view=skipped]{--review-columns:224px minmax(220px,1fr) 72px minmax(240px,1fr) 112px}.review-table[data-view=skipped] .review-row{min-width:940px}.review-row>.review-reason,.table-head>.review-reason-head{text-align:left;justify-content:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}
 .result-track{display:block;width:100%;max-width:144px;height:4px;border-radius:4px;background:#e8edf6;overflow:hidden}.result-track>i{display:block;height:100%;border-radius:inherit;background:#6486d5;transform-origin:left}
-.review-read-count{font-variant-numeric:tabular-nums;display:grid;justify-items:center;gap:5px}.review-read-count>span{display:none}.review-read-count strong{font:500 20px/26px var(--console-font)}.review-read-count:not(.has-value) strong{font:400 13px/20px var(--console-font);color:var(--console-muted)}
+.review-read-count{font-variant-numeric:tabular-nums;display:grid;justify-items:center;gap:5px}.review-read-count>span{display:none}.review-read-count strong{font:500 20px/26px var(--console-font)}.review-read-count:not(.has-value) strong{font-weight:400;color:var(--console-muted)}
 .review-count-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}.review-count-fields input{min-width:0}
 /* 分类身份与数值分区，7/15天分别保留自己的均值与有效样本。 */
 .review-table[data-grouped=true]{min-width:1144px}
@@ -27,7 +26,7 @@
 .category-grid>*{min-width:0;padding:12px 10px;text-align:center}.category-group-head{min-height:46px;border-bottom:1px solid var(--console-line);background:#f7f9fc;color:var(--console-muted);font:500 13px/20px var(--console-font);align-items:center}.category-group-head>span:first-child{text-align:left;padding-left:24px}
 .review-category-group{margin:0;border-bottom:1px solid var(--console-line)}.review-category-group:last-child{border-bottom:0}.category-summary-row{grid-template-rows:minmax(64px,auto) minmax(64px,auto);list-style:none;cursor:pointer;font:400 13px/20px var(--console-font)}.category-summary-row::-webkit-details-marker{display:none}
 .category-summary-row>.category-name{grid-column:1;grid-row:1/3;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:20px 24px;background:#f8fafd;border-right:1px solid #edf0f5;text-align:left;overflow-wrap:anywhere}.category-name small{color:var(--console-muted);font:400 12px/18px var(--console-font)}.category-name strong{font:500 14px/22px var(--console-font)}
-.category-round,.category-sample{display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}.category-round{color:var(--console-muted);white-space:nowrap;padding-inline:4px}.category-metric{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;font-variant-numeric:tabular-nums}.category-metric strong{font:500 18px/24px var(--console-font)}.category-metric:not(.has-value) strong{color:var(--console-muted);font-size:14px}.category-metric small{font:400 12px/18px var(--console-font);color:var(--console-muted)}
+.category-round,.category-sample{display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}.category-round{color:var(--console-muted);white-space:nowrap;padding-inline:4px}.category-metric{display:grid;grid-template-rows:24px 4px auto;align-content:start;justify-items:center;gap:7px;font-variant-numeric:tabular-nums}.category-metric strong{grid-row:1;font:500 18px/24px var(--console-font)}.category-metric>.result-track{grid-row:2}.category-metric:not(.has-value) strong{color:var(--console-muted);font-weight:400}.category-metric small{grid-row:3;font:400 12px/18px var(--console-font);color:var(--console-muted)}
 .category-summary-row:hover{background:#f8faff}.category-summary-row:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}.review-category-group[open]>.category-summary-row .category-name{background:#eff4fd;box-shadow:inset 3px 0 #6486d5}
 .category-detail-link{grid-column:7;grid-row:1/3;display:flex;align-items:center;justify-content:center;gap:4px;color:var(--console-blue);white-space:nowrap}.category-detail-link svg{transition:transform 220ms}.review-category-group[open]>.category-summary-row svg{transform:rotate(180deg)}.review-category-group:not([open])>.category-summary-row .when-open,.review-category-group[open]>.category-summary-row .when-closed{display:none}.category-detail-body{min-width:0}.category-detail-body>.table-head{background:#f3f6fb}
 /* 按帖查看沿用真实记录，标题只出现在所属帖子头部。 */
@@ -38,6 +37,9 @@
 .reading-trend{margin:0;padding:20px 24px;background:#fafcff;border-block:1px solid #edf0f5}.reading-trend figcaption,.trend-dates{display:flex;justify-content:space-between;gap:12px;color:var(--console-muted);font:400 12px/18px var(--console-font);font-variant-numeric:tabular-nums}.reading-trend figcaption>span:first-child{font-weight:500;color:var(--console-ink)}.reading-trend svg{display:block;width:100%;height:152px;margin-block:10px}.trend-grid{fill:none;stroke:#e8edf5;stroke-width:1;vector-effect:non-scaling-stroke}.reading-trend [data-result-line]{fill:none;stroke:#6486d5;stroke-width:2;vector-effect:non-scaling-stroke}.reading-trend .trend-point{fill:none;stroke:#6486d5;stroke-width:6;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .upcoming-node{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:16px;font:400 13px/20px var(--console-font)}.upcoming-node>div{min-width:0;flex:1}.upcoming-node strong{font-weight:500;overflow-wrap:anywhere}.upcoming-node small{display:block;color:var(--console-muted);font:400 12px/18px var(--console-font)}.upcoming-node>span{color:var(--console-muted);font-size:12px}
 .sort-read-short{display:none}
+.review-table[data-view=pending]{--review-columns:minmax(224px,1fr) minmax(280px,2fr) minmax(72px,.5fr) minmax(112px,.65fr)}
+.review-table[data-view=pending] .review-row{min-width:724px;align-items:center}
+.review-table[data-view=pending] .post-node-row,.review-table[data-view=pending] .post-metric-head{grid-template-columns:minmax(224px,1fr) 112px;min-width:0}
 @container nonpromotion-table (max-width:1143px){
  .review-table{--review-columns:208px minmax(128px,1fr) 48px 120px 144px 144px 112px}.review-row{min-width:1052px;column-gap:8px}.review-row>span{padding-inline:4px}.review-table[data-grouped=true]{min-width:1052px}.category-grid{grid-template-columns:minmax(200px,1.2fr) 52px 64px minmax(128px,1fr) minmax(144px,1fr) minmax(144px,1fr) 72px;column-gap:12px}.sort-read-full{display:none}.sort-read-short{display:inline}
 }
@@ -47,5 +49,11 @@
  .review-table[data-view=skipped] .review-row:not(.table-head){grid-template-areas:'date date' 'post post' 'reason reason' 'action action'}.review-table[data-view=skipped] .review-row>.review-reason{grid-area:reason}
  .review-table:not([data-mode=standard]) [data-flat-head],.post-metric-head{display:none}.post-result-heading{padding:18px 16px}.post-result-heading h2{font-size:14px}.post-result-tag{display:none}.review-table[data-grouped=false] .post-node-row:not(.table-head){grid-template-columns:1fr 1fr;grid-template-areas:'date date' 'count count' 'click read' 'action action';padding:18px 16px}.review-table[data-grouped=false] .post-node-row>.date-cell{display:block}.review-table[data-grouped=false] .post-node-row>.post-cell,.review-table[data-grouped=false] .post-node-row>[data-label=节点]{display:none}.reading-trend{padding:18px 16px}.reading-trend svg{height:128px}.upcoming-node{flex-wrap:wrap;gap:6px 12px}.upcoming-node>div{flex-basis:100%}
  .review-table[data-view=skipped] .post-node-row:not(.table-head){grid-template-areas:'date date' 'reason reason' 'action action'}
+ .review-table[data-view=pending] .review-row:not(.table-head){grid-template-areas:'date date' 'post post' 'action action'}
+ .review-table[data-view=pending] .post-node-row:not(.table-head){grid-template-areas:'date date' 'action action'}
+}
+@container nonpromotion-table (max-width:360px){
+ .review-table[data-grouped=false] .review-row:has(.metric-primary small:not([hidden])) .metric-primary{display:grid;grid-template-rows:24px 20px;row-gap:2px}
+ .review-table[data-grouped=false] .metric-primary strong{grid-row:1}.review-table[data-grouped=false] .metric-primary small{grid-row:2}
 }
 @media(prefers-reduced-motion:reduce){.category-detail-link svg{transition:none}}
