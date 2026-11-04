@@ -4,9 +4,10 @@ import BusinessAccountMenu from './BusinessAccountMenu.astro';
 import BusinessScheduleNotifications from './BusinessScheduleNotifications.astro';
 import BusinessAssistantEntry from './BusinessAssistantEntry.astro';
 import QiuyunMark from './QiuyunMark';
+import type {teamScheduleNotifications} from '../db/schedule-workflow';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
-interface Props { active: ModuleId }
-const { active } = Astro.props;
+interface Props { active: ModuleId;notifications?:Awaited<ReturnType<typeof teamScheduleNotifications>> }
+const { active,notifications } = Astro.props;
 const settingsHref=Astro.locals.user?.role==='employee'?'/business/settings?view=guide':'/business/settings';
 const groups = [
   {
@@ -43,7 +44,7 @@ const iconPaths = {
     <div class="business-sidebar__brand-copy"><span>QIUYUN</span><strong>内容发布控制台</strong></div>
   </a>
 
-  <BusinessScheduleNotifications />
+  <BusinessScheduleNotifications initial={notifications} />
   <nav class="business-sidebar__nav" aria-label="内容发布控制台模块">
     {groups.map((group) => <section class="business-sidebar__group">
       <h2>{group.label}</h2>
@@ -53,7 +54,7 @@ const iconPaths = {
           href={module.href}
           data-module-id={module.id}
           data-module-href={module.href}
-          data-astro-prefetch="hover"
+          data-astro-prefetch="false"
           aria-current={active === module.id ? 'page' : undefined}
         >
           <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths[module.icon]} /></svg>
@@ -62,7 +63,7 @@ const iconPaths = {
       </div>
     </section>)}
 
-    <section class="business-sidebar__group"><h2>系统</h2><div>    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href={settingsHref} data-module-id="settings" data-module-href={settingsHref} data-astro-prefetch="hover" aria-current={active === 'settings' ? 'page' : undefined}>
+    <section class="business-sidebar__group"><h2>系统</h2><div>    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href={settingsHref} data-module-id="settings" data-module-href={settingsHref} data-astro-prefetch="false" aria-current={active === 'settings' ? 'page' : undefined}>
       <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.settings} /></svg>
       <strong>系统设置</strong>
     </a></div></section>
@@ -80,7 +81,6 @@ const iconPaths = {
 </aside>
 
 <script>
-  import { prefetch } from 'astro:prefetch';
   import type { TransitionBeforePreparationEvent } from 'astro:transitions/client';
 
   const sidebar = document.querySelector<HTMLElement>('[data-business-console-sidebar]');
@@ -153,11 +153,6 @@ const iconPaths = {
     rememberCurrentLocation();
     restoreModuleHrefs();
     selectPath(location.pathname);
-
-    sidebar.addEventListener('pointerdown', (event) => {
-      const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-module-id]');
-      if (link && event.pointerType === 'touch') prefetch(link.href, { ignoreSlowConnection: true });
-    }, { passive: true });
 
     sidebar.addEventListener('click', (event) => {
       const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-module-id]');

@@ -1,8 +1,13 @@
-<div class="schedule-notifications" aria-label="排期待办提醒" data-schedule-notifications aria-busy="true">
-  <a href="/business/operations-schedule?status=overdue&amp;display=ledger"><span>尚未登记<span data-schedule-notification-error hidden> · 暂不可用</span></span><b data-schedule-count="overdue">—</b></a>
-  <a href="/business/operations-schedule?status=reasons&amp;display=ledger"><span>待补理由</span><b data-schedule-count="missingReasons">—</b></a>
-  <a href="/business/operations-schedule?status=approvals&amp;display=ledger" data-admin-only><span>排期待审</span><b data-schedule-count="pendingApprovals">—</b></a>
-  <small data-schedule-notification-status role="status" aria-live="polite">正在读取提醒…</small>
+---
+import type {teamScheduleNotifications} from '../db/schedule-workflow';
+interface Props {initial?:Awaited<ReturnType<typeof teamScheduleNotifications>>}
+const {initial}=Astro.props;
+---
+<div class="schedule-notifications" aria-label="排期待办提醒" data-schedule-notifications aria-busy={initial?'false':'true'}>
+  <a href="/business/operations-schedule?status=overdue&amp;display=ledger"><span>尚未登记<span data-schedule-notification-error hidden> · 暂不可用</span></span><b data-schedule-count="overdue">{initial?.overdue??'—'}</b></a>
+  <a href="/business/operations-schedule?status=reasons&amp;display=ledger"><span>待补理由</span><b data-schedule-count="missingReasons">{initial?.missingReasons??'—'}</b></a>
+  <a href="/business/operations-schedule?status=approvals&amp;display=ledger" data-admin-only><span>排期待审</span><b data-schedule-count="pendingApprovals">{initial?.pendingApprovals??'—'}</b></a>
+  <small data-schedule-notification-status role="status" aria-live="polite">{initial?'':'正在读取提醒…'}</small>
 </div>
 <script>
   import '../scripts/schedule-notifications';

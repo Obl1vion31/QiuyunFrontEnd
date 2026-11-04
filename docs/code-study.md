@@ -186,6 +186,8 @@ flowchart LR
 
 ### 协作与来源准备接入
 
+动态业务导航不预取HTML，实际点击、筛选和前后退仍走ClientRouter。排期页把已计算的提醒通过共享Frame／Sidebar接入，首屏直接显示计数，并在持久化侧栏接收新页面快照；没有该快照的页面仍请求提醒API。提醒查询只投影当前判断必需字段，不读取改期历史、理由正文或更正历史；具体内容仍在原详情入口读取。每分钟、返回及保存后的提醒更新与权限校验保留。
+
 暂停实时共享时也不加载协作样式，避免旧占用容器的定位规则干扰业务气泡；原脚本、样式和表保留，恢复时须整体重新验收。
 
 - `BusinessConsoleFrame` 接入查帖、公共确认和 `business-save-conflict.ts`。`editing-policy.ts` 统一暂停实时共享，`business-collaboration.ts` 保留但不初始化监听、定时器或取锁；例会共享提示不渲染。现有 `data-collaboration-resource` 保留为稳定对象标记，也用于冲突后停止该对象自动保存，不作为占用展示。

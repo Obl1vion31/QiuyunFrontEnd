@@ -225,7 +225,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     <title>内容发布控制台 · 排期管理</title>
   <SiteIcons /><BusinessConsoleFonts /></head>
   <body>
-    <BusinessConsoleFrame active="schedule">
+    <BusinessConsoleFrame active="schedule" notifications={notifications}>
         <BusinessConsoleToolbar title="排期管理" subtitle={selectedView === 'promotion' ? '推广中视角' : queueView ? queueLabel : `${selectedMonth} 当月排期`}>
           {selectedView === 'schedule' && !queueView && <BusinessToolbarPeriodNav slot="center" previousHref={hrefFor({ month: previousMonth })} nextHref={hrefFor({ month: nextMonth })} label={`${selectedMonth.replace('-', ' 年 ')} 月`} todayHref={hrefFor({ month: currentMonth })} todayLabel="本月" monthPicker={monthPicker} />}
           <BusinessToolbarActions slot="end">

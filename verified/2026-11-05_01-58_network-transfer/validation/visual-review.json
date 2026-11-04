@@ -1,0 +1,19 @@
+{
+  "actualVideoSampleFrames": 10,
+  "pdfs": [
+    {
+      "name": "monthly",
+      "pages": 5
+    },
+    {
+      "name": "weekly",
+      "pages": 3
+    }
+  ],
+  "reviewImages": [
+    "operations-1.jpg",
+    "stills.jpg",
+    "pdf-weekly.jpg",
+    "pdf-monthly.jpg"
+  ]
+}

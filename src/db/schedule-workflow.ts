@@ -1,10 +1,10 @@
-import { and, asc, desc, eq, inArray,sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray,isNotNull,lte,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import type { OperationsUser } from '../auth/permissions';
 import { requireAdmin } from '../auth/permissions';
 import {effectiveBusinessPermissions,hasBusinessExecution,requireBusinessOperation} from '../auth/business-permissions';
-import { completionStatus, delayDayCount, delayDays, needsRegistration, registrationState, requiresPlanApproval, publicationDelayLabel } from './schedule-rules.mjs';
+import { completionStatus, delayDayCount, delayDays,delayThresholdMs, needsRegistration, registrationState, requiresPlanApproval, publicationDelayLabel } from './schedule-rules.mjs';
 import { shanghaiDateTime } from './validation';
 import { publicationState, mayKeepEmptyPublicationLink } from './publication-rules.mjs';
 import { operationsPublicationReservation as reservations,operationsPublicationEvent as publicationEvents } from './schema';
@@ -48,7 +48,7 @@ export async function lockSchedule(transaction: Transaction, id: string) {
   return schedule;
 }
 
-export function scheduleDelayItems(schedule: Schedule, _history: Plan[], saved: Reason[], through: Date, now = through) {
+export function scheduleDelayItems<R extends Pick<Reason,'planRevision'|'dayNumber'>>(schedule: Pick<Schedule,'planRevision'|'plannedPublishAt'>, _history: Plan[], saved: R[], through: Date, now = through) {
   const savedMap = new Map(saved.filter(item=>item.planRevision===schedule.planRevision).map(item=>[item.dayNumber,item]));
   return delayDays(schedule.plannedPublishAt,new Date(Math.min(through.getTime(),now.getTime()))).map(day=>({
     planRevision:schedule.planRevision,...day,saved:savedMap.get(day.dayNumber)??null,archived:false,
@@ -175,13 +175,16 @@ export async function decideChangeRequest(database: Database, scheduleId: string
 }
 
 export async function teamScheduleNotifications(database: Database, now = new Date()) {
-  const [rows, history, saved, applications, pendingProposals] = await Promise.all([
-    database.select().from(schedules), database.select().from(plans), database.select().from(reasons),
-    database.select().from(requests).where(eq(requests.status, 'pending')),
+  const cutoff=new Date(now.getTime()-delayThresholdMs);
+  const [rows, saved, applications, pendingProposals] = await Promise.all([
+    database.select({id:schedules.id,plannedPublishAt:schedules.plannedPublishAt,actualPublishAt:schedules.actualPublishAt,planRevision:schedules.planRevision}).from(schedules).where(lte(schedules.plannedPublishAt,cutoff)),
+    // 提醒只判断本轮哪些日期已填写；正文、更正历史及旧改期轮次留在详情读取。
+    database.select({scheduleId:reasons.scheduleId,planRevision:reasons.planRevision,dayNumber:reasons.dayNumber}).from(reasons).innerJoin(schedules,and(eq(reasons.scheduleId,schedules.id),eq(reasons.planRevision,schedules.planRevision))).where(and(isNotNull(schedules.actualPublishAt),lte(schedules.plannedPublishAt,cutoff))),
+    database.select({scheduleId:requests.scheduleId}).from(requests).where(eq(requests.status, 'pending')),
     database.select({target:proposals.target}).from(proposals).where(and(eq(proposals.status,'pending'),eq(proposals.module,'schedule'))),
   ]);
   const overdueIds = rows.filter(row => needsRegistration(row, now)).map(row => row.id);
-  const missingReasonIds = rows.filter(row => row.actualPublishAt && scheduleDelayItems(row, history.filter(item => item.scheduleId === row.id),
+  const missingReasonIds = rows.filter(row => row.actualPublishAt && scheduleDelayItems(row, [],
     saved.filter(item => item.scheduleId === row.id), new Date(Math.min(row.actualPublishAt?.getTime() ?? now.getTime(), now.getTime())), now).some(day => !day.saved && !day.archived)).map(row => row.id);
   return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, missingRegistration: overdueIds.length, missingRegistrationIds: overdueIds, pendingApprovals: applications.length+pendingProposals.length, missingReasons: missingReasonIds.length,
     overdueIds, missingReasonIds, approvalScheduleIds: [...new Set([...applications.map(item => item.scheduleId),...pendingProposals.filter(item=>item.target.startsWith('schedule:')).map(item=>item.target.slice(9))])], serverTime: now.toISOString() };

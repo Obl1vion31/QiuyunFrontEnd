@@ -20,7 +20,7 @@ export default defineConfig({
   adapter: process.env.VERCEL === '1' ? vercel({includeFiles:['chromium.br','fonts.tar.br','al2023.tar.br','swiftshader.tar.br'].map(name=>'node_modules/@sparticuz/chromium/bin/'+name)}) : node({ mode: 'standalone' }),
   integrations: [react()],
   security: { allowedDomains },
-  // 控制台只在用户表达导航意图时预取，避免首屏并发触发全部动态页面查询。
+  // 动态业务链接显式关闭HTML预取，实际导航由ClientRouter读取；静态资源沿用默认行为。
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   vite: {
     // Quick Tunnel 每次生成不同子域名，只允许 Cloudflare 官方临时预览域。

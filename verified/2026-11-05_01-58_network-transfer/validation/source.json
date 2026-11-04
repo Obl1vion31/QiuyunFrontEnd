@@ -1,0 +1,19 @@
+{
+  "baseline": "261b2695a2bc1a5991640091fcdcdc25b1da113a",
+  "branch": "codex/network-transfer",
+  "hashes": {
+    "astro.config.mjs": "6b280c17c9a3ec52ebf6e5fb20d681987e2b6b268d07b9fcac6bc68b83ac1a45",
+    "package.json": "6dcf56a1abd64d3f9c6c1bd683f7923365c0f6cf1171ee9de1fec741ebf1611d",
+    "src/components/BusinessConsoleFrame.astro": "7a2a84b60ae750b9b875516b304c78436ad2be8fea588b87c5636d8dca393e3a",
+    "src/components/BusinessConsoleSidebar.astro": "712c871aa8d85452c830a6ba09c7b57a87dbc2c0d0fef65e62e6854e47e67c82",
+    "src/components/BusinessScheduleNotifications.astro": "e61a6b1d8bd88c85c664e4bc8f6b778c60864474002f05cd1679ca45c68dd023",
+    "src/db/README.md": "d7cf1ffa01dd3f3bfecf19d6d68282cf800051ac6ecaa7eea9c9ebf7a47273eb",
+    "src/db/schedule-workflow.ts": "30fa59a1342eaebda9c10825985de9e6e37a6ece740e3947af70f94bd96321b8",
+    "src/pages/business/operations-schedule.astro": "3491cfccab3fff117c783d76373982de29a685b820b72ba76dfe40c1364da00e",
+    "src/scripts/README.md": "2d73881d0291a8a41e67e12976a3f6f860ab8cf5f8ffb21de7fde991680ea4a0",
+    "src/scripts/schedule-notifications.ts": "51d4f7aa78a5768317a22658f0b75ade457c57c87322a6fb44ae1d340977c869",
+    "tests/network-transfer.browser.ts": "e82ddf7422aa7c4ffddbb772a403fe820bc48d171b9958f574e6009acc577a07"
+  },
+  "databaseMigrations": false,
+  "productionBusinessWrites": false
+}

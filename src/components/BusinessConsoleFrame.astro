@@ -11,9 +11,10 @@ import {realtimeEditingEnabled} from '../db/editing-policy';
 import {getDb} from '../db/client';
 import {effectiveBusinessPermissions} from '../auth/business-permissions';
 import {defaultBusinessPermissions} from '../auth/business-capabilities';
+import type {teamScheduleNotifications} from '../db/schedule-workflow';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
-interface Props { active: ModuleId }
-const { active } = Astro.props;
+interface Props { active: ModuleId;notifications?:Awaited<ReturnType<typeof teamScheduleNotifications>> }
+const { active,notifications } = Astro.props;
 let permissions=defaultBusinessPermissions();
 try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await effectiveBusinessPermissions(getDb(),Astro.locals.user);}catch{for(const key of Object.keys(permissions))permissions[key as keyof typeof permissions]='disabled';}
 ---
@@ -41,7 +42,8 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
 {realtimeEditingEnabled&&<link rel="stylesheet" href={collaborationStyles}/>}
 <div class="app-shell business-console-frame" data-user-role={Astro.locals.user?.role} data-user-id={Astro.locals.user?.id}>
   <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
-  <BusinessConsoleSidebar active={active} />
+  {notifications&&<script is:inline type="application/json" data-schedule-notification-snapshot set:html={JSON.stringify(notifications).replace(/</g,'\\u003c')}/>}
+  <BusinessConsoleSidebar active={active} notifications={notifications} />
   <section class="workspace business-console-workspace"><slot /></section>
   <BusinessPostLookup/>
   <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">

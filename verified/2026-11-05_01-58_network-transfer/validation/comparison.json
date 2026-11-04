@@ -1,0 +1,20 @@
+{
+  "baseline": "261b2695a2bc1a5991640091fcdcdc25b1da113a",
+  "branch": "codex/network-transfer",
+  "fixture": "36 isolated fictional schedules with longer history text; fixed business clock 2026-11-05 12:00 Asia/Shanghai",
+  "databaseToAppBytes": {
+    "before": 317998,
+    "after": 4714,
+    "reductionPercent": 98.5
+  },
+  "notificationApiOnScheduleEntry": {
+    "before": 1,
+    "after": 0
+  },
+  "hoverDynamicPages": {
+    "before": 3,
+    "after": 0
+  },
+  "notificationValuesMatch": true,
+  "measurement": "actual local PostgreSQL wire bytes for an authenticated HTTP request; excludes internet TLS/IP overhead; not a monthly production estimate"
+}

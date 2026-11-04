@@ -1,0 +1,98 @@
+{
+  "baseline": true,
+  "isolatedPostgres": true,
+  "seedSchedules": 36,
+  "notifications": {
+    "reservationApprovals": 0,
+    "publicationDue": 0,
+    "reservationApprovalIds": [],
+    "publicationDueIds": [],
+    "overdue": 6,
+    "missingRegistration": 6,
+    "missingRegistrationIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000007",
+      "10000000-0000-4000-8000-000000000013",
+      "10000000-0000-4000-8000-000000000019",
+      "10000000-0000-4000-8000-000000000025",
+      "10000000-0000-4000-8000-000000000031"
+    ],
+    "pendingApprovals": 3,
+    "missingReasons": 6,
+    "overdueIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000007",
+      "10000000-0000-4000-8000-000000000013",
+      "10000000-0000-4000-8000-000000000019",
+      "10000000-0000-4000-8000-000000000025",
+      "10000000-0000-4000-8000-000000000031"
+    ],
+    "missingReasonIds": [
+      "10000000-0000-4000-8000-000000000003",
+      "10000000-0000-4000-8000-000000000009",
+      "10000000-0000-4000-8000-000000000015",
+      "10000000-0000-4000-8000-000000000021",
+      "10000000-0000-4000-8000-000000000027",
+      "10000000-0000-4000-8000-000000000033"
+    ],
+    "approvalScheduleIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000002",
+      "10000000-0000-4000-8000-000000000003"
+    ],
+    "serverTime": "2026-11-05T04:00:00.000Z"
+  },
+  "transfer": [
+    {
+      "databaseToAppBytes": 317998,
+      "appToDatabaseBytes": 1999
+    },
+    {
+      "databaseToAppBytes": 317998,
+      "appToDatabaseBytes": 1999
+    },
+    {
+      "databaseToAppBytes": 317998,
+      "appToDatabaseBytes": 1999
+    }
+  ],
+  "initialRequests": [
+    {
+      "path": "/business/operations-schedule",
+      "method": "GET"
+    },
+    {
+      "path": "/api/business-notifications",
+      "method": "GET"
+    }
+  ],
+  "hoverRequests": [
+    {
+      "path": "/business/monthly-operations",
+      "method": "GET"
+    },
+    {
+      "path": "/business/meeting-review",
+      "method": "GET"
+    },
+    {
+      "path": "/business/settings",
+      "method": "GET"
+    }
+  ],
+  "navigationRequests": [
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET"
+    }
+  ],
+  "uiRequests": {
+    "/business/operations-schedule": 1,
+    "/api/business-notifications": 1,
+    "/business/monthly-operations": 1,
+    "/business/meeting-review": 1,
+    "/business/settings": 1,
+    "/business/non-promotion-review": 1
+  },
+  "pageErrors": []
+}

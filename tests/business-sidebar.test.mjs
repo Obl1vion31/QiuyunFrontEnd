@@ -145,12 +145,10 @@ test('共享侧栏提供稳定的 Quiet Operations 几何与视觉基准', async
   ]) assert.ok(source.includes(declaration), `缺少侧栏基准：${declaration}`);
 });
 
-test('共享侧栏使用持久化路由、受控预取和语义图标', async () => {
+test('共享侧栏使用持久化路由和语义图标', async () => {
   const source = await readFile(new URL('../src/components/BusinessConsoleSidebar.astro', import.meta.url), 'utf8');
   assert.match(source, /transition:persist="business-console-sidebar"/);
   assert.match(source, /<ClientRouter fallback="swap"/);
-  assert.match(source, /data-astro-prefetch="hover"/);
-  assert.match(source, /prefetch\(link\.href/);
   assert.match(source, /计划与执行/);
   assert.match(source, /复盘与沉淀/);
   assert.match(source, /<svg\b/);

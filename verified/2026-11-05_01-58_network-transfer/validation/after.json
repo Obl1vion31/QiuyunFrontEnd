@@ -1,0 +1,78 @@
+{
+  "baseline": false,
+  "isolatedPostgres": true,
+  "seedSchedules": 36,
+  "notifications": {
+    "reservationApprovals": 0,
+    "publicationDue": 0,
+    "reservationApprovalIds": [],
+    "publicationDueIds": [],
+    "overdue": 6,
+    "missingRegistration": 6,
+    "missingRegistrationIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000007",
+      "10000000-0000-4000-8000-000000000013",
+      "10000000-0000-4000-8000-000000000019",
+      "10000000-0000-4000-8000-000000000025",
+      "10000000-0000-4000-8000-000000000031"
+    ],
+    "pendingApprovals": 3,
+    "missingReasons": 6,
+    "overdueIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000007",
+      "10000000-0000-4000-8000-000000000013",
+      "10000000-0000-4000-8000-000000000019",
+      "10000000-0000-4000-8000-000000000025",
+      "10000000-0000-4000-8000-000000000031"
+    ],
+    "missingReasonIds": [
+      "10000000-0000-4000-8000-000000000003",
+      "10000000-0000-4000-8000-000000000009",
+      "10000000-0000-4000-8000-000000000015",
+      "10000000-0000-4000-8000-000000000021",
+      "10000000-0000-4000-8000-000000000027",
+      "10000000-0000-4000-8000-000000000033"
+    ],
+    "approvalScheduleIds": [
+      "10000000-0000-4000-8000-000000000001",
+      "10000000-0000-4000-8000-000000000002",
+      "10000000-0000-4000-8000-000000000003"
+    ],
+    "serverTime": "2026-11-05T04:00:00.000Z"
+  },
+  "transfer": [
+    {
+      "databaseToAppBytes": 4714,
+      "appToDatabaseBytes": 1819
+    },
+    {
+      "databaseToAppBytes": 4714,
+      "appToDatabaseBytes": 1819
+    },
+    {
+      "databaseToAppBytes": 4714,
+      "appToDatabaseBytes": 1819
+    }
+  ],
+  "initialRequests": [
+    {
+      "path": "/business/operations-schedule",
+      "method": "GET"
+    }
+  ],
+  "hoverRequests": [],
+  "navigationRequests": [
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET"
+    }
+  ],
+  "uiRequests": {
+    "/business/operations-schedule": 1,
+    "/business/non-promotion-review": 1
+  },
+  "videoPath": "/home/obl1vion/projects/qiuyunFrontend/.tools/releases/network-transfer-20261105/.tools/test-artifacts/network-transfer-shipping/videos/page@7d8011be5e1abe65ca7a43d3a2495bc1.webm",
+  "pageErrors": []
+}

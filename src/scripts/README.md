@@ -6,7 +6,7 @@
 
 共享范围和展示函数来自 `src/db/annual-plan-rules.mjs`。这里不得导入数据库连接、认证密钥或服务端写入模块；所有写入通过受权限保护的 API 完成。
 
-`schedule-notifications.ts` 为持久化侧栏刷新延期、待补理由及审批计数；`operations-workflow.ts` 管理排期 Inspector 的申请与逐日理由，以及实发时的理由核对与原子提交。客户端只请求受权限保护的接口，不导入数据库连接。
+`schedule-notifications.ts` 为持久化侧栏刷新延期、待补理由及审批计数：排期页复用本次SSR结果，其他页面沿原API读取；前台一分钟更新，后台暂停、返回立即核对，相邻恢复事件合并。保存事件使正在读取的结果失效，完成后再读一次；迟到响应不能覆盖新页面的SSR数字。`operations-workflow.ts` 管理排期 Inspector 的申请与逐日理由，以及实发时的理由核对与原子提交。类型导入在编译时移除，客户端不导入数据库连接。
 
 `business-inspector.ts` 统一详情开关、焦点、深链接与未保存保护；模板行内标题和显式动作使用 `data-inspector-trigger` 接入同一行键，关闭回到实际触发按钮，不重复声明 `data-inspector-key`；`non-promotion-review.ts` 只处理筛选、排序、业务保存和 GET 刷新。接入方式见[共享界面实例](../../docs/code-study.md#共享界面接入)。
 
