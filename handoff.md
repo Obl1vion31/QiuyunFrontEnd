@@ -2,11 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 月计划角标与轻量数量器（已自检，2026-11-04）
+## 月计划角标与轻量数量器（已发布，2026-11-04）
 
 - 只调整本页SVG／CSS：右上10px叉号直接移回、不占操作列；桌面88×28px数量器、13px数字、透明底与浅边框，去内隔线。触屏操作范围保持，数据／保存／审批及锁定逻辑沿用。
 - 完整月计划浏览器链路、5项摘要测试、公共UI、类型检查及Node／Vercel构建、运行包检查通过。桌面1920／1440／1024重点及手机390／320回归17图、两段录像43帧已实际审查：[验收索引](verified/2026-11-04_16-46_month-plan-compact-controls/README.md)。
-- 分支codex/month-plan-compact-controls，沿用隔离工作树.tools/releases/plan-shortcuts-20261104，保留原工作区未提交修改；无迁移或生产业务写入，正式发布核对待收尾。
+- 分支codex/month-plan-compact-controls，沿用隔离工作树.tools/releases/plan-shortcuts-20261104，保留原工作区未提交修改；无迁移或生产业务写入。保留远端公共全宽更新后重新验收；四位数字裁切及字体测量误判已修正。应用e012707推送main，正式部署dpl_ArV6qZsevn7NDCovwgRp46yvQTFy为READY且域名一致，候选14项、正式122项与87资源哈希通过。
 
 ## 七模块公共页面全宽（已发布，2026-11-04）
 
