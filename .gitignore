@@ -19,3 +19,4 @@ data/references/*
 
 # Windows downloaded-file metadata
 *:Zone.Identifier
+.vercel

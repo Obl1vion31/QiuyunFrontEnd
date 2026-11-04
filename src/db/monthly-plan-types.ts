@@ -13,3 +13,10 @@ export const emptyCounts = ():PrivateCounts => ({added:null, consulted:null, con
 export function adjacentMonth(month:string, offset:number) {const date=new Date(`${month}-01T00:00:00Z`);date.setUTCMonth(date.getUTCMonth()+offset);return date.toISOString().slice(0,7);}
 export function monthWeeks(month:string) {const end=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).getUTCDate();return Array.from({length:Math.ceil(end/7)},(_,i)=>({week:i+1,from:`${month}-${String(i*7+1).padStart(2,'0')}`,through:`${month}-${String(Math.min(end,(i+1)*7)).padStart(2,'0')}`}));}
 export const weekOf=(date:string)=>Math.ceil(Number(date.slice(8,10))/7);
+
+/** 同来源的未关联名额仅合并展示，真实名额与关联记录仍独立保存。 */
+export function compactPlanItems(items:PlanItem[],separate=new Set<string>()):PlanItem[][] {
+ const groups=new Map<string,PlanItem[]>();
+ for(const item of items){const key=JSON.stringify([item.groupId,item.kind,item.scheduleId??null,separate.has(item.id)?item.id:null]);const group=groups.get(key);if(group)group.push(item);else groups.set(key,[item]);}
+ return [...groups.values()];
+}

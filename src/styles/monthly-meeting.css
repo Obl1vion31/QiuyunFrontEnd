@@ -251,3 +251,15 @@
  .business-form.business-form .monthly-carry-option>label{min-height:44px;align-items:center}
 }
 @media print{.monthly-pool-shell{display:none!important}.monthly-plan-workflow .monthly-week{min-height:0}}
+
+.monthly-plan-compact .monthly-chip-actions{flex:none;align-self:flex-start;margin:4px 3px 0 0}
+.monthly-plan-compact .monthly-chip-actions .weekly-detail-trigger{justify-content:center;width:26px;min-height:26px;padding:4px;color:#667b84;border-radius:4px}
+.monthly-plan-compact .monthly-chip-actions .weekly-detail-trigger:hover{background:#d5e4e8;color:#243e4a}
+.monthly-chip-menu{display:grid;gap:4px}
+.monthly-plan-compact .monthly-chip-menu button{width:100%;padding:7px 9px;border:0;text-align:left;font:400 13px/20px var(--console-font);background:transparent}
+.monthly-plan-compact .monthly-chip-menu button:hover:not(:disabled){background:#edf3f6}
+.monthly-plan-compact .monthly-chip-menu button:last-child{color:#a54141}
+.monthly-plan-compact .monthly-chip-menu button:disabled{color:var(--console-muted);opacity:.65}
+@media(max-width:650px){.monthly-plan-compact .monthly-chip-actions{margin:0}.monthly-plan-compact .monthly-chip-actions .weekly-detail-trigger{width:44px;min-height:44px}.monthly-plan-compact .monthly-chip-menu button{min-height:44px}}
+
+.monthly-plan-compact .monthly-plan-chip .monthly-chip-actions .weekly-detail-trigger{cursor:pointer}

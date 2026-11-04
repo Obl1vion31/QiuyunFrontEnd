@@ -4,7 +4,7 @@ import {useEffect,useState,useRef,type CSSProperties} from 'react';
 import type {MonthlyPlanDraft} from '../db/monthly-plans';
 import type {MonthlyMeetingMaterial} from '../db/monthly-meeting';
 import {businessDate,businessDateTime} from '../scripts/business-date';
-import {monthWeeks,type PlanContent,type PlanGroup,type PlanItem} from '../db/monthly-plan-types';
+import {monthWeeks,compactPlanItems,type PlanContent,type PlanGroup,type PlanItem} from '../db/monthly-plan-types';
 
 type Step='quantity'|'weeks'|'confirmed';
 type Batch={key:string;id?:string;content:PlanContent;canEdit:boolean;canQuantity:boolean;step:Step};
@@ -40,14 +40,14 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
   return {...b,canEdit,canQuantity:canEdit&&(!finalized||!!b.id),step:phase(b.content,b.key)};
  });
  const active=batches.filter(b=>b.canEdit),step:Step=active.some(b=>b.step==='quantity')?'quantity':active.some(b=>b.step==='weeks')?'weeks':'confirmed';
+ const separate=new Set(execution?.filter(item=>item.submittedAt||item.pending||item.schedule||item.history.length).map(item=>item.id));
  const combined:PlanContent={groups:batches.flatMap(b=>b.content.groups),items:batches.flatMap(b=>b.content.items)};
  const weeks=monthWeeks(material.executionMonth),used=new Set(combined.items.flatMap(i=>i.scheduleId?[i.scheduleId]:[]));
  const apply=(next:MonthlyPlanDraft,b:Batch,content:PlanContent):MonthlyPlanDraft=>b.id?{...next,additions:next.additions.map(row=>row.id===b.id?{...row,content}:row)}:{...next,content};
- const updateContent=(b:Batch,content:PlanContent)=>update({...apply(current(),b,content),editorSteps:{...draft.editorSteps,[b.key]:b.step}});
+ const updateContent=(b:Batch,content:PlanContent,nextStep:Step=b.step)=>update({...apply(current(),b,content),editorSteps:{...draft.editorSteps,[b.key]:nextStep}});
  const closePoolDetails=()=>host.current?.querySelectorAll<HTMLElement>('.monthly-plan-pool [data-popover-panel]:popover-open').forEach(panel=>panel.hidePopover());
  async function confirmStep(next:Step){
   const targets=active.filter(b=>next==='weeks'?b.step==='quantity':b.step==='weeks');
-  if(next==='confirmed'&&targets.some(b=>b.content.items.some(i=>!i.week))){setMessage('请先分配完右侧的全部内容。');return;}
   closePoolDetails();
   let value=current();const oldSteps=Object.fromEntries(targets.map(b=>[b.key,b.step]));
   for(const b of targets)value=apply(value,b,next==='weeks'?{...b.content,groups:b.content.groups.map(g=>({...g,quantity:g.quantity??0}))}:b.content);
@@ -84,8 +84,8 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
   updateContent(b,{...b.content,items:b.content.items.map(i=>i.id===slot.id?{...i,scheduleId,kind:'existing'}:i)});
  }
  function distribute(b:Batch,item:PlanItem,week:number|null){
-  if(!b.canEdit||step!=='weeks'||b.step!=='weeks'||busy)return;
-  updateContent(b,{...b.content,items:b.content.items.map(i=>i.id===item.id?{...i,week}:i)});
+  if(!b.canEdit||step==='quantity'||b.step==='quantity'||busy)return;
+  updateContent(b,{...b.content,items:b.content.items.map(i=>i.id===item.id?{...i,week}:i)},'weeks');
  }
  const selectedCarries=batches.flatMap(batch=>batch.content.items.filter(item=>item.kind==='carry'&&item.scheduleId).map(item=>({batch,item,group:batch.content.groups.find(g=>g.id===item.groupId)!})));
  const carryCandidates=new Map(material.candidates.filter(c=>c.kind==='carry'&&(!used.has(c.id)||selectedCarries.some(row=>row.item.scheduleId===c.id))).map(c=>[c.id,{...c,versionNumber:c.versionNumber as number|null}]));
@@ -140,34 +140,40 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
   return <>{evidence(b,g)}{b.canQuantity&&<>{step==='weeks'&&quantityInput(b,g)}{candidates.length>0&&<fieldset className="monthly-candidate-picker"><legend>本月已有排期</legend>{candidates.map(c=><label key={c.id}><input type="checkbox" disabled={busy} checked={items.some(i=>i.scheduleId===c.id)} onChange={()=>include(b,g,c.id)}/><span>{c.name}<small>V{c.versionNumber} · {businessDate(c.plannedAt)} · 占新做名额</small></span></label>)}</fieldset>}</>}</>;
  }
  function choices(b:Batch,item?:PlanItem){
-  if(!item||!b.canEdit||b.step!=='weeks'||step!=='weeks')return null;
+  if(!item||!b.canEdit||b.step==='quantity'||step==='quantity')return null;
   const move=(button:HTMLElement,week:number|null)=>{closePopover(button);distribute(b,item,week);requestAnimationFrame(()=>host.current?.querySelector<HTMLElement>(week?`[data-plan-item="${item.id}"] [data-popover-trigger]`:`[data-plan-source="${item.scheduleId??item.groupId}"] [data-popover-trigger]`)?.focus({preventScroll:true}));};
   return <div className="monthly-chip-week-choices" aria-label="选择周次">{weeks.map(w=><button type="button" key={w.week} data-plan-week-choice={w.week} disabled={busy||item.week===w.week} onClick={e=>move(e.currentTarget,w.week)}>Week {w.week}</button>)}{item.week&&<button type="button" disabled={busy} onClick={e=>move(e.currentTarget,null)}>移回待分配</button>}</div>;
+ }
+ function focusPool(g:PlanGroup,item:PlanItem){requestAnimationFrame(()=>{(host.current?.querySelector<HTMLElement>(`[data-plan-source="${item.scheduleId??g.id}"] [data-popover-trigger]`)??host.current?.querySelector<HTMLElement>('.monthly-plan-pool [data-popover-trigger]'))?.focus({preventScroll:true});});}
+ function removeItem(b:Batch,g:PlanGroup,item:PlanItem){
+  if(!b.canQuantity||busy||execution?.some(i=>i.id===item.id&&i.submittedAt))return;
+  updateContent(b,{...b.content,groups:b.content.groups.map(group=>group.id===g.id?{...group,quantity:Math.max(0,(group.quantity??0)-1)}:group),items:b.content.items.filter(i=>i.id!==item.id)},'weeks');focusPool(g,item);
  }
  function card(b:Batch,g:PlanGroup,items:PlanItem[],pool=false){
   const left=items.filter(i=>!i.week),item=pool?left[0]:items[0],bound=items[0]?.scheduleId;
   const known=bound&&(execution?.find(p=>p.id===items[0].id)?.schedule??material.candidates.find(c=>c.id===bound));
-  const name=known?known.name:g.name,carry=items[0]?.kind==='carry',text=(carry?'遗留 ':'新 ')+name,canDrag=!!item&&b.canEdit&&b.step==='weeks'&&step==='weeks'&&!busy;
-  return <div className={'monthly-plan-chip'+(pool?' monthly-pool-chip':'')} key={pool?(bound??g.id):item!.id} data-plan-item={pool?undefined:item!.id} data-plan-source={pool?(bound??g.id):undefined} data-plan-kind={items[0]?.kind??'new'} data-exhausted={pool&&!left.length||undefined} draggable={canDrag}
+  const name=known?known.name:g.name,carry=items[0]?.kind==='carry',text=(carry?'遗留 ':'新 ')+name,canDrag=!!item&&b.canEdit&&b.step!=='quantity'&&step!=='quantity'&&!busy;
+  return <div className={'monthly-plan-chip'+(pool?' monthly-pool-chip':'')} key={pool?(bound??g.id):item!.id} data-plan-count={pool?left.length:items.length} data-plan-item={pool?undefined:item!.id} data-plan-source={pool?(bound??g.id):undefined} data-plan-kind={items[0]?.kind??'new'} data-exhausted={pool&&!left.length||undefined} draggable={canDrag}
    onDragStart={e=>{if(!canDrag){e.preventDefault();return;}setDrag(item!.id);e.dataTransfer.setData('text/plain',item!.id);e.dataTransfer.effectAllowed='move';const nameNode=e.currentTarget.querySelector<HTMLElement>('.weekly-detail-trigger>span')!;e.dataTransfer.setDragImage(nameNode,Math.min(60,nameNode.clientWidth/2),nameNode.clientHeight/2);}} onDragEnd={()=>{setDrag(null);setDragTarget(null);}}>
-   <WeeklyCardDetails boundary={pool?'.monthly-plan-pool':'.monthly-week'} label={pool?text+'，剩余'+left.length+'篇':text+'，Week '+item!.week} triggerContent={<><span className="monthly-chip-name"><span className="monthly-plan-kind" data-kind={carry?'carry':'new'}>{carry?'遗留':'新'}</span><span className="monthly-chip-title">{name}</span></span>{pool&&<b>×{left.length}</b>}</>}>
+   <WeeklyCardDetails boundary={pool?'.monthly-plan-pool':'.monthly-week'} label={pool?text+'，剩余'+left.length+'篇':text+'，Week '+item!.week} triggerContent={<><span className="monthly-chip-name"><span className="monthly-plan-kind" data-kind={carry?'carry':'new'}>{carry?'遗留':'新'}</span><span className="monthly-chip-title">{name}</span></span>{(pool||items.length>1)&&<b>×{pool?left.length:items.length}</b>}</>}>
     <strong>{text}</strong>{choices(b,item)}{bound?evidence(b,g,items[0]):pool?sourceInfo(b,g):evidence(b,g,items[0])}
    </WeeklyCardDetails>
+   {!pool&&item&&b.canEdit&&step!=='quantity'&&<div className="monthly-chip-actions"><WeeklyCardDetails variant="actions" boundary=".monthly-week" label={'移回或删除'+name+'计划'} triggerContent={<svg aria-hidden="true" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="m4 4 8 8M12 4l-8 8"/></svg>}><div className="monthly-chip-menu"><button type="button" disabled={busy} onClick={e=>{closePopover(e.currentTarget);distribute(b,item,null);focusPool(g,item);}}>{items.length>1?'移回1篇待分配':'移回待分配'}</button><button type="button" disabled={busy||!b.canQuantity||!!execution?.some(i=>i.id===item.id&&i.submittedAt)} title={!b.canQuantity?'已定稿数量不可删除，可移回调整':undefined} onClick={e=>{closePopover(e.currentTarget);removeItem(b,g,item);}}>删除{items.length>1?'1篇':''}计划</button></div></WeeklyCardDetails></div>}
    {pool&&carry&&<WeeklyCardDetails variant="info" boundary=".monthly-plan-pool" label={'查看'+name+'遗留资料'}>{evidence(b,g,items[0])}</WeeklyCardDetails>}
   </div>;
  }
- const remaining=active.filter(b=>b.step==='weeks').reduce((n,b)=>n+b.content.items.filter(i=>!i.week).length,0);
+ const remaining=active.reduce((n,b)=>n+b.content.items.filter(i=>!i.week).length,0);
  const visibleGroup=(g:PlanGroup)=>!g.id.startsWith('carry:')&&(step==='quantity'&&quantityGroups.has(g.id)||combined.items.some(i=>i.groupId===g.id&&i.kind!=='carry'));
  const subjects=[...new Set(combined.groups.filter(visibleGroup).map(g=>g.subjectId))];
  return <section className="monthly-section monthly-plan-compact" ref={host} data-monthly-plan-editor><header><div className="monthly-plan-heading"><h2>{material.executionMonth} 执行月计划</h2>{locked&&editable&&<span className="monthly-status">原计划已锁定</span>}</div></header>
   {!editable?<MonthlyPlanSummary cards month={material.executionMonth} content={combined} execution={material.executionPlan?.items} progressKnown={'executionPlan' in material} candidates={material.candidates}/>:<div className="monthly-plan-workflow" data-plan-workflow="original" data-plan-step={step}>
    <div className="monthly-planner" style={{'--monthly-week-count':weeks.length} as CSSProperties}><div className="monthly-plan-board">{weeks.map(w=><section className="monthly-week" key={w.week} data-week={w.week} data-drop-target={dragTarget===String(w.week)||undefined}
-    onDragEnter={()=>{if(step==='weeks'&&drag)setDragTarget(String(w.week));}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragTarget(null);}} onDragOver={e=>{if(step==='weeks'&&drag)e.preventDefault();}} onDrop={e=>{e.preventDefault();drop(drag??e.dataTransfer.getData('text/plain'),w.week);}}>
+    onDragEnter={()=>{if(step!=='quantity'&&drag)setDragTarget(String(w.week));}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragTarget(null);}} onDragOver={e=>{if(step!=='quantity'&&drag)e.preventDefault();}} onDrop={e=>{e.preventDefault();drop(drag??e.dataTransfer.getData('text/plain'),w.week);}}>
     <header><h3>Week {w.week}</h3><span>{w.from.slice(5)} 至 {w.through.slice(5)}</span><b>{combined.items.filter(i=>i.week===w.week).length}篇</b></header>
-    {combined.items.some(i=>i.week===w.week)&&<div className="monthly-week-items">{batches.flatMap(b=>b.content.items.filter(i=>i.week===w.week).map(i=>card(b,b.content.groups.find(g=>g.id===i.groupId)!,[i])))}</div>}
+    {combined.items.some(i=>i.week===w.week)&&<div className="monthly-week-items">{batches.flatMap(b=>compactPlanItems(b.content.items.filter(i=>i.week===w.week),separate).map(items=>card(b,b.content.groups.find(g=>g.id===items[0].groupId)!,items)))}</div>}
    </section>)}</div>
    <div className="monthly-pool-shell"><aside className="monthly-plan-pool" id={"monthly-plan-pool-"+draft.id} aria-label="待分配来源" data-drop-target={dragTarget==='pool'||undefined}
-    onDragEnter={()=>{if(step==='weeks'&&drag)setDragTarget('pool');}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragTarget(null);}} onDragOver={e=>{if(step==='weeks'&&drag)e.preventDefault();}} onDrop={e=>{e.preventDefault();drop(drag??e.dataTransfer.getData('text/plain'),null);}}>
+    onDragEnter={()=>{if(step!=='quantity'&&drag)setDragTarget('pool');}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setDragTarget(null);}} onDragOver={e=>{if(step!=='quantity'&&drag)e.preventDefault();}} onDrop={e=>{e.preventDefault();drop(drag??e.dataTransfer.getData('text/plain'),null);}}>
     <header><h3>{step==='quantity'?'计划数量':'待分配'}</h3><span className="monthly-status">{step==='quantity'?`共 ${combined.items.length} 篇`:`剩余 ${remaining} 篇`}</span></header>
     <div className="monthly-pool-scroll" data-popover-scroll-boundary>
     {step==='quantity'&&carryRows.length>0&&<section className="monthly-carry-choices"><h4>未登记</h4>{carryRows.map(candidate=>{const selected=selectedCarries.find(row=>row.item.scheduleId===candidate.id);const invalid=!candidate.categoryId||!taxonomy.subjectCategoryMappings.some(m=>m.subjectId===candidate.subjectId&&m.categoryId===candidate.categoryId);return <div className="monthly-carry-option" key={candidate.id} data-carry-candidate={candidate.id}><label><input type="checkbox" aria-label={'纳入遗留 '+candidate.name} checked={!!selected} disabled={busy||invalid||!!selected&&(!selected.batch.canQuantity||!!selected.item.week||!!execution?.some(i=>i.id===selected.item.id&&i.submittedAt))} onChange={()=>toggleCarry(candidate.id)}/><span className="monthly-plan-kind" data-kind="carry">遗留</span><span>{candidate.name}</span></label><WeeklyCardDetails variant="info" boundary=".monthly-plan-pool" label={'查看'+candidate.name+'遗留资料'}><strong>{candidate.name}</strong>{candidate.versionNumber!=null&&<p>V{candidate.versionNumber}</p>}<p>原应发 {businessDateTime(candidate.plannedAt)}</p><a href={'/business/operations-schedule?display=ledger&row='+candidate.id} target="_blank" rel="noreferrer">原排期 ↗</a>{invalid&&<p>请先在原排期补全学科与分类。</p>}</WeeklyCardDetails></div>;})}</section>}
@@ -180,7 +186,7 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
      <div className="monthly-temporary"><strong>新增月计划</strong>{draft.content.groups.some(g=>g.annualPlanId)&&<label>来源<select aria-label="来源" value={annualSource} onChange={e=>setAnnualSource(e.target.value)}><option value="">年度规划外内容</option>{draft.content.groups.filter(g=>g.annualPlanId).map(g=><option key={g.id} value={g.id}>{g.name}</option>)}</select></label>}{!annualSource&&<><label>内容名称<input aria-label="内容名称" value={temporary.name} onChange={e=>setTemporary({...temporary,name:e.target.value})}/></label><label>学科<select aria-label="学科" value={temporary.subjectId} onChange={e=>setTemporary({...temporary,subjectId:e.target.value,categoryId:''})}>{taxonomy.subjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label><label>帖子分类<select aria-label="帖子分类" value={temporary.categoryId} onChange={e=>setTemporary({...temporary,categoryId:e.target.value})}><option value="">请选择</option>{taxonomy.postCategories.filter(c=>taxonomy.subjectCategoryMappings.some(m=>m.subjectId===temporary.subjectId&&m.categoryId===c.id)).map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label></>}<label>原因<textarea aria-label="原因" value={temporary.reason} onChange={e=>setTemporary({...temporary,reason:e.target.value})}/></label><button type="button" disabled={busy} onClick={e=>addGroup(e.currentTarget)}>添加内容</button></div>
     </WeeklyCardDetails></div>
    </aside></div></div>
-   <div className="monthly-plan-step-actions">{step==='quantity'?<button type="button" className="business-action-primary" disabled={busy} onClick={()=>void confirmStep('weeks')}>{busy?'正在保存…':'保存数量安排'}</button>:step==='weeks'?<button type="button" className="business-action-primary" disabled={busy||remaining>0} onClick={()=>void confirmStep('confirmed')}>{busy?'正在保存…':'确认安排'}</button>:active.some(b=>b.content.items.length>0)&&<button type="button" disabled={busy} onClick={()=>void resetWeeks()}>重新排期</button>}</div>
+   <div className="monthly-plan-step-actions">{step==='quantity'?<button type="button" className="business-action-primary" disabled={busy} onClick={()=>void confirmStep('weeks')}>{busy?'正在保存…':'保存数量安排'}</button>:step==='weeks'?<button type="button" className="business-action-primary" disabled={busy} onClick={()=>void confirmStep('confirmed')}>{busy?'正在保存…':remaining?'暂时确认安排':'确认安排'}</button>:active.some(b=>b.content.items.length>0)&&<button type="button" disabled={busy} onClick={()=>void resetWeeks()}>重新排期</button>}</div>
   </div>}
   {message&&<p role="alert" className="monthly-plan-alert">{message}</p>}
  </section>;

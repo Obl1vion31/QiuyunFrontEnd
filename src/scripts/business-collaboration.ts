@@ -12,11 +12,17 @@ if(!state.__collaborationReady){
  state.__collaborationReady=true;
  const tabId=crypto.randomUUID(),baseFetch=window.fetch.bind(window),leases=new Map<string,Lease>(),aliases=new Map<string,string[]>(),sources=new Map<string,HTMLElement>(),pending=new Map<string,Promise<void>>(),lost=new Set<string>();
  let active:Scope|undefined,field:string|null=null,lastPresence=0,polling=false,occupants:Occupant[]=[],confirming=false;
- let pageVersion=0,leaseVersion=0,releasing:Promise<void>=Promise.resolve(),renewing:Promise<void>|undefined;
+ let pollVersion=0,pageVersion=0,leaseVersion=0,releasing:Promise<void>=Promise.resolve(),renewing:Promise<void>|undefined,resuming:Promise<void>|undefined;
+ const requests=new Map<AbortController,string>();
+ const cancelBackgroundReads=()=>{for(const [controller,method]of requests)if(['GET','PATCH','PUT'].includes(method))controller.abort();};
  const page=()=>location.pathname.split('/').at(-1)!;
  const admin=()=>document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole==='admin';
  const visible=(element:HTMLElement)=>element.isConnected&&element.dataset.collaborationActive!=='false'&&!element.closest('[hidden],dialog:not([open]),astro-island[ssr]')&&element.getClientRects().length>0;
- const json=async(path:string,method:string,body?:unknown,keepalive=false)=>{const res=await baseFetch(path,{method,keepalive,headers:{'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await res.json();if(!res.ok)throw Object.assign(new Error(data.message??'协作服务暂时不可用'),{status:res.status});return data;};
+ const json=async(path:string,method:string,body?:unknown,keepalive=false)=>{
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(new DOMException('编辑连接超时，请重试。','TimeoutError')),10000);requests.set(controller,method);
+  try{const res=await baseFetch(path,{method,keepalive,signal:controller.signal,headers:{'Content-Type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const data=await res.json();if(!res.ok)throw Object.assign(new Error(data.message??'协作服务暂时不可用'),{status:res.status});return data;}
+  finally{clearTimeout(timeout);requests.delete(controller);}
+ };
  const fieldName=(node:Element)=>(node.getAttribute('aria-label')??node.closest('label')?.childNodes[0]?.textContent??node.getAttribute('name')??'字段').trim().slice(0,80);
  const isField=(node:Element)=>node.matches('input:not([type=hidden]):not([type=search]):not([readonly]),textarea:not([readonly]),select');
  function scopeFor(node:Element):Scope|undefined{
@@ -116,15 +122,15 @@ if(!state.__collaborationReady){
   const resource=meeting?`meeting:${meeting}:version:${document.querySelector<HTMLElement>('[data-meeting-presence]')?.dataset.meetingVersion??'draft'}`:active?.resource??null;
   try{await json('/api/collaboration/presence','PUT',{tabId,page:page(),resource,field:active&&owned(active)?field:null,label:active?.label.slice(0,120)??null,visible:!document.hidden});}catch{/* 位置读取不改变业务写入保护。 */}
  };
- async function poll(){
-  if(polling||!document.querySelector('.business-console-frame'))return;polling=true;const enteredPage=pageVersion;
+ async function poll(force=false){
+  if(polling&&!force||!document.querySelector('.business-console-frame'))return;polling=true;const enteredPoll=++pollVersion,enteredPage=pageVersion;
   try{
    discover();await release([...sources].filter(([key,element])=>!visible(element)||!aliases.get(element.dataset.collaborationResource??'')?.includes(key)).map(([key])=>key));
    if(active&&!visible(active.element)){active=undefined;field=null;}
    await position();if(document.hidden||enteredPage!==pageVersion)return;
    const current=scopes(),query=new URLSearchParams({tabId}),meetingId=new URL(location.href).searchParams.get('meeting');for(const resource of new Set([...current.map(scope=>scope.resource),...observers().map(element=>element.dataset.collaborationObserve!),...(meetingId?[`meeting:${meetingId}`]:[])]))query.append('resource',resource);
    const beforeRead=leaseVersion,result=await json('/api/collaboration/locks?'+query,'GET');
-   if(enteredPage!==pageVersion||beforeRead!==leaseVersion)return;occupants=result.rows;
+   if(enteredPage!==pageVersion||enteredPoll!==pollVersion||beforeRead!==leaseVersion)return;occupants=result.rows;
    for(const keys of aliases.values())for(const key of keys)if(leases.has(key)&&occupants.some(row=>!row.own&&overlaps(row.resource,key)))markLost(key);
    if([...leases.values()].some(lease=>Date.parse(lease.expiresAt)<=Date.now()))void renew().catch(()=>{});
    for(const scope of current)render(scope);renderObservers();
@@ -144,11 +150,11 @@ if(!state.__collaborationReady){
     const viewers=[...new Set(rows.filter(row=>row.visible&&row.resource===`meeting:${meeting}:version:${summary.dataset.meetingVersion??'draft'}`).map(row=>shortName(row.name)))].filter(name=>!editorNames.includes(name));
     summary.textContent=[editorNames.length?'正在编辑：'+editorNames.join('、'):'',viewers.length?'正在查看：'+viewers.join('、'):''].filter(Boolean).join('　');
    }
-  }finally{polling=false;}
+  }finally{if(enteredPoll===pollVersion)polling=false;}
  }
  async function start(scope:Scope,node?:Element){
   active=scope;field=node&&isField(node)?fieldName(node):null;
-  try{await ensure(scope);await position(true);}catch(error){await poll().catch(()=>{});render(scope);if(!remote(scope).length&&!(error instanceof Error&&'status' in error&&error.status===409))document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:error instanceof Error?error.message:'取得编辑权失败，请重试。'}}));}
+  try{await ensure(scope);await position(true);}catch(error){if(error instanceof DOMException&&error.name==='AbortError')return;await poll().catch(()=>{});render(scope);if(!remote(scope).length&&!(error instanceof Error&&'status' in error&&error.status===409))document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:error instanceof Error?error.message:'取得编辑权失败，请重试。'}}));}
  }
  document.addEventListener('focusin',event=>{const node=event.target as Element;if(!isField(node)||node.matches(':disabled'))return;discover();const scope=scopeFor(node);if(scope)void start(scope,node);});
  document.addEventListener('beforeinput',event=>{const node=event.target as Element,scope=scopeFor(node);if(!scope||!isField(node))return;if(remote(scope).length||isLost(scope.resource)){event.preventDefault();return;}if(!owned(scope))void start(scope,node);},true);
@@ -171,6 +177,7 @@ if(!state.__collaborationReady){
   const resources=writeResources(target.pathname,method,data);if(!resources.length)return baseFetch(input,init);
   let acquired:string[]=[];
   try{
+   if(resuming)await resuming;
    if([...leases.values()].some(lease=>Date.parse(lease.expiresAt)<=Date.now()))await renew();
    await releasing;
    await Promise.all([...pending].filter(([resource])=>resources.some(key=>overlaps(resource,key))).map(([,task])=>task));
@@ -178,10 +185,11 @@ if(!state.__collaborationReady){
    // 子字段租约不能覆盖整篇操作；campaign别名只接受对应的完整租约。
    const missing=resources.filter(resource=>![...leases.values()].some(lease=>lease.resource===resource||resource.startsWith(lease.resource+':')||resource.startsWith('campaign:')&&lease.resource.endsWith(':'+resource)));
    if(missing.length){leaseVersion++;const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}
-   const used=[...leases.keys()].filter(key=>resources.some(resource=>overlaps(key,resource)));
+   const used=[...leases.keys()].filter(key=>resources.some(resource=>overlaps(key,resource))),sent=new Map(leases),enteredPage=pageVersion;
    const headers=new Headers(init?.headers??(input instanceof Request?input.headers:undefined));headers.set('X-Edit-Tab',tabId);headers.set('X-Edit-Leases',JSON.stringify(Object.fromEntries([...leases].map(([key,value])=>[key,value.token]))));
    const response=await baseFetch(input,{...init,headers});
-   if(response.ok)await release(used);else if(response.status===409){const result=await response.clone().json().catch(()=>null);if(result?.message?.includes('编辑权限已失效'))for(const key of used)markLost(key);}
+   const current=enteredPage===pageVersion?used.filter(key=>leases.get(key)?.token===sent.get(key)?.token):[];
+   if(response.ok)await release(current);else if(response.status===409){const result=await response.clone().json().catch(()=>null);if(result?.message?.includes('编辑权限已失效'))for(const key of current)markLost(key);}
    for(const scope of scopes())render(scope);
    return response;
   }catch(error){await release(acquired.filter(key=>!sources.has(key)));return Response.json({code:'EDIT_CONFLICT',message:error instanceof Error?error.message:'编辑服务暂不可用，输入已保留。'},{status:409});}
@@ -204,9 +212,10 @@ if(!state.__collaborationReady){
    }
   })().finally(()=>{if(renewing===task)renewing=undefined;});renewing=task;return task;
  }
- const resume=()=>void renew().catch(()=>{}).finally(refresh);
+ const resume=()=>{if(resuming)return resuming;const task=(async()=>{cancelBackgroundReads();if(renewing)await renewing.catch(()=>{});await renew().catch(()=>{});await poll(true).catch(()=>{});refresh();})().finally(()=>{if(resuming===task)resuming=undefined;});resuming=task;return task;};
  setInterval(()=>void renew().catch(()=>{}),15000);
- document.addEventListener('visibilitychange',()=>{void position(true);if(!document.hidden)resume();});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelBackgroundReads();void position(true);if(!document.hidden)resume();});
+ window.addEventListener('blur',cancelBackgroundReads);
  const leave=()=>{pageVersion++;renewing=undefined;for(const scope of scopes())delete scope.element.dataset.editEntered;active=undefined;field=null;occupants=[];lost.clear();};
  document.addEventListener('astro:before-swap',()=>{if(page()!=='annual-plan')void json('/api/collaboration/presence','PUT',{tabId,page:page(),resource:null,field:null,label:null,visible:false}).catch(()=>{});leave();void release([...leases.keys()]);});
  window.addEventListener('focus',resume);
