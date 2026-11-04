@@ -1,0 +1,14 @@
+{
+  "deploymentId": "dpl_9AQUUJSfVKxKTqeMgcvdfeCmFFA6",
+  "deploymentUrl": "https://qiuyun-frontend-oiwd8z3p9-opgobl1v-5358.vercel.app",
+  "domain": "https://qiuyun-frontend.vercel.app",
+  "state": "READY",
+  "sourceCommit": "823ac7d5eea9642cd99a3a605b19305fbbf4408c",
+  "implementationCommit": "d2f2c57",
+  "verifiedAt": "2026-11-04T15:50:24.834060+08:00",
+  "candidateChecks": 14,
+  "productionChecks": 122,
+  "matchingAssets": 87,
+  "productionBusinessWrites": false,
+  "migrations": false
+}

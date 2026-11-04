@@ -1,0 +1,12 @@
+[
+  {
+    "name": "monthly",
+    "pages": 5,
+    "chineseText": true
+  },
+  {
+    "name": "weekly",
+    "pages": 3,
+    "chineseText": true
+  }
+]

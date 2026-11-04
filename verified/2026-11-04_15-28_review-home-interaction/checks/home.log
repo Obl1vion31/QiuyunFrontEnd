@@ -1,0 +1,6 @@
+
+> qiuyun-frontend-system@0.1.0 test:home /home/obl1vion/projects/qiuyunFrontend/.tools/releases/review-home-20261104
+> node tests/home.browser.mjs
+
+VIDEO=/home/obl1vion/projects/qiuyunFrontend/.tools/releases/review-home-20261104/.tools/test-artifacts/home-release/page@380ddb9c0610fb19e3753780650754b2.webm
+通过：桌面与触屏、四角下凹及阻尼回弹、静止光标跟随、9图完整平带循环、六阶段、暂停/键盘、离场停止、减少动态与缺图。
