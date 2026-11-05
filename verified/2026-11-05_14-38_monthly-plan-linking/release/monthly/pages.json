@@ -1,0 +1,35 @@
+{
+  "source": "runtime-monthly.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "width": 841.9199829101562,
+      "height": 594.9599609375,
+      "characters": 356
+    },
+    {
+      "page": 2,
+      "width": 841.9199829101562,
+      "height": 594.9599609375,
+      "characters": 543
+    },
+    {
+      "page": 3,
+      "width": 841.9199829101562,
+      "height": 594.9599609375,
+      "characters": 569
+    },
+    {
+      "page": 4,
+      "width": 841.9199829101562,
+      "height": 594.9599609375,
+      "characters": 294
+    },
+    {
+      "page": 5,
+      "width": 841.9199829101562,
+      "height": 594.9599609375,
+      "characters": 387
+    }
+  ]
+}

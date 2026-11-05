@@ -1,0 +1,154 @@
+{
+  "passed": true,
+  "checks": [
+    "月历原卡片／位置保留，键盘勾选、取消保留及503重试，部分关联不建帖",
+    "选满提示、第二次补齐、更正前确认及取消保留，数量始终不变",
+    "退出后恢复原Inspector，跨Week说明及原日期保留",
+    "从勾选切换日期新建有未保存保护，原表单带来源；跨月补读保留输入",
+    "旧标签页遇定稿由服务端拦截，补出来源且保留原输入",
+    "员工真实提交关联审批，管理员原Inspector查看差异并批准，计数仅通过后增加",
+    "协作者保存后旧关联整批拒绝，只提供刷新，Esc与重试不能绕过",
+    "减少动态效果、无协作请求与无月计划轮询，三个桌面宽度及手机有限回归",
+    "跨月隐藏旧帖可取消勾选；保留可见关联、帖子与原计划数量"
+  ],
+  "images": [
+    "screenshots/calendar-default-1440.png",
+    "screenshots/calendar-selection-1440.png",
+    "screenshots/calendar-save-failure-1440.png",
+    "screenshots/calendar-inspector-1440.png",
+    "screenshots/calendar-cross-week-1440.png",
+    "screenshots/calendar-linked-1920.png",
+    "screenshots/calendar-picking-1920.png",
+    "screenshots/calendar-linked-1440.png",
+    "screenshots/calendar-picking-1440.png",
+    "screenshots/calendar-linked-1024.png",
+    "screenshots/calendar-picking-1024.png",
+    "screenshots/calendar-linked-390.png",
+    "screenshots/calendar-picking-390.png",
+    "screenshots/calendar-linked-320.png",
+    "screenshots/calendar-picking-320.png",
+    "screenshots/calendar-new-source-1440.png",
+    "screenshots/calendar-old-tab-source-1440.png",
+    "screenshots/calendar-pending-employee-1440.png",
+    "screenshots/calendar-approval-admin-1440.png",
+    "screenshots/calendar-stale-refresh-1440.png",
+    "screenshots/calendar-reduced-motion-1440.png",
+    "screenshots/calendar-hidden-association-1440.png",
+    "screenshots/calendar-final-full-1440.png"
+  ],
+  "requests": [
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=afa18e09-a766-44d2-acbf-8ea9361865fc&week=3",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?month=2026-11",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?month=2026-12",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?month=2026-11",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?month=2026-12",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?month=2026-12",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=8d78071a-ec19-4846-b365-78d4dd51a7c2&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans?id=09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1&choices=1&group=227cd5d2-919f-4135-be90-61af8bc61db9&week=2",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:45563/api/monthly-plans/09fb0c4a-d3e3-4c16-922c-d2f4c24fdce1/links",
+      "method": "POST"
+    }
+  ],
+  "errors": []
+}

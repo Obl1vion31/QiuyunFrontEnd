@@ -1,0 +1,21 @@
+{
+  "appSource": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+  "baseSource": "d4fbfb46282b971227a647873ea9732c595e3429",
+  "branch": "codex/monthly-plan-linking",
+  "mainSynced": true,
+  "url": "https://qiuyun-frontend.vercel.app",
+  "deploymentUrl": "https://qiuyun-frontend-r1gmc98u8-opgobl1v-5358.vercel.app",
+  "id": "dpl_HDfNASxNyVqdNkj7qSprPXWE6JCH",
+  "state": "READY",
+  "aliasVerified": true,
+  "candidate": {
+    "checks": 18,
+    "keyAssets": 3
+  },
+  "production": {
+    "checks": 18,
+    "hashedAssets": 67
+  },
+  "schemaMigration": false,
+  "productionBusinessWrites": false
+}

@@ -1,0 +1,113 @@
+{
+  "passed": true,
+  "base": "https://qiuyun-frontend-r1gmc98u8-opgobl1v-5358.vercel.app",
+  "platformProtectionBypass": true,
+  "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+  "checks": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/business/annual-plan",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?month=2026-11",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/monthly-operations",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/api/monthly-plans?month=2026-11",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/business-notifications",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/collaboration/presence",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/collaboration/locks",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/links",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/links",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/links",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/links",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/links",
+      "method": "POST",
+      "status": 403
+    }
+  ],
+  "assets": [
+    {
+      "path": "_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.BtmFSxmF.js",
+      "sha256": "668abe2deff9eb0df2d1e6f71f8fa7a28ba474f074d6a5e2d76322c6f1963b65"
+    },
+    {
+      "path": "fonts/business.css",
+      "sha256": "11e7db9be8534338218cdf30340086396469ebe77a5392b3766f332313fd92a0"
+    },
+    {
+      "path": "fonts/business.js",
+      "sha256": "75b80add18fc02182cd76880dba3f1fc741e31abeca2a79683e9b6c46b4db75a"
+    }
+  ],
+  "productionBusinessWrites": false
+}

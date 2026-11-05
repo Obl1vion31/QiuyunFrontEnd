@@ -1,0 +1,122 @@
+{
+  "appSource": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+  "baseline": "d4fbfb46282b971227a647873ea9732c595e3429",
+  "passed": true,
+  "checks": [
+    {
+      "name": "规则检查",
+      "passed": 261,
+      "command": "pnpm test",
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "log": ".tools/final-rules.log"
+    },
+    {
+      "name": "schema",
+      "command": "DATABASE_URL=本机隔离连接 pnpm db:check",
+      "passed": true,
+      "log": ".tools/schema-check.log"
+    },
+    {
+      "name": "Node类型与构建",
+      "command": "pnpm build",
+      "passed": true,
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "log": ".tools/build.log"
+    },
+    {
+      "name": "Vercel类型与构建",
+      "command": "VERCEL=1 VERCEL_ENV=production vercel build --prod",
+      "passed": true,
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "log": ".tools/vercel-build-final.log"
+    },
+    {
+      "name": "月计划关联接口9组",
+      "command": "node --import tsx tests/monthly-plan-links.integration.ts",
+      "passed": true,
+      "source": "5a47832f803a654184ee90e278ac8428710ebd63",
+      "note": "最终修补仅新增条件按钮与对应客户端处理，数据库与接口代码相同",
+      "log": ".tools/history-integration.log"
+    },
+    {
+      "name": "月计划关联浏览器9组",
+      "command": "node --import tsx tests/monthly-plan-links.browser.ts",
+      "passed": true,
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "screenshots": 23,
+      "log": ".tools/hidden-browser.log"
+    },
+    {
+      "name": "实际Vercel包两角色及真实跨月改期",
+      "command": "node --import tsx .tools/runtime-roles.ts",
+      "passed": true,
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "log": ".tools/runtime-roles-final.log"
+    },
+    {
+      "name": "实际Vercel包首屏3场景",
+      "command": "node --import tsx .tools/runtime-first-paint.ts",
+      "passed": true,
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "log": ".tools/runtime-first-paint-final.log"
+    },
+    {
+      "name": "公共UI",
+      "command": "pnpm test:ui",
+      "passed": true,
+      "log": ".tools/public-ui.log"
+    },
+    {
+      "name": "完整月计划接口与浏览器",
+      "command": "pnpm test:monthly-workflow",
+      "passed": true,
+      "logs": [
+        ".tools/history-monthly.log",
+        ".tools/monthly-browser.log"
+      ]
+    },
+    {
+      "name": "排期审批与延期",
+      "command": "pnpm test:workflows",
+      "passed": true,
+      "log": ".tools/schedule-regression.log"
+    },
+    {
+      "name": "发布时间",
+      "command": "pnpm test:publication",
+      "passed": true,
+      "log": ".tools/publication.log"
+    },
+    {
+      "name": "最终运行包PDF",
+      "passed": true,
+      "source": "098835e3469138c7a213f1fa5c6d5c628e36ce1e",
+      "pages": {
+        "monthly": 5,
+        "weekly": 3
+      },
+      "log": ".tools/runtime-bundle-final.log"
+    }
+  ],
+  "visual": {
+    "desktop": [
+      1920,
+      1440,
+      1024
+    ],
+    "mobileLimited": [
+      390,
+      320
+    ],
+    "reviewed": true,
+    "videoFrameSamples": {
+      "operations": 24,
+      "firstPaint": 12
+    }
+  },
+  "isolation": {
+    "database": "localhost PostgreSQL temporary databases",
+    "sharedNeonUsed": false,
+    "productionTestBusinessWrites": false
+  }
+}
