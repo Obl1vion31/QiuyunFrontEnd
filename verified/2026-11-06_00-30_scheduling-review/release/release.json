@@ -1,0 +1,21 @@
+{
+  "source": "c39994b",
+  "base": "aba6f66759abb6a45be23c8093b08b6ef2d8d23d",
+  "branch": "codex/scheduling-review",
+  "deployment": "dpl_GC2J4HLQPw9ES5tS2LrUVA9ioj4a",
+  "url": "https://qiuyun-frontend.vercel.app",
+  "candidate": "https://qiuyun-frontend-eelgk2z6d-opgobl1v-5358.vercel.app",
+  "schema": "0048_open_zarek",
+  "productionCleanup": {
+    "passed": true,
+    "at": "2026-11-05T16:53:30.993Z",
+    "keptPublished": 1,
+    "movedToOctober31": 2,
+    "reversiblyCancelled": 15,
+    "oldFrozenVersionsUnchanged": 9,
+    "contentAndMetricCountsUnchanged": true,
+    "novemberStage": "closed",
+    "allTargetRowsMatchReceipt": true
+  },
+  "status": "已发布／已自检，待用户反馈"
+}

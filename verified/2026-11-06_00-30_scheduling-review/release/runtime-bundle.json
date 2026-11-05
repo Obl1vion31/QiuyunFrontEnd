@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "source": "c39994b",
+  "packages": [
+    "react",
+    "react-dom",
+    "puppeteer-core",
+    "@sparticuz/chromium"
+  ],
+  "compressedChromium": true,
+  "inlineChineseFonts": true,
+  "pdfs": [
+    {
+      "name": "monthly",
+      "bytes": 621632
+    },
+    {
+      "name": "weekly",
+      "bytes": 768348
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "employee",
+    "seconds": 25.56,
+    "frames": 51
+  },
+  {
+    "name": "admin",
+    "seconds": 25.64,
+    "frames": 51
+  },
+  {
+    "name": "first-paint",
+    "seconds": 7.92,
+    "frames": 32
+  }
+]

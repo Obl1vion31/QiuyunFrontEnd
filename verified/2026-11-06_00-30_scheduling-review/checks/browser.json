@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "checks": [
+    "真实新建表单保存成功；原日历拖动打开原帖编辑，不复制帖子",
+    "提交失败保留输入；成功提交后员工所有排期控件禁用，但真实实发仍可登记",
+    "管理员取消封存确认不丢意见；通过后月会永久只读，员工排期页恢复正常操作",
+    "员工从真实历史页打开原表单，更新时间确实存在，修改指标实际保存成功",
+    "管理员真实历史更正展示后续影响；取消保留状态与原因，确认后实际归档不兼容指标"
+  ],
+  "images": [
+    "closed-1440.png",
+    "arranging-1920.png",
+    "arranging-1440.png",
+    "arranging-1024.png",
+    "arranging-390.png",
+    "arranging-320.png",
+    "submit-failure-1440.png",
+    "review-employee-1440.png",
+    "review-publication-saved-1440.png",
+    "monthly-live-before-seal-1440.png",
+    "review-admin-1920.png",
+    "review-admin-1440.png",
+    "review-admin-1024.png",
+    "sealed-calendar-1440.png",
+    "sealed-monthly-1920.png",
+    "sealed-monthly-1440.png",
+    "sealed-monthly-1024.png",
+    "sealed-monthly-390.png",
+    "sealed-monthly-320.png",
+    "history-edit-1440.png",
+    "history-impact-preview-1440.png"
+  ],
+  "errors": []
+}
