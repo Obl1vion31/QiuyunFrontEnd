@@ -48,10 +48,10 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
    {!embedded&&<header><div class="timeline-identity"><strong>{row.contentName}</strong><span>V{row.versionNumber} · {row.subjectName}</span></div><time>{date}</time><mark>{label}{waiting&&<small>{end?`至 ${end}（含当天）`:'未设截止日'}</small>}</mark></header>}
    {row.plan?.plannedOn&&!row.campaign&&<p>{row.plan.plannedOn} 计划{row.plan.plannedStage==='scaling'?'放量':'测试'}，请确认当天实际状态。</p>}
    {editable&&history&&statusEdit&&statusEdit.options.length>0&&<details data-history-status-edit><summary>更正 {date} 的当日状态</summary>
-    <form class="business-form timeline-state-form" data-timeline-form data-fingerprint={row.fingerprint}>
+    <form class="business-form timeline-state-form" data-timeline-form data-fingerprint={row.fingerprint} data-original-next={statusContext?.metrics.find(m=>m.campaignId===row.campaign?.id&&m.metricDate===date)?.reviewDecision}>
      <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="action" value="status"/><input type="hidden" name="reviewDate" value={date}/>
      <label>当日状态<select name="targetStatus" required><option value="">请选择</option>{statusEdit.options.map(option=><option value={option.value}>{option.label}</option>)}</select></label>
-     <label class="timeline-reason">更正原因<textarea name="reason" rows="2" maxlength="2000" required/></label><button type="submit" class="business-action-primary">保存当日状态</button><output role="alert"/>
+     <p data-status-next-feedback hidden/><label class="timeline-reason">更正原因<textarea name="reason" rows="2" maxlength="2000" required/></label><button type="submit" class="business-action-primary">保存当日状态</button><output role="alert"/>
     </form>
    </details>}
    {editable&&(!businessDate||!row.campaign)&&(history||waiting||row.campaign)&&<details open={!waiting&&!row.campaign&&!history}>

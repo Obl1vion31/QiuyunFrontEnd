@@ -1,25 +1,22 @@
-import {testingCycleOn} from '../../../db/promotion-cycles.mjs';
+import {syncContinuousCheckpoints} from '../../../db/continuous-schedule';
+import {correctPromotionHistory,PromotionHistoryPreview} from '../../../db/promotion-history-correction';
+import {promotionMetricStatus} from '../../../db/promotion-state.mjs';
 import {promotionNextOptions} from '../../../db/promotion-successors.mjs';
-import {meetingDecisionOn,meetingNextDecision} from '../../../db/meeting-decision-rules.mjs';
 import {WorkflowError,StaleWriteError} from '../../../db/schedule-workflow';
 import type { APIRoute } from 'astro';
 import {randomUUID} from 'node:crypto';
 import {promotionSnapshot,timelineFingerprint} from '../../../db/promotion-timeline';
 import { requireAdmin, permissionErrorResponse } from '../../../auth/permissions';
-import { and, asc, eq, inArray,sql } from 'drizzle-orm';
+import { eq,sql } from 'drizzle-orm';
 import { getDb } from '../../../db/client';
 import {
   operationsContentSchedule,
   operationsPromotionCampaign,
   operationsPromotionDailyMetric,
   operationsPromotionStage,
-  operationsPromotionHold,
-  operationsPromotionWaitRange,
-  operationsPromotionDayDecision,operationsPromotionTimelineAudit,
+  operationsPromotionTimelineAudit,
 } from '../../../db/schema';
-import { replayPromotionHistory,shanghaiDateKey,nextDateKey } from '../../../db/promotion-rules.mjs';
 import { lockPromotionWorkflow, readPromotionContext } from '../../../db/promotion-pauses';
-import { promotionReplayOptions } from '../../../db/promotion-state.mjs';
 import {
   promotionDailyUpdateInputFromForm,
   promotionDailyUpdateSchema,
@@ -62,6 +59,16 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       const [campaign] = await transaction.select().from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.id, existing.campaignId)).limit(1);
       if (!campaign) return { kind: 'missing' as const };
+      const signature=JSON.stringify(Object.fromEntries(Object.entries(parsed.data).filter(([key])=>!['fingerprint','expectedUpdatedAt','confirmCascade','requestKey'].includes(key))));
+      if(parsed.data.requestKey){
+        const [repeat]=await transaction.select().from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.requestKey,parsed.data.requestKey));
+        if(repeat){
+          if(repeat.scheduleId!==campaign.scheduleId||repeat.changedById!==locals.user!.id||repeat.after.metricId!==existing.id||repeat.after.requestSignature!==signature)throw new WorkflowError('请求编号已被使用，请重新保存。',422);
+          return {kind:'saved' as const,deleted:Number(repeat.after.archived??0)};
+        }
+      }
+      const context=await readPromotionContext(transaction);
+      const effectiveStatus=promotionMetricStatus(campaign,context,existing);
       const residual=existing.recordKind==='test_residual';
       if(parsed.data.actualStatusSnapshot&&existing.actualStatusSnapshot&&parsed.data.actualStatusSnapshot!==existing.actualStatusSnapshot)throw new WorkflowError('请通过修改当日状态更正实际状态。',422);
       if(parsed.data.recordKind==='test_residual'&&!residual)throw new WorkflowError('记录类型不能更改。',422);
@@ -69,47 +76,14 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       if(!residual&&existing.actualStatusSnapshot){
         const expectedStatus=['testing','scaling'].includes(existing.actualStatusSnapshot)?'active':'waiting_action';
         if(parsed.data.dailyStatus!==expectedStatus||parsed.data.stageTypeSnapshot!==existing.stageTypeSnapshot)throw new WorkflowError('请通过修改当日状态更正该日阶段。',422);
-        const options=promotionNextOptions(existing.actualStatusSnapshot);
-        if(options.length?!options.some(o=>o.value===parsed.data.reviewDecision):parsed.data.reviewDecision!==existing.actualStatusSnapshot)throw new WorkflowError('下一步与该日实际状态不匹配。',422);
+        const options=promotionNextOptions(effectiveStatus);
+        if(options.length?!options.some(o=>o.value===parsed.data.reviewDecision):parsed.data.reviewDecision!==effectiveStatus)throw new WorkflowError('下一步与该日实际状态不匹配。',422);
       }
       const lifecycleChanged = !residual&&(existing.reviewDecision !== parsed.data.reviewDecision
         || existing.dailyStatus !== parsed.data.dailyStatus
         || existing.stageTypeSnapshot !== parsed.data.stageTypeSnapshot);
       if (lifecycleChanged) {requireAdmin(locals.user);if(!parsed.data.fingerprint||timelineFingerprint(await promotionSnapshot(transaction,campaign.scheduleId))!==parsed.data.fingerprint)throw new StaleWriteError('历史安排已变化，请更新影响预览后再提交。输入已保留。');}
       const before=lifecycleChanged?await promotionSnapshot(transaction,campaign.scheduleId):null;
-      const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
-        .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
-        .orderBy(asc(operationsPromotionDailyMetric.metricDate));
-      const context = await readPromotionContext(transaction);
-      const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(existing.metricDate));
-      if(meetingDecision&&parsed.data.reviewDecision!==meetingNextDecision(existing.actualStatusSnapshot,meetingDecision.action==='restart_testing'?'restart_testing':meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
-      const boundaryChanged=lifecycleChanged&&[existing.reviewDecision,parsed.data.reviewDecision].includes('restart_testing')&&allMetrics.some(m=>m.metricDate>existing.metricDate);
-      if(boundaryChanged&&!parsed.data.confirmCascade)return {kind:'confirmation' as const,dailyMetrics:allMetrics.filter(m=>m.metricDate>existing.metricDate).length,stages:0,waitRanges:0,dayDecisions:0};
-      if(boundaryChanged&&!parsed.data.note?.trim())throw new WorkflowError('更正复测边界必须在备注填写修改理由。',422);
-      const candidate=allMetrics.map(m=>m.id===existing.id?{...m,dailyStatus:parsed.data.dailyStatus,stageTypeSnapshot:parsed.data.stageTypeSnapshot,reviewDecision:parsed.data.reviewDecision}:m);
-      let replayed=lifecycleChanged?replayPromotionHistory(campaign.startedOn,candidate,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(new Date())}):null;
-      let later:typeof allMetrics=[];
-      let affectedRanges:typeof context.waitRanges=[];
-      let affectedDecisions:typeof context.stateChanges=[];
-      if(lifecycleChanged&&!replayed){
-        if(context.meetingDecisions.some(d=>d.campaignId===campaign.id))throw new WorkflowError('更正涉及已定稿例会安排，请先核对并更正例会决定，保留现有指标。');
-        affectedRanges=context.waitRanges.filter(r=>r.campaignId===campaign.id&&(!r.nextEffectiveOn||r.nextEffectiveOn>existing.metricDate));
-        affectedDecisions=context.stateChanges.filter(r=>r.campaignId===campaign.id&&r.businessDate>existing.metricDate);
-        context.waitRanges=context.waitRanges.filter(r=>!affectedRanges.some(a=>a.id===r.id));
-        context.stateChanges=context.stateChanges.filter(r=>!affectedDecisions.some(a=>a.id===r.id));
-        context.holds=context.holds.filter(h=>h.campaignId!==campaign.id||h.endedOn<=existing.metricDate);
-        const retained:typeof allMetrics=[];
-        for(const metric of candidate){
-          if(metric.recordKind==='test_residual'||replayPromotionHistory(campaign.startedOn,[...retained,metric],{...promotionReplayOptions(campaign,context),asOf:nextDateKey(metric.metricDate)}))retained.push(metric);else if(metric.metricDate>existing.metricDate)later.push(metric);else return {kind:'invalid-decision' as const};
-        }
-        replayed=replayPromotionHistory(campaign.startedOn,retained,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(new Date())});
-        if(!replayed)return {kind:'invalid-decision' as const};
-        if((later.length||affectedRanges.length||affectedDecisions.length)&&!parsed.data.confirmCascade)return {kind:'confirmation' as const,dailyMetrics:later.length,stages:replayed.stages.length,waitRanges:affectedRanges.length,dayDecisions:affectedDecisions.length};
-        if(later.length)await transaction.delete(operationsPromotionDailyMetric).where(inArray(operationsPromotionDailyMetric.id,later.map(m=>m.id)));
-        for(const range of affectedRanges)await transaction.delete(operationsPromotionWaitRange).where(eq(operationsPromotionWaitRange.id,range.id));
-        for(const decision of affectedDecisions)await transaction.delete(operationsPromotionDayDecision).where(eq(operationsPromotionDayDecision.id,decision.id));
-        await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
-      }
       const [savedMetric]=await transaction.update(operationsPromotionDailyMetric).set({
         dailyStatus: parsed.data.dailyStatus,
         stageTypeSnapshot: parsed.data.stageTypeSnapshot,
@@ -123,13 +97,13 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         updatedAt: new Date(Math.max(Date.now(),existing.updatedAt.getTime()+1)),
       }).where(eq(operationsPromotionDailyMetric.id, existing.id)).returning();
 
+      const auditKey=parsed.data.requestKey??randomUUID();
       if (!lifecycleChanged) {
-        if(['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount','note'].some(key=>existing[key as keyof typeof existing]!==savedMetric[key as keyof typeof savedMetric]))await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:randomUUID(),businessDate:existing.metricDate,action:'metric_values',reason:parsed.data.note?.trim()||'更正日度指标',before:{metrics:[existing]},after:{metrics:[savedMetric]},changedById:locals.user!.id,changedByLabel:locals.user!.username});
+        await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:auditKey,businessDate:existing.metricDate,action:'metric_values',reason:parsed.data.note?.trim()||'更正日度指标',before:{metrics:[existing]},after:{metrics:[savedMetric],metricId:existing.id,requestSignature:signature},changedById:locals.user!.id,changedByLabel:locals.user!.username});
         return { kind: 'saved' as const, deleted: 0 };
       }
-
-      const freshContext=await readPromotionContext(transaction);
-      for(const fact of freshContext.metrics.filter(m=>m.campaignId===campaign.id&&m.stageTypeSnapshot==='testing')){const origin=testingCycleOn(campaign,freshContext,fact.metricDate)!.startedOn;if(fact.sourceStageStartedOn!==origin)await transaction.update(operationsPromotionDailyMetric).set({sourceStageStartedOn:origin,updatedAt:new Date()}).where(and(eq(operationsPromotionDailyMetric.campaignId,campaign.id),eq(operationsPromotionDailyMetric.metricDate,fact.metricDate)));}
+      const correction=await correctPromotionHistory(transaction,{before:before!,campaign,date:existing.metricDate,actor:locals.user!,reason:parsed.data.note??'',confirmed:parsed.data.confirmCascade,now:new Date()});
+      const replayed=correction.state;
       await transaction.delete(operationsPromotionStage)
         .where(eq(operationsPromotionStage.campaignId, existing.campaignId));
       for (const stage of replayed!.stages) {
@@ -145,21 +119,15 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         promotionStatus: replayed!.currentStatus,
         updatedAt: new Date(),
       }).where(eq(operationsContentSchedule.id, campaign.scheduleId));
-      if(before)await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:randomUUID(),businessDate:existing.metricDate,action:'metric_correction',reason:parsed.data.note||'更正历史复盘决定',before,after:await promotionSnapshot(transaction,campaign.scheduleId),changedById:locals.user!.id,changedByLabel:locals.user!.username});
-      return { kind: 'saved' as const, deleted: later.length };
+      await syncContinuousCheckpoints(transaction,campaign.scheduleId,locals.user!.username,new Date());
+      if(before)await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:auditKey,businessDate:existing.metricDate,action:'metric_correction',reason:parsed.data.note||'更正历史复盘决定',before,after:{...await promotionSnapshot(transaction,campaign.scheduleId),metricId:existing.id,requestSignature:signature,archived:correction.archived},changedById:locals.user!.id,changedByLabel:locals.user!.username});
+      return { kind: 'saved' as const, deleted: correction.archived };
     });
 
     if (result.kind === 'missing') return Response.json({ message: '没有找到这条日度记录。' }, { status: 404 });
-    if (result.kind === 'invalid-decision') return Response.json({ message: '下一步与该日阶段不匹配。' }, { status: 409 });
-    if (result.kind === 'confirmation') {
-      return Response.json({
-        message: `修改下一步会归档后续 ${result.dailyMetrics} 条日度记录，并重置 ${result.waitRanges} 个待定区间及 ${result.dayDecisions} 项当日安排。`,
-        correctionRequired: true,
-        impact: { dailyMetrics: result.dailyMetrics, stages: result.stages, waitRanges: result.waitRanges,dayDecisions:result.dayDecisions },
-      }, { status: 409 });
-    }
     return Response.json({ ok: true, deleted: result.deleted });
   } catch (error) {
+    if(error instanceof PromotionHistoryPreview)return Response.json({correctionRequired:true,message:error.impact.message,impact:error.impact},{status:409});
     const denied = permissionErrorResponse(error); if (denied) return denied;
     if(error instanceof WorkflowError)return Response.json({message:error.message,...(error.code?{code:error.code}:{})},{status:error.status});
     console.error('promotion daily update failed', error);

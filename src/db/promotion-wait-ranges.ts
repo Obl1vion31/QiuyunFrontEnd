@@ -47,6 +47,7 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
     if (historical) requireAdmin(actor);
     if (input.startedOn < campaign.startedOn) throw new WorkflowError('区间不能早于推广开始日。', 422);
     if (input.nextDecision && input.endedOn > today) throw new WorkflowError('请在区间最后一天安排下一步，或先延长待定区间。', 422);
+    if(input.stageType==='testing'&&input.nextDecision==='test_continue'&&existing?.nextDecision!=='test_continue')throw new WorkflowError('测试结束待定不能继续原轮测试，请选择重新开始测试。',422);
     if (input.nextDecision && ['test_continue','restart_testing','start_scaling','scaling_continue'].includes(input.nextDecision)) await guardPromotionStart(tx, input.nextEffectiveOn!, now);
     const stop = input.nextEffectiveOn ?? '9999-12-31';
     if (context.waitRanges.some(r => r.campaignId === campaign.id && r.startedOn < stop && input.startedOn < (r.nextEffectiveOn ?? '9999-12-31'))) throw new WorkflowError('该日期与已有待定区间重叠，请编辑原区间。');

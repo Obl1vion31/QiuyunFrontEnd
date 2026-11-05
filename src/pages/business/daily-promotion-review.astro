@@ -293,6 +293,7 @@ const historyHref = (overrides: Record<string, string>) => {
     <script>
       import { getInspector } from '../../scripts/business-inspector';
       import {businessConfirm} from '../../scripts/business-dialog';
+      import {promotionHistoryImpactMessage} from '../../scripts/promotion-history-impact';
       const cleanInspector = (form:HTMLFormElement) => { const pane=form.closest<HTMLElement>('[data-inspector]'); if(pane)getInspector(pane).setClean(); };
       import '../../scripts/promotion-daily-form';
       const initializeHistoryEditors = () => {
@@ -308,9 +309,11 @@ const historyHref = (overrides: Record<string, string>) => {
           const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
           if (!message || !submit) return;
           form.dataset.historyEditReady = 'true';
+          form.addEventListener('input',()=>{delete form.dataset.requestKey;});
           form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const data = new FormData(form);
+            form.dataset.requestKey??=crypto.randomUUID();data.set('requestKey',form.dataset.requestKey);
             const decision = form.querySelector<HTMLSelectElement>('select[name="reviewDecision"]');
             if (decision?.disabled) data.set('reviewDecision', decision.value);
             const metricId = String(data.get('metricId'));
@@ -320,7 +323,7 @@ const historyHref = (overrides: Record<string, string>) => {
               let response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
               let result = await response.json();
               if (response.status === 409 && result.correctionRequired) {
-                if (!await businessConfirm(`${result.message}\n\n确认后，后续日期会重新回到待填队列。是否继续？`,{title:'确认历史影响',confirmLabel:'确认更正'})) {
+                if (!await businessConfirm(promotionHistoryImpactMessage(result.impact),{title:'确认历史影响',confirmLabel:'确认更正'})) {
                   message.textContent = '已取消修改，原数据未变化。';
                   return;
                 }

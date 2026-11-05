@@ -10,6 +10,7 @@
 - `schedule-rules.mjs`：2 小时催登记、新旧统一判定延期、逐日边界与发布状态的共享纯规则。
 - `schedule-workflow.ts`：改期申请、审批、历史计时段、逐日理由、历史补齐与团队提醒；所有写入共用排期事务锁。
 - `non-promotion-workflow.ts`：节点跳过／恢复事件及并发检查，复用真实复盘顺序，不生成指标占位。
+- `promotion-history-correction.ts`：当日状态与历史次日安排共用的整段影响核对、事务内撤回及归档；旧值由调用方写入现有审计，不新增存储。
 - `promotion-state.mjs`：排期、日度、历史共用的业务状态、整日暂停窗口、复盘日期与阶段天数。
 - `promotion-pauses.ts`：共用上下文、事务锁及旧团队暂停历史兼容；团队暂停写入已移除。
 - `annual-plan.ts`：年度分区规划行、时间块、行级链接、快照和差异校验。

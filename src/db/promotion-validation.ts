@@ -56,12 +56,14 @@ export const promotionDailyInputFromForm = (form: FormData) => ({
 
 export const promotionDailyUpdateSchema = z.object({
   ...promotionDailyMetricFields,
+  requestKey:z.uuid().optional(),
   fingerprint: z.string().optional(),
   expectedUpdatedAt: z.string().optional(),
   confirmCascade: z.coerce.boolean().default(false),
 });
 
 export const promotionDailyUpdateInputFromForm = (form: FormData) => ({
+  requestKey:form.get('requestKey')||undefined,
   fingerprint: form.get('fingerprint')||undefined,
   expectedUpdatedAt: form.get('expectedUpdatedAt')||undefined,
   dailyStatus: form.get('dailyStatus'),

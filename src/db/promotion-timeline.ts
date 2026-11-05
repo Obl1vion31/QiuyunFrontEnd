@@ -1,3 +1,4 @@
+import {correctPromotionHistory,PromotionHistoryPreview} from './promotion-history-correction';
 import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
@@ -10,8 +11,8 @@ import { requireAdmin, type OperationsUser } from '../auth/permissions';
 import { lockSchedule, WorkflowError, type Transaction } from './schedule-workflow';
 import { lockPromotionWorkflow, readPromotionContext, guardPromotionStart, attachPromotionToActivePause } from './promotion-pauses';
 import { businessDate } from './promotion-wait-ranges';
-import { nextDateKey, previousDateKey, shanghaiDateKey, replayPromotionHistory } from './promotion-rules.mjs';
-import { campaignPauseWindows, campaignWaitWindows, dateInWindows, fullPauseRange, firstMissingPromotionDate, promotionReplayOptions, promotionStateOn, promotionDayStatusEdit } from './promotion-state.mjs';
+import { nextDateKey, previousDateKey, shanghaiDateKey } from './promotion-rules.mjs';
+import { campaignPauseWindows, campaignWaitWindows, dateInWindows, fullPauseRange, firstMissingPromotionDate, promotionStateOn, promotionDayStatusEdit } from './promotion-state.mjs';
 import * as s from './schema';
 import {readMeetingDecisions} from './meeting-decisions';
 
@@ -67,8 +68,6 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
       ranges:pausedRanges, hasMetrics:snapshot.metrics.length>0, fingerprint:timelineFingerprint(snapshot)};
   });
 }
-
-class ImpactPreview extends Error { constructor(public result:{confirmationRequired:true;impact:{dailyMetrics:number;dates:string[];arrangements:number;message:string}}){super('preview');} }
 
 /** 所有状态写入显式使用业务日期；点击时间只用于审计。 */
 export async function changePromotionTimeline(db: Database, input: TimelineInput, actor: OperationsUser, now=new Date()) {
@@ -182,66 +181,28 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
         const end=input.waitingThrough??date;if(end<date)throw new WorkflowError('暂停截止日无效。',422);
         if(before.ranges.some(r=>r.campaignId===campaign!.id&&r.startedOn<=end&&(!r.nextEffectiveOn||r.nextEffectiveOn>date)))throw new WorkflowError('该日期已有待定安排，请编辑原区间。');
         const next=input.nextDecision&&input.nextDecision!=='wait_continue'?input.nextDecision:null;
-        if(next&&!(state.currentStage==='testing'?['test_continue','restart_testing','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与原阶段不匹配。',422);
+        if(next&&!(state.currentStage==='testing'?['restart_testing','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与原阶段不匹配。',422);
         if(next&&['test_continue','restart_testing','start_scaling','scaling_continue'].includes(next))await guardPromotionStart(tx,nextDateKey(end),now);
         await tx.insert(s.operationsPromotionWaitRange).values({campaignId:campaign.id,requestKey:input.requestKey,startedOn:date,endedOn:end,stageType:state.currentStage,reason:input.reason,nextDecision:next,nextEffectiveOn:next?nextDateKey(end):null,updatedByLabel:actor.username,updatedAt:now});
       }else{
         const range=before.ranges.find(r=>r.id===input.rangeId&&r.campaignId===campaign!.id);
         if(!range||date!==range.endedOn)throw new WorkflowError('请在待定末日处理下一步。');
-        const next=input.nextDecision;if((next==='restart_testing'||range.nextDecision==='restart_testing')&&(next!==range.nextDecision||range.nextEffectiveOn!==nextDateKey(date))&&facts.some(m=>m.metricDate>date))throw new WorkflowError('复测生效日已有指标，请通过历史更正入口处理。',422);if(!next)throw new WorkflowError('请选择下一步。',422);
+        const next=input.nextDecision;if(!next)throw new WorkflowError('请选择下一步。',422);
         if(next==='wait_continue'){
           if(!input.waitingThrough||input.waitingThrough<range.startedOn)throw new WorkflowError('截止日不能早于暂停开始日。',422);
           await tx.update(s.operationsPromotionWaitRange).set({endedOn:input.waitingThrough,nextDecision:null,nextEffectiveOn:null,revision:range.revision+1,updatedByLabel:actor.username,updatedAt:now}).where(eq(s.operationsPromotionWaitRange.id,range.id));
         }else{
-          if(!(range.stageType==='testing'?['test_continue','restart_testing','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与阶段不匹配。',422);
+          if(!(range.stageType==='testing'?['restart_testing','start_scaling','test_discarded']:['scaling_continue','formal_discarded','ended']).includes(next))throw new WorkflowError('下一步与阶段不匹配。',422);
           if(['test_continue','restart_testing','start_scaling','scaling_continue'].includes(next))await guardPromotionStart(tx,nextDateKey(date),now);
           await tx.update(s.operationsPromotionWaitRange).set({nextDecision:next,nextEffectiveOn:nextDateKey(date),revision:range.revision+1,updatedByLabel:actor.username,updatedAt:now}).where(eq(s.operationsPromotionWaitRange.id,range.id));
         }
       }
     }
-    const removed:string[]=[];
+    let archived=0;
     if(campaign){
       const [fresh]=await tx.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,campaign.id));
-      let changedContext=await readPromotionContext(tx);
-      const freshMetrics=await tx.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,fresh.id)).orderBy(asc(s.operationsPromotionDailyMetric.metricDate));
-      const scan=()=>{
-       removed.length=0;
-       const options=promotionReplayOptions(fresh,changedContext),kept:Array<typeof s.operationsPromotionDailyMetric.$inferSelect>=[];
-       for(const metric of freshMetrics){
-        if(metric.recordKind==='test_residual'){kept.push(metric);continue;}
-        if(metric.metricDate<fresh.startedOn||!replayPromotionHistory(fresh.startedOn,[...kept,metric],{...options,asOf:nextDateKey(metric.metricDate)}))removed.push(metric.id);else kept.push(metric);
-       }
-       return replayPromotionHistory(fresh.startedOn,kept,{...options,asOf:today});
-      };
-      let state=scan();const adjustedDates:string[]=[];
-      if(!state||removed.length){
-       const futureDecisions=before.decisions.filter(d=>d.campaignId===fresh.id&&d.businessDate>date);
-       for(const decision of futureDecisions){
-        adjustedDates.push(decision.businessDate);
-        if('meetingDecision' in decision&&decision.meetingDecision){
-         const original=context.meetingDecisions.find(d=>d.id===decision.id)!;
-         await tx.insert(s.operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:randomUUID(),businessDate:original.effectiveOn,action:'meeting_decision_correction',reason:input.reason,before:{meetingDecision:original},after:{meetingDecision:{...original,cancelled:true}},changedById:actor.id,changedByLabel:actor.username,createdAt:now});
-        }else await tx.delete(s.operationsPromotionDayDecision).where(eq(s.operationsPromotionDayDecision.id,decision.id));
-       }
-       for(const range of before.ranges.filter(r=>r.campaignId===fresh.id&&(r.startedOn>=date||r.endedOn>=date||!!r.nextEffectiveOn&&r.nextEffectiveOn>date))){
-        adjustedDates.push(range.startedOn>=date?range.startedOn:date);
-        if(range.startedOn>=date)await tx.delete(s.operationsPromotionWaitRange).where(eq(s.operationsPromotionWaitRange.id,range.id));
-        else await tx.update(s.operationsPromotionWaitRange).set({endedOn:previousDateKey(date),nextDecision:null,nextEffectiveOn:null,revision:range.revision+1,updatedAt:now}).where(eq(s.operationsPromotionWaitRange.id,range.id));
-       }
-       for(const hold of before.holds.filter(h=>h.campaignId===fresh.id&&h.endedOn>=date)){
-        adjustedDates.push(hold.startedOn>=date?hold.startedOn:date);
-        if(hold.startedOn>=date)await tx.delete(s.operationsPromotionHold).where(eq(s.operationsPromotionHold.id,hold.id));
-        else await tx.update(s.operationsPromotionHold).set({endedOn:previousDateKey(date)}).where(eq(s.operationsPromotionHold.id,hold.id));
-       }
-       changedContext=await readPromotionContext(tx);state=scan();
-      }
-      if(!state)throw new WorkflowError('更正之前的历史事实仍无法衔接，请核对更正日期之前的推广记录；本次没有保存。',422);
-      if(removed.length||adjustedDates.length){
-       requireAdmin(actor);if(!input.reason.trim())throw new WorkflowError('请填写更正后续安排的原因。',422);
-       const dates=[...new Set([...before.metrics.filter(m=>removed.includes(m.id)).map(m=>m.metricDate),...adjustedDates])].sort();
-       if(!input.confirmImpact)throw new ImpactPreview({confirmationRequired:true,impact:{dailyMetrics:removed.length,dates,arrangements:adjustedDates.length,message:'将调整这些日期的后续安排；不兼容指标归档保留，重新开放补录。旧例会快照保持不变。'}});
-       if(removed.length)await tx.delete(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.id,removed));
-      }
+      const correction=await correctPromotionHistory(tx,{before,campaign:fresh,date,actor,reason:input.reason,confirmed:input.confirmImpact,now});
+      const state=correction.state;archived=correction.archived;
       await tx.delete(s.operationsPromotionStage).where(eq(s.operationsPromotionStage.campaignId,fresh.id));
       for(const stage of state.stages)await tx.insert(s.operationsPromotionStage).values({campaignId:fresh.id,...stage});
       await tx.update(s.operationsPromotionCampaign).set({currentStage:state.currentStage,currentStatus:state.currentStatus,endedOn:state.endedOn,updatedAt:now}).where(eq(s.operationsPromotionCampaign.id,fresh.id));
@@ -250,6 +211,6 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     await syncContinuousCheckpoints(tx,schedule.id,actor.username,now);
     const after=await promotionSnapshot(tx,schedule.id);
     await tx.insert(s.operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:input.requestKey,businessDate:date,action:input.action,reason:input.reason||'首次推广安排',before,after,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
-    return {ok:true,businessDate:date,archived:removed.length,fingerprint:timelineFingerprint(after)};
-  });}catch(error){if(error instanceof ImpactPreview)return error.result;throw error;}
+    return {ok:true,businessDate:date,archived,fingerprint:timelineFingerprint(after)};
+  });}catch(error){if(error instanceof PromotionHistoryPreview)return {confirmationRequired:true as const,impact:error.impact};throw error;}
 }

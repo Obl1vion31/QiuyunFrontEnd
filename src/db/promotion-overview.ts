@@ -1,6 +1,6 @@
 import {testingCycles,testingCycleOn} from './promotion-cycles.mjs';
 import {normalizePromotionActualStatus,promotionActualLabels} from './promotion-successors.mjs';
-import {promotionStateOn} from './promotion-state.mjs';
+import {promotionStateOn,promotionMetricStatus} from './promotion-state.mjs';
 /** 生命周期只从现有日度事实计算；缺失、暂停与归档记录不补成投放零值。 */
 import type {PromotionTimelineRow} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
@@ -11,7 +11,7 @@ export interface PromotionFact {
  updatedAt?:Date|string;
  id:string;campaignId:string;metricDate:string;dailyStatus:string;stageTypeSnapshot:string;
  spend:string|number;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;
- reviewDecision:string;note:string|null;actualStatusSnapshot?:string|null;recordKind?:string;sourceStageStartedOn?:string|null;
+ effectiveActualStatus?:string;reviewDecision:string;note:string|null;actualStatusSnapshot?:string|null;recordKind?:string;sourceStageStartedOn?:string|null;
 }
 export interface OverviewCampaign {
  id:string;scheduleId:string;startedOn:string;endedOn:string|null;initialStage:string;currentStage:string|null;currentStatus:string;
@@ -30,7 +30,7 @@ export function promotionOverview(input:{posts:PromotionTimelineRow[];campaigns:
  return input.posts.map(post=>{
   const campaigns=input.campaigns.filter(c=>c.scheduleId===post.scheduleId).sort((a,b)=>a.startedOn.localeCompare(b.startedOn));
   const latest=campaigns.at(-1)??null,ids=new Set(campaigns.map(c=>c.id));
-  const metrics=input.metrics.filter(row=>ids.has(row.campaignId)).sort((a,b)=>a.metricDate.localeCompare(b.metricDate));
+  const metrics=input.metrics.filter(row=>ids.has(row.campaignId)).map(row=>({...row,effectiveActualStatus:promotionMetricStatus(campaigns.find(c=>c.id===row.campaignId)!,input.context,row)})).sort((a,b)=>a.metricDate.localeCompare(b.metricDate));
   const state=latest?effectivePromotionStatus(latest.currentStatus,latest.currentStage,latest.id,input.context,input.now??new Date()):post.promotionStatus;
   const status=!post.isPromoted?'none':state;
   const closed=!post.isPromoted||['ended','test_discarded','formal_discarded'].includes(status);

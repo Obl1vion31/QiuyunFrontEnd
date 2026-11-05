@@ -1,3 +1,5 @@
+import {promotionNextOptions} from '../db/promotion-successors.mjs';
+import {promotionHistoryImpactMessage} from './promotion-history-impact';
 import {businessConfirm} from './business-dialog';
 import {getInspector} from './business-inspector';
 import {readBusiness} from './business-read';
@@ -161,6 +163,8 @@ function initialize(){
  document.querySelectorAll<HTMLFormElement>('[data-timeline-form]:not([data-ready])').forEach(form=>{
  form.dataset.ready='true';const requestKey=crypto.randomUUID();
  const sync=()=>{
+  const target=(form.elements.namedItem('targetStatus') as HTMLSelectElement|null)?.value,hint=form.querySelector<HTMLElement>('[data-status-next-feedback]');
+  if(hint){const legal=promotionNextOptions(target??''),changed=!!target&&!!form.dataset.originalNext&&!legal.some(o=>o.value===form.dataset.originalNext);hint.hidden=!changed;hint.textContent=changed?'原次日安排不再适用，将改为“'+(legal[0]?.label??'无后续安排')+'”。':'';}
   const action=(form.elements.namedItem('action') as HTMLSelectElement)?.value,waiting=action==='wait'||action==='pause'||action==='plan'&&(form.elements.namedItem('nextDecision') as HTMLSelectElement)?.value==='wait_continue'||form.hasAttribute('data-pending-editor')&&action==='next';
   const through=form.querySelector<HTMLElement>('[data-timeline-through]');
   if(through){through.hidden=!waiting;through.querySelectorAll<HTMLInputElement>('input').forEach(input=>{input.disabled=!waiting;input.required=waiting&&!(form.hasAttribute('data-optional-wait')&&form.dataset.optionalWait!=='false');});}
@@ -181,7 +185,7 @@ function initialize(){
   const locked=form.matches('.review-initial-next')?[...form.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLButtonElement>('select,input:not([type=hidden]),[data-cancel-plan],[data-deadline-trigger],[data-deadline-clear]')].map(node=>({node,disabled:node.disabled})):[];for(const {node} of locked)node.disabled=true;
   const send=()=>fetch('/api/promotion-timeline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   let saved=false;
-  try{let response=await send(),result=await response.json();if(result.confirmationRequired){if(!await businessConfirm(`将调整 ${result.impact.dates.join('、')} 的后续安排（${result.impact.arrangements??0} 项），归档保留 ${result.impact.dailyMetrics} 条不兼容指标并开放补录。旧例会不变。是否继续？`,{title:'确认历史影响',confirmLabel:'确认更正'})){out.textContent='已取消更正，输入已保留。';return;}payload.confirmImpact=true;response=await send();result=await response.json();}
+  try{let response=await send(),result=await response.json();if(result.confirmationRequired){if(!await businessConfirm(promotionHistoryImpactMessage(result.impact),{title:'确认历史影响',confirmLabel:'确认更正'})){out.textContent='已取消更正，输入已保留。';return;}payload.confirmImpact=true;response=await send();result=await response.json();}
    if(!response.ok){out.textContent=result.message??result.impact?.message??'保存失败，输入已保留。';return;}
    saved=true;const scheduleId=String(new FormData(form).get('scheduleId'));const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)getInspector(pane).setClean();delete form.dataset.dirty;document.dispatchEvent(new CustomEvent('business:promotion-arrangement-saving',{detail:{scheduleId}}));await refreshPromotionSchedule(scheduleId);form.dispatchEvent(new Event('business:timeline-saved'));const record=document.querySelector<HTMLElement>(`[data-review-record][data-review-post="${CSS.escape(scheduleId)}"]`);if(form.closest('[data-initial-row]')){document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:'安排已保存'}}));(record?.querySelector<HTMLElement>('[data-initial-toggle],[data-toggle-day-state]')??record?.closest('details')?.querySelector<HTMLElement>('summary'))?.focus({preventScroll:true});}document.dispatchEvent(new CustomEvent('business:promotion-arrangement-saved',{detail:{scheduleId}}));document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));
   }catch{out.textContent=saved?'已保存，列表刷新失败，请刷新页面核对。':'连接失败，输入已保留。';}finally{for(const {node,disabled} of locked)node.disabled=disabled;delete form.dataset.saving;button.disabled=saved;}

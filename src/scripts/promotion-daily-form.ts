@@ -1,3 +1,4 @@
+import {promotionHistoryImpactMessage} from './promotion-history-impact';
 import {guardInitialArrangementSubmission} from './promotion-initial-arrangement';
 import {openNoteId} from './promotion-note-id';
 import {guardMeetingDecisionSubmission} from './meeting-decision';
@@ -68,7 +69,7 @@ async function openStateBubble(owner:HTMLFormElement){
   event.preventDefault();if(current.busy||current.saved||!form.reportValidity())return;current.busy=true;updateBubble(current);message.textContent='正在保存…';
   const payload={scheduleId:current.owner.dataset.scheduleId,reviewDate:(current.owner.elements.namedItem('metricDate') as HTMLInputElement).value,action:'status',targetStatus:current.target,reason:current.reason,requestKey:current.requestKey,fingerprint:current.fingerprint,confirmImpact:false};
   const send=()=>fetch('/api/promotion-timeline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  try{let response=await send(),result=await response.json();if(result.confirmationRequired&&await businessConfirm(result.message??'该更正会影响后续已保存记录，确认继续？',{title:'确认历史影响',confirmLabel:'确认更正'})){payload.confirmImpact=true;response=await send();result=await response.json();}
+  try{let response=await send(),result=await response.json();if(result.confirmationRequired&&await businessConfirm(promotionHistoryImpactMessage(result.impact),{title:'确认历史影响',confirmLabel:'确认更正'})){payload.confirmImpact=true;response=await send();result=await response.json();}
    if(!response.ok){message.textContent=result.message??'保存失败，输入已保留。';return;}
    current.saved=true;message.textContent='变更已保存';form.dataset.dirty='false';updateBubble(current);
    // 仅采用本次成功写入返回的版本；后续 GET 不能替旧输入提升保存凭据。

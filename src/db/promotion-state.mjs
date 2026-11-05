@@ -100,3 +100,10 @@ export function promotionReplayOptions(campaign, context) {
       .flatMap(pause => { const range = fullPauseRange(pause); return range ? [{ ...range, preserveWaiting: true }] : []; }),
   ] };
 }
+
+/** 旧快照只在暂停／待定同族中随有效安排更正；明确当日决定已由回放覆盖。 */
+export function promotionMetricStatus(campaign,context,metric){
+ const status=promotionStateOn(campaign,context,metric.metricDate)?.currentStatus;
+ const captured=metric.actualStatusSnapshot;
+ return ['test_paused','test_pending'].includes(captured)&&['test_paused','test_pending'].includes(status)?status:captured??status??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot);
+}

@@ -279,3 +279,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 保存连续性：过期对象在公共请求层停止自动重试，提示刷新；其他对象的版本独立。旧实时共享控制器只作保留实现，当前不调用ensure、恢复、接管或释放流程。
 
 首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。
+
+推广历史当日状态与历史日度次日安排共同调用 `promotion-history-correction.ts`，在原事务内预览、归档并重建阶段，主调用方保存完整前后快照。`promotionMetricStatus` 只读解决旧暂停／待定快照与有效安排的继承差异；表格／Inspector／新会议材料同步接入，旧冻结事实不回填。历史影响文案统一由 `promotion-history-impact.ts` 提供，继续使用 `businessConfirm`，不另建弹窗或轮询。

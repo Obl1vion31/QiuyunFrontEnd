@@ -14,6 +14,7 @@ import type { Database } from './client';
 import { readPromotionContext } from './promotion-pauses';
 import { promotionStateOn, promotionLabels } from './promotion-state.mjs';
 import { nextDateKey, previousDateKey, shanghaiDateKey } from './promotion-rules.mjs';
+import {promotionMetricStatus} from './promotion-state.mjs';
 import { promotionTotals, type PromotionFact } from './promotion-overview';
 import { readCheckpointEvents } from './non-promotion-workflow';
 import {checkpointsForPublishDate} from './stage-review-rules.mjs';
@@ -278,7 +279,10 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
             const card: WeeklyPromotionCard = { ...post, key: originKey, originKey, sourceHash: sourceHash({ facts: cardFacts, nodes:cycleNodes }), campaignId: campaign.id, stageType, startedOn: supplement && added.length ? added[0].metricDate : stageType === 'testing' ? origin : [origin, start].sort().at(-1)!, endedOn: supplement && added.length ? added.at(-1)!.metricDate : stageType === 'testing' ? (cutoff ?? end) : end, kind: current ? 'current' : 'supplement', label: stageType === 'scaling' ? (supplement ? '往期放量补录' : '本期放量') : supplement ? '往期补充与更新' : matchingNodes.some(n => n.label === '测试暂停') && !matchingNodes.some(n => ['测试结束待定', '测试淘汰', '开始放量'].includes(n.label)) ? '测试阶段小结' : last?.label ?? '测试结果', events: [...new Map(cycleNodes.map(n => [`${n.date}:${n.label}`, n])).values()].sort((a, b) => a.date.localeCompare(b.date) || a.label.localeCompare(b.label)), facts: cardFacts, total: totals(cardFacts), periodTotal: totals(periodFacts), changes: totals(changes), missingDates: [...new Set(missingDates)], previous: prior.map(p => p.ref), historical: emptyBenchmark(), peers: emptyBenchmark(), ownHistory: [] };
             if(cycle){card.testCycleNumber=cycle.number;card.testCycleEndedOn=testingCycles(campaign,context,shanghaiDateKey(new Date())).find(c=>c.startedOn===cycle.startedOn)?.endedOn??cycle.endedOn;}
             card.dataRange=actualDataRange(cardFacts);
-            card.dailyStates=Object.fromEntries(cardFacts.map(f=>[f.metricDate,f.actualStatusSnapshot??promotionStateOn(campaign,context,f.metricDate)?.currentStatus??'']));
+            // 只在新材料中冻结有效状态；旧会议的已存 facts 原样读取。
+            card.facts=card.facts.map(f=>({...f,actualStatusSnapshot:promotionMetricStatus(campaign,context,f)}));
+            card.sourceHash=sourceHash({facts:card.facts,nodes:cycleNodes});
+            card.dailyStates=Object.fromEntries(cardFacts.map(f=>[f.metricDate,promotionMetricStatus(campaign,context,f)]));
             (card as any)._eligible = eligible;
             card.currentStatus=promotionStateOn(campaign,context,shanghaiDateKey(new Date()))?.currentStatus??state.currentStatus;
             (card as any)._historicalFacts = relevant.filter(f => f.metricDate < start);

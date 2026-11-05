@@ -26,3 +26,5 @@ export const firstMissingPromotionDate: (metrics: Array<{metricDate:string}>, st
 export const countPromotionDays: (startedOn: string, endedOn: string, windows?: PromotionWindow[]) => number;
 export const waitingPromotionDays: (campaign: PromotionCampaign, context: PromotionContext, waitingDates: string[], from: string, to: string) => number;
 export const promotionReplayOptions: (campaign: PromotionCampaign, context: PromotionContext) => { initialStage: string; stateChanges: NonNullable<PromotionContext['stateChanges']>; waitRanges: NonNullable<PromotionContext['waitRanges']>; holds: Array<PromotionWindow & { resumeStage?: string; preserveWaiting?: boolean }> };
+
+export const promotionMetricStatus:(campaign:PromotionCampaign,context:PromotionContext,metric:{metricDate:string;dailyStatus:string;stageTypeSnapshot:string;actualStatusSnapshot?:string|null})=>string;

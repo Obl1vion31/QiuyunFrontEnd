@@ -26,8 +26,9 @@ test('字典追加幂等、分类复用并关联当前学科；动态排期校�
  const schemas=await readPostSchemas(db);const body={contentName:'隔离帖子',subjectId:subject.item.id,categoryId:category.item.id,projectDocUrl:null,syncToMoments:false,isPromoted:false,promotionStatus:'none',plannedPublishAt:'2026-10-27T18:00'};assert.equal(schemas.newPostSchema.safeParse(body).success,true);assert.equal(schemas.newPostSchema.safeParse({...body,subjectId:'interview'}).success,false);
  await assert.rejects(appendTaxonomy(db,{kind:'category',name:'不能创建',subjectId:'missing'}),/有效学科/);
 });
-test('只有结束待定提供独立复测；暂停恢复不允许复测动作',()=>{
- for(const state of ['testing','test_paused','scaling','scaling_paused','test_discarded','ended'])assert.equal(promotionNextOptions(state).some(o=>o.value==='restart_testing'),false);
+test('结束待定和暂停均提供独立复测；暂停可继续旧轮，待定不可',()=>{
+ for(const state of ['testing','scaling','scaling_paused','test_discarded','ended'])assert.equal(promotionNextOptions(state).some(o=>o.value==='restart_testing'),false);
+ assert.equal(nextActualPromotionState('test_paused','restart_testing'),'testing');assert.equal(nextActualPromotionState('test_paused','test_continue'),'testing');assert.equal(nextActualPromotionState('test_pending','test_continue'),null);
  assert.equal(nextActualPromotionState('test_pending','restart_testing'),'testing');assert.equal(meetingNextDecision('test_pending','restart_testing'),'restart_testing');assert.equal(meetingNextDecision('testing','restart_testing'),null);
 });
 async function seed(){const[c]=await db.insert(s.operationsContent).values({platformNoteId:randomUUID().replaceAll('-','').slice(0,24)}).returning();const[v]=await db.insert(s.operationsContentVersion).values({contentId:c.id,versionNumber:0,workType:'new',contentName:'同帖独立复测',subjectId:'tmua',categoryId:'temporary'}).returning();const[p]=await db.insert(s.operationsContentSchedule).values({contentVersionId:v.id,isPromoted:true,promotionStatus:'testing',completionStatus:'on_time',plannedPublishAt:new Date('2026-10-18T10:00:00+08:00'),actualPublishAt:new Date('2026-10-18T10:00:00+08:00')}).returning();const[campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:p.id,startedOn:'2026-10-18',dailyReviewEnabledOn:'2026-10-18',currentStage:'testing',currentStatus:'testing'}).returning();return{campaign,p};}

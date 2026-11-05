@@ -39,9 +39,9 @@ test('未来区间按日生效；到期不自动恢复，无未来指标或逐�
   assert.equal(nextReviewDate('2026-10-16',campaign.startedOn,campaignWaitWindows(campaign,context)),campaign.dailyReviewEnabledOn);
   assert.equal((await db.select().from(schema.operationsPromotionDailyMetric).where(eq(schema.operationsPromotionDailyMetric.campaignId,campaign.id))).length,1);
   await assert.rejects(saveWaitRange(db,{...input,requestKey:randomUUID(),startedOn:'2026-10-18'},employee,undefined,now),/重叠/);
-  await assert.rejects(saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'test_continue',nextEffectiveOn:'2026-10-21'},employee,saved.id,now),/最后一天/);
+  await assert.rejects(saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'restart_testing',nextEffectiveOn:'2026-10-21'},employee,saved.id,now),/最后一天/);
   const last=new Date('2026-10-20T12:00:00+08:00');
-  await saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'test_continue',nextEffectiveOn:'2026-10-21'},employee,saved.id,last);
+  await saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'restart_testing',nextEffectiveOn:'2026-10-21'},employee,saved.id,last);
   const resumed=await readPromotionContext(db);
   assert.equal(effectivePromotionStatus('testing','testing',campaign.id,resumed,last),'test_pending');
   assert.equal(effectivePromotionStatus('testing','testing',campaign.id,resumed,new Date('2026-10-21T00:00:00+08:00')),'testing');
@@ -69,7 +69,7 @@ test('逐日回放与全局暂停交叠后保持个人待定；恢复受节假�
   const [pause]=await db.insert(schema.operationsPromotionPause).values({requestKey:randomUUID(),startsAt:now,endsAt:new Date('2026-10-21T00:00:00+08:00'),reason:'虚构历史假期',createdById:employee.id,createdByLabel:employee.username,updatedById:employee.id,updatedByLabel:employee.username}).returning();
   let context=await readPromotionContext(db);assert.ok(!context.targets.some(t=>t.pauseId===pause.id&&t.campaignId===campaign.id));
   assert.equal(effectivePromotionStatus('testing','testing',campaign.id,context,new Date('2026-10-21T00:00:00+08:00')),'test_pending');
-  await assert.rejects(saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'test_continue',nextEffectiveOn:'2026-10-20'},employee,range.id,new Date('2026-10-19T12:00:00+08:00')),/节假日暂停/);
+  await assert.rejects(saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'restart_testing',nextEffectiveOn:'2026-10-20'},employee,range.id,new Date('2026-10-19T12:00:00+08:00')),/节假日暂停/);
   await db.update(schema.operationsPromotionPause).set({resumedAt:new Date('2026-10-19T12:00:00+08:00')}).where(eq(schema.operationsPromotionPause.id,pause.id));
   await saveWaitRange(db,{...input,expectedRevision:0,nextDecision:'start_scaling',nextEffectiveOn:'2026-10-20'},employee,range.id,new Date('2026-10-19T12:00:00+08:00'));
   context=await readPromotionContext(db);const state=promotionStateOn(campaign,context,'2026-10-20');assert.equal(state?.currentStatus,'scaling');
