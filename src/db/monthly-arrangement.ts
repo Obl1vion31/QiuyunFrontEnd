@@ -92,6 +92,8 @@ export async function changeArrangement(db:Database,id:string,input:{action:'sub
   snapshot.draft={...meeting.draftSnapshot,monthlyPlan:{id:plan.id,expectedRevision:plan.revision+1,content,additions:[]},finalizationStage:'post'};
   snapshot.generated={...snapshot.generated,monthly:await (await import('./monthly-meeting')).readMonthlyMeeting(tx,meeting)};
   const [version]=await tx.insert(s.operationsReviewMeetingVersion).values({meetingId:meeting.id,versionNumber,snapshot,sourceVersionId:source.id,lifecycleStatus:'finalized',versionKind:'revision',changeSummary:'首轮排期核对通过，月例会及计划封存',finalizedAt:now,finalizedByLabel:actor.username,updatedAt:now,pdfStatus:'pending',businessEffects:[]}).returning();
+  // 最新文字已纳入封存版，未独立定稿的草稿保留历史，不能继续占据默认入口。
+  for(const draft of all.filter(v=>!v.invalidatedAt&&v.lifecycleStatus==='draft'))await tx.update(s.operationsReviewMeetingVersion).set({invalidatedAt:now,invalidatedByVersionId:version.id}).where(eq(s.operationsReviewMeetingVersion.id,draft.id));
   for(const item of content.items){
    const old=await tx.select({id:s.operationsMonthlyPlanAssignment.id,itemId:s.operationsMonthlyPlanAssignment.itemId}).from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,id),eq(s.operationsMonthlyPlanAssignment.scheduleId,item.scheduleId!)));
    if(!old.length)await tx.insert(s.operationsMonthlyPlanAssignment).values({planId:id,itemId:item.id,scheduleId:item.scheduleId,firstSubmittedAt:now,history:[]}).onConflictDoNothing();

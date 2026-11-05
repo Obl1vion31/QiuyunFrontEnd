@@ -85,7 +85,7 @@ const versionLabel=(version:any)=>selected?.meetingType==='monthly'&&version?.sn
 const discussionMode=!!selectedVersion&&(selectedVersion.snapshot as any).schemaVersion===4&&selected?.status==='completed';
 const [meetingPlanState]=selected?await getDb().select().from(monthlyPlanTable).where(eq(monthlyPlanTable.meetingId,selected.id)):[];
 const monthlySealed=!!meetingPlanState?.sealedVersionId;
-if(selected?.meetingType==='monthly'&&selectedVersion&&!monthlySealed&&selectedVersion.id===latestValidMeetingVersion(versions)?.id&&Astro.url.searchParams.get('material')!=='frozen'){
+if(selected?.meetingType==='monthly'&&selectedVersion&&!monthlySealed&&selectedVersion.id===(activeDraft??latestValidMeetingVersion(versions))?.id&&Astro.url.searchParams.get('material')!=='frozen'){
  const live:any=structuredClone(selectedVersion.snapshot);live.generated={...live.generated,monthly:await readMonthlyMeeting(getDb(),selected)};
  if(meetingPlanState?.firstFinalizedAt){const content=await arrangedContent(getDb(),meetingPlanState,await arrangementRows(getDb(),meetingPlanState.month));live.draft={...live.draft,monthlyPlan:{id:meetingPlanState.id,expectedRevision:meetingPlanState.revision,content,additions:[]}};}
  (selectedVersion as any).snapshot=live;

@@ -70,11 +70,16 @@ try{
  const changed=await api(boss,'/api/operations-content/'+carry.schedule.id,{...fields('隔离上月遗留','2026-11-12T10:00'),planChangeReason:'管理员核对后调整',expectedPlanRevision:1},200,'PATCH',true);
  assert(changed.ok);
  await api(boss,endpoint,{action:'confirm',fingerprint:second.fingerprint,requestId:randomUUID(),reason:'旧核对不能确认'},409);
+ const postSource=(await versions(created.id)).find(v=>v.lifecycleStatus==='finalized')!;
+ const revisionDiscussion=discussionFromDraft((await meeting(created.id)).draftSnapshot);revisionDiscussion.coreConclusion='管理员核对时保留的最新文字草稿';revisionDiscussion.monthlyPlan!.content={groups:[],items:[]};
+ await api(boss,'/api/meeting-reviews/'+created.id,{action:'save_version_draft',sourceVersionId:postSource.id,discussion:revisionDiscussion,expectedUpdatedAt:'old-stamp'},200,'PATCH');
+ const savedDraft=(await versions(created.id)).find(v=>v.lifecycleStatus==='draft'&&!v.invalidatedAt)!;assert(savedDraft);
  const current=await api(boss,endpoint),confirm={action:'confirm',fingerprint:current.fingerprint,requestId:randomUUID(),reason:'已核对修改和实发，确认封存'};
  await api(boss,endpoint,confirm);await api(boss,endpoint,confirm);
  const sealedPlan=(await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,plan.id)))[0];assert(sealedPlan.sealedVersionId);
  const frozen=(await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,sealedPlan.sealedVersionId!)))[0].snapshot;
  assert.equal((frozen as any).generated.monthly.privateData.data.total.added,25);
+ assert.equal((frozen as any).draft.coreConclusion,'管理员核对时保留的最新文字草稿');assert((await versions(created.id)).find(v=>v.id===savedDraft.id)?.invalidatedAt);
  assert.equal(sealedPlan.content.items.length,2);assert(sealedPlan.content.items.every(i=>i.scheduleId));
  await api(boss,'/api/meeting-reviews/'+created.id,finalPayload,403,'PATCH');
  await api(boss,'/api/meeting-reviews/'+created.id,{},403,'DELETE');

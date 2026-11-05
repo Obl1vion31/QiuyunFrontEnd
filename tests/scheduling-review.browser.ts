@@ -39,19 +39,28 @@ try{
  const published=page.waitForResponse((r:any)=>r.url().endsWith('/publication')&&r.request().method()==='PATCH');await page.locator('#publication-form button[type=submit]').click();assert.equal((await published).status(),200);await page.waitForLoadState('networkidle');await shot('review-publication-saved-1440');
  checks.push('提交失败保留输入；成功提交后员工所有排期控件禁用，但真实实发仍可登记');
  await staffContext.request.patch(baseURL+'/api/monthly-private-data',{headers:{Origin:baseURL},data:{month:'2026-10',expectedRevision:-1,data:{total:{added:25,consulted:12,converted:2},rows:[],note:'隔离补录数据'}}});await boss.goto(baseURL+'/business/meeting-review?meeting='+setup.meetingId);await boss.locator('.monthly-private-results .monthly-private-value > span').first().waitFor();assert.equal((await boss.locator('.monthly-private-results .monthly-private-value > span').first().textContent())?.replace(/\s/g,''),'25人');await shot('monthly-live-before-seal-1440',boss);
+
+ const [workingMeeting]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,setup.meetingId));
+ const workingVersions=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,setup.meetingId));
+ const sourceVersion=workingVersions.filter(v=>v.lifecycleStatus==='finalized'&&!v.invalidatedAt).sort((a,b)=>b.versionNumber-a.versionNumber)[0];
+ const {discussionFromDraft}=await import('../src/db/meeting-discussion-values');const discussion=discussionFromDraft(workingMeeting.draftSnapshot);discussion.coreConclusion='管理员核对时保留的最新文字草稿';
+ const revision=await bossContext.request.patch(baseURL+'/api/meeting-reviews/'+setup.meetingId,{headers:{Origin:baseURL},data:{action:'save_version_draft',sourceVersionId:sourceVersion.id,discussion,expectedUpdatedAt:'old-stamp'}});assert.equal(revision.status(),200);
+ await staffContext.request.patch(baseURL+'/api/monthly-private-data',{headers:{Origin:baseURL},data:{month:'2026-10',expectedRevision:-1,data:{total:{added:26,consulted:12,converted:2},rows:[],note:'活动草稿期间补录'}}});
+ await boss.goto(baseURL+'/business/meeting-review?meeting='+setup.meetingId);assert.equal((await boss.locator('.monthly-private-results .monthly-private-value > span').first().textContent())?.replace(/\s/g,''),'26人');
  await boss.goto(baseURL+'/business/operations-schedule?month=2026-11');await boss.locator('[data-arrangement-form] [name=reason]').fill('已核对两篇安排及实发记录，可以封存。');for(const width of [1920,1440,1024]){await boss.setViewportSize({width,height:1000});await shot('review-admin-'+width,boss);}await boss.setViewportSize({width:1440,height:1000});
  await boss.locator('button[value=confirm]').click();await respondToBusinessConfirm(boss,false);assert((await boss.locator('[name=reason]').inputValue()).includes('封存'));
  const sealed=boss.waitForResponse((r:any)=>r.url().endsWith('/arrangement')&&r.request().method()==='POST');await boss.locator('button[value=confirm]').click();await respondToBusinessConfirm(boss,true);assert.equal((await sealed).status(),200);await boss.locator('[data-arrangement-stage=confirmed]').waitFor();await shot('sealed-calendar-1440',boss);
  await page.reload();assert(await page.locator('[data-open-new]').isEnabled());await page.locator('.calendar-item[data-inspect-id="'+first.id+'"]').click();await page.locator('[data-inspector].is-open').waitFor();assert(await page.locator('[data-inspector-edit]').isEnabled());
  await boss.goto(baseURL+'/business/meeting-review?meeting='+setup.meetingId);for(const width of [1920,1440,1024,390,320]){await boss.setViewportSize({width,height:1000});await shot('sealed-monthly-'+width,boss);}await boss.setViewportSize({width:1440,height:1000});assert.equal(await boss.locator('[data-meeting-mode] input[value=edit]:not(:disabled)').count(),0);
- 
+
  const [sealedPlan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,setup.planId));
  const [sealedVersion]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,sealedPlan.sealedVersionId!));
  await writeFile(dir+'/sealed-snapshot.json',JSON.stringify(sealedVersion.snapshot));
  const [attachment]=await db.select().from(s.operationsMeetingAttachment).where(eq(s.operationsMeetingAttachment.meetingVersionId,sealedVersion.id));
  assert(attachment,'封存后PDF自动生成');const pdf=await bossContext.request.get(baseURL+'/api/meeting-attachments/'+attachment.id);assert.equal(pdf.status(),200);await writeFile(dir+'/sealed-monthly.pdf',await pdf.body());
  await staffContext.request.patch(baseURL+'/api/monthly-private-data',{headers:{Origin:baseURL},data:{month:'2026-10',expectedRevision:-1,data:{total:{added:30,consulted:12,converted:2},rows:[],note:'封存后独立补录'}}});
- await boss.reload();assert.equal((await boss.locator('.monthly-private-results .monthly-private-value > span').first().textContent())?.replace(/\s/g,''),'25人');
+ await boss.reload();assert.equal((await boss.locator('.monthly-private-results .monthly-private-value > span').first().textContent())?.replace(/\s/g,''),'26人');
+ assert.equal((sealedVersion.snapshot as any).draft.coreConclusion,'管理员核对时保留的最新文字草稿');assert(await boss.getByText('管理员核对时保留的最新文字草稿',{exact:true}).isVisible());
  checks.push('管理员取消封存确认不丢意见；通过后月会永久只读，员工排期页恢复正常操作');
  const p=await seedLinkPost(db,'历史真实表单保存','2026-10-27T10:00');await db.update(s.operationsContentSchedule).set({isPromoted:true,promotionStatus:'testing',actualPublishAt:new Date('2026-10-27T02:00Z')}).where(eq(s.operationsContentSchedule.id,p.schedule.id));
  const [campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:p.schedule.id,startedOn:'2026-10-27',initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();

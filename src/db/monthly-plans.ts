@@ -9,7 +9,7 @@ import * as s from './schema';
 import {WorkflowError} from './schedule-workflow';
 import {lockPromotionWorkflow} from './promotion-pauses';
 import {shanghaiDateKey} from './promotion-rules.mjs';
-import {effectiveMonthlySchedule,adjacentMonth,monthWeeks,weekOf,type PlanContent,type PlanGroup} from './monthly-plan-types';
+import {effectiveMonthlySchedule,monthWeeks,weekOf,type PlanContent,type PlanGroup} from './monthly-plan-types';
 import {meetingValueKey as sourceHash} from './meeting-discussion-values';
 import {formatSlotRange,normalizeBlock} from './annual-plan-rules.mjs';
 
@@ -42,6 +42,8 @@ export async function checkMonthlyPlan(db:Database,draft:MonthlyPlanDraft,finali
  const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,draft.id)).for('update');if(!plan)throw new WorkflowError('月计划不存在。',404);
  await assertMeetingMutable(db,plan.meetingId);
  draft.expectedRevision=plan.revision;
+ // 预排期后的计划只由首轮排期核对形成，文字草稿不能改计划，也不受执行差异反向阻断。
+ if(plan.firstFinalizedAt){draft.content=structuredClone(plan.content);draft.additions=plan.additions.map(({id,reason,content})=>({id,reason,content:structuredClone(content)}));return plan;}
  for(const old of plan.additions){const supplied=draft.additions.find(b=>b.id===old.id);if(supplied&&(sourceHash(supplied.content)!==sourceHash(old.content)||supplied.reason!==old.reason))throw new WorkflowError('已有追加任务保留原记录，请另加追加批次。',422);}
  draft.additions=[...plan.additions.map(({id,reason,content})=>({id,reason,content})),...draft.additions.filter(b=>!plan.additions.some(old=>old.id===b.id))];
  if(finalizing&&draft.editorSteps){const ids=[...(!plan.lockedAt?['original']:[]),...draft.additions.filter(b=>!plan.additions.some(old=>old.id===b.id)).map(b=>b.id)];if(ids.some(id=>draft.editorSteps?.[id]&&draft.editorSteps[id]!=='confirmed'))throw new WorkflowError('请先确认数量、分完Week并确认安排，再定稿。',422);}
