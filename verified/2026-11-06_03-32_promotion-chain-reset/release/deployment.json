@@ -1,0 +1,14 @@
+{
+  "source": "8d03435",
+  "baseline": "fdcc82f",
+  "id": "dpl_ECBShbMPYm5wRP5c428znCq2epgT",
+  "url": "https://qiuyun-frontend-o9td8sszy-opgobl1v-5358.vercel.app",
+  "production": "https://qiuyun-frontend.vercel.app",
+  "status": "READY",
+  "promoted": true,
+  "candidateChecks": 20,
+  "candidateAssets": 5,
+  "productionChecks": 20,
+  "productionAssets": 70,
+  "productionBusinessWrites": false
+}

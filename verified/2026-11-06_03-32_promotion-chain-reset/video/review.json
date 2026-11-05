@@ -1,0 +1,9 @@
+{
+  "sampledFrames": 38,
+  "rate": 3,
+  "files": [
+    "promotion-history-1440.webm",
+    "first-paint-1440.webm"
+  ],
+  "source": "actual browser interaction"
+}
