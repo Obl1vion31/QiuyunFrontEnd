@@ -19,6 +19,7 @@ const fixed=plan?.items.filter(i=>i.kind!=='new'||i.scheduleId)??[];
  <div class="monthly-link-actions business-form" data-monthly-link-actions>
   <p data-monthly-link-status aria-live="polite">{canManage?'点击计划，在月历中勾选已有帖子。':'当前账号可查看计划，关联需排期编辑权限。'}</p>
   <label data-monthly-link-reason-field hidden><span class="sr-only">跨Week或更正原因</span><input type="text" maxlength="2000" data-monthly-link-reason placeholder="跨Week／更正原因"/></label>
+  <button type="button" class="business-action-secondary" data-monthly-link-clear-hidden hidden>取消未显示的勾选</button>
   <button type="button" class="business-action-primary" data-monthly-link-save hidden>保存关联</button>
   <button type="button" class="business-action-secondary" data-monthly-link-cancel hidden>取消</button>
  </div>

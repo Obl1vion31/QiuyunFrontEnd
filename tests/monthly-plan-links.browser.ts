@@ -103,6 +103,10 @@ try{
  const beforeIdle=requests.filter(r=>r.url.includes('/api/monthly-plans')).length;await page.waitForTimeout(5500);assert.equal(requests.filter(r=>r.url.includes('/api/monthly-plans')).length,beforeIdle);
  assert.equal(errors.length,0,errors.join('\n'));
  mark('减少动态效果、无协作请求与无月计划轮询，三个桌面宽度及手机有限回归');
+ await db.update(s.operationsContentSchedule).set({plannedPublishAt:new Date('2026-12-10T02:00Z'),updatedAt:new Date('2026-11-05T04:02Z')}).where(eq(s.operationsContentSchedule.id,a.schedule.id));
+ await page.reload();await page.locator('[data-monthly-completed]>summary').click();await openGroup('TMUA 讲义');assert.equal(await card(a.schedule.id).count(),0);assert(await page.locator('[data-monthly-link-clear-hidden]').isVisible());assert.equal(await card(b.schedule.id).getAttribute('aria-checked'),'true');
+ await page.locator('[data-monthly-link-clear-hidden]').click();assert.equal(await card(b.schedule.id).getAttribute('aria-checked'),'true');assert(await page.locator('[data-monthly-link-clear-hidden]').isHidden());await page.locator('[data-monthly-link-reason]').fill('原帖移至下月，解除原月执行关系');await shot('calendar-hidden-association-1440');await page.locator('[data-monthly-link-save]').click();await confirm(true);await page.getByText('已保存关联，计划数量保持不变。',{exact:true}).waitFor();assert.equal(await page.locator('[data-monthly-overall]').textContent(),'2/5 已关联');
+ mark('跨月隐藏旧帖可取消勾选；保留可见关联、帖子与原计划数量');
  await page.screenshot({path:dir+'/screenshots/calendar-final-full-1440.png',fullPage:true});images.push('screenshots/calendar-final-full-1440.png');
  await context.close();context=null;await writeFile(dir+'/browser.json',JSON.stringify({passed:true,checks,images,requests:requests.filter(r=>r.url.includes('/api/monthly-plans')),errors},null,2));
 }catch(error){console.error(fixture.logs().slice(-5000));if(page)await page.screenshot({path:dir+'/failure.png',fullPage:true}).catch(()=>{});throw error;}finally{await context?.close();await bossContext?.close();await browser?.close();await fixture.stop();}

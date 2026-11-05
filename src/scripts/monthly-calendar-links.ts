@@ -9,6 +9,7 @@ function initialize(){
  const lifecycle=new AbortController(),{signal}=lifecycle;
  let plan:MonthlyCalendarView=JSON.parse(data.textContent||'null'),active:Group|null=null,candidates:Candidate[]=[],selected=new Set<string>(),initial=new Set<string>(),requestId='',busy=false,sequence=0,request:AbortController|undefined,entry:HTMLElement|null=null;
  const actions=pool.querySelector<HTMLElement>('[data-monthly-link-actions]')!,status=pool.querySelector<HTMLElement>('[data-monthly-link-status]')!,message=pool.querySelector<HTMLOutputElement>('[data-monthly-link-message]')!,save=pool.querySelector<HTMLButtonElement>('[data-monthly-link-save]')!,cancel=pool.querySelector<HTMLButtonElement>('[data-monthly-link-cancel]')!,reasonField=pool.querySelector<HTMLElement>('[data-monthly-link-reason-field]')!,reason=reasonField.querySelector<HTMLInputElement>('input')!;
+ const clearHidden=pool.querySelector<HTMLButtonElement>('[data-monthly-link-clear-hidden]')!;
  const cards=[...grid.querySelectorAll<HTMLButtonElement>('.calendar-item[data-inspect-id]')];
  const original=new Map(cards.map(card=>[card,{role:card.getAttribute('role'),label:card.getAttribute('aria-label'),tabindex:card.getAttribute('tabindex'),disabled:card.getAttribute('aria-disabled')}]));
  for(const card of cards){const check=document.createElement('span');check.className='monthly-card-check';check.setAttribute('aria-hidden','true');check.innerHTML='<svg viewBox="0 0 16 16"><path d="m3 8 3 3 7-7"/></svg>';card.append(check);}
@@ -28,7 +29,8 @@ function initialize(){
   }
   save.hidden=cancel.hidden=!active;save.disabled=busy||sameSelection()||!!active&&needsReason()&&!reason.value.trim();cancel.disabled=busy;reason.disabled=busy;
   reasonField.hidden=!active||!needsReason();reason.required=!!active&&needsReason();
-  if(active)status.textContent='已选 '+selected.size+'/'+active.quantity;
+  const hiddenSelected=[...selected].filter(id=>!cards.some(card=>card.dataset.inspectId===id));clearHidden.hidden=!active||!hiddenSelected.length;clearHidden.disabled=busy;
+  if(active)status.textContent='已选 '+selected.size+'/'+active.quantity+(hiddenSelected.length?'（含未显示 '+hiddenSelected.length+' 篇）':'');
   changed();
  }
  function render(){
@@ -81,7 +83,7 @@ function initialize(){
    candidates=result.candidates;initial=new Set(active.scheduleIds);selected=new Set(initial);requestId=crypto.randomUUID();
    setSource(active.itemIds.find(id=>!plan.items.find(i=>i.id===id)?.schedule)??'');
    paintSelection();trigger.setAttribute('aria-pressed','true');
-   if(!candidates.some(c=>eligible(c.id)&&cards.some(card=>card.dataset.inspectId===c.id)))tell('本月暂无可关联排期，可点击日期新建。',true);
+   if(!candidates.some(c=>eligible(c.id)&&cards.some(card=>card.dataset.inspectId===c.id)))tell('当前月历没有可勾选的同类帖子，可检查筛选或点击日期新建。',true);
   }catch(error){if((error as Error).name!=='AbortError'){status.textContent='点击计划，在月历中勾选已有帖子。';tell((error as Error).message);}}finally{clearTimeout(timer);}
  }
  function toggle(id:string){
@@ -97,6 +99,7 @@ function initialize(){
   if(!active)return;const target=(event.target as Element).closest<HTMLElement>('[data-calendar-new],[data-open-new]')??((event.target as Element).closest('[data-calendar-day]')&&!(event.target as Element).closest('button,a')?event.target as HTMLElement:null);
   if(target){event.preventDefault();event.stopImmediatePropagation();void newPost(target);}
  },{capture:true,signal});
+ clearHidden.addEventListener('click',()=>{if(!active||busy)return;for(const id of selected)if(!cards.some(card=>card.dataset.inspectId===id))selected.delete(id);requestId=crypto.randomUUID();tell('');paintSelection();},{signal});
  cancel.addEventListener('click',()=>{void(async()=>{if(!busy&&await mayDiscard()){finish();tell('');}})();},{signal});
  reason.addEventListener('input',()=>{requestId=crypto.randomUUID();paintSelection();},{signal});
  save.addEventListener('click',()=>{void(async()=>{
