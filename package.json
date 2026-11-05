@@ -54,6 +54,7 @@
     "test:meeting-display": "node --import tsx tests/meeting-display.browser.ts",
     "test:monthly": "node --import tsx tests/monthly-operations.browser.ts && node --import tsx tests/monthly-delay.browser.ts",
     "test:first-paint": "node --import tsx tests/business-first-paint.browser.ts",
+    "test:monthly-links": "node --import tsx tests/monthly-plan-links.integration.ts && node --import tsx tests/monthly-plan-links.browser.ts",
     "test:monthly-workflow": "node --import tsx tests/monthly-workflow.integration.ts && node --import tsx tests/monthly-workflow.browser.ts",
     "test:monthly-workflow:postgres": "node --import tsx tests/monthly-workflow.postgres.ts",
     "test:collaboration-continuity": "node --import tsx tests/optimistic-editing.browser.ts",

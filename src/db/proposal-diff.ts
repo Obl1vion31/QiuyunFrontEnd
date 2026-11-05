@@ -10,6 +10,7 @@ const display=(value:unknown)=>value==null||value===''?'—':typeof value==='boo
 function fields(snapshot:Snapshot,taxonomy:{subjects:ReadonlyArray<{id:string;name:string}>;postCategories:ReadonlyArray<{id:string;name:string}>}):Record<string,string>{
   const {subjects,postCategories}=taxonomy;
   const result:Record<string,string>={};
+  if(snapshot.monthlyLinks){const links=snapshot.monthlyLinks as {name:string;week:number;bindings:Array<{name:string;scheduleId:string|null}>};result['月计划']=links.name+' · Week '+links.week;result['关联排期']=links.bindings.filter(b=>b.scheduleId).map(b=>b.name).join('\n')||'未关联';}
   const schedule=snapshot.schedule as Record<string,unknown>|undefined;
   const versions=snapshot.versions as Array<Record<string,unknown>>|undefined;
   if(schedule){

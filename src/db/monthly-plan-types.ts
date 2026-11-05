@@ -8,7 +8,13 @@ export type PlanGroup = {id:string; annualPlanId:string|null; annualVersion:numb
 export type PlanItem = {id:string; groupId:string; week:number|null; kind:'new'|'carry'|'existing'; scheduleId:string|null};
 export type PlanContent = {groups:PlanGroup[]; items:PlanItem[]};
 export type PlanBatch = {id:string; at:string; actor:string; reason:string; content:PlanContent};
-export type PlanAssignmentHistory = {phase?:'submitted'|'applied';at:string; actor:string; proposalId?:string; scheduleId?:string; reason:string};
+export type PlanAssignmentHistory = {phase?:'submitted'|'applied';at:string; actor:string; proposalId?:string; scheduleId?:string; reason:string;action?:'link';previousScheduleId?:string|null;linkRequestId?:string;linkRequestHash?:string};
+/** 当前生效配对由最后一次已应用事件决定，解除历史不能让后来的待审配对提前生效。 */
+export function effectiveMonthlySchedule(history:PlanAssignmentHistory[],scheduleId:string|null,sourceScheduleId:string|null){
+ const last=[...history].reverse().find(h=>h.phase==='applied'||!h.phase&&!h.proposalId);
+ if(last)return last.scheduleId??null;
+ return history.some(h=>h.phase==='submitted')?sourceScheduleId:scheduleId??sourceScheduleId;
+}
 export const emptyCounts = ():PrivateCounts => ({added:null, consulted:null, converted:null});
 export function adjacentMonth(month:string, offset:number) {const date=new Date(`${month}-01T00:00:00Z`);date.setUTCMonth(date.getUTCMonth()+offset);return date.toISOString().slice(0,7);}
 export function monthWeeks(month:string) {const end=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).getUTCDate();return Array.from({length:Math.ceil(end/7)},(_,i)=>({week:i+1,from:`${month}-${String(i*7+1).padStart(2,'0')}`,through:`${month}-${String(Math.min(end,(i+1)*7)).padStart(2,'0')}`}));}

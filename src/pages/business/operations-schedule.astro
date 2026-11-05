@@ -1,6 +1,7 @@
 ---
 import {scheduleWriteVersion} from '../../db/schedule-write-version';
 import BusinessContentRoleFields from '../../components/BusinessContentRoleFields.astro';
+import {readMonthlyCalendar} from '../../db/monthly-plan-links';
 import MonthlyCalendarPlan from '../../components/MonthlyCalendarPlan.astro';
 import MonthlyScheduleFields from '../../components/MonthlyScheduleFields.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
@@ -78,6 +79,7 @@ const selectedMonth = requestedMonthMatch
   && requestedMonthNumber <= 12
   ? requestedMonth
   : currentMonth;
+const calendarMonthlyPlan=selectedView==='schedule'&&selectedDisplay==='calendar'&&selectedStatus!=='approvals'?await readMonthlyCalendar(getDb(),selectedMonth):null;
 const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
 const previousMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber - 2, 1)).toISOString().slice(0, 7);
 const nextMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 1)).toISOString().slice(0, 7);
@@ -303,7 +305,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         </div>
               }
 
-      <MonthlyCalendarPlan month={selectedMonth} calendar={selectedView==='schedule'&&selectedDisplay==='calendar'}/>
+      <MonthlyCalendarPlan month={selectedMonth} plan={calendarMonthlyPlan} calendar={selectedView==='schedule'&&selectedDisplay==='calendar'}/>
       {selectedView === 'schedule' && selectedDisplay === 'calendar' && <section class="calendar" aria-label={`${selectedMonth} 月历`}>
         <div class="calendar-legend" aria-label="月历颜色说明"><span class="publish-on_time">按时已发</span><span class="publish-delayed">延期已发</span><span class="publish-pending">待发布</span><span class="publish-missing">尚未登记</span><span class="promotion-identity promoted">推广</span></div>
         <div class="weekdays">{['日','一','二','三','四','五','六'].map((day) => <span>{day}</span>)}</div>
@@ -315,6 +317,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 aria-label={`V${row.versionNumber} ${row.contentName}，${row.isPromoted?'推广':'非推广'}，应发 ${displayDateTime(row.plannedPublishAt)}，${isOverdue(row)?'尚未登记':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)]}`}>
                 <span class="calendar-item-meta"><span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span><time>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</time></span>
                 <span class="calendar-item-name"><b>V{row.versionNumber}</b> {row.contentName}</span>
+                {calendarMonthlyPlan?.items.filter(item=>item.schedule?.id===row.id).map(item=><small class="monthly-card-membership" title={'月计划 · Week '+item.week}>计划 W{item.week}{item.pending?' · 待审':''}</small>)}
               </button>)}
             </div></>}
           </div>)}
@@ -877,6 +880,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
             if(!response.ok){message.textContent='改期申请已提交，其他修改尚未保存：'+(result.message??'请重试。');return;}
           }
           if (response.ok) { dirty = false; document.documentElement.dataset.unsaved = 'false'; window.location.reload(); return; }
+          if(result.code==='MONTHLY_PLAN_SOURCE_REQUIRED')form.dispatchEvent(new Event('business:monthly-source-required'));
           message.textContent = result.message ?? '保存失败，请重试。';
           for (const [name, errors] of Object.entries(result.fields ?? {})) {
             const error = form.querySelector(`[data-error="${name}"]`);

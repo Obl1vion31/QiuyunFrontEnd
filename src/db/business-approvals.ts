@@ -1,3 +1,6 @@
+import {monthlyLinksSchema,releaseMonthlyReservation} from './monthly-link-state';
+import {monthlyLinksSnapshot,saveMonthlyLinks,repeatedMonthlyLinks} from './monthly-plan-links';
+import {WorkflowError} from './schedule-workflow';
 import {rolesForCategory} from './content-roles';
 import {reserveMonthlyProposal,withMonthlyProposal} from './monthly-plans';
 import {operationSetupChanged} from './operation-setup';
@@ -32,6 +35,7 @@ async function describe(db:Database,request:Request):Promise<Write>{
     else{form=await request.clone().formData();values=Object.fromEntries(form.entries());}
   }
   const parts=path.split('/').filter(Boolean);
+  if(parts[1]==='monthly-plans'){const parsed=monthlyLinksSchema.safeParse(values);if(!parsed.success)throw new WorkflowError('关联信息不完整，请重新选择计划。',422);return {module:'schedule',target:'monthly:'+parts[2]+':'+digest([parsed.data.groupId,parsed.data.week]),operations:['schedule.edit'],values:{...parsed.data,monthlyPlanId:parts[2]}};}
   if(parts[1]==='non-promotion-checkpoints')return {module:'schedule',target:`schedule:${values.scheduleId}`,operations:['add','reschedule','cancel'].includes(String(values.action))?['schedule.edit']:[],values};
   if(parts[1]==='operations-annual-plans'){
     const operations:BusinessOperation[]=[];
@@ -94,7 +98,8 @@ async function describe(db:Database,request:Request):Promise<Write>{
   return {module:'schedule',target:`schedule:${current.id}`,operations,values};
 }
 /** 只保存业务对象，绝不把账号、会话或凭据放进申请快照。 */
-async function snapshot(db:Database,write:Write):Promise<Record<string,unknown>>{
+async function snapshot(db:Database,write:Write,ignoreProposalId?:string):Promise<Record<string,unknown>>{
+  if(write.target.startsWith('monthly:')){const {monthlyPlanId,...input}=write.values;return monthlyLinksSnapshot(db,String(monthlyPlanId),monthlyLinksSchema.parse(input),ignoreProposalId);}
   const [kind,id]=write.target.split(':');
   if(write.target==='new')return {};
   if(write.module==='annual'){
@@ -147,6 +152,7 @@ export async function runBusinessWrite(context:Context,next:()=>Promise<Response
         if(!accepted(response))throw new RolledBack(response);
         return response;
       }
+      if(write.target.startsWith('monthly:')){const {monthlyPlanId,...input}=write.values;const repeated=await repeatedMonthlyLinks(tx,String(monthlyPlanId),monthlyLinksSchema.parse(input));if(repeated)return repeated;}
       const before=await snapshot(tx,write),fingerprint=digest(before);
       const grants=(await tx.select().from(s.operationsAccountPermission).where(and(eq(s.operationsAccountPermission.userId,actor.id),inArray(s.operationsAccountPermission.operation,write.operations)))).sort((a,b)=>a.operation.localeCompare(b.operation));
       const path=context.url.pathname.replace(/\/+$/,'');
@@ -168,14 +174,15 @@ export async function runBusinessWrite(context:Context,next:()=>Promise<Response
         }));
       }catch(error){if(!(error instanceof RolledBack))throw error;if(!accepted(error.response))throw error;after=error.after;}
       const [created]=await tx.insert(s.operationsChangeProposal).values({requestedById:actor.id,requestedByLabel:actor.username,module:write.module,target:write.target,operations:write.operations,path,method:context.request.method,contentType:context.request.headers.get('content-type')??'',body,fingerprint,requestKey:key,before,after}).returning({id:s.operationsChangeProposal.id});
-      await reserveMonthlyProposal(tx,created.id,reservationRequest,actor.username);
+      if(write.target.startsWith('monthly:')){const {monthlyPlanId,...input}=write.values;await saveMonthlyLinks(tx,String(monthlyPlanId),monthlyLinksSchema.parse(input),actor.username,created.id,true);}else await reserveMonthlyProposal(tx,created.id,reservationRequest,actor.username);
       return pendingResponse(created.id);
     }));
   }catch(error){if(error instanceof RolledBack)return error.response;if(error instanceof SyntaxError||error instanceof TypeError)return Response.json({message:'提交格式无效。'},{status:422});return workflowErrorResponse(error);}
 }
 
 async function replay(path:string,method:string,request:Request,actor:OperationsUser):Promise<Response>{
-  const parts=path.split('/').filter(Boolean);let handler:APIRoute|undefined;const params:Record<string,string>={};
+  const parts=path.split('/').filter(Boolean);
+  let handler:APIRoute|undefined;const params:Record<string,string>={};
   if(parts[1]==='operations-annual-plans'){
     if(!parts[2])handler=(await import('../pages/api/operations-annual-plans')).POST;
     else if(parts[2]==='year'){params.year=parts[3];handler=parts[4]==='copy'?(await import('../pages/api/operations-annual-plans/year/[year]/copy')).POST:(await import('../pages/api/operations-annual-plans/year/[year]')).PATCH;}
@@ -185,6 +192,7 @@ async function replay(path:string,method:string,request:Request,actor:Operations
     else if(parts[2]==='versions'){params.sourceVersionId=parts[3];handler=(await import('../pages/api/operations-content/versions/[sourceVersionId]/revisions')).POST;}
     else{params.id=parts[2];handler=parts[3]==='publication'?(await import('../pages/api/operations-content/[id]/publication')).PATCH:parts[3]==='delay-reasons'?(await import('../pages/api/operations-content/[id]/delay-reasons')).POST:parts[3]==='change-requests'?(await import('../pages/api/operations-content/[id]/change-requests')).POST:method==='DELETE'?(await import('../pages/api/operations-content/[id]')).DELETE:(await import('../pages/api/operations-content/[id]')).PATCH;}
   }
+  if(parts[1]==='monthly-plans'){params.id=parts[2];handler=(await import('../pages/api/monthly-plans/[id]/links')).POST;}
   if(parts[1]==='non-promotion-checkpoints')handler=(await import('../pages/api/non-promotion-checkpoints')).POST;
   if(!handler)throw new Error('未知业务入口。');
   return await handler({request,url:new URL(request.url),params,locals:{user:actor,operationsUser:actor.username,session:null},redirect:(location:string,status=303)=>new Response(null,{status,headers:{Location:location}})} as APIContext);
@@ -197,6 +205,7 @@ export async function decideProposal(id:string,approve:boolean,reason:string,act
     if(!proposal)return Response.json({message:'申请不存在。'},{status:404});
     if(proposal.status!=='pending')return Response.json({status:proposal.status,result:proposal.result});
     const finish=async(status:'approved'|'rejected'|'obsolete',result:Record<string,unknown>|null=null,message=reason)=>{
+      if(status!=='approved')await releaseMonthlyReservation(tx,proposal.id);
       await tx.update(s.operationsChangeProposal).set({status,result,decisionReason:message,decidedById:actor.id,decidedByLabel:actor.username,decidedAt:new Date()}).where(eq(s.operationsChangeProposal.id,id));
       return Response.json({status,result,message}, {status:status==='obsolete'?409:200});
     };
@@ -209,7 +218,7 @@ export async function decideProposal(id:string,approve:boolean,reason:string,act
       if(!target)return finish('obsolete',null,'原排期已不存在，请重新提交。');
     }
     const write=await describe(tx,request),permissions=await effectiveBusinessPermissions(tx,owner);
-    if(write.operations.some(operation=>permissions[operation]==='disabled')||stable(write.operations)!==stable(proposal.operations)||digest(await snapshot(tx,write))!==proposal.fingerprint)return finish('obsolete',null,'原内容或权限已变化，请重新提交。');
+    if(write.operations.some(operation=>permissions[operation]==='disabled')||stable(write.operations)!==stable(proposal.operations)||digest(await snapshot(tx,write,proposal.id))!==proposal.fingerprint)return finish('obsolete',null,'原内容或权限已变化，请重新提交。');
     try{
       const result=await tx.transaction(async apply=>withDatabase(apply,async()=>{
         const response=await withBusinessExecution(owner,write.operations,()=>withMonthlyProposal(proposal.id,()=>replay(proposal.path,proposal.method,request,owner)));

@@ -7,8 +7,8 @@ import {businessDateTime} from '../scripts/business-date';
 import {promotionLabels} from '../db/promotion-state.mjs';
 const rows=(await readScheduleApprovals(getDb(),Astro.locals.user!)).sort((a,b)=>(a.plannedPublishAt?new Date(a.plannedPublishAt).getTime():Infinity)-(b.plannedPublishAt?new Date(b.plannedPublishAt).getTime():Infinity)||a.createdAt.getTime()-b.createdAt.getTime());
 const admin=Astro.locals.user?.role==='admin';
-const planned=(row:typeof rows[number])=>row.plannedPublishAt?businessDateTime(row.plannedPublishAt):'尚未创建';
-const day=(row:typeof rows[number])=>row.plannedPublishAt?planned(row).slice(0,10):'尚未创建';
+const planned=(row:typeof rows[number])=>row.plannedPublishAt?businessDateTime(row.plannedPublishAt):row.isMonthly?'月计划':'尚未创建';
+const day=(row:typeof rows[number])=>row.isMonthly?'月计划关联':row.plannedPublishAt?planned(row).slice(0,10):row.isMonthly?'月计划':'尚未创建';
 ---
 <section class="content-layout schedule-approval-layout" data-inspector-host data-schedule-approval-queue>
  <section class="content-stage">
@@ -19,11 +19,11 @@ const day=(row:typeof rows[number])=>row.plannedPublishAt?planned(row).slice(0,1
      {(index===0||day(rows[index-1])!==day(row))&&<tr class="day-divider"><th colspan="6"><span class="timeline-dot"></span><strong>{day(row)}</strong><small>{rows.filter(item=>day(item)===day(row)).length} 条</small></th></tr>}
      <tr class="schedule-row schedule-approval-item" tabindex="0" data-inspector-key={row.key} data-approval-item={row.key}>
       <td class="time-cell"><strong>{row.plannedPublishAt?planned(row).slice(11):'—'}</strong><small>{row.actualPublishAt?`实发 ${businessDateTime(row.actualPublishAt).slice(11)}`:row.statusLabel}</small></td>
-      <td><span class="version-chip">V{row.version}</span><small>{row.workType==='revision'?'改帖':'新做帖'}</small></td>
+      <td><span class="version-chip">{row.isMonthly?'月计划':`V${row.version}`}</span><small>{row.isMonthly?'关联':row.workType==='revision'?'改帖':'新做帖'}</small></td>
       <td class="content-cell"><strong>{row.name}</strong><small>{row.subjectName} · {row.title}</small>{row.diff.filter(change=>change.label==='应发时间').map(change=><small class="approval-date-change">{change.before} → {change.after}</small>)}</td>
-      <td><span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span>{row.isPromoted&&<small>{promotionLabels[row.promotionStatus]??row.promotionStatus}</small>}</td>
+      <td>{row.isMonthly?<span class="missing">—</span>:<span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span>}{!row.isMonthly&&row.isPromoted&&<small>{promotionLabels[row.promotionStatus]??row.promotionStatus}</small>}</td>
       <td><span class="completion approval-pending" data-approval-item-status>待审核</span><small>{row.requestedBy} · {businessDateTime(row.createdAt)}</small></td>
-      <td>{row.projectDocUrl?<a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a>:<span class="missing">待登记</span>}</td>
+      <td>{row.projectDocUrl?<a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a>:<span class="missing">{row.isMonthly?'—':'待登记'}</span>}</td>
      </tr>
     </>)}</tbody>
    </table>
@@ -32,10 +32,10 @@ const day=(row:typeof rows[number])=>row.plannedPublishAt?planned(row).slice(0,1
  </section>
  <BusinessInspector class="inspector" parameter="request" templates label="排期申请详情" data-schedule-approval-inspector/>
  {rows.map(row=><template data-inspector-template={row.key}>
-  <header><div><div class="inspector-header-meta"><span>V{row.version}</span><small>{row.workType==='revision'?'改帖':'新做帖'}</small></div><h2>{row.name}</h2><p>待审核 · {row.statusLabel}</p></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
+  <header><div><div class="inspector-header-meta"><span>{row.isMonthly?'月计划':`V${row.version}`}</span><small>{row.isMonthly?'关联':row.workType==='revision'?'改帖':'新做帖'}</small></div><h2>{row.name}</h2><p>{row.isMonthly?'待审核':'待审核 · '+row.statusLabel}</p></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
   <div class="inspector-body schedule-approval-detail">
-   <section class="inspector-title"><p>{row.subjectName}</p></section>
-   <dl class="detail-list"><div><dt>推广状态</dt><dd>{promotionLabels[row.promotionStatus]??row.promotionStatus}</dd></div><div><dt>当前应发时间</dt><dd>{planned(row)}</dd></div><div><dt>实发时间</dt><dd>{row.actualPublishAt?businessDateTime(row.actualPublishAt):row.statusLabel}</dd></div></dl>
+   {!row.isMonthly&&<section class="inspector-title"><p>{row.subjectName}</p></section>}
+   {!row.isMonthly&&<dl class="detail-list"><div><dt>{row.isMonthly?'任务类型':'推广状态'}</dt><dd>{row.isMonthly?'月计划关联':promotionLabels[row.promotionStatus]??row.promotionStatus}</dd></div><div><dt>当前应发时间</dt><dd>{planned(row)}</dd></div><div><dt>实发时间</dt><dd>{row.actualPublishAt?businessDateTime(row.actualPublishAt):row.statusLabel}</dd></div></dl>}
    <section class="inspector-section"><h3>{row.title}</h3><p>{row.requestedBy} · {businessDateTime(row.createdAt)}</p>{row.reason&&<p class="approval-reason">{row.reason}</p>}<div class="approval-diff"><BusinessChangeDiff changes={row.diff}/></div></section>
   </div>
   {admin&&<footer class="business-inspector-actions"><form class="business-form" data-schedule-approval={row.endpoint} data-approval-key={row.key} data-schedule-id={row.scheduleId}><label>审核说明<textarea name="reason" maxlength="500" rows="2"/></label><div class="business-action-group"><button type="submit" class="business-action-primary" name="action" value="approve">通过</button><button type="submit" class="business-action-secondary" name="action" value="reject">驳回</button></div><output role="alert"/></form></footer>}

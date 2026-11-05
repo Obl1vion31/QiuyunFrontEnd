@@ -1,3 +1,4 @@
+import {releaseMonthlyReservation} from '../db/monthly-link-state';
 import {AsyncLocalStorage} from 'node:async_hooks';
 import {and,eq,inArray,sql} from 'drizzle-orm';
 import type {Database} from '../db/client';
@@ -33,6 +34,7 @@ export async function updateAccountPermissions(db:Database,actor:OperationsUser,
     if(changed.length){
       const pending=await tx.select().from(proposals).where(and(eq(proposals.requestedById,userId),eq(proposals.status,'pending')));
       const ids=pending.filter(row=>row.operations.some(key=>changed.includes(key as BusinessOperation))).map(row=>row.id);
+      for(const id of ids)await releaseMonthlyReservation(tx,id);
       if(ids.length)await tx.update(proposals).set({status:'obsolete',decisionReason:'账号权限已调整，请重新提交。',decidedAt:new Date(),decidedById:actor.id,decidedByLabel:actor.username}).where(inArray(proposals.id,ids));
       if(changed.some(key=>key==='schedule.overdueReschedule'||key==='schedule.reschedule'))await tx.update(legacy).set({status:'obsolete',decisionReason:'账号权限已调整，请重新提交。',decidedAt:new Date(),decidedById:actor.id,decidedByLabel:actor.username}).where(and(eq(legacy.requestedById,userId),eq(legacy.status,'pending')));
     }

@@ -38,3 +38,5 @@
 `post-lookup.ts` 负责只读查帖、版本回溯和原页链接；`account-management.ts` 负责现有账号改名、启停、密码重置与会话撤销，不创建账号或改变角色。
 
 `usage-guide.ts`仅管理当前角色章节的目录高亮、锚点与本页历史；窄屏目录复用`business-popover`。Frame在公共草稿保护之后派发可取消的`business:local-history-pop`，说明页仅认领同路径及查询的章节历史，阻止Astro重复换页；其他页面仍走原Inspector或导航。页面离开取消待执行帧、监听与观察器，不复制全局历史或气泡控制器。
+
+`monthly-calendar-links.ts`在现有月历卡片上完成计划选择、勾选、跨Week说明与批量保存；复用公共Inspector、未保存保护和STALE_WRITE刷新反馈。分组进度局部回显，首屏关联标记由SSR输出；`monthly-calendar.ts`继续负责原表单来源、同日确认及按目标月份补读，不建立定时器。

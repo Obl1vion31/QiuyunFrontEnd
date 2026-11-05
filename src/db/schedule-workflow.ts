@@ -19,7 +19,7 @@ type Schedule = typeof schedules.$inferSelect;
 type Plan = typeof plans.$inferSelect;
 type Reason = typeof reasons.$inferSelect;
 export class WorkflowError extends Error {
-  readonly code?: 'STALE_WRITE';
+  readonly code?: 'STALE_WRITE' | 'MONTHLY_PLAN_SOURCE_REQUIRED';
   constructor(message: string, public status = 409, public approvalRequired = false) { super(message); }
 }
 export class StaleWriteError extends WorkflowError {

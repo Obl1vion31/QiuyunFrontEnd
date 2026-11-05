@@ -1,3 +1,4 @@
+import {pendingMonthlyLinks,monthlySubmittedAt} from './monthly-link-state';
 import {StaleWriteError} from './schedule-workflow';
 import {and,eq,inArray} from 'drizzle-orm';
 import {z} from 'zod';
@@ -7,7 +8,7 @@ import * as s from './schema';
 import {WorkflowError} from './schedule-workflow';
 import {lockPromotionWorkflow} from './promotion-pauses';
 import {shanghaiDateKey} from './promotion-rules.mjs';
-import {adjacentMonth,monthWeeks,weekOf,type PlanContent,type PlanGroup} from './monthly-plan-types';
+import {effectiveMonthlySchedule,adjacentMonth,monthWeeks,weekOf,type PlanContent,type PlanGroup} from './monthly-plan-types';
 import {meetingValueKey as sourceHash} from './meeting-discussion-values';
 import {formatSlotRange,normalizeBlock} from './annual-plan-rules.mjs';
 
@@ -17,6 +18,7 @@ export const planContentSchema=z.object({groups:z.array(groupSchema).max(200),it
 export const monthlyPlanDraftSchema=z.object({id:z.uuid(),expectedRevision:z.number().int().nonnegative(),editorSteps:z.record(z.string(),z.enum(['quantity','weeks','confirmed'])).optional(),content:planContentSchema,additions:z.array(z.object({id:z.uuid(),reason:z.string().max(2000),content:planContentSchema})).max(100)}).strict();
 export type MonthlyPlanDraft=z.infer<typeof monthlyPlanDraftSchema>;
 const proposalScope=new AsyncLocalStorage<string>();
+export const currentMonthlyProposal=()=>proposalScope.getStore();
 export const withMonthlyProposal=<T>(id:string,action:()=>Promise<T>)=>proposalScope.run(id,action);
 const dateKey=(date:Date)=>shanghaiDateKey(date);
 export const allPlanItems=(plan:{content:PlanContent;additions:Array<{content:PlanContent}>})=>[...plan.content.items,...plan.additions.flatMap(b=>b.content.items)];
@@ -41,7 +43,7 @@ export async function checkMonthlyPlan(db:Database,draft:MonthlyPlanDraft,finali
  for(const old of plan.additions){const supplied=draft.additions.find(b=>b.id===old.id);if(supplied&&(sourceHash(supplied.content)!==sourceHash(old.content)||supplied.reason!==old.reason))throw new WorkflowError('已有追加任务保留原记录，请另加追加批次。',422);}
  draft.additions=[...plan.additions.map(({id,reason,content})=>({id,reason,content})),...draft.additions.filter(b=>!plan.additions.some(old=>old.id===b.id))];
  if(plan.firstFinalizedAt&&draft.content.items.some(i=>!plan.content.items.some(old=>old.id===i.id)))throw new WorkflowError('首次定稿后新增任务须单列追加，不能补入原名额。',422);
- if(plan.firstFinalizedAt&&draft.content.items.some(i=>i.scheduleId!==plan.content.items.find(old=>old.id===i.id)?.scheduleId))throw new WorkflowError('定稿后纳入已有排期须作为追加项。',422);
+ if(plan.firstFinalizedAt&&draft.content.items.some(i=>i.scheduleId!==plan.content.items.find(old=>old.id===i.id)?.scheduleId))throw new WorkflowError('定稿后请在排期月历补关联，保留原计划内容。',422);
  if(plan.lockedAt&&sourceHash(plan.content)!==sourceHash(draft.content))throw new WorkflowError('首次周会已经锁定原计划，只能修改说明或新增追加项。',422);
  if(finalizing&&draft.editorSteps){const ids=[...(!plan.lockedAt?['original']:[]),...draft.additions.filter(b=>!plan.additions.some(old=>old.id===b.id)).map(b=>b.id)];if(ids.some(id=>draft.editorSteps?.[id]&&draft.editorSteps[id]!=='confirmed'))throw new WorkflowError('请先确认数量、分完Week并确认安排，再定稿。',422);}
  const taxonomy=await db.select().from(s.operationsSubjectCategory);const candidates=await monthlyPlanCandidates(db,plan.month);const scheduleIds=new Set<string>(),ids=new Set<string>(),groupIds=new Set<string>();
@@ -83,8 +85,8 @@ export async function readMonthlyPlan(db:Database,month:string,now=new Date()){
  const ids=assignments.flatMap(a=>a.scheduleId?[a.scheduleId]:[]);const schedules=ids.length?await db.select({id:s.operationsContentSchedule.id,name:s.operationsContentVersion.contentName,plannedAt:s.operationsContentSchedule.plannedPublishAt,actualAt:s.operationsContentSchedule.actualPublishAt}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).where(inArray(s.operationsContentSchedule.id,ids)):[];
  const groups=allPlanGroups(plan);const items=allPlanItems(plan).map(item=>{const assignment=assignments.find(a=>a.itemId===item.id),schedule=schedules.find(r=>r.id===assignment?.scheduleId),proposal=proposals.find(p=>p.id===assignment?.proposalId),batch=plan.additions.find(b=>b.content.items.some(i=>i.id===item.id));
   const start=batch?.at??plan.firstFinalizedAt?.toISOString()??null,deadline=start?new Date(new Date(start).getTime()+48*3600000).toISOString():null;
-  const pending=proposal?.status==='pending',ready=!!schedule&&(dateKey(schedule.plannedAt).startsWith(month)||!!schedule.actualAt&&dateKey(schedule.actualAt).startsWith(month)||assignment?.history.some(h=>h.phase==='applied'));
-  return {...item,ordinal:allPlanItems(plan).filter(i=>i.groupId===item.groupId).findIndex(i=>i.id===item.id)+1,group:groups.find(g=>g.id===item.groupId)!,addition:!!batch,reason:batch?.reason??'',deadline,submittedAt:assignment?.firstSubmittedAt?.toISOString()??null,timely:deadline&&assignment?.firstSubmittedAt?assignment.firstSubmittedAt.getTime()<=new Date(deadline).getTime():null,overdue:!!deadline&&now.getTime()>new Date(deadline).getTime()&&!assignment?.firstSubmittedAt,pending,status:pending?'pending':proposal&&['rejected','obsolete'].includes(proposal.status)?'rejected':ready?'scheduled':'unassigned',crossWeek:!!schedule&&(dateKey(schedule.plannedAt).slice(0,7)!==month||weekOf(dateKey(schedule.plannedAt))!==item.week),schedule:schedule?{...schedule,plannedAt:schedule.plannedAt.toISOString(),actualAt:schedule.actualAt?.toISOString()??null}:null,history:assignment?.history??[]};
+  const pending=proposal?.status==='pending',effective=assignment?effectiveMonthlySchedule(assignment.history,assignment.scheduleId,item.scheduleId):item.scheduleId,ready=!!schedule&&effective===schedule.id&&(dateKey(schedule.plannedAt).startsWith(month)||!!schedule.actualAt&&dateKey(schedule.actualAt).startsWith(month)||assignment?.history.some(h=>h.phase==='applied'));
+  return {...item,ordinal:allPlanItems(plan).filter(i=>i.groupId===item.groupId).findIndex(i=>i.id===item.id)+1,group:groups.find(g=>g.id===item.groupId)!,addition:!!batch,reason:batch?.reason??'',deadline,submittedAt:assignment?.firstSubmittedAt?.toISOString()??null,timely:deadline&&assignment?.firstSubmittedAt?assignment.firstSubmittedAt.getTime()<=new Date(deadline).getTime():null,overdue:!!deadline&&now.getTime()>new Date(deadline).getTime()&&!assignment?.firstSubmittedAt,pending,linked:ready,status:pending?'pending':ready?'scheduled':proposal&&['rejected','obsolete'].includes(proposal.status)?'rejected':'unassigned',crossWeek:!!schedule&&(dateKey(schedule.plannedAt).slice(0,7)!==month||weekOf(dateKey(schedule.plannedAt))!==item.week),schedule:schedule?{...schedule,plannedAt:schedule.plannedAt.toISOString(),actualAt:schedule.actualAt?.toISOString()??null}:null,history:assignment?.history??[]};
  });
  return {id:plan.id,month,meetingId:plan.meetingId,revision:plan.revision,content:plan.content,additions:plan.additions,firstFinalizedAt:plan.firstFinalizedAt?.toISOString()??null,sourceVersionId:plan.sourceVersionId,lockedAt:plan.lockedAt?.toISOString()??null,lockedByVersionId:plan.lockedByVersionId,items};
 }
@@ -99,6 +101,7 @@ export async function lockReferencedMonthlyPlan(db:Database,ref:{id:string;expec
 }
 export async function deleteUnpublishedMonthlyPlan(db:Database,meetingId:string){const plans=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,meetingId));if(plans.some(p=>p.firstFinalizedAt))throw new WorkflowError('已有生效月计划，不能删除。',409);await db.delete(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,meetingId));}
 
+class MonthlyPlanSourceRequired extends WorkflowError {override readonly code='MONTHLY_PLAN_SOURCE_REQUIRED' as const;constructor(){super('执行月的月计划已定稿，请选择原计划名额或明确追加。当前输入已保留。',422);}}
 export type MonthlyScheduleInput={planId:string;itemId:string;requestId:string;reason:string;expectedRevision:number};
 export function monthlyScheduleInput(form:FormData):MonthlyScheduleInput|null{
  const planId=String(form.get('monthlyPlanId')??'');if(!planId)return null;
@@ -112,19 +115,36 @@ async function claim(db:Database,input:MonthlyScheduleInput,scheduleId:string|nu
  if(!item){if(input.itemId||!input.reason)throw new WorkflowError('计划外追加请填写原因。',422);const content:PlanContent={groups:[{id:itemId,annualPlanId:null,annualVersion:null,name:details.name,subjectId:details.subjectId,categoryId:details.categoryId!,quantity:1,note:'',reason:input.reason}],items:[{id:itemId,groupId:itemId,week:weekOf(dateKey(details.plannedAt)),kind:'new',scheduleId:null}]};
   const batch={id:itemId,at:now.toISOString(),actor,reason:input.reason,content};await db.update(s.operationsMonthlyPlan).set({additions:[...plan.additions,batch],revision:plan.revision+1,updatedAt:now}).where(eq(s.operationsMonthlyPlan.id,plan.id));item=content.items[0];group=content.groups[0];
  }
+ if(item.scheduleId&&item.scheduleId!==scheduleId)throw new WorkflowError('请使用原计划明确指定的已有排期。',422);
+ const reserved=await pendingMonthlyLinks(db,plan.id);if(reserved.some(p=>p.id!==proposalId&&p.input.groupId===item!.groupId&&p.input.week===item!.week))throw new WorkflowError('这个来源正在审核关联，请先处理。',422);if(scheduleId&&reserved.some(p=>p.id!==proposalId&&p.input.scheduleIds.includes(scheduleId)))throw new StaleWriteError('该帖子刚被预留关联，请刷新页面。');
  if(group!.subjectId!==details.subjectId||group!.categoryId!==details.categoryId)throw new WorkflowError('帖子学科或分类与所选计划不一致，请更换来源。',422);
  const cross=dateKey(details.plannedAt).slice(0,7)!==plan.month||weekOf(dateKey(details.plannedAt))!==item.week;if(cross&&!input.reason)throw new WorkflowError('跨Week安排请填写调整原因。',422);
  const [old]=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,plan.id),eq(s.operationsMonthlyPlanAssignment.itemId,itemId))).for('update');
  if(old?.proposalId&&old.proposalId!==proposalId){const [proposal]=await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,old.proposalId));if(proposal?.status==='pending')throw new WorkflowError('该名额已有待审核提交，请先处理。',409);}
- if(old?.scheduleId&&old.scheduleId!==scheduleId)throw new WorkflowError('这个原计划名额已关联其他排期。',409);
- if(scheduleId){const occupied=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,plan.id),eq(s.operationsMonthlyPlanAssignment.scheduleId,scheduleId)));if(occupied.some(a=>a.itemId!==itemId))throw new WorkflowError('同一排期不能重复占用本月名额。',409);}
- const values={scheduleId:scheduleId??old?.scheduleId??null,proposalId,firstSubmittedAt:old?.firstSubmittedAt??now,updatedAt:now,history:[...(old?.history??[]),{phase:proposalId&&!proposalScope.getStore()?'submitted' as const:'applied' as const,at:now.toISOString(),actor,...(scheduleId?{scheduleId}:{}),...(proposalId?{proposalId}:{}),reason:input.reason}]};
+ if(old?.scheduleId&&old.scheduleId!==scheduleId)throw new StaleWriteError('这个原计划名额刚被关联到其他排期，请刷新页面。');
+ if(scheduleId){const occupied=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,plan.id),eq(s.operationsMonthlyPlanAssignment.scheduleId,scheduleId)));if(occupied.some(a=>a.itemId!==itemId))throw new StaleWriteError('该帖子刚被关联到其他名额，请刷新页面。');}
+ let firstSubmittedAt=old?.firstSubmittedAt??null;
+ if(!firstSubmittedAt&&scheduleId){
+  const [post]=await db.select({id:s.operationsContentSchedule.id,createdAt:s.operationsContentSchedule.createdAt,planEffectiveAt:s.operationsContentSchedule.planEffectiveAt,versionCreatedAt:s.operationsContentVersion.createdAt,versionUpdatedAt:s.operationsContentVersion.updatedAt}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(eq(s.operationsContentSchedule.id,scheduleId));
+  if(post)firstSubmittedAt=await monthlySubmittedAt(db,post,now);
+ }
+ const values={scheduleId:scheduleId??old?.scheduleId??null,proposalId,firstSubmittedAt:firstSubmittedAt??now,updatedAt:now,history:[...(old?.history??[]),{phase:proposalId&&!proposalScope.getStore()?'submitted' as const:'applied' as const,at:now.toISOString(),actor,...(scheduleId?{scheduleId}:{}),...(proposalId?{proposalId}:{}),reason:input.reason}]};
  if(old)await db.update(s.operationsMonthlyPlanAssignment).set(values).where(eq(s.operationsMonthlyPlanAssignment.id,old.id));else await db.insert(s.operationsMonthlyPlanAssignment).values({planId:plan.id,itemId,...values});
 }
 export async function claimMonthlySchedule(db:Database,input:MonthlyScheduleInput|null,scheduleId:string,actor:string,creating=false){
  const [row]=await db.select({subjectId:s.operationsContentVersion.subjectId,categoryId:s.operationsContentVersion.categoryId,name:s.operationsContentVersion.contentName,plannedAt:s.operationsContentSchedule.plannedPublishAt}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(eq(s.operationsContentSchedule.id,scheduleId));
- if(input){if(input.itemId&&!creating){const linked=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,input.planId),eq(s.operationsMonthlyPlanAssignment.itemId,input.itemId)));if(!linked.some(a=>a.scheduleId===scheduleId))throw new WorkflowError('未关联帖子事后纳入须选择追加项，不能占用原空名额。',422);}await claim(db,input,scheduleId,proposalScope.getStore()??null,actor,row);}
- else{const linked=await db.select().from(s.operationsMonthlyPlanAssignment).where(eq(s.operationsMonthlyPlanAssignment.scheduleId,scheduleId));if(linked.length)throw new WorkflowError('请保留月计划来源，并填写必要的跨周调整原因。',422);}
+ if(input){await claim(db,input,scheduleId,proposalScope.getStore()??null,actor,row);}
+ else{
+  if(creating){
+   const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.month,dateKey(row.plannedAt).slice(0,7)));
+   if(plan?.firstFinalizedAt){
+    const proposalId=proposalScope.getStore(),[proposal]=proposalId?await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,proposalId)):[];
+    const acceptedBeforeFinal=proposal?.target==='new'&&proposal.path==='/api/operations-content'&&proposal.createdAt<plan.firstFinalizedAt;
+    if(!acceptedBeforeFinal)throw new MonthlyPlanSourceRequired();
+   }
+  }
+  const linked=await db.select().from(s.operationsMonthlyPlanAssignment).where(eq(s.operationsMonthlyPlanAssignment.scheduleId,scheduleId));if(linked.length)throw new WorkflowError('请保留月计划来源，并填写必要的跨周调整原因。',422);
+ }
 }
 export async function reserveMonthlyProposal(db:Database,proposalId:string,request:Request,actor:string){
  if(!request.headers.get('content-type')?.includes('form'))return;const form=await request.clone().formData(),input=monthlyScheduleInput(form);if(!input)return;

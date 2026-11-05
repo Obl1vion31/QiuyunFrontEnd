@@ -31,3 +31,5 @@
 账号管理的行结构由 `BusinessAccountRow.astro` 共用；`account-management.ts` 处理新增、改名及改号，服务端复用 `auth/identifiers.ts` 边界与 `auth/provision.ts` 事务创建。标识解析在 Better Auth 之前完成，密码验证和会话仍由原认证服务负责。
 
 七个工作台页的head共用 `BusinessConsoleFonts`；`styles/business-font-assets.ts` 为 `pages/fonts/business.css.ts` 与 `business.js.ts` 构建生成共享静态字体资源，常用原始切片在正文解析前同步准备，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
+
+排期月历的计划来源由`MonthlyCalendarPlan`呈现Week进度及分组，直接勾选由`monthly-calendar-links`处理；批量关联接口`/api/monthly-plans/:id/links`复用排期编辑授权和原审批。原计划来源、名额及历史快照不被补关联重写。

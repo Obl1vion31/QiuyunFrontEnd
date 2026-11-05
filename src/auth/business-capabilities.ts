@@ -26,6 +26,7 @@ export const permissionModes: Record<PermissionMode,string> = {disabled:'关闭'
 /** 只有已接入授权事务的明确写入入口可越过旧角色总门禁。未知写入仍限管理员。 */
 export function isConfigurableBusinessWrite(path:string,method:string){
   path=path.replace(/\/+$/,'');
+  if(method==='POST'&&/^\/api\/monthly-plans\/[^/]+\/links$/.test(path))return true;
   if(method==='POST')return /^\/api\/(?:non-promotion-checkpoints|operations-annual-plans(?:\/[^/]+\/restore|\/year\/\d{4}\/copy)?|operations-content(?:\/versions\/[^/]+\/revisions|\/[^/]+\/(?:delay-reasons|change-requests))?)$/.test(path);
   if(method==='PATCH')return /^\/api\/(?:operations-annual-plans\/(?:year\/\d{4}|[^/]+)|operations-content\/[^/]+(?:\/publication)?)$/.test(path);
   return method==='DELETE'&&/^\/api\/operations-content\/[^/]+$/.test(path);

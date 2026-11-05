@@ -27,6 +27,8 @@ export async function canonicalResources(db:Database,resources:string[]):Promise
    const rows=await db.select({id:s.operationsContentSchedule.id}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).where(eq(s.operationsContentVersion.contentId,id));result.push(...rows.map(row=>`schedule:${row.id}`));
   }else if(kind==='plan'){
    const [row]=await db.select().from(s.operationsAnnualPlan).where(eq(s.operationsAnnualPlan.id,id));if(!row)throw new WorkflowError('规划不存在。',404);result.push(`year:${row.year}:plan:${id}`);
+  }else if(kind==='monthly'){
+   const [row]=await db.select({id:s.operationsMonthlyPlan.id}).from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,id));if(!row)throw new WorkflowError('月计划不存在。',404);result.push('monthly:'+id);
   }else if(kind==='stageReview'){
    const [row]=await db.select().from(s.operationsPromotionStageReview).where(eq(s.operationsPromotionStageReview.id,id));if(!row)throw new WorkflowError('阶段复盘不存在。',404);result.push('promotion-stage-reviews');
   }else if(kind==='meetingVersion'){

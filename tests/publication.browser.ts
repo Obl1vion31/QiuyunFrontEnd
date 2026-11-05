@@ -5,6 +5,7 @@ import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {eq} from 'drizzle-orm';
+import {scheduleWriteVersion} from '../src/db/schedule-write-version';
 import {startFixture,admin,employee} from './auth.fixture';
 import * as schema from '../src/db/schema';
 const clockFile=new URL('../.tools/test-artifacts/nonpromotion-plans/publication-clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-15T12:00:00+08:00');const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;let browser:any;
@@ -28,12 +29,15 @@ try{
  }
  await create('虚构正常待发');
  const id=await create('虚构未来发布'),endpoint=`/api/operations-content/${id}`;
- const sent={actualPublishAt:future,publicationUrl:share,projectDocUrl:'https://fictional.example.test/project',expectedPlanRevision:'0',expectedPublicationRevision:'0'};
+ const readVersion=async()=>{const [row]=await db.select({value:scheduleWriteVersion}).from(schema.operationsContentSchedule).innerJoin(schema.operationsContentVersion,eq(schema.operationsContentVersion.id,schema.operationsContentSchedule.contentVersionId)).innerJoin(schema.operationsContent,eq(schema.operationsContent.id,schema.operationsContentVersion.contentId)).where(eq(schema.operationsContentSchedule.id,id));return row.value;};
+ const sent={expectedWriteVersion:await readVersion(),actualPublishAt:future,publicationUrl:share,projectDocUrl:'https://fictional.example.test/project',expectedPlanRevision:'0',expectedPublicationRevision:'0'};
  await call(endpoint+'/publication','PATCH',staff,{...sent,publicationUrl:''},422);
  await call(endpoint+'/publication','PATCH',staff,{...sent,publicationUrl:'https://xhslink.cn.evil.test/o/abc'},422);
  await call(endpoint+'/workflow?actual='+encodeURIComponent(future),'GET',staff);
  await call(endpoint+'/publication','PATCH',staff,sent);
  let w=await call(endpoint+'/workflow','GET',staff);assert.equal(w.publicationState,'published');assert.equal(w.schedule.publicationUrl,link);assert.equal(w.schedule.actualPublishAt,new Date(future+':00+08:00').toISOString());assert.equal(w.publicationReservations.length,0);
+ // 新一轮编辑先读取版本；以下并发请求复用同一读取，不能各自获取最新凭据。
+ sent.expectedWriteVersion=await readVersion();
  await call(endpoint+'/publication','PATCH',staff,{...sent,expectedPublicationRevision:'1',actualPublishAt:time(new Date(now.getTime()+7200000)),correctionReason:'员工回改'},403);
  const races=await Promise.all(['abc','def'].map(key=>fetch(baseURL+endpoint+'/publication',{method:'PATCH',headers:{Origin:baseURL,Cookie:staff},body:form({...sent,expectedPublicationRevision:'1',publicationUrl:'https://xhslink.com/o/'+key})})));
  assert.deepEqual(races.map(r=>r.status).sort(),[200,409]);

@@ -8,6 +8,7 @@ export function writeResources(path:string,method:string,data:Record<string,unkn
   if(id==='year')return [...new Set([parts[3],text('targetYear')].filter(Boolean))].map(year=>`year:${year}`);
   return id?[`plan:${id}`]:data.year?[`year:${String(data.year)}`]:[];
  }
+ if(kind==='monthly-plans'&&parts[3]==='links')return id?['monthly:'+id]:[];
  if(kind==='operations-content'){
   if(parts[3]==='platform-note-id')return [`content:${id}`];
   if(id==='versions')return text('sourceScheduleId')?[`schedule:${text('sourceScheduleId')}`]:[];
