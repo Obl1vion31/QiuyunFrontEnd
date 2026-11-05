@@ -47,7 +47,7 @@ try{
  const partial=await input(plan.id,groups[0].id,2,[pre.id]);const saved=await api(staff,path,partial);
  assert.equal(saved.plan.items.length,5);assert.equal(saved.plan.linkGroups[0].remaining,1);assert.equal(saved.plan.revision,1);
  assert.equal((await db.select().from(s.operationsContentSchedule)).length,countBefore);
- const rowsBeforeRetry=await db.select().from(s.operationsMonthlyPlanAssignment);await api(staff,path,partial);
+ const rowsBeforeRetry=await db.select().from(s.operationsMonthlyPlanAssignment);assert.equal(rowsBeforeRetry.length,1,'未选名额不创建空业务历史');assert.equal(rowsBeforeRetry[0].history[0].scheduleName,fields.contentName);await api(staff,path,partial);
  assert.deepEqual(await db.select().from(s.operationsMonthlyPlanAssignment),rowsBeforeRetry);
  const second=await input(plan.id,groups[0].id,2,[pre.id,legacy.schedule.id]);await api(staff,path,second);
  const read=await api(staff,'/api/monthly-plans?id='+plan.id);assert.equal(read.plan.linkGroups[0].linked,2);assert.equal(read.plan.linkGroups[0].remaining,0);
@@ -60,7 +60,8 @@ try{
  mark('超量／不同类型整批拒绝；全月同类跨Week需原因且不改日期，Week 5 正常');
  const correction=await input(plan.id,groups[0].id,2,[legacy.schedule.id],'纠正提前录入的对应关系');await api(staff,path,correction);
  const corrected=(await api(staff,'/api/monthly-plans?id='+plan.id)).plan;assert.equal(corrected.linkGroups[0].linked,1);assert.equal(corrected.items.length,5);
- assert(corrected.items.some((i:any)=>i.history.some((h:any)=>h.previousScheduleId===pre.id)));
+ assert(corrected.items.some((i:any)=>i.history.some((h:any)=>h.previousScheduleId===pre.id&&h.previousScheduleName===fields.contentName)));
+ const historyPage=await fetch(baseURL+'/business/monthly-operations?month=2026-11',{headers:{Cookie:staff}});assert.equal(historyPage.status,200);assert((await historyPage.text()).includes('解除关联：'+fields.contentName));
  const retained=await db.select().from(s.operationsMonthlyPlanAssignment);assert(retained.some(a=>a.firstSubmittedAt&&a.firstSubmittedAt<=new Date('2026-11-03T04:00Z')));
  await api(staff,path,await input(plan.id,groups[0].id,2,[],'解除错误关联'));assert.equal((await api(staff,'/api/monthly-plans?id='+plan.id)).plan.linkGroups[0].linked,0);
  assert.equal((await db.select().from(s.operationsContentSchedule)).length,countBefore);

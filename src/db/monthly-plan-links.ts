@@ -91,13 +91,15 @@ export async function saveMonthlyLinks(db:Database,planId:string,input:MonthlyLi
  if(!locked)throw new WorkflowError('月计划不存在。',404);
  if(!reserve&&!proposalId){const repeated=await repeatedMonthlyLinks(db,planId,input);if(repeated)return repeated;}
  const checked=await validateLinks(db,planId,input,proposalId),now=new Date(),hash=linkRequestHash(input);
- // 先释放本批次旧关联，避免交换配对时碰到唯一索引；事务失败会全部恢复。
- if(!reserve&&checked.old.length)await db.update(s.operationsMonthlyPlanAssignment).set({scheduleId:null}).where(inArray(s.operationsMonthlyPlanAssignment.id,checked.old.map(a=>a.id)));
- for(const desired of checked.desired){
+ // 未改变的名额不产生业务历史；请求键保存在真实变更记录中。
+ const changes=checked.desired.filter(d=>d.scheduleId!==(checked.old.find(a=>a.itemId===d.itemId)?.scheduleId??null));
+ const changedRows=checked.old.filter(a=>changes.some(d=>d.itemId===a.itemId));
+ if(!reserve&&changedRows.length)await db.update(s.operationsMonthlyPlanAssignment).set({scheduleId:null}).where(inArray(s.operationsMonthlyPlanAssignment.id,changedRows.map(a=>a.id)));
+ for(const desired of changes){
   const old=checked.old.find(a=>a.itemId===desired.itemId),post=checked.posts.find(p=>p.id===desired.scheduleId);
   const first=old?.firstSubmittedAt??(post?await monthlySubmittedAt(db,post,now):null);
   const entry={phase:reserve?'submitted' as const:'applied' as const,at:now.toISOString(),actor,reason:input.reason,...(proposalId?{proposalId}:{}),...(desired.scheduleId?{scheduleId:desired.scheduleId}:{}),
-   previousScheduleId:old?.scheduleId??null,linkRequestId:input.requestId,linkRequestHash:hash,action:'link' as const};
+   previousScheduleId:old?.scheduleId??null,previousScheduleName:checked.posts.find(p=>p.id===old?.scheduleId)?.name??null,scheduleName:post?.name??null,linkRequestId:input.requestId,linkRequestHash:hash,action:'link' as const};
   const values={scheduleId:reserve?old?.scheduleId??null:desired.scheduleId,proposalId:reserve&&desired.scheduleId!==(old?.scheduleId??null)?proposalId??null:null,firstSubmittedAt:first,updatedAt:now,history:[...(old?.history??[]),entry]};
   if(old)await db.update(s.operationsMonthlyPlanAssignment).set(values).where(eq(s.operationsMonthlyPlanAssignment.id,old.id));
   else await db.insert(s.operationsMonthlyPlanAssignment).values({planId,itemId:desired.itemId,...values});

@@ -123,12 +123,13 @@ async function claim(db:Database,input:MonthlyScheduleInput,scheduleId:string|nu
  if(old?.proposalId&&old.proposalId!==proposalId){const [proposal]=await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,old.proposalId));if(proposal?.status==='pending')throw new WorkflowError('该名额已有待审核提交，请先处理。',409);}
  if(old?.scheduleId&&old.scheduleId!==scheduleId)throw new StaleWriteError('这个原计划名额刚被关联到其他排期，请刷新页面。');
  if(scheduleId){const occupied=await db.select().from(s.operationsMonthlyPlanAssignment).where(and(eq(s.operationsMonthlyPlanAssignment.planId,plan.id),eq(s.operationsMonthlyPlanAssignment.scheduleId,scheduleId)));if(occupied.some(a=>a.itemId!==itemId))throw new StaleWriteError('该帖子刚被关联到其他名额，请刷新页面。');}
+ if(old?.scheduleId===scheduleId&&old.firstSubmittedAt&&!input.reason&&!proposalId)return;
  let firstSubmittedAt=old?.firstSubmittedAt??null;
  if(!firstSubmittedAt&&scheduleId){
   const [post]=await db.select({id:s.operationsContentSchedule.id,createdAt:s.operationsContentSchedule.createdAt,planEffectiveAt:s.operationsContentSchedule.planEffectiveAt,versionCreatedAt:s.operationsContentVersion.createdAt,versionUpdatedAt:s.operationsContentVersion.updatedAt}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(eq(s.operationsContentSchedule.id,scheduleId));
   if(post)firstSubmittedAt=await monthlySubmittedAt(db,post,now);
  }
- const values={scheduleId:scheduleId??old?.scheduleId??null,proposalId,firstSubmittedAt:firstSubmittedAt??now,updatedAt:now,history:[...(old?.history??[]),{phase:proposalId&&!proposalScope.getStore()?'submitted' as const:'applied' as const,at:now.toISOString(),actor,...(scheduleId?{scheduleId}:{}),...(proposalId?{proposalId}:{}),reason:input.reason}]};
+ const values={scheduleId:scheduleId??old?.scheduleId??null,proposalId,firstSubmittedAt:firstSubmittedAt??now,updatedAt:now,history:[...(old?.history??[]),{phase:proposalId&&!proposalScope.getStore()?'submitted' as const:'applied' as const,at:now.toISOString(),actor,...(scheduleId?{scheduleId}:{}),...(proposalId?{proposalId}:{}),reason:input.reason,...(!old?.scheduleId?{action:'link' as const,previousScheduleId:null,previousScheduleName:null,scheduleName:details.name}:{})}]};
  if(old)await db.update(s.operationsMonthlyPlanAssignment).set(values).where(eq(s.operationsMonthlyPlanAssignment.id,old.id));else await db.insert(s.operationsMonthlyPlanAssignment).values({planId:plan.id,itemId,...values});
 }
 export async function claimMonthlySchedule(db:Database,input:MonthlyScheduleInput|null,scheduleId:string,actor:string,creating=false){

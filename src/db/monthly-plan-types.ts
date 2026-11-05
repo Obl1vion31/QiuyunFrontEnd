@@ -8,12 +8,19 @@ export type PlanGroup = {id:string; annualPlanId:string|null; annualVersion:numb
 export type PlanItem = {id:string; groupId:string; week:number|null; kind:'new'|'carry'|'existing'; scheduleId:string|null};
 export type PlanContent = {groups:PlanGroup[]; items:PlanItem[]};
 export type PlanBatch = {id:string; at:string; actor:string; reason:string; content:PlanContent};
-export type PlanAssignmentHistory = {phase?:'submitted'|'applied';at:string; actor:string; proposalId?:string; scheduleId?:string; reason:string;action?:'link';previousScheduleId?:string|null;linkRequestId?:string;linkRequestHash?:string};
+export type PlanAssignmentHistory = {phase?:'submitted'|'applied';at:string; actor:string; proposalId?:string; scheduleId?:string; reason:string;action?:'link';previousScheduleId?:string|null;previousScheduleName?:string|null;scheduleName?:string|null;linkRequestId?:string;linkRequestHash?:string};
 /** 当前生效配对由最后一次已应用事件决定，解除历史不能让后来的待审配对提前生效。 */
 export function effectiveMonthlySchedule(history:PlanAssignmentHistory[],scheduleId:string|null,sourceScheduleId:string|null){
  const last=[...history].reverse().find(h=>h.phase==='applied'||!h.phase&&!h.proposalId);
  if(last)return last.scheduleId??null;
  return history.some(h=>h.phase==='submitted')?sourceScheduleId:scheduleId??sourceScheduleId;
+}
+export function monthlyAssignmentDescription(event:PlanAssignmentHistory){
+ if(event.action!=='link')return event.reason;
+ const before=event.previousScheduleName??(event.previousScheduleId?'原排期':'未关联');
+ const after=event.scheduleName??(event.scheduleId?'所选排期':'未关联');
+ const change=event.phase==='submitted'?'提交关联审核：'+before+' → '+after:!event.previousScheduleId?'关联：'+after:!event.scheduleId?'解除关联：'+before:before+' → '+after;
+ return change+(event.reason?' · '+event.reason:'');
 }
 export const emptyCounts = ():PrivateCounts => ({added:null, consulted:null, converted:null});
 export function adjacentMonth(month:string, offset:number) {const date=new Date(`${month}-01T00:00:00Z`);date.setUTCMonth(date.getUTCMonth()+offset);return date.toISOString().slice(0,7);}
