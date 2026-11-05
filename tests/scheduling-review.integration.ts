@@ -1,0 +1,109 @@
+import assert from 'node:assert/strict';
+import {effectiveBusinessPermissions,updateAccountPermissions} from '../src/auth/business-permissions';
+import {randomUUID} from 'node:crypto';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {eq} from 'drizzle-orm';
+import {startPostgresFixture} from './postgres.fixture';
+import {seedLinkPost,seedLinkPlan} from './monthly-plan-links.fixture';
+import {admin,employee} from './auth.fixture';
+import {discussionFromDraft} from '../src/db/meeting-discussion-values';
+import * as s from '../src/db/schema';
+const out='.tools/test-artifacts/scheduling-review';await mkdir(out,{recursive:true});
+const clockFile=new URL('../'+out+'/clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-05T12:00:00+08:00');
+const f=await startPostgresFixture({clockFile}),{db,baseURL}=f;const checks:string[]=[];
+const mark=(text:string)=>{checks.push(text);console.log('PASS '+text);};
+async function login(actor:any){const r=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');}
+let boss='',staff='';
+const fields=(name:string,date='2026-11-10T10:00')=>({contentName:name,subjectId:'tmua',categoryId:'promotional-handout',plannedPublishAt:date,promotionStatus:'none',projectDocUrl:'',operationType:'non_promotion_standard'});
+async function request(cookie:string,path:string,body?:any,method='POST',form=false){
+ const data=form?new FormData():null;if(data)for(const[k,v]of Object.entries(body))data.set(k,String(v));
+ const response=await fetch(baseURL+path,{method:body===undefined?'GET':method,headers:{Cookie:cookie,Origin:baseURL,Accept:'application/json',...(body&&!form?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:form?data:JSON.stringify(body)});
+ const text=await response.text();let value:any;try{value=JSON.parse(text);}catch{value=text;}return {status:response.status,value};
+}
+async function api(cookie:string,path:string,body?:any,status=200,method='POST',form=false){const r=await request(cookie,path,body,method,form);assert.equal(r.status,status,JSON.stringify({path,...r}));return r.value;}
+async function meeting(id:string){return (await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,id)))[0];}
+async function versions(id:string){return (await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,id))).sort((a,b)=>b.versionNumber-a.versionNumber);}
+try{
+ boss=await login(admin);staff=await login(employee);
+ const carry=await seedLinkPost(db,'隔离上月遗留','2026-10-31T10:00');
+ await api(boss,'/api/operations-content',fields('未确认预排期的新帖'),422,'POST',true);
+ await api(boss,'/api/operations-content/'+carry.schedule.id,{...fields('遗留不应提前改动','2026-11-10T10:00'),planChangeReason:'提前移动',expectedPlanRevision:0},422,'PATCH',true);
+ const created=await api(boss,'/api/meeting-reviews',{meetingType:'monthly',meetingAt:'2026-11-05T16:00',periodStart:'2026-10-01',periodEnd:'2026-10-31'},201,'POST',true);
+ const row=await meeting(created.id),draft:any=structuredClone(row.draftSnapshot),group=randomUUID();
+ Object.assign(draft,{situation:'隔离衡量',strategy:'隔离策略',coreConclusion:'隔离结论',nextAction:'隔离行动'});
+ draft.monthlyPlan.content={groups:[{id:group,annualPlanId:null,annualVersion:null,name:'TMUA 讲义',subjectId:'tmua',categoryId:'promotional-handout',quantity:2,note:'',reason:'例会确认'}],items:[{id:randomUUID(),groupId:group,week:1,kind:'carry',scheduleId:carry.schedule.id},{id:randomUUID(),groupId:group,week:2,kind:'new',scheduleId:null}]};
+ draft.monthlyPlan.editorSteps={original:'confirmed'};
+ const [initial]=await versions(created.id);
+ const save={action:'save_version_draft',draftVersionId:initial.id,draft,expectedUpdatedAt:row.updatedAt.toISOString()};
+ await api(staff,'/api/meeting-reviews/'+created.id,save,200,'PATCH');
+ await db.update(s.operationsContentSchedule).set({plannedPublishAt:new Date('2026-11-01T02:00Z')}).where(eq(s.operationsContentSchedule.id,carry.schedule.id));
+ await api(staff,'/api/meeting-reviews/'+created.id,save,200,'PATCH');
+ await db.update(s.operationsContentSchedule).set({plannedPublishAt:new Date('2026-10-31T02:00Z')}).where(eq(s.operationsContentSchedule.id,carry.schedule.id));
+ mark('预排期前新建与跨月移入均拒绝；遗留变月不再反向阻断同一份草稿');
+ const privateData={total:{added:20,consulted:30,converted:4},rows:[],note:'隔离数据'};
+ await api(staff,'/api/monthly-private-data',{month:'2026-10',expectedRevision:-1,data:privateData},200,'PATCH');
+ await api(staff,'/api/monthly-private-data',{month:'2026-10',expectedRevision:-1,data:{...privateData,total:{added:25,consulted:30,converted:4}}},200,'PATCH');
+ await api(boss,'/api/meeting-reviews/'+created.id,{...save,action:'finalize_version_draft',stage:'pre'},200,'PATCH');
+ const pre=(await versions(created.id)).find(v=>v.lifecycleStatus==='finalized')!;
+ const discussion=discussionFromDraft((await meeting(created.id)).draftSnapshot);
+ const finalPayload={action:'finalize_version_draft',stage:'post',sourceVersionId:pre.id,discussion,expectedUpdatedAt:'old-stamp'};
+ await api(staff,'/api/meeting-reviews/'+created.id,finalPayload,403,'PATCH');
+ await api(boss,'/api/meeting-reviews/'+created.id,finalPayload,200,'PATCH');
+ const plan=(await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,created.id)))[0],endpoint='/api/monthly-plans/'+plan.id+'/arrangement';
+ assert(plan.firstFinalizedAt);assert.equal(plan.sealedVersionId,null);
+ const newPost=await api(staff,'/api/operations-content',fields('首轮员工落实的讲义'),201,'POST',true);
+ await api(boss,'/api/operations-content/'+carry.schedule.id,{...fields('隔离上月遗留','2026-11-09T10:00'),planChangeReason:'预排期后接纳遗留',expectedPlanRevision:0},200,'PATCH',true);
+ const state=await api(staff,endpoint),submit={action:'submit',fingerprint:state.fingerprint,requestId:randomUUID(),reason:'两篇已落实，管理员核对'};
+ await api(staff,endpoint,submit);await api(staff,endpoint,submit);
+ assert.equal((await api(staff,endpoint)).stage,'review_pending');
+ await api(staff,'/api/operations-content',fields('待核对期间禁止新增'),403,'POST',true);
+ await api(staff,'/api/operations-content/'+newPost.id,{...fields('待核对禁止编辑'),expectedPlanRevision:0},403,'PATCH',true);
+ mark('管理员确认预排期才放行首轮；单帖暂存不锁月，整月提交幂等且待核对员工无法改排期');
+ await api(staff,'/api/operations-content/'+newPost.id+'/publication',{actualPublishAt:'2026-11-05T11:00',publicationUrl:'https://www.xiaohongshu.com/explore/0123456789abcdef01234567',projectDocUrl:'https://example.test/project',expectedPublicationRevision:0,expectedPlanRevision:0,dailyReasons:'[]'},200,'PATCH',true);
+ assert.equal((await api(boss,endpoint)).fingerprint,state.fingerprint,'实发不改变排期结构凭据');
+ await api(staff,'/api/operations-content/'+newPost.id+'/publication',{actualPublishAt:'2026-11-05T11:00',publicationUrl:'https://www.xiaohongshu.com/explore/0123456789abcdef01234567',projectDocUrl:'https://example.test/project',expectedPublicationRevision:1,expectedPlanRevision:0,dailyReasons:'[]',reviewMode:'instant',reviewDueOn:'2026-11-10'},403,'PATCH',true);
+
+ const returned={action:'return',fingerprint:state.fingerprint,requestId:randomUUID(),reason:'调整一处日期再提交'};
+ await api(boss,endpoint,returned);assert.equal((await api(staff,endpoint)).stage,'editing');
+ const second=await api(staff,endpoint);
+ await api(staff,endpoint,{...submit,requestId:randomUUID(),fingerprint:second.fingerprint});
+ const changed=await api(boss,'/api/operations-content/'+carry.schedule.id,{...fields('隔离上月遗留','2026-11-12T10:00'),planChangeReason:'管理员核对后调整',expectedPlanRevision:1},200,'PATCH',true);
+ assert(changed.ok);
+ await api(boss,endpoint,{action:'confirm',fingerprint:second.fingerprint,requestId:randomUUID(),reason:'旧核对不能确认'},409);
+ const current=await api(boss,endpoint),confirm={action:'confirm',fingerprint:current.fingerprint,requestId:randomUUID(),reason:'已核对修改和实发，确认封存'};
+ await api(boss,endpoint,confirm);await api(boss,endpoint,confirm);
+ const sealedPlan=(await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,plan.id)))[0];assert(sealedPlan.sealedVersionId);
+ const frozen=(await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,sealedPlan.sealedVersionId!)))[0].snapshot;
+ assert.equal((frozen as any).generated.monthly.privateData.data.total.added,25);
+ assert.equal(sealedPlan.content.items.length,2);assert(sealedPlan.content.items.every(i=>i.scheduleId));
+ await api(boss,'/api/meeting-reviews/'+created.id,finalPayload,403,'PATCH');
+ await api(boss,'/api/meeting-reviews/'+created.id,{},403,'DELETE');
+ await api(boss,'/api/meeting-attachments',{meetingId:created.id},403,'POST',true);
+ mark('待核对真实实发正常；退回重交、管理员改后必须更新核对，确认冻结最新月度数据且整场拒绝再编辑');
+ await api(staff,'/api/operations-content',fields('封存后的临时新增'),422,'POST',true);
+ const extra=await api(staff,'/api/operations-content',{...fields('封存后的临时新增'),changeReason:'业务临时需要'},201,'POST',true);
+ await api(boss,'/api/operations-content/'+extra.id,{reason:'本月不再需要'},200,'DELETE');
+ assert((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,extra.id)))[0].cancelledAt);
+ const contentCount=(await db.select().from(s.operationsContent)).length;assert.equal(contentCount,3);
+ assert.deepEqual((await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,plan.id)))[0].content,sealedPlan.content);
+ assert.deepEqual((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,sealedPlan.sealedVersionId!)))[0].snapshot,frozen);
+ await api(boss,'/api/operations-content/'+newPost.id,{reason:'不应删除实发'},422,'DELETE');
+ await api(boss,'/api/operations-content/'+carry.schedule.id,{...fields('禁止直接跨入未预排期12月','2026-12-01T10:00'),expectedPlanRevision:2,planChangeReason:'跨月',changeReason:'跨月'},422,'PATCH',true);
+ mark('封存后临时新增及取消只改执行历史，不动基准；取消保留内容，实发不能取消，未预排期下月不能直接延期');
+ const racePlan=await seedLinkPlan(db,{month:'2026-12',final:true});
+ const raceEndpoint='/api/monthly-plans/'+racePlan.plan.id+'/arrangement',beforeRace=await api(staff,raceEndpoint);
+ const raced=await Promise.all([request(staff,raceEndpoint,{action:'submit',fingerprint:beforeRace.fingerprint,requestId:randomUUID(),reason:'并发提交'}),request(staff,'/api/operations-content',fields('同时新增','2026-12-10T10:00'),'POST',true)]);
+ assert(raced[0].status===200&&raced[1].status===403||raced[0].status===409&&raced[1].status===201,JSON.stringify(raced));
+ mark('整月提交与新增真实并发：提交胜出则新增拒绝，新增胜出则重新核对，不能在待核对后写入');
+ 
+ const approvalPlan=await seedLinkPlan(db,{month:'2027-01',final:true});
+ const [staffUser]=await db.select().from(s.authUser).where(eq(s.authUser.username,employee.username)),[adminUser]=await db.select().from(s.authUser).where(eq(s.authUser.username,admin.username));
+ const staffActor={id:staffUser.id,username:staffUser.username!,role:'employee' as const},adminActor={id:adminUser.id,username:adminUser.username!,role:'admin' as const};
+ const oldPermissions=await effectiveBusinessPermissions(db,staffActor);assert(await updateAccountPermissions(db,adminActor,staffActor.id,{...oldPermissions,'schedule.create':'review'},oldPermissions));
+ const proposal=await api(staff,'/api/operations-content',fields('旧申请批准仍检查月度阶段','2027-01-10T10:00'),202,'POST',true);
+ await db.update(s.operationsMonthlyPlan).set({arrangementStatus:'review_pending'}).where(eq(s.operationsMonthlyPlan.id,approvalPlan.plan.id));
+ await api(boss,'/api/business-change-proposals/'+proposal.requestId,{action:'approve',reason:'旧申请重放'},403,'PATCH');
+ assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,'旧申请批准仍检查月度阶段'))).length,0);
+ mark('已发布表单不能借附属信息修改独立复盘计划；封存附件写入拒绝；旧审批批准同样遵守待核对阶段');
+ await writeFile(out+'/integration.json',JSON.stringify({passed:true,checks},null,2));
+}catch(error){console.error(f.logs().slice(-5000));throw error;}finally{await f.stop();}

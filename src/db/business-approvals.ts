@@ -1,4 +1,5 @@
 import {monthlyLinksSchema,releaseMonthlyReservation} from './monthly-link-state';
+import {guardedScheduleWrite} from './schedule-edit-policy';
 import {monthlyLinksSnapshot,saveMonthlyLinks,repeatedMonthlyLinks} from './monthly-plan-links';
 import {WorkflowError} from './schedule-workflow';
 import {rolesForCategory} from './content-roles';
@@ -195,7 +196,7 @@ async function replay(path:string,method:string,request:Request,actor:Operations
   if(parts[1]==='monthly-plans'){params.id=parts[2];handler=(await import('../pages/api/monthly-plans/[id]/links')).POST;}
   if(parts[1]==='non-promotion-checkpoints')handler=(await import('../pages/api/non-promotion-checkpoints')).POST;
   if(!handler)throw new Error('未知业务入口。');
-  return await handler({request,url:new URL(request.url),params,locals:{user:actor,operationsUser:actor.username,session:null},redirect:(location:string,status=303)=>new Response(null,{status,headers:{Location:location}})} as APIContext);
+  return guardedScheduleWrite(getDb(),request,actor,async()=>await handler!({request,url:new URL(request.url),params,locals:{user:actor,operationsUser:actor.username,session:null},redirect:(location:string,status=303)=>new Response(null,{status,headers:{Location:location}})} as APIContext));
 }
 export async function decideProposal(id:string,approve:boolean,reason:string,actor:OperationsUser,origin:string){
   requireAdmin(actor);

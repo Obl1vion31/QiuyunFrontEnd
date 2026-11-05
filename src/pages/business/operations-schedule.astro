@@ -3,6 +3,8 @@ import {scheduleWriteVersion} from '../../db/schedule-write-version';
 import BusinessContentRoleFields from '../../components/BusinessContentRoleFields.astro';
 import {readMonthlyCalendar} from '../../db/monthly-plan-links';
 import MonthlyCalendarPlan from '../../components/MonthlyCalendarPlan.astro';
+import MonthlyArrangementPanel from '../../components/MonthlyArrangementPanel.astro';
+import {readArrangement} from '../../db/monthly-arrangement';
 import MonthlyScheduleFields from '../../components/MonthlyScheduleFields.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
@@ -21,7 +23,7 @@ import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astr
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
 import BusinessToolbarPeriodNav from '../../components/BusinessToolbarPeriodNav.astro';
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
-import { asc, desc, eq } from 'drizzle-orm';
+import { asc, desc, eq,isNull,isNotNull } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
@@ -44,13 +46,13 @@ const permissions=Astro.locals.businessPermissions=await effectiveBusinessPermis
 
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
-const selectedDisplay = Astro.url.searchParams.get('display') === 'ledger' || selectedView === 'promotion' || ['overdue','approvals','reasons'].includes(Astro.url.searchParams.get('status') ?? '') ? 'ledger' : 'calendar';
+const selectedDisplay = Astro.url.searchParams.get('display') === 'ledger' || selectedView === 'promotion' || ['overdue','approvals','reasons','cancelled'].includes(Astro.url.searchParams.get('status') ?? '') ? 'ledger' : 'calendar';
 if (['reservation_approvals','publication_due'].includes(Astro.url.searchParams.get('status') ?? '')) {
   const target = new URL(Astro.url); target.searchParams.delete('status'); target.searchParams.delete('display');
   return Astro.redirect(target.pathname + target.search, 302);
 }
 const requestedStatus = Astro.url.searchParams.get('status');
-const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
+const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons', 'cancelled'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
 const requestedPromotion = Astro.url.searchParams.get('promotion');
 const selectedPromotion = ['testing', 'test_paused', 'scaling', 'scaling_paused', 'test_pending', 'promotion_paused', 'awaiting_promotion', 'ended', 'test_discarded', 'formal_discarded'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
@@ -80,6 +82,8 @@ const selectedMonth = requestedMonthMatch
   ? requestedMonth
   : currentMonth;
 const calendarMonthlyPlan=selectedView==='schedule'&&selectedDisplay==='calendar'&&selectedStatus!=='approvals'?await readMonthlyCalendar(getDb(),selectedMonth):null;
+const arrangementState=await readArrangement(getDb(),selectedMonth);
+const monthCanCreate=arrangementState.stage!=='closed'&&(arrangementState.stage!=='review_pending'||Astro.locals.user?.role==='admin');
 const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
 const previousMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber - 2, 1)).toISOString().slice(0, 7);
 const nextMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 1)).toISOString().slice(0, 7);
@@ -146,6 +150,7 @@ try {
     .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
     .innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
+    .where(selectedStatus==='cancelled'?isNotNull(operationsContentSchedule.cancelledAt):isNull(operationsContentSchedule.cancelledAt))
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt)),
   teamScheduleNotifications(database),
   database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),
@@ -236,7 +241,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
               { label: '台账', href: hrefFor({ display: 'ledger' }), active: selectedDisplay === 'ledger' || selectedView === 'promotion' },
             ]} />
             <button class="filter-button toolbar-action-secondary" type="button" disabled title="更多筛选将在数据维度确认后开放">筛选</button>
-            <button class="primary-action" type="button" data-open-new data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
+            <button class="primary-action" type="button" data-open-new disabled={!monthCanCreate} data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
           </BusinessToolbarActions>
         </BusinessConsoleToolbar>
 
@@ -305,13 +310,14 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         </div>
               }
 
-      <MonthlyCalendarPlan month={selectedMonth} plan={calendarMonthlyPlan} calendar={selectedView==='schedule'&&selectedDisplay==='calendar'}/>
+      {selectedView==='schedule'&&<MonthlyArrangementPanel month={selectedMonth} state={arrangementState}/>}
+      <MonthlyCalendarPlan month={selectedMonth} plan={calendarMonthlyPlan} arrangement={arrangementState} calendar={selectedView==='schedule'&&selectedDisplay==='calendar'}/>
       {selectedView === 'schedule' && selectedDisplay === 'calendar' && <section class="calendar" aria-label={`${selectedMonth} 月历`}>
         <div class="calendar-legend" aria-label="月历颜色说明"><span class="publish-on_time">按时已发</span><span class="publish-delayed">延期已发</span><span class="publish-pending">待发布</span><span class="publish-missing">尚未登记</span><span class="promotion-identity promoted">推广</span></div>
         <div class="weekdays">{['日','一','二','三','四','五','六'].map((day) => <span>{day}</span>)}</div>
         <div class="calendar-grid">
           {calendarCells.map((cell) => <div data-calendar-day={cell.valid?cell.key:undefined} class:list={['calendar-day', { outside: !cell.valid, today: cell.key === dayKey(now) }]}>
-            {cell.valid && <><button type="button" class="day-number calendar-new" data-calendar-new={cell.key} aria-label={`${cell.key} 新建帖子`}><strong>{cell.day}</strong><span aria-hidden="true">＋</span></button><div class="calendar-items">
+            {cell.valid && <><button type="button" class="day-number calendar-new" disabled={!monthCanCreate} data-calendar-new={cell.key} aria-label={`${cell.key} 新建帖子`}><strong>{cell.day}</strong><span aria-hidden="true">＋</span></button><div class="calendar-items">
               {cell.rows.map((row) => <button type="button" data-inspect-id={row.id} class:list={['calendar-item', `publish-${isOverdue(row)?'missing':completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)}`]}
                 title={`V${row.versionNumber} ${row.contentName} · ${row.isPromoted?'推广':'非推广'} · 应发 ${displayDateTime(row.plannedPublishAt)} · ${isOverdue(row)?'尚未登记':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)]}`}
                 aria-label={`V${row.versionNumber} ${row.contentName}，${row.isPromoted?'推广':'非推广'}，应发 ${displayDateTime(row.plannedPublishAt)}，${isOverdue(row)?'尚未登记':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)]}`}>
@@ -351,7 +357,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 </details>
                 <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录" hidden></section>
                 <section class="inspector-section" data-promotion-state-history hidden></section>
-                <details class="inspector-danger" data-business-operation="schedule.delete" hidden={permissions['schedule.delete']==='disabled'}><summary>更多操作</summary><button type="button" data-inspector-delete>删除这条排期</button><small role="alert" data-inspector-delete-error></small></details>
+                <details class="inspector-danger business-form" data-business-operation="schedule.delete" hidden={Astro.locals.user?.role!=='admin'}><summary>更多操作</summary><label>取消排期原因<textarea data-inspector-cancel-reason rows="2" maxlength="2000"></textarea></label><button type="button" data-inspector-delete>取消这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
               <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </BusinessInspector>
@@ -390,6 +396,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 
           <BusinessDateTimeFields name="plannedPublishAt" dateName="plannedPublishDate" timeName="plannedPublishTime" dateLabel="应发日期" timeLabel="应发时间" label="应发时间" required><small data-error="plannedPublishAt"></small></BusinessDateTimeFields>
           <div class="field field-wide" data-plan-change-reason hidden><label for="planChangeReason">改期理由 <b>*</b></label><textarea id="planChangeReason" name="planChangeReason" rows="2" maxlength="500"></textarea><small data-error="planChangeReason"></small></div>
+          <div class="field field-wide" data-schedule-change-reason><label>本次安排／调整原因<textarea name="changeReason" rows="2" maxlength="2000" placeholder="月会封存后的新增与调整必须填写原因"></textarea></label></div>
           <div class="field field-wide field-options" role="group" aria-label="发布选项">
             <div class="promotion-field"><label class="promotion-toggle" hidden><input type="checkbox" name="isPromoted"/>推广帖</label><input id="promotionStatus" name="promotionStatus" type="hidden" value="none"/><output class="promotion-preview" data-promotion-preview hidden>非推广</output></div>
             <label><input type="checkbox" name="syncToMoments"/>同步朋友圈</label>
@@ -433,7 +440,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow, delayThresholdMs }}>
       if(document.querySelector('[data-inspector-name]')){
       const permissions=JSON.parse(document.querySelector('#business-permissions')?.textContent||'{}');
-      const mayOperate=key=>['direct','review'].includes(permissions[key]);
+      const mayOperate=key=>{const state=document.querySelector('[data-arrangement-stage]');const pending=state?.dataset.arrangementStage==='review_pending'&&state.dataset.arrangementRole==='employee';if(pending&&!['schedule.publish'].includes(key))return false;if(state?.dataset.arrangementStage==='closed'&&['schedule.create','schedule.revise','schedule.reschedule','schedule.overdueReschedule'].includes(key))return false;return ['direct','review'].includes(permissions[key]);};
       const rows = clientRows;
       const categories = clientCategories;
       const dialog = document.querySelector('#schedule-dialog');
@@ -518,6 +525,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           doc.setAttribute('aria-disabled', 'true');
         }
         inspectorRevise.hidden = record.childVersionNumber != null||!mayOperate('schedule.revise');
+        inspectorEdit.disabled=!mayOperate('schedule.edit')&&!mayOperate('schedule.reschedule')&&!mayOperate('schedule.overdueReschedule');
         inspectorDerived.hidden = record.childVersionNumber == null;
         inspectorDerived.textContent = record.childVersionNumber == null ? '' : `已派生 V${record.childVersionNumber}`;
         inspectorPublication.textContent = record.actualPublishAt ? '查看／编辑发布登记' : '发布登记';
@@ -525,7 +533,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         inspectorPublication.hidden=!mayOperate('schedule.publish')&&!(record.actualPublishAt&&mayOperate('schedule.correctPublication'));
         const post=inspector.querySelector('[data-inspector-post]');
         if(record.publicationUrl){post.href=record.publicationUrl;post.textContent='打开小红书帖子 ↗';}else{post.removeAttribute('href');post.textContent='';}
-        inspectorDeleteError.textContent = '';
+        inspectorDeleteError.textContent = '';document.querySelector('[data-inspector-cancel-reason]').value='';
         document.dispatchEvent(new CustomEvent('business:schedule-selected', { detail: record }));
       };
       inspector.addEventListener('business:inspector-render-record', event => fillInspector(rows.find(row => row.id === event.detail.id)));
@@ -709,14 +717,16 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       inspectorDelete?.addEventListener('click', async () => {
         const record = activeRecord;
         const error = inspectorDeleteError;
-        if (!record || inspectorDelete.disabled || !await window.businessConfirm(`确定删除“${record.contentName}”的排期吗？\n删除后无法恢复。`,{title:'删除排期',confirmLabel:'确认删除',cancelLabel:'取消'})) return;
+        const reason=document.querySelector('[data-inspector-cancel-reason]').value.trim();
+        if(!reason){error.textContent='请填写取消排期的原因。';return;}
+        if (!record || inspectorDelete.disabled || !await window.businessConfirm(`确定取消“${record.contentName}”的排期吗？帖子内容和历史会保留。`,{title:'取消排期',confirmLabel:'确认取消',cancelLabel:'继续查看'})) return;
         if(activeRecord?.id!==record.id)return;
         inspectorDelete.disabled=true;
         if (error) error.textContent = '';
         try {
           const response = await fetch(`/api/operations-content/${record.id}`, {
             method: 'DELETE',
-            headers: { Accept: 'application/json','Content-Type':'application/json' },body:JSON.stringify({expectedWriteVersion:record.writeVersion}),
+            headers: { Accept: 'application/json','Content-Type':'application/json' },body:JSON.stringify({reason}),
           });
           const result = await response.json();
           if (response.ok) {document.documentElement.dataset.unsaved='false'; window.location.reload(); return; }

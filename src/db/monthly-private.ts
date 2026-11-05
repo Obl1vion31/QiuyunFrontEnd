@@ -1,4 +1,3 @@
-import {StaleWriteError} from './schedule-workflow';
 import {eq} from 'drizzle-orm';
 import {z} from 'zod';
 import type {Database} from './client';
@@ -21,7 +20,7 @@ export async function readCostMapping(db:Database){
 export async function savePrivate(db:Database,input:z.infer<typeof privateInput>,actor:string){
  return db.transaction(async tx=>{await lockPromotionWorkflow(tx);const taxonomy=await readTaxonomy(tx);const keys=new Set<string>();
   for(const row of input.data.rows){const key=`${row.subjectId}:${row.demand}`;if(keys.has(key)||!taxonomy.subjects.some(s=>s.id===row.subjectId))throw new WorkflowError('学科明细重复或已失效，请核对。',422);keys.add(key);}
-  const [old]=await tx.select().from(privateTable).where(eq(privateTable.month,input.month)).for('update');if((old?.revision??-1)!==input.expectedRevision)throw new StaleWriteError('月度人数已被更新，输入已保留，请重新核对。');
+  const [old]=await tx.select().from(privateTable).where(eq(privateTable.month,input.month)).for('update');
   const data={...input.data,rows:input.data.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null))};
   const values={data,revision:(old?.revision??-1)+1,updatedAt:new Date(),updatedBy:actor,history:[...(old?.history??[]),{at:new Date().toISOString(),actor,data}]};
   if(old)await tx.update(privateTable).set(values).where(eq(privateTable.month,input.month));else await tx.insert(privateTable).values({month:input.month,...values});return values;
@@ -30,7 +29,7 @@ export async function savePrivate(db:Database,input:z.infer<typeof privateInput>
 export async function saveCostMapping(db:Database,input:z.infer<typeof mappingInput>,actor:string){
  return db.transaction(async tx=>{await lockPromotionWorkflow(tx);const existing=await readCostMapping(tx),valid=new Set(existing.taxonomy.subjectCategoryMappings.map(m=>`${m.subjectId}:${m.categoryId}`));
   if(Object.keys(input.entries).some(key=>!valid.has(key)))throw new WorkflowError('费用分类已变化，请重新核对。',422);
-  const [old]=await tx.select().from(mappingTable).where(eq(mappingTable.id,'global')).for('update');if((old?.revision??-1)!==input.expectedRevision)throw new StaleWriteError('费用映射已更新，请重新核对。');
+  const [old]=await tx.select().from(mappingTable).where(eq(mappingTable.id,'global')).for('update');
   const values={entries:input.entries,revision:(old?.revision??-1)+1,updatedAt:new Date(),updatedBy:actor,history:[...(old?.history??[]),{at:new Date().toISOString(),actor,entries:input.entries}]};
   if(old)await tx.update(mappingTable).set(values).where(eq(mappingTable.id,'global'));else await tx.insert(mappingTable).values({id:'global',...values});return values;
  });

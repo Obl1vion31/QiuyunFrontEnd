@@ -29,18 +29,7 @@ test('排期月份参数只接受有效年月', async () => {
   assert.match(page, /max: '2099-12'/);
 });
 
-test('删除移入 Inspector，实发登记保持唯一主动作', async () => {
-  const page = await readFile(pageUrl, 'utf8');
-  assert.doesNotMatch(page, /<th>操作<\/th>/);
-  assert.match(page, /<details class="inspector-danger" data-business-operation="schedule.delete"[^>]*>[\s\S]*data-inspector-delete>删除这条排期/);
-  assert.match(page, /data-inspector-publication[^>]*>发布登记/);
-  assert.match(page, /class="business-action-primary"/);
-  assert.doesNotMatch(page, /class="row-menu"/);
-  assert.doesNotMatch(page, /data-edit-id=/);
-  assert.doesNotMatch(page, /data-revise-id=/);
-  assert.match(page, /data-inspector-edit/);
-  assert.match(page, /data-inspector-revise/);
-});
+// 取消排期的可逆行为由 scheduling-review.integration.ts 使用真实接口与数据库验证。
 
 test('实发登记使用独立接口且项目文档只在登记时必填', async () => {
   const [page, validation, publication] = await Promise.all([
@@ -55,13 +44,4 @@ test('实发登记使用独立接口且项目文档只在登记时必填', async
   assert.match(publication, /confirmPromotionReset/);
 });
 
-test('删除接口保护版本链、推广和复盘数据并清理独立 V0', async () => {
-  const endpoint = await readFile(endpointUrl, 'utf8');
-  assert.match(endpoint, /export const DELETE: APIRoute/);
-  assert.match(endpoint, /\.for\('update'\)/);
-  assert.match(endpoint, /blockers\.versions \|\| blockers\.campaigns \|\| blockers\.performanceMetrics \|\| blockers\.reviews \|\| blockers\.usageEvents/);
-  assert.match(endpoint, /delete\(operationsContentSchedule\)/);
-  assert.match(endpoint, /delete\(operationsContentVersion\)/);
-  assert.match(endpoint, /delete\(operationsContent\)/);
-  assert.match(endpoint, /status: 409/);
-});
+// 取消排期的可逆行为由 scheduling-review.integration.ts 使用真实接口与数据库验证。

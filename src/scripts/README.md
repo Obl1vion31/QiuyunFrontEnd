@@ -33,10 +33,10 @@
 
 `promotion-note-id.ts` 负责首次 ID 的锚定气泡和只读查看，确认由同 contentId 草稿同步；已有 ID 更正仍走原确认入口。
 
-`business-collaboration.ts` 保留原实现，由统一配置暂停初始化，不创建监听、轮询或租约请求。`business-save-conflict.ts` 仅处理409／STALE_WRITE，暂停对象重试并调用公共单按钮刷新提示；`business-dialog.ts` 在明确确认后直接刷新，跳过重复的未保存确认。业务校验409和网络错误沿原容器处理。
+business-collaboration.ts 由统一配置停止初始化；business-save-conflict.ts 不再拦截 fetch 或强制刷新。业务校验、网络错误及需要重新核对的反馈由所属表单处理并保留输入。
 
 `post-lookup.ts` 负责只读查帖、版本回溯和原页链接；`account-management.ts` 负责现有账号改名、启停、密码重置与会话撤销，不创建账号或改变角色。
 
 `usage-guide.ts`仅管理当前角色章节的目录高亮、锚点与本页历史；窄屏目录复用`business-popover`。Frame在公共草稿保护之后派发可取消的`business:local-history-pop`，说明页仅认领同路径及查询的章节历史，阻止Astro重复换页；其他页面仍走原Inspector或导航。页面离开取消待执行帧、监听与观察器，不复制全局历史或气泡控制器。
 
-`monthly-calendar-links.ts`在现有月历卡片上完成计划选择、勾选、跨Week说明与批量保存；复用公共Inspector、未保存保护和STALE_WRITE刷新反馈。分组进度局部回显，首屏关联标记由SSR输出；`monthly-calendar.ts`继续负责原表单来源、同日确认及按目标月份补读，不建立定时器。
+monthly-arrangement.ts 在原月历处理拖动及整月提交／核对／退回，公共确认取消保留意见；monthly-calendar.ts 负责原表单来源、跨周理由和按需补读。无协作请求或新增轮询。

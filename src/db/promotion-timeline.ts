@@ -68,7 +68,7 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
   });
 }
 
-class ImpactPreview extends Error { constructor(public result:{confirmationRequired:true;impact:{dailyMetrics:number;dates:string[];message:string}}){super('preview');} }
+class ImpactPreview extends Error { constructor(public result:{confirmationRequired:true;impact:{dailyMetrics:number;dates:string[];arrangements:number;message:string}}){super('preview');} }
 
 /** 所有状态写入显式使用业务日期；点击时间只用于审计。 */
 export async function changePromotionTimeline(db: Database, input: TimelineInput, actor: OperationsUser, now=new Date()) {
@@ -93,7 +93,9 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     const savePlan=async(values:Partial<typeof s.operationsPromotionStartPlan.$inferInsert>)=>{
       await tx.insert(s.operationsPromotionStartPlan).values({scheduleId:schedule.id,waitingThrough,...values,revision:(existingPlan?.revision??-1)+1,updatedAt:now}).onConflictDoUpdate({target:s.operationsPromotionStartPlan.scheduleId,set:{...values,revision:(existingPlan?.revision??-1)+1,updatedAt:now}});
     };
-    if(before.metrics.some(m=>m.metricDate>=date))requireAdmin(actor);
+    const dayEdit=campaign&&promotionDayStatusEdit(campaign,context,date);
+    const similar=input.action==='status'&&['test_paused','test_pending'].includes(dayEdit?.currentStatus??'')&&['test_paused','test_pending'].includes(input.targetStatus??'');
+    if(!similar&&before.metrics.some(m=>m.metricDate>=date))requireAdmin(actor);
     if(!input.reason&&['start_testing','start_scaling'].includes(input.action)&&(campaign||before.plan&&date<(waitingThrough??publishedOn)))throw new WorkflowError('请填写历史更正原因。',422);
     if(input.action==='status'){
       if(!campaign)throw new WorkflowError('尚未开始的帖子请先选择首次安排。');
@@ -156,7 +158,6 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       }else{
         const state=promotionStateOn(campaign,context,date);
         if(!state?.currentStage)throw new WorkflowError('活动已结束，不能直接恢复。');
-        if(state.currentStatus==='test_pending'&&stage==='testing')throw new WorkflowError('测试结束待定后只能继续待定、转放量或淘汰。');
         if(state.currentStage==='scaling'&&stage==='testing')throw new WorkflowError('放量后重新测试需要创建改帖版本。');
         await tx.insert(s.operationsPromotionDayDecision).values({campaignId:campaign.id,businessDate:date,stageType:stage}).onConflictDoUpdate({target:[s.operationsPromotionDayDecision.campaignId,s.operationsPromotionDayDecision.businessDate],set:{stageType:stage}});
       }
@@ -201,18 +202,46 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     const removed:string[]=[];
     if(campaign){
       const [fresh]=await tx.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,campaign.id));
-      const changedContext=await readPromotionContext(tx), options=promotionReplayOptions(fresh,changedContext);
-      const kept:Array<typeof s.operationsPromotionDailyMetric.$inferSelect>=[];
+      let changedContext=await readPromotionContext(tx);
       const freshMetrics=await tx.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,fresh.id)).orderBy(asc(s.operationsPromotionDailyMetric.metricDate));
-      for(const metric of freshMetrics){
+      const scan=()=>{
+       removed.length=0;
+       const options=promotionReplayOptions(fresh,changedContext),kept:Array<typeof s.operationsPromotionDailyMetric.$inferSelect>=[];
+       for(const metric of freshMetrics){
         if(metric.recordKind==='test_residual'){kept.push(metric);continue;}
         if(metric.metricDate<fresh.startedOn||!replayPromotionHistory(fresh.startedOn,[...kept,metric],{...options,asOf:nextDateKey(metric.metricDate)}))removed.push(metric.id);else kept.push(metric);
+       }
+       return replayPromotionHistory(fresh.startedOn,kept,{...options,asOf:today});
+      };
+      let state=scan();const adjustedDates:string[]=[];
+      if(!state||removed.length){
+       const futureDecisions=before.decisions.filter(d=>d.campaignId===fresh.id&&d.businessDate>date);
+       for(const decision of futureDecisions){
+        adjustedDates.push(decision.businessDate);
+        if('meetingDecision' in decision&&decision.meetingDecision){
+         const original=context.meetingDecisions.find(d=>d.id===decision.id)!;
+         await tx.insert(s.operationsPromotionTimelineAudit).values({scheduleId:schedule.id,requestKey:randomUUID(),businessDate:original.effectiveOn,action:'meeting_decision_correction',reason:input.reason,before:{meetingDecision:original},after:{meetingDecision:{...original,cancelled:true}},changedById:actor.id,changedByLabel:actor.username,createdAt:now});
+        }else await tx.delete(s.operationsPromotionDayDecision).where(eq(s.operationsPromotionDayDecision.id,decision.id));
+       }
+       for(const range of before.ranges.filter(r=>r.campaignId===fresh.id&&(r.startedOn>=date||r.endedOn>=date||!!r.nextEffectiveOn&&r.nextEffectiveOn>date))){
+        adjustedDates.push(range.startedOn>=date?range.startedOn:date);
+        if(range.startedOn>=date)await tx.delete(s.operationsPromotionWaitRange).where(eq(s.operationsPromotionWaitRange.id,range.id));
+        else await tx.update(s.operationsPromotionWaitRange).set({endedOn:previousDateKey(date),nextDecision:null,nextEffectiveOn:null,revision:range.revision+1,updatedAt:now}).where(eq(s.operationsPromotionWaitRange.id,range.id));
+       }
+       for(const hold of before.holds.filter(h=>h.campaignId===fresh.id&&h.endedOn>=date)){
+        adjustedDates.push(hold.startedOn>=date?hold.startedOn:date);
+        if(hold.startedOn>=date)await tx.delete(s.operationsPromotionHold).where(eq(s.operationsPromotionHold.id,hold.id));
+        else await tx.update(s.operationsPromotionHold).set({endedOn:previousDateKey(date)}).where(eq(s.operationsPromotionHold.id,hold.id));
+       }
+       changedContext=await readPromotionContext(tx);state=scan();
       }
-      const state=replayPromotionHistory(fresh.startedOn,kept,{...options,asOf:today});
-      if(!state)throw new WorkflowError('修改与后续安排冲突，请先核对待定区间。');
-      if(removed.length&&context.meetingDecisions.some(d=>d.campaignId===fresh.id))throw new WorkflowError("修改与已定稿的例会安排冲突，请先核对例会及后续事实。",422);
-      if(removed.length){requireAdmin(actor);if(!input.confirmImpact)throw new ImpactPreview({confirmationRequired:true,impact:{dailyMetrics:removed.length,dates:before.metrics.filter(m=>removed.includes(m.id)).map(m=>m.metricDate),message:'这些指标与更正后的状态冲突，将归档并重新开放补录。'}});
-        await tx.delete(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.id,removed));}
+      if(!state)throw new WorkflowError('更正之前的历史事实仍无法衔接，请核对更正日期之前的推广记录；本次没有保存。',422);
+      if(removed.length||adjustedDates.length){
+       requireAdmin(actor);if(!input.reason.trim())throw new WorkflowError('请填写更正后续安排的原因。',422);
+       const dates=[...new Set([...before.metrics.filter(m=>removed.includes(m.id)).map(m=>m.metricDate),...adjustedDates])].sort();
+       if(!input.confirmImpact)throw new ImpactPreview({confirmationRequired:true,impact:{dailyMetrics:removed.length,dates,arrangements:adjustedDates.length,message:'将调整这些日期的后续安排；不兼容指标归档保留，重新开放补录。旧例会快照保持不变。'}});
+       if(removed.length)await tx.delete(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.id,removed));
+      }
       await tx.delete(s.operationsPromotionStage).where(eq(s.operationsPromotionStage.campaignId,fresh.id));
       for(const stage of state.stages)await tx.insert(s.operationsPromotionStage).values({campaignId:fresh.id,...stage});
       await tx.update(s.operationsPromotionCampaign).set({currentStage:state.currentStage,currentStatus:state.currentStatus,endedOn:state.endedOn,updatedAt:now}).where(eq(s.operationsPromotionCampaign.id,fresh.id));

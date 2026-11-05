@@ -24,6 +24,7 @@ export function requiresAdmin(path: string, method: string, settingsView?: strin
   if(normalized.startsWith('/api/collaboration/'))return false;
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) return false;
   if(normalized==='/api/monthly-private-data'&&method==='PATCH')return false;
+  if(method==='POST'&&/^\/api\/monthly-plans\/[^/]+\/arrangement$/.test(normalized))return false;
   // 年度与排期写入由逐账号操作权限在事务内检查；其他危险操作沿用原管理员边界。
   if(isConfigurableBusinessWrite(normalized,method))return false;
   if(normalized==='/api/promotion-daily/batch'&&method==='POST')return false;

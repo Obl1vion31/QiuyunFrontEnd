@@ -1,5 +1,5 @@
 import {monthWeeks,adjacentMonth} from './monthly-plan-types';
-import {eq} from 'drizzle-orm';
+import {eq,isNull} from 'drizzle-orm';
 import {z} from 'zod';
 import type {Database} from './client';
 import * as s from './schema';
@@ -123,7 +123,7 @@ export async function readMonthlySource(db:Database){
   db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,
    subjectId:s.operationsContentVersion.subjectId,subjectName:s.operationsSubject.name,categoryId:s.operationsContentVersion.categoryId,categoryName:s.operationsCategory.name,
    projectDocUrl:s.operationsContentVersion.projectDocUrl,publicationUrl:s.operationsContentSchedule.publicationUrl,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,actualPublishAt:s.operationsContentSchedule.actualPublishAt,planRevision:s.operationsContentSchedule.planRevision,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus})
-   .from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)),
+   .from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(isNull(s.operationsContentSchedule.cancelledAt)),
   db.select().from(s.operationsSchedulePlanHistory),db.select().from(s.operationsScheduleDelayReason),db.select().from(s.operationsPromotionDailyMetric),readPromotionContext(db),readTaxonomy(db),
  ]);
  return {posts,history,reasons,metrics,context,taxonomy};

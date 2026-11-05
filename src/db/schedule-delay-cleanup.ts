@@ -10,6 +10,7 @@ type Schedule = typeof schedules.$inferSelect;
 type Json = Record<string, unknown>;
 export function withoutLegacyDelay<T extends {delayReason?: unknown}>(value:T) {
   const {delayReason: _obsolete, ...rest} = value;
+  const row=rest as Record<string,unknown>;if(row.cancelledAt==null)delete row.cancelledAt;if(Array.isArray(row.executionHistory)&&!row.executionHistory.length)delete row.executionHistory;
   return rest;
 }
 function validReason(value:unknown, revision:number, days:Set<number>) {

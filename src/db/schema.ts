@@ -351,6 +351,8 @@ export const operationsContentSchedule = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     contentVersionId: uuid('content_version_id').notNull().references(() => operationsContentVersion.id, { onDelete: 'restrict' }),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    executionHistory: jsonb('execution_history').$type<Array<{at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null}>>().notNull().default([]),
     syncToMoments: boolean('sync_to_moments').notNull().default(false),
     isPromoted: boolean('is_promoted').notNull().default(false),
     promotionStatus: text('promotion_status').notNull().default('none'),
@@ -1005,6 +1007,10 @@ export const operationsMonthlyCostMapping = pgTable('operations_monthly_cost_map
   updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(), updatedBy:text('updated_by').notNull(),
 });
 export const operationsMonthlyPlan = pgTable('operations_monthly_plan', {
+  arrangementStatus:text('arrangement_status').$type<'editing'|'review_pending'|'confirmed'>().notNull().default('editing'),
+  arrangementHistory:jsonb('arrangement_history').$type<Array<{at:string;actor:string;action:string;reason:string;requestId:string;fingerprint:string;versionId?:string}>>().notNull().default([]),
+  arrangementSubmittedAt:timestamp('arrangement_submitted_at',{withTimezone:true}),
+  sealedVersionId:uuid('sealed_version_id').references(()=>operationsReviewMeetingVersion.id,{onDelete:'restrict'}),
   id:uuid('id').defaultRandom().primaryKey(), month:text('month').notNull().unique(), meetingId:uuid('meeting_id').notNull().references(()=>operationsReviewMeeting.id,{onDelete:'restrict'}),
   content:jsonb('content').$type<PlanContent>().notNull().default({groups:[],items:[]}), additions:jsonb('additions').$type<PlanBatch[]>().notNull().default([]),
   revision:integer('revision').notNull().default(0), sourceVersionId:uuid('source_version_id').references(()=>operationsReviewMeetingVersion.id,{onDelete:'restrict'}),

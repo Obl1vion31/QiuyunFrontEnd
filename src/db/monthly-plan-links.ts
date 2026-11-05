@@ -31,6 +31,7 @@ export async function readMonthlyCalendar(db:Database,month:string){
 export type MonthlyCalendarView=NonNullable<Awaited<ReturnType<typeof readMonthlyCalendar>>>;
 export async function monthlyLinkCandidates(db:Database,planId:string,groupId:string,week:number){
  const state=await monthlyLinkState(db,planId);if(!state?.plan.firstFinalizedAt)throw new WorkflowError('月计划尚未会后定稿。',422);
+ if(state.plan.arrangementStatus==='confirmed')throw new WorkflowError('月会及计划已封存，不能更改原计划关联；后续调整请在排期页留原因。',403);
  const group=allPlanGroups(state.plan).find(g=>g.id===groupId);if(!group||!linkScope(state,groupId,week).length)throw new WorkflowError('请选择有效计划。',422);
  const related=state.assignments.filter(a=>linkScope(state,groupId,week).some(i=>i.id===a.itemId)).flatMap(a=>a.scheduleId?[a.scheduleId]:[]);
  return readCandidates(db,or(and(gte(s.operationsContentSchedule.plannedPublishAt,monthStart(state.plan.month)),lt(s.operationsContentSchedule.plannedPublishAt,monthStart(adjacentMonth(state.plan.month,1)))),related.length?inArray(s.operationsContentSchedule.id,related):sql`false`),group.subjectId,group.categoryId);

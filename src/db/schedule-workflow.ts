@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray,isNotNull,lte,sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray,isNotNull,isNull,lte,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import type { OperationsUser } from '../auth/permissions';
@@ -19,12 +19,12 @@ type Schedule = typeof schedules.$inferSelect;
 type Plan = typeof plans.$inferSelect;
 type Reason = typeof reasons.$inferSelect;
 export class WorkflowError extends Error {
-  readonly code?: 'STALE_WRITE' | 'MONTHLY_PLAN_SOURCE_REQUIRED';
+  readonly code?: string;
   constructor(message: string, public status = 409, public approvalRequired = false) { super(message); }
 }
 export class StaleWriteError extends WorkflowError {
   override readonly code = 'STALE_WRITE' as const;
-  constructor(message = '记录已更新，本次未保存，请刷新页面后重试。') { super(message,409); }
+  constructor(message = '保存依据已变化，本次未保存。输入已保留，请重新核对当前记录。') { super(message,409); }
 }
 export const reasonSchema = z.object({
   planRevision: z.coerce.number().int().min(0), dayNumber: z.coerce.number().int().min(1),
@@ -68,8 +68,8 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
   const through = new Date(Math.min((actualOverride ?? schedule.actualPublishAt ?? now).getTime(), now.getTime()));
   return { schedule, delayLabel:publicationDelayLabel(schedule.plannedPublishAt,actualOverride??schedule.actualPublishAt), history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
     registrationState: registrationState(schedule, now), requiresPlanApproval: requiresPlanApproval(schedule, now),
-    days: scheduleDelayItems(schedule, history, saved, through, now),
-    overdueDays: !schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now) : 0,
+    days: schedule.cancelledAt?[]:scheduleDelayItems(schedule, history, saved, through, now),
+    overdueDays: !schedule.cancelledAt&&!schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now) : 0,
   };
 }
 
@@ -177,7 +177,7 @@ export async function decideChangeRequest(database: Database, scheduleId: string
 export async function teamScheduleNotifications(database: Database, now = new Date()) {
   const cutoff=new Date(now.getTime()-delayThresholdMs);
   const [rows, saved, applications, pendingProposals] = await Promise.all([
-    database.select({id:schedules.id,plannedPublishAt:schedules.plannedPublishAt,actualPublishAt:schedules.actualPublishAt,planRevision:schedules.planRevision}).from(schedules).where(lte(schedules.plannedPublishAt,cutoff)),
+    database.select({id:schedules.id,plannedPublishAt:schedules.plannedPublishAt,actualPublishAt:schedules.actualPublishAt,planRevision:schedules.planRevision}).from(schedules).where(and(isNull(schedules.cancelledAt),lte(schedules.plannedPublishAt,cutoff))),
     // 提醒只判断本轮哪些日期已填写；正文、更正历史及旧改期轮次留在详情读取。
     database.select({scheduleId:reasons.scheduleId,planRevision:reasons.planRevision,dayNumber:reasons.dayNumber}).from(reasons).innerJoin(schedules,and(eq(reasons.scheduleId,schedules.id),eq(reasons.planRevision,schedules.planRevision))).where(and(isNotNull(schedules.actualPublishAt),lte(schedules.plannedPublishAt,cutoff))),
     database.select({scheduleId:requests.scheduleId}).from(requests).where(eq(requests.status, 'pending')),

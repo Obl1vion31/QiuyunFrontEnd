@@ -93,6 +93,7 @@ let stages: Array<{
   outcome: string | null;
 }> = [];
 let metrics: Array<{
+  updatedAt:Date;
   id: string;
   campaignId: string;
   metricDate: string;
@@ -147,6 +148,7 @@ try {
     .innerJoin(operationsPromotionCampaign, eq(operationsPromotionStage.campaignId, operationsPromotionCampaign.id))
     .orderBy(asc(operationsPromotionStage.startedOn)),
   database.select({
+    updatedAt: operationsPromotionDailyMetric.updatedAt,
     id: operationsPromotionDailyMetric.id,
     campaignId: operationsPromotionDailyMetric.campaignId,
     metricDate: operationsPromotionDailyMetric.metricDate,

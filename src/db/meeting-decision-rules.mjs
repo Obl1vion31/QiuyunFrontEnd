@@ -20,7 +20,7 @@ export function resolveMeetingDecisions(versions, corrections) {
    for(const decision of snapshot.generated?.meetingDecisions??[])active.set(decision.id,decision);
   }else{
    const decision=event.correction.after?.meetingDecision;
-   if(decision&&active.get(decision.id)?.versionNumber===decision.versionNumber)active.set(decision.id,decision);
+   if(decision&&active.get(decision.id)?.versionNumber===decision.versionNumber){if(decision.cancelled)active.delete(decision.id);else active.set(decision.id,decision);}
   }
  }
  return [...active.values()].sort((a,b)=>a.effectiveOn.localeCompare(b.effectiveOn));

@@ -337,6 +337,13 @@
       "when": 1793622343867,
       "tag": "0047_dear_nicolaos",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1793892603661,
+      "tag": "0048_open_zarek",
+      "breakpoints": true
     }
   ]
 }

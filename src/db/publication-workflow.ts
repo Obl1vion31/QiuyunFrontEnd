@@ -28,6 +28,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
   return db.transaction(async tx=>{
     await lockPromotionWorkflow(tx);
     const schedule=await lockSchedule(tx,id);checkRevision(schedule,input);
+    if(schedule.cancelledAt)throw new WorkflowError('这条排期已撤下，请先重新安排，再登记实发。',422);
     const requiresMomentsConfirmation=!schedule.actualPublishAt&&schedule.syncToMoments;
     if(requiresMomentsConfirmation&&(!input.momentsSentConfirmed||!input.momentsRequestSentConfirmed))throw new WorkflowError('请确认朋友圈及对应需求均已发送；若未显示确认项，请刷新页面。',422);
     const actual=input.actualPublishAt??schedule.actualPublishAt;

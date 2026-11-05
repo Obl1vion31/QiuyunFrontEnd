@@ -1,3 +1,4 @@
+import {seedLinkPlan} from './monthly-plan-links.fixture';
 import assert from 'node:assert/strict';
 import {before,after,test} from 'node:test';
 import {PGlite} from '@electric-sql/pglite';
@@ -18,7 +19,7 @@ import {defaultBusinessPermissions,type BusinessOperation,type PermissionMode} f
 import {proposalDiff} from '../src/db/proposal-diff';
 const pg=new PGlite(),db=drizzle(pg,{schema:s}),origin='http://fixture.test';
 const employee={id:'permission-employee',username:'虚构权限员工',role:'employee' as const},admin={id:'permission-admin',username:'虚构权限管理员',role:'admin' as const};
-before(async()=>{await migrateFixture(pg);await db.insert(s.authUser).values([employee,admin].map(user=>({...user,name:user.username,email:`${user.id}@example.test`})))});
+before(async()=>{await migrateFixture(pg);await seedLinkPlan(db as any,{month:new Date(Date.now()+48*3600000).toISOString().slice(0,7)});await db.insert(s.authUser).values([employee,admin].map(user=>({...user,name:user.username,email:`${user.id}@example.test`})))});
 after(()=>pg.close());
 async function grant(changes:Partial<Record<BusinessOperation,PermissionMode>>){const before=await effectiveBusinessPermissions(db,employee);assert.equal(await updateAccountPermissions(db,admin,employee.id,{...before,...changes},before),true);}
 const planTime=(hours:number)=>new Date(Date.now()+hours*3600000).toISOString().slice(0,16);
@@ -67,11 +68,9 @@ test('原数据更新后申请失效，不覆盖新值；删除审核保留原�
  await db.update(s.operationsContentVersion).set({contentName:'管理员已改为新文'}).where(eq(s.operationsContentVersion.id,row.contentVersionId));
  assert.equal((await withDatabase(db,()=>decideProposal(pending.requestId,true,'',admin,origin))).status,409);
  assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,row.contentVersionId)))[0].contentName,'管理员已改为新文');
- const deletion=await call(`/api/operations-content/${created.id}`,'DELETE',{},deletePost,{id:created.id});assert.equal(deletion.status,202);const proposal=await deletion.json();
+ const deletion=await call(`/api/operations-content/${created.id}`,'DELETE',{},deletePost,{id:created.id});assert.equal(deletion.status,403,'员工取消排期不能通过普通审核授权绕过管理员边界');
  assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,created.id))).length,1);
- assert.equal((await withDatabase(db,()=>decideProposal(proposal.requestId,true,'',admin,origin))).status,200);
- assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,created.id))).length,0);
- await assert.rejects(withDatabase(db,()=>decideProposal(proposal.requestId,true,'',employee,origin)),/管理员/);
+
 });
 test('年度启停与内容编辑独立授权，内容审核后才改变名称',async()=>{
  await grant({'annual.create':'direct','annual.toggle':'direct','annual.edit':'disabled'});

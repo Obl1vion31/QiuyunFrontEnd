@@ -62,8 +62,6 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       const [campaign] = await transaction.select().from(operationsPromotionCampaign)
         .where(eq(operationsPromotionCampaign.id, existing.campaignId)).limit(1);
       if (!campaign) return { kind: 'missing' as const };
-      if(parsed.data.expectedUpdatedAt!==existing.updatedAt.toISOString())throw new StaleWriteError();
-      if(!parsed.data.fingerprint||timelineFingerprint(await promotionSnapshot(transaction,campaign.scheduleId))!==parsed.data.fingerprint)throw new StaleWriteError();
       const residual=existing.recordKind==='test_residual';
       if(parsed.data.actualStatusSnapshot&&existing.actualStatusSnapshot&&parsed.data.actualStatusSnapshot!==existing.actualStatusSnapshot)throw new WorkflowError('请通过修改当日状态更正实际状态。',422);
       if(parsed.data.recordKind==='test_residual'&&!residual)throw new WorkflowError('记录类型不能更改。',422);
@@ -77,7 +75,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
       const lifecycleChanged = !residual&&(existing.reviewDecision !== parsed.data.reviewDecision
         || existing.dailyStatus !== parsed.data.dailyStatus
         || existing.stageTypeSnapshot !== parsed.data.stageTypeSnapshot);
-      if (lifecycleChanged) requireAdmin(locals.user);
+      if (lifecycleChanged) {requireAdmin(locals.user);if(!parsed.data.fingerprint||timelineFingerprint(await promotionSnapshot(transaction,campaign.scheduleId))!==parsed.data.fingerprint)throw new StaleWriteError('历史安排已变化，请更新影响预览后再提交。输入已保留。');}
       const before=lifecycleChanged?await promotionSnapshot(transaction,campaign.scheduleId):null;
       const allMetrics = await transaction.select().from(operationsPromotionDailyMetric)
         .where(eq(operationsPromotionDailyMetric.campaignId, existing.campaignId))
@@ -112,7 +110,7 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         for(const decision of affectedDecisions)await transaction.delete(operationsPromotionDayDecision).where(eq(operationsPromotionDayDecision.id,decision.id));
         await transaction.delete(operationsPromotionHold).where(sql`${operationsPromotionHold.campaignId} = ${campaign.id} and ${operationsPromotionHold.endedOn} > ${existing.metricDate}`);
       }
-      await transaction.update(operationsPromotionDailyMetric).set({
+      const [savedMetric]=await transaction.update(operationsPromotionDailyMetric).set({
         dailyStatus: parsed.data.dailyStatus,
         stageTypeSnapshot: parsed.data.stageTypeSnapshot,
         spend: parsed.data.spend.toFixed(2),
@@ -123,9 +121,12 @@ export const PATCH: APIRoute = async ({ request, url, params, locals }) => {
         reviewDecision: parsed.data.reviewDecision,
         note: parsed.data.note ?? null,
         updatedAt: new Date(Math.max(Date.now(),existing.updatedAt.getTime()+1)),
-      }).where(eq(operationsPromotionDailyMetric.id, existing.id));
+      }).where(eq(operationsPromotionDailyMetric.id, existing.id)).returning();
 
-      if (!lifecycleChanged) return { kind: 'saved' as const, deleted: 0 };
+      if (!lifecycleChanged) {
+        if(['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount','note'].some(key=>existing[key as keyof typeof existing]!==savedMetric[key as keyof typeof savedMetric]))await transaction.insert(operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:randomUUID(),businessDate:existing.metricDate,action:'metric_values',reason:parsed.data.note?.trim()||'更正日度指标',before:{metrics:[existing]},after:{metrics:[savedMetric]},changedById:locals.user!.id,changedByLabel:locals.user!.username});
+        return { kind: 'saved' as const, deleted: 0 };
+      }
 
       const freshContext=await readPromotionContext(transaction);
       for(const fact of freshContext.metrics.filter(m=>m.campaignId===campaign.id&&m.stageTypeSnapshot==='testing')){const origin=testingCycleOn(campaign,freshContext,fact.metricDate)!.startedOn;if(fact.sourceStageStartedOn!==origin)await transaction.update(operationsPromotionDailyMetric).set({sourceStageStartedOn:origin,updatedAt:new Date()}).where(and(eq(operationsPromotionDailyMetric.campaignId,campaign.id),eq(operationsPromotionDailyMetric.metricDate,fact.metricDate)));}

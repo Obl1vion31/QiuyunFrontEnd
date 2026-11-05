@@ -1,6 +1,6 @@
 import {useRef,useState} from 'react';
 export type MeetingPdfFile={id:string;name:string;meetingVersionId:string|null;source:string};
-export default function MeetingPdfArchive({meetingId,versionId,status,files:initial=[],versionLabel}:{meetingId:string;versionId:string;status?:string|null;files?:MeetingPdfFile[];versionLabel?:string}){
+export default function MeetingPdfArchive({meetingId,versionId,status,files:initial=[],versionLabel,readOnly=false}:{meetingId:string;versionId:string;status?:string|null;files?:MeetingPdfFile[];versionLabel?:string;readOnly?:boolean}){
  const [files,setFiles]=useState(initial),[busy,setBusy]=useState(false),[message,setMessage]=useState('');const upload=useRef<HTMLInputElement>(null);
  const popoverProps={popover:'auto'} as const,more=useRef<HTMLDivElement>(null);
  const generated=files.find(f=>f.source==='generated');
@@ -11,7 +11,7 @@ export default function MeetingPdfArchive({meetingId,versionId,status,files:init
    {files.some(f=>f.source==='manual')&&<div className="meeting-pdf-attachments" data-business-popover data-popover-kind="attachments"><button type="button" data-popover-trigger aria-expanded="false" aria-label="查看手动附件">附件 ({files.filter(f=>f.source==='manual').length})</button><div {...popoverProps} data-popover-panel role="region" aria-label="手动附件"><p>手动附件</p>{files.filter(f=>f.source==='manual').map(file=><div className="meeting-pdf-attachment" key={file.id}><a title={file.name} href={`/api/meeting-attachments/${file.id}`} target="_blank" rel="noreferrer">{file.name}</a><a href={`/api/meeting-attachments/${file.id}?download=1`}>下载</a></div>)}</div></div>}
    <div className="meeting-record-more" data-business-popover data-popover-kind="actions"><button type="button" data-popover-trigger aria-expanded="false">更多 ⋯</button><div {...popoverProps} ref={more} data-popover-panel className="meeting-record-menu" role="group" aria-label="PDF维护操作">
      {generated&&<button type="button" disabled={busy} onClick={()=>{more.current?.hidePopover();void generate();}}>重新生成</button>}
-     <button type="button" disabled={busy} onClick={()=>{more.current?.hidePopover();upload.current?.click();}}>上传PDF</button>
+     {!readOnly&&<button type="button" disabled={busy} onClick={()=>{more.current?.hidePopover();upload.current?.click();}}>上传PDF</button>}
    </div></div>
    <input type="file" ref={upload} hidden accept="application/pdf,.pdf" aria-label="上传会后PDF" onChange={e=>{const f=e.target.files?.[0];if(f)void attach(f);}}/>
  </div><output role="status">{message}</output></div>;

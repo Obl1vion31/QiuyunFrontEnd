@@ -1,6 +1,7 @@
 import {StaleWriteError} from './schedule-workflow';
 /** 定稿修订只合并文字；回溯在原生效日前原子撤销，并保留失效版本。 */
 import {checkMonthlyPlan,publishMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from './monthly-plans';
+import {assertMeetingMutable} from './monthly-arrangement';
 import {readMonthlyMeeting,preserveMonthlyMeetingIdentity} from './monthly-meeting';
 import {and,eq,desc} from 'drizzle-orm';
 import type {Database} from './client';
@@ -50,10 +51,12 @@ async function undoEffects(tx:Transaction,meetingId:string,effects:any[]){
 export async function reviseMeetingVersion(db:Database,meetingId:string,payload:any,actor:string,at?:Date){
  return db.transaction(async tx=>{
   await lockPromotionWorkflow(tx);
+  await assertMeetingMutable(tx,meetingId);
   const now=at??new Date();
   const [meeting]=await tx.select().from(meetings).where(eq(meetings.id,meetingId)).for('update');
   if(!meeting)throw new WorkflowError('会议不存在。',404);
-  if(!payload.expectedUpdatedAt||payload.expectedUpdatedAt!==meeting.updatedAt.toISOString())throw new StaleWriteError('会议已更新，输入已保留，请重新打开最新版本。');
+  // 普通文字草稿按最后保存生效；最终封存另按首轮排期结构核对。
+  if(payload.action==='finalize_version_draft'&&meeting.meetingType!=='monthly'&&payload.expectedUpdatedAt!==meeting.updatedAt.toISOString())throw new StaleWriteError('会议已更新，请重新核对本版定稿内容。');
   const all=await tx.select().from(versions).where(eq(versions.meetingId,meetingId)).orderBy(desc(versions.versionNumber));
   if(!['save_version_draft','finalize_version_draft','rollback_version'].includes(payload.action))throw new WorkflowError('例会流程已更新，请刷新页面后继续，输入已保留。',409);
   const current=latestValidMeetingVersion(all),active=activeMeetingDraft(all),source=all.find(v=>v.id===payload.sourceVersionId);
@@ -99,7 +102,8 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const snapshot:any={...baseline,draft:{...draft,workflowVersion:6,hasRevisionDraft:false,finalizationStage:stage},finalizationStage:stage,decisionEffectiveOn:effectiveOn};
   if(!finalizing)snapshot.revisionSourceIssues=clone(originalSnapshot.draft.issues);else delete snapshot.revisionSourceIssues;
   snapshot.generated=clone(baseline.generated);delete snapshot.decisionPolicy;
-  if(draft.monthlyRefreshFingerprint&&draft.monthlyRefreshFingerprint!==baseline.generated.monthly?.fingerprint){const monthly=await readMonthlyMeeting(tx,meeting);if(monthly.fingerprint!==draft.monthlyRefreshFingerprint)throw new WorkflowError('月度来源又有变化，请更新月度材料并核对。',409);snapshot.generated.monthly=monthly;}
+  if(meeting.meetingType==='monthly')snapshot.generated.monthly=await readMonthlyMeeting(tx,meeting);
+  else if(draft.monthlyRefreshFingerprint&&draft.monthlyRefreshFingerprint!==baseline.generated.monthly?.fingerprint){snapshot.generated.monthly=await readMonthlyMeeting(tx,meeting);}
   if(snapshot.generated.monthly?.layoutVersion===2){snapshot.generated.promotions=[];snapshot.generated.nonPromotions=[];snapshot.generated.meetingDecisions=[];}
   if(finalizing&&snapshot.generated.monthly?.operations.missingRows.length)throw new WorkflowError('本月推广日度仍有缺项，请先补齐。',422);
   if(draft.monthlyPlanReference&&!same(draft.monthlyPlanReference,originalSnapshot.draft.monthlyPlanReference))snapshot.generated.monthlyPlanExecution=await readReferencedMonthlyPlan(tx,draft.monthlyPlanReference,now);

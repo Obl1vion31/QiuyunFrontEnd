@@ -8,7 +8,7 @@ import {promotionAuditView} from '../../db/promotion-audit-view';
 import {readScheduleWorkflow,WorkflowError} from '../../db/schedule-workflow';
 import {workflowErrorResponse} from '../../db/workflow-api';
 export const prerender=false;
-const selection={id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:s.operationsCategory.name,planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
+const selection={cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:s.operationsCategory.name,planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
 function posts(){return getDb().select(selection).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId));}
 export const GET:APIRoute=async({url})=>{
  try{
@@ -35,6 +35,6 @@ export const GET:APIRoute=async({url})=>{
    readScheduleWorkflow(getDb(),id),
   ]);
   const history=audits.map(promotionAuditView).filter(row=>row.visible).map(({title,beforeLabel,afterLabel,reason,createdAt})=>({title,beforeLabel,afterLabel,reason,createdAt}));
-  return Response.json({post,versions,stages,metrics,totals:promotionTotals(metrics),non,checkpointEvents:checkpointEvents.filter((row,index,all)=>all.findIndex(item=>item.checkpointType===row.checkpointType)===index),history,publicationHistory:workflow.publicationHistory,planHistory:workflow.history,meetings:meetingVersions},{headers:{'Cache-Control':'private, no-store'}});
+  return Response.json({executionHistory:workflow.schedule.executionHistory,post,versions,stages,metrics,totals:promotionTotals(metrics),non,checkpointEvents:checkpointEvents.filter((row,index,all)=>all.findIndex(item=>item.checkpointType===row.checkpointType)===index),history,publicationHistory:workflow.publicationHistory,planHistory:workflow.history,meetings:meetingVersions},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){if(error instanceof z.ZodError)return Response.json({message:'查询条件无效。'},{status:422});return workflowErrorResponse(error);}
 };

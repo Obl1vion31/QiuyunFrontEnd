@@ -242,12 +242,12 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 月度贯通的共享入口：
 
-- `monthly-workspace`组合原`monthly-operations`、`monthly-private`及`monthly-plans`，SSR和GET共用。私域成本始终读取完整月份，不被帖子分类筛选误用作全站分子；`MonthlyPrivatePanel`通过静态公共`BusinessFormSheet`渲染录入，浏览器控制器在操作时动态加载，避免SSR执行window代码。
-- `monthly-meeting`生成月度材料及事项回放；`readWeeklyMaterial`仅对显式新版月会加入材料，普通周会返回可引用计划列表。`MonthlyMeetingSections`负责新增板块，`MonthlyPlanEditor`共享只读／编辑结构；`WeeklyMeetingPresentation`和PDF复用同一套组件。最新可编辑会议的锁定标记由SSR读取当前状态，历史量值仍来自冻结快照。
-- `monthly-plans`集中数量、Week、归属、锁定及占位；`monthly-plan-types`仅含浏览器安全的类型与日期规则。`monthly-plan-links`读取月历分组及候选并原子批量关联；`monthly-link-state`共用输入解析、关联指纹、预留与有效提交时间。`MonthlyCalendarPlan`呈现Week进度及来源，`monthly-calendar-links`只在原卡片上切换勾选、调用公共未保存保护并局部回显，不复制Inspector；`MonthlyScheduleFields`接入原新做帖／编辑表单，`monthly-calendar`处理明确名额选择、跨Week原因及同日确认。接口用`monthlyPlanId/monthlyPlanItemId/monthlyRequestId/monthlyExpectedRevision/monthlyPlanReason`，不能按名称匹配。
-- 员工预览调用原写入并回滚；`business-approvals`在真实申请落库后保留申请ID及首次受理时间，批准重放通过异步上下文识别该申请。名额占用与业务保存使用同一事务及原工作流锁。修改计划来源纳入`schedule.edit`权限，原排期改期继续使用原权限。
-- `GET /api/monthly-plans?month=…`读取执行；`?id=…&choices=1&group=…&week=…`在同一只读快照返回分组及候选原读取凭据；`POST /api/monthly-plans/:id/links`按请求键、计划修订、分组指纹和帖子版本保存勾选的最终集合。保留原配对后按日期／ID填空位，任一冲突整批回滚，关联不修改计划内容修订；`?schedule=…`读取关联来源；`PATCH /api/monthly-private-data`维护人数；`GET/PATCH /api/monthly-cost-mapping`维护用途。`GET /api/meeting-reviews/:id/monthly-material`仅预览最新来源，携带指纹显式保存为新版本，不刷新原阶段卡。
-- `MonthlyPlanReference`在周会会前预览当前执行；计划版本变化时须明确确认引用，只有会后定稿才锁定原计划并冻结对照。`MonthlyPlanEditor`编辑时可读取已生效的追加，退出编辑仍回到该会议版本快照。PDF沿用同一信息组件，展开月度分类明细，并按完整人数／Week组控制分页。
+- monthly-workspace／monthly-private 维护同源月份统计，人数普通保存以最后成功值为准；MonthlyPrivatePanel 复用公共 Sheet。
+- monthly-meeting 生成月度材料；当前未封存会议读取最新材料，历史带 material=frozen 仍读快照。MonthlyMeetingSections 的计划在预排期后只读，网页与PDF继续复用。
+- monthly-arrangement 读取投影后的活动月排期、生成结构指纹及最终实际计划；POST /api/monthly-plans/:id/arrangement 的 submit／return／confirm 事务串行化整月提交与单帖变动，确认时建立最终冻结版本。
+- schedule-edit-policy 同时接入 middleware 和 business-approvals 重放；检查前后月份与共享内容影响的全部版本。review_pending 员工仅放行真实实发与附属信息，confirmed 要求调整原因；封存会议所有写入口拒绝。
+- MonthlyArrangementPanel 沿公共表单显示阶段／核对；MonthlyCalendarPlan 保留Week对照及来源，monthly-arrangement 在原格网拖动、原表单落实，不复制Inspector。旧 links 接口仅兼容首轮执行关系，不改最终基准。
+- operations-content DELETE 仅设置 cancelledAt，撤下预约／待审并保留原帖与历史；executionHistory 的前后内容由排期Inspector和查帖共用展示，withoutLegacyDelay 对新默认空值保持旧指纹兼容。
 
 内容职能接入：`content-roles`共用固定选项、分组键与`sameNonPromotionCohort`；`BusinessContentRoleFields`及`operation-setup`只在两个合集显示单选，`content-role-workflow`在原排期事务保存并记录业务更正。新字段为空不改变旧审批指纹。`non-promotion-read-model`、指标保存及`meeting-weekly-material`共用职能入样条件；持续指标保存预期起点，旧数据以已存`statisticsFrom`冻结与展示。管理员`BusinessUsageGuide`由既有settings门禁覆盖。
 

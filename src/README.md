@@ -32,4 +32,4 @@
 
 七个工作台页的head共用 `BusinessConsoleFonts`；`styles/business-font-assets.ts` 为 `pages/fonts/business.css.ts` 与 `business.js.ts` 构建生成共享静态字体资源，常用原始切片在正文解析前同步准备，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
 
-排期月历的计划来源由`MonthlyCalendarPlan`呈现Week进度及分组，直接勾选由`monthly-calendar-links`处理；批量关联接口`/api/monthly-plans/:id/links`复用排期编辑授权和原审批。原计划来源、名额及历史快照不被补关联重写。
+排期月度阶段由 MonthlyArrangementPanel、monthly-arrangement 与 schedule-edit-policy 共用；首轮在原月历落实、整月提交、管理员核对及永久封存。审批重放也经过同一事务守卫。取消排期标记撤下，schedule-execution-history 在排期与查帖共用前后变更展示。

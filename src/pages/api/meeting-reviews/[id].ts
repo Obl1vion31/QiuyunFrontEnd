@@ -76,7 +76,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       if(meeting.status==='completed'&&!discussionMode)throw new WorkflowError('请通过最新版本的编辑模式保存修订。',422);
       if([6,7].includes(draft.workflowVersion??0))draft.hasRevisionDraft=(payload.action==='save_version_draft')&&meeting.status==='completed';
       if([6,7].includes(meeting.draftSnapshot.workflowVersion??0)&&![6,7].includes(draft.workflowVersion??0))throw new WorkflowError('请使用当前会前／会后编辑流程。',422);
-      if (!payload.expectedUpdatedAt || payload.expectedUpdatedAt !== meeting.updatedAt.toISOString()) throw new StaleWriteError('会议已被更新，请刷新后再保存。');
+      // 当前工作稿按最后一次保存生效；封存由整月核对接口原子确认。
       for (const id of [...new Set((draft.monthlySchemaVersion?[]:draft.nonPromotionSelections).map(item => item.scheduleId))].sort()) await lockSchedule(transaction, id);
       if((meeting.draftSnapshot.schemaVersion===4)!==(draft.schemaVersion===4))throw new WorkflowError('请使用此会议对应版本的编辑器。',422);
       const v4=draft.schemaVersion===4;
@@ -96,6 +96,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(finalizing&&fresh.monthly?.operations.missingRows.length)throw new WorkflowError('本月推广日度仍有缺项，请先去月度运营补齐。',422);
        if(finalizing&&meetingReadiness(fresh).length)throw new WorkflowError('本次例会仍有待补数据，请返回准备区完成登记。',422);
        const cached=meeting.draftSnapshot.materialSnapshot as unknown as WeeklyMaterial|undefined;
+       if(meeting.meetingType==='monthly')draft.materialFingerprint=fresh.fingerprint;
        if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new StaleWriteError('来源数据已变化，请刷新数据并核对后再定稿。');
        let material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
        if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');

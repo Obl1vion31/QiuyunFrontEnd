@@ -1,13 +1,14 @@
 /** 实际状态与次日安排共用业务状态机；实际修改排除继续当前状态。 */
 export const promotionActualLabels = {testing:'测试中',test_paused:'测试暂停',test_pending:'测试结束待定',scaling:'放量中',scaling_paused:'放量暂停',test_discarded:'测试淘汰',formal_discarded:'放量淘汰',ended:'推广结束'};
-export const promotionSuccessors = {testing:['test_paused','test_pending','scaling','test_discarded'],test_paused:['testing','test_pending','scaling','test_discarded'],test_pending:['scaling','test_discarded'],scaling:['scaling_paused','formal_discarded','ended'],scaling_paused:['scaling','formal_discarded','ended']};
+export const promotionSuccessors = {testing:['test_paused','test_pending','scaling','test_discarded'],test_paused:['testing','test_discarded'],test_pending:['scaling','test_discarded'],scaling:['scaling_paused','formal_discarded','ended'],scaling_paused:['scaling','formal_discarded','ended']};
 export const normalizePromotionActualStatus = (status,stage) => status==='waiting_action' ? stage==='scaling'?'scaling_paused':'test_pending' : status;
 export const promotionSuccessorOptions = status => (promotionSuccessors[status]??[]).map(value=>({value,label:value==='testing'?'恢复测试':value==='scaling'?(status==='scaling_paused'?'恢复放量':'测试转放量'):promotionActualLabels[value]}));
 /** 同日更正基于覆盖前状态重新选择；恢复原状态不代表终态之后重新推广。 */
 export const promotionStatusEditOptions = (currentStatus, originalStatus) => {
  const options=promotionSuccessorOptions(originalStatus??currentStatus);
+ if(currentStatus==='test_paused'||currentStatus==='test_pending')options.unshift({value:currentStatus==='test_paused'?'test_pending':'test_paused',label:promotionActualLabels[currentStatus==='test_paused'?'test_pending':'test_paused']});
  if(originalStatus&&originalStatus!==currentStatus)options.unshift({value:originalStatus,label:`恢复原状态（${promotionActualLabels[originalStatus]}）`});
- return options.filter(option=>option.value!==currentStatus);
+ return options.filter((option,index)=>option.value!==currentStatus&&options.findIndex(row=>row.value===option.value)===index);
 };
 const basePromotionNextOptions = status => promotionSuccessors[status] ? [{value:status==='testing'?'test_continue':status==='scaling'?'scaling_continue':'wait_continue',label:status==='testing'?'继续测试':status==='scaling'?'继续放量':status==='test_pending'?'继续待定':`继续${promotionActualLabels[status]}`},...promotionSuccessorOptions(status).map(option=>({value:({testing:'test_continue',scaling:status==='scaling_paused'?'scaling_continue':'start_scaling',test_paused:'test_pause',test_pending:'test_pending',scaling_paused:'scaling_pause'})[option.value]??option.value,label:option.label}))] : [];
 export const promotionNextOptions=status=>[...basePromotionNextOptions(status),...(status==='test_pending'?[{value:'restart_testing',label:'重新开始测试'}]:[])];

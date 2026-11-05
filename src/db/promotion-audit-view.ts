@@ -12,17 +12,19 @@ type Snapshot={
  schedule?:{promotionStatus?:string;isPromoted?:boolean;actualPublishAt?:string;promotionDeferredThrough?:string};
  plan?:{waitingThrough?:string;plannedOn?:string;plannedStage?:string}|null;
  campaigns?:Array<{id:string;startedOn:string;initialStage:string;endedOn?:string;currentStatus?:string}>;
- metrics?:Array<{id:string;campaignId:string;metricDate:string;stageTypeSnapshot:string;dailyStatus:string;actualStatusSnapshot?:string|null;recordKind?:string;reviewDecision:string;spend:string;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number}>;
+ metrics?:Array<{id:string;campaignId:string;metricDate:string;stageTypeSnapshot:string;dailyStatus:string;actualStatusSnapshot?:string|null;recordKind?:string;reviewDecision:string;spend:string;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;note?:string|null}>;
  ranges?:Array<{startedOn:string;endedOn:string;stageType:string;nextDecision?:string;nextEffectiveOn?:string}>;
  decisions?:Array<{businessDate:string;stageType:string;actualStatus?:string|null}>;
  auditCategory?:string;
  meetingDecision?:{targetStatus:string;effectiveOn:string;versionNumber:number};
 };
-const actions:Record<string,string>={meeting_decision_correction:'例会安排更正',status:'修改当日状态',test_residual:'补录淘汰后残留',wait:'首次推广安排',start_testing:'推广安排更正',start_scaling:'推广安排更正',plan:'安排下一步',pause:'当日暂停',next:'调整待定与下一步',metric_correction:'复盘决定更正',publication_reset:'发布时间更正',usage_change:'推广身份变更',legacy_defer:'首次推广安排'};
+const actions:Record<string,string>={metric_values:'日度指标更正',meeting_decision_correction:'例会安排更正',status:'修改当日状态',test_residual:'补录淘汰后残留',wait:'首次推广安排',start_testing:'推广安排更正',start_scaling:'推广安排更正',plan:'安排下一步',pause:'当日暂停',next:'调整待定与下一步',metric_correction:'复盘决定更正',publication_reset:'发布时间更正',usage_change:'推广身份变更',legacy_defer:'首次推广安排'};
 const stageLabel=(stage?:string)=>stage==='scaling'?'放量':'测试';
 
 export function promotionSnapshotLabel(value:Record<string,unknown>,date:string,action:string){
  const snapshot=value as Snapshot,{plan,schedule}=snapshot;
+ if(action==='metric_values'){const m=snapshot.metrics?.find(row=>row.metricDate===date);if(m)return '消耗 ¥'+Number(m.spend).toFixed(2)+'；平台开口 '+m.platformOpenCount+' 人，实际开口 '+m.actualOpenCount+' 人；平台留资 '+m.platformLeadCount+' 人，实际留资 '+m.actualLeadCount+' 人；说明：'+(m.note||'未填写');}
+
  if(action==='meeting_decision_correction'&&snapshot.meetingDecision){const d=snapshot.meetingDecision;return `${d.effectiveOn} 的安排：${promotionActualLabels[d.targetStatus]??d.targetStatus}（例会决定 V${d.versionNumber}）`;}
  if(action==='metric_correction'){
   const metric=snapshot.metrics?.find(row=>row.metricDate===date);
