@@ -10,5 +10,6 @@
   "matchingAssets": 75,
   "businessWrites": false,
   "databaseMigrations": false,
-  "mainStatus": "pending"
+  "mainStatus": "synced",
+  "mainCommit": "5a266f6"
 }

@@ -1,6 +1,6 @@
 # 排期 Inspector：最终验收修正
 
-状态：已自检并发布，main同步中。图像均为隔离样张。
+状态：已自检、已发布并同步main。图像均为隔离样张。
 
 [清晰详情原图](detail-1440.png) · [桌面前后对比器](comparison.html) · [真实操作录像](media/interaction-1440.mp4) · [深滚动返回](media/deep-scroll-1440.mp4)
 
@@ -49,6 +49,6 @@
 - [实际操作MP4](media/interaction-1440.mp4) ／ [原始WebM](media/interaction-1440.webm)
 - [深滚动MP4](media/deep-scroll-1440.mp4) ／ [原始WebM](media/deep-scroll-1440.webm)
 
-正式部署dpl_5HHXizYxzYPDeEphwhAjKvf57d3Q READY，与候选一致；候选10项／4资源及正式99项／75资源核对通过。发布输入e541f99，无生产测试写入或迁移；main正在同步。
+正式部署dpl_5HHXizYxzYPDeEphwhAjKvf57d3Q READY，与候选一致；候选10项／4资源及正式99项／75资源核对通过。发布输入e541f99，无生产测试写入或迁移；main已同步（应用与验收5a266f6；随后提交仅记录同步结果）。
 
 [发布记录](checks/release.json) · [正式核对](checks/production.json) · [候选核对](checks/candidate.json)
