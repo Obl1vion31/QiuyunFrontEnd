@@ -11,7 +11,7 @@ const rows=arrangement?.rows??[],items=plan?.items??[];
 const separate=new Set(items.filter(i=>i.kind!=='new'||i.submittedAt||i.pending||i.schedule||i.history.length).map(i=>i.id));
 const weeks=monthWeeks(month).map(week=>({...week,items:items.filter(i=>i.week===week.week)}));
 ---
-{calendar&&plan?.firstFinalizedAt&&<section class="monthly-calendar-plan" data-monthly-plan-pool data-can-manage={canManage?'true':'false'} aria-label="预排期对照">
+{calendar&&plan?.firstFinalizedAt&&<section class="monthly-calendar-plan" data-monthly-plan-pool data-can-manage={canManage?'true':'false'} aria-label={plan.arrangementStatus==='confirmed'?'定稿计划对照':'预排期对照'}>
  <div class="monthly-calendar-weeks" aria-label="每周计划与安排">{weeks.map(({week,from,through,items:weekItems})=><section class="monthly-calendar-week" data-monthly-plan-week={week}>
   <header><div><h3>Week {week}</h3><time>{businessDate(from)} 至 {businessDate(through)}</time></div><p><span>计划 <b>{weekItems.length}</b> 篇</span><span>当前安排 <b data-arrangement-week-count={week}>{rows.filter(r=>weekOf(businessDate(r.plannedAt))===week).length}</b> 篇</span></p></header>
   {weekItems.length>0&&<div class="monthly-calendar-groups">{compactPlanItems(weekItems,separate).map(chunk=>{
