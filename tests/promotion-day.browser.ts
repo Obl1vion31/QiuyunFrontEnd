@@ -49,7 +49,7 @@ try{
   const table=page.locator('[data-promotion-data="'+c.post.schedule.id+'"]');if(!await table.getAttribute('open'))await table.locator('summary').click();
   await settleBusinessUI(page);await shot(page,'admin-'+width+'-04-after',table);
   const after=await promotionSnapshot(db,c.post.schedule.id);assert.equal(after.metrics.length,6);assert.deepEqual(after.metrics.map(m=>m.actualStatusSnapshot),['testing','testing','test_paused','testing','testing','testing']);assert.equal(after.metrics.reduce((n,m)=>n+Number(m.spend),0),195);
-  const controls=await page.evaluate(()=>[...document.querySelectorAll('button,input,select,textarea')].slice(0,10).map(e=>getComputedStyle(e).fontFamily));assert(controls.every(s=>s.includes('MiSans')));
+  const controls=await page.evaluate(()=>[...document.querySelectorAll('button,input,select,textarea')].slice(0,10).map(e=>getComputedStyle(e).fontFamily));assert(controls.every((s:string)=>s.includes('MiSans')));
   checks.push(width+'桌面：当日表单、三日确认、取消焦点/输入保留、保存只改10/31、6天指标合计195不变、无横向溢出');
   if(width===1440){
    await page.locator('[data-daily-record="'+c.metrics[2].id+'"]').click();await settleBusinessUI(page);const invalid=await edit(page,page.locator('[data-inspector] [data-metric-card]'));await invalid.locator('[name=dayStatus]').selectOption('test_pending');assert.equal((await save(page,invalid)).status(),422);await invalid.locator('[data-edit-message]').filter({hasText:'不能衔接'}).waitFor();assert.equal(await invalid.locator('[name=dayStatus]').inputValue(),'test_pending');assert.equal(await page.locator('[data-business-confirm][open]').count(),0);await shot(page,'admin-1440-05-invalid-adjacency',invalid);assert.deepEqual(await promotionSnapshot(db,c.post.schedule.id),after);
