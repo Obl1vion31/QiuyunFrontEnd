@@ -29,7 +29,7 @@ export default function ContentTunnel(props: Props) {
         <header className={`${styles.masthead} shell`}>
           <a className={styles.wordmark} href="/" aria-label="湫云 · 内容工作台首页"><QiuyunMark surface="tile" /><span className={styles.wordmarkText}>QIUYUN <span>/</span> FRONTEND</span></a>
           <span className={styles.context}>CONTENT WORKSPACE</span>
-          <a className={styles.login} href="/login">登录工作台 <span aria-hidden="true">↗</span></a>
+          <a className={styles.login} data-surface-press="directional" href="/login">登录工作台 <span aria-hidden="true">↗</span></a>
         </header>
         <div className={styles.ambient} aria-hidden="true" />
         <div className={`${styles.scene} shell`} aria-label="内容封面" data-home-scene>

@@ -93,5 +93,10 @@
     "drizzle-kit": "^0.31.10",
     "tsx": "4.23.15",
     "typescript": "5.8.3"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "react-dom@18.3.1": "patches/react-dom@18.3.1.patch"
+    }
   }
 }

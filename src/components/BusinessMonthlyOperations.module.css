@@ -22,7 +22,7 @@
 
 .attention b{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}.attention b small{font-size:12px;line-height:20px;font-weight:400}
 
-/* 本地展示候选复用真实指标入口和原明细，不额外维护选择状态。 */
+/* 指标面板复用真实入口和原明细，不额外维护选择状态。 */
 :global([data-glass-surface]) .metrics{gap:0;border:1px solid #fff;border-radius:16px;background:var(--console-glass-fill);box-shadow:var(--console-glass-shadow);overflow:hidden;backdrop-filter:blur(22px)}
 :global([data-glass-surface]) .metrics>.metric{min-height:148px;padding:22px 24px;border:0;border-right:1px solid var(--glass-line);border-radius:0;box-shadow:none;background:transparent}
 :global([data-glass-surface]) .metrics>.metric:last-child{border-right:0}

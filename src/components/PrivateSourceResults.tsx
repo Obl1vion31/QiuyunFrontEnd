@@ -7,10 +7,10 @@ import type {ReactNode} from 'react';
 export type PrivateView=MonthlyWorkspace['privateData'];
 export const privateMoney=(value:number|null|undefined)=>value==null?'—':`¥${value.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const count=(value:number|null)=>value===null?'—':value.toLocaleString('zh-CN');
-export function PrivateCostChange({value,previous}:{value:number|null;previous:number|null}){
+export function PrivateCostChange({value,previous,sense='lower'}:{value:number|null;previous:number|null;sense?:'neutral'|'lower'|'higher'}){
  const change=privateCostChange(value,previous);if(!change)return null;
  const sign=change.amount>0?'+':change.amount<0?'−':'';
- return <span className="ps-change" data-direction={change.amount>0?'up':change.amount<0?'down':'same'} aria-label={`较上月${change.amount===0?'持平':change.amount>0?'增加':'减少'}${privateMoney(Math.abs(change.amount))}${change.percent===null?'':`，${Math.abs(change.percent)}%`}`}>
+ return <span className="ps-change" data-metric-sense={sense} data-direction={change.amount>0?'up':change.amount<0?'down':'same'} aria-label={`较上月${change.amount===0?'持平':change.amount>0?'增加':'减少'}${privateMoney(Math.abs(change.amount))}${change.percent===null?'':`，${Math.abs(change.percent)}%`}`}>
   <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6"><path d={change.amount>0?'M8 13V3m-4 4 4-4 4 4':change.amount<0?'M8 3v10m-4-4 4 4 4-4':'M3 8h10'}/></svg>
   <span>{change.amount===0?'持平':`${sign}${privateMoney(Math.abs(change.amount))}`}</span>{change.percent!==null&&change.amount!==0&&<span>({sign}{Math.abs(change.percent).toFixed(1)}%)</span>}
  </span>;
@@ -18,10 +18,10 @@ export function PrivateCostChange({value,previous}:{value:number|null;previous:n
 export function PromotionPrivateTotals({value,previous}:{value:PrivateView;previous?:PrivateView}){
  const valid=!!value.sourceData,prior=previous?.sourceData?previous:undefined;
  const fields=[{label:'推广总消耗',value:value.totalSpend,previous:prior?.totalSpend??null},...privateFields.map((key,i)=>({label:['私域增加成本','课程意向成本','成交成本'][i],value:valid?value.totalCosts[key]:null,previous:prior?.totalCosts[key]??null}))];
- return <dl className="ps-totals" aria-label="推广来源成本总计">{fields.map(field=><div key={field.label}><dt>{field.label}</dt><dd><strong>{privateMoney(field.value)}</strong></dd><dd className="ps-total-change"><PrivateCostChange value={field.value} previous={field.previous}/></dd></div>)}</dl>;
+ return <dl className="ps-totals" aria-label="推广来源成本总计">{fields.map((field,index)=><div key={field.label}><dt>{field.label}</dt><dd><strong>{privateMoney(field.value)}</strong></dd><dd className="ps-total-change"><PrivateCostChange value={field.value} previous={field.previous} sense={index===0?'neutral':'lower'}/></dd></div>)}</dl>;
 }
 function CostCells({spend,counts,costs,previous}:{spend:number|null;counts:PrivateCounts;costs:PrivateCounts;previous?:{spend:number|null;costs:PrivateCounts}}){
- return <><td><div className="ps-value"><strong>{privateMoney(spend)}</strong></div><PrivateCostChange value={spend} previous={previous?.spend??null}/></td>{privateFields.map(key=><td key={key}><div className="ps-value"><strong>{privateMoney(costs[key])}</strong><span className="ps-basis">{count(counts[key])} 人</span></div><PrivateCostChange value={costs[key]} previous={previous?.costs[key]??null}/></td>)}</>;
+ return <><td><div className="ps-value"><strong>{privateMoney(spend)}</strong></div><PrivateCostChange value={spend} previous={previous?.spend??null} sense="neutral"/></td>{privateFields.map(key=><td key={key}><div className="ps-value"><strong>{privateMoney(costs[key])}</strong><span className="ps-basis">{count(counts[key])} 人</span></div><PrivateCostChange value={costs[key]} previous={previous?.costs[key]??null}/></td>)}</>;
 }
 export function PrivateSourceResults({value,previous,summaryOnly=false,collapsible=false}:{value:PrivateView;previous?:PrivateView;summaryOnly?:boolean;collapsible?:boolean}){
  if(!value.sourceData)return null;

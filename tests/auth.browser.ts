@@ -1,12 +1,16 @@
 import {businessFetch as fetch} from './business-request.helper';
 import assert from 'node:assert/strict';
-import { mkdir } from 'node:fs/promises';
+import { mkdir,writeFile } from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {prepareMonthlyArrangement} from './monthly-arrangement.fixture';
+import {settleBusinessUI} from './business-confirm.helper';
 import { eq } from 'drizzle-orm';
 import { startFixture, admin, employee } from './auth.fixture';
 import { operationsContentSchedule, operationsContentVersion, operationsPromotionCampaign, operationsPromotionDailyMetric } from '../src/db/schema';
 
 const evidenceDir=process.env.AUTH_EVIDENCE_DIR||'.tools/test-artifacts';
-const fixture = await startFixture();
+await mkdir(evidenceDir,{recursive:true});const clockFile=process.cwd()+'/'+evidenceDir+'/auth-clock.txt';await writeFile(clockFile,'2026-10-06T12:00:00+08:00');
+const fixture = await startFixture({clockFile});
 const { baseURL, db } = fixture;
 let browser: { close: () => Promise<void> } | undefined;
 const form = (fields: Record<string, string>) => { const data = new FormData(); for (const [key, value] of Object.entries(fields)) data.set(key, value); return data; };
@@ -33,6 +37,10 @@ try {
   await status(await request('/business/settings', 'GET', undefined, adminCookie), 200);
 
   const fields = { contentName: '虚构权限验收帖', subjectId: 'tmua', categoryId: 'innovation', plannedPublishAt: '2026-10-01T10:00', projectDocUrl: '', isPromoted: 'on', promotionStatus: 'pending' };
+  const blocked=await request('/api/operations-content','POST',form(fields),employeeCookie);await status(blocked,422);assert.equal((await blocked.json()).code,'MONTHLY_PREPLAN_REQUIRED');
+  const groupId=randomUUID(),itemId=randomUUID();
+  const monthly=await prepareMonthlyArrangement(db as any,baseURL,adminCookie,{month:'2026-10',content:{groups:[{id:groupId,annualPlanId:null,annualVersion:null,name:'TMUA 权限回归',subjectId:'tmua',categoryId:'innovation',quantity:2,note:'隔离权限样本',reason:'月会确认'}],items:[{id:itemId,groupId,week:1,kind:'new',scheduleId:null},{id:randomUUID(),groupId,week:1,kind:'new',scheduleId:null}]}});
+  Object.assign(fields,{monthlyPlanId:monthly.planId,monthlyPlanItemId:itemId,monthlyExpectedRevision:'1',monthlyRequestId:randomUUID(),monthlyPlanReason:'隔离权限回归：核对历史发布事实'});
   const created = await request('/api/operations-content', 'POST', form(fields), employeeCookie); await status(created, 201); const id = (await created.json()).id as string;
   await status(await request(`/api/operations-content/${id}/publication`, 'PATCH', form({ plannedPublishAt: fields.plannedPublishAt, actualPublishAt: '2026-10-01T10:00',expectedPlanRevision:'0',expectedPublicationRevision:'0',publicationUrl:'https://www.xiaohongshu.com/explore/'+'a'.repeat(24), projectDocUrl: 'https://fictional.example.test/document' }), employeeCookie), 200);
   await status(await request('/api/promotion-awaiting', 'POST', form({ scheduleId: id, reviewDate: '2026-10-01', action: 'start_testing' }), employeeCookie), 201);
@@ -40,21 +48,21 @@ try {
   const metrics = await db.insert(operationsPromotionDailyMetric).values(['2026-10-01', '2026-10-02'].map(metricDate => ({ campaignId: campaign.id, metricDate, dailyStatus: 'active', stageTypeSnapshot: 'testing', spend: '10.00', platformOpenCount: 2, actualOpenCount: 1, platformLeadCount: 1, actualLeadCount: 1, reviewDecision: 'test_continue' }))).returning();
   const metricFields = { dailyStatus: 'active', stageTypeSnapshot: 'testing', spend: '12', platformOpenCount: '2', actualOpenCount: '1', platformLeadCount: '1', actualLeadCount: '1', reviewDecision: 'test_continue' };
   await status(await request(`/api/promotion-daily/${metrics[0].id}`, 'PATCH', form(metricFields), employeeCookie), 200);
-  await status(await request(`/api/promotion-daily/${metrics[0].id}`, 'PATCH', form({ ...metricFields, reviewDecision: 'test_discarded', confirmCascade: 'true' }), employeeCookie), 403);
+  await status(await request(`/api/promotion-daily/${metrics[0].id}`, 'PATCH', form({ ...metricFields, reviewDecision: 'test_discarded', confirmCascade: 'true' }), employeeCookie), 422);
   await status(await request(`/api/operations-content/${id}/publication`, 'PATCH', form({ plannedPublishAt: fields.plannedPublishAt, actualPublishAt: '2026-10-01T11:00',expectedPlanRevision:'0',expectedPublicationRevision:'1',publicationUrl:'https://www.xiaohongshu.com/explore/'+'a'.repeat(24),correctionReason:'虚构更正', projectDocUrl: 'https://fictional.example.test/document', confirmPromotionReset: '1' }), employeeCookie), 403);
   await status(await request(`/api/operations-content/${id}`, 'PATCH', form({ ...fields, isPromoted: '', promotionStatus: 'none', usageChangeReason: '虚构用途调整', confirmPromotionReset: '1' }), employeeCookie), 403);
   assert.equal((await db.select().from(operationsPromotionDailyMetric)).length, 2, '越权确认不能删除事实');
-  await status(await request(`/api/promotion-daily/${metrics[0].id}`, 'PATCH', form({ ...metricFields, reviewDecision: 'test_discarded', confirmCascade: 'true' }), adminCookie), 200);
-  assert.equal((await db.select().from(operationsPromotionDailyMetric)).length, 1);
+  await status(await request(`/api/promotion-daily/${metrics[0].id}`, 'PATCH', form({ ...metricFields, reviewDecision: 'test_discarded', confirmCascade: 'true' }), adminCookie), 422);
+  assert.equal((await db.select().from(operationsPromotionDailyMetric)).length, 2,'旧次日安排字段对管理员同样无效，不能删除后续事实');
   await status(await request('/api/operations-content', 'POST', form(fields), employeeCookie, 'https://untrusted.example'), 403);
-  console.log('通过：真实 HTTP 登录、员工业务写入、管理权限、旧接口和破坏性确认防绕过。');
+  console.log('通过：真实 HTTP 登录、未预排期拒绝及真实确认后员工写入、管理权限、旧历史字段和破坏性确认防绕过。');
 
   const playwright = await import(process.env.PLAYWRIGHT_MODULE || new URL('../.tools/tooling/node_modules/playwright/index.mjs', import.meta.url).href);
   const launched = await playwright.chromium.launch({ headless: true }); browser = launched;
   await mkdir(evidenceDir, { recursive: true });
   const errors: string[] = [];
   const context = await launched.newContext({ viewport: { width: 1440, height: 900 } });
-  const page = await context.newPage(); page.on('pageerror', (error: Error) => errors.push(error.message));
+  const page = await context.newPage(); await page.clock.setFixedTime(new Date('2026-10-06T12:00:00+08:00')); page.on('pageerror', (error: Error) => errors.push(error.message));
   await page.goto(baseURL + '/business/annual-plan?year=2027'); assert.equal(new URL(page.url()).pathname, '/login');
   // 未知用户名与错误密码使用同一反馈，不能误报服务故障；输入与重试保留。
   for(const width of [1440,390,320]){
@@ -86,7 +94,7 @@ try {
   }
   // 两字符用户名OB和原账号均可登录；身份保持。
   await page.goto(baseURL+'/business/settings');const self=page.locator(`[data-account-username="${admin.username}"]`);await self.locator('[data-account-action=rename]').click();const editor=page.locator('[data-account-editor]');await editor.locator('input[name=value]').fill('OB');
-  for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await editor.getByText('可使用完整用户名或登录账号登录。用户名不能与他人的用户名或账号重复。',{exact:true}).waitFor();await page.evaluate(async()=>{await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished));});await page.screenshot({path:`${evidenceDir}/account-rename-${width}.png`});}
+  for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await editor.getByText('可使用完整用户名或登录账号登录。用户名不能与他人的用户名或账号重复。',{exact:true}).waitFor();await settleBusinessUI(page);await page.screenshot({path:`${evidenceDir}/account-rename-${width}.png`});}
   await page.setViewportSize({width:1440,height:900});await editor.locator('[type=submit]').click();await editor.waitFor({state:'hidden'});await self.getByText('已保存，可使用账号或用户名登录。',{exact:true}).waitFor();const identity=await db.query.authUser.findFirst({where:(row,{eq})=>eq(row.username,admin.username)});assert.equal(identity?.name,'OB');assert.equal(identity?.username,admin.username);await login(admin);await login({...admin,username:'OB'});
   await page.locator('.business-account--sidebar [data-account-trigger]').click(); await page.locator('#business-account-sidebar [data-sign-out]').click();
   await page.waitForURL('**/login'); await page.goto(baseURL + '/business/operations-schedule'); assert.equal(new URL(page.url()).pathname, '/login');

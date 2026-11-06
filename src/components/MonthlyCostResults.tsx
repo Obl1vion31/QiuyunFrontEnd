@@ -25,7 +25,7 @@ export function MonthlyCostResults({core,summaryOnly=false}:{core:Core;summaryOn
   {c&&fields.some(field=>field.value!==null&&field.previous!==null)&&<p className="mc-comparison">变化较上月 <time>{c.month}</time></p>}
   <dl className="mc-metrics" aria-label="月度成本结果">{fields.map(field=><div key={field.label} data-cost-metric={field.label}>
    <dt>{field.label}</dt><dd className="mc-value">{privateMoney(field.value)}</dd>
-   {(field.basis||field.value!==null&&field.previous!==null)&&<dd className="mc-evidence">{field.basis&&<span>{field.basis}</span>}<PrivateCostChange value={field.value} previous={field.previous}/></dd>}
+   {(field.basis||field.value!==null&&field.previous!==null)&&<dd className="mc-evidence">{field.basis&&<span>{field.basis}</span>}<PrivateCostChange value={field.value} previous={field.previous} sense={field.key==='spend'?'neutral':'lower'}/></dd>}
    {!summaryOnly&&<MonthlyCostTrend month={core.month} metric={field.key} label={field.label} points={core.costHistory}/>}
   </div>)}</dl>
  </div>;

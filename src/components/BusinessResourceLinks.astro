@@ -1,16 +1,17 @@
 ---
-interface Props {documentUrl?:string|null;postUrl?:string|null;name:string}
-const {documentUrl,postUrl,name}=Astro.props;
-const source=(value:string)=>{try{return new URL(value).hostname.replace(/^www\./,'');}catch{return '已登记链接';}};
-const resources=[{kind:'document',label:'项目资料',url:documentUrl,path:'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z M14 3v6h6 M8 13h8 M8 17h6'},{kind:'post',label:'已发布帖子',url:postUrl,path:'m9 15 6-6 M7.5 13.5l-2 2a3.54 3.54 0 0 0 5 5l4-4a3.54 3.54 0 0 0 0-5 M16.5 10.5l2-2a3.54 3.54 0 0 0-5-5l-4 4a3.54 3.54 0 0 0 0 5'}];
+import {resourceDomain} from '../scripts/business-resource-links';
+interface Props {documentUrl?:string|null;postUrl?:string|null;name:string;dynamic?:boolean}
+const {documentUrl,postUrl,name,dynamic=false}=Astro.props;
+const resources=[
+ {kind:'document',label:'项目资料',url:documentUrl,path:'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z M14 3v6h6 M8 13h8 M8 17h6'},
+ {kind:'post',label:dynamic?'帖子链接':'已发布帖子',url:postUrl,path:'m9 15 6-6 M7.5 13.5l-2 2a3.54 3.54 0 0 0 5 5l4-4a3.54 3.54 0 0 0 0-5 M16.5 10.5l2-2a3.54 3.54 0 0 0-5-5l-4 4a3.54 3.54 0 0 0 0 5'},
+];
 ---
-<nav class="surface-resources" aria-label={name+'的资料与帖子'}>
- {resources.map(item=>item.url?<a class="surface-resource" data-kind={item.kind} data-surface-press="directional" href={item.url} target="_blank" rel="noopener noreferrer" title={item.url}>
+<nav class="surface-resources" data-resource-links data-schedule-resources={dynamic||undefined} aria-label={name+'的资料与帖子'}>
+ {resources.map(item=>{const Tag=item.url||dynamic?'a':'div';return <Tag class="surface-resource" data-kind={item.kind} data-missing={!item.url||undefined} data-surface-press={item.url||dynamic?'directional':undefined} href={item.url||undefined} target={item.url||dynamic?'_blank':undefined} rel={item.url||dynamic?'noopener noreferrer':undefined} title={item.url||undefined} aria-disabled={dynamic&&!item.url?'true':undefined} tabindex={dynamic&&!item.url?-1:undefined} data-inspector-doc={dynamic&&item.kind==='document'?'':undefined} data-inspector-post={dynamic&&item.kind==='post'?'':undefined}>
  <span class="surface-resource-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d={item.path}/></svg></span>
- <span class="surface-resource-copy"><strong>{item.label}</strong><small>{source(item.url)}</small></span>
+ <span class="surface-resource-copy"><strong>{item.label}</strong><small>{item.url?resourceDomain(item.url):'未登记'}</small></span>
  <svg class="surface-resource-arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 15 15 5M5 5h10v10"/></svg>
- </a>:<div class="surface-resource" data-kind={item.kind} data-missing>
- <span class="surface-resource-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d={item.path}/></svg></span>
- <span class="surface-resource-copy"><strong>{item.label}</strong><small>未登记</small></span>
- </div>)}
+ </Tag>;})}
 </nav>
+<script>import {mountScheduleResourceLinks} from '../scripts/business-resource-links';mountScheduleResourceLinks();</script>

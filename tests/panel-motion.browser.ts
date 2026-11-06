@@ -2,16 +2,20 @@
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {startFixture,admin} from './auth.fixture';
+import {prepareMonthlyArrangement} from './monthly-arrangement.fixture';
 import * as s from '../src/db/schema';
-const fixture=await startFixture();let browser:any;
+await mkdir('.tools/test-artifacts',{recursive:true});
+const clockFile=process.cwd()+'/.tools/test-artifacts/motion-clock.txt';await writeFile(clockFile,'2026-11-06T12:00:00+08:00');
+const fixture=await startFixture({clockFile});let browser:any;
 const results:any[]=[];
 try{
 
  const response=await fetch(fixture.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:fixture.baseURL,'Content-Type':'application/json'},body:JSON.stringify(admin)});assert.equal(response.status,200);const cookies=response.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');
+ await prepareMonthlyArrangement(fixture.db as any,fixture.baseURL,cookies);
  const pw=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});await mkdir('.tools/test-artifacts',{recursive:true});const errors:string[]=[];
- for(const width of [1440,1280,390,320]){
- const [content]=await fixture.db.insert(s.operationsContent).values({}).returning();const [version]=await fixture.db.insert(s.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:'虚构面板连续性核对帖',subjectId:'tmua',categoryId:'temporary'}).returning();const [schedule]=await fixture.db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date(Date.now()+3600000),completionStatus:'pending'}).returning();
-  const context=await browser.newContext({viewport:{width,height:700},reducedMotion:'no-preference'});await context.addCookies(cookies.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:fixture.baseURL})));const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));page.on('dialog',(dialog:any)=>{errors.push('出现原生弹框：'+dialog.type());void dialog.dismiss();});await page.goto(fixture.baseURL+'/business/operations-schedule');
+ for(const width of [1920,1440,1024,390,320]){
+ const [content]=await fixture.db.insert(s.operationsContent).values({}).returning();const [version]=await fixture.db.insert(s.operationsContentVersion).values({contentId:content.id,versionNumber:0,workType:'new',contentName:'虚构面板连续性核对帖',subjectId:'tmua',categoryId:'temporary'}).returning();const [schedule]=await fixture.db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date('2026-11-06T13:00:00+08:00'),completionStatus:'pending'}).returning();
+  const context=await browser.newContext({viewport:{width,height:700},reducedMotion:'no-preference'});await context.addCookies(cookies.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:fixture.baseURL})));const page=await context.newPage();page.on('pageerror',(error:Error)=>errors.push(error.message));page.on('dialog',(dialog:any)=>{errors.push('出现原生弹框：'+dialog.type());void dialog.dismiss();});await page.goto(fixture.baseURL+'/business/operations-schedule?month=2026-11');
   const openInspector=async()=>{await page.locator(`[data-inspect-id="${schedule.id}"]`).first().evaluate((n:HTMLElement)=>n.click());await page.locator('[data-inspector].is-open').waitFor();await page.waitForTimeout(250);};
   const capture=async(selector:string,action:()=>Promise<unknown>,opening=false)=>{
    await page.evaluate(`(()=>{const frames=[];window.__panelFrames=frames;window.__panelRecording=true;const element=document.querySelector(${JSON.stringify(selector)});function tick(){if(window.__panelFrames!==frames||!window.__panelRecording)return;const rect=element.getBoundingClientRect(),style=getComputedStyle(element),backdrop=getComputedStyle(element,'::backdrop'),calendar=document.querySelector('.content-stage').getBoundingClientRect();frames.push({visible:element instanceof HTMLDialogElement?element.open:!element.hidden,x:rect.x,width:rect.width,opacity:Number(style.opacity),position:style.position,backdrop:Number(backdrop.opacity),calendarX:calendar.x,calendarWidth:calendar.width,rootWidth:document.documentElement.clientWidth,locked:document.documentElement.hasAttribute('data-business-scroll-locked'),scrollY});if(window.__panelRecording)requestAnimationFrame(tick);}tick();})()`);
@@ -45,5 +49,5 @@ try{
   await page.emulateMedia({reducedMotion:'reduce'});await page.locator(`[data-inspect-id="${schedule.id}"]`).first().evaluate((n:HTMLElement)=>n.click());await page.locator('[data-inspector].is-open').waitFor();await page.locator('[data-inspector-edit]').evaluate((n:HTMLElement)=>n.click());await page.locator('#schedule-dialog[open]').waitFor();await page.locator('#schedule-dialog .close-button').focus();await page.keyboard.press('Escape');await page.locator('#schedule-dialog').waitFor({state:'hidden'});assert.equal(await page.locator('#schedule-dialog').evaluate((n:HTMLElement)=>n.getAnimations().length),0);await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>document.documentElement.hasAttribute('data-business-scroll-locked')),false);
   await context.close();
  }
- assert.deepEqual(errors,[]);await writeFile('.tools/test-artifacts/panel-motion-regression.json',JSON.stringify(results));console.log('通过：1440/1280/390/320px 详情、发布、编辑、改帖进出逐帧几何、遮罩终帧、背景日历、非零滚动位置、滚动锁、快速重开、嵌套确认和减少动态效果。');
+ assert.deepEqual(errors,[]);await writeFile('.tools/test-artifacts/panel-motion-regression.json',JSON.stringify(results));console.log('通过：1920/1440/1024/390/320px 详情、发布、编辑、改帖进出逐帧几何、遮罩终帧、背景日历、非零滚动位置、滚动锁、快速重开、嵌套确认和减少动态效果。');
 }catch(error){console.error(fixture.logs().slice(-4000));throw error;}finally{await browser?.close();await fixture.stop();}

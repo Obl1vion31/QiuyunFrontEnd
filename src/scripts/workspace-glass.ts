@@ -4,11 +4,9 @@ function mount(){
  dispose?.();
  const root=document.querySelector<HTMLElement>('[data-glass-surface]');if(!root)return;
  const abort=new AbortController(),signal=abort.signal,motion=matchMedia('(prefers-reduced-motion: reduce)');
- const targets='.surface-resource[href],.business-assistant-entry--sidebar,.monthly-core>header .business-action-secondary,.report-all-sources,.report-monthly-execution>header .report-detail-link,.entry-action,[data-home-hero] header a[href="/login"],[data-login-form]>button';
+ const targets='[data-surface-press="directional"]';
  const animations=new Map<HTMLElement,Animation>(),pressed=new Set<HTMLElement>(),disclosures=new Map<HTMLDetailsElement,{animation:Animation;expanded:boolean}>();
  const identify=(target:EventTarget|null)=>target instanceof Element?target.closest<HTMLElement>(targets):null;
- const mark=(el:HTMLElement)=>{el.dataset.surfacePress='directional';};
- root.querySelectorAll<HTMLElement>(targets).forEach(mark);
  const animate=(el:HTMLElement,frames:Keyframe[],options:KeyframeAnimationOptions)=>{animations.get(el)?.cancel();const a=el.animate(frames,{fill:'none',...options});animations.set(el,a);a.onfinish=()=>{if(animations.get(el)===a&&options.fill!=='forwards')animations.delete(el);};return a;};
  const release=(el:HTMLElement)=>{
   if(!pressed.delete(el))return;
@@ -25,11 +23,10 @@ function mount(){
  };
  const down=(el:HTMLElement,x=.5,y=.5)=>{
   if(el.matches(':disabled,[aria-disabled=true]'))return;
-  mark(el);el.style.setProperty('--press-x',x*100+'%');el.style.setProperty('--press-y',y*100+'%');el.dataset.surfacePressed='';pressed.add(el);
+  el.style.setProperty('--press-x',x*100+'%');el.style.setProperty('--press-y',y*100+'%');el.dataset.surfacePressed='';pressed.add(el);
   if(!motion.matches)animate(el,[{transform:getComputedStyle(el).transform},{transform:'perspective(700px) rotateX('+((.5-y)*2.4)+'deg) rotateY('+((x-.5)*2.4)+'deg) translateY(1px) scale(.986)'}],{duration:90,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
  };
  root.addEventListener('pointerdown',e=>{const el=identify(e.target);if(!el||e.button!==0||e.pointerType!=='mouse')return;const r=el.getBoundingClientRect();down(el,(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height);},{signal});
- root.addEventListener('pointerover',e=>{const el=identify(e.target);if(el)mark(el);},{signal});
  root.addEventListener('pointerout',e=>{const el=identify(e.target);if(el&&(!(e.relatedTarget instanceof Node)||!el.contains(e.relatedTarget)))release(el);},{signal});
  window.addEventListener('pointerup',()=>[...pressed].forEach(release),{signal});
  window.addEventListener('pointercancel',()=>[...pressed].forEach(release),{signal});

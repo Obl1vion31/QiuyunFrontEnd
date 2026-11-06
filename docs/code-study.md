@@ -96,8 +96,8 @@ flowchart LR
 | 申请字段对照 | [SSR 组件](../src/components/BusinessChangeDiff.astro)、[异步适配器](../src/scripts/business-change-diff.ts)、[样式](../src/styles/business-changes.css) | 每个字段纵向展示原内容与申请内容，安全文本渲染，不创建横向表格或嵌套滚动 |
 | 排期申请队列 | [审核组件](../src/components/BusinessScheduleApprovals.astro)、[适配器](../src/scripts/schedule-approvals.ts)、[读模型](../src/db/schedule-approvals.ts) | 统一新旧申请，模板复用 Inspector，默认首项和 `request` 深链接；固定 footer 审核，原位更新结果与计数 |
 | 读取反馈与取消 | [共享读取](../src/scripts/business-read.ts)、[排期详情](../src/scripts/operations-workflow.ts)、[年度历史](../src/scripts/annual-plan.ts)、[推广刷新](../src/scripts/promotion-timeline.ts) | `readBusiness(target, task, {isCurrent})` 包含 fetch 与解析；500ms 目标区域单反馈，同目标替换取消，落地前复核代次，关闭及导航清理 |
-| 桌面视觉候选 | BusinessConsoleFrame、workspace-glass.css／workspace-glass.ts | data-glass-surface 是材质与反馈边界，排期页不启用；不复制壳层、详情开关或保存控制器。候选尚待反馈，效果与限制见本轮图库索引 |
-| 详情资料候选 | BusinessResourceLinks、推广／非推广详情 | 资料与帖子保留原URL，日期／ID就近展开；元信息使用同一220ms控制器，表单、权限、复制与保存仍由原业务处理 |
+| 工作台材质与反馈 | BusinessConsoleFrame、workspace-glass.css／workspace-glass.ts | data-glass-surface 为全部模块的材质边界，排期局部适配使用schedule-glass；独立入口显式data-surface-press="directional"，控制器不按类名猜测任务，不复制壳层、详情或保存逻辑 |
+| 详情资料 | BusinessResourceLinks、推广／非推广详情 | 静态URL与排期dynamic模式共用图形和缺失状态；异步回填消费既有business:schedule-selected摘要，直接链接首次进入补读已有SSR摘要，不请求数据。应发／实发按任务默认可见；表单、权限、复制与保存仍由原业务处理 |
 | 验收实例 | [界面浏览器测试](../tests/business-ui.browser.ts)、[排期工作流](../tests/schedule-workflow.browser.ts) | 隔离数据与真实 DOM，检查节点身份、坐标和交互结果 |
 
 非推广的行、标题与末列操作共用同一排期＋轮次键；公共委托允许显式 `data-inspector-trigger` 按钮，原生键盘生成 click，关闭回到实际触发按钮。普通外链仍独立处理。资料由 `readNonPromotionReview` 同时供给 SSR 与认证 GET，包含 `projectDocUrl`、`publicationUrl`、`plannedPublishAt` 与 `actualPublishAt`；使用 `businessDateTime`，排期链接使用应发上海月份＋排期 ID，新标签保留当前草稿。实验日期在同一列同行以两个 `time` 显示上海实发日与共享规则返回的 `dueOn`（7／15天），排序键仍为实发日；保存和分类切换保留日期节点，不改人工填写的 `recordedThrough`。

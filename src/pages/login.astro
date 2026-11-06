@@ -26,7 +26,7 @@ if (Astro.locals.user) return Astro.redirect(next);
           <label for="username">账号或用户名</label><input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="40" />
           <label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128" />
           <p data-login-message role="alert" hidden></p>
-          <button type="submit">登录工作台 <span aria-hidden="true">→</span></button>
+          <button type="submit" data-surface-press="directional">登录工作台 <span aria-hidden="true">→</span></button>
           <p class="pending" data-login-pending role="status" aria-live="polite" hidden>正在验证账号，请稍候…</p>
         </form>
         <p class="help">账号由管理员提供。遇到登录问题，请联系管理员。</p>

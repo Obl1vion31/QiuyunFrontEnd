@@ -102,4 +102,4 @@ ContentTunnel.module.css
 
 - `BusinessContentRoleFields.astro`：两个合集的条件职能单选，复用排期表单字段；`BusinessUsageGuide.astro`：系统设置管理员只读说明，标签及标准节点来自业务代码。
 
-`BusinessResourceLinks.astro` 是桌面视觉候选中的只读资料入口，供推广与非推广详情复用；文档、帖子分别保持原始 URL，缺失时显示“未登记”，不制造可点击的空链接。日期与原始 ID 收在同一原生展开区；编辑和保存继续由原表单与 Inspector 控制器负责。候选通过 `BusinessConsoleFrame` 的 `data-glass-surface` 接入，排期页不启用。
+`BusinessResourceLinks.astro` 是推广、非推广及排期共用的只读资料入口。静态模式接收documentUrl／postUrl／name，排期dynamic模式保留原data-inspector-doc／post绑定并消费既有摘要；资料和帖子保留原URL、真实域名与缺失状态，日期和待处理信息按任务保留。编辑、保存、权限和详情开关由原控制器负责。所有模块通过Frame共享材质，不复制公共壳层。

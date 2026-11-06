@@ -11,6 +11,7 @@ import BusinessPendingChanges from '../../components/BusinessPendingChanges.astr
 import BusinessScheduleApprovals from '../../components/BusinessScheduleApprovals.astro';
 import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
+import BusinessResourceLinks from '../../components/BusinessResourceLinks.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import {operationsContent} from '../../db/schema';
@@ -241,7 +242,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
               { label: '台账', href: hrefFor({ display: 'ledger' }), active: selectedDisplay === 'ledger' || selectedView === 'promotion' },
             ]} />
             <button class="filter-button toolbar-action-secondary" type="button" disabled title="更多筛选将在数据维度确认后开放">筛选</button>
-            <button class="primary-action" type="button" data-open-new disabled={!monthCanCreate} data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
+            <button class="primary-action" type="button" data-open-new data-surface-press="directional" disabled={!monthCanCreate} data-business-operation="schedule.create" hidden={permissions['schedule.create']==='disabled'}><span>新做帖</span><b aria-hidden="true">＋</b></button>
           </BusinessToolbarActions>
         </BusinessConsoleToolbar>
 
@@ -322,7 +323,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 title={`V${row.versionNumber} ${row.contentName} · ${row.isPromoted?'推广':'非推广'} · 应发 ${displayDateTime(row.plannedPublishAt)} · ${isOverdue(row)?'尚未登记':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)]}`}
                 aria-label={`V${row.versionNumber} ${row.contentName}，${row.isPromoted?'推广':'非推广'}，应发 ${displayDateTime(row.plannedPublishAt)}，${isOverdue(row)?'尚未登记':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)]}`}>
                 <span class="calendar-item-meta"><span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span><time>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</time></span>
-                <span class="calendar-item-name"><b>V{row.versionNumber}</b> {row.contentName}</span>
+                <span class="calendar-item-name"><span>{row.contentName}</span><b>V{row.versionNumber}</b></span>
                 {calendarMonthlyPlan?.items.filter(item=>item.schedule?.id===row.id).map(item=><small class="monthly-card-membership" title={'月计划 · Week '+item.week}>计划 W{item.week}{item.pending?' · 待审':''}</small>)}
               </button>)}
             </div></>}
@@ -344,17 +345,16 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 </dl>
                 <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
+                <BusinessResourceLinks dynamic name="当前帖子"/>
                 <section class="non-plan-panel" data-review-plan-panel hidden aria-label="复盘计划">
                   <h3>运营类型与复盘计划</h3><p data-review-plan-summary></p>
                   <details data-business-operation="schedule.edit"><summary>管理复盘方式</summary><form class="business-form" data-review-plan-form><input type="hidden" name="action" value="reviewPlan"/><BusinessNonPromotionPlanFields prefix="inspector-review"/><output role="status"></output><button type="submit" class="business-action-primary">保存复盘计划</button></form></details>
                   <BusinessReviewDateAdd hidden/>
                   <div class="non-plan-nodes" data-review-node-list></div>
                 </section>
-                <details class="inspector-section inspector-reference" open><summary>相关资料</summary>
+                <details class="inspector-section inspector-reference" open><summary>版本与改帖</summary>
                 <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
                 <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
-                <section class="inspector-section"><span>项目文档</span><a data-inspector-doc target="_blank" rel="noreferrer">打开项目文档 ↗</a></section>
-                <section class="inspector-section"><span>小红书帖子</span><a data-inspector-post target="_blank" rel="noreferrer"></a></section>
                 </details>
                 <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录" hidden></section>
                 <section class="inspector-section" data-promotion-state-history hidden></section>
@@ -515,16 +515,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           path.append(chip);
           if (index < versions.length - 1) path.append(document.createTextNode('→'));
         });
-        const doc = inspector.querySelector('[data-inspector-doc]');
-        if (record.projectDocUrl) {
-          doc.href = record.projectDocUrl;
-          doc.textContent = '打开项目文档 ↗';
-          doc.removeAttribute('aria-disabled');
-        } else {
-          doc.removeAttribute('href');
-          doc.textContent = '项目文档待补';
-          doc.setAttribute('aria-disabled', 'true');
-        }
         inspectorRevise.hidden = record.childVersionNumber != null||!mayOperate('schedule.revise');
         inspectorEdit.disabled=!mayOperate('schedule.edit')&&!mayOperate('schedule.reschedule')&&!mayOperate('schedule.overdueReschedule');
         inspectorDerived.hidden = record.childVersionNumber == null;
@@ -532,8 +522,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         inspectorPublication.textContent = record.actualPublishAt ? '查看／编辑发布登记' : '发布登记';
         inspectorPublication.dataset.businessOperation=record.actualPublishAt?'schedule.publish schedule.correctPublication':'schedule.publish';
         inspectorPublication.hidden=!mayOperate('schedule.publish')&&!(record.actualPublishAt&&mayOperate('schedule.correctPublication'));
-        const post=inspector.querySelector('[data-inspector-post]');
-        if(record.publicationUrl){post.href=record.publicationUrl;post.textContent='打开小红书帖子 ↗';}else{post.removeAttribute('href');post.textContent='';}
         inspectorDeleteError.textContent = '';document.querySelector('[data-inspector-cancel-reason]').value='';
         document.dispatchEvent(new CustomEvent('business:schedule-selected', { detail: record }));
       };

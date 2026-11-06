@@ -1,0 +1,71 @@
+/* 操作区域保持稳定；仅主要容器承载材质，不为每个日期或来源建立模糊层。 */
+.business-console-frame[data-glass-surface="schedule"] .status-strip{
+ gap:0;border:1px solid #fff;border-radius:16px;background:var(--console-glass-fill);box-shadow:var(--console-glass-shadow);
+}
+.business-console-frame[data-glass-surface="schedule"] .status-strip>a{
+ min-height:64px;border:0;border-right:1px solid var(--glass-line);border-radius:0;background:transparent;box-shadow:none;transform:none;
+ transition:background-color 140ms,box-shadow 140ms;
+}
+.business-console-frame[data-glass-surface="schedule"] .status-strip>a:last-child{border-right:0}
+.business-console-frame[data-glass-surface="schedule"] .status-strip>a:hover{background:#ffffffb8;box-shadow:inset 0 1px 0 #fff}
+.business-console-frame[data-glass-surface="schedule"] .status-strip>a.active{background:#ffffffd9;box-shadow:inset 0 -2px 0 #628cb1}
+.business-console-frame[data-glass-surface="schedule"] .status-strip>a:focus-visible{outline:2px solid var(--console-blue);outline-offset:-3px}
+.business-console-frame[data-glass-surface="schedule"] .status-strip :is(.testing-summary,.scaling-summary,.attention-summary).active{background:color-mix(in srgb,currentColor 4%,#fff);box-shadow:inset 0 -2px 0 currentColor}
+.business-console-frame[data-glass-surface="schedule"] .workflow-queue-nav>a{background:#f8fcfcbf;border-color:#ffffffd9;box-shadow:inset 0 1px 0 #fff}
+.business-console-frame[data-glass-surface="schedule"] :is(.arrangement-panel,.content-stage>.table-wrap){
+ background:var(--console-glass-fill);border:1px solid #fffffff2;border-radius:18px;box-shadow:var(--console-glass-shadow);backdrop-filter:blur(22px) saturate(1.16);
+}
+.business-console-frame[data-glass-surface="schedule"] .arrangement-heading{border-bottom-color:var(--glass-line);background:#ffffff4d}
+.business-console-frame[data-glass-surface="schedule"] .arrangement-review{background:#f8fcfd7d;border-top-color:var(--glass-line)}
+.business-console-frame[data-glass-surface="schedule"] .monthly-calendar-week+.monthly-calendar-week{border-top-color:var(--glass-line)}
+.business-console-frame[data-glass-surface="schedule"] .monthly-calendar-group{background:#ffffffd9;border-color:#cfdee5;box-shadow:inset 0 1px 0 #fff;transform:none;transition:background-color 140ms,border-color 140ms,box-shadow 140ms}
+.business-console-frame[data-glass-surface="schedule"] .monthly-calendar-group:hover:not(:disabled){border-color:#91b1cb;background:#fff}
+.business-console-frame[data-glass-surface="schedule"] .monthly-calendar-group[aria-pressed=true]{background:#e8f2fb;border-color:#7098bd;box-shadow:inset 0 0 0 1px #b4ccdf}
+.business-console-frame[data-glass-surface="schedule"] .monthly-calendar-group:disabled{background:#edf3f580;border-color:#d9e3e7;box-shadow:none}
+.business-console-frame[data-glass-surface="schedule"] .calendar{background:#fbfdffe0;box-shadow:none}
+.business-console-frame[data-glass-surface="schedule"] .calendar-legend{background:#f2f8fad9;border-bottom-color:var(--glass-line)}
+.business-console-frame[data-glass-surface="schedule"] .weekdays{background:#edf5f8}
+.business-console-frame[data-glass-surface="schedule"] .calendar-grid{border-color:#d7e3e9}
+.business-console-frame[data-glass-surface="schedule"] .calendar-day{background:#fcfefff0;border-color:#d7e3e9}
+.business-console-frame[data-glass-surface="schedule"] .calendar-day.outside{background:#eaf1f3}
+.business-console-frame[data-glass-surface="schedule"] .calendar-day.today{box-shadow:inset 0 2px 0 #7298bc}
+.business-console-frame[data-glass-surface="schedule"] .calendar-day.monthly-week-target{background:#edf5fc}
+.business-console-frame[data-glass-surface="schedule"] .calendar-new{border-radius:6px;transform:none}
+.business-console-frame[data-glass-surface="schedule"] .calendar-new:hover:not(:disabled){background:#eaf3f8}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item{
+ gap:5px;padding:9px 8px;border:1px solid color-mix(in srgb,currentColor 17%,transparent);border-radius:9px;
+ transform:none;box-shadow:inset 0 1px 0 #ffffff9c;transition:border-color 140ms,box-shadow 140ms,filter 140ms;
+}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item .calendar-item-name{order:1;display:flex;align-items:start;gap:6px;white-space:normal;overflow:visible}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item-name>span{min-width:0;flex:1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;font:500 13px/20px var(--console-font);overflow-wrap:anywhere}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item-name>b{flex-shrink:0;padding:1px 3px;border-radius:4px;background:#ffffffa6;font:500 12px/18px var(--console-font);font-variant-numeric:tabular-nums}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item .calendar-item-meta{order:2;gap:4px;align-items:center}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item .monthly-card-membership{order:3}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item:hover{border-color:color-mix(in srgb,currentColor 42%,#fff);filter:brightness(1.02);box-shadow:inset 0 1px 0 #fff,0 4px 8px -5px #254c6b38}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item.selected{outline:2px solid #6a93b7;outline-offset:-1px;box-shadow:inset 0 0 0 1px #fff;background-image:linear-gradient(125deg,#ffffff6b,transparent)}
+.business-console-frame[data-glass-surface="schedule"] .calendar-item:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+.business-console-frame[data-glass-surface="schedule"] .calendar :is(.calendar-item,.calendar-new):active{transform:none}
+.business-console-frame[data-glass-surface="schedule"] .table-wrap{background:#fcfeffe8}
+.business-console-frame[data-glass-surface="schedule"] :is(.table-wrap thead th,.day-divider th){background:#edf5f8;border-color:#d7e3e9}
+.business-console-frame[data-glass-surface="schedule"] .schedule-row:is(:hover,.selected){background:#e8f2fb}
+.business-console-frame[data-glass-surface="schedule"] .schedule-row.overdue{box-shadow:inset 1px 0 #c29438}
+.business-console-frame[data-glass-surface="schedule"] .inspector .detail-list{margin-top:8px}
+.business-console-frame[data-glass-surface="schedule"] .inspector .surface-resources{margin-top:18px}
+.business-console-frame[data-glass-surface="schedule"] .inspector .surface-resource{min-height:66px}
+.business-console-frame[data-glass-surface="schedule"] .inspector :is(.non-plan-panel,.schedule-workflow-panel){background:#f1f7f9;border-color:#d9e5ea}
+.business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference{border-top:1px solid var(--glass-line);padding-top:16px}
+.business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference>summary{font:500 13px/20px var(--console-font);color:#536d7e;cursor:pointer}
+.business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference .inspector-section{margin-top:14px}
+.business-console-frame[data-glass-surface="schedule"] .delay-field{border-left-width:1px}
+@media(prefers-reduced-motion:reduce){
+ .business-console-frame[data-glass-surface="schedule"] :is(.status-strip>a,.monthly-calendar-group,.calendar-item){transition:none;filter:none}
+}
+@media(prefers-reduced-transparency:reduce){
+ .business-console-frame[data-glass-surface="schedule"] :is(.arrangement-panel,.content-stage>.table-wrap,.status-strip){background:#f7fbfc;backdrop-filter:none}
+}
+@supports not(backdrop-filter:blur(1px)){
+ .business-console-frame[data-glass-surface="schedule"] :is(.arrangement-panel,.content-stage>.table-wrap,.status-strip){background:#f7fbfc}
+}
+@media print{
+ .business-console-frame[data-glass-surface="schedule"] :is(.arrangement-panel,.calendar,.status-strip,.content-stage>.table-wrap){background:#fff;box-shadow:none;backdrop-filter:none}
+}

@@ -1,5 +1,6 @@
 ---
 import '../styles/workspace-glass.css';
+import '../styles/schedule-glass.css';
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
 import BusinessPostLookup from './BusinessPostLookup.astro';
 import '../styles/business-tokens.css';
@@ -41,7 +42,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
 })();
 </script>
 {realtimeEditingEnabled&&<link rel="stylesheet" href={collaborationStyles}/>}
-<div class="app-shell business-console-frame" data-glass-surface={active!=='schedule'?active:undefined} data-user-role={Astro.locals.user?.role} data-user-id={Astro.locals.user?.id}>
+<div class="app-shell business-console-frame" data-glass-surface={active} data-user-role={Astro.locals.user?.role} data-user-id={Astro.locals.user?.id}>
   <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
   {notifications&&<script is:inline type="application/json" data-schedule-notification-snapshot set:html={JSON.stringify(notifications).replace(/</g,'\\u003c')}/>}
   <BusinessConsoleSidebar active={active} notifications={notifications} />

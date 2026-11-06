@@ -41,4 +41,6 @@ business-collaboration.ts 由统一配置停止初始化；business-save-conflic
 
 monthly-arrangement.ts 在原月历处理拖动及整月提交／核对／退回，公共确认取消保留意见；monthly-calendar.ts 负责原表单来源、跨周理由和按需补读。无协作请求或新增轮询。
 
-`workspace-glass.ts` 是本地视觉候选的反馈控制器，只作用于显式启用区域。少量资料、历史、明细和助手入口使用指针位置触压：90ms按下，最大约1.2°，380ms阻尼回正；只读来源及资料元信息使用可反向的220ms展开。原点击、键盘、业务保存、Inspector和Sheet控制器继续执行；不发请求、不新增轮询或业务状态。导航前取消监听与动画，减少动态效果保留颜色反馈。
+`workspace-glass.ts` 是共享反馈控制器，只处理显式data-surface-press入口及只读展开区域。少量资料、历史、明细和助手入口使用指针位置触压：90ms按下，最大约1.2°，380ms阻尼回正；只读来源及资料元信息使用可反向的220ms展开。原点击、键盘、业务保存、Inspector和Sheet控制器继续执行；不发请求、不新增轮询或业务状态。导航前取消监听与动画，减少动态效果保留颜色反馈。
+
+`business-resource-links.ts` 以同一只读渲染器适配排期资料；消费原business:schedule-selected摘要并在直接进入时读取已有SSR记录，不发请求、不接管Inspector选择或保存。导航清理监听，缺失入口移除href与键盘聚焦。

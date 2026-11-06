@@ -1,4 +1,4 @@
-/* 桌面视觉候选；仅显式启用的模块生效，排期管理及服务端PDF保留原实现。 */
+/* 已认可的工作台材质；页面复用共享边界，服务端PDF使用独立打印样式。 */
 [data-glass-surface]{
  --console-canvas:#e2edf1;
  --console-glass-fill:linear-gradient(135deg,#ffffffdc,#ffffff9c 48%,#edf8fbd4);
@@ -80,18 +80,15 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
  [data-glass-surface] .report-trend-point{display:none}
 }
 
-/* 颜色由指标类型决定，箭头仍只表达方向；复用原有DOM与数值。 */
+/* 比较颜色来自明确指标语义，箭头只表示增减。 */
 [data-glass-surface]{--metric-better:#a34e48;--metric-worse:#34765b;--metric-neutral:#64748b}
-[data-glass-surface] :is(.monthly-core,.monthly-history-results) .ps-change{--change-up:var(--metric-worse);--change-down:var(--metric-better)}
-[data-glass-surface] [data-cost-metric="推广总消耗"] .ps-change,
-[data-glass-surface] .ps-promotion-table td:nth-child(2) .ps-change,
-[data-glass-surface] .ps-totals>div:first-child .ps-change{--change-up:var(--metric-neutral);--change-down:var(--metric-neutral)}
-[data-glass-surface] :is(.monthly-core,.monthly-history-results) .ps-change[data-direction=up]{color:var(--change-up)}
-[data-glass-surface] :is(.monthly-core,.monthly-history-results) .ps-change[data-direction=down]{color:var(--change-down)}
-[data-glass-surface] .report-waste .report-change[data-direction=positive]{color:var(--metric-worse)}
-[data-glass-surface] .report-waste .report-change[data-direction=negative]{color:var(--metric-better)}
+[data-glass-surface] :is(.ps-change,.report-change,.business-value-change)[data-metric-sense=lower]{--change-up:var(--metric-worse);--change-down:var(--metric-better)}
+[data-glass-surface] :is(.ps-change,.report-change,.business-value-change)[data-metric-sense=higher]{--change-up:var(--metric-better);--change-down:var(--metric-worse)}
+[data-glass-surface] :is(.ps-change,.report-change,.business-value-change)[data-metric-sense=neutral]{--change-up:var(--metric-neutral);--change-down:var(--metric-neutral)}
+[data-glass-surface] :is(.ps-change,.report-change,.business-value-change)[data-metric-sense]:is([data-direction=up],[data-direction=positive]){color:var(--change-up)}
+[data-glass-surface] :is(.ps-change,.report-change,.business-value-change)[data-metric-sense]:is([data-direction=down],[data-direction=negative]){color:var(--change-down)}
 
-/* 各模块共享的光影语言，排期页面没有启用标记。 */
+/* 各模块共享的光影语言。 */
 [data-glass-surface]{--glass-line:#8eabb92e;--console-line:#d5e0e5;--console-muted:#617383}
 [data-glass-surface]::selection,[data-glass-surface] *::selection{color:#193b57;background:#b8d8ee}
 [data-glass-surface] :is(input,textarea){caret-color:#315fd6}
@@ -139,6 +136,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 [data-glass-surface] .meeting-records tbody tr:hover{background:#edf5fa}
 /* 详情浮层：资料先行，日期和原始ID为辅助。 */
 [data-glass-surface] .business-inspector[data-inspector].is-open{background:linear-gradient(150deg,#ffffffed,#eef7faf0);box-shadow:inset 0 0 0 1px #fff,0 16px 46px -18px #23475c57;backdrop-filter:blur(24px) saturate(1.18);border-radius:18px}
+[data-glass-surface] .business-inspector[data-inspector]:focus-visible{outline:2px solid #7298b9;outline-offset:-2px}
 [data-glass-surface] .business-inspector[data-inspector]>header{background:#f9fcfbe8;border-bottom-color:var(--glass-line);padding:20px 18px 16px}
 [data-glass-surface] .business-inspector[data-inspector]>header :is(h1,h2){font-size:18px;line-height:26px;color:#203542}
 [data-glass-surface] .business-inspector[data-inspector]>header [data-close-inspector]{background:#e5eef1;color:#536b7b;border-radius:50%;width:30px;height:30px}
@@ -158,6 +156,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 [data-glass-surface] .surface-resource-copy small{font:400 12px/18px var(--console-font);color:#617888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [data-glass-surface] .surface-resource[data-missing]{box-shadow:none;background:#edf3f5;border:1px dashed #cbd8de;color:#6e7e87}
 [data-glass-surface] .surface-resource-arrow{transition:transform 160ms}
+[data-glass-surface] .surface-resource[data-missing] .surface-resource-arrow{visibility:hidden}
 [data-glass-surface] a.surface-resource:hover .surface-resource-arrow{transform:translate(1px,-1px)}
 [data-glass-surface] :is(.promotion-detail-meta,.review-resources dl){gap:10px;margin-block:14px}
 [data-glass-surface] .promotion-day{margin-top:18px;padding-top:18px}
@@ -174,7 +173,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 [data-glass-surface] [data-popover-panel]{box-shadow:0 12px 36px -12px #24475a40;border-color:#d2e1e8;background:#fbfdfffa}
 [data-glass-surface] [data-surface-press]{position:relative;isolation:isolate;transform-origin:center;touch-action:manipulation;transition:border-color 140ms,box-shadow 160ms,background-color 140ms}
 [data-glass-surface] [data-surface-press]::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at var(--press-x,50%) var(--press-y,50%),#fff,transparent 72%);opacity:0;transition:opacity 140ms}
-[data-glass-surface] [data-surface-press]:hover{border-color:#bfd4e3;box-shadow:inset 0 1px 0 #fff,0 6px 14px -9px #244c6a80}
+[data-glass-surface] [data-surface-press]:not(:disabled):not([aria-disabled=true]):hover{border-color:#bfd4e3;box-shadow:inset 0 1px 0 #fff,0 6px 14px -9px #244c6a80}
 [data-glass-surface] [data-surface-press][data-surface-pressed]::after{opacity:.85}
 [data-glass-surface] [data-surface-press]:focus-visible{outline:2px solid #5485b5;outline-offset:3px}
 [data-glass-surface] :is(.monthly-core>header .business-action-secondary,.report-all-sources,.report-monthly-execution>header .report-detail-link){display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 12px;border:1px solid #ffffffed;border-radius:9px;background:linear-gradient(150deg,#fffffff2,#eaf3f9d9);color:#315b82;text-decoration:none}
@@ -200,11 +199,6 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 [data-glass-surface] .report-kpis>.report-kpi{border:0;border-right:1px solid var(--glass-line);border-radius:0;background:transparent;box-shadow:none}
 [data-glass-surface] .report-kpis>.report-kpi:last-child{border-right:0}
 [data-glass-surface] .weekly-card{border-color:#fff;background:var(--console-glass-fill);border-radius:16px;box-shadow:var(--console-glass-shadow)}
-[data-glass-surface] :is(.report-kpi-posts,.weekly-metrics,.metric-primary) :is(.report-change,.business-value-change)[data-direction=positive]{color:var(--metric-better)}
-[data-glass-surface] :is(.report-kpi-posts,.weekly-metrics,.metric-primary) :is(.report-change,.business-value-change)[data-direction=negative]{color:var(--metric-worse)}
-[data-glass-surface] :is(.report-kpi-actualOpenCost,.report-kpi-actualLeadCost) .report-change[data-direction=positive]{color:var(--metric-worse)}
-[data-glass-surface] :is(.report-kpi-actualOpenCost,.report-kpi-actualLeadCost) .report-change[data-direction=negative]{color:var(--metric-better)}
-[data-glass-surface] .report-kpi-spend .report-change{color:var(--metric-neutral)}
 [data-glass-surface] .meeting-record{transition:background-color 140ms}
 [data-glass-surface] .meeting-record:hover{background:#ffffff85}
 [data-glass-surface] .meeting-archive{background:#ffffffb8;border-color:#fff;border-radius:14px}
@@ -213,14 +207,10 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 
 .business-console-frame[data-glass-surface] .business-sidebar{background:#e7f1f0d9;border-right-color:#ffffffa6}
 .business-console-frame[data-glass-surface] :is(.business-sidebar__nav a.active,.business-sidebar__settings.active){color:#28558f;background:linear-gradient(125deg,#ffffffed,#d7e9f4d9);box-shadow:inset 0 1px 0 #fff,0 4px 12px -9px #254c6b77}
-.business-console-frame[data-glass-surface] .toolbar-segmented a.active{background:#fff;color:#244e77;box-shadow:0 2px 6px #1d496a17}
-.business-console-frame[data-glass-surface] .business-view-switch input:checked+span{color:#244e77;background:#fff;box-shadow:0 2px 6px #1d496a17}
+.business-console-frame[data-glass-surface] .business-toolbar .toolbar-segmented a.active{background:#fff;color:#244e77;box-shadow:0 2px 6px #1d496a17}
+.business-console-frame[data-glass-surface] .business-console-workspace .business-view-switch input[type=radio]:checked+span{color:#244e77;background:#fff;box-shadow:0 2px 6px #1d496a17}
 .business-console-frame[data-glass-surface] .business-view-switch label:has(input:checked){background:transparent;box-shadow:none}
 .business-console-frame[data-glass-surface] .business-view-switch input:disabled+span{color:#617383;background:transparent;box-shadow:none}
-[data-glass-surface] [data-monthly-operations] .ps-change{--change-up:var(--metric-worse);--change-down:var(--metric-better)}
-[data-glass-surface] [data-monthly-operations] :is([data-cost-metric="推广总消耗"],.ps-promotion-table td:nth-child(2),.ps-totals>div:first-child) .ps-change{--change-up:var(--metric-neutral);--change-down:var(--metric-neutral)}
-[data-glass-surface] [data-monthly-operations] .ps-change[data-direction=up]{color:var(--change-up)}
-[data-glass-surface] [data-monthly-operations] .ps-change[data-direction=down]{color:var(--change-down)}
 @media(prefers-reduced-transparency:reduce){.business-console-frame[data-glass-surface] .business-sidebar{background:#f3f8f9}}
 
 [data-glass-surface] .metric-cell.positive small{color:var(--metric-better)}
@@ -230,7 +220,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 .business-console-frame[data-glass-surface] .metric-cell.negative .metric-primary small{color:var(--metric-worse)}
 
 /* 行内按钮的最后一层反馈，优先于各业务入口的默认边框。 */
-.business-console-frame[data-glass-surface] [data-surface-press]:hover{border-color:#aecbdd;box-shadow:inset 0 1px 0 #fff,0 6px 14px -9px #244c6a80}
+.business-console-frame[data-glass-surface] [data-surface-press]:not(:disabled):not([aria-disabled=true]):hover{border-color:#aecbdd;box-shadow:inset 0 1px 0 #fff,0 6px 14px -9px #244c6a80}
 .business-console-frame[data-glass-surface] [data-surface-press][data-surface-pressed]{box-shadow:inset 0 1px 3px #35587a26,0 1px 2px #325d8010}
 [data-glass-surface] :is(.business-action-primary,.business-action-secondary,.primary-action,.review-entry-button,.quiet-button):not([data-surface-press]):not(:disabled):active{transform:translateY(1px)}
 @media(prefers-reduced-motion:reduce){[data-glass-surface] :is(.business-action-primary,.business-action-secondary,.primary-action,.review-entry-button,.quiet-button):active{transform:none}}

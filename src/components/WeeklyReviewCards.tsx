@@ -29,7 +29,7 @@ function RateDelta({value,comparison,field='clickRate'}:{value:number|null|undef
  const delta=rateDifference(value,comparison,field);
  if(delta==null)return null;
  const rounded=Math.abs(delta)<0.005?0:delta;
- return <span className="weekly-rate-comparison business-value-change" data-direction={rounded>0?'positive':rounded<0?'negative':'neutral'} aria-label={`较同类${rounded>0?'高':rounded<0?'低':'持平'}${Math.abs(rounded).toFixed(2)}个百分点`}><svg aria-hidden="true" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.6"><path d={rounded>0?'M8 13V3m-4 4 4-4 4 4':rounded<0?'M8 3v10m-4-4 4 4 4-4':'M3 8h10m-4-4 4 4-4 4'}/></svg><b>{rounded>0?'+':''}{rounded.toFixed(2)}<span>pp</span></b></span>;
+ return <span className="weekly-rate-comparison business-value-change" data-metric-sense="higher" data-direction={rounded>0?'positive':rounded<0?'negative':'neutral'} aria-label={`较同类${rounded>0?'高':rounded<0?'低':'持平'}${Math.abs(rounded).toFixed(2)}个百分点`}><svg aria-hidden="true" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.6"><path d={rounded>0?'M8 13V3m-4 4 4-4 4 4':rounded<0?'M8 3v10m-4-4 4 4 4-4':'M3 8h10m-4-4 4 4-4 4'}/></svg><b>{rounded>0?'+':''}{rounded.toFixed(2)}<span>pp</span></b></span>;
 }
 function RateMetric({value,comparison,field='clickRate',custom=false}:{value:number|null;comparison?:RateComparison;field?:'clickRate'|'threeSecondReadRate';custom?:boolean}){
  return <div className="weekly-rate-value"><strong className="weekly-node-result">{rate(value)}</strong>{!custom&&<RateDelta value={value} comparison={comparison} field={field}/>}</div>;

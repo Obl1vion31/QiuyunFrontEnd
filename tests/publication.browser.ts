@@ -1,3 +1,5 @@
+import {prepareMonthlyArrangement} from './monthly-arrangement.fixture';
+import {randomUUID} from 'node:crypto';
 import {respondToBusinessConfirm} from './business-confirm.helper';
 import {businessFetch as fetch} from './business-request.helper';
 import { fillBusinessDateTime, checkBusinessDateTime } from './business-datetime.helper';
@@ -8,6 +10,7 @@ import {eq} from 'drizzle-orm';
 import {scheduleWriteVersion} from '../src/db/schedule-write-version';
 import {startFixture,admin,employee} from './auth.fixture';
 import * as schema from '../src/db/schema';
+await mkdir('.tools/test-artifacts/nonpromotion-plans',{recursive:true});
 const clockFile=new URL('../.tools/test-artifacts/nonpromotion-plans/publication-clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-15T12:00:00+08:00');const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;let browser:any;
 const time=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date).replace(' ','T');
 const now=new Date('2026-11-15T12:00:00+08:00'),future=time(new Date(now.getTime()+3*3600000)),month=time(now).slice(0,7);
@@ -17,7 +20,9 @@ async function login(account:typeof admin|typeof employee){const r=await fetch(b
 async function call(path:string,method:string,cookie:string,input?:Record<string,string>,expected=200){const r=await fetch(baseURL+path,{method,headers:{Origin:baseURL,Cookie:cookie,Accept:'application/json'},body:input?form(input):undefined});const data=await r.json();assert.equal(r.status,expected,`${path}: ${JSON.stringify(data)}`);return data;}
 try{
  const staff=await login(employee),boss=await login(admin);
- async function create(name:string){return (await call('/api/operations-content','POST',staff,{contentName:name,subjectId:'tmua',categoryId:'temporary',plannedPublishAt:future,projectDocUrl:'',promotionStatus:'none'},201)).id as string;}
+ const groupId=randomUUID(),items=Array.from({length:32},()=>({id:randomUUID(),groupId,week:3,kind:'new' as const,scheduleId:null}));let nextItem=0;
+ const monthly=await prepareMonthlyArrangement(db as any,baseURL,boss,{content:{groups:[{id:groupId,annualPlanId:null,annualVersion:null,name:'TMUA 发布登记回归',subjectId:'tmua',categoryId:'temporary',quantity:32,note:'隔离样本',reason:'月会预排期'}],items}});
+ async function create(name:string){return (await call('/api/operations-content','POST',staff,{contentName:name,subjectId:'tmua',categoryId:'temporary',plannedPublishAt:future,projectDocUrl:'',promotionStatus:'none',monthlyPlanId:monthly.planId,monthlyPlanItemId:items[nextItem++].id,monthlyExpectedRevision:'1',monthlyRequestId:randomUUID()},201)).id as string;}
  const cases:Array<{id:string;state:string;promoted:boolean;name:string}>=[];
  for(const promoted of [false,true])for(const state of ['on_time','delayed','pending']){
   const planned=new Date(`${month}-${String(cases.length<3?5:5+cases.length).padStart(2,'0')}T10:00:00+08:00`);
@@ -53,15 +58,15 @@ try{
  async function pageFor(cookie:string,width:number){const context=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',reducedMotion:'reduce'});await context.addCookies(cookie.split('; ').map(pair=>({name:pair.slice(0,pair.indexOf('=')),value:pair.slice(pair.indexOf('=')+1),url:baseURL})));const page=await context.newPage();await page.clock.setFixedTime(now);page.on('pageerror',(error:Error)=>errors.push(error.message));return {context,page};}
  for(const width of [1440,390,320]){
   const {context,page}=await pageFor(staff,width);
-  await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('table').count(),0);const display=page.getByRole('navigation',{name:'显示方式',exact:true});assert.deepEqual(await display.locator('a').allTextContents(),['月历','台账']);assert.equal(await display.locator('[aria-current=page]').innerText(),'月历');const stats=await page.locator('.status-strip strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({font:getComputedStyle(node).fontFamily,size:parseFloat(getComputedStyle(node).fontSize),weight:getComputedStyle(node).fontWeight,figures:getComputedStyle(node).fontVariantNumeric})));assert.ok(stats.length>0);assert.ok(stats.every((item:any)=>item.font.includes('system-ui')&&!item.font.includes('monospace')&&item.size>=20&&item.size<=24&&item.weight==='500'&&item.figures.includes('tabular-nums')),'核心统计使用共享字体和等宽数字');assert.equal(await page.locator('#publicationMode').count(),0);
+  await page.goto(baseURL+'/business/operations-schedule');await page.locator('.calendar').waitFor();assert.equal(await page.locator('.arrangement-content>.table-wrap').count(),0);const display=page.getByRole('navigation',{name:'显示方式',exact:true});assert.deepEqual(await display.locator('a').allTextContents(),['月历','台账']);assert.equal(await display.locator('[aria-current=page]').innerText(),'月历');const stats=await page.locator('.status-strip strong').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>({font:getComputedStyle(node).fontFamily,size:parseFloat(getComputedStyle(node).fontSize),weight:getComputedStyle(node).fontWeight,figures:getComputedStyle(node).fontVariantNumeric})));assert.ok(stats.length>0);assert.ok(stats.every((item:any)=>item.font.includes('system-ui')&&!item.font.includes('monospace')&&item.size>=20&&item.size<=24&&item.weight==='500'&&item.figures.includes('tabular-nums')),'核心统计使用共享字体和等宽数字');assert.equal(await page.locator('#publicationMode').count(),0);
   assert.equal(await page.getByText('预约待审',{exact:true}).count(),0);assert.equal(await page.getByText('到点待确认',{exact:true}).count(),0);
   for(const item of cases){
    const row=page.locator(`[data-inspect-id="${item.id}"]`);assert.match(await row.getAttribute('class'),new RegExp('publish-'+(item.state==='pending'?'missing':item.state)));assert.equal(await row.locator('.promotion-identity').innerText(),item.promoted?'推广':'非推广');
    assert.ok((await row.getAttribute('aria-label')).includes(item.name));assert.ok((await row.getAttribute('title')).includes(item.name));
    assert.equal(await row.locator('small').count(),0);assert.equal(await row.locator(':scope > span').count(),2);
-   const box=await row.locator('.calendar-item-name').evaluate((node:HTMLElement)=>({height:node.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(node).lineHeight),clipped:node.scrollWidth>node.clientWidth,ellipsis:getComputedStyle(node).textOverflow}));
-   assert.ok(box.height<=box.lineHeight+1,'标题保持单行');if(item.name.length>30){assert.equal(box.clipped,true);assert.equal(box.ellipsis,'ellipsis');}
-   assert.ok((await row.boundingBox()).height<=60,'两行卡片保持紧凑');
+   const box=await row.locator('.calendar-item-name>span').evaluate((node:HTMLElement)=>({height:node.getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(node).lineHeight),clipped:node.scrollHeight>node.clientHeight,clamp:getComputedStyle(node).webkitLineClamp}));
+   assert.ok(box.height<=box.lineHeight*2+1,'标题最多两行');if(item.name.length>30){assert.equal(box.clipped,true);assert.equal(box.clamp,'2');}
+   assert.ok(await row.evaluate((n:HTMLElement)=>n.scrollWidth<=n.clientWidth),'文字与元信息不越过卡片');
   }
   assert.equal(await page.locator(`[data-calendar-day="${month}-05"] .calendar-item`).count(),3);
   const colors=await page.locator('.calendar-item').evaluateAll((rows:HTMLElement[])=>Object.fromEntries(['on_time','delayed','pending','missing'].map(key=>[key,getComputedStyle(rows.find(row=>row.classList.contains('publish-'+key))!).backgroundColor])));
@@ -70,16 +75,17 @@ try{
   const blank=page.locator(`[data-calendar-day="${month}-01"]`);await blank.click({position:{x:6,y:6}});await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-01');await page.locator('[data-close]').first().click();
   await page.locator('[data-calendar-new]').filter({hasText:'20'}).click();await page.locator('#schedule-dialog[open]').waitFor();assert.equal(await page.locator('#plannedPublishDate').inputValue(),month+'-20');assert.equal(await page.locator('#plannedPublishTime').inputValue(),'09:00');
   await page.locator('#contentName').fill(`虚构日历新建 ${width}`);await page.locator('#subjectId').selectOption('tmua');await page.locator('#categoryId').selectOption('temporary');await page.locator('#plannedPublishTime').fill('12:00');
-  const reloaded=page.waitForEvent('framenavigated',(frame:any)=>frame===page.mainFrame());
-  const created=page.waitForResponse((r:any)=>r.url().endsWith('/api/operations-content')&&r.request().method()==='POST');await page.locator('#schedule-form button[type=submit]').click();assert.equal((await created).status(),201);await reloaded;await page.waitForLoadState('networkidle');
+  await page.locator('[data-monthly-source]').selectOption(items[nextItem++].id);
+  const reloaded=page.waitForEvent('framenavigated',{predicate:(frame:any)=>frame===page.mainFrame()});
+  const created=page.waitForResponse((r:any)=>r.url().endsWith('/api/operations-content')&&r.request().method()==='POST');await page.locator('#schedule-form button[type=submit]').click();if(width!==1440)await respondToBusinessConfirm(page,true);assert.equal((await created).status(),201);await reloaded;await page.waitForLoadState('networkidle');
   const [createdRow]=await db.select({id:schema.operationsContentSchedule.id}).from(schema.operationsContentSchedule).innerJoin(schema.operationsContentVersion,eq(schema.operationsContentVersion.id,schema.operationsContentSchedule.contentVersionId)).where(eq(schema.operationsContentVersion.contentName,`虚构日历新建 ${width}`));const createdId=createdRow.id;
   const fresh=await call(`/api/operations-content/${createdId}/workflow`,'GET',staff);assert.equal(fresh.schedule.plannedPublishAt,new Date(month+'-20T12:00:00+08:00').toISOString());
   // 点击已有条目只打开详情；旧帖子链接区域和表单留空。
   assert.equal(await page.locator('#schedule-dialog').evaluate((node:HTMLDialogElement)=>node.open),false,'新建保存后对话框已关闭');
   await page.locator(`[data-inspect-id="${cases[0].id}"]`).click();await page.locator('[data-inspector].is-open').waitFor();assert.equal(await page.locator('#schedule-dialog').evaluate((node:HTMLDialogElement)=>node.open),false);
   assert.equal(await page.locator('[data-inspector-name]').innerText(),cases[0].name);
-  assert.equal(await page.locator('.calendar-item-name').evaluateAll((nodes:HTMLElement[])=>nodes.every(node=>node.getBoundingClientRect().height<=parseFloat(getComputedStyle(node).lineHeight)+1)),true,'详情打开后标题仍单行');
-  assert.equal(await page.locator('[data-inspector-post]').innerText(),'');assert.equal(await page.locator('[data-inspector-post]').getAttribute('href'),null);
+  assert.equal(await page.locator('.calendar-item-name').evaluateAll((nodes:HTMLElement[])=>nodes.every(node=>node.getBoundingClientRect().height<=parseFloat(getComputedStyle(node).lineHeight)*2+1)),true,'详情打开后标题最多两行且保持完整可访问名称');
+  assert.match(await page.locator('[data-inspector-post]').innerText(),/帖子链接.*未登记/s);assert.equal(await page.locator('[data-inspector-post]').getAttribute('aria-disabled'),'true');assert.equal(await page.locator('[data-inspector-post]').getAttribute('href'),null);
   const sheetGeometry=(selector:string)=>page.locator(selector).evaluate((node:HTMLElement)=>{
    const header=node.querySelector('.dialog-head')!,body=node.querySelector('.sheet-body')!,footer=node.querySelector('.dialog-actions')!;
    const rects=[node,header,footer].map(element=>{const rect=element.getBoundingClientRect();return [rect.x,rect.y,rect.width,rect.height]});
@@ -108,7 +114,7 @@ try{
   // 月历筛选保持月历并真正筛选；台账和月份切换仍可用。
   await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'已发布'}).click();await page.waitForURL(/status=published/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-pending'));assert.equal(await page.locator('.calendar').count(),1);assert.equal(await page.locator('.calendar-item.publish-pending').count(),0);
   await page.locator('[aria-label="排期状态视角"] a').filter({hasText:'待发布'}).click();await page.waitForURL(/status=pending/);await page.waitForFunction(()=>!document.querySelector('.calendar-item.publish-on_time,.calendar-item.publish-delayed'));assert.equal(await page.locator('.calendar-item.publish-on_time,.calendar-item.publish-delayed').count(),0);
-  await display.getByRole('link',{name:'台账',exact:true}).click();await page.waitForURL(/display=ledger/);assert.equal(await page.locator('table').count(),1);await page.screenshot({path:`.tools/test-artifacts/calendar-ledger-${width}.png`});await display.getByRole('link',{name:'月历',exact:true}).click();await page.waitForURL(/display=calendar/);await page.locator('.calendar').waitFor();assert.equal(await display.locator('[aria-current=page]').innerText(),'月历');await page.screenshot({path:`.tools/test-artifacts/calendar-return-${width}.png`});
+  await display.getByRole('link',{name:'台账',exact:true}).click();await page.waitForURL(/display=ledger/);assert.equal(await page.locator('.arrangement-content>.table-wrap>table').count(),1);await page.screenshot({path:`.tools/test-artifacts/calendar-ledger-${width}.png`});await display.getByRole('link',{name:'月历',exact:true}).click();await page.waitForURL(/display=calendar/);await page.locator('.calendar').waitFor();assert.equal(await display.locator('[aria-current=page]').innerText(),'月历');await page.screenshot({path:`.tools/test-artifacts/calendar-return-${width}.png`});
   const newId=await create(`虚构分享登记 ${width}`);await page.goto(baseURL+`/business/operations-schedule?row=${newId}`);
   assert.equal(await page.locator('[data-inspector-publication]').isEnabled(),true);const actionTypes=await page.locator('.business-inspector-actions button').evaluateAll((nodes:HTMLElement[])=>nodes.filter(node=>node.getBoundingClientRect().height>0).map(node=>({height:node.getBoundingClientRect().height,font:getComputedStyle(node).fontFamily,size:getComputedStyle(node).fontSize,weight:getComputedStyle(node).fontWeight,background:getComputedStyle(node).backgroundColor})));assert.ok(actionTypes.every((item:any)=>item.height===40&&item.size==='14px'&&item.weight==='500'&&item.font.includes('system-ui')),JSON.stringify(actionTypes));assert.equal(actionTypes[0].background,'rgb(49, 95, 214)');
 await page.locator('[data-inspector-publication]').click();await checkBusinessDateTime(page.locator('#publication-form [data-datetime-field]'));

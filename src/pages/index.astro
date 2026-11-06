@@ -60,7 +60,7 @@ const workflowTitle = workflow.title.replace('，', '，|').replace('持续', '|
                 <article>
                   <span class="entry-tag">{entry.eyebrow}</span>
                   <div><h3>{entry.title}</h3><p>{entry.summary}</p></div>
-                  {entry.href ? <a class="entry-action" href={entry.href}>{entry.cta}<span aria-hidden="true">↗</span></a> : <span class="entry-status">{entry.cta}</span>}
+                  {entry.href ? <a class="entry-action" data-surface-press="directional" href={entry.href}>{entry.cta}<span aria-hidden="true">↗</span></a> : <span class="entry-status">{entry.cta}</span>}
                 </article>
               ))}
             </div>

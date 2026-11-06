@@ -2,10 +2,10 @@ import {useEffect,useLayoutEffect,useRef} from 'react';
 import type {RefObject} from 'react';
 import '../styles/report-presentation.css';
 export const reportMoney=(n:number|null|undefined)=>n==null?'—':'¥'+n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
-export function ReportChange({value,previous,unit='¥',label='较前期'}:{value:number|null;previous:number|null;unit?:string;label?:string}){
+export function ReportChange({value,previous,unit='¥',label='较前期',sense='neutral'}:{value:number|null;previous:number|null;unit?:string;label?:string;sense?:'neutral'|'higher'|'lower'}){
  if(value==null||previous==null)return <span className="report-change report-muted">暂无可比数据</span>;
  const delta=Math.round((value-previous)*100)/100;
- return <span className="report-change" data-direction={delta>0?'positive':delta<0?'negative':'neutral'}><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d={delta>0?'M8 13V3m-4 4 4-4 4 4':delta<0?'M8 3v10m-4-4 4 4 4-4':'M3 8h10'}/></svg><span>{delta>0?'+':delta<0?'−':''}{unit==='¥'?reportMoney(Math.abs(delta)):Math.abs(delta).toLocaleString('zh-CN')+unit}</span><small>{label}</small></span>;
+ return <span className="report-change" data-metric-sense={sense} data-direction={delta>0?'positive':delta<0?'negative':'neutral'}><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d={delta>0?'M8 13V3m-4 4 4-4 4 4':delta<0?'M8 3v10m-4-4 4 4 4-4':'M3 8h10'}/></svg><span>{delta>0?'+':delta<0?'−':''}{unit==='¥'?reportMoney(Math.abs(delta)):Math.abs(delta).toLocaleString('zh-CN')+unit}</span><small>{label}</small></span>;
 }
 export interface TrendPoint {from:string;through:string;value:number|null;key?:string;label?:string;valueLabel?:string;shortLabel?:string;current?:boolean}
 export function SparkTrend({points,label,currentFrom,currentThrough,compact=false,interactive=false,connectIntervals=false,axis='date',motionKey,plotHeight,presentation='default'}:{points:TrendPoint[];label:string;currentFrom?:string;currentThrough?:string;compact?:boolean;interactive?:boolean;connectIntervals?:boolean;axis?:'date'|'month'|'version';motionKey?:string;plotHeight?:number;presentation?:'default'|'sparkline'}){
