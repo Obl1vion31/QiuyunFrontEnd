@@ -1,0 +1,38 @@
+{
+  "screenshots": 40,
+  "screenContacts": [
+    "screens-01.jpg",
+    "screens-02.jpg",
+    "screens-03.jpg",
+    "screens-04.jpg",
+    "screens-05.jpg",
+    "screens-06.jpg",
+    "screens-07.jpg"
+  ],
+  "pdfs": [
+    {
+      "file": "meeting-costs.pdf",
+      "pages": 6
+    },
+    {
+      "file": "meeting-five-trends.pdf",
+      "pages": 6
+    },
+    {
+      "file": "meeting-legacy.pdf",
+      "pages": 5
+    },
+    {
+      "file": "meeting-long.pdf",
+      "pages": 5
+    }
+  ],
+  "pdfContacts": [
+    "pdf-01.jpg",
+    "pdf-02.jpg",
+    "pdf-03.jpg",
+    "pdf-04.jpg",
+    "pdf-05.jpg",
+    "pdf-06.jpg"
+  ]
+}

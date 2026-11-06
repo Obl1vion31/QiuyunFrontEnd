@@ -1,0 +1,2867 @@
+{
+  "checks": [
+    "真实旧口径首次录入仅生成两门实际推广课程，保存后学科与顶部成本回显一致",
+    "已存空讲义读取即时修复且不写库，正常保存清理占位并保持推广兼容投影",
+    "上月没有私域数据仍保留推广消耗和开口留资比较，六个月序列按指标缺值断开",
+    "真实事实覆盖0／1／2／6有效月、真实0、缺值断线及当月不生成环比；私域单月无图",
+    "PATCH成功、读取503明确区分；重试只读不重写，展开状态保留",
+    "慢刷新期间的新输入与dirty保留，后续正常保存不丢修改",
+    "关闭取消、键盘与未保存输入保护沿用公共实现",
+    "三项完整性独立；真实0元推广用途仍保留，未填人数不能被忽略",
+    "未封存当前月会读取最新成本，封存后的六个月趋势与事实保持原快照",
+    "三档桌面运营／月会／录入／精简历史实际渲染，右图日期单行且无页面级溢出",
+    "快速切月旧响应不覆盖新选择，来源折叠按月份重置",
+    "三份正式渲染PDF含完整来源，旧封存展示保持；长金额历史两列不截断",
+    "390px仅核查页面溢出、明显遮挡和关闭保存入口",
+    "五项趋势同时内嵌，新增PDF保留同样对应关系"
+  ],
+  "images": [
+    {
+      "name": "monthly-gap-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 335,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 932,
+          "w": 218,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 932,
+          "w": 218,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1069,
+          "w": 334,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-collapsed-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 495,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 932,
+          "w": 355.375,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 932,
+          "w": 355.375,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1046,
+          "w": 494,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1046,
+          "w": 494,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1046,
+          "w": 494,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-expanded-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 495,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 932,
+          "w": 355.375,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 932,
+          "w": 355.375,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1046,
+          "w": 494,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1046,
+          "w": 494,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1046,
+          "w": 494,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 495,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 932,
+          "w": 355.375,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 932,
+          "w": 355.375,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1046,
+          "w": 494,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1046,
+          "w": 494,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1046,
+          "w": 494,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 492.328125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 353.328125,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 353.328125,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-missing-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 492.328125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 353.328125,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 353.328125,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 1262,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 1574.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 1262,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 1574.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1262,
+          "y": 443,
+          "w": 279.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1574.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-costs-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 492.328125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 353.328125,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 353.328125,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 491.328125,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 1262,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 1574.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1262,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 1574.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 1262,
+          "y": 443,
+          "w": 279.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1574.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-collapsed-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 335,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 932,
+          "w": 218,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 932,
+          "w": 218,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1069,
+          "w": 334,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-expanded-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 335,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 932,
+          "w": 218,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 932,
+          "w": 218,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1069,
+          "w": 334,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 335,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 932,
+          "w": 218,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 932,
+          "w": 218,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1069,
+          "w": 334,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1069,
+          "w": 334,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 332.328125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 215.328125,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 215.34375,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 475,
+          "w": 331.328125,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 475,
+          "w": 331.328125,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 475,
+          "w": 331.34375,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-missing-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 332.328125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 215.328125,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 215.34375,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 475,
+          "w": 331.328125,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 475,
+          "w": 331.328125,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 475,
+          "w": 331.34375,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 443,
+          "w": 279.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-costs-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 332.328125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 215.328125,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 215.34375,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 475,
+          "w": 331.328125,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 475,
+          "w": 331.328125,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 475,
+          "w": 331.34375,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 443,
+          "w": 279.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-collapsed-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1206,
+          "w": 310.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1206,
+          "w": 193.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1343,
+          "w": 194.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1343,
+          "w": 309.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1480,
+          "w": 310.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1480,
+          "w": 309.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-expanded-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1206,
+          "w": 310.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1206,
+          "w": 193.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1343,
+          "w": 194.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1343,
+          "w": 309.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1480,
+          "w": 310.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1480,
+          "w": 309.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 609,
+          "w": 310.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 609,
+          "w": 193.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 746,
+          "w": 194.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 746,
+          "w": 309.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 883,
+          "w": 310.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 883,
+          "w": 309.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 306.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 189.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 475,
+          "w": 190.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 475,
+          "w": 305.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 612,
+          "w": 306.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 612,
+          "w": 305.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-missing-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 306.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 189.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 475,
+          "w": 190.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 475,
+          "w": 305.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 612,
+          "w": 306.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 612,
+          "w": 305.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 366,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 678.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 366,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 678.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 366,
+          "y": 443,
+          "w": 279.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 678.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-costs-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 306.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 189.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 475,
+          "w": 190.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 475,
+          "w": 305.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 612,
+          "w": 306.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 612,
+          "w": 305.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 366,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 678.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 366,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 678.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 366,
+          "y": 443,
+          "w": 279.5,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 678.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-long-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 310,
+          "w": 332.328125,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 310,
+          "w": 331.328125,
+          "text": "¥881,834.21",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 310,
+          "w": 331.34375,
+          "text": "¥2,057,613.15",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 423,
+          "w": 331.328125,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 423,
+          "w": 331.328125,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 423,
+          "w": 331.34375,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 217,
+          "w": 279.5,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 217,
+          "w": 278.5,
+          "text": "¥881,834.21",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 330,
+          "w": 279.5,
+          "text": "¥2,057,613.15",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 330,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 782,
+          "y": 443,
+          "w": 279.5,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1094.5,
+          "y": 443,
+          "w": 278.5,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "legacy-frozen-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"Times New Roman\"",
+      "metrics": []
+    },
+    {
+      "name": "monthly-mobile-390",
+      "viewport": 390,
+      "scrollWidth": 375,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 44,
+          "y": 1578,
+          "w": 287,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1691,
+          "w": 171,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1828,
+          "w": 171,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1965,
+          "w": 287,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 2078,
+          "w": 287,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 2191,
+          "w": 287,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-mobile-390",
+      "viewport": 390,
+      "scrollWidth": 375,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 44,
+          "y": 533,
+          "w": 287,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 646,
+          "w": 171,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 783,
+          "w": 171,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 920,
+          "w": 287,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1033,
+          "w": 287,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1146,
+          "w": 287,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-five-trends-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 932,
+          "w": 335,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 932,
+          "w": 218,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 932,
+          "w": 218,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1069,
+          "w": 218,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1069,
+          "w": 218,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1069,
+          "w": 218,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-five-trends-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 332.328125,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 215.328125,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 215.34375,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 475,
+          "w": 215.328125,
+          "text": "¥731.07",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 475,
+          "w": 215.328125,
+          "text": "¥1,535.25",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 475,
+          "w": 215.34375,
+          "text": "¥2,558.75",
+          "overflow": false
+        }
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "kind": "trends",
+      "viewport": 1920,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 1135,
+          "bottom": 1179,
+          "summaryTop": 1135,
+          "summaryBottom": 1179,
+          "summaryHeight": 44,
+          "textTop": 1145,
+          "textBottom": 1169,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1179,
+          "bottom": 1224,
+          "summaryTop": 1180,
+          "summaryBottom": 1224,
+          "summaryHeight": 44,
+          "textTop": 1190,
+          "textBottom": 1214,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 857,
+          "bottom": 902,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 857,
+          "bottom": 1087,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 522,
+          "bottom": 752,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 522,
+          "bottom": 567,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "trends",
+      "viewport": 1920,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 737,
+          "bottom": 781,
+          "summaryTop": 737,
+          "summaryBottom": 781,
+          "summaryHeight": 44,
+          "textTop": 747,
+          "textBottom": 771,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 781,
+          "bottom": 826,
+          "summaryTop": 782,
+          "summaryBottom": 826,
+          "summaryHeight": 44,
+          "textTop": 792,
+          "textBottom": 816,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 737,
+          "bottom": 1116,
+          "summaryTop": 737,
+          "summaryBottom": 781,
+          "summaryHeight": 44,
+          "textTop": 747,
+          "textBottom": 771,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1116,
+          "bottom": 1161,
+          "summaryTop": 1117,
+          "summaryBottom": 1161,
+          "summaryHeight": 44,
+          "textTop": 1127,
+          "textBottom": 1151,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 98,
+          "bottom": 477,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 477,
+          "bottom": 707,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 98,
+          "bottom": 142,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 142,
+          "bottom": 372,
+          "summaryTop": 143,
+          "summaryBottom": 187,
+          "summaryHeight": 44,
+          "textTop": 153,
+          "textBottom": 177,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 98,
+          "bottom": 142,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 142,
+          "bottom": 187,
+          "summaryTop": 143,
+          "summaryBottom": 187,
+          "summaryHeight": 44,
+          "textTop": 153,
+          "textBottom": 177,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "history-summary",
+      "viewport": 1920,
+      "metricCount": 6,
+      "trendCount": 0
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 1158,
+          "bottom": 1202,
+          "summaryTop": 1158,
+          "summaryBottom": 1202,
+          "summaryHeight": 44,
+          "textTop": 1168,
+          "textBottom": 1192,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1202,
+          "bottom": 1247,
+          "summaryTop": 1203,
+          "summaryBottom": 1247,
+          "summaryHeight": 44,
+          "textTop": 1213,
+          "textBottom": 1237,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 455,
+          "bottom": 834,
+          "summaryTop": 455,
+          "summaryBottom": 499,
+          "summaryHeight": 44,
+          "textTop": 465,
+          "textBottom": 489,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 834,
+          "bottom": 879,
+          "summaryTop": 835,
+          "summaryBottom": 879,
+          "summaryHeight": 44,
+          "textTop": 845,
+          "textBottom": 869,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 455,
+          "bottom": 834,
+          "summaryTop": 455,
+          "summaryBottom": 499,
+          "summaryHeight": 44,
+          "textTop": 465,
+          "textBottom": 489,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 834,
+          "bottom": 1064,
+          "summaryTop": 835,
+          "summaryBottom": 879,
+          "summaryHeight": 44,
+          "textTop": 845,
+          "textBottom": 869,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 435,
+          "bottom": 665,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 435,
+          "bottom": 480,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 760,
+          "bottom": 804,
+          "summaryTop": 760,
+          "summaryBottom": 804,
+          "summaryHeight": 44,
+          "textTop": 770,
+          "textBottom": 794,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 804,
+          "bottom": 849,
+          "summaryTop": 805,
+          "summaryBottom": 849,
+          "summaryHeight": 44,
+          "textTop": 815,
+          "textBottom": 839,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 760,
+          "bottom": 1139,
+          "summaryTop": 760,
+          "summaryBottom": 804,
+          "summaryHeight": 44,
+          "textTop": 770,
+          "textBottom": 794,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1139,
+          "bottom": 1184,
+          "summaryTop": 1140,
+          "summaryBottom": 1184,
+          "summaryHeight": 44,
+          "textTop": 1150,
+          "textBottom": 1174,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 576,
+          "bottom": 955,
+          "summaryTop": 576,
+          "summaryBottom": 620,
+          "summaryHeight": 44,
+          "textTop": 586,
+          "textBottom": 610,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 955,
+          "bottom": 1185,
+          "summaryTop": 956,
+          "summaryBottom": 1000,
+          "summaryHeight": 44,
+          "textTop": 966,
+          "textBottom": 990,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 435,
+          "bottom": 665,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 435,
+          "bottom": 480,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "history-summary",
+      "viewport": 1440,
+      "metricCount": 6,
+      "trendCount": 0
+    },
+    {
+      "kind": "trends",
+      "viewport": 1024,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 1569,
+          "bottom": 1613,
+          "summaryTop": 1569,
+          "summaryBottom": 1613,
+          "summaryHeight": 44,
+          "textTop": 1579,
+          "textBottom": 1603,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1613,
+          "bottom": 1658,
+          "summaryTop": 1614,
+          "summaryBottom": 1658,
+          "summaryHeight": 44,
+          "textTop": 1624,
+          "textBottom": 1648,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 857,
+          "bottom": 902,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 857,
+          "bottom": 1087,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 522,
+          "bottom": 752,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 522,
+          "bottom": 567,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "trends",
+      "viewport": 1024,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 897,
+          "bottom": 941,
+          "summaryTop": 897,
+          "summaryBottom": 941,
+          "summaryHeight": 44,
+          "textTop": 907,
+          "textBottom": 931,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 941,
+          "bottom": 986,
+          "summaryTop": 942,
+          "summaryBottom": 986,
+          "summaryHeight": 44,
+          "textTop": 952,
+          "textBottom": 976,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 897,
+          "bottom": 1276,
+          "summaryTop": 897,
+          "summaryBottom": 941,
+          "summaryHeight": 44,
+          "textTop": 907,
+          "textBottom": 931,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1276,
+          "bottom": 1321,
+          "summaryTop": 1277,
+          "summaryBottom": 1321,
+          "summaryHeight": 44,
+          "textTop": 1287,
+          "textBottom": 1311,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 98,
+          "bottom": 477,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 477,
+          "bottom": 707,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 98,
+          "bottom": 142,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 142,
+          "bottom": 372,
+          "summaryTop": 143,
+          "summaryBottom": 187,
+          "summaryHeight": 44,
+          "textTop": 153,
+          "textBottom": 177,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 98,
+          "bottom": 142,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 142,
+          "bottom": 187,
+          "summaryTop": 143,
+          "summaryBottom": 187,
+          "summaryHeight": 44,
+          "textTop": 153,
+          "textBottom": 177,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": {
+        "headerGap": 12,
+        "bottomGap": 21
+      }
+    },
+    {
+      "kind": "history-summary",
+      "viewport": 1024,
+      "metricCount": 6,
+      "trendCount": 0
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "added",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "consulted",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        },
+        {
+          "metric": "converted",
+          "inside": true,
+          "gap": 12,
+          "aligned": true,
+          "height": 44,
+          "captionHeight": 18,
+          "highlight": "none"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "dataSource": "tests/private-sources.fixture.ts＋仅课程／空讲义隔离数据；全部位于本机独立PostgreSQL",
+  "baseURL": "http://127.0.0.1:36025",
+  "source": "bc8e130",
+  "runtime": "actual Vercel function bundle",
+  "productionTestWrites": false
+}

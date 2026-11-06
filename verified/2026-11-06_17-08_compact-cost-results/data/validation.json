@@ -1,0 +1,29 @@
+{
+  "source": "bc8e130",
+  "rules": {
+    "passed": 269,
+    "failed": 0
+  },
+  "existingPrivateSourcesBrowser": 15,
+  "finalRuntimeBrowser": 14,
+  "publicUI": {
+    "passed": true,
+    "mode": "unchanged business-ui.browser.ts assertions with failure logging in temporary diagnostic copy"
+  },
+  "schemaCheck": true,
+  "nodeBuild": true,
+  "vercelBuild": true,
+  "mechanicalFindings": [],
+  "viewports": [
+    1920,
+    1440,
+    1024
+  ],
+  "limitedMobile": [
+    390
+  ],
+  "screenshots": 38,
+  "videos": 2,
+  "pdfs": 4,
+  "pdfPages": 22
+}

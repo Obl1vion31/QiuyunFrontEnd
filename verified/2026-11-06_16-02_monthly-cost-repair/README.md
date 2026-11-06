@@ -1,5 +1,7 @@
 # 私域汇总与月度成本修复
 
+> 验收补正：独立趋势区、单月图及来源收起后的留白仍有问题，原“已自检”不足以覆盖这些设计判断。后续已按用户进一步确认改为每行三项、右侧小图和精简历史；原证据保留，当前结论见[修正批次](../2026-11-06_17-08_compact-cost-results/README.md)。
+
 状态：**已自检／已发布**。应用 `38442e2`，回归夹具 `78ef96d`，分支 `codex/monthly-costs-repair`，基线 `8ff500d`。正式部署 `dpl_FSnaghNTpzwW2A9zQBEbXYtyUVGN` READY，正式域名指向一致。[部署回执](release/deployment.json)
 
 ## 修改与核对
