@@ -46,11 +46,12 @@ test('真实延期按 2 小时核对原因，失败不写入发布事实',async(
   await registerPublication(db,s.id,input,reasons,false,employee,now);
   assert.equal((await readScheduleWorkflow(db,s.id,undefined,now)).schedule.completionStatus,'delayed');
 });
-test('员工门槛前直接改期留痕，旧时间超时后不可用新时间绕过审批',async()=>{
+test('员工改期直接留痕，超时调整保留旧时间及原因',async()=>{
   const early=await seed();await db.transaction(tx=>changeSchedulePlan(tx,early,afterHours(24),'提前调整',employee,afterHours(1)));
   const w=await readScheduleWorkflow(db,early.id,undefined,afterHours(1));assert.equal(w.history.length,1);assert.equal(w.history[0].delayThresholdHours,2);
-  const late=await seed();await assert.rejects(db.transaction(tx=>changeSchedulePlan(tx,late,afterHours(24),'晚后调整',employee,afterHours(2))),error=>error instanceof Error && 'approvalRequired' in error && error.approvalRequired===true);
-  assert.equal((await readScheduleWorkflow(db,late.id,undefined,afterHours(2))).schedule.planRevision,0);
+  const late=await seed();await db.transaction(tx=>changeSchedulePlan(tx,late,afterHours(24),'晚后调整',employee,afterHours(2)));
+  const adjusted=await readScheduleWorkflow(db,late.id,undefined,afterHours(2));assert.equal(adjusted.schedule.planRevision,1);assert.equal(adjusted.history[0].reason,'晚后调整');
+
   const registered=await seed(afterHours(1),8);await db.transaction(tx=>changeSchedulePlan(tx,registered,afterHours(-1),'更正应发时间',employee,afterHours(30)));
   assert.equal((await readScheduleWorkflow(db,registered.id,undefined,afterHours(30))).schedule.delayThresholdHours,8);
 });

@@ -4,7 +4,7 @@ import type {OperationsUser} from '../auth/permissions';
 import {requireAdmin} from '../auth/permissions';
 import {lockPromotionWorkflow} from './promotion-pauses';
 import {ArrangementError,assertMeetingMutable,dateMonth} from './monthly-arrangement';
-import {WorkflowError} from './schedule-workflow';
+import {WorkflowError,ScheduleReasonError} from './schedule-workflow';
 import * as s from './schema';
 
 const structure=(r:Record<string,any>)=>({id:r.id,versionId:r.versionId,name:r.name,subjectId:r.subjectId,subjectName:r.subjectName,categoryId:r.categoryId,categoryName:r.categoryName,projectDocUrl:r.projectDocUrl,operationType:r.operationType,contentRole:r.contentRole,plannedAt:r.plannedAt,cancelledAt:r.cancelledAt,syncToMoments:r.syncToMoments,isPromoted:r.isPromoted});
@@ -39,30 +39,18 @@ export async function guardedScheduleWrite(db:Database,request:Request,actor:Ope
  if(values.plannedPublishAt&&/^\d{4}-\d{2}/.test(String(values.plannedPublishAt)))months.add(String(values.plannedPublishAt).slice(0,7));
  if(monthlyLink){const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,parts[2]));if(plan)months.add(plan.month);}
  const publication=parts[3]==='publication'&&values.action!=='reviewPlan';
- if(publication){
-  // 实发登记例外只覆盖既有安排；不能以同一路径提交独立复盘编辑或未来预约。
-  const stamp=String(values.actualPublishAt??''),actual=stamp?new Date(stamp+(stamp.endsWith('Z')?'':':00+08:00')):null;
-  const initial=!!current&&!current.schedule.actualPublishAt;
-  const unchanged=current?.schedule.actualPublishAt&&actual?.getTime()===current.schedule.actualPublishAt.getTime();
-  let reviewChanged=false;
-  if(!initial&&values.reviewMode){const [review]=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,current!.contentId));reviewChanged=!review||review.mode!==values.reviewMode||review.day7!==(values.reviewDay7==='on')||review.day15!==(values.reviewDay15==='on')||(review.draftDueOn??'')!==String(values.reviewDueOn??'');}
-  const pure=!reviewChanged&&values.action!=='reviewPlan'&&(!values.operationType||values.operationType===current?.operationType)&&(initial||unchanged)&&actual&&actual.getTime()<=Date.now();
-  const pending=months.size?await db.select().from(s.operationsMonthlyPlan).where(inArray(s.operationsMonthlyPlan.month,[...months])):[];
-  if(actor.role==='employee'&&pending.some(p=>p.arrangementStatus==='review_pending')&&!pure)throw new ArrangementError('MONTHLY_REVIEW_PENDING','请等待管理员核对并确认；目前仅允许登记真实实发，不能修改排期或保存预约。',403);
-  return next();
- }
+ if(publication)return next();
  const plans=months.size?await db.select().from(s.operationsMonthlyPlan).where(inArray(s.operationsMonthlyPlan.month,[...months])):[];
  const newMonth=String(values.plannedPublishAt??'').slice(0,7);
  const creating=schedulePath&&(!parts[2]||parts[2]==='versions'||!!current?.schedule.cancelledAt);
  const moving=!!current&&!!newMonth&&newMonth!==dateMonth(current.schedule.plannedPublishAt);
  for(const month of months){
   const plan=plans.find(p=>p.month===month);
-  if(plan?.arrangementStatus==='review_pending'&&actor.role==='employee')throw new ArrangementError('MONTHLY_REVIEW_PENDING','请等待管理员核对并确认；本月不能新增、取消或调整排期，仅允许实发登记。',403);
   if((creating||moving)&&month===newMonth&&!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',month+' 尚未确认预排期，不能新增或移入排期。当前输入已保留。',422);
   if(current&&!moving&&!plan?.firstFinalizedAt&&!current.schedule.actualPublishAt&&!current.schedule.cancelledAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','遗留内容在月例会确认预排期前保持原安排，不能提前改动。',422);
  }
  const reason=String(values.changeReason||values.monthlyPlanReason||values.planChangeReason||values.reason||'').trim();
- if(plans.some(p=>p.arrangementStatus==='confirmed')&&!reason)throw new WorkflowError('月例会已封存，请填写本次排期调整原因。当前输入已保留。',422);
+ if(plans.some(p=>p.arrangementStatus==='confirmed')&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
  if(request.method==='DELETE'){requireAdmin(actor);if(!reason)throw new WorkflowError('请填写取消排期的原因。',422);}
  const response=await next();
  if(!response.ok)return response;

@@ -36,41 +36,28 @@ test('默认矩阵保留员工日常排期能力，年度写入和敏感操作�
  const result=await call('/api/operations-content','POST',values('虚构直接新增'),createPost);assert.equal(result.status,201);
  const row=await result.json();assert.ok((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,row.id))).length);
 });
-test('新增审核不提前创建业务数据，重复提交同一申请，批准仅执行一次',async()=>{
- await grant({'schedule.create':'review'});const input=values('虚构审核新增');
- const a=await call('/api/operations-content','POST',input,createPost);assert.equal(a.status,202);const proposal=await a.json();assert.equal(proposal.id,undefined);
- const b=await call('/api/operations-content','POST',input,createPost);assert.equal((await b.json()).requestId,proposal.requestId);
- assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,input.contentName))).length,0);
- const approved=await withDatabase(db,()=>decideProposal(proposal.requestId,true,'',admin,origin));assert.equal(approved.status,200);
- assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,input.contentName))).length,1);
- await withDatabase(db,()=>decideProposal(proposal.requestId,true,'',admin,origin));assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,input.contentName))).length,1);
+test('普通排期审核旧配置按直接保存执行，不产生新申请',async()=>{
+ await grant({'schedule.create':'review'});const input=values('虚构直接新增旧配置');
+ const response=await call('/api/operations-content','POST',input,createPost);assert.equal(response.status,201);
+ assert.equal((await db.select().from(s.operationsChangeProposal)).length,0);
  await grant({'schedule.create':'direct'});
 });
-test('复合改期整笔审核，关闭任一所需操作整笔拒绝',async()=>{
- const input=values('虚构复合审核');const created=await (await call('/api/operations-content','POST',input,createPost)).json();
+test('超时改期和普通信息一并直接保存，关闭任一操作仍整笔拒绝',async()=>{
+ const input=values('虚构组合调整'),created=await(await call('/api/operations-content','POST',input,createPost)).json();
  await db.update(s.operationsContentSchedule).set({plannedPublishAt:new Date(Date.now()-4*3600000)}).where(eq(s.operationsContentSchedule.id,created.id));
- const edit={...input,contentName:'虚构复合修改',expectedPlanRevision:'0',planChangeReason:'业务调整'};
- const pending=await call(`/api/operations-content/${created.id}`,'PATCH',edit,editPost,{id:created.id});assert.equal(pending.status,202);const proposal=await pending.json();
- assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,edit.contentName))).length,0);
+ const edit={...input,contentName:'虚构组合修改',expectedPlanRevision:'0',planChangeReason:'业务调整'};
  await grant({'schedule.edit':'disabled'});
- assert.equal((await call(`/api/operations-content/${created.id}`,'PATCH',edit,editPost,{id:created.id})).status,403);
- assert.equal((await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,proposal.requestId)))[0].status,'obsolete');
+ assert.equal((await call('/api/operations-content/'+created.id,'PATCH',edit,editPost,{id:created.id})).status,403);
  await grant({'schedule.edit':'direct'});
- const next=await (await call(`/api/operations-content/${created.id}`,'PATCH',edit,editPost,{id:created.id})).json();
- assert.equal((await withDatabase(db,()=>decideProposal(next.requestId,true,'',admin,origin))).status,200);
- assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,edit.contentName))).length,1);
+ assert.equal((await call('/api/operations-content/'+created.id,'PATCH',edit,editPost,{id:created.id})).status,200);
+ assert.equal((await db.select().from(s.operationsChangeProposal)).length,0);
 });
-test('原数据更新后申请失效，不覆盖新值；删除审核保留原有阻断',async()=>{
+test('员工取消仍不能通过普通授权或旧审核配置绕过管理员边界',async()=>{
  await grant({'schedule.delete':'review','schedule.edit':'review'});
- const input=values('虚构冲突原文'),created=await (await call('/api/operations-content','POST',input,createPost)).json();
- const pending=await (await call(`/api/operations-content/${created.id}`,'PATCH',{...input,contentName:'申请中的名称'},editPost,{id:created.id})).json();
- const [row]=await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,created.id));
- await db.update(s.operationsContentVersion).set({contentName:'管理员已改为新文'}).where(eq(s.operationsContentVersion.id,row.contentVersionId));
- assert.equal((await withDatabase(db,()=>decideProposal(pending.requestId,true,'',admin,origin))).status,409);
- assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.id,row.contentVersionId)))[0].contentName,'管理员已改为新文');
- const deletion=await call(`/api/operations-content/${created.id}`,'DELETE',{},deletePost,{id:created.id});assert.equal(deletion.status,403,'员工取消排期不能通过普通审核授权绕过管理员边界');
+ const created=await(await call('/api/operations-content','POST',values('虚构保留内容'),createPost)).json();
+ assert.equal((await call('/api/operations-content/'+created.id,'DELETE',{},deletePost,{id:created.id})).status,403);
  assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,created.id))).length,1);
-
+ await grant({'schedule.edit':'direct','schedule.delete':'disabled'});
 });
 test('年度启停与内容编辑独立授权，内容审核后才改变名称',async()=>{
  await grant({'annual.create':'direct','annual.toggle':'direct','annual.edit':'disabled'});

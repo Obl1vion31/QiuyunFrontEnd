@@ -1,3 +1,4 @@
+import ScheduleExecutionSummary from './ScheduleExecutionSummary';
 import WeeklyResultOverview from './WeeklyResultOverview';
 import {useReportMotion} from './ReportCharts';
 import '../styles/report-presentation.css';
@@ -39,7 +40,7 @@ export default function WeeklyMeetingPresentation({snapshot,postReferences={},di
   </section>
   {!monthlyPreview&&meeting.meetingType==='monthly'&&editable&&<section className="monthly-section"><button type="button" disabled={monthlyBusy} onClick={()=>void loadLegacyMonthly()}>{monthlyBusy?'正在读取…':'更新月度材料'}</button>{monthlyError&&<p role="alert">{monthlyError}</p>}</section>}
   {monthlyPreview&&<MonthlyMeetingSections monthly={monthlyPreview} onMaterialChange={setMonthlyPreview} draft={draft} editable={!!editable} onChange={onChange} onPlanConfirm={onPlanConfirm} allowRefresh={!!discussion&&!fullEditing} meetingId={meeting.id}/>}
-  {editable&&stage==='pre'&&draft.monthlyPlanReference?<MonthlyPlanReference key={draft.monthlyPlanReference.id} reference={draft.monthlyPlanReference} frozen={generated.monthlyPlanExecution} onChange={reference=>update('monthlyPlanReference',reference)}/>:generated.monthlyPlanExecution&&<PlanExecutionSummary plan={generated.monthlyPlanExecution}/>}
+  {generated.scheduleComparison?<ScheduleExecutionSummary value={generated.scheduleComparison} weekly/>:editable&&stage==='pre'&&draft.monthlyPlanReference?<MonthlyPlanReference key={draft.monthlyPlanReference.id} reference={draft.monthlyPlanReference} frozen={generated.monthlyPlanExecution} onChange={reference=>update('monthlyPlanReference',reference)}/>:generated.monthlyPlanExecution&&<PlanExecutionSummary plan={generated.monthlyPlanExecution}/>}
   {!monthly&&(promotionSection??<section className="weekly-frozen-cards" aria-label="推广帖阶段复盘"><header className="weekly-section-heading"><h2>推广帖阶段复盘</h2><span>{generated.promotions?.length??0} 个阶段</span></header>
    <PromotionCards rows={generated.promotions??[]} inputs={draft.promotionInputs??{}} decisions={decisions} effectiveOn={snapshot.decisionEffectiveOn} decisionStage={stage} postReferences={postReferences} readonly arrangementsLocked={arrangementsLocked} discussion={discussion} onInput={(key,field,value)=>update('promotionInputs',{...draft.promotionInputs,[key]:{...draft.promotionInputs[key],[field]:value}})} onDecision={(key,value)=>update('promotionDecisions',{...draft.promotionDecisions,[key]:value})}/>
    {!generated.promotions?.length&&<p className="weekly-empty">本次未选推广阶段</p>}

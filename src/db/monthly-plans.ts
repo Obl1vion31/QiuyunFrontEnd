@@ -116,7 +116,7 @@ async function claim(db:Database,input:MonthlyScheduleInput,scheduleId:string|nu
  if(plan.arrangementStatus==='confirmed')return;
  if(plan.revision!==input.expectedRevision&&!proposalId)throw new StaleWriteError('月计划已变化，请刷新核对，输入已保留。');
  const itemId=input.itemId||input.requestId;let item=allPlanItems(plan).find(i=>i.id===itemId),group=item&&allPlanGroups(plan).find(g=>g.id===item!.groupId);
- if(!item){if(input.itemId||!input.reason)throw new WorkflowError('计划外追加请填写原因。',422);const content:PlanContent={groups:[{id:itemId,annualPlanId:null,annualVersion:null,name:details.name,subjectId:details.subjectId,categoryId:details.categoryId!,quantity:1,note:'',reason:input.reason}],items:[{id:itemId,groupId:itemId,week:weekOf(dateKey(details.plannedAt)),kind:'new',scheduleId:null}]};
+ if(!item){if(input.itemId)throw new WorkflowError('计划名额已变化，请重新选择。',422);const content:PlanContent={groups:[{id:itemId,annualPlanId:null,annualVersion:null,name:details.name,subjectId:details.subjectId,categoryId:details.categoryId!,quantity:1,note:'',reason:input.reason}],items:[{id:itemId,groupId:itemId,week:weekOf(dateKey(details.plannedAt)),kind:'new',scheduleId:null}]};
   const batch={id:itemId,at:now.toISOString(),actor,reason:input.reason,content};await db.update(s.operationsMonthlyPlan).set({additions:[...plan.additions,batch],revision:plan.revision+1,updatedAt:now}).where(eq(s.operationsMonthlyPlan.id,plan.id));item=content.items[0];group=content.groups[0];
  }
  if(item.scheduleId&&item.scheduleId!==scheduleId)throw new WorkflowError('请使用原计划明确指定的已有排期。',422);

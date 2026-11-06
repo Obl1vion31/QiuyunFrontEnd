@@ -1,4 +1,5 @@
 ---
+import {ScheduleComparisonTable} from './ScheduleExecutionSummary';
 import {getDb} from '../db/client';
 import {readArrangement} from '../db/monthly-arrangement';
 import {businessDate,businessDateTime} from '../scripts/business-date';
@@ -6,20 +7,21 @@ import {weekOf} from '../db/monthly-plan-types';
 import '../styles/monthly-calendar.css';
 const {month,state:provided,active=true}=Astro.props as {month:string;state?:Awaited<ReturnType<typeof readArrangement>>;active?:boolean};
 const state=provided??await readArrangement(getDb(),month),admin=Astro.locals.user?.role==='admin';
-const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pending:'等待管理员核对',confirmed:'月会及计划已封存'};
+const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pending:'等待管理员核对',confirmed:'月排期 V0 已定稿'};
 ---
 {active?<section class="arrangement-panel" data-arrangement-stage={state.stage} data-arrangement-role={admin?'admin':'employee'} aria-label="本月排期工作区">
- <header class="arrangement-heading"><div class="arrangement-title"><h2>{labels[state.stage]}</h2>{state.stage!=='closed'&&<p class="arrangement-counts">{state.stage==='confirmed'?'定稿计划':'预排期'} <b data-arrangement-planned>{state.preplanned}</b> 篇<span aria-hidden="true"> · </span>当前安排 <b data-arrangement-count>{state.rows.length}</b> 篇</p>}</div>
- {state.stage==='closed'?<p>本月确认预排期后才能新增或移入排期。已发布记录保留。</p>:state.stage==='review_pending'?<p>请等待管理员核对并确认。员工目前仅可登记实发，其他排期变动暂时停止。</p>:state.stage==='confirmed'?<p>月例会与计划已永久封存。后续调整在排期页填写原因并保留记录。</p>:<p>单帖保存用于暂存；整月排好后再提交管理员核对。</p>}
+ <header class:list={["arrangement-heading",{"is-sealed":state.stage==='confirmed'}]}><div class="arrangement-title"><h2>{labels[state.stage]}</h2>{state.stage!=='closed'&&<p class="arrangement-counts">{state.stage==='confirmed'?'定稿计划':'预排期'} <b data-arrangement-planned>{state.preplanned}</b> 篇<span aria-hidden="true"> · </span>当前安排 <b data-arrangement-count>{state.rows.length}</b> 篇</p>}</div>
+ {state.stage==='closed'?<p>本月确认预排期后才能新增或移入排期。已发布记录保留。</p>:state.stage==='confirmed'?null:<p>{state.stage==='review_pending'?'已提交管理员核对，定稿前仍可继续排期。':'单帖保存用于暂存；整月排好后再提交核对。'}</p>}
  </header>
  <div class="arrangement-content"><slot/></div>
  {state.stage!=='closed'&&<section class="arrangement-review" aria-label="首轮排期核对">
- <details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 (<span data-arrangement-count>{state.rows.length}</span>)</summary>
-  <div class="arrangement-table"><table><thead><tr><th>Week</th><th>帖子</th><th>学科／分类</th><th>计划时间</th><th>实发</th></tr></thead><tbody>{state.rows.map(row=><tr><td>Week {weekOf(businessDate(row.plannedAt))}</td><td>{row.name} · V{row.versionNumber}</td><td>{row.subjectName}／{row.categoryName??'未分类'}</td><td>{businessDateTime(row.plannedAt)}</td><td>{row.actualAt?businessDateTime(row.actualAt):'尚未发布'}</td></tr>)}</tbody></table></div>
+ <details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 ({state.comparison?<span>{state.comparison.rows.length}</span>:<span data-arrangement-count>{state.rows.length}</span>})</summary>
+  {state.comparison?<ScheduleComparisonTable value={state.comparison} groupByWeek/>:<>  <div class="arrangement-table"><table><thead><tr><th>Week</th><th>帖子</th><th>学科／分类</th><th>计划时间</th><th>实发</th></tr></thead><tbody>{state.rows.map(row=><tr><td>Week {weekOf(businessDate(row.plannedAt))}</td><td>{row.name} · V{row.versionNumber}</td><td>{row.subjectName}／{row.categoryName??'未分类'}</td><td>{businessDateTime(row.plannedAt)}</td><td>{row.actualAt?businessDateTime(row.actualAt):'尚未发布'}</td></tr>)}</tbody></table></div></>}
+
  </details>
- {(state.stage==='editing'||state.stage==='review_pending'&&admin)&&<form class="business-form" data-arrangement-form data-plan-id={state.planId} data-fingerprint={state.fingerprint}>
-  <div class="arrangement-reason"><div class="arrangement-field-heading"><label for="arrangement-reason">本次说明</label><output data-arrangement-message role="status"></output></div><input id="arrangement-reason" name="reason" type="text" maxlength="2000" value={state.draftReason} required placeholder={state.stage==='editing'?'说明首轮排期结果；与预排期不同的内容请说明原因。':'填写核对意见，或需要退回修改的内容。'}/></div>
-  <div class="arrangement-actions"><button type="submit" name="action" value="draft" formnovalidate class="business-action-secondary">保存草稿</button><button type="button" class="business-action-secondary" data-arrangement-refresh>更新核对清单</button>{state.stage==='editing'?<button class="business-action-primary" name="action" value="submit">提交首轮排期核对</button>:<><button class="business-action-secondary" name="action" value="return">退回修改</button><button class="business-action-primary" name="action" value="confirm">核对通过并封存</button></>}</div>
+ {(state.stage==='editing'||state.stage==='review_pending')&&<form class="business-form" data-arrangement-form data-plan-id={state.planId} data-fingerprint={state.fingerprint}>
+  <div class="arrangement-reason"><div class="arrangement-field-heading"><label for="arrangement-reason">本次说明</label><output data-arrangement-message role="status"></output></div><input id="arrangement-reason" name="reason" type="text" maxlength="2000" value={state.draftReason} placeholder="本次说明（选填）；退回修改时请填写原因"/></div>
+  <div class="arrangement-actions"><button type="submit" name="action" value="draft" formnovalidate class="business-action-secondary">保存草稿</button><button type="button" class="business-action-secondary" data-arrangement-refresh hidden>重新核对</button>{admin?<>{state.stage==='review_pending'&&<button class="business-action-secondary" name="action" value="return">退回修改</button>}<button class="business-action-primary" name="action" value="confirm">定稿并封存</button></>:<button class="business-action-primary" name="action" value="submit">提交首轮排期核对</button>}</div>
  </form>}
  {state.history.length>0&&<details class="arrangement-history"><summary>提交与核对记录 ({state.history.length})</summary><ul>{state.history.map(h=><li>{businessDateTime(h.at)} · {h.action==='submit'?'提交核对':h.action==='return'?'退回修改':'核对通过并封存'} · {h.reason}</li>)}</ul></details>}
  </section>}

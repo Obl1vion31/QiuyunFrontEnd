@@ -1,12 +1,10 @@
 import {getInspector} from './business-inspector';
 import {businessConfirm,closeBusinessDialog} from './business-dialog';
-import {applyBusinessPermissions} from './business-permissions';
+import {applyBusinessPermissions,mayOperate} from './business-permissions';
 function initialize(){
 
       const root=document.querySelector('[data-inspector-name]');if(!root||root.dataset.scheduleReady)return;root.dataset.scheduleReady='true';
       const {clientRows,clientCategories,actorRole,requestedRow,delayThresholdMs}=JSON.parse(document.querySelector('#schedule-page-config').textContent);
-      let permissions=JSON.parse(document.querySelector('#business-permissions')?.textContent||'{}');
-      const mayOperate=key=>{const state=document.querySelector('[data-arrangement-stage]');const pending=state?.dataset.arrangementStage==='review_pending'&&state.dataset.arrangementRole==='employee';if(pending&&!['schedule.publish'].includes(key))return false;if(state?.dataset.arrangementStage==='closed'&&['schedule.create','schedule.revise','schedule.reschedule','schedule.overdueReschedule'].includes(key))return false;return ['direct','review'].includes(permissions[key]);};
       const rows = clientRows;
       const categories = clientCategories;
       const dialog = document.querySelector('#schedule-dialog');
@@ -114,10 +112,14 @@ function initialize(){
         const panel=document.querySelector('[data-arrangement-stage]'),next=fresh.querySelector('[data-arrangement-stage]');
         if(panel&&next&&panel.dataset.arrangementStage!==next.dataset.arrangementStage)throw Object.assign(Error('本月阶段已变化'),{code:'MONTH_STAGE_CHANGED'});
         rows.splice(0,rows.length,...config.clientRows);
-        const permissionData=fresh.querySelector('#business-permissions');if(permissionData){permissions=JSON.parse(permissionData.textContent);document.querySelector('#business-permissions').textContent=permissionData.textContent;}
-        for(const selector of ['.status-strip','.workflow-queue-nav','.arrangement-content','.arrangement-heading','[data-arrangement-details] tbody']){
+        const permissionData=fresh.querySelector('#business-permissions');if(permissionData){document.querySelector('#business-permissions').textContent=permissionData.textContent;}
+        for(const selector of ['.status-strip','.workflow-queue-nav','.arrangement-content','.arrangement-heading','[data-arrangement-details]']){
           const current=document.querySelector(selector),other=fresh.querySelector(selector);
-          if(current&&other)current.replaceChildren(...other.childNodes);
+          if(current&&other){
+            const expanded=[...current.querySelectorAll('[data-schedule-comparison-row] details[open]')].map(node=>node.closest('[data-schedule-comparison-row]').dataset.scheduleComparisonRow);
+            current.replaceChildren(...other.childNodes);
+            for(const id of expanded){const disclosure=current.querySelector('[data-schedule-comparison-row="'+CSS.escape(id)+'"] details');if(disclosure)disclosure.open=true;}
+          }
         }
         if(!panel){const current=document.querySelector('.content-stage'),other=fresh.querySelector('.content-stage');if(current&&other)current.replaceChildren(...other.childNodes);}
         const oldForm=document.querySelector('[data-arrangement-form]'),newForm=fresh.querySelector('[data-arrangement-form]');
@@ -462,8 +464,6 @@ function initialize(){
       inspectorRevise?.addEventListener('click', () => openForm('revision', activeRecord));
       form.addEventListener('input', () => {
         dirty = true; document.documentElement.dataset.unsaved = 'true'; updatePromotionPreview();
-        const changed = mode === 'edit' && field('plannedPublishAt').value !== activeRecord?.plannedPublishAt;
-        document.querySelector('[data-plan-change-reason]').hidden = !changed; field('planChangeReason').required = changed;
       });
       field('subjectId').addEventListener('change', () => updateCategoryOptions());
       let applyPlanChange = false;
@@ -524,6 +524,7 @@ function initialize(){
           }
           if (response.ok) {await finishSaved({id:result.id??activeRecord?.id,month:field('plannedPublishAt').value.slice(0,7)});return;}
           if(result.code==='MONTHLY_PLAN_SOURCE_REQUIRED')form.dispatchEvent(new Event('business:monthly-source-required'));
+          if(result.code==='SCHEDULE_REASON_REQUIRED'){form.dataset.reasonRequired='true';document.querySelector('[data-schedule-change-reason]').hidden=false;field('changeReason').required=true;field('changeReason').focus();}
           message.textContent = result.message ?? '保存失败，请重试。';
           for (const [name, errors] of Object.entries(result.fields ?? {})) {
             const error = form.querySelector(`[data-error="${name}"]`);

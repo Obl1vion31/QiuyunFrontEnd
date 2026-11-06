@@ -102,7 +102,6 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       const planChanged = schedule.plannedPublishAt.getTime() !== result.data.plannedPublishAt.getTime();
       if (planChanged) {
         if (form.get('expectedPlanRevision') === null || Number(form.get('expectedPlanRevision')) !== schedule.planRevision) throw new StaleWriteError('排期已更新，请刷新后重试。');
-        if (!String(form.get('planChangeReason') ?? '').trim()) throw new WorkflowError('请填写改期理由。', 422);
       }
 
       const [campaignCountRow] = await transaction.select({ value: count() })
@@ -182,7 +181,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
             : schedule.promotionStatus;
       if (planChanged) {
         const [fullSchedule] = await transaction.select().from(operationsContentSchedule).where(eq(operationsContentSchedule.id, params.id!));
-        await changeSchedulePlan(transaction, fullSchedule, result.data.plannedPublishAt, String(form.get('planChangeReason')), locals.user!);
+        await changeSchedulePlan(transaction, fullSchedule, result.data.plannedPublishAt, String(form.get('planChangeReason')||form.get('changeReason')||form.get('monthlyPlanReason')||''), locals.user!);
       }
       const [saved] = await transaction.update(operationsContentSchedule).set({
         cancelledAt:null,

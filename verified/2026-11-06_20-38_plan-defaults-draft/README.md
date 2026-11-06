@@ -83,3 +83,7 @@
 - [source-pending-1440](screenshots/source-pending-1440.png)：隔离样本，已自检／待用户反馈。
 - [source-read-failure-1440](screenshots/source-read-failure-1440.png)：隔离样本，已自检／待用户反馈。
 - [submit-failure-1440](screenshots/submit-failure-1440.png)：隔离样本，已自检／待用户反馈。
+
+## 后续适用范围补正（2026-11-07）
+
+本批验证分类默认与整月草稿。待核对禁改、常驻更新核对清单已由后续V0规则替换；当时未覆盖V0净构成及周会截止回放，不能借用为本轮通过证据。原图保留，当前见[新验收](../2026-11-07_04-15_schedule-v0/README.md)。

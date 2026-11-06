@@ -86,7 +86,7 @@ const selectedMonth = requestedMonthMatch
   : currentMonth;
 const calendarMonthlyPlan=selectedView==='schedule'&&selectedDisplay==='calendar'&&selectedStatus!=='approvals'?await readMonthlyCalendar(getDb(),selectedMonth):null;
 const arrangementState=await readArrangement(getDb(),selectedMonth);
-const monthCanCreate=arrangementState.stage!=='closed'&&(arrangementState.stage!=='review_pending'||Astro.locals.user?.role==='admin');
+const monthCanCreate=arrangementState.stage!=='closed';
 const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
 const previousMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber - 2, 1)).toISOString().slice(0, 7);
 const nextMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 1)).toISOString().slice(0, 7);
@@ -201,7 +201,7 @@ const clientRows = rows.map((row) => {
   const child = rows.find((candidate) => candidate.sourceVersionId === row.versionId);
   const source = row.sourceVersionId ? rows.find((candidate) => candidate.versionId === row.sourceVersionId) : undefined;
   return {
-    ...row, requiresPlanApproval:requiresPlanApproval(row,now),
+    ...row, requiresPlanApproval:false,
     publicationState:publishingState(row),publicationLabel:publicationLabels[publishingState(row)],allowEmptyPublicationLink:mayKeepEmptyPublicationLink(row),
     plannedPublishAt: inputDateTime(row.plannedPublishAt),
     actualPublishAt: inputDateTime(row.actualPublishAt),
@@ -399,7 +399,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 
           <BusinessDateTimeFields name="plannedPublishAt" dateName="plannedPublishDate" timeName="plannedPublishTime" dateLabel="应发日期" timeLabel="应发时间" label="应发时间" required><small data-error="plannedPublishAt"></small></BusinessDateTimeFields>
           <div class="field field-wide" data-plan-change-reason hidden><label for="planChangeReason">改期理由 <b>*</b></label><textarea id="planChangeReason" name="planChangeReason" rows="2" maxlength="500"></textarea><small data-error="planChangeReason"></small></div>
-          <div class="field field-wide" data-schedule-change-reason><label>本次安排／调整原因<textarea name="changeReason" rows="2" maxlength="2000" placeholder="月会封存后的新增与调整必须填写原因"></textarea></label></div>
+          <div class="field field-wide" data-schedule-change-reason><label for="scheduleChangeReason">本次安排／调整原因 <b>*</b></label><textarea id="scheduleChangeReason" name="changeReason" rows="2" maxlength="2000" placeholder="月会封存后的新增与调整必须填写原因"></textarea></div>
           <div class="field field-wide field-options" role="group" aria-label="发布选项">
             <div class="promotion-field"><label class="promotion-toggle" hidden><input type="checkbox" name="isPromoted"/>推广帖</label><input id="promotionStatus" name="promotionStatus" type="hidden" value="none"/><output class="promotion-preview" data-promotion-preview hidden>非推广</output></div>
             <label><input type="checkbox" name="syncToMoments"/>同步朋友圈</label>
@@ -440,8 +440,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 
     </BusinessSheet>
     </BusinessConsoleFrame>
-
-    <template data-change-request-datetime><BusinessDateTimeFields name="plannedPublishAt" id="changeRequestPlannedPublishAt" dateName="requestedPublishDate" timeName="requestedPublishTime" dateLabel="申请的新发送日期" timeLabel="申请的新发送时间" label="申请的新发送时间" required/></template>
 
     <script id="schedule-page-config" type="application/json" set:html={JSON.stringify({clientRows,clientCategories,actorRole,requestedRow,delayThresholdMs}).replace(/</g,'\\u003c')}/>
     <script>import '../../scripts/schedule-page.js';</script>

@@ -77,3 +77,5 @@
 .calendar-grid.monthly-link-selecting .calendar-item[aria-checked=true] .monthly-card-check svg{display:block}
 @media(max-width:800px){.arrangement-review form{grid-template-columns:1fr}.arrangement-actions{justify-content:flex-start}}
 @media(max-width:650px){.arrangement-heading,.arrangement-review,.monthly-calendar-plan{padding:14px}.arrangement-title{gap:6px}.arrangement-counts{font-size:14px}.monthly-calendar-group{max-width:100%}.monthly-calendar-week{grid-template-columns:1fr;gap:6px}.monthly-calendar-week>header{gap:0}.monthly-calendar-week time{font-size:12px}.monthly-link-actions{flex-wrap:wrap}.monthly-link-actions>label{flex-basis:100%;max-width:none;order:2}.monthly-link-actions.is-selecting>p{flex:1 0 60px}.monthly-link-actions>button{padding-inline:12px}}
+
+.arrangement-heading.is-sealed{min-height:44px;box-sizing:border-box;padding:10px 20px;gap:8px}.arrangement-heading.is-sealed h2{font:600 14px/22px var(--console-font)}.arrangement-heading.is-sealed .arrangement-counts{font:400 14px/22px var(--console-font)}

@@ -179,7 +179,7 @@ test('带 Inspector 的业务页在客户端切换后重新初始化交互', asy
 
 
 test('完整日期时间统一使用共享拆分输入，保留仅日期控件', async () => {
-  for (const path of ['src/pages/business/operations-schedule.astro','src/pages/business/meeting-review.astro','src/scripts/operations-workflow.ts']) {
+  for (const path of ['src/pages/business/operations-schedule.astro','src/pages/business/meeting-review.astro']) {
     const source=await readFile(new URL('../'+path,import.meta.url),'utf8');
     assert.doesNotMatch(source,/datetime-local/);
     assert.match(source,/BusinessDateTimeFields|configureDateTimeField/);

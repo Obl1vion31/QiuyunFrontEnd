@@ -1,3 +1,4 @@
+import scheduleComparisonCss from '../styles/schedule-comparison.css?raw';
 import reportCss from '../styles/report-presentation.css?raw';
 import opsChartCss from '../components/BusinessMonthlyOperations.module.css?inline';
 /** 复用网页展示组件，服务端浏览器仅打印内联内容，无外网和登录会话。 */
@@ -17,7 +18,7 @@ const fontFiles=import.meta.glob('../../public/fonts/misans-5.0.0/*.woff2',{eage
 const fonts=fontCss.replace(/url\('([^']+)'\)/g,(_match,name)=>`url('${Object.entries(fontFiles).find(([path])=>path.endsWith('/'+name))?.[1]??''}')`);
 export async function renderMeetingPdf(snapshot:any,versionNumber:number){
  const markup=renderToStaticMarkup(<><header className="meeting-print-heading"><h1>{snapshot.meeting?.name??'例会复盘'}</h1><p>{snapshot.meeting?.periodStart}—{snapshot.meeting?.periodEnd} · V{versionNumber} · 会后定稿{snapshot.displayInvalidated?' · 已回溯失效':''}</p></header><WeeklyMeetingPresentation snapshot={snapshot}/></>);
- const css=fonts+tokens+(monthlyCss+weeklyCss+changeCss+opsChartCss+reportCss+privateSourceCss+monthlyCostCss).replace(/@import[^;]+;/g,'');
+ const css=fonts+tokens+(monthlyCss+weeklyCss+changeCss+opsChartCss+reportCss+privateSourceCss+monthlyCostCss+scheduleComparisonCss).replace(/@import[^;]+;/g,'');
  let browser;
  try{
   chromium.setGraphicsMode=false;
@@ -25,7 +26,7 @@ export async function renderMeetingPdf(snapshot:any,versionNumber:number){
   const page=await browser.newPage();await page.setJavaScriptEnabled(false);
   await page.setRequestInterception(true);page.on('request',req=>{if(req.url().startsWith('data:')||req.url()==='about:blank')void req.continue();else void req.abort();});
   await page.setContent(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>${css}</style><body>${markup}</body></html>`,{waitUntil:'load',timeout:30000});
-  await page.evaluate(async()=>{document.querySelectorAll<HTMLDetailsElement>('.monthly-section details,.ps-disclosure,.ps-legacy-records').forEach(detail=>{detail.open=true;});await document.fonts.ready;});
+  await page.evaluate(async()=>{document.querySelectorAll<HTMLDetailsElement>('.monthly-section details,.plan-comparison details,.ps-disclosure,.ps-legacy-records').forEach(detail=>{detail.open=true;});await document.fonts.ready;});
   const bytes=await page.pdf({format:'A4',landscape:true,printBackground:true,preferCSSPageSize:true,waitForFonts:true,displayHeaderFooter:true,headerTemplate:'<span></span>',footerTemplate:`<div style="font:9px sans-serif;color:#667080;width:100%;text-align:right;margin:0 10mm">V${versionNumber} · <span class="pageNumber"></span> / <span class="totalPages"></span></div>`,timeout:30000});
   return Buffer.from(bytes);
  }finally{await browser?.close();}

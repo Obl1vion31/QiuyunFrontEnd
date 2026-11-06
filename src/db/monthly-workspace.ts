@@ -1,3 +1,4 @@
+import {readScheduleComparison} from './schedule-baseline';
 import {and,eq} from 'drizzle-orm';
 import {operationsReviewMeeting} from './schema';
 import type {Database} from './client';
@@ -30,6 +31,6 @@ export async function readMonthlyWorkspace(db:Database,query:MonthlyQuery){
  }));
  const meetings=await db.select({id:operationsReviewMeeting.id,name:operationsReviewMeeting.name,version:operationsReviewMeeting.currentVersionNumber}).from(operationsReviewMeeting).where(and(eq(operationsReviewMeeting.meetingType,'monthly'),eq(operationsReviewMeeting.periodStart,query.month+'-01'),eq(operationsReviewMeeting.status,'completed')));
  const core:{month:string;spend:typeof full.spend;privateData:typeof privateData;comparison:typeof comparison;meetings:typeof meetings;costHistory?:MonthlyCostHistoryPoint[]}={month:query.month,spend:full.spend,privateData,comparison,meetings,costHistory};
- return {...base,...history,core,privateData,planExecution:await readMonthlyPlan(db,query.month)};
+ return {...base,...history,core,privateData,scheduleComparison:await readScheduleComparison(db,base.from,base.through,now,'current'),planExecution:await readMonthlyPlan(db,query.month)};
 }
 export type MonthlyWorkspace=Awaited<ReturnType<typeof readMonthlyWorkspace>>;

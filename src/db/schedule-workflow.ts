@@ -11,6 +11,7 @@ import { operationsPublicationReservation as reservations,operationsPublicationE
 import { operationsContentSchedule as schedules, operationsSchedulePlanHistory as plans,
   operationsScheduleChangeRequest as requests, operationsScheduleDelayReason as reasons } from './schema';
 import {operationsChangeProposal as proposals} from './schema';
+import {requireSchedulePlanReason} from './schedule-plan-reason';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 
 export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -21,6 +22,10 @@ type Reason = typeof reasons.$inferSelect;
 export class WorkflowError extends Error {
   readonly code?: string;
   constructor(message: string, public status = 409, public approvalRequired = false) { super(message); }
+}
+export class ScheduleReasonError extends WorkflowError {
+  override readonly code='SCHEDULE_REASON_REQUIRED';
+  constructor(message:string){super(message,422);}
 }
 export class StaleWriteError extends WorkflowError {
   override readonly code = 'STALE_WRITE' as const;
@@ -67,7 +72,7 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
   ]);
   const through = new Date(Math.min((actualOverride ?? schedule.actualPublishAt ?? now).getTime(), now.getTime()));
   return { schedule, delayLabel:publicationDelayLabel(schedule.plannedPublishAt,actualOverride??schedule.actualPublishAt), history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
-    registrationState: registrationState(schedule, now), requiresPlanApproval: requiresPlanApproval(schedule, now),
+    registrationState: registrationState(schedule, now), requiresPlanApproval: false,
     days: schedule.cancelledAt?[]:scheduleDelayItems(schedule, history, saved, through, now),
     overdueDays: !schedule.cancelledAt&&!schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now) : 0,
   };
@@ -112,7 +117,7 @@ export async function changeSchedulePlan(transaction: Transaction, schedule: Sch
   if((await effectiveBusinessPermissions(transaction,actor))[operation]==='review'&&!hasBusinessExecution(actor,operation))throw new WorkflowError('修改应发时间需提交管理员审核。',409,true);
   await requireBusinessOperation(transaction,actor,operation);
   if (plannedAt.getTime() === schedule.plannedPublishAt.getTime()) return;
-  if (!reason.trim()) throw new WorkflowError('请填写改期理由。', 422);
+  await requireSchedulePlanReason(transaction,schedule,plannedAt,reason);
   if (!schedule.actualPublishAt && plannedAt <= now) throw new WorkflowError('尚未实发的排期，请选择未来的发送时间。', 422);
   await transaction.insert(plans).values({ scheduleId: schedule.id, revision: schedule.planRevision,
     plannedPublishAt: schedule.plannedPublishAt, effectiveAt: schedule.planEffectiveAt, delayThresholdHours: schedule.delayThresholdHours,

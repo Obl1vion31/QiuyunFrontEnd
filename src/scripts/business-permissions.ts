@@ -3,7 +3,6 @@ export const businessPermissions=()=>JSON.parse(document.querySelector('#busines
 const stageAllows=(operation:BusinessOperation)=>{
  const panel=document.querySelector<HTMLElement>('[data-arrangement-stage]'),stage=panel?.dataset.arrangementStage;
  if(operation==='schedule.delete'&&panel?.dataset.arrangementRole==='employee')return false;
- if(stage==='review_pending'&&panel?.dataset.arrangementRole==='employee'&&operation.startsWith('schedule.')&&!['schedule.publish','schedule.reason'].includes(operation))return false;
  return !(stage==='closed'&&['schedule.create','schedule.revise','schedule.reschedule','schedule.overdueReschedule'].includes(operation));
 };
 export const mayOperate=(operation:BusinessOperation)=>stageAllows(operation)&&['direct','review'].includes(businessPermissions()[operation]);
