@@ -1,0 +1,76 @@
+{
+  "source": "ff3a64c",
+  "passed": true,
+  "rules": 270,
+  "summaryComponentTests": 6,
+  "typeCheck": "0 errors / 0 warnings; existing hints",
+  "nodeBuild": true,
+  "vercelBuild": true,
+  "schema": true,
+  "postgresCompatibility": "0047 -> 0048 preserved",
+  "monthlyArrangementApiGroups": 6,
+  "sharedUi": true,
+  "genericMonthlyFirstPaintCases": 17,
+  "schedulingBrowserGroups": 11,
+  "evidence": {
+    "rules.log": [
+      "ℹ tests 270",
+      "ℹ pass 270",
+      "ℹ fail 0"
+    ],
+    "summary-tests.log": [
+      "# tests 6",
+      "# pass 6",
+      "# fail 0"
+    ],
+    "build.log": [
+      "- 0 errors",
+      "- 0 warnings",
+      "18:48:38 [build] ✓ Completed in 99ms.",
+      "18:48:42 [build] ✓ Completed in 4.31s.",
+      "18:48:44 ✓ Completed in 595ms.",
+      "18:48:44 [build] Complete!"
+    ],
+    "vercel-build.log": [
+      "- 0 errors",
+      "- 0 warnings",
+      "19:10:58 [build] ✓ Completed in 120ms.",
+      "19:11:03 [build] ✓ Completed in 5.42s.",
+      "19:11:05 ✓ Completed in 624ms.",
+      "19:11:14 [build] Complete!",
+      "Build Completed in .vercel/output [48s]"
+    ],
+    "db-check.log": [],
+    "pg.log": [
+      "PASS 0047→0048：旧快照不变、兼容旧写入、封存版本外键有效"
+    ],
+    "integration.log": [
+      "PASS 预排期前新建与跨月移入均拒绝；遗留变月不再反向阻断同一份草稿",
+      "PASS 管理员确认预排期才放行首轮；单帖暂存不锁月，整月提交幂等且待核对员工无法改排期",
+      "PASS 待核对真实实发正常；退回重交、管理员改后必须更新核对，确认冻结最新月度数据且整场拒绝再编辑",
+      "PASS 封存后临时新增及取消只改执行历史，不动基准；取消保留内容，实发不能取消，未预排期下月不能直接延期",
+      "PASS 整月提交与新增真实并发：提交胜出则新增拒绝，新增胜出则重新核对，不能在待核对后写入",
+      "PASS 已发布表单不能借附属信息修改独立复盘计划；封存附件写入拒绝；旧审批批准同样遵守待核对阶段"
+    ],
+    "shared-ui.log": [
+      "business UI shared geometry and inline category checks passed"
+    ],
+    "first-paint.log": [
+      "{\"passed\":true,\"cases\":17,\"notificationRetry\":true,\"sharedFontConsumers\":7,\"folder\":\".tools/test-artifacts/first-paint\"}"
+    ],
+    "final-browser.log": [
+      "PASS 21篇预排期仅1篇实际安排：保存后、直接读取、刷新与只读编辑切换均保留原Week及名额",
+      "PASS 排期首屏直接进入、刷新与站内导航实录；慢字体期间阶段和侧栏位置保持稳定，未闪成部分计划",
+      "PASS 乱序来源按Week1–5及完整日期连续分组，遗留与指定归周；首轮阶段、周板和原月历同壳",
+      "PASS 键盘选名额、同周原表单实际保存；空同日提示消失，已安排项不能再次拖去新建",
+      "PASS 新来源真实拖放使用原新建表单；遗留拖放打开原帖改期，未复制帖子",
+      "PASS 来源失败才显示重试，真实重读及跨月慢响应保留输入和选择，不常驻刷新按钮",
+      "PASS 实际待审新建占用名额且不可再拖，同日已有安排仍显示真实名单",
+      "PASS 核对刷新同步所有数量且不重挂日历；失败保留说明，提交待核对仍显示21篇预排期",
+      "PASS 退回及重新提交保留21篇；核对封存才切到实际3篇，后续改期不回写，原预排期历史仍为21篇",
+      "PASS 服务端真实生成原21篇预排期及实际3篇封存PDF，未用网页截图替代",
+      "PASS 台账与月历共用阶段外壳，未开放仍禁止新增；390仅检查明显溢出、遮挡与Inspector关闭入口",
+      "SCHEDULING_WORKSPACE_OK 11"
+    ]
+  }
+}

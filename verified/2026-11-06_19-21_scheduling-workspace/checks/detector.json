@@ -1,0 +1,21 @@
+{
+  "source": "ff3a64c",
+  "tool": "Impeccable engine 0.1.18",
+  "primaryWarnings": 9,
+  "reviewed": true,
+  "newFindings": 0,
+  "rule": "side-tab",
+  "file": "src/pages/business/operations-schedule.astro",
+  "lines": [
+    935,
+    943,
+    943,
+    943,
+    1068,
+    943,
+    1002,
+    1047,
+    942
+  ],
+  "disposition": "均为既有错误提示、推广状态、逾期和今天标记的业务色边，与基线5933231相比未修改。这些语义标记保留；本次新增阶段及Week样式无告警。原始命令已完成，本文件记录人工复核结果，不将9项描述为零告警。"
+}

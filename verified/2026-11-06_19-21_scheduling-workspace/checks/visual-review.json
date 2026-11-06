@@ -1,0 +1,67 @@
+{
+  "source": "ff3a64c",
+  "status": "已自检／待用户反馈",
+  "screenshots": [
+    "carry-original-form-1440.png",
+    "checklist-updated-1440.png",
+    "closed-1440.png",
+    "first-paint-direct-1440.png",
+    "first-paint-navigation-1440.png",
+    "first-paint-reload-1440.png",
+    "inspector-mobile-390.png",
+    "ledger-sealed-1440.png",
+    "meeting-original-preplan-1024.png",
+    "meeting-preplan-1024.png",
+    "meeting-preplan-1440.png",
+    "meeting-preplan-1920.png",
+    "meeting-sealed-1024.png",
+    "review-admin-1024.png",
+    "review-admin-1440.png",
+    "review-admin-1920.png",
+    "review-employee-1440.png",
+    "schedule-calendar-1024.png",
+    "schedule-calendar-1440.png",
+    "schedule-calendar-1920.png",
+    "schedule-full-1024.png",
+    "schedule-full-1440.png",
+    "schedule-full-1920.png",
+    "schedule-mobile-390.png",
+    "sealed-calendar-1024.png",
+    "source-form-1440.png",
+    "source-pending-1440.png",
+    "source-read-failure-1440.png",
+    "submit-failure-1440.png"
+  ],
+  "desktop": [
+    1920,
+    1440,
+    1024
+  ],
+  "mobileLimited": [
+    390
+  ],
+  "pdfs": [
+    {
+      "file": "preplanned-monthly.pdf",
+      "pages": 4
+    },
+    {
+      "file": "sealed-monthly.pdf",
+      "pages": 4
+    }
+  ],
+  "videos": {
+    "workflow.webm": {
+      "sampleFps": 4,
+      "contactSheets": 9,
+      "reviewed": true
+    },
+    "first-paint.webm": {
+      "sampleFps": 10,
+      "contactSheets": 6,
+      "reviewed": true
+    }
+  },
+  "inspection": "已逐张查看5组稳定图、3档Week局部、2组PDF全部8页，并查看月计划页原尺寸；实际录像全段抽帧，9组流程及6组首屏连续帧已查看。截图未改DOM、未拼造业务界面。",
+  "data": "同一组隔离PostgreSQL虚构样本：乱序Week、完整21篇计划、开始1篇实际，操作后3篇实际；真实生产数据未写入测试值。"
+}

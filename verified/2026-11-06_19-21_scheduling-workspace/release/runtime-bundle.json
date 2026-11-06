@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "source": "ff3a64c",
+  "pdfSource": "ff3a64c",
+  "packages": [
+    "react",
+    "react-dom",
+    "puppeteer-core",
+    "@sparticuz/chromium"
+  ],
+  "compressedChromium": true,
+  "actualRuntimeBrowser": true,
+  "actualRuntimeChinesePdfBytes": 626744,
+  "isolatedPostgres": true
+}
