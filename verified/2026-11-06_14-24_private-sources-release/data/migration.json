@@ -1,0 +1,12 @@
+{
+  "pending": [
+    "0049_monthly_private_source_guard"
+  ],
+  "businessTableCount": 51,
+  "ddlOnly": true,
+  "applied": true,
+  "allBusinessFactsUnchanged": true,
+  "guardInstalled": true,
+  "privateBackupCreated": true,
+  "productionBusinessDataRewritten": false
+}

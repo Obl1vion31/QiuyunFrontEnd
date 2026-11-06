@@ -1,0 +1,135 @@
+{
+  "passed": true,
+  "base": "https://qiuyun-frontend-4499osukk-opgobl1v-5358.vercel.app",
+  "platformProtectionBypass": true,
+  "source": "77bc74c",
+  "checks": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/business/annual-plan",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?month=2026-11",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/monthly-operations",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/api/monthly-plans?month=2026-11",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/business-notifications",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/collaboration/presence",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/collaboration/locks",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/promotion-daily/00000000-0000-4000-8000-000000000001",
+      "method": "PATCH",
+      "status": 403
+    }
+  ],
+  "assets": [
+    {
+      "path": "_astro/BusinessMonthlyOperations.lOhIpYF9.js",
+      "sha256": "d33854aa44beefddad08c21f82c96759fb79d26c875817579dccca480aeb278d"
+    },
+    {
+      "path": "_astro/BusinessWeeklyMeeting.FmBScyoD.js",
+      "sha256": "66a33c7fdacd6217588570250aa766783d51b20715a716d23b0cfadb2953168d"
+    },
+    {
+      "path": "_astro/meeting-finalization.DxU4RGEy.js",
+      "sha256": "28acbd65902d2e268d4b5232387aca1d396ff81f96fb124bcffce06e337bfcb9"
+    },
+    {
+      "path": "_astro/MonthlyMeetingSections.C8F6CJlO.js",
+      "sha256": "416285d58b8e0effb1742b7e9f3e08dea14303beeccf86d23d4521e119adab1f"
+    },
+    {
+      "path": "fonts/business.css",
+      "sha256": "11e7db9be8534338218cdf30340086396469ebe77a5392b3766f332313fd92a0"
+    },
+    {
+      "path": "fonts/business.js",
+      "sha256": "75b80add18fc02182cd76880dba3f1fc741e31abeca2a79683e9b6c46b4db75a"
+    }
+  ],
+  "productionBusinessWrites": false
+}
