@@ -1,0 +1,48 @@
+{
+  "facts": [
+    {
+      "key": "home",
+      "width": 1920,
+      "loaded": true,
+      "glass": false,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    },
+    {
+      "key": "login",
+      "width": 1920,
+      "loaded": true,
+      "glass": true,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", system-ui, sans-serif"
+    },
+    {
+      "key": "home",
+      "width": 1440,
+      "loaded": true,
+      "glass": false,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    },
+    {
+      "key": "login",
+      "width": 1440,
+      "loaded": true,
+      "glass": true,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", system-ui, sans-serif"
+    },
+    {
+      "key": "home",
+      "width": 1024,
+      "loaded": true,
+      "glass": false,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    },
+    {
+      "key": "login",
+      "width": 1024,
+      "loaded": true,
+      "glass": true,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", system-ui, sans-serif"
+    }
+  ],
+  "errors": [],
+  "businessWrites": false
+}

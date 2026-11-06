@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFile,readdir,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+const origin=process.env.SMOKE_URL,full=process.env.SMOKE_FULL==='1';assert(origin?.startsWith('https://'));
+const checks=[],tasks=[],hash=b=>createHash('sha256').update(b).digest('hex'),add=(path,status,extra={})=>tasks.push({path,status,...extra});
+for(const path of ['/','/login','/api/auth/get-session'])add(path,200);
+for(const key of ['annual-plan','operations-schedule','daily-promotion-review','daily-promotion-review?view=history','non-promotion-review','meeting-review','monthly-operations','settings'])add('/business/'+key,302);
+for(const key of ['promotion-daily','promotion-timeline','non-promotion-reviews','meeting-reviews'])add('/api/'+key,401);
+for(const path of ['/.env','/.tools/','/verified/2026-11-07_00-15_workspace-glass-all/README.md','/data/imports/private.xlsx','/src/db/schema.ts'])add(path,404);
+for(const type of ['urlencoded','multipart']){
+ for(const [label,requestOrigin,status]of [['same',origin,401],['external','https://example.invalid',403]]){
+  const body=type==='multipart'?new FormData():'';
+  add('/api/meeting-reviews',status,{label:type+'-'+label,method:'POST',headers:{origin:requestOrigin,...(type==='urlencoded'?{'content-type':'application/x-www-form-urlencoded'}:{})},body});
+ }
+}
+let assets=(await readdir('.vercel/output/static/_astro')).filter(n=>/\.(css|js)$/.test(n));
+if(!full)assets=[...assets.filter(n=>n.endsWith('.css')).slice(0,2),...assets.filter(n=>n.endsWith('.js')).slice(0,2)];
+for(const name of assets)add('/_astro/'+name,200,{local:'.vercel/output/static/_astro/'+name});
+for(const name of ['qiuyun-mark.svg','qiuyun-mark.png'])add('/images/brand/'+name,200,{local:'public/images/brand/'+name});
+const font=(await readdir('public/fonts/misans-5.0.0')).find(n=>n.endsWith('.woff2'));add('/fonts/misans-5.0.0/'+font,200,{local:'public/fonts/misans-5.0.0/'+font});
+let cursor=0;await Promise.all(Array.from({length:4},async()=>{while(cursor<tasks.length){const task=tasks[cursor++],result={path:task.path,label:task.label,expected:task.status};
+ try{const r=await fetch(origin+task.path,{method:task.method,headers:task.headers,body:task.body,redirect:'manual',signal:AbortSignal.timeout(30000)});result.status=r.status;assert.equal(r.status,task.status);
+ if(task.status===302)assert.match(r.headers.get('location')??'',/^\/login/);
+ const body=Buffer.from(await r.arrayBuffer());if(task.local){result.sha256=hash(body);assert.equal(result.sha256,hash(await readFile(task.local)),'asset mismatch');}
+ if(task.path==='/login')assert.match(body.toString(),/data-public-glass="login"/);
+ result.passed=true;}catch(e){result.passed=false;result.error=e.message;}checks.push(result);
+}}));
+const report={origin,sourceCommit:'4db5290c258fc5d86e7c14fe06721a77506a2da7',checkedAt:new Date().toISOString(),businessWrites:false,databaseMigrations:false,checks:checks.length,matchingAssets:checks.filter(x=>x.sha256&&x.passed).length,passed:checks.every(x=>x.passed),details:checks};
+await writeFile('.tools/release-smoke-'+(full?'production':'candidate')+'.json',JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify({...report,details:undefined,failures:checks.filter(x=>!x.passed)}));
+assert(report.passed);

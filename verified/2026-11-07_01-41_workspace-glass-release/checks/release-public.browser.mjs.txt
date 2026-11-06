@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import{mkdir,writeFile}from'node:fs/promises';
+const{chromium}=await import(process.env.PLAYWRIGHT_MODULE);const b=await chromium.launch({headless:true});const dir='.tools/test-artifacts/release-public';await mkdir(dir,{recursive:true});const facts=[],errors=[];
+try{for(const width of[1920,1440,1024]){
+ const c=await b.newContext({viewport:{width,height:1000},locale:'zh-CN',reducedMotion:'reduce'}),p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));
+ for(const key of['home','login']){
+  const r=await p.goto('https://qiuyun-frontend.vercel.app'+(key==='home'?'/':'/login'));assert.equal(r.status(),200);await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(180);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  if(key==='login'){assert.equal(await p.locator('body').getAttribute('data-public-glass'),'login');assert.equal(await p.locator('button[type=submit]').getAttribute('data-surface-press'),'directional');}
+  await p.screenshot({path:dir+'/'+key+'-'+width+'.png'});facts.push({key,width,loaded:true,glass:key==='login',font:await p.locator('h1').evaluate(e=>getComputedStyle(e).fontFamily)});
+ }await c.close();
+}assert.deepEqual(errors,[]);await writeFile(dir+'/report.json',JSON.stringify({facts,errors,businessWrites:false},null,2)+'\n');console.log('Public home/login 3 desktop widths passed');}finally{await b.close();}

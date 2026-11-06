@@ -1,0 +1,13 @@
+import {spawn} from 'node:child_process';import {readFile,readdir,writeFile} from 'node:fs/promises';import {createHash}from'node:crypto';import assert from'node:assert/strict';
+const url='https://qiuyun-frontend-e7f30hf43-opgobl1v-5358.vercel.app',hash=b=>createHash('sha256').update(b).digest('hex');
+const assets=(await readdir('.vercel/output/static/_astro')).filter(n=>/\.(css|js)$/.test(n));
+const chosen=[...assets.filter(n=>n.endsWith('.css')).slice(0,2),...assets.filter(n=>n.endsWith('.js')).slice(0,2)];
+const tasks=[{path:'/',expected:200},{path:'/login',expected:200},{path:'/business/operations-schedule',expected:302},{path:'/business/monthly-operations',expected:302},{path:'/api/meeting-reviews',expected:401},{path:'/.env',expected:404},...chosen.map(n=>({path:'/_astro/'+n,expected:200,local:'.vercel/output/static/_astro/'+n}))],results=[];
+for(let i=0;i<tasks.length;i++){
+ const t=tasks[i],body='.tools/candidate-check-'+i+'.body';
+ const result=await new Promise((resolve,reject)=>{const c=spawn(process.execPath,['../../tooling/node_modules/vercel/dist/index.js','curl',t.path,'--deployment',url,'--','--silent','--show-error','--output',body,'--write-out','%{http_code}'],{stdio:['ignore','pipe','pipe']});let out='',err='';c.stdout.on('data',x=>out+=x);c.stderr.on('data',x=>err+=x);c.on('exit',code=>code?reject(new Error('CLI curl failed '+t.path)):resolve(out.trim()));});
+ assert.equal(Number(result),t.expected,t.path);const b=await readFile(body);if(t.local)assert.equal(hash(b),hash(await readFile(t.local)));
+ if(t.path==='/login')assert.match(b.toString(),/data-public-glass="login"/);
+ results.push({path:t.path,status:Number(result),...(t.local?{sha256:hash(b)}:{}),passed:true});
+}
+await writeFile('.tools/release-smoke-candidate.json',JSON.stringify({origin:url,protectedAccess:'authenticated Vercel CLI; project protection unchanged',sourceCommit:'4db5290',passed:true,checks:results.length,matchingAssets:results.filter(x=>x.sha256).length,businessWrites:false,details:results},null,2)+'\n');console.log('Candidate passed '+results.length+' checks');

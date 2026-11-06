@@ -1,0 +1,17 @@
+from pathlib import Path
+import json,hashlib
+out=Path('.vercel/output').resolve();f=out/'functions/_render.func'
+react=(f/'node_modules/react-dom').resolve()
+print('react-path',str(react.relative_to(out)))
+assert react.is_relative_to(out)
+files=list(f.rglob('*.br'))
+print('compressed assets',[(x.name,x.stat().st_size) for x in files if x.name in ['chromium.br','fonts.tar.br','al2023.tar.br','swiftshader.tar.br']])
+for name in ['chromium.br','fonts.tar.br','al2023.tar.br','swiftshader.tar.br']:assert any(x.name==name and x.stat().st_size>1000 for x in files),name
+for name,pattern in [('react-dom-server.node.production.min.js','k.subarray(0,l)'),('react-dom-server.node.development.js','currentView.subarray(0, writtenBytes)')]:assert pattern in (react/'cjs'/name).read_text(),name
+manifests=list((f/'dist/server').glob('manifest*.mjs'));assert manifests
+assert 'qiuyun-frontend.vercel.app' in manifests[0].read_text()
+assert not Path('node_modules').is_symlink()
+assert not any(x.name in ['.env','verified','.tools'] for x in out.rglob('*'))
+values=[{'path':str(x.relative_to(out)),'bytes':x.stat().st_size,'sha256':hashlib.sha256(x.read_bytes()).hexdigest()} for x in (out/'static/_astro').iterdir() if x.suffix in ['.css','.js']]
+Path('.tools/release-package.json').write_text(json.dumps({'sourceCommit':'4db5290c258fc5d86e7c14fe06721a77506a2da7','reactVersion':'18.3.1','upstreamPatch':True,'originTrusted':True,'compressedRuntimeAssets':[x.name for x in files],'assets':values},indent=2)+'\n')
+print('package verified',len(values),'JS/CSS assets')

@@ -1,0 +1,74 @@
+{
+  "id": "dpl_CtzwSkPNmLyC6DyXtYMywYFcE5Dj",
+  "name": "qiuyun-frontend",
+  "url": "qiuyun-frontend-e7f30hf43-opgobl1v-5358.vercel.app",
+  "target": "production",
+  "readyState": "READY",
+  "createdAt": 1793986537900,
+  "duration": {
+    "startTime": 1793986539425,
+    "endTime": 1793986555845,
+    "endTimeCapped": 1793986555845,
+    "timeToReady": 11655,
+    "timeToContainerExit": 16420,
+    "timeToContainerExitCapped": 16420,
+    "timeForBilling": 60000,
+    "cpuTimeForBilling": 120000
+  },
+  "buildMachine": {
+    "cores": 2,
+    "memory": 8192,
+    "machine": "basic",
+    "selectionType": "fixed",
+    "selectionSource": "plan-default"
+  },
+  "builds": [
+    {
+      "id": "bld_ppv5skiu7",
+      "deploymentId": "dpl_CtzwSkPNmLyC6DyXtYMywYFcE5Dj",
+      "entrypoint": ".",
+      "readyState": "READY",
+      "readyStateAt": 1793986537820,
+      "createdAt": 1793986537820,
+      "createdIn": "sfo1",
+      "use": "@vercel/vc-build",
+      "config": {
+        "framework": "astro",
+        "installCommand": "pnpm install --frozen-lockfile",
+        "buildCommand": "pnpm build",
+        "nodeVersion": "22.x",
+        "projectCreatedAt": 1791964343582,
+        "vercelConfig": {
+          "name": "qiuyun-frontend",
+          "version": 2
+        }
+      },
+      "middleware": [],
+      "output": [
+        {
+          "prerender": null,
+          "type": "lambda",
+          "path": "_render",
+          "digest": "prj_bTVgrgB2yde06natDUjxaUPPrVvK/29aab341525666e37e25d82b13532e824c69e219a4fec9aa660894f587e9b4e5",
+          "mode": 49590,
+          "size": 79957678,
+          "lambda": {
+            "functionName": "team_n6Aaq9rCmYd86BCXyEd4mCNJ-9c840060f7360587503dc56383d79e2241",
+            "deployedTo": [
+              "iad1"
+            ],
+            "runtime": "nodejs22.x",
+            "memorySize": 2048,
+            "timeout": 300,
+            "layers": [
+              "arn:aws:lambda:AWS_REGION_PLACEHOLDER:977805900156:layer:vercel-rusty-runtime-nodejs-1_51_18-production-a82c18e1a4-AWS_ARCH_PLACEHOLDER:1"
+            ]
+          },
+          "edge": null
+        }
+      ],
+      "fingerprint": null
+    }
+  ],
+  "contextName": "opgobl1v-5358"
+}
