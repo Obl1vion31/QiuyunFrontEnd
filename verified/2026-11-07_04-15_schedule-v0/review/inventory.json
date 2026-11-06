@@ -1,0 +1,44 @@
+{
+  "screenshots": 32,
+  "workspaceScreenshots": 38,
+  "pdfs": [
+    {
+      "file": "final-ui/pdf/monthly-execution.pdf",
+      "pages": 8
+    },
+    {
+      "file": "final-ui/pdf/weekly-execution.pdf",
+      "pages": 5
+    },
+    {
+      "file": "workspace-final-ui/pdf/preplanned-monthly.pdf",
+      "pages": 4
+    },
+    {
+      "file": "workspace-final-ui/pdf/sealed-monthly.pdf",
+      "pages": 4
+    }
+  ],
+  "videos": [
+    {
+      "file": "final-ui/video/workflow.webm",
+      "fps": 2,
+      "frames": 97
+    },
+    {
+      "file": "final-ui/video/first-paint.webm",
+      "fps": 10,
+      "frames": 104
+    },
+    {
+      "file": "workspace-final-ui/video/workflow.webm",
+      "fps": 2,
+      "frames": 158
+    },
+    {
+      "file": "workspace-final-ui/video/first-paint.webm",
+      "fps": 10,
+      "frames": 102
+    }
+  ]
+}

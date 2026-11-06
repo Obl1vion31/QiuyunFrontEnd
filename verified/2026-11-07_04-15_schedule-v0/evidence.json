@@ -1,0 +1,776 @@
+{
+  "source": "6c9d6c9",
+  "base": "79fe541",
+  "screenshots": [
+    {
+      "file": "execution/screenshots/first-paint-direct-1440.png",
+      "view": "排期",
+      "state": "直接进入稳定帧",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/first-paint-navigation-1440.png",
+      "view": "排期",
+      "state": "站内导航稳定帧",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/first-paint-reload-1440.png",
+      "view": "排期",
+      "state": "硬刷新稳定帧",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/inspector-mobile-390.png",
+      "view": "排期",
+      "state": "Inspector关闭入口",
+      "viewport": 390,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-collapsed-1024.png",
+      "view": "月度运营",
+      "state": "全月对照收起",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-collapsed-1440.png",
+      "view": "月度运营",
+      "state": "全月对照收起",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-collapsed-1920.png",
+      "view": "月度运营",
+      "state": "全月对照收起",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-expanded-1024.png",
+      "view": "月度运营",
+      "state": "全月对照展开",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-expanded-1440.png",
+      "view": "月度运营",
+      "state": "全月对照展开",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-expanded-1920.png",
+      "view": "月度运营",
+      "state": "全月对照展开",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-meeting-collapsed-1024.png",
+      "view": "月会",
+      "state": "月会上月对照收起",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-meeting-collapsed-1440.png",
+      "view": "月会",
+      "state": "月会上月对照收起",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-meeting-collapsed-1920.png",
+      "view": "月会",
+      "state": "月会上月对照收起",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-meeting-expanded-1024.png",
+      "view": "月会",
+      "state": "月会上月对照展开",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-meeting-expanded-1440.png",
+      "view": "月会",
+      "state": "月会上月对照展开",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-meeting-expanded-1920.png",
+      "view": "月会",
+      "state": "月会上月对照展开",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/monthly-mobile-expanded-390.png",
+      "view": "月度运营",
+      "state": "月度明细有限手机检查",
+      "viewport": 390,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/seal-conflict-1440.png",
+      "view": "排期",
+      "state": "定稿冲突与就地重新核对",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-calendar-1024.png",
+      "view": "排期",
+      "state": "V0定稿后的月历",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-calendar-1440.png",
+      "view": "排期",
+      "state": "V0定稿后的月历",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-calendar-1920.png",
+      "view": "排期",
+      "state": "V0定稿后的月历",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-checklist-1024.png",
+      "view": "排期",
+      "state": "V0清单展开",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-checklist-1440.png",
+      "view": "排期",
+      "state": "V0清单展开",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-checklist-1920.png",
+      "view": "排期",
+      "state": "V0清单展开",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/sealed-mobile-390.png",
+      "view": "排期",
+      "state": "定稿月历有限手机检查",
+      "viewport": 390,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/v0-reason-edit-1440.png",
+      "view": "排期",
+      "state": "V0后原因填写与未保存保护",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/weekly-collapsed-1024.png",
+      "view": "周会",
+      "state": "周会区间对照收起",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/weekly-collapsed-1440.png",
+      "view": "周会",
+      "state": "周会区间对照收起",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/weekly-collapsed-1920.png",
+      "view": "周会",
+      "state": "周会区间对照收起",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/weekly-expanded-1024.png",
+      "view": "周会",
+      "state": "周会区间对照展开",
+      "viewport": 1024,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/weekly-expanded-1440.png",
+      "view": "周会",
+      "state": "周会区间对照展开",
+      "viewport": 1440,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "execution/screenshots/weekly-expanded-1920.png",
+      "view": "周会",
+      "state": "周会区间对照展开",
+      "viewport": 1920,
+      "dataset": "A",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "6c9d6c9"
+    },
+    {
+      "file": "workspace/screenshots/carry-original-form-1440.png",
+      "view": "排期",
+      "state": "遗留原帖表单",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/checklist-updated-1440.png",
+      "view": "排期",
+      "state": "冲突后清单同步",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/closed-1440.png",
+      "view": "排期",
+      "state": "未确认预排期月份",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/compact-weeks-1024.png",
+      "view": "排期",
+      "state": "五条紧凑Week局部",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/compact-weeks-1440.png",
+      "view": "排期",
+      "state": "五条紧凑Week局部",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/compact-weeks-1920.png",
+      "view": "排期",
+      "state": "五条紧凑Week局部",
+      "viewport": 1920,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/default-course-1440.png",
+      "view": "排期",
+      "state": "课程默认与人工覆盖",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/default-handout-1440.png",
+      "view": "排期",
+      "state": "推广讲义默认",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/default-mock-1440.png",
+      "view": "排期",
+      "state": "模考默认",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/draft-admin-saved-1440.png",
+      "view": "排期",
+      "state": "管理员草稿保存",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/draft-employee-saved-1440.png",
+      "view": "排期",
+      "state": "员工草稿保存",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/draft-failure-1440.png",
+      "view": "排期",
+      "state": "草稿失败保留",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/first-paint-direct-1440.png",
+      "view": "排期",
+      "state": "直接进入稳定帧",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/first-paint-navigation-1440.png",
+      "view": "排期",
+      "state": "站内导航稳定帧",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/first-paint-reload-1440.png",
+      "view": "排期",
+      "state": "硬刷新稳定帧",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/inspector-mobile-390.png",
+      "view": "排期",
+      "state": "Inspector关闭入口",
+      "viewport": 390,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/ledger-sealed-1440.png",
+      "view": "排期",
+      "state": "定稿台账",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/meeting-original-preplan-1024.png",
+      "view": "月会",
+      "state": "原预排期历史版",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/meeting-preplan-1024.png",
+      "view": "月会",
+      "state": "未封存完整21篇",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/meeting-preplan-1440.png",
+      "view": "月会",
+      "state": "未封存完整21篇",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/meeting-preplan-1920.png",
+      "view": "月会",
+      "state": "未封存完整21篇",
+      "viewport": 1920,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/meeting-sealed-1024.png",
+      "view": "月会",
+      "state": "最终安排封存版",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/review-admin-1024.png",
+      "view": "排期",
+      "state": "管理员核对",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/review-admin-1440.png",
+      "view": "排期",
+      "state": "管理员核对",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/review-admin-1920.png",
+      "view": "排期",
+      "state": "管理员核对",
+      "viewport": 1920,
+      "dataset": "B",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/review-employee-1440.png",
+      "view": "排期",
+      "state": "待核对仍可编辑",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-calendar-1024.png",
+      "view": "排期",
+      "state": "首轮排期月历",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-calendar-1440.png",
+      "view": "排期",
+      "state": "首轮排期月历",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-calendar-1920.png",
+      "view": "排期",
+      "state": "首轮排期月历",
+      "viewport": 1920,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-full-1024.png",
+      "view": "排期",
+      "state": "首轮完整工作区",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-full-1440.png",
+      "view": "排期",
+      "state": "首轮完整工作区",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-full-1920.png",
+      "view": "排期",
+      "state": "首轮完整工作区",
+      "viewport": 1920,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/schedule-mobile-390.png",
+      "view": "排期",
+      "state": "排期有限手机检查",
+      "viewport": 390,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/sealed-calendar-1024.png",
+      "view": "排期",
+      "state": "V0定稿后的月历",
+      "viewport": 1024,
+      "dataset": "B",
+      "role": "管理员",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/selection-compact-1440.png",
+      "view": "排期",
+      "state": "来源选择与取消",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/source-form-1440.png",
+      "view": "排期",
+      "state": "计划来源新建",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/source-read-failure-1440.png",
+      "view": "排期",
+      "state": "来源失败就地重试",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    },
+    {
+      "file": "workspace/screenshots/submit-failure-1440.png",
+      "view": "排期",
+      "state": "提交失败保留",
+      "viewport": 1440,
+      "dataset": "B",
+      "role": "员工",
+      "status": "已自检／待用户反馈",
+      "captureSource": "2f887a3"
+    }
+  ],
+  "inventory": {
+    "screenshots": 32,
+    "workspaceScreenshots": 38,
+    "pdfs": [
+      {
+        "file": "final-ui/pdf/monthly-execution.pdf",
+        "pages": 8
+      },
+      {
+        "file": "final-ui/pdf/weekly-execution.pdf",
+        "pages": 5
+      },
+      {
+        "file": "workspace-final-ui/pdf/preplanned-monthly.pdf",
+        "pages": 4
+      },
+      {
+        "file": "workspace-final-ui/pdf/sealed-monthly.pdf",
+        "pages": 4
+      }
+    ],
+    "videos": [
+      {
+        "file": "final-ui/video/workflow.webm",
+        "fps": 2,
+        "frames": 97
+      },
+      {
+        "file": "final-ui/video/first-paint.webm",
+        "fps": 10,
+        "frames": 104
+      },
+      {
+        "file": "workspace-final-ui/video/workflow.webm",
+        "fps": 2,
+        "frames": 158
+      },
+      {
+        "file": "workspace-final-ui/video/first-paint.webm",
+        "fps": 10,
+        "frames": 102
+      }
+    ]
+  },
+  "reviewedContactSheets": 44,
+  "byteIdenticalPreviouslyReviewedWorkspaceSheets": [
+    "workspace-first-paint-05.jpg",
+    "pdf-preplanned-monthly-01.jpg",
+    "workspace-first-paint-06.jpg",
+    "workspace-workflow-01.jpg",
+    "workspace-first-paint-04.jpg",
+    "workspace-02.jpg",
+    "workspace-first-paint-01.jpg",
+    "workspace-04.jpg",
+    "workspace-01.jpg",
+    "workspace-workflow-05.jpg",
+    "pdf-sealed-monthly-01.jpg",
+    "workspace-07.jpg",
+    "workspace-first-paint-03.jpg",
+    "workspace-workflow-06.jpg",
+    "workspace-05.jpg",
+    "workspace-06.jpg",
+    "workspace-workflow-04.jpg",
+    "workspace-03.jpg",
+    "workspace-workflow-02.jpg",
+    "workspace-workflow-07.jpg",
+    "workspace-first-paint-02.jpg",
+    "workspace-workflow-08.jpg",
+    "workspace-workflow-03.jpg"
+  ]
+}

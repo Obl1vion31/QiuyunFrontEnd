@@ -1,0 +1,92 @@
+[
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 914,
+    "snippet": "border-left:5px solid}.notice--error{background:#ffe4dc"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 922,
+    "snippet": "border-left:3px solid var(--test)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 922,
+    "snippet": "border-left:3px solid var(--scale)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 922,
+    "snippet": "border-left:4px solid var(--orange)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 1047,
+    "snippet": "border-left:3px solid var(--blue)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 922,
+    "snippet": ".calendar-day.today — inset box-shadow 4px stripe (top)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 981,
+    "snippet": ".schedule-row.overdue — inset box-shadow 3px stripe (left)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 1026,
+    "snippet": ".calendar-day.today — inset box-shadow 3px stripe (top)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "\\\\wsl$\\Ubuntu-24.04\\home\\obl1vion\\projects\\qiuyunFrontend\\.tools\\releases\\private-sources-20261106\\src\\pages\\business\\operations-schedule.astro",
+    "line": 921,
+    "snippet": ".table-wrap tr.overdue td:first-child — inset box-shadow 4px stripe on a row or cell (left edge)"
+  }
+]
