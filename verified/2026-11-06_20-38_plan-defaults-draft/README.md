@@ -1,6 +1,6 @@
 # 预排期默认设置与整月草稿
 
-状态：已自检／待用户反馈。应用 e3928df，基线 2d07613，分支 codex/plan-defaults-draft。正式组件及实际 Vercel 运行包使用本机隔离 PostgreSQL 运行，截图、录像、PDF均为真实页面结果。
+状态：已发布、已自检／待用户反馈。应用 e3928df，基线 2d07613，分支 codex/plan-defaults-draft。正式组件及实际 Vercel 运行包使用本机隔离 PostgreSQL 运行，截图、录像、PDF均为真实页面结果。
 
 ## 本次行为
 
@@ -40,7 +40,7 @@
 
 ## 发布结果
 
-候选已完成20项请求与11个资源哈希核对，等待正式提升。完成后在此补充正式版本回执。
+[正式排期页](https://qiuyun-frontend.vercel.app/business/operations-schedule)已指向部署dpl_HDwijqyHovS5oRWiLeJsoK3zDDPQ，READY且与候选一致。应用e3928df及验收证据已同步main；候选20项／11资源、正式20项／71资源哈希核对通过。[发布回执](release/release.json)／[正式检查](release/production.json)。
 
 ## 稳定画面清单
 

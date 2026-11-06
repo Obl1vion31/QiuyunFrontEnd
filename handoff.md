@@ -2,11 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
-## 预排期默认设置与整月草稿（已验证，2026-11-06）
+## 预排期默认设置与整月草稿（已发布，2026-11-06）
 
 - 新建从计划继承学科／分类；模考和推广讲义默认推广后持续复盘、课程默认纯推广、其余默认非推广常规，人工改选保留。已有编辑／改版不批量覆盖。
 - 保存草稿复用现有JSON记录，双方刷新接续说明，不提交核对；失败和慢保存新输入保留。更新核对清单仍只重读已保存安排。无物理迁移。
-- 应用e3928df，分支codex/plan-defaults-draft，独立工作树.tools/releases/private-sources-20261106；272规则、schema、类型／Node与Vercel构建、共享UI及最终运行包13组通过。桌面三档、有限390、39图、2段录像和8页PDF已实际查看。[验收索引](verified/2026-11-06_20-38_plan-defaults-draft/README.md)。候选20项／11资源通过，待提升正式域名。
+- 应用e3928df，分支codex/plan-defaults-draft，独立工作树.tools/releases/private-sources-20261106；272规则、schema、类型／Node与Vercel构建、共享UI及最终运行包13组通过。桌面三档、有限390、39图、2段录像和8页PDF已实际查看。[验收索引](verified/2026-11-06_20-38_plan-defaults-draft/README.md)。部署dpl_HDwijqyHovS5oRWiLeJsoK3zDDPQ READY且正式域名与候选一致；候选20项／11资源、正式20项／71资源哈希通过。应用及证据已同步main。
 
 ## 预排期五条紧凑行（已发布，2026-11-06）
 

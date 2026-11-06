@@ -1,0 +1,11 @@
+{
+  "source": "e3928df",
+  "candidate": "qiuyun-frontend-nxktya24g-opgobl1v-5358.vercel.app",
+  "deployment": "dpl_HDwijqyHovS5oRWiLeJsoK3zDDPQ",
+  "status": "READY",
+  "formal": "https://qiuyun-frontend.vercel.app",
+  "sameDeployment": true,
+  "checks": 20,
+  "assets": 71,
+  "verifiedAt": "2026-11-06T20:40:08.992618+08:00"
+}
