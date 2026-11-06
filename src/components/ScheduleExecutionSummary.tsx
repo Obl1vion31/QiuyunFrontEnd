@@ -6,7 +6,7 @@ import '../styles/schedule-comparison.css';
 const time=(value:string|null)=>value?businessDateTime(value):'—';
 export function ScheduleComparisonTable({value,groupByWeek=false}:{value:ScheduleComparison;groupByWeek?:boolean}){
  const rows=groupByWeek?[...value.rows].sort((a,b)=>weekOf(businessDate(a.originalAt??a.plannedAt??a.actualAt!))-weekOf(businessDate(b.originalAt??b.plannedAt??b.actualAt!))):value.rows;
- return <div className="plan-comparison-table"><table><thead><tr><th>帖子／版本</th><th>V0应发时间</th><th>调整后应发时间</th><th>实发时间</th><th>变动与原因</th></tr></thead><tbody>{rows.map((row,index)=><Rows key={row.id} row={row} showWeek={groupByWeek&&(index===0||weekOf(businessDate(rows[index-1].originalAt??rows[index-1].plannedAt??rows[index-1].actualAt!))!==weekOf(businessDate(row.originalAt??row.plannedAt??row.actualAt!)))}/>)}{!rows.length&&<tr><td colSpan={5}>当前范围暂无排期记录</td></tr>}</tbody></table></div>;
+ return <div className="plan-comparison-table"><table><colgroup><col className="plan-comparison-title-col"/><col span={3} className="plan-comparison-date-col"/><col className="plan-comparison-change-col"/></colgroup><thead><tr><th>帖子／版本</th><th>V0应发时间</th><th>调整后应发时间</th><th>实发时间</th><th>变动与原因</th></tr></thead><tbody>{rows.map((row,index)=><Rows key={row.id} row={row} showWeek={groupByWeek&&(index===0||weekOf(businessDate(rows[index-1].originalAt??rows[index-1].plannedAt??rows[index-1].actualAt!))!==weekOf(businessDate(row.originalAt??row.plannedAt??row.actualAt!)))}/>)}{!rows.length&&<tr><td colSpan={5}>当前范围暂无排期记录</td></tr>}</tbody></table></div>;
 }
 function Rows({row,showWeek}:{row:ScheduleComparison['rows'][number];showWeek:boolean}){
  const name=<>{row.name}{row.versionNumber!=null&&<small> V{row.versionNumber}</small>}</>;

@@ -9,7 +9,7 @@
 .plan-comparison-details{margin-top:8px}
 .plan-comparison-details>summary{width:fit-content;cursor:pointer;color:var(--console-blue);font:400 13px/22px var(--console-font)}
 .plan-comparison-table{max-width:100%;overflow-x:auto;margin-top:12px}
-.plan-comparison-table table{width:100%;min-width:880px;border-collapse:collapse;font:400 14px/22px var(--console-font)}
+.plan-comparison-table table{width:100%;min-width:880px;table-layout:fixed;border-collapse:collapse;font:400 14px/22px var(--console-font)}
 .plan-comparison-table th,.plan-comparison-table td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--console-line);vertical-align:top}
 .plan-comparison-table th{color:var(--console-muted);font-size:13px;font-weight:500;background:var(--console-surface)}
 .plan-comparison-table td:first-child{width:26%;min-width:200px}.plan-comparison-table td:nth-child(n+2):nth-child(-n+4){width:17%;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -21,3 +21,6 @@
 .plan-comparison-changes{margin-top:6px}.plan-comparison-changes summary{cursor:pointer;color:var(--console-muted);font-size:13px}
 .plan-comparison-changes p{margin:8px 0;font-size:13px}.plan-comparison-changes p>span{display:block;overflow-wrap:anywhere}
 @media print{.plan-comparison{background:#fff!important;box-shadow:none!important;break-inside:auto}.plan-comparison-table{overflow:visible}.plan-comparison-table table{min-width:0;font-size:11px}.plan-comparison-table th,.plan-comparison-table td{padding:7px;min-width:0!important;white-space:normal!important}.plan-comparison-table tr{break-inside:avoid}.plan-comparison-details>summary{display:none}}
+
+.plan-comparison-table .plan-comparison-title-col{width:26%}.plan-comparison-table .plan-comparison-date-col{width:17%}.plan-comparison-table .plan-comparison-change-col{width:23%}
+.plan-comparison-table table td:first-child{white-space:normal;overflow-wrap:anywhere}.plan-comparison-table table td:first-child a{display:inline;white-space:normal;overflow-wrap:anywhere}
