@@ -24,3 +24,5 @@
 
 .plan-comparison-table .plan-comparison-title-col{width:26%}.plan-comparison-table .plan-comparison-date-col{width:17%}.plan-comparison-table .plan-comparison-change-col{width:23%}
 .plan-comparison-table table td:first-child{white-space:normal;overflow-wrap:anywhere}.plan-comparison-table table td:first-child a{display:inline;white-space:normal;overflow-wrap:anywhere}
+
+@media print{.weekly-frozen .plan-comparison-details,.weekly-frozen .plan-comparison-table,.weekly-frozen .plan-comparison-table table{break-inside:auto!important;page-break-inside:auto!important}.weekly-frozen .plan-comparison-overview{break-after:avoid;page-break-after:avoid}.plan-comparison-table thead{break-after:avoid}}
