@@ -15,6 +15,7 @@ const fixture=await startPostgresFixture({clockFile,entry:process.env.COST_REPAI
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);
 let browser:any,context:any,page:any;const checks:string[]=[],images:any[]=[],errors:string[]=[];
 const mark=(label:string)=>{checks.push(label);console.log('PASS '+label);};
+const layouts:any[]=[];
 const costs={added:1395.13,consulted:1860.18,converted:2790.27};
 async function go(path:string){await page.goto(baseURL+path);await settleBusinessUI(page);}
 async function api(path:string,data?:unknown){const r=data===undefined?await context.request.get(baseURL+path):await context.request.patch(baseURL+path,{headers:{Origin:baseURL},data});assert.equal(r.status(),200,await r.text());return r.json();}
@@ -30,8 +31,34 @@ async function screenshot(name:string,fullPage=true){
  assert(geometry.scrollWidth<=geometry.viewport+1,JSON.stringify({name,geometry}));assert(!geometry.metrics.some((n:any)=>n.overflow),JSON.stringify({name,metrics:geometry.metrics}));
  await page.screenshot({path:`${dir}/screenshots/${name}.png`,fullPage});images.push({name,...geometry});
 }
+async function trendLayout(){
+ const values=await page.locator('[data-monthly-cost-trend]').evaluateAll((nodes:any[])=>nodes.map(n=>{
+  const box=n.getBoundingClientRect(),previous=n.previousElementSibling.getBoundingClientRect(),plot=n.querySelector('.report-trend-plot').getBoundingClientRect();
+  return {metric:n.dataset.monthlyCostTrend,inside:!!n.closest('[data-cost-metric]'),gap:box.left-previous.right,aligned:Math.abs((box.top+box.bottom)/2-(n.parentElement.querySelector('dt').getBoundingClientRect().top+previous.bottom)/2)<=1,height:plot.height,captionHeight:n.querySelector('figcaption').getBoundingClientRect().height,highlight:getComputedStyle(n.querySelector('.report-period-highlight')??n).display};
+ }));
+ for(const v of values){assert(v.inside);assert.equal(v.height,44);assert.equal(v.captionHeight,18);assert(v.gap>=12);assert(v.aligned);assert.equal(v.highlight,'none');}
+ assert.equal(await page.locator('.mc-trends').count(),0);const columns=await page.locator('.mc-metrics').first().evaluate((n:any)=>getComputedStyle(n).gridTemplateColumns.split(' ').length);if(await page.evaluate(()=>innerWidth)>=1440)assert.equal(columns,3);
+ layouts.push({kind:'trends',viewport:await page.evaluate(()=>innerWidth),values});
+}
+async function sourceStates(root:any,name:string,capture=false){
+ const groups=root.locator('.ps-disclosure'),summaries=groups.locator(':scope>summary');assert.equal(await groups.count(),2);
+ async function check(state:string){
+  const boxes=await groups.evaluateAll((nodes:any[])=>nodes.map(n=>{const r=n.getBoundingClientRect(),q=n.querySelector('summary').getBoundingClientRect(),h=n.querySelector('h3').getBoundingClientRect(),table=n.querySelector('.ps-table-scroll').getBoundingClientRect(),s=getComputedStyle(n);return {open:n.open,top:r.top,bottom:r.bottom,summaryTop:q.top,summaryBottom:q.bottom,summaryHeight:q.height,textTop:h.top,textBottom:h.bottom,tableGap:table.top-q.bottom,bottomGap:r.bottom-table.bottom,margin:s.marginTop,padding:s.paddingTop};}));
+  for(const b of boxes){assert.equal(b.summaryHeight,44);assert.equal(b.margin,'0px');assert.equal(b.padding,'0px');if(b.open){assert.equal(b.tableGap,12);assert.equal(b.bottomGap,20);}}
+  if(state==='closed'||state==='reclosed'){assert(Math.abs(boxes[1].top-boxes[0].bottom)<=1);assert(Math.abs((boxes[1].textTop-boxes[1].top)-(boxes[1].top-boxes[0].textBottom))<=1);}
+  const card=await root.evaluate((n:any)=>{const h=n.querySelector(':scope>header'),r=n.querySelector('.private-source-results');if(!h||r?.previousElementSibling!==h)return null;const outer=n.getBoundingClientRect(),last=r.querySelector('.ps-disclosure:last-child').getBoundingClientRect();return {headerGap:r.getBoundingClientRect().top-h.getBoundingClientRect().bottom,bottomGap:outer.bottom-last.bottom};});if(card){assert.equal(card.headerGap,12);assert(Math.abs(card.bottomGap-21)<=1);}
+  layouts.push({kind:'sources',name,state,boxes,card});
+  if(capture)await root.locator('.private-source-results').screenshot({path:`${dir}/screenshots/${name}-${state}.png`});
+ }
+ await check('closed');await summaries.nth(0).click();await check('promotion');await summaries.nth(1).click();await check('both');await summaries.nth(0).click();await check('organic');await summaries.nth(1).click();await check('reclosed');
+}
 try{
  await seedPrivateSources(db);
+ const previousSources=await db.select().from(s.operationsMonthlyPrivate).where(gte(s.operationsMonthlyPrivate.month,'2026-08'));
+ const long=await seedFrozenPrivateMeeting(db,'2026-06','6月月例会 · 长金额核对');
+ // 主样本复现用户的真实形态：平台多月，私域仅本月；长金额保留在独立冻结材料。
+ await db.delete(s.operationsMonthlyPrivate).where(eq(s.operationsMonthlyPrivate.month,'2026-06'));
+ await db.delete(s.operationsMonthlyPrivate).where(eq(s.operationsMonthlyPrivate.month,'2026-08'));
  const records=await db.select({metric:s.operationsPromotionDailyMetric,subject:s.operationsContentVersion.subjectId,category:s.operationsContentVersion.categoryId,scheduleId:s.operationsContentSchedule.id}).from(s.operationsPromotionDailyMetric).innerJoin(s.operationsPromotionCampaign,eq(s.operationsPromotionCampaign.id,s.operationsPromotionDailyMetric.campaignId)).innerJoin(s.operationsContentSchedule,eq(s.operationsContentSchedule.id,s.operationsPromotionCampaign.scheduleId)).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(and(gte(s.operationsPromotionDailyMetric.metricDate,'2026-10-01'),lte(s.operationsPromotionDailyMetric.metricDate,'2026-10-31')));
  for(const row of records){
   if(row.subject==='tmua'&&row.category==='small-class-or-tutoring'||row.subject==='interview'&&row.category==='interview-course')await db.update(s.operationsPromotionDailyMetric).set({spend:row.subject==='tmua'?'1483.39':'4097.14'}).where(eq(s.operationsPromotionDailyMetric.id,row.metric.id));
@@ -63,6 +90,25 @@ try{
  const value=await read();assert.equal(value.core.comparison.privateData.sourceData,null);assert(value.core.comparison.spend.spend>0);assert.equal(value.core.costHistory.length,6);assert.equal(value.core.costHistory.at(-2).added,null);
  assert.equal(value.core.costHistory.at(-1).added,costs.added);assert(value.core.costHistory.at(-2).actualOpenCost!==null);
  mark('上月没有私域数据仍保留推广消耗和开口留资比较，六个月序列按指标缺值断开');
+ for(const [month,expected]of [['2026-05',0],['2026-06',0],['2026-07',2],['2026-11',2]] as const){
+  await go('/business/monthly-operations?month='+month);
+  const core=(await api('/api/monthly-operations?month='+month)).core;
+  const known=core.costHistory.filter((p:any)=>p.actualOpenCost!==null).length;
+  assert.equal(known,{'2026-05':0,'2026-06':1,'2026-07':2,'2026-11':6}[month]);
+  assert.equal(await page.locator('[data-monthly-cost-trend]').count(),expected);
+  if(month==='2026-06')assert.equal(await page.locator('[data-cost-metric="开口成本"] dd').count(),2,'单月不留下图、说明或占位');
+  if(month==='2026-11')assert.equal(await page.locator('.mc-comparison').count(),0);
+ }
+ const june=(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.metricDate,'2026-06-03')))[0];
+ await db.update(s.operationsPromotionDailyMetric).set({spend:'0.00'}).where(eq(s.operationsPromotionDailyMetric.id,june.id));
+ await go('/business/monthly-operations?month=2026-07');assert.equal(await page.locator('[data-monthly-cost-trend="actualOpenCost"] .report-trend-point').count(),2);assert.match(await page.locator('[data-monthly-cost-trend="actualOpenCost"] button').first().getAttribute('aria-label'),/¥0.00/);
+ await db.update(s.operationsPromotionDailyMetric).set({spend:june.spend}).where(eq(s.operationsPromotionDailyMetric.id,june.id));
+ const july=(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.metricDate,'2026-07-03')))[0];
+ await db.delete(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,july.id));
+ await go('/business/monthly-operations?month=2026-10');assert.equal((await page.locator('[data-monthly-cost-trend="actualOpenCost"] [data-report-line]').getAttribute('d')).match(/M/g)?.length,2,'缺月保留断线');
+ await screenshot('monthly-gap-1440');
+ await db.insert(s.operationsPromotionDailyMetric).values(july);
+ mark('真实事实覆盖0／1／2／6有效月、真实0、缺值断线及当月不生成环比；私域单月无图');
  await go('/business/monthly-operations?month=2026-10');
  for(const label of ['推广总消耗','开口成本','留资成本'])assert.equal(await page.locator(`[data-cost-metric="${label}"] .ps-change`).count(),1);
  assert.equal(await page.locator('[data-cost-metric="私域增加成本"] .ps-change').count(),0);
@@ -96,7 +142,6 @@ try{
  await save({...baseline,nonPromotion:octoberData.nonPromotion.slice(0,2)});assert.deepEqual((await read()).privateData.totalCosts,costs,'159人自然来源不摊薄推广成本');
  const monthly=await seedFrozenPrivateMeeting(db,'2026-10','10月月例会 · 课程成本核对');
  const legacy=await seedFrozenPrivateMeeting(db,'2026-07','7月月例会 · 旧口径归档',true);
- const long=await seedFrozenPrivateMeeting(db,'2026-06','6月月例会 · 长金额核对');
  const frozen=structuredClone(monthly.snapshot);
  await db.update(s.operationsMonthlyPlan).set({sealedVersionId:null,arrangementStatus:'editing'}).where(eq(s.operationsMonthlyPlan.id,monthly.plan.id));
  await go('/business/meeting-review?meeting='+monthly.meeting.id);assert.equal(await page.locator('.mc-value').count(),6);assert.equal(await page.locator('.ps-disclosure[open]').count(),0);
@@ -107,13 +152,13 @@ try{
  const flowVideo=page.video();await context.close();await flowVideo.saveAs(dir+'/video/save-retry-flow.webm');
  context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:admin});page=await context.newPage();
  for(const width of [1920,1440,1024]){
-  await page.setViewportSize({width,height:1000});await go('/business/monthly-operations?month=2026-10');await screenshot('monthly-collapsed-'+width);
+  await page.setViewportSize({width,height:1000});await go('/business/monthly-operations?month=2026-10');await screenshot('monthly-collapsed-'+width);await trendLayout();await sourceStates(page.locator('[data-private-panel]'),'monthly-source-'+width,width===1440);
   for(const summary of await page.locator('.ps-disclosure>summary').all())await summary.click();await screenshot('monthly-expanded-'+width);
   await openEditor();await screenshot('editor-'+width,false);await page.keyboard.press('Escape');await sheet().waitFor({state:'hidden'});
-  await go('/business/meeting-review?meeting='+monthly.meeting.id);await screenshot('meeting-'+width);
-  await page.getByRole('button',{name:'历史月份',exact:true}).click();const history=page.locator('#monthly-history-sheet');await history.locator('input[type="month"]').fill('2026-09');await history.locator('[data-monthly-cost-results]').waitFor();await settleBusinessUI(page);assert.equal(await history.getByText('学科私域结果',{exact:true}).count(),0);assert.equal(await history.locator('.monthly-subject-summary').count(),0);await screenshot('history-missing-'+width,false);await page.keyboard.press('Escape');await history.waitFor({state:'hidden'});
+  await go('/business/meeting-review?meeting='+monthly.meeting.id);await screenshot('meeting-'+width);await trendLayout();await sourceStates(page.locator('[data-private-panel]'),'meeting-source-'+width,width===1440);
+  await page.getByRole('button',{name:'历史月份',exact:true}).click();const history=page.locator('#monthly-history-sheet');await history.locator('input[type="month"]').fill('2026-09');await history.locator('[data-monthly-cost-results]').waitFor();await settleBusinessUI(page);assert.equal(await history.getByText('学科私域结果',{exact:true}).count(),0);assert.equal(await history.locator('.monthly-subject-summary').count(),0);await screenshot('history-missing-'+width,false);await history.locator('input[type="month"]').fill('2026-10');await history.locator('[data-cost-metric="私域增加成本"] .mc-value').filter({hasText:'1,395.13'}).waitFor();await settleBusinessUI(page);await screenshot('history-costs-'+width,false);assert.equal(await history.locator('[data-monthly-cost-trend],.ps-disclosure,.ps-change,.mc-comparison').count(),0);assert.equal(await history.locator('.mc-value').count(),6);layouts.push({kind:'history-summary',viewport:width,metricCount:6,trendCount:0});await page.keyboard.press('Escape');await history.waitFor({state:'hidden'});
  }
- mark('三档桌面运营／月会／录入／历史实际渲染，无空学科需求表与页面级溢出');
+ mark('三档桌面运营／月会／录入／精简历史实际渲染，右图日期单行且无页面级溢出');
  await page.setViewportSize({width:1440,height:1000});await go('/business/monthly-operations?month=2026-10');
  const priorMonth=await api('/api/monthly-operations?month=2026-09');
  await page.route('**/api/monthly-operations?month=2026-09*',async(route:any)=>{await new Promise(resolve=>setTimeout(resolve,800));await route.fulfill({json:priorMonth});});
@@ -126,7 +171,11 @@ try{
  for(const [name,version]of [['meeting-costs',monthly.version],['meeting-legacy',legacy.version],['meeting-long',long.version]] as const){const r=await context.request.post(baseURL+'/api/meeting-versions/'+version.id+'/pdf',{headers:{Origin:baseURL},data:{}});assert.equal(r.status(),200,await r.text());const result=await r.json();assert.equal(result.status,'ready');const pdf=await context.request.get(baseURL+'/api/meeting-attachments/'+result.id);assert.equal(pdf.status(),200);await writeFile(`${dir}/pdf/${name}.pdf`,await pdf.body());}
  mark('三份正式渲染PDF含完整来源，旧封存展示保持；长金额历史两列不截断');
  await page.setViewportSize({width:390,height:844});await go('/business/monthly-operations?month=2026-10');await screenshot('monthly-mobile-390');await openEditor();await screenshot('editor-mobile-390',false);await page.keyboard.press('Escape');await sheet().waitFor({state:'hidden'});mark('390px仅核查页面溢出、明显遮挡和关闭保存入口');
+ for(const month of ['2026-08','2026-09'])await db.insert(s.operationsMonthlyPrivate).values(previousSources.find(row=>row.month===month)!);
+ await page.setViewportSize({width:1440,height:1000});await go('/business/monthly-operations?month=2026-10');assert.equal(await page.locator('[data-monthly-cost-trend]').count(),5);await trendLayout();await screenshot('monthly-five-trends-1440');
+ const allTrends=await seedFrozenPrivateMeeting(db,'2026-09','9月月例会 · 五项趋势核对');await go('/business/meeting-review?meeting='+allTrends.meeting.id);assert.equal(await page.locator('[data-monthly-cost-trend]').count(),5);await screenshot('meeting-five-trends-1440');
+ const pdfResponse=await context.request.post(baseURL+'/api/meeting-versions/'+allTrends.version.id+'/pdf',{headers:{Origin:baseURL},data:{}});assert.equal(pdfResponse.status(),200,await pdfResponse.text());const pdfResult=await pdfResponse.json();const allPdf=await context.request.get(baseURL+'/api/meeting-attachments/'+pdfResult.id);assert.equal(allPdf.status(),200);await writeFile(`${dir}/pdf/meeting-five-trends.pdf`,await allPdf.body());mark('五项趋势同时内嵌，新增PDF保留同样对应关系');
  await context.close();context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:dir+'/video',size:{width:1440,height:1000}}});await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:employee});page=await context.newPage();
  await go('/business/monthly-operations?month=2026-10');await page.reload();await settleBusinessUI(page);await page.getByRole('link',{name:'排期管理',exact:true}).first().click();await page.waitForURL('**/business/operations-schedule**');await page.getByRole('link',{name:'月度运营',exact:true}).first().click();await page.waitForURL('**/business/monthly-operations**');await settleBusinessUI(page);assert.equal(await page.locator('[data-monthly-cost-results]').count(),1);const firstPaint=page.video();await context.close();await firstPaint.saveAs(dir+'/video/first-paint.webm');
- assert.deepEqual(errors,[]);await writeFile(dir+'/checks.json',JSON.stringify({checks,images,errors,dataSource:'tests/private-sources.fixture.ts＋仅课程／空讲义隔离数据；全部位于本机独立PostgreSQL',baseURL},null,2));console.log('COST_REPAIR_OK '+checks.length);
+ assert.deepEqual(errors,[]);await writeFile(dir+'/checks.json',JSON.stringify({checks,images,layouts,errors,dataSource:'tests/private-sources.fixture.ts＋仅课程／空讲义隔离数据；全部位于本机独立PostgreSQL',baseURL},null,2));console.log('COST_REPAIR_OK '+checks.length);
 }finally{await browser?.close();await fixture.stop();}
