@@ -1,0 +1,24 @@
+{
+  "conditions": "冷缓存，180ms延迟，约1Mbps；覆盖字体脚本及React组件实际到达并完成水合",
+  "fonts": [
+    "http://127.0.0.1:35131/fonts/business.css",
+    "http://127.0.0.1:35131/fonts/business.js"
+  ],
+  "metrics": {
+    "paints": [
+      {
+        "name": "first-paint",
+        "startTime": 16488
+      },
+      {
+        "name": "first-contentful-paint",
+        "startTime": 16488
+      }
+    ],
+    "hydratedAt": 20025,
+    "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+    "status": "loaded",
+    "scrollWidth": 1425,
+    "width": 1440
+  }
+}

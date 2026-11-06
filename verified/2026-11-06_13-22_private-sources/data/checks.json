@@ -1,0 +1,457 @@
+{
+  "baseURL": "http://127.0.0.1:38309",
+  "fixture": "本机独立PostgreSQL，全部为隔离测试数据",
+  "checks": [
+    "19000元及4/4/2人次按总分子分母计算；159名自然来源不混入",
+    "更正自然来源人数不会改变推广成本",
+    "旧格式写入被拒绝，来源结构不被覆盖",
+    "员工可维护人数；重复推广行被拒绝",
+    "首屏单独录制冷字体进入、暖刷新、站内导航及慢数据；减少动态效果保持操作",
+    "1920/1440/1024月度运营、月会及两组录入实际渲染，无页面级溢出",
+    "未保存取消保留输入；503失败可见且可重试；保存回显读取实际接口",
+    "键盘开关、焦点返回；慢保存期间的新输入不会被成功回显清空",
+    "来源添加、更正、移除与保存均走真实表单；稳定身份保留",
+    "未封存会议读取最新来源；封存后同源补录不改变原快照",
+    "旧口径月会保持原阅读结构，不套用新来源成本",
+    "历史月份复用同一来源与成本组件，窄抽屉长金额不拆行、不溢出",
+    "正式服务端渲染器生成三份月会PDF，未使用页面截图替代",
+    "员工与管理员共享结果，费用归属入口仅管理员可见",
+    "390px仅核查页面级溢出、抽屉关闭和保存入口，无明显遮挡"
+  ],
+  "images": [
+    {
+      "name": "monthly-complete-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-complete-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-private-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-private-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1625,
+        "height": 1389
+      }
+    },
+    {
+      "name": "editor-promotion-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-promotion-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "editor-organic-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-organic-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-current-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-current-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-core-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-core-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 281,
+        "y": 205,
+        "width": 1575,
+        "height": 291
+      }
+    },
+    {
+      "name": "meeting-sources-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-sources-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 633,
+        "width": 1625,
+        "height": 1186
+      }
+    },
+    {
+      "name": "monthly-complete-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-complete-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-private-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-private-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 1411
+      }
+    },
+    {
+      "name": "editor-promotion-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-promotion-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "editor-organic-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-organic-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-current-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-current-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-core-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-core-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 281,
+        "y": 205,
+        "width": 1095,
+        "height": 291
+      }
+    },
+    {
+      "name": "meeting-sources-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-sources-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 633,
+        "width": 1145,
+        "height": 1208
+      }
+    },
+    {
+      "name": "monthly-complete-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-complete-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-private-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-private-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 1052,
+        "width": 729,
+        "height": 1530
+      }
+    },
+    {
+      "name": "editor-promotion-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-promotion-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "editor-organic-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-organic-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-current-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-current-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-core-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-core-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 281,
+        "y": 205,
+        "width": 679,
+        "height": 410
+      }
+    },
+    {
+      "name": "meeting-sources-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-sources-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 752,
+        "width": 729,
+        "height": 1208
+      }
+    },
+    {
+      "name": "editor-unsaved-preserved-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-unsaved-preserved-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "editor-save-failed-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-save-failed-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-after-save-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-after-save-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 1411
+      }
+    },
+    {
+      "name": "editor-added-source-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-added-source-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-partial-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-partial-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-partial-private-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-partial-private-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 640
+      }
+    },
+    {
+      "name": "monthly-legacy-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-legacy-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-legacy-private-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-legacy-private-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 310
+      }
+    },
+    {
+      "name": "monthly-long-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-long-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-long-private-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-long-private-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 662
+      }
+    },
+    {
+      "name": "monthly-long-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-long-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-long-right-1920",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-long-right-1920.png",
+      "width": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-long-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-long-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-long-right-1024",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-long-right-1024.png",
+      "width": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-partial-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-partial-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-partial-core-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-partial-core-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": {
+        "x": 281,
+        "y": 205,
+        "width": 1095,
+        "height": 291
+      }
+    },
+    {
+      "name": "meeting-sealed-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-sealed-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-legacy-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-legacy-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-long-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-long-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "meeting-history-long-1440",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/meeting-history-long-1440.png",
+      "width": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "monthly-mobile-390",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/monthly-mobile-390.png",
+      "width": 390,
+      "scrollWidth": 375,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    },
+    {
+      "name": "editor-mobile-390",
+      "path": ".tools/test-artifacts/private-sources-final/screenshots/editor-mobile-390.png",
+      "width": 390,
+      "scrollWidth": 375,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "crop": null
+    }
+  ],
+  "chapters": [
+    {
+      "name": "录入、未保存保护、保存失败与重试",
+      "startMs": 24030
+    },
+    {
+      "name": "新旧口径与缺值状态",
+      "startMs": 33736
+    },
+    {
+      "name": "结束",
+      "startMs": 64381
+    }
+  ],
+  "errors": [],
+  "meetings": {
+    "current": "eafe55d5-4992-449a-9e61-6fe91466ad98",
+    "legacy": "85fa9d6b-d1d2-4614-a5a0-cc246fc0414b",
+    "long": "66505c51-9dbc-43ec-911a-172b154185e7"
+  }
+}

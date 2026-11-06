@@ -1,0 +1,27 @@
+{
+  "code": "未登记消耗与真实零的正式接口对照",
+  "checks": [
+    "有来源人数但无消耗记录时，汇总、用途及只读录入均保留未知",
+    "实际登记0元且人数为正时，三项成本均为0"
+  ],
+  "images": [
+    {
+      "name": "monthly-unrecorded-private-1440",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 660
+      }
+    },
+    {
+      "name": "monthly-zero-spend-private-1440",
+      "crop": {
+        "x": 256,
+        "y": 778,
+        "width": 1145,
+        "height": 660
+      }
+    }
+  ]
+}

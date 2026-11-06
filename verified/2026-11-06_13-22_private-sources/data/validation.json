@@ -1,0 +1,40 @@
+{
+  "code": "7402750",
+  "rules": {
+    "passed": 267,
+    "failed": 0
+  },
+  "finalCostRules": {
+    "passed": 7,
+    "failed": 0
+  },
+  "browserChecks": 15,
+  "workflowIntegrationChecks": 6,
+  "publicUI": "passed",
+  "typeCheck": {
+    "errors": 0,
+    "warnings": 0,
+    "hints": 44
+  },
+  "builds": [
+    "Node standalone",
+    "Vercel local output"
+  ],
+  "impeccableFindings": [],
+  "screenshots": {
+    "stable": 51,
+    "process": 4
+  },
+  "pdfs": {
+    "meeting-sealed": 6,
+    "meeting-long": 5,
+    "meeting-legacy": 5
+  },
+  "videos": [
+    "clean-flow.mp4",
+    "first-paint.mp4",
+    "slow-delivery.mp4"
+  ],
+  "review": "逐张截图、16页PDF及操作／首屏取样帧已实际查看；公开发布暂停",
+  "missingSpendBrowserChecks": 2
+}
