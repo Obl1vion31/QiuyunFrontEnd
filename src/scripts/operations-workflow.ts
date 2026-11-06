@@ -118,7 +118,8 @@ function initialize() {
     historyHost.replaceChildren(); historyHost.hidden = true;
     panel!.replaceChildren();stopLoading();
     const pane=panel!.closest<HTMLElement>('[data-inspector]')!;
-    const read=beginBusinessRead(pane,{signal,isCurrent:()=>token===panelToken&&pane.dataset.selectedId===id});
+    const readTarget=pane.hasAttribute('data-inspector-contained')?pane.querySelector<HTMLElement>('[data-inspector-body]')!:pane;
+    const read=beginBusinessRead(readTarget,{signal,label:'正在读取执行记录…',isCurrent:()=>token===panelToken&&pane.dataset.selectedId===id});
     const cleanup=read.finish;stopLoading=read.cancel;
     if(retained.size)panel!.dispatchEvent(new Event('input',{bubbles:true}));
     try {

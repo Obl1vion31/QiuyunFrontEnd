@@ -56,6 +56,17 @@ try{
  await edit(posts[4],'2026-11-20T18:00','过期后直接改期，周会核对');await go('/business/operations-schedule?month=2026-11&row='+posts[4].schedule.id,other);await other.locator('[data-inspector].is-open').waitFor();assert.equal(await other.getByText('申请调整排期',{exact:true}).count(),0);
  await other.locator('[data-inspector-edit]').click();const sealedForm=other.locator('#schedule-form');await sealedForm.locator('[name=changeReason]').waitFor({state:'visible'});assert(await sealedForm.locator('[name=changeReason]').evaluate((n:any)=>n.required));assert.equal(await sealedForm.locator('[data-schedule-change-reason] label b').innerText(),'*');assert.equal(await sealedForm.locator('[data-plan-change-reason]').isVisible(),false);await sealedForm.locator('[name=changeReason]').fill('定稿后同周调整：保留填写内容');await shot('v0-reason-edit-1440',other);await other.locator('#schedule-dialog [data-close]').first().click();await respondToBusinessConfirm(other,false);assert.equal(await sealedForm.locator('[name=changeReason]').inputValue(),'定稿后同周调整：保留填写内容');await other.locator('#schedule-dialog [data-close]').first().click();await respondToBusinessConfirm(other,true);await sealedForm.waitFor({state:'hidden'});
 
+ const comparison=other.locator('[data-arrangement-details]');await comparison.locator('>summary').click();
+ const comparisonRow=other.locator('[data-schedule-comparison-row="'+posts[4].schedule.id+'"]');
+ await comparisonRow.locator('details>summary').click();assert(await comparisonRow.locator('details').evaluate((n:any)=>n.open));
+ await other.locator('[data-inspect-id="'+posts[4].schedule.id+'"]').first().click();await other.locator('[data-inspector-edit]').click();
+ await sealedForm.locator('[name=changeReason]').fill('封存后核对资料入口');await sealedForm.locator('[name=projectDocUrl]').fill('https://example.test/project/latest');
+ const saved=other.waitForResponse((r:any)=>r.url().endsWith('/api/operations-content/'+posts[4].schedule.id)&&r.request().method()==='PATCH');
+ await sealedForm.locator('[type=submit]').click();assert.equal((await saved).status(),200);await other.locator('#schedule-panel[data-view=detail] .schedule-save-result').getByText('已保存',{exact:true}).waitFor();
+ assert(await comparison.evaluate((n:any)=>n.open));assert(await comparisonRow.locator('details').evaluate((n:any)=>n.open));assert.equal(await other.locator('[data-arrangement-count]').first().innerText(),'28');
+ await shot('sealed-save-same-panel-1440',other);await other.locator('[data-close-inspector]').click();await other.locator('#schedule-panel').waitFor({state:'hidden'});
+ checks.push('封存后真实表单保存只局部同步；核对表及行内历史保持展开，净数28与原V0不变');
+
  assert.equal((await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.status,'pending'))).length,0);
  await api('/api/operations-content/'+posts[5].schedule.id+'/publication',{actualPublishAt:'2026-11-13T10:00',publicationUrl:'https://www.xiaohongshu.com/explore/0123456789abcdef01234567',projectDocUrl:'https://example.test/project',expectedPlanRevision:0,expectedPublicationRevision:0,dailyReasons:'[]'},'PATCH',staffCookie,200,true);
  const month=await api('/api/monthly-operations?month=2026-11');assert.deepEqual([month.scheduleComparison.original,month.scheduleComparison.added,month.scheduleComparison.removed,month.scheduleComparison.current],[25,4,1,28]);

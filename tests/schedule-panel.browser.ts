@@ -78,7 +78,15 @@ try{
  await p.locator('#schedule-form header button').last().click();await p.locator('#schedule-panel').waitFor({state:'hidden'});
  await detail(waiting.schedule.id);await p.waitForTimeout(1800);assert.equal(await p.locator('[data-inspector]').getAttribute('data-selected-id'),waiting.schedule.id);await p.unroute('**/business/operations-schedule?**');
  checks.push('已发布才可真实创建V1；新未发V1隐藏改帖；写入成功后读取失败只重试读取');
- await p.locator('[data-close-inspector]').click();await p.locator('#schedule-panel').waitFor({state:'hidden'});const video=p.video();await c.close();c=null;await copyFile(await video.path(),dir+'/video/admin-1440.webm');
+ await p.locator('[data-close-inspector]').click();await p.locator('#schedule-panel').waitFor({state:'hidden'});await p.route('**/api/operations-content/'+sent.schedule.id+'/workflow',async(r:any)=>{const response=await r.fetch();await new Promise(resolve=>setTimeout(resolve,1600));await r.fulfill({response});});
+ await detail(sent.schedule.id);await p.locator('[data-inspector-body]>.business-read-feedback').waitFor();
+ assert.equal(await p.locator('[data-inspector-loading]').count(),0,'慢读取不覆盖已知详情');assert(await p.locator('[data-inspector-name]').isVisible());
+ await p.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});await p.waitForLoadState('networkidle');
+ assert.equal(await p.locator('[data-review-node-add]').isVisible(),false,'标准复盘不能被权限刷新重新显示追加日期');
+ assert.equal(await p.locator('[data-review-plan-panel] details[data-business-operation]').first().isVisible(),false,'固定运营类型不显示旧方式编辑器');
+ await shot('slow-detail-local-feedback-1440');await p.unroute('**/api/operations-content/'+sent.schedule.id+'/workflow');await p.locator('[data-close-inspector]').click();await p.locator('#schedule-panel').waitFor({state:'hidden'});
+ checks.push('1600ms慢读取只显示局部反馈，已知详情保持；权限刷新不显示不适用的复盘控件');
+ const video=p.video();await c.close();c=null;await copyFile(await video.path(),dir+'/video/admin-1440.webm');
  for(const role of ['admin','employee'])for(const width of [1920,1440,1024]){
   const cc=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN'});await login(cc,role==='admin'?admin:employee);p=await cc.newPage();p.on('pageerror',(e:any)=>errors.push(e.message));await p.goto(baseURL+'/business/operations-schedule?month=2026-11');await settleBusinessUI(p);await detail(sent.schedule.id);const headings=await p.locator('.schedule-detail-section>h3').evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>{const s=getComputedStyle(n);return[s.fontSize,s.lineHeight,s.fontWeight,s.color].join('|')}));assert(headings.length>=3);assert.equal(new Set(headings).size,1,'同级区块标题一致');
  await shot(role+'-detail-'+width);await p.locator('[data-inspector-edit]').click();await p.locator('#schedule-panel[data-view=form]').waitFor();await shot(role+'-edit-'+width);await p.locator('#schedule-form [data-close]').filter({hasText:'取消'}).click();await p.locator('#schedule-panel[data-view=detail]').waitFor();

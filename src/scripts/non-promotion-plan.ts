@@ -38,9 +38,9 @@ function initialize(){
   panel.querySelector('[data-review-plan-summary]')!.textContent=`${data.operationType?operationTypeLabels[data.operationType]:reviewModeLabels[mode]} · ${data.reviewActive?(data.activatedOn?'持续复盘自 '+data.activatedOn+' 启用':'已启用'):data.pendingCycle?'实发时间尚未生效':data.historicalCycle?'历史周期 · 只读保留':data.operationType==='promotion_then_continuous'?'持续复盘尚未启用':'推广日度复盘'}${data.contentRole?' · '+contentRoleLabel(data.contentRole):''} · 统计起点 ${data.statisticsFrom??data.publishedOn??'未记录'}`;
   if(data.finalReviewOn){const summary=panel.querySelector('[data-review-plan-summary]')!;summary.textContent=`最终复盘 ${data.finalReviewOn} · 每7天一次`;summary.append(el('br'),document.createTextNode(data.historicalCycle?'历史周期 · 只读保留':data.statisticsFrom?'统计起点 '+data.statisticsFrom:'推广正常结束后自动安排'));if(data.statisticsFrom&&data.finalReviewOn<data.statisticsFrom)summary.append(el('br'),document.createTextNode('请延长最终复盘日期'));}
   form.action=`/api/operations-content/${owner}`;form.dataset.collaborationResource=`schedule:${owner}`;form.dataset.collaborationLabel=current!.contentName;
-  (form.closest('details') as HTMLDetailsElement).hidden=!!data.operationType||!data.reviewActive;
+  const management=form.closest('details') as HTMLDetailsElement;management.dataset.businessEligible=String(!data.operationType&&data.reviewActive);management.hidden=management.dataset.businessEligible==='false';
   if(form.dataset.dirty!=='true')fill(form.querySelector('[data-review-plan-fields]')!,data);
-  add.hidden=mode!=='continuous'||!data.reviewActive||!!data.finalReviewOn;add.dataset.publishedOn=data.statisticsFrom??data.publishedOn??'';add.dataset.collaborationResource=`schedule:${owner}`;add.dataset.collaborationLabel=current!.contentName;input(add,'scheduleId').value=owner;(input(add,'dueOn') as HTMLInputElement).min=data.activatedOn??data.publishedOn??'';
+  add.dataset.businessEligible=String(mode==='continuous'&&data.reviewActive&&!data.finalReviewOn);add.hidden=add.dataset.businessEligible==='false';add.dataset.publishedOn=data.statisticsFrom??data.publishedOn??'';add.dataset.collaborationResource=`schedule:${owner}`;add.dataset.collaborationLabel=current!.contentName;input(add,'scheduleId').value=owner;(input(add,'dueOn') as HTMLInputElement).min=data.activatedOn??data.publishedOn??'';
   if(list.querySelector('form[data-dirty=true]'))return;
   list.replaceChildren();
   for(const node of data.nodes.filter(n=>!n.cancelledAt)){
@@ -62,7 +62,7 @@ function initialize(){
   const cancelled=data.nodes.filter(n=>n.cancelledAt);if(cancelled.length){const history=el('details');history.append(el('summary',`已取消的复盘 (${cancelled.length})`));for(const node of cancelled){const change=node.history.at(-1);history.append(el('p',`截至 ${node.dueOn} · 已取消${change?' · '+businessDateTime(change.at)+' · '+change.actor+' · '+(change.reason??''):''}`));}list.append(history);}
  };
  listen('business:schedule-selected',async event=>{
-  const record=(event as CustomEvent<RecordView>).detail;current=record;view=undefined;panel.hidden=true;(form.querySelector('[data-review-plan-fields]') as HTMLFieldSetElement).disabled=true;add.hidden=true;list.replaceChildren();
+  const record=(event as CustomEvent<RecordView>).detail;current=record;view=undefined;panel.hidden=true;(form.querySelector('[data-review-plan-fields]') as HTMLFieldSetElement).disabled=true;add.hidden=true;add.dataset.businessEligible='false';form.closest<HTMLDetailsElement>('details')!.dataset.businessEligible='false';list.replaceChildren();
   if(!record.actualPublishAt)return;
   try{const data=await read(record,panel);if(data&&current?.id===record.id)render(data);}catch(error){if(current?.id===record.id){panel.hidden=false;panel.querySelector('[data-review-plan-summary]')!.textContent=error instanceof Error?error.message:'读取失败，请重试';}}
  });
