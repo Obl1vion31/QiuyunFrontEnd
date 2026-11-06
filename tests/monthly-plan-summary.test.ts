@@ -28,3 +28,8 @@ test('已提交或有落实记录的名额独立显示，不把审批进展藏�
  const items=[content.items[2],{...content.items[2],id:'other'}];
  assert.equal(compactPlanItems(items,new Set(['other'])).length,2);
 });
+
+test('只读周板保留遗留、新做和指定原帖的真实身份',()=>{
+ const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content,cards:true}));
+ assert.match(html,/data-kind="carry">遗留/);assert.match(html,/data-kind="existing">指定/);assert.match(html,/data-kind="new">新/);
+});
