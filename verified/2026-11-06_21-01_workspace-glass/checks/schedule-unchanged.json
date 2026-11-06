@@ -1,0 +1,29 @@
+[
+  {
+    "width": 1920,
+    "size": [
+      1920,
+      1000
+    ],
+    "differentPixels": 0,
+    "differenceBounds": null
+  },
+  {
+    "width": 1440,
+    "size": [
+      1440,
+      1000
+    ],
+    "differentPixels": 0,
+    "differenceBounds": null
+  },
+  {
+    "width": 1024,
+    "size": [
+      1024,
+      1000
+    ],
+    "differentPixels": 0,
+    "differenceBounds": null
+  }
+]

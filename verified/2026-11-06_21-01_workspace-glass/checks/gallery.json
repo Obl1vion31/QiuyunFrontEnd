@@ -1,0 +1,211 @@
+{
+  "facts": [
+    {
+      "page": "monthly",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "promotion",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "nonpromotion",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "weekly",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "meetings",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "operations",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "annual",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "accounts",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "permissions",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "guide",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "home",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "login",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "assistant",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "video": "候选实录",
+      "duration": 36.8
+    },
+    {
+      "video": "原版实录",
+      "duration": 25.04
+    },
+    {
+      "video": "触压细节",
+      "duration": 5.76
+    },
+    {
+      "video": "首屏过程",
+      "duration": 8.72
+    },
+    {
+      "demo": "before",
+      "success": true
+    },
+    {
+      "demo": "after",
+      "success": true
+    }
+  ],
+  "errors": []
+}

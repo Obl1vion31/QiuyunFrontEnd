@@ -1,0 +1,27 @@
+
+> qiuyun-frontend-system@0.1.0 test:browser /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106
+> node --import tsx tests/auth.browser.ts
+
+20:36:00 [@astrojs/node] Server listening on http://127.0.0.1:39105
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"message":"2026-10 尚未确认预排期，不能新增或移入排期。当前输入已保留。","code":"MONTHLY_PREPLAN_REQUIRED"}
+
+422 !== 201
+
+    at status (/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106/tests/auth.browser.ts:21:70)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async <anonymous> (/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106/tests/auth.browser.ts:36:99) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 422,
+  expected: 201,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.3
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,61 @@
+
+> qiuyun-frontend-system@0.1.0 test:motion /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106
+> node --import tsx tests/panel-motion.browser.ts
+
+MOTION 1440 发布登记
+MOTION 1440 编辑排期
+MOTION 1440 创建改帖
+MOTION_STATE 1440 #schedule-dialog {
+  buttons: [
+    { text: '×', disabled: false, lock: undefined },
+    { text: '保存复盘计划', disabled: false, lock: undefined },
+    { text: '添加复盘日期', disabled: false, lock: undefined },
+    { text: '取消这条排期', disabled: false, lock: undefined },
+    { text: '发布登记', disabled: false, lock: undefined },
+    { text: '编辑排期', disabled: false, lock: undefined },
+    { text: '创建改帖', disabled: true, lock: undefined }
+  ],
+  scopes: [
+    {
+      resource: 'schedule:3ba3068a-19bb-4d0f-919f-6fd85338dcad',
+      state: undefined,
+      visible: true,
+      hidden: false
+    },
+    {
+      resource: 'schedule:3ba3068a-19bb-4d0f-919f-6fd85338dcad',
+      state: undefined,
+      visible: false,
+      hidden: true
+    },
+    {
+      resource: 'schedule:3ba3068a-19bb-4d0f-919f-6fd85338dcad',
+      state: undefined,
+      visible: false,
+      hidden: true
+    }
+  ],
+  confirm: undefined
+}
+20:20:40 [@astrojs/node] Server listening on http://127.0.0.1:43471
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#schedule-dialog') to be visible[22m
+[2m    63 × locator resolved to hidden <dialog id="schedule-dialog" data-dialog-cancel-managed="" aria-labelledby="dialog-title" class="business-sheet business-form-sheet">…</dialog>[22m
+
+    at capture (/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106/tests/panel-motion.browser.ts:18:52)
+    at async <anonymous> (/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106/tests/panel-motion.browser.ts:28:51) {
+  log: [
+    "  - waiting for locator('#schedule-dialog') to be visible",
+    '    63 × locator resolved to hidden <dialog id="schedule-dialog" data-dialog-cancel-managed="" aria-labelledby="dialog-title" class="business-sheet business-form-sheet">…</dialog>'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.3
+ ELIFECYCLE  Command failed with exit code 1.

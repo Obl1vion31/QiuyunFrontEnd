@@ -40,3 +40,5 @@ business-collaboration.ts 由统一配置停止初始化；business-save-conflic
 `usage-guide.ts`仅管理当前角色章节的目录高亮、锚点与本页历史；窄屏目录复用`business-popover`。Frame在公共草稿保护之后派发可取消的`business:local-history-pop`，说明页仅认领同路径及查询的章节历史，阻止Astro重复换页；其他页面仍走原Inspector或导航。页面离开取消待执行帧、监听与观察器，不复制全局历史或气泡控制器。
 
 monthly-arrangement.ts 在原月历处理拖动及整月提交／核对／退回，公共确认取消保留意见；monthly-calendar.ts 负责原表单来源、跨周理由和按需补读。无协作请求或新增轮询。
+
+`workspace-glass.ts` 是本地视觉候选的反馈控制器，只作用于显式启用区域。少量资料、历史、明细和助手入口使用指针位置触压：90ms按下，最大约1.2°，380ms阻尼回正；只读来源及资料元信息使用可反向的220ms展开。原点击、键盘、业务保存、Inspector和Sheet控制器继续执行；不发请求、不新增轮询或业务状态。导航前取消监听与动画，减少动态效果保留颜色反馈。

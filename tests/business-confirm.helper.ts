@@ -8,15 +8,13 @@ export function respondToBusinessConfirm(page:any,accept=false){
 
 /** 最终图等待字体和有限进出动画稳定；动态过程由独立录像验收。 */
 export async function settleBusinessUI(page:any){
- await page.evaluate(async()=>{
-  let timer=0;
-  try{
-   await Promise.race([
-    (async()=>{await document.fonts.ready;await Promise.allSettled(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));})(),
-    new Promise<void>((_,reject)=>{timer=window.setTimeout(()=>reject(new Error('界面稳定等待超时：'+JSON.stringify({fonts:document.fonts.status,animations:document.getAnimations().map(a=>({state:a.playState,time:a.currentTime,target:(a.effect as KeyframeEffect|null)?.target instanceof Element?((a.effect as KeyframeEffect).target as Element).className:'',iterations:a.effect?.getComputedTiming().iterations}))}))),3000);}),
-   ]);
-  }finally{clearTimeout(timer);}
- });
+ await page.bringToFront();
+ await page.evaluate(()=>document.fonts.ready);
+ // 展开收起会替换动画；只检查当前仍作用于页面的有限动画，避免等待已脱离页面的旧 finished Promise。
+ await page.waitForFunction(()=>document.getAnimations().every(a=>
+  !Number.isFinite(a.effect?.getComputedTiming().endTime)||a.playState==='finished'||a.playState==='idle'
+ ),undefined,{timeout:5000});
+ await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
 }
 export async function openPostLookup(page:any){
  const entry=page.locator('.business-assistant-entry--sidebar');

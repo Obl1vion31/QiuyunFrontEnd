@@ -1,0 +1,38 @@
+[
+  {
+    "label": "monthly",
+    "operatorMs": 1793970954438
+  },
+  {
+    "label": "weekly",
+    "operatorMs": 1793970963465
+  },
+  {
+    "label": "promotion",
+    "operatorMs": 1793970966975
+  },
+  {
+    "label": "nonpromotion-history",
+    "operatorMs": 1793970974047
+  },
+  {
+    "label": "operations",
+    "operatorMs": 1793970979231
+  },
+  {
+    "label": "annual",
+    "operatorMs": 1793970981147
+  },
+  {
+    "label": "accounts",
+    "operatorMs": 1793970984251
+  },
+  {
+    "label": "meetings",
+    "operatorMs": 1793970986378
+  },
+  {
+    "label": "home",
+    "operatorMs": 1793970988576
+  }
+]

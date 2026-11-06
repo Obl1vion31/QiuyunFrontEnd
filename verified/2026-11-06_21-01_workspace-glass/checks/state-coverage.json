@@ -1,0 +1,196 @@
+{
+  "monthly": {
+    "monthly": [
+      1920,
+      1440,
+      1024
+    ],
+    "monthly-execution": [
+      1920,
+      1440,
+      1024
+    ],
+    "monthly-history": [
+      1920,
+      1440,
+      1024
+    ],
+    "monthly-sources": [
+      1440
+    ],
+    "monthly-waste": [
+      1440
+    ],
+    "monthly-waste-sheet": [
+      1440
+    ]
+  },
+  "promotion": {
+    "promotion": [
+      1920,
+      1440,
+      1024
+    ],
+    "promotion-history": [
+      1920,
+      1440,
+      1024
+    ],
+    "promotion-inspector": [
+      1920,
+      1440,
+      1024
+    ],
+    "promotion-selection": [
+      1440
+    ],
+    "promotion-edit": [
+      1920,
+      1440,
+      1024
+    ],
+    "promotion-failure": [
+      1440
+    ]
+  },
+  "nonpromotion": {
+    "nonpromotion": [
+      1920,
+      1440,
+      1024
+    ],
+    "nonpromotion-history": [
+      1920,
+      1440,
+      1024
+    ],
+    "nonpromotion-expanded": [
+      1920,
+      1440,
+      1024
+    ],
+    "nonpromotion-instant": [
+      1920,
+      1440,
+      1024
+    ],
+    "nonpromotion-continuous": [
+      1920,
+      1440,
+      1024
+    ],
+    "nonpromotion-inspector": [
+      1920,
+      1440,
+      1024
+    ],
+    "nonpromotion-unsaved": [
+      1440
+    ]
+  },
+  "weekly": {
+    "weekly": [
+      1920,
+      1440,
+      1024
+    ],
+    "weekly-edit": [
+      1440
+    ],
+    "weekly-unsaved": [
+      1440
+    ]
+  },
+  "meetings": {
+    "meetings": [
+      1920,
+      1440,
+      1024
+    ],
+    "meeting-create": [
+      1920,
+      1440,
+      1024
+    ]
+  },
+  "operations": {
+    "operations": [
+      1920,
+      1440,
+      1024
+    ],
+    "operations-linked-detail": [
+      1440
+    ]
+  },
+  "annual": {
+    "annual": [
+      1920,
+      1440,
+      1024
+    ],
+    "annual-inspector": [
+      1920,
+      1440,
+      1024
+    ],
+    "annual-editor": [
+      1920,
+      1440,
+      1024
+    ]
+  },
+  "accounts": {
+    "accounts": [
+      1920,
+      1440,
+      1024
+    ],
+    "account-create": [
+      1920,
+      1440,
+      1024
+    ]
+  },
+  "permissions": {
+    "permissions": [
+      1920,
+      1440,
+      1024
+    ]
+  },
+  "guide": {
+    "guide": [
+      1920,
+      1440,
+      1024
+    ]
+  },
+  "home": {
+    "home": [
+      1920,
+      1440,
+      1024
+    ],
+    "home-workflow": [
+      1440
+    ],
+    "home-systems": [
+      1440
+    ]
+  },
+  "login": {
+    "login": [
+      1920,
+      1440,
+      1024
+    ]
+  },
+  "assistant": {
+    "assistant": [
+      1920,
+      1440,
+      1024
+    ]
+  }
+}

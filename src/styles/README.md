@@ -17,3 +17,5 @@ Sheet／Dialog 的遮罩进入、退出及面板退出动画也在此统一维�
 `promotion-overview.css` 统一原黄绿生命周期条、行内展开每日表格及表尾汇总及所选记录 Inspector。使用内容容器断点保护标签和金额可读性，与 `promotion-pending.css` 的录入区域分工。
 
 `meeting-records.css` 管理例会总览与历史紧凑列表：主入口、集中元信息、动作分级及手机重排；不覆盖会议正文与PDF打印样式。
+
+桌面视觉候选由 `workspace-glass.css` 管理，显式限定在 `data-glass-surface` 内；排期管理不启用，其他页面继续使用公共宽度、MiSans、控件和面板控制器。材质、阴影、资料入口、指标面板与颜色语义集中维护，减少动态／透明度及打印有降级。`public-entry-glass.css` 只承接首页与登录的材质，不改首页九图构图与轮播。候选尚待视觉反馈，未替换全站长期设计结论。

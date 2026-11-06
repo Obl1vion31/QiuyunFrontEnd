@@ -1,0 +1,194 @@
+{
+  "geometry": [
+    {
+      "phase": "before",
+      "width": 1920,
+      "panels": true
+    },
+    {
+      "phase": "before",
+      "width": 1024,
+      "panels": true
+    },
+    {
+      "phase": "after",
+      "width": 1920,
+      "panels": true
+    },
+    {
+      "phase": "after",
+      "width": 1024,
+      "panels": true
+    }
+  ],
+  "fonts": [
+    {
+      "phase": "before",
+      "role": "admin",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 4
+        }
+      ]
+    },
+    {
+      "phase": "before",
+      "role": "employee",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 4
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "role": "admin",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 4
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "role": "employee",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 4
+        }
+      ]
+    }
+  ],
+  "auth": [
+    {
+      "phase": "before",
+      "role": "admin",
+      "invalidPreserved": true,
+      "realFormSuccess": true
+    },
+    {
+      "phase": "before",
+      "role": "employee",
+      "invalidPreserved": true,
+      "realFormSuccess": true
+    },
+    {
+      "phase": "after",
+      "role": "admin",
+      "invalidPreserved": true,
+      "realFormSuccess": true
+    },
+    {
+      "phase": "after",
+      "role": "employee",
+      "invalidPreserved": true,
+      "realFormSuccess": true
+    }
+  ],
+  "mobile": [
+    {
+      "width": 390,
+      "key": "annual",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "promotion",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "nonpromotion-history",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "monthly",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "weekly",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "operations",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "accounts",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "permissions",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "key": "guide",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "annual",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "promotion",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "nonpromotion-history",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "monthly",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "weekly",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "operations",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "accounts",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "permissions",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "key": "guide",
+      "overflow": false
+    }
+  ],
+  "bytes": [],
+  "errors": []
+}

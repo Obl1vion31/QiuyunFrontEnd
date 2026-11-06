@@ -1,0 +1,6 @@
+
+> qiuyun-frontend-system@0.1.0 test:home /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106
+> node tests/home.browser.mjs
+
+VIDEO=/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-20261106/.tools/test-artifacts/home-release/page@af2a8c9ab7d8303ae18a50b8b91b5060.webm
+通过：桌面与触屏、四角下凹及阻尼回弹、静止光标跟随、9图完整平带循环、六阶段、暂停/键盘、离场停止、减少动态与缺图。

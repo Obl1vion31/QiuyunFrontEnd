@@ -1,0 +1,62 @@
+import {eq} from 'drizzle-orm';
+import {seedMaterialComparison} from './material-comparison.fixture';
+import {readWeeklyMaterial} from '../src/db/meeting-weekly-material';
+import * as s from '../src/db/schema';
+export const CLOCK='2026-11-06T12:00:00+08:00';
+export async function seedWorkspaceGlass(db:any){
+ const sample=await seedMaterialComparison(db);
+ const organic:any[]=[];
+ async function post(name:string,category='innovation',mode='standard',date='2026-10-10',subject='tmua'){
+  const [content]=await db.insert(s.operationsContent).values({platformNoteId:(8100+organic.length).toString(16).padStart(24,'0')}).returning();
+  const [version]=await db.insert(s.operationsContentVersion).values({contentId:content.id,contentName:name,subjectId:subject,categoryId:category,versionNumber:0,workType:'new',projectDocUrl:'https://example.test/documents/content-brief'}).returning();
+  const [schedule]=await db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:new Date(date+'T18:00:00+08:00'),actualPublishAt:new Date(date+'T18:00:00+08:00'),completionStatus:'on_time',isPromoted:false,promotionStatus:'none',publicationUrl:'https://www.xiaohongshu.com/explore/'+content.platformNoteId}).returning();
+  await db.insert(s.operationsNonPromotionReviewPlan).values({contentId:content.id,anchorScheduleId:schedule.id,mode,day7:mode!=='continuous',day15:mode!=='continuous'});
+  const p={content,version,schedule};organic.push(p);return p;
+ }
+ async function record(p:any,type:string,date:string,reading:number,rate:string){
+  const custom=type.startsWith('custom:')?type.slice(7):null;
+  const [metric]=await db.insert(s.operationsContentPerformanceMetric).values({scheduleId:p.schedule.id,checkpointType:type,customCheckpointId:custom,recordedThrough:date,exposureCount:10000,readCount:reading,clickRate:rate,threeSecondReadRate:'68.52'}).returning();
+  await db.insert(s.operationsNonPromotionReview).values({scheduleId:p.schedule.id,metricId:metric.id,checkpointType:type,customCheckpointId:custom,actualPublishAtSnapshot:p.schedule.actualPublishAt,subjectIdSnapshot:p.version.subjectId,subjectNameSnapshot:p.version.subjectId==='tmua'?'TMUA':'面试课',categoryIdSnapshot:p.version.categoryId,categoryNameSnapshot:p.version.categoryId==='innovation'?'创新帖':'非推广讲义帖',contentNameSnapshot:p.version.contentName,exposureCountSnapshot:10000,readCountSnapshot:reading,clickRateSnapshot:rate,threeSecondReadRateSnapshot:'68.52',conclusion:'图像与反例能帮助理解，保留核心讲解，下一轮核对有效阅读。',cause:'对比同类内容的实际阅读反馈。',nextAction:'补充一个典型例题，继续观察。',cohortSnapshot:{},reviewedByLabel:'test_admin'});
+ }
+ const first=await post('TMUA 逻辑推理：从反例理解长条件');
+ await record(first,'day_7','2026-10-17',1246,'12.46');await record(first,'day_15','2026-10-25',2118,'21.18');
+ const second=await post('备考方法：把题目拆成三个判断');
+ await record(second,'day_7','2026-10-17',980,'9.8');await record(second,'day_15','2026-10-25',1692,'16.92');
+ const handout=await post('面试课讲义：图形与条件的对应关系','non-promotional-handout','standard','2026-10-15','interview');
+ await record(handout,'day_7','2026-10-22',1680,'16.8');await record(handout,'day_15','2026-10-30',2230,'22.3');
+ const instant=await post('考试当天解析：容易忽略的关键条件','innovation','instant','2026-10-20');
+ await record(instant,'day_7','2026-10-27',2040,'20.4');
+ const continuous=await post('长期观察：讲义阅读与咨询反馈','non-promotional-handout','continuous','2026-10-10');
+ for(const [date,reading]of [['2026-10-16',680],['2026-10-23',1260],['2026-10-30',2480]] as const){
+  const [node]=await db.insert(s.operationsNonPromotionCustomCheckpoint).values({contentId:continuous.content.id,scheduleId:continuous.schedule.id,dueOn:date}).returning();
+  await record(continuous,'custom:'+node.id,date,reading,String(reading/100));
+ }
+ const pending=await post('待复盘：TMUA 模考错题整理','non-promotional-handout','standard','2026-10-29');
+ for(const [i,data]of [
+  ['tmua','TMUA','讲义与题型解析','promotional-handout',3,18,[3,6]],
+  ['tmua','TMUA','模考与备考内容','mock-exam',7,24,[15,18]],
+  ['step','STEP','典型例题与课程介绍','success-story',5,20,[13,16]],
+  ['interview','面试课','面试准备与成功案例','success-story',1,24,[17,20]]
+ ].entries()){
+  const [subject,label,name,category,start,end,paid]=data as any;
+  const [plan]=await db.insert(s.operationsAnnualPlan).values({year:2026,sectionKey:'subject:'+subject,sectionLabel:label+' 细致规划',subjectId:subject,rowName:name,categoryId:category,note:'按考试与内容节奏持续准备，优先保证素材质量。',sortOrder:i*10,createdAt:new Date(CLOCK),updatedAt:new Date(CLOCK)}).returning();
+  await db.insert(s.operationsAnnualPlanBlock).values({planId:plan.id,startSlot:start,endSlot:end,startMonth:Math.ceil(start/2),endMonth:Math.ceil(end/2),promotionRanges:[{startSlot:paid[0],endSlot:paid[1]}],label:name,note:'准备完整素材与例题，根据复盘反馈微调。'});
+  await db.insert(s.operationsAnnualPlanLink).values({planId:plan.id,label:'内容制作 SOP',url:'https://example.test/documents/content-sop'});
+ }
+ const [weekly]=await db.insert(s.operationsReviewMeeting).values({name:'2026.10.29—11.03 周度内容复盘',meetingType:'weekly',meetingAt:new Date('2026-11-05T16:00:00+08:00'),periodStart:'2026-10-29',periodEnd:'2026-11-03',status:'completed',currentVersionNumber:0,createdByLabel:'test_admin'}).returning();
+ const material=await readWeeklyMaterial(db,weekly,new Date(CLOCK));
+ const draft={schemaVersion:4,workflowVersion:7,candidatesConfirmed:true,materialFingerprint:material.fingerprint,promotionSelections:material.promotions.map((p:any)=>p.key),nonPromotionSelections:[],promotionInputs:Object.fromEntries(material.promotions.map((p:any)=>[p.key,{confirmed:true,clickRate:12.5,rateRange:p.dataRange,currentSituation:'内容开始获得有效咨询，观察留资质量。',activeAction:'保留核心表达，下一轮调整引导方式。',recordedThrough:'2026-11-03'}])),promotionDecisions:{},coreConclusion:'本期阅读与有效咨询保持稳定，后续聚焦素材质量与咨询跟进。',nextAction:'补充典型问题，按既定节奏完成复盘。',issues:[{problem:'补齐讲义素材',conclusion:'整理高频问题和反例，形成可复用资料。',status:'validating'}],materialSnapshot:material};
+ const weeklySnapshot={schemaVersion:4,finalizationStage:'pre',meeting:{id:weekly.id,name:weekly.name,meetingType:'weekly',periodStart:weekly.periodStart,periodEnd:weekly.periodEnd},draft,generated:material};
+ const [weeklyVersion]=await db.insert(s.operationsReviewMeetingVersion).values({meetingId:weekly.id,versionNumber:0,lifecycleStatus:'finalized',snapshot:weeklySnapshot,changeSummary:'隔离视觉对照样本',finalizedAt:new Date(CLOCK),finalizedByLabel:'test_admin'}).returning();
+ await db.update(s.operationsReviewMeeting).set({draftSnapshot:draft}).where(eq(s.operationsReviewMeeting.id,weekly.id));
+ return {...sample,organic,pending,weekly,weeklyVersion,routes:{
+  home:'/',login:'/login',annual:'/business/annual-plan?year=2026',promotion:'/business/daily-promotion-review',
+  'promotion-history':'/business/daily-promotion-review?view=history','promotion-stage':'/business/daily-promotion-review?view=stage',
+  nonpromotion:'/business/non-promotion-review?view=pending','nonpromotion-history':'/business/non-promotion-review?view=history&mode=standard&group=1',
+  'nonpromotion-instant':'/business/non-promotion-review?view=history&mode=instant','nonpromotion-continuous':'/business/non-promotion-review?view=history&mode=continuous',
+  meetings:'/business/meeting-review',monthly:'/business/meeting-review?meeting='+sample.meeting.meeting.id+'&version=1',
+  weekly:'/business/meeting-review?meeting='+weekly.id+'&version=0',operations:'/business/monthly-operations?month=2026-10',
+  accounts:'/business/settings?view=accounts',permissions:'/business/settings?view=permissions',guide:'/business/settings?view=guide',
+  schedule:'/business/operations-schedule?month=2026-11'
+ }};
+}

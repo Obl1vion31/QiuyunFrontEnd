@@ -1,0 +1,36 @@
+{
+  "checks": [
+    {
+      "phase": "before",
+      "completed": true,
+      "video": "1440x1000 actual operations",
+      "isolated": true
+    },
+    {
+      "phase": "after",
+      "completed": true,
+      "video": "1440x1000 actual operations",
+      "isolated": true
+    }
+  ],
+  "motion": [
+    {
+      "phase": "after",
+      "hover": {
+        "border": "rgb(174, 203, 221)",
+        "shadow": "rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(36, 76, 106, 0.5) 0px 6px 14px -9px"
+      },
+      "pressed": {
+        "transform": "matrix3d(0.985922, 7.78487e-05, 0.0123899, -1.76998e-05, 0, 0.985981, -0.00619517, 8.85025e-06, -0.012566, 0.00628264, 0.999901, -0.00142843, 0, 0.99998, -0.00628314, 1.00001)",
+        "glint": "0.85",
+        "x": "20.00002977324695%"
+      },
+      "right": {
+        "transform": "matrix3d(0.985922, 7.78487e-05, -0.0123899, 1.76998e-05, 0, 0.985981, 0.00619517, -8.85025e-06, 0.012566, -0.00628264, 0.999901, -0.00142843, 0, 0.99998, 0.00628314, 0.999991)",
+        "glint": "0.85"
+      },
+      "release": "380ms underdamped spring, returns to identity"
+    }
+  ],
+  "errors": []
+}

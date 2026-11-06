@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
+import {admin} from '../tests/auth.fixture';
+import {settleBusinessUI} from '../tests/business-confirm.helper';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!),browser=await chromium.launch({headless:true});
+const report:any={facts:{},colors:{},edge:[],raw:[],paint:[],mobile:[]},folder='.tools/test-artifacts/workspace-glass';
+async function cookies(base:string){const r=await fetch(base+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(admin)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>{const[n,...rest]=v.split(';')[0].split('=');return{name:n,value:rest.join('='),url:base};});}
+try{
+ for(const phase of ['before','after']){
+  const root=phase==='before'?'/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-baseline-20261106':process.cwd(),info=JSON.parse(await readFile(root+'/.tools/workspace-preview-'+phase+'.json','utf8')),base=info.baseURL,boss=await cookies(base);
+  const c=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});await c.addCookies(boss);const p=await c.newPage();await p.clock.setFixedTime(new Date(info.clock));
+  await p.goto(base+info.routes.monthly);await settleBusinessUI(p);
+  const facts=await p.locator('.monthly-core').evaluate((n:Element)=>({costs:[...n.querySelectorAll('[data-cost-metric]')].map(e=>({label:e.getAttribute('data-cost-metric'),value:e.querySelector('.mc-value')?.textContent})),trends:[...n.querySelectorAll('.report-trend svg')].map(e=>e.getAttribute('aria-label'))}));
+  report.facts[phase]=facts;assert.equal(facts.costs.length,6);assert(!JSON.stringify(facts).includes('\ufffd'));
+  for(const width of [1440,1024]){
+   await p.setViewportSize({width,height:1000});await p.goto(base+info.routes.meetings);await settleBusinessUI(p);
+   for(const [text,name]of [['边界样例 · 长金额','long'],['边界样例 · 未知值','unknown']]){
+    const target=p.getByRole('link',{name:new RegExp(text)}).first();await target.click();await p.locator('.monthly-core').waitFor();await settleBusinessUI(p);
+    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:folder+'/'+phase+'/screenshots/monthly-'+name+'-'+width+'.png'});report.edge.push({phase,width,name});
+    await p.goto(base+info.routes.meetings);await settleBusinessUI(p);
+   }
+  }
+  await p.setViewportSize({width:1440,height:1000});await p.goto(base+info.routes.operations);await settleBusinessUI(p);
+  report.colors[phase]=await p.locator('[data-monthly-operations]').evaluate((n:Element)=>({spend:getComputedStyle(n.querySelector('[data-cost-metric="推广总消耗"] .ps-change')!).color,cost:getComputedStyle(n.querySelector('[data-cost-metric="开口成本"] .ps-change')!).color}));
+  await p.goto(base+info.routes['nonpromotion-history']);await settleBusinessUI(p);await p.locator('[data-category-group]').first().locator('summary').click();await settleBusinessUI(p);
+  report.colors[phase].rate=await p.locator('.metric-cell.positive small:visible').first().evaluate((n:Element)=>getComputedStyle(n).color);
+  if(phase==='after'){assert.equal(report.colors[phase].spend,'rgb(100, 116, 139)');assert.equal(report.colors[phase].cost,'rgb(163, 78, 72)');assert.equal(report.colors[phase].rate,'rgb(163, 78, 72)');}
+  const cookie=boss.map((v:any)=>v.name+'='+v.value).join('; ');
+  for(const key of ['monthly','weekly','operations','annual','promotion','nonpromotion-history','accounts','permissions','guide']){
+   const r=await fetch(base+info.routes[key],{headers:{Cookie:cookie}}),text=await r.text();assert.equal(r.status,200);const nul=(text.match(/\0/g)||[]).length,replacement=(text.match(/\ufffd/g)||[]).length;report.raw.push({phase,key,bytes:Buffer.byteLength(text),nul,replacement,contexts:[...text.matchAll(/.{0,60}\0.{0,60}/g)].map(m=>m[0])});
+  }
+  await c.close();
+ }
+ for(const entry of report.raw.filter((x:any)=>x.phase==='after')){const old=report.raw.find((x:any)=>x.phase==='before'&&x.key===entry.key);assert(entry.nul<=old.nul,entry.key+' no added stream corruption');assert(entry.replacement<=old.replacement,entry.key+' no added replacement glyph');}
+ assert.deepEqual(report.facts.before,report.facts.after,'六项金额、标签及完整趋势描述同数据同口径');
+ const info=JSON.parse(await readFile('.tools/workspace-preview-after.json','utf8')),base=info.baseURL,boss=await cookies(base);
+ const c=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/after/video',size:{width:1440,height:1000}}});await c.addCookies(boss);const p=await c.newPage();await p.clock.setFixedTime(new Date(info.clock));
+ await p.addInitScript("window.__paint=[]; const sample=()=>{const title=document.querySelector('.business-toolbar__title'),side=document.querySelector('.business-sidebar');if(title&&side){const a=title.getBoundingClientRect(),b=side.getBoundingClientRect();window.__paint.push({t:performance.now(),titleX:a.x,sideX:b.x,sideW:b.width,font:document.fonts.status});}requestAnimationFrame(sample);};requestAnimationFrame(sample);");
+ await p.route('**/fonts/**',async route=>{await new Promise(r=>setTimeout(r,650));await route.continue();});
+ await p.goto(base+info.routes.monthly,{waitUntil:'domcontentloaded'});await p.waitForTimeout(900);await settleBusinessUI(p);await p.screenshot({path:folder+'/after/screenshots/first-paint-cold-1440.png'});report.paint.push({mode:'cold-slow-font',frames:await p.evaluate(()=>(window as any).__paint)});
+ await p.unroute('**/fonts/**');await p.reload();await settleBusinessUI(p);await p.screenshot({path:folder+'/after/screenshots/first-paint-warm-1440.png'});report.paint.push({mode:'warm-reload',frames:await p.evaluate(()=>(window as any).__paint)});
+ await p.getByRole('link',{name:'返回例会总览',exact:true}).click();await p.locator('.meeting-records').waitFor();await p.getByRole('link',{name:/2026.10.01—10.31 月度业务复盘/}).first().click();await p.locator('.monthly-core').waitFor();await settleBusinessUI(p);await p.screenshot({path:folder+'/after/screenshots/first-paint-navigation-1440.png'});report.paint.push({mode:'in-app-navigation',frames:await p.evaluate(()=>(window as any).__paint)});
+ await p.route('**/api/monthly-operations?**',async route=>{await new Promise(r=>setTimeout(r,1600));await route.continue();});await p.getByRole('button',{name:'历史月份',exact:true}).click();await p.locator('[data-business-read-loading]').waitFor();assert.equal(await p.locator('[data-business-read-loading]').count(),1);await p.screenshot({path:folder+'/after/screenshots/monthly-history-slow-1440.png'});await p.locator('.monthly-history-results').waitFor();await p.unroute('**/api/monthly-operations?**');await p.keyboard.press('Escape');await p.locator('#monthly-history-sheet').waitFor({state:'hidden'});
+ await c.close();await rename(await p.video().path(),folder+'/after/video/first-paint.webm');
+ for(const width of [390,320]){
+  const cc=await browser.newContext({viewport:{width,height:800},locale:'zh-CN',isMobile:true,hasTouch:true});await cc.addCookies(boss);const q=await cc.newPage();await q.goto(base+info.routes.promotion);await settleBusinessUI(q);await q.locator('.promotion-data-disclosure>summary').first().click();await settleBusinessUI(q);await q.locator('tr[data-inspector-key]:visible').first().click();await settleBusinessUI(q);const close=await q.locator('[data-inspector].is-open [data-close-inspector]').boundingBox();assert(close&&close.x>=0&&close.y>=0&&close.x+close.width<=width+1&&close.y+close.height<800);await q.screenshot({path:folder+'/review/mobile-regression-'+width+'.png'});report.mobile.push({width,closeReachable:true});await cc.close();
+ }
+ assert(report.paint.every((x:any)=>x.frames.length>0),'首屏过程实际采样');await writeFile(folder+'/edge-paint.json',JSON.stringify(report,null,2));console.log(JSON.stringify({passed:true,colors:report.colors,edges:report.edge.length,raw:report.raw.length,paint:report.paint.map((x:any)=>({mode:x.mode,frames:x.frames.length})),mobile:report.mobile},null,2));
+}finally{await browser.close();}
