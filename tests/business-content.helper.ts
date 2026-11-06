@@ -7,7 +7,7 @@ const primaryAreas:Record<string,string[]>={
  'non-promotion-review':['.review-controls','.review-workspace'],
  'meeting-review':['.meeting-records','.meeting-history-overview','.meeting-contextbar','.weekly-report','.weekly-frozen'],
  'monthly-operations':['[data-monthly-operations]','[data-monthly-operations]>form','[data-monthly-operations]>div','[data-report-month]','[data-monthly-operations] [role=alert]'],
- 'settings':['[data-account-management]','.account-permissions','.account-permissions>form','.permissions-table','.usage-guide','.guide-layout'],
+ 'settings':['[data-account-management]','.account-permissions','.account-permissions>form','.usage-guide','.guide-layout'],
 };
 
 /** 比较公共画布与真实一级内容，不能用同一份padding声明代替实际边界。 */
@@ -29,6 +29,12 @@ export async function assertBusinessContent(page:any,label=''){
  assert(result.areas.length>0,message+' 有真实一级内容');
  for(const area of result.areas){
   assert(Math.abs(area.left-result.main.left-padding)<=1&&Math.abs(area.right-result.main.right+padding)<=1,message+' '+area.selector+' 实际左右边界 '+JSON.stringify(area));
+ }
+ if(route==='settings')for(const table of await page.locator('.permissions-table:visible').all()){
+  const inside=await table.evaluate((node:HTMLElement)=>{
+   const form=node.closest('form')!,a=form.getBoundingClientRect(),b=node.getBoundingClientRect(),style=getComputedStyle(form);
+   return Math.abs(b.left-a.left-parseFloat(style.borderLeftWidth)-parseFloat(style.paddingLeft))<=1&&Math.abs(a.right-b.right-parseFloat(style.borderRightWidth)-parseFloat(style.paddingRight))<=1;
+  });assert(inside,message+' 权限分组表占满表单内侧，不自行限宽');
  }
  return {label:label||route,...result};
 }

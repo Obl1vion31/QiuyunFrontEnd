@@ -21,3 +21,34 @@
 @media(prefers-reduced-motion:no-preference){.root [data-chart-pending] [data-chart-fill]{transform:scaleX(0)}}
 
 .attention b{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}.attention b small{font-size:12px;line-height:20px;font-weight:400}
+
+/* 本地展示候选复用真实指标入口和原明细，不额外维护选择状态。 */
+:global([data-glass-surface]) .metrics{gap:0;border:1px solid #fff;border-radius:16px;background:var(--console-glass-fill);box-shadow:var(--console-glass-shadow);overflow:hidden;backdrop-filter:blur(22px)}
+:global([data-glass-surface]) .metrics>.metric{min-height:148px;padding:22px 24px;border:0;border-right:1px solid var(--glass-line);border-radius:0;box-shadow:none;background:transparent}
+:global([data-glass-surface]) .metrics>.metric:last-child{border-right:0}
+:global([data-glass-surface]) .metrics>button.metric:hover{background:#ffffff8c}
+/* 直接跟随既有明细控件的状态，不新增React状态或修改SSR输出。 */
+:global([data-glass-surface]) .root:has(.details select option[value=planned]:checked) .metrics>.metric:first-child,
+:global([data-glass-surface]) .root:has(.details select option[value=published]:checked) .metrics>.metric:nth-child(2),
+:global([data-glass-surface]) .root:has(.details select option:is([value=delayed],[value=operationalDelayed]):checked) .metrics>.delayMetric,
+:global([data-glass-surface]) .root:has(.detailFilters>button:first-child[aria-pressed=true]) .metrics>.spendMetric{background:#ffffffb3;box-shadow:inset 0 -2px 0 #759db9}
+:global([data-glass-surface]) .metric>strong{font-size:30px;line-height:38px}
+:global([data-glass-surface]) :is(.panel,.details,.attention){background:var(--console-glass-fill);border-color:#fffffff2;box-shadow:var(--console-glass-shadow);border-radius:16px;backdrop-filter:blur(22px)}
+:global([data-glass-surface]) .attention{box-shadow:inset 0 1px 0 #fff}
+:global([data-glass-surface]) .attention button{border-color:var(--glass-line)}
+:global([data-glass-surface]) .attention button:hover{background:#ffffffad}
+:global([data-glass-surface]) .distribution{height:18px;border-radius:5px}
+:global([data-glass-surface]) .barTrack{background:#dfeaf0b3}
+:global([data-glass-surface]) .barTrack>i{background:#7599be}
+:global([data-glass-surface]) .root th{background:#edf4f8}
+:global([data-glass-surface]) .root tbody tr:hover{background:#f7fbfd}
+:global([data-glass-surface]) .switch{background:#dce7ed;padding:3px}
+:global([data-glass-surface]) .switch button[aria-pressed=true]{background:#fff;color:#295774;box-shadow:0 2px 5px #244d6b1c}
+:global([data-glass-surface]) .detailHeader{background:#f9fcfd8c}
+@media(min-width:901px) and (max-width:1200px){
+ :global([data-glass-surface]) .metrics>.metric:nth-child(2){border-right:0}
+ :global([data-glass-surface]) .metrics>.metric:nth-child(n+3){border-top:1px solid var(--glass-line)}
+}
+@media(max-width:900px){:global([data-glass-surface]) .metrics{gap:0}:global([data-glass-surface]) .metrics>.metric{padding:18px 16px;border-top:1px solid var(--glass-line)}}
+@media(prefers-reduced-transparency:reduce){:global([data-glass-surface]) :is(.metrics,.panel,.details,.attention){background:#f7fbfc;backdrop-filter:none}}
+@media print{:global([data-glass-surface]) :is(.metrics,.panel,.details,.attention){background:#fff;box-shadow:none;backdrop-filter:none}}

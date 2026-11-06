@@ -1,4 +1,6 @@
 ---
+import '../styles/workspace-glass.css';
+import '../styles/public-entry-glass.css';
 /** 静态总枢纽：首页数据统一来自 home.ts，首屏由 React Island 激活动效。 */
 import ContentTunnel from '../components/ContentTunnel';
 import SiteIcons from '../components/SiteIcons.astro';
@@ -20,7 +22,7 @@ const workflowTitle = workflow.title.replace('，', '，|').replace('持续', '|
     <title>{meta.title}</title>
     <SiteIcons />
   </head>
-  <body>
+  <body data-glass-surface="home" data-public-glass="home">
     <a class="skip-link" href="#workflow-title">跳到工作流</a>
     <main>
       <ContentTunnel client:load covers={covers} stages={workflow.stages} eyebrow={hero.eyebrow}
@@ -67,5 +69,6 @@ const workflowTitle = workflow.title.replace('，', '，|').replace('持续', '|
       </div>
       <footer><div class="shell"><a class="footer-brand" href="/" aria-label="湫云 · 返回首页"><QiuyunMark size={24} surface="tile" /><span>QIUYUN FRONTEND</span></a><span>最后更新 {meta.updatedAt}</span></div></footer>
     </main>
+  <script>import '../scripts/workspace-glass';</script>
   </body>
 </html>

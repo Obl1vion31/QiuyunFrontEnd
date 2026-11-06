@@ -1,0 +1,252 @@
+/* 桌面视觉候选；仅显式启用的模块生效，排期管理及服务端PDF保留原实现。 */
+[data-glass-surface]{
+ --console-canvas:#e2edf1;
+ --console-glass-fill:linear-gradient(135deg,#ffffffdc,#ffffff9c 48%,#edf8fbd4);
+ --console-glass-shadow:0 2px 4px #244b6810,0 16px 42px -22px #244b6852,inset 0 1px 0 #fff,inset 1px 0 0 #ffffffa6;
+ --console-motion-ease:cubic-bezier(.2,.8,.2,1);
+}
+body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
+[data-glass-surface].business-console-frame{
+ background-color:#e2edf1;
+ background-image:radial-gradient(ellipse 70% 46% at 8% 8%,#b7dddc85,transparent 78%),radial-gradient(ellipse 62% 60% at 97% 30%,#c1d7f39c,transparent 78%),radial-gradient(ellipse 76% 70% at 50% 100%,#ddece7bf,transparent 85%);
+ background-attachment:fixed;
+}
+[data-glass-surface] .business-console-workspace{background:transparent}
+[data-glass-surface] :is(.monthly-section,.weekly-frozen .weekly-paper){
+ background:var(--console-glass-fill);border:1px solid #fffffff2;border-radius:20px;box-shadow:var(--console-glass-shadow);
+ backdrop-filter:blur(24px) saturate(1.24);-webkit-backdrop-filter:blur(24px) saturate(1.24);
+}
+[data-glass-surface] .mc-metrics{background:linear-gradient(135deg,#ffffffa6,#ebf5fa9c);border-color:#ffffffe6;border-radius:16px;box-shadow:inset 0 1px 0 #fff}
+[data-glass-surface] .mc-metrics>div{border-color:#9ab7c52b}
+
+/* 四项仍各自完整，共用一个静态阅读面板，不产生四个点击暗示。 */
+[data-glass-surface] .report-execution-kpis{
+ gap:0;overflow:hidden;border:1px solid #ffffffeb;border-radius:16px;
+ background:linear-gradient(135deg,#ffffffb8,#e9f4f9b3);box-shadow:inset 0 1px 0 #fff;
+}
+[data-glass-surface] .report-execution-kpis>div{
+ padding:20px 24px;gap:9px;min-height:132px;border:0;border-radius:0;background:none;box-shadow:none;
+}
+[data-glass-surface] .report-execution-kpis>div:nth-child(2n){border-left:1px solid #9ab7c530}
+[data-glass-surface] .report-execution-kpis>div:nth-child(n+3){border-top:1px solid #9ab7c530}
+[data-glass-surface] .report-execution-kpis>div>span{color:#5d6e80}
+[data-glass-surface] .report-execution-kpis>div>small{color:#65788b}
+[data-glass-surface] .report-execution-kpis strong{gap:7px;font-size:30px;line-height:38px;font-weight:600}
+[data-glass-surface] .report-execution-kpis strong>small{color:#65788b}
+[data-glass-surface] .report-waste-total{
+ padding:26px;border:1px solid #ffffffd9;border-radius:16px;background:linear-gradient(145deg,#fff9fcc7,#eff9fbb0);
+ box-shadow:inset 0 2px 0 #fff,inset 1px 0 0 #ffffffd9,0 12px 26px -18px #32536835;
+}
+[data-glass-surface] .report-subject{background:linear-gradient(135deg,#ffffff9c,#edf7f7b3);border-color:#ffffffe6;box-shadow:inset 0 1px 0 #fff}
+[data-glass-surface] .monthly-week{background:#f6fbfbb8;border-color:#ffffffd9}
+[data-glass-surface] .report-investment-destination{background:#ffffff75;border-radius:14px}
+
+/* 来源原位展开：原生details保留语义和键盘，控制器只补充可打断的高度过渡。 */
+[data-glass-surface] .monthly-core .ps-disclosure{box-sizing:border-box}
+[data-glass-surface] .ps-disclosure[data-motion-active]{overflow:hidden}
+[data-glass-surface] .ps-disclosure>summary{transition:color 140ms var(--console-motion-ease),background-color 140ms var(--console-motion-ease)}
+[data-glass-surface] .ps-disclosure>summary:hover{color:var(--console-blue);background:#ffffff40}
+[data-glass-surface] .ps-disclosure>summary:hover h3{color:var(--console-blue)}
+[data-glass-surface] .ps-disclosure>summary:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px;border-radius:6px}
+[data-glass-surface] .ps-disclosure[data-motion-expanded=false]>summary::before{transform:rotate(45deg)}
+[data-glass-surface] .ps-disclosure[data-motion-expanded=true]>summary::before{transform:rotate(135deg)}
+
+/* 最新56px走势保留布局；圆点用像素尺寸，避免容器缩放成椭圆。 */
+@media screen{
+ [data-glass-surface] .report-trend:has(.report-trend-point) svg circle{opacity:0}
+ [data-glass-surface] .report-trend-point>button{display:grid;place-items:center;color:inherit}
+ [data-glass-surface] .report-trend-point>button::after{content:"";position:static;inset:auto;transform:none;box-sizing:border-box;width:6px;height:6px;border:1.5px solid currentColor;border-radius:50%;background:#fff;transition:transform 140ms var(--console-motion-ease)}
+ [data-glass-surface] .report-trend-point[data-current]>button::after{width:9px;height:9px;border:2px solid #fff;background:currentColor;box-shadow:0 1px 2px #21344d25}
+ [data-glass-surface] .report-trend-point>button:is(:hover,:focus-visible,[aria-expanded=true])::after{transform:scale(1.25)}
+ [data-glass-surface] .report-trend:not([data-chart-pending]) .report-trend-point[data-current]>button::after{animation:monthly-current-settle 260ms 260ms var(--console-motion-ease) backwards}
+}
+@keyframes monthly-current-settle{from{opacity:.35;transform:scale(.65)}to{opacity:1;transform:scale(1)}}
+@media(max-width:650px){[data-glass-surface] .report-execution-kpis>div{padding:16px;min-height:124px}}
+@media(prefers-reduced-motion:reduce){
+ [data-glass-surface] [data-surface-pressed]{transform:none}
+ [data-glass-surface] :is(.ps-disclosure>summary,.ps-disclosure>summary::before,.report-trend-point>button::after){animation:none!important;transition:none!important}
+ [data-glass-surface] :is(.monthly-core>header .business-action-secondary,.report-all-sources,.report-monthly-execution>header .report-detail-link){transform:none;transition:background-color 100ms,box-shadow 100ms}
+}
+@media(prefers-reduced-transparency:reduce){
+ [data-glass-surface] :is(.monthly-section,.weekly-frozen .weekly-paper,.report-execution-kpis){background:#f8fbfc;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@supports not(backdrop-filter:blur(1px)){
+ [data-glass-surface] :is(.monthly-section,.weekly-frozen .weekly-paper){background:#f8fbfc}
+}
+@media print{
+ [data-glass-surface] body{background:#fff}
+ [data-glass-surface] :is(.monthly-section,.weekly-frozen .weekly-paper,.report-execution-kpis,.report-execution-kpis>div,.report-waste-total,.report-subject,.mc-metrics){background:#fff;box-shadow:none;backdrop-filter:none;border-color:#e5e7eb}
+ [data-glass-surface] [data-surface-pressed]{transform:none}
+ [data-glass-surface] .report-trend-point{display:none}
+}
+
+/* 颜色由指标类型决定，箭头仍只表达方向；复用原有DOM与数值。 */
+[data-glass-surface]{--metric-better:#a34e48;--metric-worse:#34765b;--metric-neutral:#64748b}
+[data-glass-surface] :is(.monthly-core,.monthly-history-results) .ps-change{--change-up:var(--metric-worse);--change-down:var(--metric-better)}
+[data-glass-surface] [data-cost-metric="推广总消耗"] .ps-change,
+[data-glass-surface] .ps-promotion-table td:nth-child(2) .ps-change,
+[data-glass-surface] .ps-totals>div:first-child .ps-change{--change-up:var(--metric-neutral);--change-down:var(--metric-neutral)}
+[data-glass-surface] :is(.monthly-core,.monthly-history-results) .ps-change[data-direction=up]{color:var(--change-up)}
+[data-glass-surface] :is(.monthly-core,.monthly-history-results) .ps-change[data-direction=down]{color:var(--change-down)}
+[data-glass-surface] .report-waste .report-change[data-direction=positive]{color:var(--metric-worse)}
+[data-glass-surface] .report-waste .report-change[data-direction=negative]{color:var(--metric-better)}
+
+/* 各模块共享的光影语言，排期页面没有启用标记。 */
+[data-glass-surface]{--glass-line:#8eabb92e;--console-line:#d5e0e5;--console-muted:#617383}
+[data-glass-surface]::selection,[data-glass-surface] *::selection{color:#193b57;background:#b8d8ee}
+[data-glass-surface] :is(input,textarea){caret-color:#315fd6}
+[data-glass-surface] :is([data-inspector-body],.table-scroll,.promotion-table-scroll,.summary-scroll,.matrix-shell,.sheet-body){scrollbar-color:#b1c7d1 transparent;scrollbar-width:thin}
+[data-glass-surface] .business-toolbar{background:#f9fcfde0;border-bottom-color:#fff9;box-shadow:0 5px 18px -15px #254c6b72;backdrop-filter:blur(22px) saturate(1.25)}
+[data-glass-surface] .business-toolbar__title strong{color:#20333d}
+[data-glass-surface] .business-sidebar{background:#e7f1f0c9;border-right-color:#ffffffa6;backdrop-filter:blur(22px) saturate(1.15)}
+[data-glass-surface] :is(.business-sidebar__nav a.active,.business-sidebar__settings.active){color:#28558f;background:linear-gradient(125deg,#ffffffed,#d7e9f4d9);box-shadow:inset 0 1px 0 #fff,0 4px 12px -9px #254c6b77}
+[data-glass-surface] :is(.business-sidebar__nav a,.business-sidebar__settings):hover{background:#ffffff9c}
+[data-glass-surface] :is(.toolbar-segmented,.business-view-switch,.settings-views){background:#d8e5e9a3;box-shadow:inset 0 1px 2px #1d496a0c;border-radius:10px}
+[data-glass-surface] :is(.toolbar-segmented a.active,.toolbar-segmented a[aria-current=page],.business-view-switch label:has(input:checked),.settings-views a[aria-current=page]){background:#fff;color:#244e77;box-shadow:0 2px 6px #1d496a17,inset 0 1px 0 #fff}
+[data-glass-surface] .settings-views{width:fit-content;padding:4px;gap:3px}
+[data-glass-surface] .settings-views a{padding:7px 14px;border-radius:7px}
+[data-glass-surface] :is(.business-assistant-entry--sidebar,.business-notifications){background:#f9fcfcc7;border-color:#fff;box-shadow:inset 0 1px 0 #fff}
+[data-glass-surface] :is(.weekly-paper,.paper,.summary-shell,.matrix-shell,.meeting-records,.daily-section,.history-section,.review-section,.account-table,.account-permissions>form,.guide-content){
+ background:var(--console-glass-fill);border:1px solid #fffffff2;border-radius:18px;box-shadow:var(--console-glass-shadow);backdrop-filter:blur(22px) saturate(1.16)
+}
+[data-glass-surface] :is(.promotion-summary,.review-row,.category-summary-row,.promotion-data-table){background:#fcfeffe8}
+[data-glass-surface] :is(.promotion-summary,.review-row,.promotion-data-table tbody tr){transition:background-color 140ms}
+[data-glass-surface] :is(.review-row.selected,.review-row:not(.table-head):hover,.review-row:focus-within){background:#eaf3fa;box-shadow:none}
+[data-glass-surface] .promotion-data-table tr.selected>*,
+[data-glass-surface] .promotion-data-table tr.selected>th:first-child{background:#e5f0fa}
+[data-glass-surface] :is(.table-head,.category-group-head,.lifecycle-column-head,.promotion-data-table thead th,.promotion-data-table tfoot td,.promotion-data-table tfoot th){background:#edf4f8}
+[data-glass-surface] :is(.review-category-group[open]>.category-summary-row .category-name,.category-summary-row>.category-name){background:#edf5f9b3;box-shadow:none;border-right-color:var(--glass-line)}
+[data-glass-surface] .review-category-group[open]>.category-summary-row{background:#e8f2fa}
+[data-glass-surface] .review-row.selected .review-title-button{color:#244e77}
+[data-glass-surface] :is(.result-track>i,.category-metric .result-track>i){background:#6e93bc}
+[data-glass-surface] .post-result-heading{background:#edf5f9b3}
+[data-glass-surface] :is(button,a.business-action-secondary,.review-entry-button,input,select,textarea){transition:background-color 140ms,border-color 140ms,box-shadow 140ms}
+[data-glass-surface] :is(input,select,textarea):not(:disabled):not([readonly]):focus-visible{outline:2px solid #648fbe;outline-offset:2px;box-shadow:0 0 0 4px #d6e8f34d}
+[data-glass-surface] :is(button:not(:disabled),.review-entry-button):hover{border-color:#adc8dc}
+[data-glass-surface] :is(.business-action-primary,.primary-action,button.primary){box-shadow:inset 0 1px 0 #ffffff40,0 4px 8px -5px #28528f66}
+[data-glass-surface] :is(.business-action-secondary,.review-entry-button,.quiet-button){border-color:#c5d8e1;background:#ffffffc9}
+[data-glass-surface] .business-form :is(input,textarea,select){background-color:#ffffffed}
+[data-glass-surface] .business-form :is(input,textarea,select):is(:disabled,[readonly]){background-color:#eff4f6}
+[data-glass-surface="annual-plan"] .summary-title{background:#f5fafbbd;border-bottom-color:var(--glass-line);padding-block:14px}
+[data-glass-surface="annual-plan"] :is(.summary-head,.head){background:#edf4f7}
+[data-glass-surface="annual-plan"] .section-band{background:#e7f0f3;color:#3d5361;border-color:#b7cbd6}
+[data-glass-surface="annual-plan"] .section-jumps button{border-color:#c4d6df;background:#ffffffb3}
+[data-glass-surface="annual-plan"] .section-jumps button.active{border-color:#254e70;background:#254e70;color:#fff}
+[data-glass-surface="annual-plan"] .plan-row:is(:hover,:focus-within){background:#eaf4fa}
+[data-glass-surface="annual-plan"] .time-block{box-shadow:inset 0 1px 0 #fff8,0 2px 4px -3px #244c6a4d;border-radius:5px;transition:filter 160ms,box-shadow 160ms}
+[data-glass-surface="annual-plan"] .time-block:hover{filter:brightness(1.03);box-shadow:inset 0 1px 0 #fff,0 4px 8px -5px #244c6a66}
+[data-glass-surface] .weekly-review-card{background:#ffffffbf;border-color:#fff;border-radius:14px;box-shadow:inset 0 1px 0 #fff}
+[data-glass-surface] .meeting-records tbody tr:hover{background:#edf5fa}
+/* 详情浮层：资料先行，日期和原始ID为辅助。 */
+[data-glass-surface] .business-inspector[data-inspector].is-open{background:linear-gradient(150deg,#ffffffed,#eef7faf0);box-shadow:inset 0 0 0 1px #fff,0 16px 46px -18px #23475c57;backdrop-filter:blur(24px) saturate(1.18);border-radius:18px}
+[data-glass-surface] .business-inspector[data-inspector]>header{background:#f9fcfbe8;border-bottom-color:var(--glass-line);padding:20px 18px 16px}
+[data-glass-surface] .business-inspector[data-inspector]>header :is(h1,h2){font-size:18px;line-height:26px;color:#203542}
+[data-glass-surface] .business-inspector[data-inspector]>header [data-close-inspector]{background:#e5eef1;color:#536b7b;border-radius:50%;width:30px;height:30px}
+[data-glass-surface] .business-inspector[data-inspector]>footer.business-inspector-actions{background:#f5fafbef;border-top-color:var(--glass-line)}
+[data-glass-surface] .business-inspector .promotion-detail{padding:18px}
+[data-glass-surface] .promotion-inspector-status{display:inline-flex;align-items:center;gap:6px;color:#5f7482;font:500 12px/18px var(--console-font);margin-top:8px}
+[data-glass-surface] .promotion-inspector-status::before{content:"";width:6px;height:6px;border-radius:50%;background:#8b9ba7}
+[data-glass-surface] .promotion-inspector-status[data-stage=testing]::before{background:#bd8f34}
+[data-glass-surface] .promotion-inspector-status[data-stage=scaling]::before{background:#3f9272}
+[data-glass-surface] .surface-resources{display:grid;gap:10px;margin:0 0 20px}
+[data-glass-surface] .surface-resource{display:grid;grid-template-columns:36px minmax(0,1fr) 16px;align-items:center;gap:12px;min-height:70px;padding:12px;border:1px solid #fff;border-radius:12px;background:linear-gradient(125deg,#fff,#eef7fccc);box-shadow:inset 0 1px 0 #fff,0 4px 10px -8px #244c6a4d;color:#305775;text-decoration:none}
+[data-glass-surface] .surface-resource[data-kind=post]{background:linear-gradient(125deg,#fff,#edf8f3cc);color:#3d6859}
+[data-glass-surface] .surface-resource-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#e8f1f7;color:#557fa2}
+[data-glass-surface] [data-kind=post] .surface-resource-icon{background:#e6f2eb;color:#5b8775}
+[data-glass-surface] .surface-resource-copy{display:grid;gap:4px;min-width:0}
+[data-glass-surface] .surface-resource-copy strong{font:600 14px/20px var(--console-font);color:#253c4b}
+[data-glass-surface] .surface-resource-copy small{font:400 12px/18px var(--console-font);color:#617888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-glass-surface] .surface-resource[data-missing]{box-shadow:none;background:#edf3f5;border:1px dashed #cbd8de;color:#6e7e87}
+[data-glass-surface] .surface-resource-arrow{transition:transform 160ms}
+[data-glass-surface] a.surface-resource:hover .surface-resource-arrow{transform:translate(1px,-1px)}
+[data-glass-surface] :is(.promotion-detail-meta,.review-resources dl){gap:10px;margin-block:14px}
+[data-glass-surface] .promotion-day{margin-top:18px;padding-top:18px}
+[data-glass-surface] .promotion-day .promotion-totals{gap:14px 16px}
+[data-glass-surface] .promotion-day .promotion-totals dd{font-size:16px}
+[data-glass-surface] .promotion-day [data-edit-trigger]{min-height:40px;background:#2d5c87;color:#fff;border-color:#2d5c87;box-shadow:inset 0 1px 0 #ffffff33,0 4px 10px -7px #244c6a66}
+[data-glass-surface] :is(.review-resources .full-id,.promotion-detail-id){padding:10px 12px;background:#edf3f6;border-radius:8px}
+[data-glass-surface] .review-resources{padding:18px}
+/* 表单、资料气泡和确认框；不改变既有进入/退出与保存流程。 */
+[data-glass-surface] :is(.business-sheet,.business-form-dialog){border:1px solid #fff;background:#f7fbfdf5;box-shadow:0 24px 80px -28px #18384c70;backdrop-filter:blur(22px)}
+[data-glass-surface] :is(.business-sheet,.business-form-dialog)::backdrop{background:#173c532c;backdrop-filter:blur(3px)}
+[data-glass-surface] :is(.business-sheet,.business-form-dialog) :is(.sheet-body,.form-dialog-body){background:#fbfdfff2}
+[data-glass-surface] :is(.business-sheet,.business-form-dialog) .dialog-actions{background:#eff6f9f2;border-top-color:var(--glass-line)}
+[data-glass-surface] [data-popover-panel]{box-shadow:0 12px 36px -12px #24475a40;border-color:#d2e1e8;background:#fbfdfffa}
+[data-glass-surface] [data-surface-press]{position:relative;isolation:isolate;transform-origin:center;touch-action:manipulation;transition:border-color 140ms,box-shadow 160ms,background-color 140ms}
+[data-glass-surface] [data-surface-press]::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at var(--press-x,50%) var(--press-y,50%),#fff,transparent 72%);opacity:0;transition:opacity 140ms}
+[data-glass-surface] [data-surface-press]:hover{border-color:#bfd4e3;box-shadow:inset 0 1px 0 #fff,0 6px 14px -9px #244c6a80}
+[data-glass-surface] [data-surface-press][data-surface-pressed]::after{opacity:.85}
+[data-glass-surface] [data-surface-press]:focus-visible{outline:2px solid #5485b5;outline-offset:3px}
+[data-glass-surface] :is(.monthly-core>header .business-action-secondary,.report-all-sources,.report-monthly-execution>header .report-detail-link){display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 12px;border:1px solid #ffffffed;border-radius:9px;background:linear-gradient(150deg,#fffffff2,#eaf3f9d9);color:#315b82;text-decoration:none}
+[data-glass-surface] .account-permissions>form{padding:20px 24px}
+[data-glass-surface] .account-permissions section{border-bottom:1px solid var(--glass-line);padding-block:6px 16px}
+[data-glass-surface] .account-permissions header{margin-bottom:10px}
+[data-glass-surface] .account-permissions header h2{font-size:16px;font-weight:600}
+[data-glass-surface] .permissions-table tbody tr:hover{background:#eaf3f86e}
+[data-glass-surface] .account-management thead{background:#edf5f8}
+[data-glass-surface] .guide-content{padding:24px 28px}
+[data-glass-surface] .guide-content>section{scroll-margin-top:100px}
+@media(max-width:900px){[data-glass-surface] .business-sidebar{background:#f5fafbeb}[data-glass-surface] .business-inspector[data-inspector].is-open{border-radius:0}[data-glass-surface] .guide-content{padding:18px}[data-glass-surface] .account-permissions>form{padding:16px}}
+@media(prefers-reduced-motion:reduce){[data-glass-surface] [data-surface-press]{transform:none!important}[data-glass-surface] .surface-resource-arrow{transition:none}}
+@media(prefers-reduced-transparency:reduce){[data-glass-surface] :is(.weekly-paper,.paper,.summary-shell,.matrix-shell,.meeting-records,.daily-section,.history-section,.review-section,.account-table,.account-permissions>form,.guide-content,.business-toolbar,.business-sidebar){background:#f7fbfc;backdrop-filter:none}}
+@supports not(backdrop-filter:blur(1px)){[data-glass-surface] :is(.weekly-paper,.paper,.summary-shell,.matrix-shell,.meeting-records,.daily-section,.history-section,.review-section,.account-table,.account-permissions>form,.guide-content){background:#f7fbfc}}
+
+/* 外层展示面与密集数据面有明确层次。 */
+[data-glass-surface] :is(.calendar-section,.history-workspace,.table-pane){background:var(--console-glass-fill);border:1px solid #fffffff2;border-radius:18px;box-shadow:var(--console-glass-shadow);backdrop-filter:blur(22px) saturate(1.16)}
+[data-glass-surface] .table-pane{overflow:hidden}
+[data-glass-surface] .calendar-section{overflow:hidden}
+[data-glass-surface] .calendar-section>header{padding-block:18px}
+[data-glass-surface] .report-kpis{gap:0;overflow:hidden;border:1px solid #fff;border-radius:14px;background:linear-gradient(130deg,#ffffffb8,#eaf4f8b0);box-shadow:inset 0 1px 0 #fff}
+[data-glass-surface] .report-kpis>.report-kpi{border:0;border-right:1px solid var(--glass-line);border-radius:0;background:transparent;box-shadow:none}
+[data-glass-surface] .report-kpis>.report-kpi:last-child{border-right:0}
+[data-glass-surface] .weekly-card{border-color:#fff;background:var(--console-glass-fill);border-radius:16px;box-shadow:var(--console-glass-shadow)}
+[data-glass-surface] :is(.report-kpi-posts,.weekly-metrics,.metric-primary) :is(.report-change,.business-value-change)[data-direction=positive]{color:var(--metric-better)}
+[data-glass-surface] :is(.report-kpi-posts,.weekly-metrics,.metric-primary) :is(.report-change,.business-value-change)[data-direction=negative]{color:var(--metric-worse)}
+[data-glass-surface] :is(.report-kpi-actualOpenCost,.report-kpi-actualLeadCost) .report-change[data-direction=positive]{color:var(--metric-worse)}
+[data-glass-surface] :is(.report-kpi-actualOpenCost,.report-kpi-actualLeadCost) .report-change[data-direction=negative]{color:var(--metric-better)}
+[data-glass-surface] .report-kpi-spend .report-change{color:var(--metric-neutral)}
+[data-glass-surface] .meeting-record{transition:background-color 140ms}
+[data-glass-surface] .meeting-record:hover{background:#ffffff85}
+[data-glass-surface] .meeting-archive{background:#ffffffb8;border-color:#fff;border-radius:14px}
+@media(max-width:1200px){[data-glass-surface] .report-kpis>.report-kpi:nth-child(2){border-right:0}[data-glass-surface] .report-kpis>.report-kpi:nth-child(n+3){border-top:1px solid var(--glass-line)}}
+@media print{[data-glass-surface] :is(.calendar-section,.history-workspace,.table-pane,.report-kpis,.report-kpis>.report-kpi,.weekly-card){background:#fff!important;box-shadow:none!important;backdrop-filter:none!important;border-color:#e5e7eb}}
+
+.business-console-frame[data-glass-surface] .business-sidebar{background:#e7f1f0d9;border-right-color:#ffffffa6}
+.business-console-frame[data-glass-surface] :is(.business-sidebar__nav a.active,.business-sidebar__settings.active){color:#28558f;background:linear-gradient(125deg,#ffffffed,#d7e9f4d9);box-shadow:inset 0 1px 0 #fff,0 4px 12px -9px #254c6b77}
+.business-console-frame[data-glass-surface] .toolbar-segmented a.active{background:#fff;color:#244e77;box-shadow:0 2px 6px #1d496a17}
+.business-console-frame[data-glass-surface] .business-view-switch input:checked+span{color:#244e77;background:#fff;box-shadow:0 2px 6px #1d496a17}
+.business-console-frame[data-glass-surface] .business-view-switch label:has(input:checked){background:transparent;box-shadow:none}
+.business-console-frame[data-glass-surface] .business-view-switch input:disabled+span{color:#617383;background:transparent;box-shadow:none}
+[data-glass-surface] [data-monthly-operations] .ps-change{--change-up:var(--metric-worse);--change-down:var(--metric-better)}
+[data-glass-surface] [data-monthly-operations] :is([data-cost-metric="推广总消耗"],.ps-promotion-table td:nth-child(2),.ps-totals>div:first-child) .ps-change{--change-up:var(--metric-neutral);--change-down:var(--metric-neutral)}
+[data-glass-surface] [data-monthly-operations] .ps-change[data-direction=up]{color:var(--change-up)}
+[data-glass-surface] [data-monthly-operations] .ps-change[data-direction=down]{color:var(--change-down)}
+@media(prefers-reduced-transparency:reduce){.business-console-frame[data-glass-surface] .business-sidebar{background:#f3f8f9}}
+
+[data-glass-surface] .metric-cell.positive small{color:var(--metric-better)}
+[data-glass-surface] .metric-cell.negative small{color:var(--metric-worse)}
+
+.business-console-frame[data-glass-surface] .metric-cell.positive .metric-primary small{color:var(--metric-better)}
+.business-console-frame[data-glass-surface] .metric-cell.negative .metric-primary small{color:var(--metric-worse)}
+
+/* 行内按钮的最后一层反馈，优先于各业务入口的默认边框。 */
+.business-console-frame[data-glass-surface] [data-surface-press]:hover{border-color:#aecbdd;box-shadow:inset 0 1px 0 #fff,0 6px 14px -9px #244c6a80}
+.business-console-frame[data-glass-surface] [data-surface-press][data-surface-pressed]{box-shadow:inset 0 1px 3px #35587a26,0 1px 2px #325d8010}
+[data-glass-surface] :is(.business-action-primary,.business-action-secondary,.primary-action,.review-entry-button,.quiet-button):not([data-surface-press]):not(:disabled):active{transform:translateY(1px)}
+@media(prefers-reduced-motion:reduce){[data-glass-surface] :is(.business-action-primary,.business-action-secondary,.primary-action,.review-entry-button,.quiet-button):active{transform:none}}
+
+[data-glass-surface] .surface-resource-meta{margin:0 0 16px;border-top:1px solid var(--glass-line);border-bottom:1px solid var(--glass-line)}
+[data-glass-surface] .surface-resource-meta>summary{display:flex;align-items:center;gap:9px;min-height:40px;list-style:none;cursor:pointer;color:#5e7484;font:400 12px/20px var(--console-font)}
+[data-glass-surface] .surface-resource-meta>summary::-webkit-details-marker{display:none}
+[data-glass-surface] .surface-resource-meta>summary::before{content:"";width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg);transition:transform 160ms}
+[data-glass-surface] .surface-resource-meta[open]>summary::before{transform:rotate(135deg)}
+[data-glass-surface] .surface-resource-meta[data-motion-expanded=false]>summary::before{transform:rotate(45deg)}
+[data-glass-surface] .surface-resource-meta[data-motion-active]{overflow:hidden}
+[data-glass-surface] .surface-resource-meta>summary:hover{color:#315b82}
+[data-glass-surface] .surface-resource-meta>summary:focus-visible{outline:2px solid #5485b5;outline-offset:2px}
+[data-glass-surface] .surface-resource-meta .promotion-detail-meta{padding-top:0}
+[data-glass-surface] .surface-resource-meta .promotion-detail-id{margin-bottom:14px}
+[data-glass-surface] .history-edit-dialog[data-form-editor]{height:min(680px,calc(100dvh - 64px))}
+@media(prefers-reduced-motion:reduce){[data-glass-surface] .surface-resource-meta>summary::before{transition:none}}
+
+@media print{body:has(.business-console-frame[data-glass-surface]),.business-console-frame[data-glass-surface]{background:#fff!important;background-image:none!important}}

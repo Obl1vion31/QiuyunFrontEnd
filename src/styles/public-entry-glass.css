@@ -1,0 +1,29 @@
+/* 首页与登录延续工作台的材质；首页九图构图和循环保持。 */
+body[data-public-glass]{--console-font:"MiSans VF","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+[data-public-glass=home] .lower-content{background:#e5eef1}
+[data-public-glass=home] .workflow{background:radial-gradient(ellipse at 10% 30%,#c4e4e3a8,transparent 75%),#e2edf1;border-top-color:#fff}
+[data-public-glass=home] .workflow__body{padding:26px;border-radius:18px;background:linear-gradient(135deg,#ffffffe6,#eef7f9b8);box-shadow:inset 0 1px 0 #fff,0 16px 36px -24px #244c6a66}
+[data-public-glass=home] .workflow__track{row-gap:28px}
+[data-public-glass=home] .workflow__track li{border-top-color:#bfd2dd}
+[data-public-glass=home] .systems{background:radial-gradient(ellipse at 90% 80%,#c8dcef80,transparent 75%),#e6eff2;border-top-color:#fff}
+[data-public-glass=home] .systems__list{padding:0 24px;border:1px solid #fff;border-radius:18px;background:linear-gradient(135deg,#ffffffed,#f1f8fac9);box-shadow:0 16px 36px -24px #244c6a66}
+[data-public-glass=home] .systems__list article:last-child{border-bottom:0}
+[data-public-glass=home] .entry-action{border:1px solid #fff9;border-radius:9px;background:linear-gradient(145deg,#3e6c91,#2c5375);box-shadow:inset 0 1px 0 #ffffff50,0 4px 10px -7px #244c6a66}
+[data-public-glass=home] [data-home-hero] header a[href="/login"]{border-color:#c3e0f659;background:linear-gradient(140deg,#ffffff1a,#d3ecfa12);box-shadow:inset 0 1px 0 #ffffff2e;backdrop-filter:blur(16px)}
+[data-public-glass=home] [data-home-controls] button{background:#edf6fc1a;backdrop-filter:blur(16px);border-color:#ffffff3d;box-shadow:inset 0 1px 0 #ffffff1a}
+[data-public-glass=home] .section-heading>.eyebrow{display:none}
+[data-public-glass=home] .section-heading h2{letter-spacing:-.03em}
+body[data-public-glass=login]{background:radial-gradient(ellipse at 10% 18%,#bcdfdcbd,transparent 72%),radial-gradient(ellipse at 90% 75%,#c6dbf4bd,transparent 75%),#e2edf1;color:#21323e;font-family:var(--console-font)}
+body[data-public-glass=login]>header{background:#f8fcfdd6;border-bottom:1px solid #fff;color:#244158;box-shadow:0 6px 22px -20px #244c6a66;backdrop-filter:blur(20px)}
+body[data-public-glass=login]>header a{font-family:var(--console-font);font-weight:600}
+body[data-public-glass=login]>header .back{color:#546f81!important}
+body[data-public-glass=login] main>section{padding:38px 36px;border:1px solid #fffffff2;border-radius:22px;background:linear-gradient(135deg,#ffffffed,#eff8fbc9);box-shadow:inset 0 1px 0 #fff,0 22px 48px -26px #264c6a66;backdrop-filter:blur(24px) saturate(1.18)}
+body[data-public-glass=login] h1{font-size:28px;font-weight:600;letter-spacing:-.025em}
+body[data-public-glass=login] .intro{color:#617383}
+body[data-public-glass=login] :is(input,button){font-family:var(--console-font);border-radius:9px}
+body[data-public-glass=login] input{background:#ffffffed;border-color:#c2d3dd}
+body[data-public-glass=login] button[type=submit]{background:linear-gradient(145deg,#34678e,#285173);box-shadow:inset 0 1px 0 #ffffff40,0 5px 12px -6px #244c6a66}
+body[data-public-glass=login] .help{color:#617383;border-top-color:#c7dae3}
+@media(max-width:900px){[data-public-glass=home] .workflow__body{padding:20px}[data-public-glass=home] .systems__list{padding:0 18px}}
+@media(max-width:520px){body[data-public-glass=login] main>section{padding:28px 24px}body[data-public-glass=login] h1{font-size:25px}}
+@media(prefers-reduced-transparency:reduce){[data-public-glass] :is(.workflow__body,.systems__list),body[data-public-glass=login] main>section{background:#f7fbfc;backdrop-filter:none}}

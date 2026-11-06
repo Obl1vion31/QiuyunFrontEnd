@@ -1,5 +1,6 @@
 ---
 import {contentRoleLabels,contentRoleLabel,rolesForCategory} from '../../db/content-roles';
+import BusinessResourceLinks from '../../components/BusinessResourceLinks.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
@@ -93,14 +94,17 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
       {renderRows.map(selected => <template data-inspector-template={selected.key}>
         <header><div><span>{names[selected.checkpoint.type]}复盘</span><h1 data-inspector-title>{selected.row.contentName}</h1><p>{selected.row.subjectName} / {selected.row.categoryName||'临时帖'}{rolesForCategory(selected.row.categoryId).length?' · '+contentRoleLabel(selected.row.contentRole):''} · V{selected.row.versionNumber}</p></div><a href={baseHref} data-close-inspector aria-label="关闭详情">×</a></header>
         <section class="identity-panel review-resources" aria-label="帖子资料">
-          <dl>
-            <div><dt>项目文档</dt><dd>{selected.row.projectDocUrl?<a href={selected.row.projectDocUrl} target="_blank" rel="noopener noreferrer">打开项目文档 ↗</a>:<span class="resource-missing">未登记</span>}</dd></div>
-            <div><dt>小红书帖子</dt><dd>{selected.row.publicationUrl?<a href={selected.row.publicationUrl} target="_blank" rel="noopener noreferrer">打开小红书帖子 ↗</a>:<span class="resource-missing">未登记</span>}</dd></div>
+          <BusinessResourceLinks documentUrl={selected.row.projectDocUrl} postUrl={selected.row.publicationUrl} name={selected.row.contentName}/>
+          <details class="surface-resource-meta"><summary>发布时间与笔记 ID</summary><dl>
+
+
             <div><dt>应发时间</dt><dd>{businessDateTime(selected.row.plannedPublishAt)}</dd></div>
             <div><dt>实际发布时间</dt><dd>{businessDateTime(selected.row.actualPublishAt)}</dd></div>
           </dl>
-          <a class="review-schedule-link" href={'/business/operations-schedule?'+new URLSearchParams({month:businessDateTime(selected.row.plannedPublishAt).slice(0,7),row:selected.row.id})} target="_blank" rel="noopener noreferrer">查看排期详情 ↗</a>
+
           <label>小红书笔记 ID</label>{selected.row.platformNoteId?<div class="full-id"><code>{selected.row.platformNoteId}</code><button type="button" data-copy-id={selected.row.platformNoteId}>复制</button></div>:<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}
+          </details>
+          <a class="review-schedule-link" href={'/business/operations-schedule?'+new URLSearchParams({month:businessDateTime(selected.row.plannedPublishAt).slice(0,7),row:selected.row.id})} target="_blank" rel="noopener noreferrer">查看排期详情 ↗</a>
         </section>
         {selected.row.platformNoteId&&<details class="correction" data-admin-only><summary>更正笔记 ID</summary><form class="business-form" data-id-correction action={`/api/operations-content/${selected.row.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><label>旧值<input name="expectedPlatformNoteId" value={selected.row.platformNoteId} readonly/></label><label>新值<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" required/></label><p>确认后，该帖子的全部版本与复盘都会同步。</p><output></output><button type="submit">确认更正</button></form></details>}
         {activeView!=='skipped'&&<form class="review-form business-form" data-review-form data-collaboration-resource={`schedule:${selected.row.id}:non:${selected.checkpoint.type}`} data-collaboration-label={`${selected.row.contentName} · ${names[selected.checkpoint.type]}`} data-success-href={viewHref('history')}>

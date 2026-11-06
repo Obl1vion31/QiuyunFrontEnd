@@ -1,4 +1,7 @@
 ---
+import '../styles/workspace-glass.css';
+import '../styles/public-entry-glass.css';
+import BusinessConsoleFonts from '../components/BusinessConsoleFonts.astro';
 import { safeReturnTo } from '../auth/permissions';
 import SiteIcons from '../components/SiteIcons.astro';
 import QiuyunMark from '../components/QiuyunMark';
@@ -12,13 +15,13 @@ if (Astro.locals.user) return Astro.redirect(next);
     <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" /><meta name="theme-color" content="#0B1B2B" />
     <title>登录 · 内容工作台</title>
-    <SiteIcons />
+    <SiteIcons /><BusinessConsoleFonts />
   </head>
-  <body>
+  <body data-glass-surface="login" data-public-glass="login">
     <header><a class="login-brand" href="/" aria-label="湫云 · 内容工作台首页"><QiuyunMark surface="tile" /><span class="login-brand-copy"><b>QIUYUN</b><span class="brand-caption">内容工作台</span></span></a><a class="back" href="/">返回总枢纽 <span aria-hidden="true">↗</span></a></header>
     <main>
       <section aria-labelledby="login-title">
-        <p class="eyebrow">CONTENT WORKSPACE</p><h1 id="login-title">登录内容工作台</h1><p class="intro">使用团队账号，继续规划、发布与复盘。</p>
+        <h1 id="login-title">登录内容工作台</h1><p class="intro">使用团队账号，继续规划、发布与复盘。</p>
         <form data-login-form data-next={next} aria-label="账号登录">
           <label for="username">账号或用户名</label><input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="40" />
           <label for="password">密码</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128" />
@@ -57,6 +60,7 @@ if (Astro.locals.user) return Astro.redirect(next);
         });
       }
     </script>
+  <script>import '../scripts/workspace-glass';</script>
   </body>
 </html>
 <style>

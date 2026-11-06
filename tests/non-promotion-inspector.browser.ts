@@ -115,10 +115,12 @@ try {
     await pane.evaluate(async(node:HTMLElement)=>{await Promise.allSettled(node.getAnimations().map(a=>a.finished));});
     if(width>=1024)await assertDates(first.schedule.id);
     const resources = pane.locator('.review-resources');
+    await resources.locator('.surface-resource-meta>summary').click();
+    await pane.evaluate(async(node:HTMLElement)=>{await Promise.allSettled(node.getAnimations({subtree:true}).map(a=>a.finished));});
     assert.match(await resources.innerText(),/2026-09-30 23:30/);
     assert.match(await resources.innerText(),/2026-10-01 00:15/);
-    assert.equal(await resources.getByRole('link',{name:'打开项目文档 ↗',exact:true}).getAttribute('href'),first.version.projectDocUrl);
-    assert.equal(await resources.getByRole('link',{name:'打开小红书帖子 ↗',exact:true}).getAttribute('href'),first.schedule.publicationUrl);
+    assert.equal(await resources.getByRole('link',{name:/项目资料/}).getAttribute('href'),first.version.projectDocUrl);
+    assert.equal(await resources.getByRole('link',{name:/已发布帖子/}).getAttribute('href'),first.schedule.publicationUrl);
     const scheduleHref = await resources.getByRole('link',{name:'查看排期详情 ↗',exact:true}).getAttribute('href');
     const scheduleURL = new URL(scheduleHref!,baseURL);
     assert.equal(scheduleURL.searchParams.get('month'),'2026-09');
@@ -151,9 +153,9 @@ try {
     await assertIdentity(first.schedule.id);
     assert.equal(await pane.locator('[name=conclusion]').inputValue(),'保留未保存的复盘内容');
     if(width===1440) {
-      for(const label of ['打开项目文档 ↗','打开小红书帖子 ↗','查看排期详情 ↗']) {
+      for(const label of ['项目资料','已发布帖子','查看排期详情 ↗']) {
         const popupPromise = context.waitForEvent('page');
-        await resources.getByRole('link',{name:label,exact:true}).click();
+        await resources.getByRole('link',{name:new RegExp(label)}).click();
         const popup = await popupPromise; await popup.waitForLoadState('domcontentloaded');
         if(label==='查看排期详情 ↗') {
           assert.equal(new URL(popup.url()).searchParams.get('month'),'2026-09');
@@ -167,7 +169,7 @@ try {
     const accept = respondToBusinessConfirm(page,true);
     await row(second.schedule.id).locator('.review-title-button').evaluate((n:HTMLElement)=>n.click());await accept;
     await assertIdentity(second.schedule.id);
-    assert.equal(await pane.locator('.resource-missing').count(),2);
+    assert.equal(await pane.locator('.surface-resource[data-missing]').count(),2);
     assert.match(await pane.locator('header').innerText(),/V0/);
     await shot('missing-resources-'+width);await close();
     await row(long.schedule.id).locator('.review-entry-button').click();await pane.waitFor({state:'visible'});
