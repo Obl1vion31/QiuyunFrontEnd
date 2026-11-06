@@ -17,7 +17,7 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import type {PrivateData,DemandType,PlanContent,PlanBatch,PlanAssignmentHistory} from './monthly-plan-types';
+import type {DemandType,PlanContent,PlanBatch,PlanAssignmentHistory} from './monthly-plan-types';
 
 // 内部账号与业务事实分开保存，两个角色共享团队数据。
 export const authUser = pgTable('auth_user', {

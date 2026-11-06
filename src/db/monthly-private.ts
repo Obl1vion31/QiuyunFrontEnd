@@ -2,7 +2,7 @@ import {eq} from 'drizzle-orm';
 import {z} from 'zod';
 import type {Database} from './client';
 import {operationsMonthlyPrivate as privateTable,operationsMonthlyCostMapping as mappingTable} from './schema';
-import {demandTypes,demandLabels,emptyCounts,type DemandType,type PrivateData,type PrivateCounts} from './monthly-plan-types';
+import {demandTypes,demandLabels,emptyCounts,type DemandType,type PrivateData} from './monthly-plan-types';
 import {WorkflowError} from './schedule-workflow';
 import {readTaxonomy} from './taxonomy-store';
 import {lockPromotionWorkflow} from './promotion-pauses';
