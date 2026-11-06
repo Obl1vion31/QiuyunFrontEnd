@@ -397,7 +397,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 
           <BusinessDateTimeFields name="plannedPublishAt" dateName="plannedPublishDate" timeName="plannedPublishTime" dateLabel="应发日期" timeLabel="应发时间" label="应发时间" required><small data-error="plannedPublishAt"></small></BusinessDateTimeFields>
           <div class="field field-wide" data-plan-change-reason hidden><label for="planChangeReason">改期理由 <b>*</b></label><textarea id="planChangeReason" name="planChangeReason" rows="2" maxlength="500"></textarea><small data-error="planChangeReason"></small></div>
-          <div class="field field-wide" data-schedule-change-reason><label>本次安排／调整原因 <b>*</b><textarea name="changeReason" rows="2" maxlength="2000" placeholder="月会封存后的新增与调整必须填写原因"></textarea></label></div>
+          <div class="field field-wide" data-schedule-change-reason><label for="scheduleChangeReason">本次安排／调整原因 <b>*</b></label><textarea id="scheduleChangeReason" name="changeReason" rows="2" maxlength="2000" placeholder="月会封存后的新增与调整必须填写原因"></textarea></div>
           <div class="field field-wide field-options" role="group" aria-label="发布选项">
             <div class="promotion-field"><label class="promotion-toggle" hidden><input type="checkbox" name="isPromoted"/>推广帖</label><input id="promotionStatus" name="promotionStatus" type="hidden" value="none"/><output class="promotion-preview" data-promotion-preview hidden>非推广</output></div>
             <label><input type="checkbox" name="syncToMoments"/>同步朋友圈</label>
