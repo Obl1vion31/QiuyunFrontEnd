@@ -1,0 +1,655 @@
+{
+  "digest": "c087b5b6fe34579d31497e183d7261ba2c9fe55bfe27eef933d8ea3a650a2838",
+  "clock": "2026-11-06T12:00:00+08:00",
+  "facts": [
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1920,
+      "file": "before-admin-calendar-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "unpublished-detail",
+      "width": 1920,
+      "file": "before-admin-unpublished-detail-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "published-detail",
+      "width": 1920,
+      "file": "before-admin-published-detail-1920.png"
+    },
+    {
+      "version": "before",
+      "width": 1920,
+      "state": "open-geometry",
+      "sizes": {
+        "calendar": {
+          "x": 257,
+          "y": 688,
+          "width": 1269,
+          "height": 1282,
+          "top": 688,
+          "right": 1526,
+          "bottom": 1970,
+          "left": 257
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 232,
+          "height": 1000,
+          "top": 0,
+          "right": 232,
+          "bottom": 1000,
+          "left": 0
+        },
+        "toolbar": {
+          "x": 232,
+          "y": 0,
+          "width": 1673,
+          "height": 72,
+          "top": 0,
+          "right": 1905,
+          "bottom": 72,
+          "left": 232
+        },
+        "y": 4
+      }
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "edit",
+      "width": 1920,
+      "file": "before-admin-edit-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "publication",
+      "width": 1920,
+      "file": "before-admin-publication-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "revision",
+      "width": 1920,
+      "file": "before-admin-revision-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1440,
+      "file": "before-admin-calendar-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "unpublished-detail",
+      "width": 1440,
+      "file": "before-admin-unpublished-detail-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "published-detail",
+      "width": 1440,
+      "file": "before-admin-published-detail-1440.png"
+    },
+    {
+      "version": "before",
+      "width": 1440,
+      "state": "open-geometry",
+      "sizes": {
+        "calendar": {
+          "x": 257,
+          "y": 806,
+          "width": 789,
+          "height": 1282,
+          "top": 806,
+          "right": 1046,
+          "bottom": 2088,
+          "left": 257
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 232,
+          "height": 1000,
+          "top": 0,
+          "right": 232,
+          "bottom": 1000,
+          "left": 0
+        },
+        "toolbar": {
+          "x": 232,
+          "y": 0,
+          "width": 1193,
+          "height": 72,
+          "top": 0,
+          "right": 1425,
+          "bottom": 72,
+          "left": 232
+        },
+        "y": 72
+      }
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "edit",
+      "width": 1440,
+      "file": "before-admin-edit-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "publication",
+      "width": 1440,
+      "file": "before-admin-publication-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "revision",
+      "width": 1440,
+      "file": "before-admin-revision-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1024,
+      "file": "before-admin-calendar-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "unpublished-detail",
+      "width": 1024,
+      "file": "before-admin-unpublished-detail-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "published-detail",
+      "width": 1024,
+      "file": "before-admin-published-detail-1024.png"
+    },
+    {
+      "version": "before",
+      "width": 1024,
+      "state": "open-geometry",
+      "sizes": {
+        "calendar": {
+          "x": 257,
+          "y": 323,
+          "width": 727,
+          "height": 1282,
+          "top": 323,
+          "right": 984,
+          "bottom": 1605,
+          "left": 257
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 232,
+          "height": 1000,
+          "top": 0,
+          "right": 232,
+          "bottom": 1000,
+          "left": 0
+        },
+        "toolbar": {
+          "x": 232,
+          "y": 0,
+          "width": 777,
+          "height": 72,
+          "top": 0,
+          "right": 1009,
+          "bottom": 72,
+          "left": 232
+        },
+        "y": 639
+      }
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "edit",
+      "width": 1024,
+      "file": "before-admin-edit-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "publication",
+      "width": 1024,
+      "file": "before-admin-publication-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "admin",
+      "state": "revision",
+      "width": 1024,
+      "file": "before-admin-revision-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "closed",
+      "width": 1920,
+      "file": "before-employee-closed-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "pending",
+      "width": 1920,
+      "file": "before-employee-pending-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "sealed",
+      "width": 1920,
+      "file": "before-employee-sealed-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "ledger",
+      "width": 1920,
+      "file": "before-employee-ledger-1920.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "closed",
+      "width": 1440,
+      "file": "before-employee-closed-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "pending",
+      "width": 1440,
+      "file": "before-employee-pending-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "sealed",
+      "width": 1440,
+      "file": "before-employee-sealed-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "ledger",
+      "width": 1440,
+      "file": "before-employee-ledger-1440.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "closed",
+      "width": 1024,
+      "file": "before-employee-closed-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "pending",
+      "width": 1024,
+      "file": "before-employee-pending-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "sealed",
+      "width": 1024,
+      "file": "before-employee-sealed-1024.png"
+    },
+    {
+      "version": "before",
+      "role": "employee",
+      "state": "ledger",
+      "width": 1024,
+      "file": "before-employee-ledger-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1920,
+      "file": "after-admin-calendar-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "unpublished-detail",
+      "width": 1920,
+      "file": "after-admin-unpublished-detail-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "published-detail",
+      "width": 1920,
+      "file": "after-admin-published-detail-1920.png"
+    },
+    {
+      "version": "after",
+      "width": 1920,
+      "state": "open-geometry",
+      "sizes": {
+        "calendar": {
+          "x": 257,
+          "y": 654,
+          "width": 1623,
+          "height": 1242,
+          "top": 654,
+          "right": 1880,
+          "bottom": 1896,
+          "left": 257
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 232,
+          "height": 1000,
+          "top": 0,
+          "right": 232,
+          "bottom": 1000,
+          "left": 0
+        },
+        "toolbar": {
+          "x": 232,
+          "y": 0,
+          "width": 1673,
+          "height": 72,
+          "top": 0,
+          "right": 1905,
+          "bottom": 72,
+          "left": 232
+        },
+        "y": 4
+      }
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "edit",
+      "width": 1920,
+      "file": "after-admin-edit-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "publication",
+      "width": 1920,
+      "file": "after-admin-publication-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "revision",
+      "width": 1920,
+      "file": "after-admin-revision-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1440,
+      "file": "after-admin-calendar-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "unpublished-detail",
+      "width": 1440,
+      "file": "after-admin-unpublished-detail-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "published-detail",
+      "width": 1440,
+      "file": "after-admin-published-detail-1440.png"
+    },
+    {
+      "version": "after",
+      "width": 1440,
+      "state": "open-geometry",
+      "sizes": {
+        "calendar": {
+          "x": 257,
+          "y": 654,
+          "width": 1143,
+          "height": 1282,
+          "top": 654,
+          "right": 1400,
+          "bottom": 1936,
+          "left": 257
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 232,
+          "height": 1000,
+          "top": 0,
+          "right": 232,
+          "bottom": 1000,
+          "left": 0
+        },
+        "toolbar": {
+          "x": 232,
+          "y": 0,
+          "width": 1193,
+          "height": 72,
+          "top": 0,
+          "right": 1425,
+          "bottom": 72,
+          "left": 232
+        },
+        "y": 72
+      }
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "edit",
+      "width": 1440,
+      "file": "after-admin-edit-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "publication",
+      "width": 1440,
+      "file": "after-admin-publication-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "revision",
+      "width": 1440,
+      "file": "after-admin-revision-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1024,
+      "file": "after-admin-calendar-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "unpublished-detail",
+      "width": 1024,
+      "file": "after-admin-unpublished-detail-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "published-detail",
+      "width": 1024,
+      "file": "after-admin-published-detail-1024.png"
+    },
+    {
+      "version": "after",
+      "width": 1024,
+      "state": "open-geometry",
+      "sizes": {
+        "calendar": {
+          "x": 257,
+          "y": 323,
+          "width": 727,
+          "height": 1282,
+          "top": 323,
+          "right": 984,
+          "bottom": 1605,
+          "left": 257
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 232,
+          "height": 1000,
+          "top": 0,
+          "right": 232,
+          "bottom": 1000,
+          "left": 0
+        },
+        "toolbar": {
+          "x": 232,
+          "y": 0,
+          "width": 777,
+          "height": 72,
+          "top": 0,
+          "right": 1009,
+          "bottom": 72,
+          "left": 232
+        },
+        "y": 639
+      }
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "edit",
+      "width": 1024,
+      "file": "after-admin-edit-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "publication",
+      "width": 1024,
+      "file": "after-admin-publication-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "admin",
+      "state": "revision",
+      "width": 1024,
+      "file": "after-admin-revision-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "closed",
+      "width": 1920,
+      "file": "after-employee-closed-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "pending",
+      "width": 1920,
+      "file": "after-employee-pending-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "sealed",
+      "width": 1920,
+      "file": "after-employee-sealed-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "ledger",
+      "width": 1920,
+      "file": "after-employee-ledger-1920.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "closed",
+      "width": 1440,
+      "file": "after-employee-closed-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "pending",
+      "width": 1440,
+      "file": "after-employee-pending-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "sealed",
+      "width": 1440,
+      "file": "after-employee-sealed-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "ledger",
+      "width": 1440,
+      "file": "after-employee-ledger-1440.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "closed",
+      "width": 1024,
+      "file": "after-employee-closed-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "pending",
+      "width": 1024,
+      "file": "after-employee-pending-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "sealed",
+      "width": 1024,
+      "file": "after-employee-sealed-1024.png"
+    },
+    {
+      "version": "after",
+      "role": "employee",
+      "state": "ledger",
+      "width": 1024,
+      "file": "after-employee-ledger-1024.png"
+    }
+  ],
+  "errors": []
+}

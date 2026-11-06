@@ -1,0 +1,65 @@
+{
+  "origin": "https://qiuyun-frontend-4ngvy6wv6-opgobl1v-5358.vercel.app",
+  "protectedAccess": "authenticated Vercel CLI; project protection unchanged",
+  "sourceCommit": "e541f993ed322f927b33063c506b9f7acf9b9063",
+  "passed": true,
+  "checks": 10,
+  "matchingAssets": 4,
+  "businessWrites": false,
+  "details": [
+    {
+      "path": "/",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/login",
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/business/operations-schedule",
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/monthly-operations",
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/.env",
+      "status": 404,
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.Btb5WKld.css",
+      "status": 200,
+      "sha256": "91642536270b0e3865c8d05dfeeeb6502e7f28d5c9b4c8e4dc4a9c2e320b1241",
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.DDMgbaTg.css",
+      "status": 200,
+      "sha256": "98293c352596de4bffcad446a4682ffb4ac54139744017c0078d6213e16045e5",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessAccountManagement.astro_astro_type_script_index_0_lang.DcJVJmjH.js",
+      "status": 200,
+      "sha256": "7d71922496d28345fd728630f51cc2216e0925c44627a478ae80a79478588243",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessAccountMenu.astro_astro_type_script_index_0_lang.Cye6N0KN.js",
+      "status": 200,
+      "sha256": "763ee06b1c44f872c3143243f16e9b40ae6f98f1da45c7480057d26ee8cb5f86",
+      "passed": true
+    }
+  ]
+}

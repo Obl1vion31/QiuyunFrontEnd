@@ -1,0 +1,685 @@
+{
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "sourceCommit": "e541f993ed322f927b33063c506b9f7acf9b9063",
+  "checkedAt": "2026-11-06T20:58:19.367Z",
+  "businessWrites": false,
+  "databaseMigrations": false,
+  "checks": 99,
+  "matchingAssets": 75,
+  "passed": true,
+  "details": [
+    {
+      "path": "/",
+      "expected": 200,
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/api/auth/get-session",
+      "expected": 200,
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/business/annual-plan",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/operations-schedule",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/daily-promotion-review?view=history",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/login",
+      "expected": 200,
+      "status": 200,
+      "passed": true
+    },
+    {
+      "path": "/business/meeting-review",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/monthly-operations",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/business/settings",
+      "expected": 302,
+      "status": 302,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-daily",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/.env",
+      "expected": 404,
+      "status": 404,
+      "passed": true
+    },
+    {
+      "path": "/.tools/",
+      "expected": 404,
+      "status": 404,
+      "passed": true
+    },
+    {
+      "path": "/verified/2026-11-07_03-37_schedule-single-panel/README.md",
+      "expected": 404,
+      "status": 404,
+      "passed": true
+    },
+    {
+      "path": "/data/imports/private.xlsx",
+      "expected": 404,
+      "status": 404,
+      "passed": true
+    },
+    {
+      "path": "/src/db/schema.ts",
+      "expected": 404,
+      "status": 404,
+      "passed": true
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/non-promotion-reviews",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "label": "urlencoded-same",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessAccountManagement.astro_astro_type_script_index_0_lang.DcJVJmjH.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "7d71922496d28345fd728630f51cc2216e0925c44627a478ae80a79478588243",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessAccountMenu.astro_astro_type_script_index_0_lang.Cye6N0KN.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "763ee06b1c44f872c3143243f16e9b40ae6f98f1da45c7480057d26ee8cb5f86",
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "label": "urlencoded-external",
+      "expected": 403,
+      "status": 403,
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "label": "multipart-external",
+      "expected": 403,
+      "status": 403,
+      "passed": true
+    },
+    {
+      "path": "/api/meeting-reviews",
+      "label": "multipart-same",
+      "expected": 401,
+      "status": 401,
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.Km77BTam.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "1ddc91a8ab11b6dbf655c674f72b555c1a6274be2009004a6620111442ef89cb",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessConsoleFrame.astro_astro_type_script_index_0_lang.B4QalbT1.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "7e55c5c7eb6a4b5334fdf6769aef29f7167e980dcf657a573663f8d908e5f11a",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessMeetingDiscussion.BFBdesf4.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "30d443c34fa43251e80022e63ceecc6c33e10f3783d99c615630acfac05450db",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessMonthlyOperations.D_oLNEPL.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "f4498a1325fd943b1d30630342c84416de7b1f30ff62b5d049185171c2c2ff60",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPostLookup.astro_astro_type_script_index_0_lang.JuBDaBqF.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "6b11a1bdd002be62bb1979f44b45aabf124105122c844e636a2ec8cc5a8af985",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPostReferences.astro_astro_type_script_index_0_lang.lga9vyTA.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "48bdb6f66df52e2282c2d2420eceded6c30854d1e5142674f3fc2cafe12c42b1",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPromotionDailyPosts.astro_astro_type_script_index_0_lang.q59WpozM.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "5f9e492b86e1ed4d1badd7003698f26351b9868f388a475b2b6e332855b2a0ac",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPromotionInitialRow.astro_astro_type_script_index_0_lang.Be-gSqiZ.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "0de449dfec2c54f02e0122ffce5a3e5c3324947495fd4d630c0f9496d274d982",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPromotionMetricForm.astro_astro_type_script_index_0_lang.p13TAIkB.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "17b005c1fedadc10beddf7f5192a9aa8b975e68d8736bce828ff5ad1130ab9f2",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPromotionSummary.astro_astro_type_script_index_0_lang.BRKaioHO.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "66979c3a827dc863ea1c42aaae035e150a356005297348e7fc74f94aef1f6b7e",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPromotionTimeline.astro_astro_type_script_index_0_lang.8Lfy4CRP.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "d424b279a2ad45ad1958ddefcf0442e20917d5357b2f29ce23f3e67c00f7e574",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessPromotionWaitRanges.astro_astro_type_script_index_0_lang.b13wP7sM.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "9865a7b0d24eb1892cf0d2ceb4ada9c8e43bfbefdc7d59d628be3075d612f6ef",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessReviewDateAdd.astro_astro_type_script_index_0_lang.B4IlobwL.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "26157231138b390218ea87c36a767dcb96052b8fddb6e217aceb2b36c5bf193d",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessScheduleApprovals.astro_astro_type_script_index_0_lang.DKnx1CCJ.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "eb43f1c1e7d346166ed9c5232b425cffc62ae80eebdb078f8f6ba5e00ed27dcc",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessUsageGuide.astro_astro_type_script_index_0_lang.D8LZCbeq.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "c87284f01e4ee55cb6c0839982ae1e237684d7494d2eafe1173875f828b1eaab",
+      "passed": true
+    },
+    {
+      "path": "/_astro/BusinessWeeklyMeeting.BocvJfTV.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "fbf17158130d4883d8af81ee70939cfa6b596642bfbc6e454d540f1ad31801ad",
+      "passed": true
+    },
+    {
+      "path": "/_astro/ContentTunnel.BZoUH3j0.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "7541af23c855e3b9209a1c00e6973bcada37d2d0500baabde0d0d80b5a71168f",
+      "passed": true
+    },
+    {
+      "path": "/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CxYTjgcy.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "88e31c1c7f4ed075779fb3f2232eb2c13e3880144321c71fc115a3b1441e6b61",
+      "passed": true
+    },
+    {
+      "path": "/_astro/MeetingPdfArchive.Cc6FkBcd.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "d215958d58fb68596c02194e24b9edaa7ea1262221baeac48bacc62b4f69f287",
+      "passed": true
+    },
+    {
+      "path": "/_astro/MonthlyArrangementPanel.astro_astro_type_script_index_0_lang.B9yEafUu.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "97ad275263bf5449b3976c1396b1d9a96708e1b8d229d314c04b33da07f8128a",
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.Btb5WKld.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "91642536270b0e3865c8d05dfeeeb6502e7f28d5c9b4c8e4dc4a9c2e320b1241",
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.DDMgbaTg.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "98293c352596de4bffcad446a4682ffb4ac54139744017c0078d6213e16045e5",
+      "passed": true
+    },
+    {
+      "path": "/_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.CxwYJD_-.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "145cdd513ce1757ef11aaddde185080442e4dc9ea8fb156aa61e83f691c901f6",
+      "passed": true
+    },
+    {
+      "path": "/_astro/MonthlyMeetingSections.DyTjyQST.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "854274a1921f297e48c2530bc28ed8a1c8ac1766ca4b921835030dfd7a2a43cd",
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.2a1a2ace.CihPWSFE.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "a3a9acd0237117d26fde7c5cd838bba7232a99d3423104cfadc2666f4e5c28cc",
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.IdqvNyU-.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "30182d823527dafcc249f143c4539dfd65d0333e3c254945c36b09662ccad837",
+      "passed": true
+    },
+    {
+      "path": "/_astro/business-date.CvCuF-15.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "b79f1e35cb1010057900000ebba96e8edd84cc1a0f3759d311d61e22a1bf8eb2",
+      "passed": true
+    },
+    {
+      "path": "/_astro/annual-plan.astro_astro_type_script_index_0_lang.BkbWRCz8.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "4e945edec0df245547ee8ec75141fa527aa8ab2abe4fe9ba9c223de6d5bc3779",
+      "passed": true
+    },
+    {
+      "path": "/_astro/business-dialog.DhYOcfzU.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "a2fd42e767fa75fe698c72f241936cd8395a0cd1138e289440fab130640421b8",
+      "passed": true
+    },
+    {
+      "path": "/_astro/business-permissions.BhA4diT7.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "2e5751e36a078368fdd41884850238515b725ca77af36b46252b6e3f51486e29",
+      "passed": true
+    },
+    {
+      "path": "/_astro/business-read.8WAQSdWd.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "2c71216055395d13d2664cf5910c1be9ed352b984d9df9a80934300c09b7d671",
+      "passed": true
+    },
+    {
+      "path": "/_astro/client.B8feUfe4.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "a23769e6e3e2a894831cddee15086beaf2d46213978e34e5c789c209cfba4a05",
+      "passed": true
+    },
+    {
+      "path": "/_astro/client.B9YBqyHK.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "88d9bce13c18a572d5d36eca845e39627e3a59db7aa504359d35c0166c92cc6a",
+      "passed": true
+    },
+    {
+      "path": "/_astro/client.CEsBDP4Q.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "828aabcf9384e6b20692528608326e5d0ea61af1ff6182fa91177983afe7691c",
+      "passed": true
+    },
+    {
+      "path": "/_astro/daily-promotion-review.DDkRrfQi.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "10c2c30a6ffe3539734e84dafa1f8641c9ac7324d66a088ab9fb088af0f2421a",
+      "passed": true
+    },
+    {
+      "path": "/_astro/content-roles.DrA8x3ZQ.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "4532bce7b6947dcc3307dcae8aba0d325cca2d6ae7a83753ea35016be8758bce",
+      "passed": true
+    },
+    {
+      "path": "/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.WVYtTCMB.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "a8c2a5546acbcc0dfa7d1ed1c82a8994c12d04043d15a1f9febb84a47d595080",
+      "passed": true
+    },
+    {
+      "path": "/_astro/index.95d291e9.qz21F_Rw.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "a4741a17bb2af835fae505f9c2c999f491b32fcc93b842adf31252ef06d2a2b4",
+      "passed": true
+    },
+    {
+      "path": "/_astro/index.B324nrla.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "e48d2f4135db598d65cfa5e892be6b865f732e9001e3c5476d6bd38556f416cc",
+      "passed": true
+    },
+    {
+      "path": "/_astro/index.DK-fsZOb.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "189d85e28e1e7b5ab7b0b9c5f607449305ae07235e43b4691b4a119829a4a5ff",
+      "passed": true
+    },
+    {
+      "path": "/_astro/index.Dr6Snr5K.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "559e7a6edfb29c4736b2663f0f8cd582150e5513695638810b4b6d29b5bc3241",
+      "passed": true
+    },
+    {
+      "path": "/_astro/index.astro_astro_type_script_index_0_lang.DTHbvJWS.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "355eb958b829871db1940a0e580aa37ce181bfe134942aa6eb7c50b3b4d1723e",
+      "passed": true
+    },
+    {
+      "path": "/_astro/login.astro_astro_type_script_index_0_lang.Bspp03Y6.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "90e1da60a7556503ae9b7306389b78ff31d83f9f552652fdd2fe80655661901c",
+      "passed": true
+    },
+    {
+      "path": "/_astro/index.xK5eoQS5.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "b246049d5e89720c08120237807a33a15de7d99f3b2f653e0a33cf64161d9533",
+      "passed": true
+    },
+    {
+      "path": "/_astro/jsx-runtime.ClP7wGfN.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "de82fe12b132dad703e408ca84034a660e277a1de09b61203db07392bcc637de",
+      "passed": true
+    },
+    {
+      "path": "/_astro/login.astro_astro_type_script_index_1_lang.lfRSADdN.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "54f09991384e96756469dc318bed7e459127fa32b14a8238b1903d72fe59cfa8",
+      "passed": true
+    },
+    {
+      "path": "/_astro/meeting-finalization.CoN9nOdX.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "bbf494b1f6f8235b3771bdf1d4d9b8ce0d2c5ee1b6abb278062a83bc6d227baf",
+      "passed": true
+    },
+    {
+      "path": "/_astro/meeting-review.BT1OKsav.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "133450b39a6b725f9e783df58dfbe2654570030b5521bb79830dbc0853c56c9a",
+      "passed": true
+    },
+    {
+      "path": "/_astro/meeting-review.Ctc6iJ3c.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "3031685f0c4d22a7204e429601818d1f6aef6ca2468bd276dfc19562ed6ab1d3",
+      "passed": true
+    },
+    {
+      "path": "/_astro/meeting-review.astro_astro_type_script_index_0_lang.CbFyD9YB.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "d292aa0b855ec0dfc1a8bb2ea803bb61f8f3c7b7e3cdad722ba5c22c1f0efc65",
+      "passed": true
+    },
+    {
+      "path": "/_astro/meeting-review.DZIgO_Qn.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "a79dd72fd9d24535f2d3b1cae8360a7ec246790889d8081e6a052c783ae1fc89",
+      "passed": true
+    },
+    {
+      "path": "/_astro/monthly-operations.070dbe56.CdeLeUUa.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "8c50d2c02d2c5384661c954d47556447c1f176e9539cc9cfc4834d62dbfeedba",
+      "passed": true
+    },
+    {
+      "path": "/_astro/monthly-operations.D8SWnOZn.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "cba5b57bb9c6320f9d19d285e2b1614c4c255fe4327f10bb838ab53e8884b4f7",
+      "passed": true
+    },
+    {
+      "path": "/_astro/monthly-operations.astro_astro_type_script_index_0_lang.CbFyD9YB.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "d292aa0b855ec0dfc1a8bb2ea803bb61f8f3c7b7e3cdad722ba5c22c1f0efc65",
+      "passed": true
+    },
+    {
+      "path": "/_astro/non-promotion-nodes.CKPU0Rj_.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "c12ab3a482d1c0898cdad655509c7cadd28a02d2b99ab6fdda73919f0dcc6037",
+      "passed": true
+    },
+    {
+      "path": "/_astro/non-promotion-review.DBXhJYqt.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "4d20b40b21174ec6da9645be7f7d2847c88a1ae94e6f47ddad11461eb4276ff3",
+      "passed": true
+    },
+    {
+      "path": "/_astro/monthly-plan-types.AQFVG7BB.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "bb343192d3ba1e97bab71aba95449e127c40aab23e613c88084ca386c9ace6d6",
+      "passed": true
+    },
+    {
+      "path": "/_astro/non-promotion-review.astro_astro_type_script_index_0_lang.DrtzG7i5.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "bd083ba8d9838958a14cd7e80350aa90c0ab3159c7313f23edb04ec94ba46296",
+      "passed": true
+    },
+    {
+      "path": "/_astro/operation-types.DUci0iWZ.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "c610d43977a71434073850b5057b365b53bb485382cd457b6190a7143b483756",
+      "passed": true
+    },
+    {
+      "path": "/_astro/operations-schedule.4PxizzR8.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "ed7a6d027deb7624fe4d067ce77f6e622725a15f16764ab7d936de67a210621f",
+      "passed": true
+    },
+    {
+      "path": "/_astro/operations-schedule.DXWDwEpQ.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "32e9fa7872756f8e23302e83d41e24a5db44e3e6125d8bc779380415da36a554",
+      "passed": true
+    },
+    {
+      "path": "/_astro/operations-schedule.astro_astro_type_script_index_0_lang.Bgqt7qVB.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "0d5f6107968b39306558ebcf1000de7c6aa5695e719cefbb6f19b78a581a68f7",
+      "passed": true
+    },
+    {
+      "path": "/_astro/operations-schedule.astro_astro_type_script_index_1_lang.Dmrca_qb.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "121d94f4e7d8395d5564b31a418a135dfe262d68d0c2e8d7ff61f0818c85596a",
+      "passed": true
+    },
+    {
+      "path": "/_astro/operations-schedule.astro_astro_type_script_index_2_lang.D811r6tM.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "b6333722fbd3074d40cfa1f7bc4004ad903757c5209298c6306b19514bb57bdf",
+      "passed": true
+    },
+    {
+      "path": "/_astro/page.DosqaVe5.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "5bb5edfdb6e899ca3089c401da6ed0e0e43bde0246d42c1b769ba0eedf5223b8",
+      "passed": true
+    },
+    {
+      "path": "/_astro/promotion-editor-lifecycle.ChKbKqc0.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "974ba1082ddcfdffcae6f8a4e74c0863889826224b55406390b23ebe7b9cf025",
+      "passed": true
+    },
+    {
+      "path": "/_astro/promotion-successors.lf7qCunP.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "1cf1e77cfbf769370e4e6ddcca20e018b48e800c4ac45cb23f9cf4ec30897015",
+      "passed": true
+    },
+    {
+      "path": "/_astro/router.CxpQgbQp.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "42b4e363d31e9651cc2360f4c7491b24913277cae8450242ee0b54eafac7acae",
+      "passed": true
+    },
+    {
+      "path": "/_astro/schedule-execution-history.BTcD01oC.js",
+      "expected": 200,
+      "status": 200,
+      "sha256": "32f071bd70b7132881744cb6be48c687a443ad996bfc35e0144025100b23b139",
+      "passed": true
+    },
+    {
+      "path": "/_astro/settings.DM24Vu5q.css",
+      "expected": 200,
+      "status": 200,
+      "sha256": "90c90ad138d731bf53c470340bd8a9909ffbc9b6d648607a123e603222b36ee4",
+      "passed": true
+    },
+    {
+      "path": "/images/brand/qiuyun-mark.svg",
+      "expected": 200,
+      "status": 200,
+      "sha256": "d5be11f76530c5c046a8cc516e0921a57d5961c30a97f243aba4317a521c27c7",
+      "passed": true
+    },
+    {
+      "path": "/images/brand/qiuyun-mark.png",
+      "expected": 200,
+      "status": 200,
+      "sha256": "dc60f4e938ac17d4b40623767908a3fca29ebfa540d8c3dc014dac47d1b57614",
+      "passed": true
+    },
+    {
+      "path": "/fonts/misans-5.0.0/MiSansVF.00d0682c24b9e852.15.woff2",
+      "expected": 200,
+      "status": 200,
+      "sha256": "00d0682c24b9e85262ce9ce423720d10b245aa06c2174cd750f46a9842c4a8fa",
+      "passed": true
+    }
+  ]
+}

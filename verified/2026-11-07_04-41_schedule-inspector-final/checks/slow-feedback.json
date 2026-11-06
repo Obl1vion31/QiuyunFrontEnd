@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "source": "e541f99",
+  "delayMs": 2000,
+  "knownSummaryPreserved": true,
+  "feedbackTarget": "Inspector body, small status",
+  "fullBodyCover": false
+}

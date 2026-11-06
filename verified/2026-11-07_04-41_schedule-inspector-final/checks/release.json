@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "e541f993ed322f927b33063c506b9f7acf9b9063",
+  "baselineCommit": "a55ad52",
+  "deploymentId": "dpl_5HHXizYxzYPDeEphwhAjKvf57d3Q",
+  "candidate": "https://qiuyun-frontend-4ngvy6wv6-opgobl1v-5358.vercel.app",
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "ready": true,
+  "formalMatchesCandidate": true,
+  "checks": 99,
+  "matchingAssets": 75,
+  "businessWrites": false,
+  "databaseMigrations": false,
+  "mainStatus": "pending"
+}
