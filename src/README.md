@@ -24,7 +24,7 @@
 
 推广页承载每日／历史；新增阶段复盘进入周例会，`BusinessPromotionStageView` 只读展示旧快照。`meeting-review.astro` 区分旧 v2/v3 编辑与 v4 周／月例会，v4 候选／基准在 `db/meeting-weekly-material.ts`，卡片和编辑在 `BusinessWeeklyMeeting`／`WeeklyReviewCards`。图片只走认证接口，不放入公开资源。
 
-推广状态由 `db/promotion-timeline.ts` 维护业务日期、首次安排、实际当日暂停及历史更正；推广历史和排期通过同一组件展示。排期待审直接位于排期管理，设置向全员提供使用说明（维护区仅管理员），账号管理、操作授权和旧年度审核兼容地址继续仅管理员可用；学科和分类在年度规划内联追加，全站共用数据库字典。
+推广状态由 `db/promotion-timeline.ts` 维护业务日期、首次安排、实际当日暂停及历史更正；历史已登记日由 `db/promotion-day-edit.ts` 统一处理单日修改、相邻衔接与三天确认；推广历史和排期通过同一组件展示。排期待审直接位于排期管理，设置向全员提供使用说明（维护区仅管理员），账号管理、操作授权和旧年度审核兼容地址继续仅管理员可用；学科和分类在年度规划内联追加，全站共用数据库字典。
 
 例会准备使用既有 JSON 的 `workflowVersion=7`：按本次来源核对完整性，推广／非推广均回原入口补齐，正文只读引用非推广事实；会前／会后版本与安排由原控制器维护。`meeting-readiness.ts`、`promotion-review-required.ts` 统一完整性和日度应填口径。协作、查帖和账号管理分别由 Frame、共享控制器及受保护 API 接入；`BusinessAssistantEntry` 提供左栏／手机账号菜单中的助手入口，`BusinessPostLookup` 提供直接查帖的共享右侧面板，`non-promotion-table.css` 集中维护非推广列表的语义列与窄屏布局，不复制页面壳层。
 

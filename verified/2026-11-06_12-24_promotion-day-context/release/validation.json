@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "application": "c272394",
+  "rules": {
+    "command": "pnpm test",
+    "tests": 263,
+    "passed": 263,
+    "failed": 0
+  },
+  "checks": [
+    "Node build",
+    "Vercel production build",
+    "drizzle-kit check",
+    "desktop shared UI 1920/1440/1024",
+    "PostgreSQL single-day HTTP integration and true concurrency",
+    "actual Vercel function two-role browser",
+    "actual platform MiSans fonts",
+    "first paint: cold-slow-font / warm-reload / navigation"
+  ],
+  "productionBusinessWrites": false,
+  "screenshots": 54,
+  "desktopOnly": true
+}

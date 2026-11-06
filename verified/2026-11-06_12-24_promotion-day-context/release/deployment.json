@@ -1,0 +1,17 @@
+{
+  "status": "Ready",
+  "application": "c272394",
+  "baseline": "e6bfeae",
+  "branch": "codex/promotion-day-context",
+  "deploymentId": "dpl_8sw54Bbieib8L5LcQPdkDJ2Lc4VX",
+  "candidate": "https://qiuyun-frontend-otpi16ey8-opgobl1v-5358.vercel.app",
+  "canonical": "https://qiuyun-frontend.vercel.app",
+  "promoted": true,
+  "createdAtBeijing": "2026-11-06 12:28:51",
+  "candidateChecks": 20,
+  "candidateAssets": 4,
+  "productionChecks": 20,
+  "productionAssets": 70,
+  "productionBusinessWrites": false,
+  "databaseMigration": false
+}

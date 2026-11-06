@@ -1,0 +1,12 @@
+[
+  {
+    "clip": "promotion-day-1440",
+    "durationSeconds": 9.24,
+    "sampledFrames": 9
+  },
+  {
+    "clip": "first-paint-1440",
+    "durationSeconds": 8.32,
+    "sampledFrames": 8
+  }
+]
