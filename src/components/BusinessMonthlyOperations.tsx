@@ -30,9 +30,10 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
   try{
    const {readBusiness}=await import('../scripts/business-read');
    const result=await readBusiness(body.current!,async read=>{const response=await fetch('/api/monthly-operations?'+new URLSearchParams(next),{signal:read.signal});const value=await response.json();if(!response.ok)throw new Error(value.message||'读取失败，请重试。');return value as MonthlyWorkspace;},{label:`正在读取${monthLabel(next.month)}…`,isCurrent:()=>seq===generation.current});
-   if(result){setData(result);}
+   if(result){setData(result);return true;}
   }catch(e){if(seq===generation.current)setError(e instanceof Error?e.message:'读取失败，请重试。');}
   finally{if(seq===generation.current)setBusy(false);}
+  return false;
  }
  useEffect(()=>{
   let timer:ReturnType<typeof setTimeout>;

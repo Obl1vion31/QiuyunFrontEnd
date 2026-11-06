@@ -26,3 +26,23 @@ test('环比保留方向、零基数和未知的区别',()=>{
  assert.deepEqual(privateCostChange(0,0),{amount:0,percent:null});
  assert.equal(privateCostChange(null,100),null);
 });
+
+test('只有课程实际推广：无事实的空讲义不阻断学科与全站成本',()=>{
+ const data:SourcePrivateData={...sample,promotion:[
+  {...sample.promotion[0]}, {...sample.promotion[1],consulted:0},
+  {subjectId:'tmua',demand:'handout',added:null,consulted:null,converted:null},
+  {subjectId:'interview',demand:'handout',added:null,consulted:null,converted:null},
+ ]};
+ const promotion=sourcePromotionRows(data,[{subjectId:'tmua',demand:'course'},{subjectId:'interview',demand:'course'}]);
+ assert.equal(promotion.length,2);
+ assert.deepEqual(sourceCountsProjection({...data,promotion}).total,{added:4,consulted:3,converted:2});
+ assert.deepEqual(privateUnitCosts(5580.53,sumPrivateCounts(promotion)),{added:1395.13,consulted:1860.18,converted:2790.27});
+});
+
+test('全空行按实际事实判定，手填真实零不被清除',()=>{
+ const data:SourcePrivateData={...sample,promotion:[{subjectId:'tmua',demand:'handout',added:null,consulted:null,converted:null},{subjectId:'step',demand:'mock',added:0,consulted:null,converted:0}]};
+ assert.equal(sourcePromotionRows(data,[]).length,1);
+ const rows=sourcePromotionRows(data,[{subjectId:'tmua',demand:'handout'}]);
+ assert.equal(rows.length,2);
+ assert.deepEqual(sumPrivateCounts(rows),{added:null,consulted:null,converted:null});
+});

@@ -1,0 +1,30 @@
+.monthly-cost-results{min-width:0;container:monthly-costs / inline-size;font-variant-numeric:tabular-nums}
+.mc-comparison{margin:16px 0 -8px;font:400 12px/20px var(--console-font);color:var(--console-muted)}.mc-comparison time{margin-left:6px}
+.mc-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:20px 0 24px;padding:0;background:#f4f7fb;border:1px solid var(--console-line);border-radius:10px;overflow:hidden}
+.mc-metrics>div{min-width:0;padding:18px 20px;display:grid;grid-template-rows:22px 34px auto;align-content:start;gap:8px;border-top:1px solid var(--console-line)}
+.mc-metrics>div:nth-child(-n+2){border-top:0}.mc-metrics>div:nth-child(even){border-left:1px solid var(--console-line)}
+.monthly-cost-results .mc-metrics dt{font:500 13px/22px var(--console-font);color:var(--console-muted)}
+.mc-metrics dd{margin:0;min-width:0}
+.mc-metrics .mc-value{font:600 25px/34px var(--console-font);color:var(--console-ink);white-space:nowrap}
+.mc-evidence{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;font:400 12px/20px var(--console-font);color:var(--console-muted)}
+.mc-evidence>span{white-space:nowrap}.mc-evidence .ps-change{margin:0;justify-content:flex-start}
+.mc-trends{margin:0 0 24px}
+.mc-trends>header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
+.mc-trends>header h3{margin:0!important;font:600 15px/24px var(--console-font);color:var(--console-ink)}
+.mc-trends>header>span,.mc-trend>header>span,.mc-progress{font:400 12px/20px var(--console-font);color:var(--console-muted)}
+.mc-platform-trends,.mc-private-trends{display:grid;gap:24px}
+.mc-platform-trends{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mc-private-trends{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:20px;padding-top:20px;border-top:1px solid var(--console-line)}
+.mc-trend{min-width:0}.mc-trend>header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.mc-trend h4{margin:0;font:500 14px/22px var(--console-font);color:var(--console-ink)}
+.mc-trend .report-trend{margin-top:12px;color:#617fa9}
+.mc-trend .report-trend figcaption>span:nth-child(2){display:none}
+.mc-trend .report-trend circle{display:none}
+.mc-trend .report-trend-point>button::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#fff;border:1.5px solid #617fa9;border-radius:50%}
+.mc-trend .report-trend-point[data-current]>button::after{width:8px;height:8px;background:#617fa9}
+.mc-progress{display:block;text-align:right}
+@container monthly-costs (min-width:900px){.mc-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.mc-metrics>div{border-top:1px solid var(--console-line);border-left:0}.mc-metrics>div:nth-child(-n+3){border-top:0}.mc-metrics>div:nth-child(3n+2),.mc-metrics>div:nth-child(3n){border-left:1px solid var(--console-line)}}
+@container monthly-costs (min-width:1500px){.mc-metrics{grid-template-columns:repeat(6,minmax(0,1fr))}.mc-metrics>div{border-top:0}.mc-metrics>div+div{border-left:1px solid var(--console-line)}}
+@container monthly-costs (max-width:700px){.mc-private-trends{grid-template-columns:1fr}.mc-platform-trends{grid-template-columns:1fr}.mc-trend .report-trend-plot{max-width:100%}.mc-platform-trends,.mc-private-trends{gap:20px}}
+@container monthly-costs (max-width:480px){.mc-metrics{grid-template-columns:1fr}.mc-metrics>div:nth-child(n){border-left:0;border-top:1px solid var(--console-line)}.mc-metrics>div:first-child{border-top:0}.mc-trends>header{flex-wrap:wrap}.mc-metrics>div{padding:16px}}
+@media print{.mc-metrics{grid-template-columns:repeat(3,minmax(0,1fr));margin:10px 0 18px;break-inside:avoid}.mc-metrics>div{padding:12px 14px;border-top:1px solid var(--console-line);border-left:0}.mc-metrics>div:nth-child(-n+3){border-top:0}.mc-metrics>div:nth-child(3n+2),.mc-metrics>div:nth-child(3n){border-left:1px solid var(--console-line)}.mc-metrics .mc-value{font-size:23px;line-height:32px}.mc-platform-trends{grid-template-columns:repeat(2,minmax(0,1fr))}.mc-private-trends{grid-template-columns:repeat(3,minmax(0,1fr))}.mc-trend{break-inside:avoid}.mc-trend .report-trend circle{display:initial;vector-effect:non-scaling-stroke}.mc-trends>header{break-after:avoid}.mc-progress{font-size:11px}}

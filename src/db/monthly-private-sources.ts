@@ -19,7 +19,7 @@ export function privateUnitCosts(spend:number|null,counts:PrivateCounts){
 }
 export function sourcePromotionRows(data:SourcePrivateData,scope:Array<{subjectId:string;demand:DemandType}>){
  const keys=new Map(scope.map(row=>[`${row.subjectId}:${row.demand}`,row]));
- for(const row of data.promotion)keys.set(`${row.subjectId}:${row.demand}`,row);
+ for(const row of data.promotion)if(privateFields.some(key=>row[key]!==null))keys.set(`${row.subjectId}:${row.demand}`,row);
  return [...keys.values()].map(row=>({...row,...(data.promotion.find(value=>value.subjectId===row.subjectId&&value.demand===row.demand)??emptyCounts())}));
 }
 export function privateCostChange(value:number|null,previous:number|null){

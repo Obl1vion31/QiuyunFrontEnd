@@ -4,6 +4,8 @@
 
 `pnpm test:private-sources` 使用本机 `TEST_POSTGRES_URL` 创建独立临时 PostgreSQL，运行正式构建组件、API和PDF渲染器；完成后清理临时库，不读取生产环境。`PRIVATE_SOURCE_EVIDENCE_DIR` 指定产物，`PRIVATE_SOURCE_KEEP_SERVER=1` 可保留本地预览进程供查看。覆盖来源增删改、零／缺值、旧口径拒绝写入、失败重试、慢保存新输入、角色、月会实时／冻结对照与三档桌面；159人自然来源不混入推广成本。前置缺费专项对照尚无消耗记录与真实登记0元，表格、汇总及只读录入均保持区别。首屏与操作分别录制，最终图须查看后才归档。纯规则见 `private-sources.test.ts`，当前封存主流程 `scheduling-review.integration.ts` 使用同一新格式。
 
+`private-costs-repair.browser.ts`从旧口径真实打开录入器，复现仅课程实际推广、排期含讲义及已存全空占位，验证独立完整性、真实0记录、无私域上月的平台比较、保存成功后503读取与只读重试、慢刷新新输入、切月竞争、默认折叠和冻结六个月趋势。`COST_REPAIR_DIR`指定证据目录；`COST_REPAIR_ENTRY`可指定实际Vercel运行包适配入口，同一隔离夹具执行。桌面1920／1440／1024与有限390px，截图及PDF必须实际查看后归档。
+
 `pnpm test:meeting-transfer` 使用本机隔离 PostgreSQL，将同一批含多版冻结材料、决定继承／撤销／更正及上海月界的样本交给正式基线与当前实现。指定已独立安装和构建的基线工作树 `MEETING_BASELINE_SOURCE`；`MEETING_TRANSFER_DIR` 指定产物目录。逐项核对决定、上下文、时间线、周／月材料、旧版材料、接口完整 JSON 和实际页面正文，并在 TCP 层计量数据库返回字节与查询次数；覆盖深层帖子引用、非字符串误匹配、草稿、失效版及缺缓存材料的V4旧草稿阶段选择器。比较不连接共享 Neon，样本变化不能当作正式月流量比例。
 
 `pnpm test:network-transfer` 使用本机隔离 PostgreSQL、TCP转发计数及真实浏览器，核对提醒全部字段、两小时边界、旧修订排除、悬停不读动态页、一次实际导航、SSR复用、一分钟计时器、恢复合并、慢读取期间的保存刷新和失败恢复。`NETWORK_EVIDENCE_DIR` 指定目录；`NETWORK_BASELINE_RESULT` 可传原版结果，严格比较口径和数据库返回字节。原版测量须先检出并构建对应源码，再用 `NETWORK_BASELINE=1` 运行同一夹具；样本字节变化不当作正式站月度节省比例。计时器专项使用浏览器时钟，实际后台观察另走当前冲突专项。

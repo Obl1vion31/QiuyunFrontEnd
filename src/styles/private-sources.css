@@ -73,3 +73,14 @@
 @container(max-width:540px){.ps-totals{grid-template-columns:1fr;gap:16px}.ps-totals>div+div{border-left:0}}
 
 .private-source-results .ps-table-scroll tbody tr:last-child td{border-bottom:1px solid var(--console-line)}
+.ps-disclosure>summary{display:flex;align-items:baseline;gap:10px;cursor:pointer;padding:10px 0;list-style:none}
+.ps-disclosure>summary::before{content:'';width:7px;height:7px;flex:none;border-top:1.5px solid currentColor;border-right:1.5px solid currentColor;transform:rotate(45deg);transition:transform 220ms ease}
+.ps-disclosure[open]>summary::before{transform:rotate(135deg)}
+.ps-disclosure>summary::-webkit-details-marker{display:none}
+.ps-disclosure>summary h3{margin:0!important;font:600 15px/24px var(--console-font);color:var(--console-ink)}
+.ps-disclosure>summary>span{margin-left:auto;font:400 12px/20px var(--console-font);color:var(--console-muted)}
+.ps-disclosure[open]>summary{margin-bottom:12px}
+.ps-disclosure+.ps-disclosure{margin-top:10px;padding-top:10px}
+.ps-legacy-records .monthly-table-scroll:has(tbody:empty){display:none}
+@media(prefers-reduced-motion:reduce){.ps-disclosure>summary::before{transition:none}}
+@media print{.ps-disclosure>summary{break-after:avoid}.ps-disclosure .ps-table-scroll{overflow:visible}.ps-disclosure{break-inside:auto!important}}

@@ -1,12 +1,12 @@
-import {eq} from 'drizzle-orm';
+import {and,eq,gte,inArray,isNull,lt} from 'drizzle-orm';
 import {z} from 'zod';
 import type {Database} from './client';
-import {operationsMonthlyPrivate as privateTable,operationsMonthlyCostMapping as mappingTable} from './schema';
-import {demandTypes,demandLabels,emptyCounts,type DemandType,type PrivateData} from './monthly-plan-types';
+import {operationsMonthlyPrivate as privateTable,operationsMonthlyCostMapping as mappingTable,operationsPromotionDailyMetric as metricTable,operationsPromotionCampaign as campaignTable,operationsContentSchedule as scheduleTable,operationsContentVersion as versionTable} from './schema';
+import {adjacentMonth,demandTypes,demandLabels,emptyCounts,type DemandType,type PrivateData} from './monthly-plan-types';
 import {WorkflowError} from './schedule-workflow';
 import {readTaxonomy} from './taxonomy-store';
 import {lockPromotionWorkflow} from './promotion-pauses';
-import {isSourcePrivateData,sourceCountsProjection,sourcePromotionRows,privateUnitCosts} from './monthly-private-sources';
+import {emptySourcePrivateData,isSourcePrivateData,sourceCountsProjection,sourcePromotionRows,privateUnitCosts} from './monthly-private-sources';
 import type {StoredPrivateData} from './monthly-plan-types';
 
 export const monthSchema=z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
@@ -16,8 +16,8 @@ const legacyDataInput=z.object({total:counts,rows:z.array(counts.extend({subject
 export const privateInput=z.object({month:monthSchema,expectedRevision:z.number().int().min(-1),data:z.union([sourceDataInput,legacyDataInput])}).strict();
 export const mappingInput=z.object({expectedRevision:z.number().int().min(-1),entries:z.record(z.string(),z.enum(demandTypes).nullable())}).strict();
 const defaultDemand=(id:string):DemandType|null=>['small-class-or-tutoring','large-class','intensive-course','interview-course'].includes(id)?'course':['promotional-handout','non-promotional-handout'].includes(id)?'handout':id==='mock-exam'?'mock':null;
-export async function readCostMapping(db:Database){
- const [row]=await db.select().from(mappingTable).where(eq(mappingTable.id,'global'));const taxonomy=await readTaxonomy(db);
+export async function readCostMapping(db:Database,taxonomy?:Awaited<ReturnType<typeof readTaxonomy>>){
+ const [row]=await db.select().from(mappingTable).where(eq(mappingTable.id,'global'));taxonomy??=await readTaxonomy(db);
  const entries=Object.fromEntries(taxonomy.subjectCategoryMappings.map(m=>{const key=`${m.subjectId}:${m.categoryId}`;return [key,row&&key in row.entries?row.entries[key]:defaultDemand(m.categoryId)];}));
  return {entries,revision:row?.revision??-1,taxonomy,updatedAt:row?.updatedAt.toISOString()??null};
 }
@@ -30,7 +30,14 @@ export async function savePrivate(db:Database,input:z.infer<typeof privateInput>
   if(isSourcePrivateData(incoming)){const ids=new Set<string>(),names=new Set<string>();for(const row of incoming.nonPromotion){const name=`${row.subjectId}:${row.source.trim()}`;if(ids.has(row.id)||names.has(name)||!taxonomy.subjects.some(s=>s.id===row.subjectId))throw new WorkflowError('来源名称重复或学科已失效，请核对。',422);ids.add(row.id);names.add(name);}}
   const [old]=await tx.select().from(privateTable).where(eq(privateTable.month,input.month)).for('update');
   if(old&&isSourcePrivateData(old.data)&&!source)throw new WorkflowError('私域录入方式已更新，请刷新后继续；当前输入请先保留。',409);
-  const data:StoredPrivateData=isSourcePrivateData(incoming)?{...incoming,...sourceCountsProjection(incoming)}:{...incoming,rows:incoming.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null))};
+  let data:StoredPrivateData;
+  if(isSourcePrivateData(incoming)){
+   const facts=await tx.selectDistinct({subjectId:versionTable.subjectId,categoryId:versionTable.categoryId}).from(metricTable).innerJoin(campaignTable,eq(campaignTable.id,metricTable.campaignId)).innerJoin(scheduleTable,eq(scheduleTable.id,campaignTable.scheduleId)).innerJoin(versionTable,eq(versionTable.id,scheduleTable.contentVersionId)).where(and(gte(metricTable.metricDate,input.month+'-01'),lt(metricTable.metricDate,adjacentMonth(input.month,1)+'-01'),isNull(scheduleTable.cancelledAt)));
+   const mapping=await readCostMapping(tx,taxonomy);
+   const scope=facts.flatMap(f=>{const demand=mapping.entries[`${f.subjectId}:${f.categoryId??''}`];return demand?[{subjectId:f.subjectId,demand}]:[];});
+   const normalized={...incoming,promotion:sourcePromotionRows(incoming,scope)};
+   data={...normalized,...sourceCountsProjection(normalized)};
+  }else data={...incoming,rows:incoming.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null))};
   const history=[...(old?.history??[])];
   if(source&&old&&!isSourcePrivateData(old.data)&&!history.length)history.push({at:old.updatedAt.toISOString(),actor:old.updatedBy,data:old.data});
   const values={data,revision:(old?.revision??-1)+1,updatedAt:new Date(),updatedBy:actor,history:[...history,{at:new Date().toISOString(),actor,data}]};
@@ -46,15 +53,28 @@ export async function saveCostMapping(db:Database,input:z.infer<typeof mappingIn
  });
 }
 export const privateCosts=privateUnitCosts;
-export async function readMonthlyPrivate(db:Database,base:{query:{month:string;subject:string};taxonomy:Awaited<ReturnType<typeof readTaxonomy>>;categories:Array<{key:string;subjectId:string;spend:number|null}>;spend:{spend:number|null};promotionScope?:Array<{subjectId:string;categoryId:string|null}>},includeSources=false){
- const [row]=await db.select({data:privateTable.data,revision:privateTable.revision,updatedAt:privateTable.updatedAt,updatedBy:privateTable.updatedBy}).from(privateTable).where(eq(privateTable.month,base.query.month));const mapping=await readCostMapping(db);
+export async function readMonthlyPrivateContext(db:Database,months:string[],includeSources=false,taxonomy?:Awaited<ReturnType<typeof readTaxonomy>>){
+ const [rows,mapping,catalog]=await Promise.all([
+  db.select({month:privateTable.month,data:privateTable.data,revision:privateTable.revision,updatedAt:privateTable.updatedAt,updatedBy:privateTable.updatedBy}).from(privateTable).where(inArray(privateTable.month,months)),
+  readCostMapping(db,taxonomy),
+  includeSources?db.select({data:privateTable.data}).from(privateTable).orderBy(privateTable.updatedAt):Promise.resolve([]),
+ ]);
+ const sourceOptions=[...new Map(catalog.flatMap(r=>isSourcePrivateData(r.data)?r.data.nonPromotion.map(({id,subjectId,source})=>[id,{id,subjectId,source}] as const):[])).values()];
+ return {rows:new Map(rows.map(row=>[row.month,row])),mapping,sourceOptions};
+}
+type PrivateBase={query:{month:string;subject:string};taxonomy:Awaited<ReturnType<typeof readTaxonomy>>;categories:Array<{key:string;subjectId:string;spend:number|null}>;spend:{spend:number|null};promotionScope?:Array<{subjectId:string;categoryId:string|null}>};
+export async function readMonthlyPrivate(db:Database,base:PrivateBase,includeSources=false,context?:Awaited<ReturnType<typeof readMonthlyPrivateContext>>){
+ return buildMonthlyPrivate(base,context??await readMonthlyPrivateContext(db,[base.query.month],includeSources,base.taxonomy));
+}
+export function buildMonthlyPrivate(base:PrivateBase,context:Awaited<ReturnType<typeof readMonthlyPrivateContext>>){
+ const row=context.rows.get(base.query.month),mapping=context.mapping;
  const stored=row?.data??{total:emptyCounts(),rows:[],note:''};
  const sourceData=isSourcePrivateData(stored)?stored:null;
  const promotionScope=base.categories.flatMap(c=>{const demand=mapping.entries[c.key];return demand?[{subjectId:c.subjectId,demand}]:[];});
- const sourceRows=sourceData?sourcePromotionRows(sourceData,promotionScope):[];
+ const sourceRows=sourcePromotionRows(sourceData??emptySourcePrivateData(),promotionScope);
  const data:PrivateData=sourceData?sourceCountsProjection({...sourceData,promotion:sourceRows}):stored as PrivateData;
  const scope=base.promotionScope??base.categories.map(c=>({subjectId:c.subjectId,categoryId:c.key.split(':')[1]}));
- const activeSubjects=new Set([...scope.map(s=>s.subjectId),...data.rows.map(r=>r.subjectId)]);
+ const activeSubjects=new Set(sourceData?[...base.categories.map(c=>c.subjectId),...sourceRows.map(r=>r.subjectId)]:[...scope.map(s=>s.subjectId),...data.rows.map(r=>r.subjectId)]);
  const subjects=base.taxonomy.subjects.filter(s=>activeSubjects.has(s.id)&&(!base.query.subject||s.id===base.query.subject)).map(subject=>{
   const categories=base.categories.filter(c=>c.subjectId===subject.id);const spend=categories.some(c=>c.spend!==null)?categories.reduce((n,c)=>n+(c.spend??0),0):null;
   const total=data.rows.find(r=>r.subjectId===subject.id&&r.demand==='total')??emptyCounts();
@@ -66,7 +86,5 @@ export async function readMonthlyPrivate(db:Database,base:{query:{month:string;s
  const completeSubjects=subjects.every(s=>[s.counts,...s.demands.map(d=>d.counts)].every(v=>Object.values(v).filter(n=>typeof n!=='string').every(n=>n!==null)));
  const status=!values.some(v=>v!==null)?'missing':values.every(v=>v!==null)&&completeSubjects?'complete':'partial';
  const unmapped=subjects.reduce((n,s)=>n+s.unmapped,0),totalSpend=base.spend.spend;
- const catalog=includeSources?await db.select({data:privateTable.data}).from(privateTable).orderBy(privateTable.updatedAt):[];
- const sourceOptions=[...new Map(catalog.flatMap(r=>isSourcePrivateData(r.data)?r.data.nonPromotion.map(({id,subjectId,source})=>[id,{id,subjectId,source}] as const):[])).values()];
- return {data,sourceData:sourceData?{schemaVersion:2 as const,promotion:sourceRows,nonPromotion:sourceData.nonPromotion,note:sourceData.note}:null,sourceOptions,subjectNames:Object.fromEntries(base.taxonomy.subjects.map(s=>[s.id,s.name])),totalSpend,revision:row?.revision??-1,updatedAt:row?.updatedAt.toISOString()??null,updatedBy:row?.updatedBy??null,status,totalCosts:privateUnitCosts(sourceData&&unmapped>0?null:totalSpend,data.total),subjects,unmapped,mappingRevision:mapping.revision};
+ return {data,promotionRows:sourceRows,sourceData:sourceData?{schemaVersion:2 as const,promotion:sourceRows,nonPromotion:sourceData.nonPromotion,note:sourceData.note}:null,sourceOptions:context.sourceOptions,subjectNames:Object.fromEntries(base.taxonomy.subjects.map(s=>[s.id,s.name])),totalSpend,revision:row?.revision??-1,updatedAt:row?.updatedAt.toISOString()??null,updatedBy:row?.updatedBy??null,status,totalCosts:privateUnitCosts(sourceData&&unmapped>0?null:totalSpend,data.total),subjects,unmapped,mappingRevision:mapping.revision};
 }
