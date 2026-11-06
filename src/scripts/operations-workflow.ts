@@ -135,7 +135,6 @@ function initialize() {
       const pending = workflow.days.filter(day => !day.saved && !day.archived);
       const saved = workflow.days.filter(day => day.saved);
       if(switched){const reference=document.querySelector<HTMLDetailsElement>('.inspector-reference');if(reference)reference.open=workflow.registrationState!=='missing'&&!pending.length;}
-      const pendingRequest = workflow.applications.find(application => application.status === 'pending');
       if (workflow.registrationState === 'missing') {
         const warning=element('p','尚未登记');warning.className='workflow-registration-warning';warning.setAttribute('role','status');panel!.append(warning);
       }
