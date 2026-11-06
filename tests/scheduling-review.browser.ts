@@ -7,9 +7,9 @@ import {seedLinkPost} from './monthly-plan-links.fixture';
 import {admin,employee} from './auth.fixture';
 import {respondToBusinessConfirm,settleBusinessUI} from './business-confirm.helper';
 import * as s from '../src/db/schema';
-const dir='.tools/test-artifacts/scheduling-review/browser';await mkdir(dir+'/screenshots',{recursive:true});
+const dir=process.env.SCHEDULE_REVIEW_DIR??'.tools/test-artifacts/scheduling-review/browser';await mkdir(dir+'/screenshots',{recursive:true});
 const clockFile=new URL('../'+dir+'/clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-05T12:00:00+08:00');
-const f=await startPostgresFixture({clockFile}),{db,baseURL}=f;let browser:any,staffContext:any,bossContext:any,page:any;const errors:string[]=[],checks:string[]=[],images:string[]=[];
+const f=await startPostgresFixture({clockFile,entry:process.env.SCHEDULE_REVIEW_ENTRY}),{db,baseURL}=f;let browser:any,staffContext:any,bossContext:any,page:any;const errors:string[]=[],checks:string[]=[],images:string[]=[];
 async function shot(name:string,target=page){await settleBusinessUI(target);await target.mouse.move(0,0);await target.screenshot({path:dir+'/screenshots/'+name+'.png'});images.push(name+'.png');assert(await target.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),name+' 页面溢出');}
 async function login(context:any,actor:any){const r=await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:actor});assert.equal(r.status(),200);return (await context.cookies()).map((c:any)=>c.name+'='+c.value).join('; ');}
 try{

@@ -1,0 +1,28 @@
+{
+  "sourceCommit": "27245f9c371a6d2c5bf2922795ed1ad13f4a8d4d",
+  "runtime": ".vercel/output/functions/_render.func/dist/server/entry.mjs",
+  "passed": true,
+  "complete": true,
+  "results": [
+    {
+      "name": "panel",
+      "code": 0,
+      "ms": 45778
+    },
+    {
+      "name": "gate",
+      "code": 0,
+      "ms": 11379
+    },
+    {
+      "name": "workspace",
+      "code": 0,
+      "ms": 73278
+    },
+    {
+      "name": "monthly",
+      "code": 0,
+      "ms": 38952
+    }
+  ]
+}

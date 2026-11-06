@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "images": 42,
+  "media": [
+    {
+      "duration": 18.72,
+      "time": 0.3848,
+      "source": "http://localhost:41319/media/interaction-1440.mp4"
+    },
+    {
+      "duration": 4.36,
+      "time": 0.4174,
+      "source": "http://localhost:41319/media/deep-scroll-1440.mp4"
+    }
+  ],
+  "range": true,
+  "errors": []
+}
