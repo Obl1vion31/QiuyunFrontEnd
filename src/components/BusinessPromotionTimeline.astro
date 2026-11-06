@@ -47,7 +47,7 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
  {renderedRows.map(({row,range,date,waiting,end,nextDue,label,editable,statusEdit})=><article class:list={[{"timeline-daily-row":!history}]} data-timeline-row={row.scheduleId} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={row.campaign?promotionLabels[row.campaign.currentStatus==='waiting_action'?(row.campaign.currentStage==='testing'?'test_pending':'promotion_paused'):row.campaign.currentStatus]:promotionLabels[row.promotionStatus]??row.promotionStatus}>
    {!embedded&&<header><div class="timeline-identity"><strong>{row.contentName}</strong><span>V{row.versionNumber} · {row.subjectName}</span></div><time>{date}</time><mark>{label}{waiting&&<small>{end?`至 ${end}（含当天）`:'未设截止日'}</small>}</mark></header>}
    {row.plan?.plannedOn&&!row.campaign&&<p>{row.plan.plannedOn} 计划{row.plan.plannedStage==='scaling'?'放量':'测试'}，请确认当天实际状态。</p>}
-   {editable&&history&&statusEdit&&statusEdit.options.length>0&&<details data-history-status-edit><summary>更正 {date} 的当日状态</summary>
+   {editable&&history&&!businessDate&&statusEdit&&statusEdit.options.length>0&&<details data-history-status-edit><summary>更正 {date} 的当日状态</summary>
     <form class="business-form timeline-state-form" data-timeline-form data-fingerprint={row.fingerprint} data-original-next={statusContext?.metrics.find(m=>m.campaignId===row.campaign?.id&&m.metricDate===date)?.reviewDecision}>
      <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="action" value="status"/><input type="hidden" name="reviewDate" value={date}/>
      <label>当日状态<select name="targetStatus" required><option value="">请选择</option>{statusEdit.options.map(option=><option value={option.value}>{option.label}</option>)}</select></label>
@@ -66,12 +66,12 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
      <button type="submit" class="business-action-primary">保存当日安排</button><output role="alert"/>
     </form>
    </details>}
-   {nextDue&&<form class="business-form timeline-next-form" data-timeline-form data-optional-wait={!range} data-fingerprint={row.fingerprint}>
+   {nextDue&&!businessDate&&<form class="business-form timeline-next-form" data-timeline-form data-optional-wait={!range} data-fingerprint={row.fingerprint}>
     <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={end??date}/><input type="hidden" name="action" value={range?'next':'plan'}/>{range&&<input type="hidden" name="rangeId" value={range.id}/>}
     <label>{end??date} 的下一步<select name="nextDecision" required><option value="">请选择</option>{!range?<><option value="wait_continue">继续待定</option><option value="start_testing">开始测试</option><option value="start_scaling">直接放量</option></>:range.stageType==='testing'?<><option value="test_continue">恢复测试</option><option value="restart_testing">重新开始测试</option><option value="start_scaling">开始放量</option><option value="test_discarded">测试淘汰</option></>:<><option value="scaling_continue">恢复推广</option><option value="formal_discarded">放量淘汰</option><option value="ended">推广结束</option></>}</select></label>
     {!range&&<label data-timeline-through hidden>待定至（可不选）<input type="date" name="waitingThrough" min={nextDateKey(end??date)} disabled/></label>}<button type="submit" class="business-action-primary">保存下一步</button><output role="alert"/>
    </form>}
-   {waiting&&editable&&<details><summary>调整待定截止日</summary><form class="business-form timeline-next-form" data-timeline-form data-optional-wait={!range} data-fingerprint={row.fingerprint}>
+   {waiting&&editable&&!businessDate&&<details><summary>调整待定截止日</summary><form class="business-form timeline-next-form" data-timeline-form data-optional-wait={!range} data-fingerprint={row.fingerprint}>
     <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={range?end!:row.publishedOn}/><input type="hidden" name="action" value={range?'next':'wait'}/>{range&&<><input type="hidden" name="rangeId" value={range.id}/><input type="hidden" name="nextDecision" value="wait_continue"/></>}
     <label>{range?'待定至（含当天）':'待定至（可不选）'}<input type="date" name="waitingThrough" value={end??undefined} min={range?.startedOn??row.publishedOn} required={!!range}/></label><label>调整原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存截止日</button><output role="alert"/>
    </form></details>}

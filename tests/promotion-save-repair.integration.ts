@@ -39,18 +39,18 @@ try{
   const fixture=await seed('历史淘汰影响 '+kind,kind),rows=await api(boss,'/api/promotion-timeline?schedule='+fixture.post.schedule.id);
   const input={scheduleId:fixture.post.schedule.id,reviewDate:'2026-10-28',action:'status',targetStatus:'test_discarded',reason:'从这一天起淘汰，调整后续安排',requestKey:randomUUID(),fingerprint:rows[0].fingerprint};
   await api(staff,'/api/promotion-timeline',input,403);
-  const preview=await api(boss,'/api/promotion-timeline',input,409);assert(preview.confirmationRequired);assert.equal(preview.impact.dailyMetrics,2);
-  assert.equal((await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,fixture.campaign.id))).length,4);
-  const done=await api(boss,'/api/promotion-timeline',{...input,confirmImpact:true});assert(done.ok);await api(boss,'/api/promotion-timeline',{...input,confirmImpact:true});
-  const kept=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,fixture.campaign.id));assert.equal(kept.length,2);assert(kept.every(m=>Number(m.spend)===20));
+  const rejected=await api(boss,'/api/promotion-timeline',input,422);assert(rejected.message.includes('不能衔接'));
+  const kept=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,fixture.campaign.id));assert.equal(kept.length,4);assert(kept.every(m=>Number(m.spend)===20));
   if(fixture.versionId)assert.deepEqual((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,fixture.versionId)))[0].snapshot,fixture.frozen);
-  const audits=await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,fixture.post.schedule.id));assert(audits.some(a=>a.action==='status'&&(a.before.metrics as any[]).length===4&&(a.after.metrics as any[]).length===2));
-  checks.push(kind+'：真正影响预览、确认后归档后两天、幂等；冻结会后版本不变');
+  checks.push(kind+'：单日淘汰不能接后续测试，明确拒绝，不删除4天事实，不改变冻结会议');
+
  }
  const pair=await seed('暂停待定互改','paused');
  for(const targetStatus of ['test_pending','test_paused']){
   const [row]=await api(staff,'/api/promotion-timeline?schedule='+pair.post.schedule.id);
-  await api(staff,'/api/promotion-timeline',{scheduleId:pair.post.schedule.id,reviewDate:'2026-10-27',action:'status',targetStatus,reason:'相近状态录错更正',requestKey:randomUUID(),fingerprint:row.fingerprint});
+  const input={scheduleId:pair.post.schedule.id,reviewDate:'2026-10-27',action:'status',targetStatus,reason:'相近状态录错更正',requestKey:randomUUID(),fingerprint:row.fingerprint};
+  const preview=await api(staff,'/api/promotion-timeline',input,409);assert(preview.contextRequired);
+  await api(staff,'/api/promotion-timeline',{...input,confirmDayContext:true,contextFingerprint:preview.contextFingerprint});
  }
  const pairMetrics=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,pair.campaign.id));assert.equal(pairMetrics.length,2);assert.equal(pairMetrics.reduce((n,m)=>n+Number(m.spend),0),40);
  checks.push('员工暂停／待定双向更正，不删除非零事实、不新增测试轮次');

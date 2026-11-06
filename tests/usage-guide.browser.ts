@@ -21,7 +21,7 @@ try{
   const context=await browser.newContext({locale:'zh-CN',viewport:{width:1440,height:1000}});await context.addCookies(cookie.split('; ').map(c=>({name:c.slice(0,c.indexOf('=')),value:c.slice(c.indexOf('=')+1),url:baseURL})));const page=await context.newPage();debugPage=page;page.on('pageerror',(e:Error)=>errors.push(e.message));
   for(const width of [1920,1440,1024,390,320]){
    await page.setViewportSize({width,height:1000});await page.goto(baseURL+path);await page.locator('[data-usage-guide]').waitFor();await settleBusinessUI(page);
-   assert.equal(await page.locator('[data-guide-section]').count(),role==='admin'?5:4);assert.equal(await page.locator('.settings-views').count(),role==='admin'?1:0);assert.equal(await page.locator('table').count(),role==='admin'?5:4);
+   assert.equal(await page.locator('[data-guide-section]').count(),role==='admin'?6:5);assert.equal(await page.locator('.settings-views').count(),role==='admin'?1:0);assert.equal(await page.locator('table').count(),role==='admin'?6:5);
    assert.equal(await page.locator('.guide-directory').isVisible(),width>=1440);assert.equal(await page.locator('[data-guide-mobile]').isVisible(),width<1440);
    const xy=await page.evaluate(()=>['.guide-main h1','.guide-intro','#guide-types h2'].map(q=>document.querySelector(q)!.getBoundingClientRect().left));assert(Math.max(...xy)-Math.min(...xy)<1);
    await shot(page,role+'-intro-'+width);

@@ -56,6 +56,9 @@ export const promotionDailyInputFromForm = (form: FormData) => ({
 
 export const promotionDailyUpdateSchema = z.object({
   ...promotionDailyMetricFields,
+  dayStatus:promotionDailyMetricFields.actualStatusSnapshot,
+  changeDayStatus:z.boolean().default(false),
+  confirmDayContext:z.boolean().default(false),contextFingerprint:z.string().optional(),
   requestKey:z.uuid().optional(),
   fingerprint: z.string().optional(),
   expectedUpdatedAt: z.string().optional(),
@@ -63,6 +66,8 @@ export const promotionDailyUpdateSchema = z.object({
 });
 
 export const promotionDailyUpdateInputFromForm = (form: FormData) => ({
+  dayStatus:form.get('dayStatus')||undefined,changeDayStatus:form.get('changeDayStatus')==='true',
+  confirmDayContext:form.get('confirmDayContext')==='true',contextFingerprint:form.get('contextFingerprint')||undefined,
   requestKey:form.get('requestKey')||undefined,
   fingerprint: form.get('fingerprint')||undefined,
   expectedUpdatedAt: form.get('expectedUpdatedAt')||undefined,

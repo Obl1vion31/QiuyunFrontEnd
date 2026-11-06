@@ -313,23 +313,23 @@ const historyHref = (overrides: Record<string, string>) => {
           form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const data = new FormData(form);
+            const day=form.querySelector<HTMLSelectElement>('[name=dayStatus]');
+            if(day){data.set('dayStatus',day.value);data.set('changeDayStatus',String(day.value!==form.dataset.originalDayStatus));}
             form.dataset.requestKey??=crypto.randomUUID();data.set('requestKey',form.dataset.requestKey);
             const decision = form.querySelector<HTMLSelectElement>('select[name="reviewDecision"]');
             if (decision?.disabled) data.set('reviewDecision', decision.value);
             const metricId = String(data.get('metricId'));
+            const focusBeforeSave=document.activeElement as HTMLElement|null;let cancelled=false;
             submit.disabled = true;
             message.textContent = '正在保存修改…';
             try {
               let response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
               let result = await response.json();
-              if (response.status === 409 && result.correctionRequired) {
-                if (!await businessConfirm(promotionHistoryImpactMessage(result.impact),{title:'确认历史影响',confirmLabel:'确认更正'})) {
-                  message.textContent = '已取消修改，原数据未变化。';
-                  return;
-                }
-                data.set('confirmCascade', 'true');
-                response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
-                result = await response.json();
+              if (response.status === 409 && result.contextRequired) {
+                if(!await businessConfirm(result.message,{title:'确认当日安排',confirmLabel:'确认修改当天'})){cancelled=true;message.textContent='已取消修改，输入已保留。';return;}
+                data.set('confirmDayContext','true');data.set('contextFingerprint',result.contextFingerprint);
+                response=await fetch(`/api/promotion-daily/${metricId}`,{method:'PATCH',body:data,headers:{Accept:'application/json'}});
+                result=await response.json();
               }
               if (response.ok) { cleanInspector(form); return window.location.reload(); }
               message.textContent = result.message ?? '保存失败，请重试。';
@@ -337,6 +337,7 @@ const historyHref = (overrides: Record<string, string>) => {
               message.textContent = '无法连接服务，请稍后重试。';
             } finally {
               submit.disabled = false;
+              if(cancelled&&focusBeforeSave?.isConnected)focusBeforeSave.focus({preventScroll:true});
             }
           });
         });

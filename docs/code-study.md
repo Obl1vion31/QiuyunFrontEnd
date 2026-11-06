@@ -280,4 +280,4 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。
 
-推广历史当日状态与历史日度次日安排共同调用 `promotion-history-correction.ts`，在原事务内预览、归档并重建阶段，主调用方保存完整前后快照。`promotionMetricStatus` 只读解决旧暂停／待定快照与有效安排的继承差异；表格／Inspector／新会议材料同步接入，旧冻结事实不回填。历史影响文案统一由 `promotion-history-impact.ts` 提供，继续使用 `businessConfirm`，不另建弹窗或轮询。
+推广历史单日更正由 `promotion-day-edit.ts` 在事务内读取相邻有效状态，`promotion-day-rules.mjs` 校验两条衔接；`api/promotion-daily/[id]` 及已登记日的 `promotion-timeline` 共用该服务。`BusinessPromotionMetric` 只显示当日安排，原生状态选择和指标共用既有表单；`contextRequired` 返回三天上下文，客户端使用公共 `businessConfirm` 后带 `confirmDayContext/contextFingerprint` 重交。仅选中日状态及派生阶段重建，后续原始记录与冻结会议不改；旧 reviewDecision 字段仅为存储衔接和旧表单兼容。初始日期等重建仍使用 `promotion-history-correction.ts` 的独立影响预览，不混入历史单日流程。`promotionMetricStatus` 继续统一表格、Inspector及新会议材料的有效状态。

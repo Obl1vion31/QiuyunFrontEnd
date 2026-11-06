@@ -8,5 +8,5 @@ export const GET:APIRoute=async({url})=>{
 };
 export const POST:APIRoute=async({request,url,locals})=>{
   if(request.headers.get('origin')!==url.origin)return Response.json({message:'拒绝跨站写入。'},{status:403});
-  try{const parsed=timelineSchema.safeParse(await request.json());if(!parsed.success)return Response.json({message:parsed.error.issues[0].message},{status:422});if(!parsed.data.fingerprint)return Response.json({code:'STALE_WRITE',message:'请刷新后核对推广状态。'},{status:409});const result=await changePromotionTimeline(getDb(),parsed.data,locals.user!);return Response.json('confirmationRequired' in result?{...result,message:result.impact.message}:result,{status:'confirmationRequired' in result?409:200});}catch(error){return workflowErrorResponse(error);}
+  try{const parsed=timelineSchema.safeParse(await request.json());if(!parsed.success)return Response.json({message:parsed.error.issues[0].message},{status:422});if(!parsed.data.fingerprint)return Response.json({code:'STALE_WRITE',message:'请刷新后核对推广状态。'},{status:409});const result=await changePromotionTimeline(getDb(),parsed.data,locals.user!);return Response.json('contextRequired' in result?result:'confirmationRequired' in result?{...result,message:result.impact.message}:result,{status:'contextRequired' in result||'confirmationRequired' in result?409:200});}catch(error){return workflowErrorResponse(error);}
 };

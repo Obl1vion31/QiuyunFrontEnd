@@ -53,7 +53,13 @@ test('阶段区间按原阶段归属追加残留，不重复历史整段累计',
 const pg=new PGlite(),db=drizzle(pg,{schema:s});before(()=>migrateFixture(pg));after(()=>pg.close());
 const actor={id:'isolated-precise-admin',username:'隔离管理员',role:'admin' as const};
 async function seed(){const [c]=await db.insert(s.operationsContent).values({platformNoteId:randomUUID().replaceAll('-','').slice(0,24)}).returning();const [v]=await db.insert(s.operationsContentVersion).values({contentId:c.id,versionNumber:0,workType:'new',contentName:'隔离状态测试',subjectId:'tmua',categoryId:'temporary'}).returning();const [schedule]=await db.insert(s.operationsContentSchedule).values({contentVersionId:v.id,isPromoted:true,promotionStatus:'testing',completionStatus:'on_time',plannedPublishAt:new Date('2026-10-17T12:00:00+08:00'),actualPublishAt:new Date('2026-10-17T12:00:00+08:00')}).returning();const [campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:'2026-10-17',dailyReviewEnabledOn:'2026-10-17',currentStage:'testing',currentStatus:'testing'}).returning();return {schedule,campaign};}
-async function change(id:string,date:string,targetStatus:string,extra:Record<string,unknown>={}){return changePromotionTimeline(db,timelineSchema.parse({scheduleId:id,reviewDate:date,action:'status',targetStatus,reason:'隔离测试原因',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,id)),...extra}),actor,new Date('2026-10-21T12:00:00+08:00'));}
+async function change(id:string,date:string,targetStatus:string,extra:Record<string,unknown>={}){
+ const body=timelineSchema.parse({scheduleId:id,reviewDate:date,action:'status',targetStatus,reason:'隔离测试原因',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,id)),...extra});
+ const preview=await changePromotionTimeline(db,body,actor,new Date('2026-10-21T12:00:00+08:00'));
+ if('contextRequired' in preview&&preview.contextRequired)return changePromotionTimeline(db,{...body,confirmDayContext:true,contextFingerprint:preview.contextFingerprint},actor,new Date('2026-10-21T12:00:00+08:00'));
+ return preview;
+}
+
 test('实际状态变更按固定日期保存原因与审计，幂等、指纹和权限生效',async()=>{
  const {schedule}=await seed();const body=timelineSchema.parse({scheduleId:schedule.id,reviewDate:'2026-10-17',action:'status',targetStatus:'test_paused',reason:'中途暂停',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,schedule.id))});
  await changePromotionTimeline(db,body,actor,new Date('2026-10-21'));assert.equal((await promotionSnapshot(db,schedule.id)).campaigns[0].currentStatus,'test_paused');
@@ -69,23 +75,19 @@ test('终态当日保留未填指标行，实际数据不因暂停更正而删�
  await change(schedule.id,'2026-10-17','test_paused');let snap=await promotionSnapshot(db,schedule.id);assert.equal(snap.metrics.length,1);assert.equal(snap.metrics[0].spend,'40.00');assert.equal(snap.metrics[0].actualStatusSnapshot,'test_paused');
  await change(schedule.id,'2026-10-18','test_discarded');const rows=await readPromotionTimeline(db,new Date('2026-10-21T12:00:00+08:00'),schedule.id),context=await readPromotionContext(db);const queue=promotionReviewQueue(promotionReviewDays(rows,context,new Date('2026-10-21T12:00:00+08:00')));assert.equal(queue.ready[0].day.date,'2026-10-18');assert.equal(queue.ready[0].day.actualStatus,'test_discarded');
 });
-test('同日误选终态可重新更正，恢复原状态并保留指标、归属与审计',async()=>{
- assert.deepEqual(promotionStatusEditOptions('test_discarded','testing').map(o=>o.value),['testing','test_paused','test_pending','scaling']);
- assert.deepEqual(promotionStatusEditOptions('test_discarded','test_pending').map(o=>o.value),['test_pending','scaling']);
+test('单日终态可更正回测试，但后一天既有终态保持不变',async()=>{
  const {schedule,campaign}=await seed();
- await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_continue'),campaignId:campaign.id});
+ await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_discarded'),campaignId:campaign.id});
  await change(schedule.id,'2026-10-17','test_discarded');
  let snapshot=await promotionSnapshot(db,schedule.id);assert.equal(snapshot.campaigns[0].currentStatus,'test_discarded');assert.equal(snapshot.metrics[0].spend,'40.00');
  await change(schedule.id,'2026-10-17','testing');snapshot=await promotionSnapshot(db,schedule.id);
- assert.equal(snapshot.campaigns[0].currentStatus,'testing');assert.equal(snapshot.campaigns[0].endedOn,null);
- assert.equal(snapshot.metrics.length,1);assert.equal(snapshot.metrics[0].spend,'40.00');assert.equal(snapshot.metrics[0].actualStatusSnapshot,'testing');assert.equal(snapshot.metrics[0].reviewDecision,'test_continue');assert.equal(snapshot.metrics[0].sourceStageStartedOn,'2026-10-17');
+ assert.equal(snapshot.campaigns[0].currentStatus,'test_discarded','恢复历史一天不改变后一天既有淘汰');
+ assert.equal(snapshot.metrics.length,1);assert.equal(snapshot.metrics[0].spend,'40.00');assert.equal(snapshot.metrics[0].actualStatusSnapshot,'testing');assert.equal(snapshot.metrics[0].reviewDecision,'test_discarded');assert.equal(snapshot.metrics[0].sourceStageStartedOn,'2026-10-17');
  assert.equal(snapshot.decisions.length,1);assert.equal(snapshot.decisions[0].actualStatus,'testing');
- const audits=(await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,schedule.id)));assert.equal(audits.length,2);assert.equal((audits[1].before as typeof snapshot).decisions[0].actualStatus,'test_discarded');
- await change(schedule.id,'2026-10-17','test_pending');
- await change(schedule.id,'2026-10-17','scaling');
- await change(schedule.id,'2026-10-17','testing');
- snapshot=await promotionSnapshot(db,schedule.id);assert.equal(snapshot.metrics[0].stageTypeSnapshot,'testing');assert.equal(snapshot.metrics[0].spend,'40.00');
+ const audits=await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.scheduleId,schedule.id));
+ assert.equal(audits.length,2);assert(audits.every(a=>a.action==='day_status_correction'));
 });
+
 test('更正选项刷新后仍可恢复原状态，不允许借更正重启历史终态或绕过待定边界',async()=>{
  const {schedule,campaign}=await seed();
  await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_pending'),campaignId:campaign.id});
@@ -152,9 +154,9 @@ test('历史 PATCH 保留暂停非零与残留原阶段，权限和兼容后续�
  const patch=async(id:string,values:Record<string,unknown>,user:{id:string;username:string;role:'admin'|'employee'}=actor)=>{const [current]=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,id));const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,current.campaignId));values={fingerprint:timelineFingerprint(await promotionSnapshot(db,campaign.scheduleId)),expectedUpdatedAt:current.updatedAt.toISOString(),...values};const form=new FormData();for(const [key,value] of Object.entries(values))if(value!=null)form.set(key,String(value));const url=new URL(`http://isolated.test/api/promotion-daily/${id}`);return withDatabase(db,async()=>api.PATCH({request:new Request(url,{method:'PATCH',headers:{origin:url.origin},body:form}),url,params:{id},locals:{user}} as never));};
  const {campaign,schedule}=await seed();const [paused]=await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_pause'),campaignId:campaign.id}).returning();const [next]=await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-18','test_paused','wait_continue'),campaignId:campaign.id}).returning();
  const staff={...actor,role:'employee' as const};let response=await patch(next.id,{...next,spend:90,actualOpenCount:3},staff);assert.equal(response.status,200);let saved=(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,next.id)))[0];assert.equal(saved.spend,'90.00');assert.equal(saved.actualStatusSnapshot,'test_paused');assert.equal(saved.sourceStageStartedOn,'2026-10-17');
- response=await patch(paused.id,{...paused,reviewDecision:'test_pending'},staff);assert.equal(response.status,403,'员工不能改变已保存后续安排');
- response=await patch(paused.id,{...paused,reviewDecision:'test_pending'},actor);assert.equal(response.status,200);assert.equal((await promotionSnapshot(db,schedule.id)).metrics.length,2,'暂停与待定相近，不删除兼容事实');
- response=await patch(next.id,{...saved,actualStatusSnapshot:'scaling'},actor);assert.equal(response.status,422,'不能通过指标接口伪造实际状态');
+ response=await patch(paused.id,{...paused,reviewDecision:'test_pending'},staff);assert.equal(response.status,422,'旧表单不能再编辑历史次日安排');
+ response=await patch(paused.id,{...paused,reviewDecision:'test_pending'},actor);assert.equal(response.status,422);assert.equal((await promotionSnapshot(db,schedule.id)).metrics.length,2,'旧管理员表单也不删除后续事实');
+ response=await patch(next.id,{...saved,actualStatusSnapshot:'scaling'},actor);assert.equal(response.status,200);assert.equal((await promotionSnapshot(db,schedule.id)).metrics[1].actualStatusSnapshot,'test_paused','普通指标保存忽略客户端只读状态，不能伪造');
  const residualCampaign=(await seed()).campaign;await db.update(s.operationsPromotionCampaign).set({endedOn:'2026-10-17',currentStage:null,currentStatus:'test_discarded'}).where(eq(s.operationsPromotionCampaign.id,residualCampaign.id));const [residual]=await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-20','test_discarded','test_discarded',{recordKind:'test_residual'}),campaignId:residualCampaign.id}).returning();response=await patch(residual.id,{...residual,spend:65},staff);assert.equal(response.status,200);saved=(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,residual.id)))[0];assert.equal(saved.recordKind,'test_residual');assert.equal(saved.sourceStageStartedOn,'2026-10-17');assert.equal(saved.spend,'65.00');const terminal=(await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,residualCampaign.id)))[0];assert.equal(terminal.endedOn,'2026-10-17');assert.equal(terminal.currentStatus,'test_discarded');
  response=await patch(residual.id,{...saved,reviewDecision:'start_scaling'},actor);assert.equal(response.status,422);
 });

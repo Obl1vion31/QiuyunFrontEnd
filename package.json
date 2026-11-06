@@ -62,7 +62,8 @@
     "test:network-transfer": "node --import tsx tests/network-transfer.browser.ts",
     "test:meeting-transfer": "node --import tsx tests/meeting-read-transfer.browser.ts",
     "test:scheduling-review": "node --import tsx tests/scheduling-review.postgres.ts && pnpm test:monthly-workflow && node --import tsx tests/promotion-save-repair.integration.ts",
-    "test:promotion-chain": "node --import tsx tests/promotion-chain.integration.ts && node --import tsx tests/promotion-chain.browser.ts"
+    "test:promotion-chain": "pnpm test:promotion-day",
+    "test:promotion-day": "node --import tsx tests/promotion-day.integration.ts && node --import tsx tests/promotion-day.browser.ts"
   },
   "dependencies": {
     "@astrojs/node": "9.5.5",

@@ -7,11 +7,12 @@ interface Props {
   ranges: Array<typeof operationsPromotionWaitRange.$inferSelect>;
   context: PromotionContext;
   historical?: boolean;
+  readOnly?:boolean;
 }
-const { campaigns, ranges, context, historical = false } = Astro.props;
+const { campaigns, ranges, context, historical = false, readOnly=false } = Astro.props;
 const today = shanghaiDateKey(new Date());
 const options = (stage: string) => stage === 'testing' ? [['restart_testing','重新开始测试'],['start_scaling','开始放量'],['test_discarded','测试淘汰']] : [['scaling_continue','恢复推广'],['formal_discarded','放量淘汰'],['ended','推广结束']];
-const candidates = campaigns.filter(c => !context.campaigns?.find(item=>item.id===c.id)?.dailyReviewEnabledOn&&(historical || promotionStateOn(c, context, today)?.currentStage));
+const candidates = readOnly?[]:campaigns.filter(c => !context.campaigns?.find(item=>item.id===c.id)?.dailyReviewEnabledOn&&(historical || promotionStateOn(c, context, today)?.currentStage));
 const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaignId));
 ---
 <section class="wait-ranges" aria-label="待定区间与次日计划">
@@ -23,7 +24,7 @@ const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaign
     const pending = !superseded && !range.nextDecision && today >= range.endedOn;
     return <details class:list={{ 'needs-plan': pending }} open={pending}>
       <summary>{campaign.contentName} · V{campaign.versionNumber}<span>{range.stageType === 'testing' ? '测试待定' : '推广暂停'} · {range.startedOn}—{range.endedOn}{superseded ? ' · 活动已结束，此安排失效' : pending ? ' · 待安排下一步' : range.nextDecision ? ` · ${range.nextEffectiveOn} ${options(range.stageType).find(o => o[0] === range.nextDecision)?.[1]}` : ' · 到期人工安排'}</span></summary>
-      {!superseded && <form class="business-form" data-wait-range-form data-range-id={range.id} data-campaign-id={range.campaignId} data-request-key={range.requestKey} data-revision={range.revision}>
+      {!superseded && !readOnly && <form class="business-form" data-wait-range-form data-range-id={range.id} data-campaign-id={range.campaignId} data-request-key={range.requestKey} data-revision={range.revision}>
         <input name="stageType" type="hidden" value={range.stageType}/>
         <div class="wait-dates"><label>开始日期<input name="startedOn" type="date" value={range.startedOn} required/></label><label>待定至（含当天）<input name="endedOn" type="date" value={range.endedOn} required/></label></div>
         <label>原因<textarea name="reason" maxlength="2000" rows="2" required>{range.reason}</textarea></label>

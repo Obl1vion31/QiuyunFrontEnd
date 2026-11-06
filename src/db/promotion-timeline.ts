@@ -4,7 +4,7 @@ import {syncContinuousCheckpoints} from './continuous-schedule';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import {promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
 import { createHash, randomUUID } from 'node:crypto';
-import { asc, eq, inArray } from 'drizzle-orm';
+import { and,asc,desc,eq,inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import { requireAdmin, type OperationsUser } from '../auth/permissions';
@@ -24,7 +24,7 @@ export const timelineSchema = z.object({
   waitingThrough: businessDate.nullable().optional(), rangeId: z.uuid().optional(),
   nextDecision: z.enum(['test_continue','restart_testing','start_testing','start_scaling','test_discarded','scaling_continue','formal_discarded','ended','wait_continue']).optional(),
   reason: z.string().trim().max(2000).default(''),
-  requestKey: z.uuid().default(() => randomUUID()), fingerprint: z.string().optional(), confirmImpact: z.boolean().default(false),
+  requestKey: z.uuid().default(() => randomUUID()), fingerprint: z.string().optional(), confirmImpact: z.boolean().default(false),confirmDayContext:z.boolean().default(false),contextFingerprint:z.string().optional(),
 });
 export type TimelineInput = z.infer<typeof timelineSchema>;
 type Reader = Database | Transaction;
@@ -71,6 +71,10 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
 
 /** 所有状态写入显式使用业务日期；点击时间只用于审计。 */
 export async function changePromotionTimeline(db: Database, input: TimelineInput, actor: OperationsUser, now=new Date()) {
+  if(input.action==='status'){
+    const [existing]=await db.select({id:s.operationsPromotionDailyMetric.id}).from(s.operationsPromotionDailyMetric).innerJoin(s.operationsPromotionCampaign,eq(s.operationsPromotionDailyMetric.campaignId,s.operationsPromotionCampaign.id)).where(and(eq(s.operationsPromotionCampaign.scheduleId,input.scheduleId),eq(s.operationsPromotionDailyMetric.metricDate,input.reviewDate),eq(s.operationsPromotionDailyMetric.recordKind,'regular'))).orderBy(desc(s.operationsPromotionCampaign.startedOn)).limit(1);
+    if(existing){const {saveHistoricalPromotionDay}=await import('./promotion-day-edit');return saveHistoricalPromotionDay(db,{metricId:existing.id,targetStatus:input.targetStatus??'',reason:input.reason,requestKey:input.requestKey,fingerprint:input.fingerprint,confirmDayContext:input.confirmDayContext,contextFingerprint:input.contextFingerprint},actor,now);}
+  }
   try {return await db.transaction(async tx=>{
     await lockPromotionWorkflow(tx);
     const schedule=await lockSchedule(tx,input.scheduleId);
