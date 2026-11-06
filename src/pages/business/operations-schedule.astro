@@ -284,6 +284,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
 
           {selectedStatus==='approvals'?<BusinessScheduleApprovals/>:<div class="content-layout" data-inspector-host>
             <section class="content-stage">
+              <MonthlyArrangementPanel month={selectedMonth} state={arrangementState} active={selectedView==='schedule'}>
               {(selectedDisplay === 'ledger' || selectedView === 'promotion') && <div class="table-wrap">
           <table>
             <thead><tr><th>应发时间</th><th>版本</th><th>内容</th><th>推广阶段</th><th>发布状态</th><th>文档</th></tr></thead>
@@ -310,7 +311,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         </div>
               }
 
-      {selectedView==='schedule'&&<MonthlyArrangementPanel month={selectedMonth} state={arrangementState}/>}
       <MonthlyCalendarPlan month={selectedMonth} plan={calendarMonthlyPlan} arrangement={arrangementState} calendar={selectedView==='schedule'&&selectedDisplay==='calendar'}/>
       {selectedView === 'schedule' && selectedDisplay === 'calendar' && <section class="calendar" aria-label={`${selectedMonth} 月历`}>
         <div class="calendar-legend" aria-label="月历颜色说明"><span class="publish-on_time">按时已发</span><span class="publish-delayed">延期已发</span><span class="publish-pending">待发布</span><span class="publish-missing">尚未登记</span><span class="promotion-identity promoted">推广</span></div>
@@ -329,6 +329,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
           </div>)}
         </div>
       </section>}
+              </MonthlyArrangementPanel>
             </section>
 
             <BusinessInspector class="inspector" parameter="row" label="帖子详情">

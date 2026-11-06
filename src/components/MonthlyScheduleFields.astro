@@ -4,6 +4,6 @@
  <div class="field field-wide"><label>追加／跨Week原因<textarea name="monthlyPlanReason" rows="2" maxlength="2000"></textarea></label></div>
  <input type="hidden" name="monthlyPlanId"/><input type="hidden" name="monthlyPlanItemId"/><input type="hidden" name="monthlyRequestId"/><input type="hidden" name="monthlyExpectedRevision"/>
  <p class="monthly-caption" data-monthly-occupancy></p>
- <button type="button" data-monthly-source-refresh>刷新计划来源</button>
+ <button type="button" class="business-action-secondary" data-monthly-source-retry hidden>重试读取计划来源</button>
 </section>
-<style>.monthly-schedule-fields{display:grid!important;gap:10px}.monthly-schedule-fields[hidden]{display:none!important}.monthly-schedule-fields p{margin:0}.monthly-schedule-fields p:empty{display:none}.monthly-schedule-fields [data-monthly-source-refresh]{justify-self:start;width:auto;height:36px;min-height:36px;padding:0;border:0;color:var(--console-blue);background:transparent;font:500 13px/20px var(--console-font);cursor:pointer}.monthly-schedule-fields select{width:100%}</style>
+<style>.monthly-schedule-fields{display:grid!important;gap:10px}.monthly-schedule-fields[hidden],.monthly-schedule-fields [hidden]{display:none!important}.monthly-schedule-fields p{margin:0}.monthly-schedule-fields p:empty{display:none}.monthly-schedule-fields [data-monthly-source-retry]{justify-self:start}.monthly-schedule-fields select{width:100%}</style>

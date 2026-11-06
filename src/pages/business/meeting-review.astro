@@ -1,5 +1,4 @@
 ---
-import {arrangementRows,arrangedContent} from '../../db/monthly-arrangement';
 import {readMonthlyMeeting} from '../../db/monthly-meeting';
 import {realtimeEditingEnabled} from '../../db/editing-policy';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
@@ -87,7 +86,7 @@ const [meetingPlanState]=selected?await getDb().select().from(monthlyPlanTable).
 const monthlySealed=!!meetingPlanState?.sealedVersionId;
 if(selected?.meetingType==='monthly'&&selectedVersion&&!monthlySealed&&selectedVersion.id===(activeDraft??latestValidMeetingVersion(versions))?.id&&Astro.url.searchParams.get('material')!=='frozen'){
  const live:any=structuredClone(selectedVersion.snapshot);live.generated={...live.generated,monthly:await readMonthlyMeeting(getDb(),selected)};
- if(meetingPlanState?.firstFinalizedAt){const content=await arrangedContent(getDb(),meetingPlanState,await arrangementRows(getDb(),meetingPlanState.month));live.draft={...live.draft,monthlyPlan:{id:meetingPlanState.id,expectedRevision:meetingPlanState.revision,content,additions:[]}};}
+ if(meetingPlanState?.firstFinalizedAt)live.draft={...live.draft,monthlyPlan:{id:meetingPlanState.id,expectedRevision:meetingPlanState.revision,content:meetingPlanState.content,additions:meetingPlanState.additions.map(({id,reason,content})=>({id,reason,content}))}};
  (selectedVersion as any).snapshot=live;
 }
 const canEdit=!monthlySealed&&Astro.url.searchParams.get('material')!=='frozen'&&(!meetingPlanState?.firstFinalizedAt||Astro.locals.user?.role==='admin')&&discussionMode&&!selectedVersion?.invalidatedAt&&(selectedVersion?.id===activeDraft?.id||!activeDraft&&selectedVersion?.id===latestValidMeetingVersion(versions)?.id);

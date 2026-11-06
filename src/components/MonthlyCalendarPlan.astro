@@ -2,25 +2,30 @@
 import type {MonthlyCalendarView} from '../db/monthly-plan-links';
 import type {readArrangement} from '../db/monthly-arrangement';
 interface Props {month:string;calendar?:boolean;plan?:MonthlyCalendarView|null;arrangement?:Awaited<ReturnType<typeof readArrangement>>}
-import {monthWeeks,weekOf} from '../db/monthly-plan-types';
+import {monthWeeks,weekOf,compactPlanItems} from '../db/monthly-plan-types';
 import {businessDate,businessDateTime} from '../scripts/business-date';
 import '../styles/monthly-calendar.css';
 const {month,calendar=true,plan=null,arrangement}=Astro.props;
 const canManage=Astro.locals.businessPermissions?.['schedule.edit']!=='disabled'&&plan?.arrangementStatus!=='confirmed'&&(plan?.arrangementStatus!=='review_pending'||Astro.locals.user?.role==='admin');
-const rows=arrangement?.rows??[];
-const groups=[...new Set(plan?.items.filter(i=>i.kind==='new').map(i=>JSON.stringify([i.groupId,i.week]))??[])].map(key=>{
- const [groupId,week]=JSON.parse(key),items=plan!.items.filter(i=>i.groupId===groupId&&i.week===week&&i.kind==='new');
- return {key,week,name:items[0].group.name,quantity:items.length,item:items.find(i=>!i.schedule)??items[0]};
-});
-const fixed=plan?.items.filter(i=>i.kind!=='new')??[];
+const rows=arrangement?.rows??[],items=plan?.items??[];
+const separate=new Set(items.filter(i=>i.kind!=='new'||i.submittedAt||i.pending||i.schedule||i.history.length).map(i=>i.id));
+const weeks=monthWeeks(month).map(week=>({...week,items:items.filter(i=>i.week===week.week)}));
 ---
 {calendar&&plan?.firstFinalizedAt&&<section class="monthly-calendar-plan" data-monthly-plan-pool data-can-manage={canManage?'true':'false'} aria-label="预排期对照">
- <header class="monthly-calendar-heading"><h2>{plan.arrangementStatus==='confirmed'?'封存计划':'预排期'}</h2><span>计划 {plan.items.length} 篇 · 当前安排 {rows.length} 篇</span></header>
- <ol style={"--monthly-week-count:"+monthWeeks(month).length} class="monthly-calendar-weeks" aria-label="每周计划与安排">{monthWeeks(month).map(({week})=><li><strong>Week {week}</strong><span>计划 <b>{plan.items.filter(i=>i.week===week).length}</b></span><span>已安排 <b>{rows.filter(r=>weekOf(businessDate(r.plannedAt))===week).length}</b></span></li>)}</ol>
- <div class="monthly-calendar-groups">{groups.map(group=><button type="button" class="monthly-calendar-group" data-monthly-plan-source={group.item.id} draggable={canManage} aria-pressed="false" disabled={!canManage}><strong>{group.name}</strong><span>×{group.quantity}</span><small>Week {group.week}</small></button>)}</div>
- {canManage&&<p class="monthly-caption" style="margin:10px 0 0">可将计划拖到日期建立帖子，或拖动已有卡片调整日期；单帖保存后，整月再提交核对。</p>}
- {fixed.length>0&&<details class="monthly-calendar-fixed"><summary>遗留与指定帖子 ({fixed.length})</summary><div class="monthly-fixed-items business-form">{fixed.map(item=><div><strong>{item.schedule?.name??item.group.name}</strong><span>Week {item.week} · {item.kind==='carry'?'遗留':'指定帖子'}</span>{item.schedule&&<small>当前 {businessDateTime(item.schedule.plannedAt)}</small>}{canManage&&<button type="button" class="business-action-secondary" data-monthly-pick={item.id}>安排原帖</button>}</div>)}</div></details>}
- <p data-monthly-selection hidden></p><button type="button" class="business-action-secondary" data-monthly-cancel hidden>取消选择</button>
+ <div class="monthly-calendar-weeks" aria-label="每周计划与安排">{weeks.map(({week,from,through,items:weekItems})=><section class="monthly-calendar-week" data-monthly-plan-week={week}>
+  <header><div><h3>Week {week}</h3><time>{businessDate(from)} 至 {businessDate(through)}</time></div><p><span>计划 <b>{weekItems.length}</b> 篇</span><span>当前安排 <b data-arrangement-week-count={week}>{rows.filter(r=>weekOf(businessDate(r.plannedAt))===week).length}</b> 篇</span></p></header>
+  {weekItems.length>0&&<div class="monthly-calendar-groups">{compactPlanItems(weekItems,separate).map(chunk=>{
+   const first=items.find(i=>i.id===chunk[0].id)!,groupPending=plan.linkGroups.some(g=>g.groupId===first.groupId&&g.week===first.week&&g.pending>0);
+   const available=chunk.map(i=>items.find(p=>p.id===i.id)!).find(i=>!i.pending&&!i.linked&&(i.status==='unassigned'||i.status==='rejected'));
+   const enabled=canManage&&!!available&&!groupPending,selected=available??first;
+   return <button type="button" class="monthly-calendar-group" data-monthly-plan-source={selected.id} data-monthly-source-kind={first.kind} data-monthly-source-week={week} data-monthly-source-state={first.pending||groupPending?'pending':first.linked?'scheduled':'unassigned'} draggable={enabled} aria-pressed="false" disabled={!enabled}>
+    <span class="monthly-source-name"><span class="monthly-source-kind" data-kind={first.kind}>{first.kind==='carry'?'遗留':first.kind==='existing'?'指定':'新'}</span><strong>{first.schedule?.name??first.group.name}</strong></span>{chunk.length>1&&<b>×{chunk.length}</b>}
+    {(first.pending||groupPending||first.linked||first.kind!=='new')&&<small>{first.pending||groupPending?'待审':first.linked?'已安排':first.schedule?'当前 '+businessDateTime(first.schedule.plannedAt):'待安排'}</small>}
+   </button>;
+  })}</div>}
+ </section>)}</div>
+ {canManage&&<p class="monthly-caption monthly-calendar-instruction">可将计划拖到日期建立帖子，或选择计划后点击日期。</p>}
+ <div class="monthly-calendar-selection"><p data-monthly-selection hidden></p><button type="button" class="business-action-secondary" data-monthly-cancel hidden>取消选择</button></div>
 </section>}
-<script is:inline type="application/json" data-monthly-calendar-plan set:html={JSON.stringify(plan).replace(/</g,'\\u003c')}/>
+<script is:inline type="application/json" data-monthly-calendar-plan set:html={JSON.stringify(plan).replace(/</g,'\u003c')}/>
 <script>import '../scripts/monthly-calendar';</script>

@@ -1,26 +1,29 @@
 ---
 import {getDb} from '../db/client';
 import {readArrangement} from '../db/monthly-arrangement';
-import {businessDateTime} from '../scripts/business-date';
-const {month,state:provided}=Astro.props as {month:string;state?:Awaited<ReturnType<typeof readArrangement>>};
+import {businessDate,businessDateTime} from '../scripts/business-date';
+import {weekOf} from '../db/monthly-plan-types';
+import '../styles/monthly-calendar.css';
+const {month,state:provided,active=true}=Astro.props as {month:string;state?:Awaited<ReturnType<typeof readArrangement>>;active?:boolean};
 const state=provided??await readArrangement(getDb(),month),admin=Astro.locals.user?.role==='admin';
 const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pending:'等待管理员核对',confirmed:'月会及计划已封存'};
 ---
-<section class="monthly-calendar-plan arrangement-panel business-form" data-arrangement-stage={state.stage} data-arrangement-role={admin?'admin':'employee'}>
- <header class="monthly-calendar-heading"><h2>{labels[state.stage]}</h2>{state.stage!=='closed'&&<span>预排期 {state.preplanned} 篇 · 当前安排 {state.rows.length} 篇</span>}</header>
+{active?<section class="arrangement-panel" data-arrangement-stage={state.stage} data-arrangement-role={admin?'admin':'employee'} aria-label="本月排期工作区">
+ <header class="arrangement-heading"><div class="arrangement-title"><h2>{labels[state.stage]}</h2>{state.stage!=='closed'&&<p class="arrangement-counts">预排期 <b data-arrangement-planned>{state.preplanned}</b> 篇<span aria-hidden="true"> · </span>当前安排 <b data-arrangement-count>{state.rows.length}</b> 篇</p>}</div>
  {state.stage==='closed'?<p>本月确认预排期后才能新增或移入排期。已发布记录保留。</p>:state.stage==='review_pending'?<p>请等待管理员核对并确认。员工目前仅可登记实发，其他排期变动暂时停止。</p>:state.stage==='confirmed'?<p>月例会与计划已永久封存。后续调整在排期页填写原因并保留记录。</p>:<p>单帖保存用于暂存；整月排好后再提交管理员核对。</p>}
- {state.stage!=='closed'&&<details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 ({state.rows.length})</summary>
-  <div class="arrangement-table"><table><thead><tr><th>Week</th><th>帖子</th><th>学科／分类</th><th>计划时间</th><th>实发</th></tr></thead><tbody>{state.rows.map(row=><tr><td>{Math.ceil(Number(new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',day:'2-digit'}).format(row.plannedAt))/7)}</td><td>{row.name} · V{row.versionNumber}</td><td>{row.subjectName}／{row.categoryName??'未分类'}</td><td>{businessDateTime(row.plannedAt)}</td><td>{row.actualAt?businessDateTime(row.actualAt):'尚未发布'}</td></tr>)}</tbody></table></div>
- </details>}
- {(state.stage==='editing'||state.stage==='review_pending'&&admin)&&<form data-arrangement-form data-plan-id={state.planId} data-fingerprint={state.fingerprint}>
+ </header>
+ <div class="arrangement-content"><slot/></div>
+ {state.stage!=='closed'&&<section class="arrangement-review" aria-label="首轮排期核对">
+ <details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 (<span data-arrangement-count>{state.rows.length}</span>)</summary>
+  <div class="arrangement-table"><table><thead><tr><th>Week</th><th>帖子</th><th>学科／分类</th><th>计划时间</th><th>实发</th></tr></thead><tbody>{state.rows.map(row=><tr><td>Week {weekOf(businessDate(row.plannedAt))}</td><td>{row.name} · V{row.versionNumber}</td><td>{row.subjectName}／{row.categoryName??'未分类'}</td><td>{businessDateTime(row.plannedAt)}</td><td>{row.actualAt?businessDateTime(row.actualAt):'尚未发布'}</td></tr>)}</tbody></table></div>
+ </details>
+ {(state.stage==='editing'||state.stage==='review_pending'&&admin)&&<form class="business-form" data-arrangement-form data-plan-id={state.planId} data-fingerprint={state.fingerprint}>
   <label>本次说明<input name="reason" type="text" maxlength="2000" required placeholder={state.stage==='editing'?'说明首轮排期结果；与预排期不同的内容请说明原因。':'填写核对意见，或需要退回修改的内容。'}/></label>
-  <div class="arrangement-actions"><button type="button" class="business-action-secondary" data-arrangement-refresh>更新核对清单</button>{state.stage==='editing'?<button class="business-action-primary" name="action" value="submit">保存并提交核对</button>:<><button class="business-action-secondary" name="action" value="return">退回修改</button><button class="business-action-primary" name="action" value="confirm">核对通过并封存</button></>}<output data-arrangement-message role="status"></output></div>
+  <div class="arrangement-actions"><button type="button" class="business-action-secondary" data-arrangement-refresh>更新核对清单</button>{state.stage==='editing'?<button class="business-action-primary" name="action" value="submit">提交首轮排期核对</button>:<><button class="business-action-secondary" name="action" value="return">退回修改</button><button class="business-action-primary" name="action" value="confirm">核对通过并封存</button></>}</div>
+  <output data-arrangement-message role="status"></output>
  </form>}
- {state.history.length>0&&<details><summary>提交与核对记录 ({state.history.length})</summary><ul>{state.history.map(h=><li>{businessDateTime(h.at)} · {h.action==='submit'?'提交核对':h.action==='return'?'退回修改':'核对通过并封存'} · {h.reason}</li>)}</ul></details>}
- <a class="monthly-caption" href={'/business/operations-schedule?month='+month+'&status=cancelled&display=ledger'}>查看已撤下的安排</a>
-</section>
+ {state.history.length>0&&<details class="arrangement-history"><summary>提交与核对记录 ({state.history.length})</summary><ul>{state.history.map(h=><li>{businessDateTime(h.at)} · {h.action==='submit'?'提交核对':h.action==='return'?'退回修改':'核对通过并封存'} · {h.reason}</li>)}</ul></details>}
+ </section>}
+ <footer class="arrangement-footer"><a href={'/business/operations-schedule?month='+month+'&status=cancelled&display=ledger'}>查看已撤下的安排</a></footer>
+</section>:<slot/>}
 <script>import '../scripts/monthly-arrangement';</script>
-<style>
-.arrangement-panel p{margin:0;color:var(--console-muted);font:400 13px/20px var(--console-font)}.arrangement-panel details{margin-top:12px;font:400 13px/20px var(--console-font)}.arrangement-panel summary{cursor:pointer;color:var(--console-blue)}.arrangement-panel form{margin-top:14px;display:grid;grid-template-columns:minmax(240px,1fr) auto;align-items:end;gap:12px}.arrangement-panel form>label{display:grid;gap:6px}.arrangement-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.arrangement-actions output{font:400 13px/20px var(--console-font)}.arrangement-table{overflow-x:auto;margin-top:10px}.arrangement-table table{border-collapse:collapse;width:100%;font:400 13px/20px var(--console-font);text-align:left}.arrangement-table th,.arrangement-table td{padding:8px 10px;border-bottom:1px solid var(--console-line);vertical-align:top}.arrangement-table th{font-weight:500;color:var(--console-muted)}.arrangement-table td:first-child{width:52px}.arrangement-table td:nth-child(4),.arrangement-table td:nth-child(5){white-space:nowrap;width:160px}.arrangement-panel li{margin:6px 0}
-.arrangement-panel>a{display:inline-block;margin-top:10px;color:var(--console-blue);font:400 13px/20px var(--console-font)}@media(max-width:800px){.arrangement-panel form{grid-template-columns:1fr}}
-</style>
