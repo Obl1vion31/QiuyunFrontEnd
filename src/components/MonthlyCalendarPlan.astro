@@ -13,7 +13,7 @@ const weeks=monthWeeks(month).map(week=>({...week,items:items.filter(i=>i.week==
 ---
 {calendar&&plan?.firstFinalizedAt&&<section class="monthly-calendar-plan" data-monthly-plan-pool data-can-manage={canManage?'true':'false'} aria-label={plan.arrangementStatus==='confirmed'?'定稿计划对照':'预排期对照'}>
  <div class="monthly-calendar-weeks" aria-label="每周计划与安排">{weeks.map(({week,from,through,items:weekItems})=><section class="monthly-calendar-week" data-monthly-plan-week={week}>
-  <header><div><h3>Week {week}</h3><time>{businessDate(from)} 至 {businessDate(through)}</time></div><p><span>计划 <b>{weekItems.length}</b> 篇</span><span>当前安排 <b data-arrangement-week-count={week}>{rows.filter(r=>weekOf(businessDate(r.plannedAt))===week).length}</b> 篇</span></p></header>
+  <header><div><h3>Week {week}</h3><p><span>计划 <b>{weekItems.length}</b></span><span>已排 <b data-arrangement-week-count={week}>{rows.filter(r=>weekOf(businessDate(r.plannedAt))===week).length}</b></span></p></div><time>{businessDate(from)} 至 {businessDate(through)}</time></header>
   {weekItems.length>0&&<div class="monthly-calendar-groups">{compactPlanItems(weekItems,separate).map(chunk=>{
    const first=items.find(i=>i.id===chunk[0].id)!,groupPending=plan.linkGroups.some(g=>g.groupId===first.groupId&&g.week===first.week&&g.pending>0);
    const available=chunk.map(i=>items.find(p=>p.id===i.id)!).find(i=>!i.pending&&!i.linked&&(i.status==='unassigned'||i.status==='rejected'));
@@ -24,8 +24,7 @@ const weeks=monthWeeks(month).map(week=>({...week,items:items.filter(i=>i.week==
    </button>;
   })}</div>}
  </section>)}</div>
- {canManage&&<p class="monthly-caption monthly-calendar-instruction">可将计划拖到日期建立帖子，或选择计划后点击日期。</p>}
- <div class="monthly-calendar-selection"><p data-monthly-selection hidden></p><button type="button" class="business-action-secondary" data-monthly-cancel hidden>取消选择</button></div>
+ <div class="monthly-calendar-selection" hidden={!canManage}><p class="monthly-caption monthly-calendar-instruction">可将计划拖到日期建立帖子，或选择计划后点击日期。</p><p data-monthly-selection hidden></p><button type="button" class="business-action-secondary" data-monthly-cancel hidden>取消选择</button></div>
 </section>}
 <script is:inline type="application/json" data-monthly-calendar-plan set:html={JSON.stringify(plan).replace(/</g,'\u003c')}/>
 <script>import '../scripts/monthly-calendar';</script>

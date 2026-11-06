@@ -213,3 +213,5 @@ scheduling-review.browser.ts 从原表单真实新建／拖动、503保留、整
 推广历史单日专项：构建后运行 `TEST_POSTGRES_URL=本机隔离PostgreSQL pnpm test:promotion-day`（原 `test:promotion-chain` 保留为兼容入口）。真实PG验证只改当天、相邻衔接、三天确认前不写入、取消/断网保留输入、旧表单拒绝改次日、普通指标保存、预览变化拒绝及并发只成功一方。浏览器按1920／1440／1024桌面检查更正前、上下文确认、只改当天后的六日表和明确错误；员工兼容更正及两角色公开使用说明均检查，截图保留完整视口/整页及原像素局部。
 
 首轮排期布局专项：`node --import tsx tests/scheduling-workspace.browser.ts`，沿用本机`TEST_POSTGRES_URL`，`SCHEDULE_WORKSPACE_ENTRY`可指定实际Vercel运行包入口、`SCHEDULE_WORKSPACE_DIR`指定产物。使用乱序21个稳定名额及1篇实际安排，验证封存前完整预排期、提交／退回／封存切换、纵向Week日期及数量、同周遗留／指定、已安排禁拖、原表单键盘／拖放、来源读取失败重试、空同日反馈移除、核对刷新局部连续性及双角色。桌面1920／1440／1024逐态截图与真实PDF；手机仅明显问题检查。不得用当前安排数量替代原预排期数量，或只断言上方周统计而不检查真实卡片归属。
+
+预排期密度回归继续使用scheduling-workspace.browser.ts：21篇按3／6／6／5／1分周，至少一周五种来源，覆盖长名、遗留、指定、实际安排与待审；1920／1440／1024检查真实标签换行、共同底栏及日历宽度。SCHEDULE_DENSITY_BASELINE=1只读呈现阶段并导出同样本高度，须与修改前实际运行包对照，不以稀疏样本或样式断言替代视觉检查。
