@@ -93,6 +93,7 @@ try{
  const zeroPending=await read();assert.equal(zeroPending.privateData.sourceData.promotion.length,3);assert.equal(zeroPending.privateData.totalCosts.added,null);
  await db.delete(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,campaign.id));await db.delete(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,campaign.id));
  mark('三项完整性独立；真实0元推广用途仍保留，未填人数不能被忽略');
+ await save({...baseline,nonPromotion:octoberData.nonPromotion.slice(0,2)});assert.deepEqual((await read()).privateData.totalCosts,costs,'159人自然来源不摊薄推广成本');
  const monthly=await seedFrozenPrivateMeeting(db,'2026-10','10月月例会 · 课程成本核对');
  const legacy=await seedFrozenPrivateMeeting(db,'2026-07','7月月例会 · 旧口径归档',true);
  const long=await seedFrozenPrivateMeeting(db,'2026-06','6月月例会 · 长金额核对');
