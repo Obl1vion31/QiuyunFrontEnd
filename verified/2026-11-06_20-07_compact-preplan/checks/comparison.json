@@ -1,0 +1,26 @@
+[
+  {
+    "width": 1920,
+    "before": 734,
+    "after": 429,
+    "reduction": 41.6,
+    "calendarWidthBefore": 1623,
+    "calendarWidthAfter": 1623
+  },
+  {
+    "width": 1440,
+    "before": 734,
+    "after": 463,
+    "reduction": 36.9,
+    "calendarWidthBefore": 1143,
+    "calendarWidthAfter": 1143
+  },
+  {
+    "width": 1024,
+    "before": 899,
+    "after": 649,
+    "reduction": 27.8,
+    "calendarWidthBefore": 727,
+    "calendarWidthAfter": 727
+  }
+]

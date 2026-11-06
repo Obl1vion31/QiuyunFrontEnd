@@ -1,0 +1,32 @@
+{
+  "source": "fd96de4",
+  "rules": 271,
+  "rulesPassed": 271,
+  "nodeBuild": true,
+  "vercelBuild": true,
+  "typeErrors": 0,
+  "typeWarnings": 0,
+  "existingHints": true,
+  "schema": true,
+  "sharedUi": true,
+  "runtimeBrowserGroups": 11,
+  "productionTestWrites": false,
+  "visual": {
+    "desktop": [
+      1920,
+      1440,
+      1024
+    ],
+    "mobileLimited": [
+      390
+    ],
+    "stableImages": 33,
+    "videos": 2,
+    "pdfPages": 8,
+    "workflowContactSheets": 13,
+    "firstPaintContactSheets": 7,
+    "reviewed": true,
+    "finalImagesInspection": "29张与已逐张审查版本像素一致，4张变化已重新查看；三档Week局部独立查看，最终录像全段连续抽帧、8页PDF已实际审查。"
+  },
+  "detectorSource": "fce3ccc，取消按钮最终边框、焦点及字体另经真实页面复核"
+}

@@ -1,0 +1,358 @@
+[
+  {
+    "file": "before/before-1024.png",
+    "sha256": "ace0f064b64bfe77764ef05fade3ad30670c25f81525ab10f9db346ded7e5dc6"
+  },
+  {
+    "file": "before/before-1440.png",
+    "sha256": "4a9ea7e795523fa087a3eaf11432c9d3b60ce79d8e0f287ec726ca0e36a5f2e4"
+  },
+  {
+    "file": "before/before-1920.png",
+    "sha256": "3d0ac4a274a7ccdeff2edd6be68f67416535d359b9c19a8bcd5424437f3b2379"
+  },
+  {
+    "file": "before/before-workspace-1024.png",
+    "sha256": "df5340da87d994747f6ebbcb9b0e6dcbd87c7f68f457a25cd92aae22027c471b"
+  },
+  {
+    "file": "before/before-workspace-1440.png",
+    "sha256": "e603b65ac59681b4a08bb689ec113e38283229d5ab6c20f5d711f00dfdee81d7"
+  },
+  {
+    "file": "before/before-workspace-1920.png",
+    "sha256": "6642f4d05c0ccafd89f4dc06c268491c301df8daa0a88e6da7eb9de823e2b2c2"
+  },
+  {
+    "file": "checks/browser.json",
+    "sha256": "151a848326fff984e63db73a3da7319ba67da7cee14df6c0d0657abab786a316"
+  },
+  {
+    "file": "checks/comparison.json",
+    "sha256": "3acb82d06d77052f3b93468813177b991c7d665bdbe57873266e844247a8aa87"
+  },
+  {
+    "file": "checks/density-after.json",
+    "sha256": "f49fb3c152328027e40f7069f1f86fc8ba04f174b56a4de368369e3271ce41c9"
+  },
+  {
+    "file": "checks/density-before.json",
+    "sha256": "eb40b25d3aa328efcd9b5f3d8e1f6fba3744219dd67ec139d9324067d3848456"
+  },
+  {
+    "file": "checks/detector.json",
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "file": "checks/first-paint.json",
+    "sha256": "ee6e0cc2c367edb36d28c8697df81f8d2827e8f11504bca751d1c887846d8ba5"
+  },
+  {
+    "file": "checks/screenshot-comparison.json",
+    "sha256": "a4dc834481d9d76aef8c1275e8758c44a5a13b9cb6a3cb363160edccd2858107"
+  },
+  {
+    "file": "checks/validation.json",
+    "sha256": "0241cad43a6151422c32b31579ab346ca32890e51ff7c23f0fa83a944b706aa6"
+  },
+  {
+    "file": "pdf/pages/preplanned-monthly-01.png",
+    "sha256": "e5f618b877b0db1b207d1d8058c1d445d96ec6318ac21f7bdea8215ffd75e3c0"
+  },
+  {
+    "file": "pdf/pages/preplanned-monthly-02.png",
+    "sha256": "bd6522a546ea986c8e81fd64e5db26fb628e566faef2b67b3500939cadcb59ea"
+  },
+  {
+    "file": "pdf/pages/preplanned-monthly-03.png",
+    "sha256": "6bfe810972ee6e70a66fdad7dc942c5fd64a1141fd253011063594c1b3045645"
+  },
+  {
+    "file": "pdf/pages/preplanned-monthly-04.png",
+    "sha256": "759d29ed2c20c8e70dadf92e5b90a1801ae64cc14108b2916d4c0500f1051ea4"
+  },
+  {
+    "file": "pdf/pages/sealed-monthly-01.png",
+    "sha256": "a79f6fc5851dea089163768147cb505535cd20f33583d7f37c4c5e9f1a2d5a51"
+  },
+  {
+    "file": "pdf/pages/sealed-monthly-02.png",
+    "sha256": "3a73a5780a569df886ddc0da0d6b56c17eedee8672362e88494972c100e607bf"
+  },
+  {
+    "file": "pdf/pages/sealed-monthly-03.png",
+    "sha256": "bdcf907dd480f3a1b75cbc6e9c63abb4ba372bcf6598aa9b19eb2f9f0cc1e120"
+  },
+  {
+    "file": "pdf/pages/sealed-monthly-04.png",
+    "sha256": "a4d3769907358d39a1a9a2ab11f3f8d14143cbc3dd0c61f95e751c9fd784a9ab"
+  },
+  {
+    "file": "pdf/preplanned-monthly.pdf",
+    "sha256": "dea0b0b13db13a5a0633707f231e6c64fb4409fd3945d743b7ef369c779dadbc"
+  },
+  {
+    "file": "pdf/sealed-monthly.pdf",
+    "sha256": "b30e7b32264fa33123e58baa7afd9f777dc6e8aac2030415d5a74e4a5fe5d4e3"
+  },
+  {
+    "file": "README.md",
+    "sha256": "651c9c82f860707062e35a0fb4f68cfdcc96b8285c4891e7b3e2764353f2e00d"
+  },
+  {
+    "file": "release/candidate.json",
+    "sha256": "382b67b3f81297bc54851c1a8f12201c23105093d867ead4e119ceafdde6504f"
+  },
+  {
+    "file": "release/runtime-bundle.json",
+    "sha256": "a4e62ee37e2b86b21e58815fbf9179dfbdbb22fa2b67497139cf02fe4b24df01"
+  },
+  {
+    "file": "review/changed-01.jpg",
+    "sha256": "03d1a6dc4f0451733b10d5aa49a65486786dd1d3e0e0baaa4c5ab1d094211b6f"
+  },
+  {
+    "file": "review/flow-01.jpg",
+    "sha256": "8a31c4e3a0c331cb1db039cf06787e98d4a38eb0b577436938570442ac6a2ded"
+  },
+  {
+    "file": "review/flow-02.jpg",
+    "sha256": "2b435070296d5bac0fc939469d7f73e6bbc8568048824c357b8ebf01c10b5d9a"
+  },
+  {
+    "file": "review/flow-03.jpg",
+    "sha256": "e42ce974a02d57a74012d7b1c918b1806d5ace370d443d88716dd535994f3e3c"
+  },
+  {
+    "file": "review/flow-04.jpg",
+    "sha256": "b987c70bb28553fbd84d53bf7ee88311b55390a9cfaa0e80e01682112c2a285f"
+  },
+  {
+    "file": "review/flow-05.jpg",
+    "sha256": "7fad1fcba59913c8aa72a33085d913b9fd4224789d453ac2ca5230d48e689d2b"
+  },
+  {
+    "file": "review/flow-06.jpg",
+    "sha256": "e2bbe40aafd612e41e12185ecc5eda9167feb17271bc57a2493f134f38fea23d"
+  },
+  {
+    "file": "review/flow-07.jpg",
+    "sha256": "a6693d62f0db3295f7b3e3fa36d550f00a8eb419969be49568e062f4ebee0c8c"
+  },
+  {
+    "file": "review/flow-08.jpg",
+    "sha256": "8d0b6ce8fa667a3ffae9a689543ec62c57a32e97175a29a86775cf7941fc36f3"
+  },
+  {
+    "file": "review/flow-09.jpg",
+    "sha256": "05ee2ce64ed900f3c16bf0b72e878525f4773ab90b3bedb4ed6327691e11e803"
+  },
+  {
+    "file": "review/flow-10.jpg",
+    "sha256": "f3fc95f44e5a9a15e6c38d925d36e9b3d5bece45221c1148d0df85e09902d4c7"
+  },
+  {
+    "file": "review/flow-11.jpg",
+    "sha256": "c3402da1d29491e882123ef5a1bfa3ef13452daca568441ac0ddd2ca5cb61818"
+  },
+  {
+    "file": "review/flow-12.jpg",
+    "sha256": "35bccec9f6275eef49b7b7f6f37bf9c24a3c25df351bb0367590fa6ad4006e5e"
+  },
+  {
+    "file": "review/flow-13.jpg",
+    "sha256": "e333b7ee3a0602f4860ac77f084a699c30a7d04db2e47324bc11c0b13e48e2e8"
+  },
+  {
+    "file": "review/paint-01.jpg",
+    "sha256": "61bdcc1a0a54c89e894de33fd47774390aa2dfd2e0fcf71bf8e0de765432e580"
+  },
+  {
+    "file": "review/paint-02.jpg",
+    "sha256": "f747ee4396c1dbfc49c2da74d02cd763a49296fe8acfcea61d5f0e126bb85476"
+  },
+  {
+    "file": "review/paint-03.jpg",
+    "sha256": "720c34ff1af479f51b8f08e2c309ae38fa51f1f409b5811a42d20b7c7659f873"
+  },
+  {
+    "file": "review/paint-04.jpg",
+    "sha256": "cd3fca887c5c65b8049959562829655541001dfe7cfff03bd4419308422b3ab8"
+  },
+  {
+    "file": "review/paint-05.jpg",
+    "sha256": "6a5e59deb54ee47adac90dcb090dfb4d10b87694c978cafecd6d4b632c24c6dd"
+  },
+  {
+    "file": "review/paint-06.jpg",
+    "sha256": "e7546ec997f8998e8f0cbfbbf8c9c81049da171aaadb0dffc40a1dd33e2ecc9f"
+  },
+  {
+    "file": "review/paint-07.jpg",
+    "sha256": "fa37ca26168553b8627616ebaf3516131237a62e8f53d7e6db2f34c221703b0e"
+  },
+  {
+    "file": "review/paint-08.jpg",
+    "sha256": "3521c186a5df570c1a740b3e7e3e5ba87727148303dfe885d08bc3d81fb3a147"
+  },
+  {
+    "file": "review/pdf-01.jpg",
+    "sha256": "91ba1495437e369f2c4e45e95e7388a95146f59ef600ac58699217ca363af44e"
+  },
+  {
+    "file": "review/pdf-02.jpg",
+    "sha256": "9a59147eb6b339ff4eb6db34f866cb996364be4efcb30d8c2eeed28a56429538"
+  },
+  {
+    "file": "screenshots/carry-original-form-1440.png",
+    "sha256": "9c43cebbd7da5834735aa0f92416287b04b940f476b458344f8c4d754dbe363b"
+  },
+  {
+    "file": "screenshots/checklist-updated-1440.png",
+    "sha256": "63b6462577ac084565235babfb3186a217b99f5cbf4370ff0ebdd7063f904f36"
+  },
+  {
+    "file": "screenshots/closed-1440.png",
+    "sha256": "040c171d9595efd2ba904d7b8e6060e979e92bd4edf7e55eca6cd0c6306a22fa"
+  },
+  {
+    "file": "screenshots/compact-weeks-1024.png",
+    "sha256": "639e825c467a205c6b76d0c368311e24c7934b96614049230e6a1df563c11419"
+  },
+  {
+    "file": "screenshots/compact-weeks-1440.png",
+    "sha256": "1c1b5fe2793a74fb3e9c2aab09ccec89e50adb7bfa6c8ef849cce93879674959"
+  },
+  {
+    "file": "screenshots/compact-weeks-1920.png",
+    "sha256": "d9634976bac02574cec44b74b7ec78419d28bab768d718f06ffbdf789fb45426"
+  },
+  {
+    "file": "screenshots/first-paint-direct-1440.png",
+    "sha256": "52350f42e8724c81295d786fb37efe40f6c5821c7e59bbad4e2439a706a55389"
+  },
+  {
+    "file": "screenshots/first-paint-navigation-1440.png",
+    "sha256": "4f075affbbede735a123a26981c3b2890d415bb502f04f61b7ff9c0f31c7b36e"
+  },
+  {
+    "file": "screenshots/first-paint-reload-1440.png",
+    "sha256": "5ab7a39c2b8bae3a46ba357017961a096b7fe5acffc085335bd62c8ced969c68"
+  },
+  {
+    "file": "screenshots/inspector-mobile-390.png",
+    "sha256": "5c2f9cdd903882f004fcf607442a4d907a8c9c64053868ff31a636eb63562118"
+  },
+  {
+    "file": "screenshots/ledger-sealed-1440.png",
+    "sha256": "666f915cefaef2fa703cc461d96fccfbd3cde503f2a1be39d7df76db5af04a39"
+  },
+  {
+    "file": "screenshots/meeting-original-preplan-1024.png",
+    "sha256": "f8168b7d5cfb724e64378563173a24d6ed5c7c12ad91621c30b5893a61bcace3"
+  },
+  {
+    "file": "screenshots/meeting-preplan-1024.png",
+    "sha256": "9f7281de8cd5dc1f55abbbbf0e082c829689e5c9987f463f806ccbe5b87010df"
+  },
+  {
+    "file": "screenshots/meeting-preplan-1440.png",
+    "sha256": "5737fbcd72b083bccfef73a25db4b349324d4f451779b57a2f267f50ad464a9f"
+  },
+  {
+    "file": "screenshots/meeting-preplan-1920.png",
+    "sha256": "e4355a1db926e852c7f166c36ba7f353a4cc4aa68ed454082b20558bcfdc302d"
+  },
+  {
+    "file": "screenshots/meeting-sealed-1024.png",
+    "sha256": "40c55129b1b54658a7482650a6eca7b77ee191fdcb486f3a114f789ffb1839da"
+  },
+  {
+    "file": "screenshots/review-admin-1024.png",
+    "sha256": "3e9f5a1a2ea64c1ade765eaf9b5f1a65b97c13c03578e802727ef8e3c7c48ebb"
+  },
+  {
+    "file": "screenshots/review-admin-1440.png",
+    "sha256": "7483c0a76c4433de62a0df1ac8803fbf28a809a0e58d95effed95cc73d70abe0"
+  },
+  {
+    "file": "screenshots/review-admin-1920.png",
+    "sha256": "80b04538e921eefdc415d7750d03c91e2438ce82791f2b68d61ba54e2e527972"
+  },
+  {
+    "file": "screenshots/review-employee-1440.png",
+    "sha256": "01fbb450e201fd0ed7707a1402b56bb1108809508aeab79c0917ec09ed046915"
+  },
+  {
+    "file": "screenshots/schedule-calendar-1024.png",
+    "sha256": "105732d4b9fb2da8605e156037e3ec726a4e6bf85bf9a802ed9c90944249e97a"
+  },
+  {
+    "file": "screenshots/schedule-calendar-1440.png",
+    "sha256": "5ab7a39c2b8bae3a46ba357017961a096b7fe5acffc085335bd62c8ced969c68"
+  },
+  {
+    "file": "screenshots/schedule-calendar-1920.png",
+    "sha256": "f3e12fb8e5f45293356b96e0eed59dddd3d863b7416df93b61e3bd0bbc5820c6"
+  },
+  {
+    "file": "screenshots/schedule-full-1024.png",
+    "sha256": "ff5158178889f637d21948aadea50e69dce84d64a99825c648b2f6ff9284a89d"
+  },
+  {
+    "file": "screenshots/schedule-full-1440.png",
+    "sha256": "bd46fff18da261b92e5783182fc8ae485858b194a51d0012b23a3eb33259c3bd"
+  },
+  {
+    "file": "screenshots/schedule-full-1920.png",
+    "sha256": "b92744bf4692ccbe4bbcb82482c30010f762ed00200948ebabdd4c16b95394e9"
+  },
+  {
+    "file": "screenshots/schedule-mobile-390.png",
+    "sha256": "93077977a12a0a1319aec70a6ef911aa67c6b3810203dac6b9c4cc60d83745ee"
+  },
+  {
+    "file": "screenshots/sealed-calendar-1024.png",
+    "sha256": "7d731db4a157bc4fdffaebc317fa70b7cd6e07b21a0861fcf0f5befc473adcc0"
+  },
+  {
+    "file": "screenshots/selection-compact-1440.png",
+    "sha256": "b9e709de06dbed1040f78a0985d97c8f18b888982edee878abe8f5cd8a86d2ce"
+  },
+  {
+    "file": "screenshots/source-form-1440.png",
+    "sha256": "7ef6629b284b92088bbc102db4beeb39df6557b2cc218d112809422825319980"
+  },
+  {
+    "file": "screenshots/source-pending-1440.png",
+    "sha256": "bc326741125cf0db0e6a74cc1ad6fc200a7c111f06d34e6349328781466d3af5"
+  },
+  {
+    "file": "screenshots/source-read-failure-1440.png",
+    "sha256": "a8dd58c6ec7c9345a7e303bd488522b1f31f77501b648bf7953a848dfcc86ed5"
+  },
+  {
+    "file": "screenshots/submit-failure-1440.png",
+    "sha256": "891ca97d594d22919203e823d74ac9127d13263f5a98377e89a0c542498643dc"
+  },
+  {
+    "file": "screenshots/workspace-1024.png",
+    "sha256": "f9ab29c7c2b38718b656cb574ec4a481ff2f06298c03750861484f38152f3c93"
+  },
+  {
+    "file": "screenshots/workspace-1440.png",
+    "sha256": "734284493218db30c4a94fe35b4e9deb324a8557c9872d409380331e4c86aae1"
+  },
+  {
+    "file": "screenshots/workspace-1920.png",
+    "sha256": "4908b5e0e4997a4712523e7389812f73c9c2dd5d4268cd21e64e7f48b423f337"
+  },
+  {
+    "file": "video/first-paint.webm",
+    "sha256": "31e686ce35e6183f0efa7627c04e13bed3789cff9a7f1dc1038c0bcfb0b3b711"
+  },
+  {
+    "file": "video/workflow.webm",
+    "sha256": "f5add87f0afd8aee619225de010070d3215a16e21821270479127d2247ef95ab"
+  }
+]
