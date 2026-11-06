@@ -212,7 +212,7 @@ Add the `is:inline` directive explicitly to silence this hint.
 [7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
 [7m  [0m [93m                                 ~~~~~~~~[0m
 
-Result (482 files): 
+Result (482 files):
 - 0 errors
 - 0 warnings
 - 44 hints
@@ -231,7 +231,7 @@ Result (482 files):
 20:55:27 [vite] ✓ built in 4.03s
 20:55:27 [build] ✓ Completed in 4.06s.
 
- building client (vite) 
+ building client (vite)
 20:55:27 [vite] transforming...
 20:55:28 [vite] ✓ 169 modules transformed.
 20:55:28 [vite] rendering chunks...
@@ -297,13 +297,13 @@ Result (482 files):
 20:55:28 [vite] dist/client/_astro/index.xK5eoQS5.js                                                             134.65 kB │ gzip: 43.22 kB
 20:55:28 [vite] ✓ built in 1.27s
 
- prerendering static routes 
+ prerendering static routes
 20:55:28 λ src/pages/fonts/business.css.ts
-20:55:28   └─ /fonts/business.css (+451ms) 
+20:55:28   └─ /fonts/business.css (+451ms)
 20:55:29 λ src/pages/fonts/business.js.ts
-20:55:29   └─ /fonts/business.js (+6ms) 
+20:55:29   └─ /fonts/business.js (+6ms)
 20:55:29 ▶ src/pages/index.astro
-20:55:29   └─ /index.html (+13ms) 
+20:55:29   └─ /index.html (+13ms)
 20:55:29 ✓ Completed in 523ms.
 
 20:55:29 [build] Rearranging server assets...

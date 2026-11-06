@@ -212,8 +212,7 @@ Add the `is:inline` directive explicitly to silence this hint.
 [7m41[0m  await page.evaluate(()=>{window.__frames=[];window.__sampling=true;let previous;function sample(t){if(!window.__sampling)return;const h=document.querySelector('.hero');window.__frames.push({t,dt:previous?t-previous:0,y:scrollY,phase:+h.dataset.phase,settle:+h.dataset.settle,playback:h.dataset.playback,stage:document.querySelector('[data-active-stage]').textContent});previous=t;requestAnimationFrame(sample);}requestAnimationFrame(sample);});
 [7m  [0m [93m                                 ~~~~~~~~[0m
 
-Result (482 files): 
+Result (482 files):
 - 0 errors
 - 0 warnings
 - 44 hints
-
