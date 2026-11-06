@@ -24,7 +24,7 @@
 | 录入与读取失败 | [1920](screenshots/editor-1920.png)／[1440](screenshots/editor-1440.png)／[1024](screenshots/editor-1024.png)／[已存但读取失败](screenshots/saved-refresh-failed-1440.png) | 重试只读，输入与未保存保护保留 |
 | 手机有限回归 | [月度390](screenshots/monthly-mobile-390.png)／[录入390](screenshots/editor-mobile-390.png) | 仅明显遮挡、页面溢出与关闭保存入口，不代表完整手机排版验收 |
 
-45张稳定截图（包含2张同源局部及1张共享周会图）、1张过程气泡图已实际查看；[九张截图审查拼页](review/screens-01.jpg)供定位。原图没有改DOM文字或拼图替代实际状态。
+46张稳定截图（包含2张同源局部及2张共享兼容图）、2张过程气泡图已实际查看；[九张截图审查拼页](review/screens-01.jpg)供定位。原图没有改DOM文字或拼图替代实际状态。
 
 ## 录像与PDF
 
@@ -36,6 +36,6 @@
 
 - 类型／Node构建、Vercel发布构建、schema检查通过；[269项规则](data/rules.txt)及[7项私域复验](data/cents-regression.txt)通过（后者含新增半分舍入用例）。
 - [实际运行包15组专项](data/browser-final.txt)与[完整私域15组回归](data/browser-private-sources.txt)通过，覆盖首次旧口径录入、两门仅课程、空讲义、真实0、各项完整性、隔离159人非推广、保存成功读取503、只读重试、慢输入、切月旧响应、双角色、冻结和PDF。
-- [运行包依赖与实际PDF](data/runtime-bundle.json)、[Impeccable布局扫描](data/impeccable.json)、[状态与坐标](data/checks.json)；截图、过程帧和20页PDF均已实际审查。桌面1920／1440／1024；共享周会另外复查，不以其通过替代本批月度关键状态。
+- [运行包依赖与实际PDF](data/runtime-bundle.json)、[Impeccable布局扫描](data/impeccable.json)、[状态与坐标](data/checks.json)；截图、过程帧和20页PDF均已实际审查。桌面1920／1440／1024；[共享例会13组回归](data/shared-meeting.json)通过；[原周会图](screenshots/weekly-shared-chart-1440.png)、[键盘气泡](process/weekly-lead-keyboard-1440.png)及[缺历史旧材料](screenshots/waste-no-history-1440.png)已查看。该套用例另自动覆盖2560／320等视口，未逐图审查的额外捕获留在调试目录，不计入本批视觉通过。
 
 候选部署 `dpl_HzyjcTiYc1S5q8nhd95JfzxcV2i9` READY，[20项与7个关键资源](release/candidate.json)通过。[正式地址20项与71资源](release/production.json)通过，域名指向同一部署；[发布回执](release/deployment.json)。
