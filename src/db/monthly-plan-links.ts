@@ -79,7 +79,7 @@ async function validateLinks(db:Database,planId:string,input:MonthlyLinksInput,i
  }
  const removed=oldIds.some(id=>!input.scheduleIds.includes(id));
  const cross=input.scheduleIds.some(id=>!oldIds.includes(id)&&weekOf(shanghaiDateKey(posts.find(p=>p.id===id)!.plannedAt))!==input.week);
- if((removed||cross)&&!input.reason)throw new WorkflowError(removed?'更正或解除关联请填写原因。':'跨Week关联请填写调整原因。',422);
+ if(cross&&!input.reason)throw new WorkflowError('跨Week关联请填写调整原因。',422);
  if(oldIds.length===input.scheduleIds.length&&oldIds.every(id=>input.scheduleIds.includes(id)))throw new WorkflowError('关联内容没有变化。',422);
  // 保留已有配对，再按日期和ID分配剩余空位，避免勾选顺序改变名额身份。
  const available=input.scheduleIds.filter(id=>!oldIds.includes(id)).sort((a,b)=>posts.find(p=>p.id===a)!.plannedAt.getTime()-posts.find(p=>p.id===b)!.plannedAt.getTime()||a.localeCompare(b));

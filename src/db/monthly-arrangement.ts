@@ -1,3 +1,5 @@
+import {readScheduleComparison} from './schedule-baseline';
+import type {ScheduleBaseline} from './schedule-baseline';
 import {createHash} from 'node:crypto';
 import {and,eq,desc,gte,lt,isNull,sql} from 'drizzle-orm';
 import type {Database} from './client';
@@ -17,7 +19,7 @@ export async function arrangementRows(db:Database,month:string){
  return db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,versionId:s.operationsContentVersion.id,
   subjectName:s.operationsSubject.name,categoryName:s.operationsCategory.name,versionNumber:s.operationsContentVersion.versionNumber,name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,
   categoryId:s.operationsContentVersion.categoryId,operationType:s.operationsContent.operationType,contentRole:s.operationsContent.contentRole,
-  isPromoted:s.operationsContentSchedule.isPromoted,syncToMoments:s.operationsContentSchedule.syncToMoments,
+  projectDocUrl:s.operationsContentVersion.projectDocUrl,isPromoted:s.operationsContentSchedule.isPromoted,syncToMoments:s.operationsContentSchedule.syncToMoments,
   plannedItemId:sql<string|null>`(select a.item_id from operations_monthly_plan_assignment a join operations_monthly_plan p on p.id=a.plan_id where a.schedule_id=${s.operationsContentSchedule.id} and p.month=${month} limit 1)`,
   plannedAt:s.operationsContentSchedule.plannedPublishAt,actualAt:s.operationsContentSchedule.actualPublishAt})
  .from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId))
@@ -29,14 +31,15 @@ export async function arrangementRows(db:Database,month:string){
 type Plan=typeof s.operationsMonthlyPlan.$inferSelect;
 export const arrangementFingerprint=(plan:Plan,rows:Awaited<ReturnType<typeof arrangementRows>>)=>createHash('sha256').update(JSON.stringify({
  revision:plan.revision,content:plan.content,additions:plan.additions,
- rows:rows.map(({actualAt,...structure})=>structure)
+ rows:rows.map(({actualAt,projectDocUrl,...structure})=>structure)
 })).digest('hex');
 export async function readArrangement(db:Database,month:string){
  const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.month,month));
- if(!plan)return {month,stage:'closed' as const,planId:null,rows:[],fingerprint:'',preplanned:0,history:[],draftReason:''};
+ if(!plan)return {month,stage:'closed' as const,planId:null,rows:[],fingerprint:'',preplanned:0,history:[],draftReason:'',comparison:undefined};
  const rows=await arrangementRows(db,month);
  return {month,planId:plan.id,stage:!plan.firstFinalizedAt?'closed' as const:plan.arrangementStatus,
   rows,fingerprint:arrangementFingerprint(plan,rows),preplanned:plan.content.items.length+plan.additions.reduce((n,b)=>n+b.content.items.length,0),
+  comparison:plan.arrangementStatus==='confirmed'?await readScheduleComparison(db,month+'-01',new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10)):undefined,
   history:plan.arrangementHistory.filter(h=>h.action!=='draft'),draftReason:[...plan.arrangementHistory].reverse().find(h=>h.action==='draft'||h.action==='submit')?.reason??''};
 }
 export async function assertMeetingMutable(db:Database,meetingId:string){
@@ -65,7 +68,8 @@ export async function changeArrangement(db:Database,id:string,input:{action:'dra
   await lockPromotionWorkflow(tx);
   const [plan]=await tx.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,id)).for('update');
   if(!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','本月尚未确认预排期，不能提交首轮排期。',422);
-  if(input.action==='confirm'||input.action==='return'||input.action==='draft'&&plan.arrangementStatus==='review_pending')requireAdmin(actor);
+  if(input.action==='confirm'||input.action==='return')requireAdmin(actor);
+  if(input.action==='submit'&&actor.role==='admin')input={...input,action:'confirm'};
   const repeat=plan.arrangementHistory.find(h=>h.requestId===input.requestId);
   if(repeat){if(repeat.action!==input.action||repeat.actor!==actor.username||repeat.fingerprint!==input.fingerprint)throw new WorkflowError('请求标识已使用，请重新核对。',422);return readArrangement(tx,plan.month);}
   if(plan.arrangementStatus==='confirmed')throw new ArrangementError('MONTHLY_MEETING_SEALED','月例会已封存。',403);
@@ -74,10 +78,10 @@ export async function changeArrangement(db:Database,id:string,input:{action:'dra
    await tx.update(s.operationsMonthlyPlan).set({arrangementHistory:history,updatedAt:new Date()}).where(eq(s.operationsMonthlyPlan.id,id));
    return readArrangement(tx,plan.month);
   }
-  if(input.action==='submit'&&plan.arrangementStatus!=='editing'||input.action!=='submit'&&plan.arrangementStatus!=='review_pending')throw new ArrangementError('MONTHLY_STAGE_CHANGED','本月核对阶段已变化，请重新载入核对结果。');
+  if(input.action==='return'&&plan.arrangementStatus!=='review_pending'||!['editing','review_pending'].includes(plan.arrangementStatus))throw new ArrangementError('MONTHLY_STAGE_CHANGED','本月核对阶段已变化，请重新载入核对结果。');
   const rows=await arrangementRows(tx,plan.month),fingerprint=arrangementFingerprint(plan,rows);
-  if(input.fingerprint!==fingerprint)throw new ArrangementError('ARRANGEMENT_CHANGED','首轮排期已有调整，请更新核对清单后再确认。当前填写已保留。');
-  if(!input.reason.trim())throw new WorkflowError(input.action==='return'?'请填写退回修改的原因。':'请填写本次首轮排期的核对说明，调整过的内容请说明原因。',422);
+  if(input.fingerprint!==fingerprint)throw new ArrangementError('ARRANGEMENT_CHANGED','首轮排期已有调整，请重新核对后再定稿。当前填写已保留。');
+  if(input.action==='return'&&!input.reason.trim())throw new WorkflowError('请填写退回修改的原因。',422);
   const pending=await tx.select({target:s.operationsChangeProposal.target,after:s.operationsChangeProposal.after}).from(s.operationsChangeProposal).where(and(eq(s.operationsChangeProposal.module,'schedule'),eq(s.operationsChangeProposal.status,'pending')));
   const ids=new Set(rows.map(r=>'schedule:'+r.id));
   if(input.action!=='return'&&pending.some(p=>ids.has(p.target)||p.target.startsWith('monthly:'+id)||String((p.after.schedule as any)?.plannedPublishAt??'').slice(0,7)===plan.month))throw new WorkflowError('请先处理本月待审核排期，再提交整月核对。',422);
@@ -95,7 +99,8 @@ export async function changeArrangement(db:Database,id:string,input:{action:'dra
   const snapshot:any=structuredClone(source.snapshot),versionNumber=(all[0]?.versionNumber??-1)+1;
   snapshot.versionNumber=versionNumber;snapshot.finalizationStage='post';snapshot.arrangementSealed=true;
   snapshot.draft={...meeting.draftSnapshot,monthlyPlan:{id:plan.id,expectedRevision:plan.revision+1,content,additions:[]},finalizationStage:'post'};
-  snapshot.generated={...snapshot.generated,monthly:await (await import('./monthly-meeting')).readMonthlyMeeting(tx,meeting)};
+  const scheduleBaseline:ScheduleBaseline={schemaVersion:1,month:plan.month,sealedAt:now.toISOString(),items:rows.map(row=>({...row,plannedAt:row.plannedAt.toISOString(),itemId:content.items.find(i=>i.scheduleId===row.id)?.id??null}))};
+  snapshot.generated={...snapshot.generated,scheduleBaseline,monthly:await (await import('./monthly-meeting')).readMonthlyMeeting(tx,meeting)};
   const [version]=await tx.insert(s.operationsReviewMeetingVersion).values({meetingId:meeting.id,versionNumber,snapshot,sourceVersionId:source.id,lifecycleStatus:'finalized',versionKind:'revision',changeSummary:'首轮排期核对通过，月例会及计划封存',finalizedAt:now,finalizedByLabel:actor.username,updatedAt:now,pdfStatus:'pending',businessEffects:[]}).returning();
   // 最新文字已纳入封存版，未独立定稿的草稿保留历史，不能继续占据默认入口。
   for(const draft of all.filter(v=>!v.invalidatedAt&&v.lifecycleStatus==='draft'))await tx.update(s.operationsReviewMeetingVersion).set({invalidatedAt:now,invalidatedByVersionId:version.id}).where(eq(s.operationsReviewMeetingVersion.id,draft.id));

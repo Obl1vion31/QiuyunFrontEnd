@@ -1,3 +1,4 @@
+import ScheduleExecutionSummary from './ScheduleExecutionSummary';
 import MonthlyOperationsCharts from './MonthlyOperationsCharts';
 import '../styles/report-presentation.css';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
@@ -87,6 +88,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
      <button onClick={()=>show('publication','changed')}><span>改期后仍未登记</span><b>{pub.changedPending}<small>篇</small></b></button>
      <button onClick={()=>show('publication','moved')}><span>改出本月未登记</span><b>{pub.movedOut}<small>篇</small></b></button>
     </section>
+    {data.scheduleComparison&&<ScheduleExecutionSummary key={data.query.month} value={data.scheduleComparison}/>}
     <MonthlyOperationsCharts data={data} onSelect={(view,detail)=>show(view,detail as Detail)}/>
     <MonthlyPrivatePanel data={data} admin={admin} onSaved={()=>load(query,false)}/>
     <section ref={details} tabIndex={-1} className={styles.details} aria-label="可追溯明细">
@@ -97,7 +99,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
       <div className={styles.postList}><header><h3>消耗组成</h3><span>{spendRows.length} 篇</span></header><div className={styles.tableScroll}><table className={styles.costTable}><thead><tr><th>帖子 / 版本</th><th>当前状态</th><th>本月消耗</th><th>测试空跑</th><th>实际开口</th><th>实际留资</th><th>原记录</th></tr></thead><tbody>{spendRows.map(row=><tr key={row.scheduleId} className={['test_discarded','formal_discarded'].includes(row.status)?styles.discarded:row.status==='ended'?styles.ended:''}><td><strong>{row.contentName} <small>V{row.versionNumber}</small></strong><span>{row.subjectName} · {row.categoryName??'未分类'}</span></td><td><span className={styles.tag}>{row.statusLabel}</span></td><td>{money(row.spend)}</td><td>{money(row.wasted)}</td><td>{count(row.actualOpenCount)}</td><td>{count(row.actualLeadCount)}</td><td><a href={scheduleHref(row.scheduleId)} target="_blank" rel="noopener">查看 ↗</a></td></tr>)}{!spendRows.length&&<tr><td colSpan={7} className={styles.empty}>当前范围暂无消耗记录</td></tr>}</tbody></table></div></div>
      </>}
     </section>
-    {data.planExecution?.firstFinalizedAt&&<PlanExecutionSummary plan={data.planExecution}/>}
+    {!data.scheduleComparison&&data.planExecution?.firstFinalizedAt&&<PlanExecutionSummary plan={data.planExecution}/>}
     <p className={styles.bottomNote}>实时看板按当前有效排期和已登记事实计算；当前应发量不代表月初冻结计划。</p>
    </div>}
   </div>

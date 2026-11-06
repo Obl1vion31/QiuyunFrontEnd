@@ -13,6 +13,7 @@ export async function effectiveBusinessPermissions(db:Reader,user:OperationsUser
   const result=defaultBusinessPermissions();
   if(user.role==='admin'){for(const [key] of businessOperations)result[key]='direct';return result;}
   for(const row of await db.select().from(permissions).where(eq(permissions.userId,user.id))){if(row.operation in result)result[row.operation as BusinessOperation]=row.mode;}
+  for(const key of ['schedule.create','schedule.revise','schedule.edit','schedule.reschedule','schedule.overdueReschedule'] as const)if(result[key]==='review')result[key]='direct';
   return result;
 }
 export async function requireBusinessOperation(db:Reader,user:OperationsUser,operation:BusinessOperation){

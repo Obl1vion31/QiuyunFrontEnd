@@ -1,3 +1,4 @@
+import {readScheduleComparison,type ScheduleComparison} from './schedule-baseline';
 import {promotionLeadCostTrend,type LeadCostPoint,type LeadCostReview} from './meeting-lead-trend';
 import {weeklyReportMetrics,type WeeklyReportMetrics} from './meeting-report-metrics';
 import {sameNonPromotionCohort,type ContentRole} from './content-roles';
@@ -139,6 +140,7 @@ export interface WeeklyNonPromotionCard {
     }>;
 }
 export interface WeeklyMaterial {
+    scheduleComparison?:ScheduleComparison;
     reportMetrics?:WeeklyReportMetrics;
     monthly?:MonthlyMeetingMaterial;
     monthlyPlans?:MonthlyPlanView[];
@@ -373,8 +375,9 @@ export async function readWeeklyMaterial(db: Database, meeting: MeetingRecord, n
     const periodFacts = facts.filter(f => includedFacts.has(f.id)&&between(f.metricDate, start, end)), summary = { ...totals(periodFacts), posts: new Set(periodFacts.map(f => context.campaigns.find(c => c.id === f.campaignId)?.scheduleId ?? f.campaignId)).size, testingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'testing').map(f => f.campaignId)).size, scalingPosts: new Set(periodFacts.filter(f => f.stageTypeSnapshot === 'scaling').map(f => f.campaignId)).size };
     const months=[...new Set([start.slice(0,7),end.slice(0,7)])];
     const monthlyPlans=meeting.meetingType==='weekly'?(await Promise.all(months.map(month=>readMonthlyPlan(db,month,now)))).filter((p):p is MonthlyPlanView=>!!p?.firstFinalizedAt):undefined;
-    const base = { schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, reportMetrics:weeklyReportMetrics(context,facts,start,end,now), promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions,...(monthlyPlans?.length?{monthlyPlans}:{}) };
-    return { ...base, fingerprint: sourceHash(base) };
+    const scheduleComparison=meeting.meetingType==='weekly'?await readScheduleComparison(db,start,end,now):undefined;
+    const base = { ...(scheduleComparison?{scheduleComparison}:{}),schemaVersion: 4 as const, periodStart: start, periodEnd: end, summary, reportMetrics:weeklyReportMetrics(context,facts,start,end,now), promotions, nonPromotions, nonPromotionContext: nonPool, pending,excludedNonPromotions,...(monthlyPlans?.length?{monthlyPlans}:{}) };
+    return { ...base, fingerprint: sourceHash({...base,...(scheduleComparison?{scheduleComparison:{...scheduleComparison,asOf:undefined}}:{})}) };
 }
 export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: string[], nonSelections: Array<{
     scheduleId: string;
@@ -385,7 +388,7 @@ export function selectWeeklyMaterial(material: WeeklyMaterial, promotionKeys: st
     const primary = material.nonPromotions.filter(p => keys.has(p.key)).map(p => ({ ...p, comparisonOnly: false }));
     const posts=new Set(primary.map(p=>p.contentId));
     const comparison = material.nonPromotionContext.filter(p=>posts.has(p.contentId)&&!keys.has(p.key)).map(p=>({...p,comparisonOnly:true}));
-    return { promotions, nonPromotions: [...primary, ...comparison],excludedNonPromotions:material.excludedNonPromotions??[] };
+    return { ...(material.scheduleComparison?{scheduleComparison:material.scheduleComparison}:{}),promotions, nonPromotions: [...primary, ...comparison],excludedNonPromotions:material.excludedNonPromotions??[] };
 }
 
 /** 仅供可编辑草稿兼容：补齐缺失的当日状态，不刷新指标、来源指纹或人工输入。 */

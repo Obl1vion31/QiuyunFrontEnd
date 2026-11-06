@@ -9,14 +9,14 @@ import {respondToBusinessConfirm,settleBusinessUI} from './business-confirm.help
 import * as s from '../src/db/schema';
 const dir='.tools/test-artifacts/scheduling-review/browser';await mkdir(dir+'/screenshots',{recursive:true});
 const clockFile=new URL('../'+dir+'/clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-05T12:00:00+08:00');
-const f=await startPostgresFixture({clockFile}),{db,baseURL}=f;let browser:any,staffContext:any,bossContext:any,page:any;const errors:string[]=[],checks:string[]=[],images:string[]=[];
+const f=await startPostgresFixture({clockFile,entry:process.env.SCHEDULING_REVIEW_ENTRY}),{db,baseURL}=f;let browser:any,staffContext:any,bossContext:any,page:any;const errors:string[]=[],checks:string[]=[],images:string[]=[];
 async function shot(name:string,target=page){await settleBusinessUI(target);await target.mouse.move(0,0);await target.screenshot({path:dir+'/screenshots/'+name+'.png'});images.push(name+'.png');assert(await target.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),name+' 页面溢出');}
 async function login(context:any,actor:any){const r=await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:actor});assert.equal(r.status(),200);return (await context.cookies()).map((c:any)=>c.name+'='+c.value).join('; ');}
 try{
  const pw=await import(process.env.PLAYWRIGHT_MODULE!);browser=await pw.chromium.launch({headless:true,args:['--no-sandbox']});
  staffContext=await browser.newContext({viewport:{width:1440,height:1000},recordVideo:{dir:dir+'/video',size:{width:1440,height:1000}}});bossContext=await browser.newContext({viewport:{width:1440,height:1000}});
  await login(staffContext,employee);const bossCookie=await login(bossContext,admin);page=await staffContext.newPage();const boss=await bossContext.newPage();for(const p of [page,boss])p.on('pageerror',(e:any)=>errors.push(e.message));
- await page.goto(baseURL+'/business/operations-schedule?month=2026-12');await shot('closed-1440');assert(await page.locator('[data-open-new]').isDisabled());
+ await page.goto(baseURL+'/business/operations-schedule?month=2026-12');await shot('closed-1440');assert(await page.locator('[data-open-new]').isEnabled());
  const setup=await prepareMonthlyArrangement(db,baseURL,bossCookie);
  await page.goto(baseURL+'/business/operations-schedule?month=2026-11');
  await page.locator('[data-calendar-new="2026-11-10"]').click();await page.locator('#schedule-form').waitFor({state:'visible'});
@@ -33,7 +33,7 @@ try{
  const path='**/api/monthly-plans/'+setup.planId+'/arrangement';
  await page.route(path,(route:any)=>route.request().method()==='POST'?route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'隔离网络失败，输入保留'})}):route.continue());
  await page.locator('[data-arrangement-form] button[value=submit]').click();await respondToBusinessConfirm(page,true);await page.getByText('隔离网络失败，输入保留',{exact:true}).waitFor();assert((await page.locator('[data-arrangement-form] [name=reason]').inputValue()).includes('第一篇'));await shot('submit-failure-1440');await page.unroute(path);
- await page.locator('[data-arrangement-form] button[value=submit]').click();await respondToBusinessConfirm(page,true);await page.locator('[data-arrangement-stage=review_pending]').waitFor();assert(await page.locator('[data-open-new]').isDisabled());
+ await page.locator('[data-arrangement-form] button[value=submit]').click();await respondToBusinessConfirm(page,true);await page.locator('[data-arrangement-stage=review_pending]').waitFor();assert(await page.locator('[data-open-new]').isEnabled());
  await shot('review-employee-1440');await page.locator('.calendar-item[data-inspect-id="'+first.id+'"]').click();await page.locator('[data-inspector].is-open').waitFor();assert(await page.locator('[data-inspector-edit]').isDisabled());
  await page.locator('[data-inspector-publication]').click();await page.locator('#publication-form').waitFor({state:'visible'});await page.locator('#publication-form [name=actualPublishDate]').fill('2026-11-05');await page.locator('#publication-form [name=actualPublishTime]').fill('11:00');await page.locator('#publicationUrl').fill('https://www.xiaohongshu.com/explore/0123456789abcdef01234567');await page.locator('#publicationProjectDocUrl').fill('https://example.test/doc');
  const published=page.waitForResponse((r:any)=>r.url().endsWith('/publication')&&r.request().method()==='PATCH'),publicationNavigation=page.waitForEvent('framenavigated',{predicate:(frame:any)=>frame===page.mainFrame()});await page.locator('#publication-form button[type=submit]').click();assert.equal((await published).status(),200);await publicationNavigation;await page.waitForLoadState('networkidle');await shot('review-publication-saved-1440');

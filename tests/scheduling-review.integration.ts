@@ -10,7 +10,7 @@ import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 import * as s from '../src/db/schema';
 const out='.tools/test-artifacts/scheduling-review';await mkdir(out,{recursive:true});
 const clockFile=new URL('../'+out+'/clock.txt',import.meta.url).pathname;await writeFile(clockFile,'2026-11-05T12:00:00+08:00');
-const f=await startPostgresFixture({clockFile}),{db,baseURL}=f;const checks:string[]=[];
+const f=await startPostgresFixture({clockFile,entry:process.env.SCHEDULING_REVIEW_ENTRY}),{db,baseURL}=f;const checks:string[]=[];
 const mark=(text:string)=>{checks.push(text);console.log('PASS '+text);};
 async function login(actor:any){const r=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');}
 let boss='',staff='';
@@ -56,12 +56,11 @@ try{
  const state=await api(staff,endpoint),submit={action:'submit',fingerprint:state.fingerprint,requestId:randomUUID(),reason:'两篇已落实，管理员核对'};
  await api(staff,endpoint,submit);await api(staff,endpoint,submit);
  assert.equal((await api(staff,endpoint)).stage,'review_pending');
- await api(staff,'/api/operations-content',fields('待核对期间禁止新增'),403,'POST',true);
- await api(staff,'/api/operations-content/'+newPost.id,{...fields('待核对禁止编辑'),expectedPlanRevision:0},403,'PATCH',true);
- mark('管理员确认预排期才放行首轮；单帖暂存不锁月，整月提交幂等且待核对员工无法改排期');
+ await api(staff,'/api/operations-content/'+newPost.id,{...fields('首轮员工落实的讲义'),expectedPlanRevision:0},200,'PATCH',true);
+ mark('管理员确认预排期才放行首轮；单帖暂存不锁月，整月提交幂等且待核对员工仍可编辑');
  await api(staff,'/api/operations-content/'+newPost.id+'/publication',{actualPublishAt:'2026-11-05T11:00',publicationUrl:'https://www.xiaohongshu.com/explore/0123456789abcdef01234567',projectDocUrl:'https://example.test/project',expectedPublicationRevision:0,expectedPlanRevision:0,dailyReasons:'[]'},200,'PATCH',true);
  assert.equal((await api(boss,endpoint)).fingerprint,state.fingerprint,'实发不改变排期结构凭据');
- await api(staff,'/api/operations-content/'+newPost.id+'/publication',{actualPublishAt:'2026-11-05T11:00',publicationUrl:'https://www.xiaohongshu.com/explore/0123456789abcdef01234567',projectDocUrl:'https://example.test/project',expectedPublicationRevision:1,expectedPlanRevision:0,dailyReasons:'[]',reviewMode:'instant',reviewDueOn:'2026-11-10'},403,'PATCH',true);
+ await api(staff,'/api/operations-content/'+newPost.id+'/publication',{actualPublishAt:'2026-11-05T11:00',publicationUrl:'https://www.xiaohongshu.com/explore/0123456789abcdef01234567',projectDocUrl:'https://example.test/project',expectedPublicationRevision:1,expectedPlanRevision:0,dailyReasons:'[]',reviewMode:'instant',reviewDueOn:'2026-11-10'},422,'PATCH',true);
 
  const returned={action:'return',fingerprint:state.fingerprint,requestId:randomUUID(),reason:'调整一处日期再提交'};
  await api(boss,endpoint,returned);assert.equal((await api(staff,endpoint)).stage,'editing');
@@ -98,17 +97,15 @@ try{
  const racePlan=await seedLinkPlan(db,{month:'2026-12',final:true});
  const raceEndpoint='/api/monthly-plans/'+racePlan.plan.id+'/arrangement',beforeRace=await api(staff,raceEndpoint);
  const raced=await Promise.all([request(staff,raceEndpoint,{action:'submit',fingerprint:beforeRace.fingerprint,requestId:randomUUID(),reason:'并发提交'}),request(staff,'/api/operations-content',fields('同时新增','2026-12-10T10:00'),'POST',true)]);
- assert(raced[0].status===200&&raced[1].status===403||raced[0].status===409&&raced[1].status===201,JSON.stringify(raced));
- mark('整月提交与新增真实并发：提交胜出则新增拒绝，新增胜出则重新核对，不能在待核对后写入');
+ assert([200,409].includes(raced[0].status)&&raced[1].status===201,JSON.stringify(raced));
+ mark('整月提交与新增真实并发：新增始终可保存，旧提交依据有变化时重新核对');
  
  const approvalPlan=await seedLinkPlan(db,{month:'2027-01',final:true});
  const [staffUser]=await db.select().from(s.authUser).where(eq(s.authUser.username,employee.username)),[adminUser]=await db.select().from(s.authUser).where(eq(s.authUser.username,admin.username));
  const staffActor={id:staffUser.id,username:staffUser.username!,role:'employee' as const},adminActor={id:adminUser.id,username:adminUser.username!,role:'admin' as const};
  const oldPermissions=await effectiveBusinessPermissions(db,staffActor);assert(await updateAccountPermissions(db,adminActor,staffActor.id,{...oldPermissions,'schedule.create':'review'},oldPermissions));
- const proposal=await api(staff,'/api/operations-content',fields('旧申请批准仍检查月度阶段','2027-01-10T10:00'),202,'POST',true);
- await db.update(s.operationsMonthlyPlan).set({arrangementStatus:'review_pending'}).where(eq(s.operationsMonthlyPlan.id,approvalPlan.plan.id));
- await api(boss,'/api/business-change-proposals/'+proposal.requestId,{action:'approve',reason:'旧申请重放'},403,'PATCH');
- assert.equal((await db.select().from(s.operationsContentVersion).where(eq(s.operationsContentVersion.contentName,'旧申请批准仍检查月度阶段'))).length,0);
- mark('已发布表单不能借附属信息修改独立复盘计划；封存附件写入拒绝；旧审批批准同样遵守待核对阶段');
+ const direct=await api(staff,'/api/operations-content',fields('普通排期旧审核配置直接保存','2027-01-10T10:00'),201,'POST',true);
+ assert(direct.id);assert.equal((await db.select().from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.status,'pending'))).length,0);
+ mark('封存附件写入拒绝；普通排期旧审核配置不再产生新申请，敏感事实权限保持独立');
  await writeFile(out+'/integration.json',JSON.stringify({passed:true,checks},null,2));
 }catch(error){console.error(f.logs().slice(-5000));throw error;}finally{await f.stop();}

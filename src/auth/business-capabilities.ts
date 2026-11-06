@@ -11,7 +11,7 @@ export const businessOperations = [
   ['schedule.revise','schedule','创建改帖','direct'],
   ['schedule.edit','schedule','编辑排期普通信息与用途','direct'],
   ['schedule.reschedule','schedule','正常修改应发时间','direct'],
-  ['schedule.overdueReschedule','schedule','超时尚未登记时改期','review'],
+  ['schedule.overdueReschedule','schedule','超时尚未登记时改期','direct'],
   ['schedule.publish','schedule','发布登记与更新链接','direct'],
   ['schedule.correctPublication','schedule','更正已有实际发布时间','disabled'],
   ['schedule.reason','schedule','填写／更正延期原因','direct'],

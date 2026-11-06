@@ -84,7 +84,7 @@ const selectedMonth = requestedMonthMatch
   : currentMonth;
 const calendarMonthlyPlan=selectedView==='schedule'&&selectedDisplay==='calendar'&&selectedStatus!=='approvals'?await readMonthlyCalendar(getDb(),selectedMonth):null;
 const arrangementState=await readArrangement(getDb(),selectedMonth);
-const monthCanCreate=arrangementState.stage!=='closed'&&(arrangementState.stage!=='review_pending'||Astro.locals.user?.role==='admin');
+const monthCanCreate=arrangementState.stage!=='closed';
 const [selectedYear, selectedMonthNumber] = selectedMonth.split('-').map(Number);
 const previousMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber - 2, 1)).toISOString().slice(0, 7);
 const nextMonth = new Date(Date.UTC(selectedYear, selectedMonthNumber, 1)).toISOString().slice(0, 7);
@@ -441,7 +441,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow, delayThresholdMs }}>
       if(document.querySelector('[data-inspector-name]')){
       const permissions=JSON.parse(document.querySelector('#business-permissions')?.textContent||'{}');
-      const mayOperate=key=>{const state=document.querySelector('[data-arrangement-stage]');const pending=state?.dataset.arrangementStage==='review_pending'&&state.dataset.arrangementRole==='employee';if(pending&&!['schedule.publish'].includes(key))return false;if(state?.dataset.arrangementStage==='closed'&&['schedule.create','schedule.revise','schedule.reschedule','schedule.overdueReschedule'].includes(key))return false;return ['direct','review'].includes(permissions[key]);};
+      const mayOperate=key=>{const state=document.querySelector('[data-arrangement-stage]');if(state?.dataset.arrangementStage==='closed'&&['schedule.create','schedule.revise','schedule.reschedule','schedule.overdueReschedule'].includes(key))return false;return ['direct','review'].includes(permissions[key]);};
       const rows = clientRows;
       const categories = clientCategories;
       const dialog = document.querySelector('#schedule-dialog');
@@ -811,8 +811,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeForm(); });
       form.addEventListener('input', () => {
         dirty = true; document.documentElement.dataset.unsaved = 'true'; updatePromotionPreview();
-        const changed = mode === 'edit' && field('plannedPublishAt').value !== activeRecord?.plannedPublishAt;
-        document.querySelector('[data-plan-change-reason]').hidden = !changed; field('planChangeReason').required = changed;
       });
       field('subjectId').addEventListener('change', () => updateCategoryOptions());
       let applyPlanChange = false;
@@ -871,6 +869,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
             if(!response.ok){message.textContent='改期申请已提交，其他修改尚未保存：'+(result.message??'请重试。');return;}
           }
           if (response.ok) { dirty = false; document.documentElement.dataset.unsaved = 'false'; window.location.reload(); return; }
+          if(result.code==='SCHEDULE_REASON_REQUIRED'){form.dataset.reasonRequired='true';document.querySelector('[data-schedule-change-reason]').hidden=false;field('changeReason').required=true;field('changeReason').focus();}
           if(result.code==='MONTHLY_PLAN_SOURCE_REQUIRED')form.dispatchEvent(new Event('business:monthly-source-required'));
           message.textContent = result.message ?? '保存失败，请重试。';
           for (const [name, errors] of Object.entries(result.fields ?? {})) {

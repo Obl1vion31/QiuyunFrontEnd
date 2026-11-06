@@ -1,0 +1,23 @@
+.plan-comparison.monthly-section,.plan-comparison.weekly-paper{padding:16px 20px}
+.plan-comparison{min-width:0;font:400 14px/22px var(--console-font)}
+.plan-comparison-overview{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 24px;min-width:0}
+.plan-comparison-overview h2{margin:0;font:600 18px/26px var(--console-font)}
+.plan-comparison-counts{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 20px;margin:0;font-variant-numeric:tabular-nums}
+.plan-comparison-counts b{font-weight:600;font-size:16px;color:var(--console-ink)}
+.plan-comparison-formula,.plan-comparison-meta{color:var(--console-muted);font-size:13px}
+.plan-comparison-warning{color:#916128}
+.plan-comparison-details{margin-top:8px}
+.plan-comparison-details>summary{width:fit-content;cursor:pointer;color:var(--console-blue);font:400 13px/22px var(--console-font)}
+.plan-comparison-table{max-width:100%;overflow-x:auto;margin-top:12px}
+.plan-comparison-table table{width:100%;min-width:880px;border-collapse:collapse;font:400 14px/22px var(--console-font)}
+.plan-comparison-table th,.plan-comparison-table td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--console-line);vertical-align:top}
+.plan-comparison-table th{color:var(--console-muted);font-size:13px;font-weight:500;background:var(--console-surface)}
+.plan-comparison-table td:first-child{width:26%;min-width:200px}.plan-comparison-table td:nth-child(n+2):nth-child(-n+4){width:17%;white-space:nowrap;font-variant-numeric:tabular-nums}
+.plan-comparison-table td:last-child{min-width:190px}
+.plan-comparison-table a{color:var(--console-ink);text-decoration:none}.plan-comparison-table a:hover{color:var(--console-blue);text-decoration:underline}
+.plan-comparison-table small{font:400 12px/18px var(--console-font);color:var(--console-muted)}
+.plan-comparison-table .plan-comparison-meta{display:block;margin-top:3px}
+.plan-comparison-week th{font-weight:600;color:var(--console-ink)}
+.plan-comparison-changes{margin-top:6px}.plan-comparison-changes summary{cursor:pointer;color:var(--console-muted);font-size:13px}
+.plan-comparison-changes p{margin:8px 0;font-size:13px}.plan-comparison-changes p>span{display:block;overflow-wrap:anywhere}
+@media print{.plan-comparison{background:#fff!important;box-shadow:none!important;break-inside:auto}.plan-comparison-table{overflow:visible}.plan-comparison-table table{min-width:0;font-size:11px}.plan-comparison-table th,.plan-comparison-table td{padding:7px;min-width:0!important;white-space:normal!important}.plan-comparison-table tr{break-inside:avoid}.plan-comparison-details>summary{display:none}}
