@@ -56,16 +56,16 @@ export async function readMonthlyPrivate(db:Database,base:{query:{month:string;s
  const scope=base.promotionScope??base.categories.map(c=>({subjectId:c.subjectId,categoryId:c.key.split(':')[1]}));
  const activeSubjects=new Set([...scope.map(s=>s.subjectId),...data.rows.map(r=>r.subjectId)]);
  const subjects=base.taxonomy.subjects.filter(s=>activeSubjects.has(s.id)&&(!base.query.subject||s.id===base.query.subject)).map(subject=>{
-  const categories=base.categories.filter(c=>c.subjectId===subject.id);const spend=categories.some(c=>c.spend!==null)?categories.reduce((n,c)=>n+(c.spend??0),0):sourceData?0:null;
+  const categories=base.categories.filter(c=>c.subjectId===subject.id);const spend=categories.some(c=>c.spend!==null)?categories.reduce((n,c)=>n+(c.spend??0),0):null;
   const total=data.rows.find(r=>r.subjectId===subject.id&&r.demand==='total')??emptyCounts();
   const unmapped=categories.filter(c=>!mapping.entries[c.key]).reduce((n,c)=>n+(c.spend??0),0);
-  const demands=demandTypes.filter(d=>(sourceData?promotionScope.some(s=>s.subjectId===subject.id&&s.demand===d):scope.some(s=>s.subjectId===subject.id&&mapping.entries[`${s.subjectId}:${s.categoryId}`]===d))||data.rows.some(r=>r.subjectId===subject.id&&r.demand===d)).map(demand=>{const groups=categories.filter(c=>mapping.entries[c.key]===demand);const amount=groups.some(c=>c.spend!==null)?groups.reduce((n,c)=>n+(c.spend??0),0):sourceData?0:null;const value=data.rows.find(r=>r.subjectId===subject.id&&r.demand===demand)??emptyCounts();return {demand,label:demandLabels[demand],spend:amount,counts:value,costs:privateCosts(sourceData&&unmapped>0?null:amount,value)};});
+  const demands=demandTypes.filter(d=>(sourceData?promotionScope.some(s=>s.subjectId===subject.id&&s.demand===d):scope.some(s=>s.subjectId===subject.id&&mapping.entries[`${s.subjectId}:${s.categoryId}`]===d))||data.rows.some(r=>r.subjectId===subject.id&&r.demand===d)).map(demand=>{const groups=categories.filter(c=>mapping.entries[c.key]===demand);const amount=groups.some(c=>c.spend!==null)?groups.reduce((n,c)=>n+(c.spend??0),0):null;const value=data.rows.find(r=>r.subjectId===subject.id&&r.demand===demand)??emptyCounts();return {demand,label:demandLabels[demand],spend:amount,counts:value,costs:privateCosts(sourceData&&unmapped>0?null:amount,value)};});
   return {id:subject.id,name:subject.name,spend,counts:total,costs:privateCosts(sourceData&&unmapped>0?null:spend,total),demands,unmapped};
  });
  const active=data.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null));const values=[...Object.values(data.total),...active.flatMap(r=>[r.added,r.consulted,r.converted]),...(sourceData?.nonPromotion??[]).flatMap(r=>[r.added,r.consulted,r.converted])];
  const completeSubjects=subjects.every(s=>[s.counts,...s.demands.map(d=>d.counts)].every(v=>Object.values(v).filter(n=>typeof n!=='string').every(n=>n!==null)));
  const status=!values.some(v=>v!==null)?'missing':values.every(v=>v!==null)&&completeSubjects?'complete':'partial';
- const unmapped=subjects.reduce((n,s)=>n+s.unmapped,0),totalSpend=base.spend.spend??(sourceData?0:null);
+ const unmapped=subjects.reduce((n,s)=>n+s.unmapped,0),totalSpend=base.spend.spend;
  const catalog=includeSources?await db.select({data:privateTable.data}).from(privateTable).orderBy(privateTable.updatedAt):[];
  const sourceOptions=[...new Map(catalog.flatMap(r=>isSourcePrivateData(r.data)?r.data.nonPromotion.map(({id,subjectId,source})=>[id,{id,subjectId,source}] as const):[])).values()];
  return {data,sourceData:sourceData?{...sourceData,promotion:sourceRows}:null,sourceOptions,subjectNames:Object.fromEntries(base.taxonomy.subjects.map(s=>[s.id,s.name])),totalSpend,revision:row?.revision??-1,updatedAt:row?.updatedAt.toISOString()??null,updatedBy:row?.updatedBy??null,status,totalCosts:privateUnitCosts(sourceData&&unmapped>0?null:totalSpend,data.total),subjects,unmapped,mappingRevision:mapping.revision};

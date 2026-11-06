@@ -1,6 +1,6 @@
 # 验证
 
-`pnpm test:private-sources` 使用本机 `TEST_POSTGRES_URL` 创建独立临时 PostgreSQL，运行正式构建组件、API和PDF渲染器；完成后清理临时库，不读取生产环境。`PRIVATE_SOURCE_EVIDENCE_DIR` 指定产物，`PRIVATE_SOURCE_KEEP_SERVER=1` 可保留本地预览进程供查看。覆盖来源增删改、零／缺值、旧口径拒绝写入、失败重试、慢保存新输入、角色、月会实时／冻结对照与三档桌面；159人自然来源不混入推广成本。首屏与操作分别录制，最终图须查看后才归档。纯规则见 `private-sources.test.ts`，当前封存主流程 `scheduling-review.integration.ts` 使用同一新格式。
+`pnpm test:private-sources` 使用本机 `TEST_POSTGRES_URL` 创建独立临时 PostgreSQL，运行正式构建组件、API和PDF渲染器；完成后清理临时库，不读取生产环境。`PRIVATE_SOURCE_EVIDENCE_DIR` 指定产物，`PRIVATE_SOURCE_KEEP_SERVER=1` 可保留本地预览进程供查看。覆盖来源增删改、零／缺值、旧口径拒绝写入、失败重试、慢保存新输入、角色、月会实时／冻结对照与三档桌面；159人自然来源不混入推广成本。前置缺费专项对照尚无消耗记录与真实登记0元，表格、汇总及只读录入均保持区别。首屏与操作分别录制，最终图须查看后才归档。纯规则见 `private-sources.test.ts`，当前封存主流程 `scheduling-review.integration.ts` 使用同一新格式。
 
 `pnpm test:meeting-transfer` 使用本机隔离 PostgreSQL，将同一批含多版冻结材料、决定继承／撤销／更正及上海月界的样本交给正式基线与当前实现。指定已独立安装和构建的基线工作树 `MEETING_BASELINE_SOURCE`；`MEETING_TRANSFER_DIR` 指定产物目录。逐项核对决定、上下文、时间线、周／月材料、旧版材料、接口完整 JSON 和实际页面正文，并在 TCP 层计量数据库返回字节与查询次数；覆盖深层帖子引用、非字符串误匹配、草稿、失效版及缺缓存材料的V4旧草稿阶段选择器。比较不连接共享 Neon，样本变化不能当作正式月流量比例。
 
