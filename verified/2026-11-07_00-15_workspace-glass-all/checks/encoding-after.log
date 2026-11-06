@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: React development 流式中文／emoji分片与同步HTML逐字节一致
+ok 1 - React development 流式中文／emoji分片与同步HTML逐字节一致
+  ---
+  duration_ms: 162.270774
+  type: 'test'
+  ...
+# Subtest: React production.min 流式中文／emoji分片与同步HTML逐字节一致
+ok 2 - React production.min 流式中文／emoji分片与同步HTML逐字节一致
+  ---
+  duration_ms: 106.842379
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 435.779689

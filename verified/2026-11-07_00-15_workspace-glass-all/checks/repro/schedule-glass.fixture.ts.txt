@@ -1,0 +1,58 @@
+import {eq} from 'drizzle-orm';
+import {createHash} from 'node:crypto';
+import {readMonthlyMeeting} from '../src/db/monthly-meeting';
+import {stableFixtureDb} from './stable-fixture';
+import * as s from '../src/db/schema';
+const at=new Date('2026-11-06T04:00:00Z');
+const id=(n:number)=>'a1150000-0000-4000-8000-'+String(n).padStart(12,'0');
+export async function seedScheduleGlass(rawDb:any){
+ const db=stableFixtureDb(rawDb),scenes:any={},records:any[]=[];
+ const dense:[number,string,number,string,string][]=[
+ [1,'TMUA 推广讲义',2,'tmua','promotional-handout'],[1,'面试课 成功案例',1,'interview','success-story'],
+ [2,'面试课 非推广讲义',2,'interview','non-promotional-handout'],[2,'STEP 成功案例',1,'step','success-story'],[2,'TMUA 创新帖',1,'tmua','innovation'],[2,'TMUA 考试信息',1,'tmua','exam-information'],[2,'面试课 推广讲义',1,'interview','promotional-handout'],
+ [3,'TMUA 出分合集',4,'tmua','score-release-collection'],[3,'面试课 非推广讲义',1,'interview','non-promotional-handout'],[3,'面试课 创新帖',1,'interview','innovation'],
+ [4,'TMUA 成功案例',1,'tmua','success-story'],[4,'面试课 非推广讲义',1,'interview','non-promotional-handout'],[4,'面试课 推广讲义',1,'interview','promotional-handout'],[4,'TMUA 模考',2,'tmua','mock-exam'],
+ [5,'TMUA 备考须知',1,'tmua','exam-guide']];
+ for(const [index,month,stage]of [[1,'2026-11','editing'],[2,'2026-10','review_pending'],[3,'2026-09','confirmed']] as const){
+  const offset=index*1000,content:any={groups:[],items:[]};
+  for(const [n,[week,name,quantity,subjectId,categoryId]]of dense.entries()){
+   const groupId=id(offset+100+n);content.groups.push({id:groupId,annualPlanId:null,annualVersion:null,name,subjectId,categoryId,quantity,note:'隔离视觉样本',reason:'月会预排期'});
+   for(let j=0;j<quantity;j++)content.items.push({id:id(offset+200+content.items.length),groupId,week,kind:'new',scheduleId:null});
+  }
+  const posts:any[]=[];
+  for(let n=0;n<8;n++){
+   const item=content.items[[0,1,2,3,4,5,10,20][n]],group=content.groups.find((g:any)=>g.id===item.groupId);
+   const name=['函数图像与条件推理：完整讲义及例题','TMUA 数列与递推：从题目到证明','面试准备：有效表达与思考过程','讲义资料：高频问题与反例整理','图形与条件的对应关系','STEP 典型例题与证明方法','面试课创新表达：问题拆解案例','TMUA 备考须知：考试前的资料准备'][n];
+   const day=n<5?'06':n===5?'12':n===6?'17':'29',planned=month+'-'+day+'T'+String(10+n).padStart(2,'0')+':00:00+08:00';
+   const promoted=n===0||n===2,published=n===1||n===2;
+   const [c]=await db.insert(s.operationsContent).values({id:id(offset+300+n),platformNoteId:(9500+index*10+n).toString(16).padStart(24,'0'),operationType:promoted?'promotion_only':'non_promotion_standard'}).returning();
+   const [v]=await db.insert(s.operationsContentVersion).values({id:id(offset+400+n),contentId:c.id,contentName:name,subjectId:group.subjectId,categoryId:group.categoryId,versionNumber:0,workType:'new',projectDocUrl:n===3?null:'https://example.test/documents/'+(n+1)}).returning();
+   const [schedule]=await db.insert(s.operationsContentSchedule).values({id:id(offset+500+n),contentVersionId:v.id,plannedPublishAt:new Date(planned),actualPublishAt:published?new Date(planned):null,publicationUrl:published?'https://www.xiaohongshu.com/explore/'+c.platformNoteId:null,completionStatus:published?'on_time':'pending',isPromoted:promoted,promotionStatus:index===1&&n===2?'testing':promoted?'pending':'none'}).returning();
+   if(index===1&&n===2){const [campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:'2026-11-06',dailyReviewEnabledOn:'2026-11-06',initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();await db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,stageType:'testing',startedOn:'2026-11-06'});}
+   item.scheduleId=schedule.id;await db.insert(s.operationsNonPromotionReviewPlan).values({contentId:c.id,anchorScheduleId:schedule.id,mode:'standard',day7:!promoted,day15:!promoted});
+   posts.push({...schedule,name,group,item});records.push({id:schedule.id,name,planned});
+  }
+  const previous=month==='2026-11'?'2026-10':month==='2026-10'?'2026-09':'2026-08',through=previous==='2026-09'?'30':'31';
+  const [meeting]=await db.insert(s.operationsReviewMeeting).values({id:id(offset+1),name:previous+' 月度业务复盘 · 隔离样本',meetingType:'monthly',meetingAt:new Date(month+'-03T16:00:00+08:00'),periodStart:previous+'-01',periodEnd:previous+'-'+through,status:'completed',currentVersionNumber:1,createdByLabel:'test_admin',draftSnapshot:{schemaVersion:4,workflowVersion:7,monthlySchemaVersion:1,coreConclusion:'先确认计划，再核对实际排期。',nextAction:'按Week落实内容，保留调整原因。',promotionInputs:{},issues:[],nonPromotionSelections:[]}}).returning();
+  const monthly=await readMonthlyMeeting(db,meeting);
+  const finalContent=stage==='confirmed'?{groups:content.groups.filter((g:any)=>posts.some(p=>p.group.id===g.id)).map((g:any)=>({...g,quantity:posts.filter(p=>p.group.id===g.id).length})),items:content.items.filter((i:any)=>i.scheduleId)}:content;
+  const planId=id(offset+3),versionId=id(offset+2),draft={...meeting.draftSnapshot,monthlyPlan:{id:planId,month,revision:1,content:finalContent,additions:[],editorSteps:{original:'confirmed'}},materialSnapshot:{schemaVersion:4,monthly,promotions:[],nonPromotions:[],pending:[]}};
+  const generated={schemaVersion:4,monthly,periodStart:meeting.periodStart,periodEnd:meeting.periodEnd,summary:{},promotions:[],nonPromotions:[],nonPromotionContext:[],pending:[],excludedNonPromotions:[],fingerprint:monthly.fingerprint};
+  const snapshot={schemaVersion:4,finalizationStage:'post',arrangementSealed:stage==='confirmed',meeting:{id:meeting.id,name:meeting.name,meetingType:'monthly',periodStart:meeting.periodStart,periodEnd:meeting.periodEnd},draft,generated};
+  await db.insert(s.operationsReviewMeetingVersion).values({id:versionId,meetingId:meeting.id,versionNumber:1,lifecycleStatus:'finalized',snapshot,changeSummary:'隔离视觉状态',finalizedAt:new Date(month+'-03T18:00:00+08:00'),finalizedByLabel:'test_admin'});
+  await db.insert(s.operationsMonthlyPlan).values({id:planId,month,meetingId:meeting.id,content:finalContent,revision:1,sourceVersionId:versionId,firstFinalizedAt:new Date(month+'-03T18:00:00+08:00'),arrangementStatus:stage,sealedVersionId:stage==='confirmed'?versionId:null,arrangementHistory:stage==='editing'?[]:[{at:month+'-04T04:00:00.000Z',actor:'test_employee',action:'submit',reason:'按实际内容核对本月安排。',requestId:id(offset+8),fingerprint:'isolated-visual-fixture'}]});
+  await db.update(s.operationsReviewMeeting).set({draftSnapshot:draft}).where(eq(s.operationsReviewMeeting.id,meeting.id));
+  for(const [n,post]of posts.entries())await db.insert(s.operationsMonthlyPlanAssignment).values({planId,itemId:post.item.id,scheduleId:post.id,firstSubmittedAt:new Date(month+'-04T02:00:00Z'),history:[{phase:'applied',at:month+'-04T02:00:00.000Z',actor:'test_admin',scheduleId:post.id,reason:'隔离样本：按发布窗口调整本周安排'}]});
+  scenes[stage]={month,planId,meetingId:meeting.id,first:posts[0].id,second:posts[3].id,posted:posts[1].id};
+ }
+ return {scenes,records,digest:createHash('sha256').update(JSON.stringify({scenes,records})).digest('hex'),routes:{
+  schedule:'/business/operations-schedule?month=2026-11',
+  'schedule-editing':'/business/operations-schedule?month=2026-11',
+  'schedule-ledger':'/business/operations-schedule?month=2026-11&display=ledger',
+  'schedule-pending':'/business/operations-schedule?month=2026-10',
+  'schedule-confirmed':'/business/operations-schedule?month=2026-09',
+  'schedule-closed':'/business/operations-schedule?month=2026-12',
+  'schedule-promotion':'/business/operations-schedule?month=2026-11&view=promotion&display=ledger',
+  'schedule-meeting':'/business/meeting-review?meeting='+scenes.editing.meetingId+'&version=1'
+ }};
+}

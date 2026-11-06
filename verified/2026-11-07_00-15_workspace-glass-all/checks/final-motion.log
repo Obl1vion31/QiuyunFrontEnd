@@ -1,0 +1,20 @@
+
+> qiuyun-frontend-system@0.1.0 test:motion /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106
+> node --import tsx tests/panel-motion.browser.ts
+
+MOTION 1920 发布登记
+MOTION 1920 编辑排期
+MOTION 1920 创建改帖
+MOTION 1440 发布登记
+MOTION 1440 编辑排期
+MOTION 1440 创建改帖
+MOTION 1024 发布登记
+MOTION 1024 编辑排期
+MOTION 1024 创建改帖
+MOTION 390 发布登记
+MOTION 390 编辑排期
+MOTION 390 创建改帖
+MOTION 320 发布登记
+MOTION 320 编辑排期
+MOTION 320 创建改帖
+通过：1920/1440/1024/390/320px 详情、发布、编辑、改帖进出逐帧几何、遮罩终帧、背景日历、非零滚动位置、滚动锁、快速重开、嵌套确认和减少动态效果。

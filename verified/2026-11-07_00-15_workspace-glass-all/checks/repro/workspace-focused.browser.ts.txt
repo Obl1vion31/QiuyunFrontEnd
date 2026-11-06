@@ -1,0 +1,27 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {admin} from '../tests/auth.fixture';
+import {settleBusinessUI} from './visual-settle';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);
+const browser=await chromium.launch({headless:true}), report:any=[];
+try{
+ for(const phase of ['before','after']){
+  const root=phase==='before'?'/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-baseline-20261106':process.cwd();
+  const info=JSON.parse(await readFile(root+'/.tools/workspace-preview-'+phase+'.json','utf8'));
+  const r=await fetch(info.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:info.baseURL,'Content-Type':'application/json'},body:JSON.stringify(admin)});
+  assert.equal(r.status,200);
+  const ctx=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});
+  await ctx.addCookies(r.headers.getSetCookie().map(v=>{const [name,...rest]=v.split(';')[0].split('=');return{name,value:rest.join('='),url:info.baseURL};}));
+  const p=await ctx.newPage();await p.clock.setFixedTime(new Date(info.clock));
+  const dir='.tools/test-artifacts/workspace-glass/'+phase+'/screenshots';await mkdir(dir,{recursive:true});
+  for(const width of [1920,1440,1024]){
+   await p.setViewportSize({width,height:1000});await p.goto(info.baseURL+info.routes.monthly);await settleBusinessUI(p);
+   const panel=p.locator('[data-monthly-meeting-overview]');
+   await panel.evaluate((n:HTMLElement)=>scrollTo({top:scrollY+n.getBoundingClientRect().top-96,behavior:'instant'}));await settleBusinessUI(p);
+   const box=await panel.boundingBox();assert.ok(box&&Math.abs(box.y-96)<2);
+   await p.screenshot({path:dir+'/monthly-execution-'+width+'.png'});report.push({phase,width,panel:box});
+  }
+  await ctx.close();
+ }
+ await writeFile('.tools/test-artifacts/workspace-glass/focused-comparison.json',JSON.stringify(report,null,2));
+}finally{await browser.close();}

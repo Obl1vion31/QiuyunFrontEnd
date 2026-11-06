@@ -1,0 +1,245 @@
+{
+  "facts": [
+    {
+      "page": "monthly",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "schedule",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "promotion",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "nonpromotion",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "weekly",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "meetings",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "operations",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "annual",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "accounts",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "permissions",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "guide",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "home",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "login",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "page": "assistant",
+      "loaded": true,
+      "dimensions": [
+        [
+          1440,
+          1000
+        ],
+        [
+          1440,
+          1000
+        ]
+      ]
+    },
+    {
+      "video": "候选全站",
+      "duration": 38.12
+    },
+    {
+      "video": "原版全站",
+      "duration": 28.72
+    },
+    {
+      "video": "候选排期",
+      "duration": 14.44
+    },
+    {
+      "video": "原版排期",
+      "duration": 10.76
+    },
+    {
+      "video": "触压细节",
+      "duration": 5.72
+    },
+    {
+      "video": "触压放大",
+      "duration": 4.72
+    },
+    {
+      "video": "首屏过程",
+      "duration": 9.88
+    },
+    {
+      "demo": "before",
+      "success": true
+    },
+    {
+      "demo": "before schedule",
+      "success": true
+    },
+    {
+      "demo": "after",
+      "success": true
+    },
+    {
+      "demo": "after schedule",
+      "success": true
+    }
+  ],
+  "errors": []
+}

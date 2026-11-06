@@ -1,0 +1,82 @@
+[
+  {
+    "check": "rules-final",
+    "result": "passed",
+    "log": "rules-final.log"
+  },
+  {
+    "check": "check-delivery",
+    "result": "passed",
+    "log": "check-delivery.log"
+  },
+  {
+    "check": "build-vercel-final",
+    "result": "passed",
+    "log": "build-vercel-final.log"
+  },
+  {
+    "check": "build-runtime-final",
+    "result": "passed",
+    "log": "build-runtime-final.log"
+  },
+  {
+    "check": "encoding-after",
+    "result": "passed",
+    "log": "encoding-after.log"
+  },
+  {
+    "check": "schedule-final",
+    "result": "passed",
+    "log": "schedule-final.log"
+  },
+  {
+    "check": "regression-promotion",
+    "result": "passed",
+    "log": "regression-promotion.log"
+  },
+  {
+    "check": "nonpromotion",
+    "result": "passed",
+    "log": "nonpromotion.log"
+  },
+  {
+    "check": "final-auth",
+    "result": "passed",
+    "log": "final-auth.log"
+  },
+  {
+    "check": "final-motion",
+    "result": "passed",
+    "log": "final-motion.log"
+  },
+  {
+    "check": "final-monthly",
+    "result": "passed",
+    "log": "final-monthly.log"
+  },
+  {
+    "check": "final-private",
+    "result": "passed",
+    "log": "final-private.log"
+  },
+  {
+    "check": "final-publication",
+    "result": "passed",
+    "log": "final-publication.log"
+  },
+  {
+    "check": "final-ui",
+    "result": "passed",
+    "log": "final-ui.log"
+  },
+  {
+    "check": "final-annual",
+    "result": "passed",
+    "log": "final-annual.log"
+  },
+  {
+    "check": "final-home",
+    "result": "passed",
+    "log": "final-home.log"
+  }
+]

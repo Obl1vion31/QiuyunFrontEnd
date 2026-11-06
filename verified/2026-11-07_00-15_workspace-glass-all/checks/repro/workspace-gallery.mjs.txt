@@ -1,0 +1,28 @@
+import {createServer} from 'node:http';
+import {readFile,stat,writeFile,access} from 'node:fs/promises';
+import {createReadStream} from 'node:fs';
+import {resolve,join} from 'node:path';
+const root=process.cwd(),beforeRoot=resolve(root,'../workspace-glass-all-baseline-20261106'),port=34916;
+const pages=JSON.parse(await readFile('.tools/workspace-gallery-pages.json','utf8'));
+const html=(await readFile('.tools/workspace-gallery.html','utf8')).replace('__PAGES__',JSON.stringify(pages).replaceAll('<','\\u003c'));
+async function asset(phase,name){const places=process.env.GALLERY_EVIDENCE?[join(root,process.env.GALLERY_EVIDENCE,phase,'screenshots'),join(root,process.env.GALLERY_EVIDENCE,phase,'video')]:[join(root,'.tools/test-artifacts/workspace-glass',phase,'screenshots'),join(root,'.tools/test-artifacts/workspace-glass',phase,'video'),...(phase==='before'?[join(beforeRoot,'.tools/test-artifacts/workspace-glass/before/screenshots')]:[])];for(const dir of places){const file=join(dir,name);try{await access(file);return file;}catch{}}return null;}
+const server=createServer(async(req,res)=>{try{
+ const u=new URL(req.url,'http://localhost');
+ if(u.pathname==='/'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-cache'});res.end(html);return;}
+ if(u.pathname==='/demo'){
+  const phase=u.searchParams.get('phase')==='before'?'before':'after',key=u.searchParams.get('key')||'monthly',info=JSON.parse(await readFile(join(phase==='before'?beforeRoot:root,'.tools/'+(key.startsWith('schedule')?'schedule-preview-':'workspace-preview-')+phase+'.json'),'utf8'));
+  const auth=await fetch(info.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:info.baseURL,'Content-Type':'application/json'},body:JSON.stringify({username:'test_admin',password:'fictional-admin-password'})});
+  if(!auth.ok)throw Error('Local fixture login failed');
+  const path=info.routes[key]||info.routes.monthly;
+  res.writeHead(302,{'Location':info.baseURL+path,'Set-Cookie':auth.headers.getSetCookie(),'Cache-Control':'no-store'});res.end();return;
+ }
+ const match=u.pathname.match(/^\/asset\/(before|after)\/([a-zA-Z0-9_.-]+\.(png|jpg|webm))$/);
+ if(match){const file=await asset(match[1],match[2]);if(!file){res.writeHead(404);res.end();return;}const s=await stat(file),type=match[3]==='webm'?'video/webm':match[3]==='jpg'?'image/jpeg':'image/png',headers={'Content-Type':type,'Cache-Control':'no-cache','Accept-Ranges':'bytes'};
+  if(req.method==='HEAD'){res.writeHead(200,{...headers,'Content-Length':s.size});res.end();return;}
+  const range=req.headers.range?.match(/^bytes=(\d+)-(\d*)$/);
+  if(range){const start=Number(range[1]),end=Math.min(range[2]?Number(range[2]):s.size-1,s.size-1);if(start>end||start>=s.size){res.writeHead(416,{'Content-Range':'bytes */'+s.size});res.end();return;}res.writeHead(206,{...headers,'Content-Range':'bytes '+start+'-'+end+'/'+s.size,'Content-Length':end-start+1});createReadStream(file,{start,end}).pipe(res);return;}
+  res.writeHead(200,{...headers,'Content-Length':s.size});createReadStream(file).pipe(res);return;
+ }
+ res.writeHead(404);res.end('Not found');
+}catch(e){if(!res.headersSent)res.writeHead(503,{'Content-Type':'text/plain; charset=utf-8'});res.end('本地预览暂不可用：'+String(e.message));}});
+server.listen(port,'0.0.0.0',async()=>{await writeFile('.tools/workspace-gallery.json',JSON.stringify({pid:process.pid,port,url:'http://127.0.0.1:'+port},null,2));console.log('http://127.0.0.1:'+port);});

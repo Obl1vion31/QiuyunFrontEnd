@@ -1,0 +1,6 @@
+
+> qiuyun-frontend-system@0.1.0 test:browser /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106
+> node --import tsx tests/auth.browser.ts
+
+通过：真实 HTTP 登录、未预排期拒绝及真实确认后员工写入、管理权限、旧历史字段和破坏性确认防绕过。
+通过：桌面与 390／320px 登录、等待、防重复、输入保留、会话、账号切换及持久导航；无客户端异常。

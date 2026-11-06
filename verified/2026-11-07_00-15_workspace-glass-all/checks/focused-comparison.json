@@ -1,0 +1,62 @@
+[
+  {
+    "phase": "before",
+    "width": 1920,
+    "panel": {
+      "x": 256,
+      "y": 96,
+      "width": 1625,
+      "height": 421
+    }
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "panel": {
+      "x": 256,
+      "y": 96,
+      "width": 1145,
+      "height": 421
+    }
+  },
+  {
+    "phase": "before",
+    "width": 1024,
+    "panel": {
+      "x": 256,
+      "y": 96,
+      "width": 729,
+      "height": 709
+    }
+  },
+  {
+    "phase": "after",
+    "width": 1920,
+    "panel": {
+      "x": 256,
+      "y": 96,
+      "width": 1625,
+      "height": 429
+    }
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "panel": {
+      "x": 256,
+      "y": 96,
+      "width": 1145,
+      "height": 429
+    }
+  },
+  {
+    "phase": "after",
+    "width": 1024,
+    "panel": {
+      "x": 256,
+      "y": 96,
+      "width": 729,
+      "height": 710
+    }
+  }
+]

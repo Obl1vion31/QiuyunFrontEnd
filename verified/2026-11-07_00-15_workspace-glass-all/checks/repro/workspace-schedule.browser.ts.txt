@@ -1,0 +1,82 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile,rename} from 'node:fs/promises';
+import {startPostgresFixture} from '../tests/postgres.fixture';
+import {admin,employee} from '../tests/auth.fixture';
+import {settleBusinessUI,respondToBusinessConfirm} from './visual-settle';
+import {seedScheduleGlass} from './schedule-glass.fixture';
+const phase=process.env.GLASS_PHASE??'after',folder='.tools/test-artifacts/workspace-glass/'+phase;
+await mkdir(folder+'/screenshots',{recursive:true});await mkdir(folder+'/video',{recursive:true});
+const clock='2026-11-06T12:00:00+08:00',clockFile=process.cwd()+'/'+folder+'/schedule-clock.txt';await writeFile(clockFile,clock);
+const f=await startPostgresFixture({clockFile});let browser:any,failed:any;
+const checks:any[]=[],errors:string[]=[],geometry:any[]=[],crops:any[]=[];
+async function login(actor:any){const r=await fetch(f.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:f.baseURL,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>{const[name,...parts]=v.split(';')[0].split('=');return{name,value:parts.join('='),url:f.baseURL};});}
+try{
+ const sample=await seedScheduleGlass(f.db);await writeFile('.tools/schedule-preview-'+phase+'.json',JSON.stringify({pid:process.pid,baseURL:f.baseURL,phase,clock,...sample},null,2));
+ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);browser=await chromium.launch({headless:true});
+ const boss=await login(admin),staff=await login(employee);
+ async function context(role:string,width=1440,video=false){const c=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',...(video?{recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}}:{})});await c.addCookies(role==='admin'?boss:staff);const p=await c.newPage();failed=p;p.setDefaultTimeout(12000);await p.clock.setFixedTime(new Date(clock));p.on('pageerror',(e:Error)=>errors.push(e.message));return{c,p};}
+ async function go(p:any,key:string){await p.goto(f.baseURL+sample.routes[key]);await p.waitForLoadState('networkidle');await settleBusinessUI(p);}
+ async function take(p:any,name:string,full=false){
+  await p.mouse.move(0,0);await settleBusinessUI(p);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),name+' page overflow');
+  await p.screenshot({path:folder+'/screenshots/'+name+'.png'});if(full)await p.screenshot({path:folder+'/screenshots/'+name+'-full.png',fullPage:true});
+  geometry.push({name,width:p.viewportSize().width});const pane=p.locator('[data-inspector].is-open');if(await pane.count()){const box=await pane.boundingBox();if(box)crops.push({name,...box});}
+ }
+ async function closeForm(p:any){await p.locator('#schedule-dialog [data-close]').first().click();if(await p.locator('[data-business-confirm][open]').count())await respondToBusinessConfirm(p,true);await p.locator('#schedule-dialog').waitFor({state:'hidden'});}
+ async function inspector(p:any,id:string){await p.locator('.calendar-item[data-inspect-id="'+id+'"]').click();await p.locator('[data-inspector].is-open').waitFor();await p.waitForLoadState('networkidle');await settleBusinessUI(p);assert.equal(await p.locator('[data-inspector]').getAttribute('data-selected-id'),id);}
+ for(const width of [1920,1440,1024]){
+  const {c,p}=await context('employee',width);
+  for(const [key,stage]of [['schedule-closed','closed'],['schedule-editing','editing'],['schedule-pending','review_pending'],['schedule-confirmed','confirmed']]){
+   await go(p,key);assert.equal(await p.locator('[data-arrangement-stage]').getAttribute('data-arrangement-stage'),stage);await take(p,key+'-'+width,width===1440);
+   if(stage==='closed'||stage==='review_pending')assert(await p.locator('[data-open-new]').isDisabled());
+   if(stage==='review_pending')assert.equal(await p.locator('[data-arrangement-form]').count(),0);
+  }
+  await go(p,'schedule-editing');
+  assert.equal(await p.locator('[data-monthly-plan-week]').count(),5);assert.equal(await p.locator('.calendar-item').count(),8);
+  const footer=p.locator('.monthly-calendar-selection'),before=await footer.boundingBox(),calendar=await p.locator('.calendar').boundingBox();
+  const source=p.locator('[data-monthly-plan-source]:not(:disabled)').first();await source.focus();await p.keyboard.press('Enter');assert.equal(await source.getAttribute('aria-pressed'),'true');await settleBusinessUI(p);
+  assert(Math.abs((await footer.boundingBox()).height-before.height)<=1);assert(Math.abs((await p.locator('.calendar').boundingBox()).width-calendar.width)<=1);
+  await take(p,'schedule-selection-'+width);await p.locator('[data-monthly-cancel]').click();assert.equal(await source.getAttribute('aria-pressed'),'false');
+  await inspector(p,sample.scenes.editing.first);
+  const originalDoc='https://example.test/documents/1';assert.equal(await p.locator('[data-inspector-doc]').getAttribute('href'),originalDoc);
+  assert(await p.locator('[data-inspector-planned]').isVisible());assert(await p.locator('[data-inspector-actual]').isVisible());
+  await take(p,'schedule-inspector-'+width);
+  if(phase==='after'){assert.equal(await p.locator('[data-schedule-resources] .surface-resource-icon svg').count(),2);assert.equal(await p.locator('[data-inspector-post]').getAttribute('href'),null);assert.match(await p.locator('[data-inspector-post]').innerText(),/尚未发布/);}
+  await p.locator('[data-inspector-edit]').click();await p.locator('#schedule-dialog[open]').waitFor();await take(p,'schedule-editor-'+width);await closeForm(p);
+  await p.locator('[data-inspector-publication]').click();await p.locator('#publication-dialog[open]').waitFor();await take(p,'schedule-publication-'+width);await p.locator('#publication-dialog [data-close-publication]').first().click();await p.locator('#publication-dialog').waitFor({state:'hidden'});
+  await p.keyboard.press('Escape');await p.locator('[data-inspector]').waitFor({state:'hidden'});
+  await inspector(p,sample.scenes.editing.second);assert.equal(await p.locator('[data-inspector-doc]').getAttribute('href'),null);
+  if(phase==='after'){assert.equal(await p.locator('[data-inspector-doc]').getAttribute('aria-disabled'),'true');assert.equal(await p.locator('[data-inspector-doc]').getAttribute('tabindex'),'-1');}
+  await take(p,'schedule-missing-'+width);await p.keyboard.press('Escape');await p.locator('[data-inspector]').waitFor({state:'hidden'});
+  for(const key of ['schedule-ledger','schedule-promotion','schedule-meeting']){await go(p,key);await take(p,key+'-'+width,width===1440);}
+  await c.close();
+  const adminView=await context('admin',width);await go(adminView.p,'schedule-pending');assert(await adminView.p.getByRole('button',{name:'核对通过并封存',exact:true}).isVisible());await take(adminView.p,'schedule-pending-admin-'+width);await adminView.c.close();
+ }
+ const {c,p}=await context('employee');
+ await go(p,'schedule-editing');await p.locator('[data-monthly-plan-source]:not(:disabled)').first().click();await p.locator('[data-calendar-new="2026-11-20"]').click();await p.locator('#schedule-dialog[open]').waitFor();
+ const form=p.locator('#schedule-form');await form.locator('[name=contentName]').fill('隔离检查：未保存的标题与说明');await p.locator('#schedule-dialog [data-close]').first().click();await p.locator('[data-business-confirm][open]').waitFor();await take(p,'schedule-unsaved-1440');await respondToBusinessConfirm(p,false);assert.equal(await form.locator('[name=contentName]').inputValue(),'隔离检查：未保存的标题与说明');await closeForm(p);
+ await p.locator('[data-monthly-cancel]').click();
+ await inspector(p,sample.scenes.editing.first);await p.locator('[data-inspector-edit]').click();await p.locator('#schedule-dialog[open]').waitFor();
+ const original=await form.locator('[name=contentName]').inputValue();await form.locator('[name=contentName]').fill(original+'（隔离修改）');
+ await p.route('**/api/operations-content/'+sample.scenes.editing.first,r=>r.request().method()==='PATCH'?r.abort():r.continue());
+ await form.locator('[type=submit]').click();await p.locator('[data-business-confirm][open]').waitFor();await take(p,'schedule-occupancy-1440');await respondToBusinessConfirm(p,true);await form.locator('.form-message').filter({hasText:/失败|无法|网络|稍后/}).waitFor();assert.equal(await form.locator('[name=contentName]').inputValue(),original+'（隔离修改）');await take(p,'schedule-failure-1440');await p.unroute('**/api/operations-content/'+sample.scenes.editing.first);await closeForm(p);
+ // 旧读被取消后不能替换当前对象；资料只消费当前选择的已有摘要。
+ await p.route('**/api/operations-content/*/workflow',async r=>{await new Promise(resolve=>setTimeout(resolve,650));await r.continue().catch(()=>{});});
+ await p.locator('.calendar-item[data-inspect-id="'+sample.scenes.editing.second+'"]').click();await p.locator('.calendar-item[data-inspect-id="'+sample.scenes.editing.first+'"]').click();await p.waitForTimeout(850);assert.equal(await p.locator('[data-inspector]').getAttribute('data-selected-id'),sample.scenes.editing.first);assert.equal(await p.locator('[data-inspector-doc]').getAttribute('href'),'https://example.test/documents/1');await p.unroute('**/api/operations-content/*/workflow');
+ await p.reload();await settleBusinessUI(p);assert.equal(await p.locator('[data-inspector]').getAttribute('data-selected-id'),sample.scenes.editing.first);assert.equal(await p.locator('[data-inspector-doc]').getAttribute('href'),'https://example.test/documents/1');await take(p,'schedule-deep-link-1440');
+ await p.emulateMedia({reducedMotion:'reduce'});await p.keyboard.press('Escape');await p.locator('[data-inspector]').waitFor({state:'hidden'});await p.locator('[data-open-new]').click();await p.locator('#schedule-dialog[open]').waitFor();assert.equal(await p.locator('#schedule-dialog').evaluate((n:Element)=>n.getAnimations().length),0);await closeForm(p);await c.close();
+ checks.push('three desktop widths; both roles; four stages; source keyboard/footer; real inspector resources and direct link; editor/publication; aborted save/input; rapid selection; reduced motion');
+ // 独立实录上下文不截整页或局部图，避免截图工具临时改变录像视口。
+ const rec=await context('employee',1440,true),v=rec.p;await go(v,'schedule-editing');
+ if(phase==='after'){
+  const btn=v.locator('[data-open-new]');
+  for(const x of [.2,.8]){const b=await btn.boundingBox();await v.mouse.move(b.x+b.width*x,b.y+b.height*.5);await v.mouse.down();await v.waitForTimeout(240);const held=await btn.evaluate((n:Element)=>({transform:getComputedStyle(n).transform,light:getComputedStyle(n,'::after').opacity}));assert(Number(held.light)>.8);assert.match(held.transform,/matrix3d/);await v.screenshot({path:folder+'/screenshots/schedule-press-'+(x<.5?'left':'right')+'-1440.png'});await v.mouse.move(0,0);await v.mouse.up();await v.waitForTimeout(420);checks.push({press:x,...held});}
+ }
+ await v.locator('[data-monthly-plan-source]:not(:disabled)').first().click();await v.locator('[data-calendar-new="2026-11-20"]').click();await v.locator('#schedule-dialog[open]').waitFor();await v.locator('#schedule-form [name=contentName]').fill('隔离实录：保留输入');await v.locator('#schedule-dialog [data-close]').first().click();await respondToBusinessConfirm(v,false);await v.waitForTimeout(250);await closeForm(v);await v.locator('[data-monthly-cancel]').click();
+ await inspector(v,sample.scenes.editing.first);await v.locator('[data-inspector-edit]').click();await v.locator('#schedule-dialog[open]').waitFor();await closeForm(v);await v.keyboard.press('Escape');await v.locator('[data-inspector]').waitFor({state:'hidden'});
+ for(const key of ['schedule-ledger','schedule-pending','schedule-confirmed','schedule-closed']){await go(v,key);await v.waitForTimeout(350);}
+ await rec.c.close();await rename(await v.video().path(),folder+'/video/schedule.webm');
+ await writeFile(folder+'/schedule-crops.json',JSON.stringify(crops,null,2));
+ assert.deepEqual(errors,[]);await writeFile(folder+'/schedule-result.json',JSON.stringify({phase,clock,digest:sample.digest,checks,geometry,errors},null,2));console.log('SCHEDULE_GLASS_OK '+phase);
+ await browser.close();browser=null;
+ if(process.env.GLASS_KEEP==='1')await new Promise<void>(resolve=>{process.once('SIGTERM',resolve);process.once('SIGINT',resolve);});
+}catch(e){if(failed&&!failed.isClosed())await failed.screenshot({path:folder+'/schedule-debug.png'}).catch(()=>{});console.error(f.logs().slice(-1800));throw e;}finally{await browser?.close();await f.stop();}

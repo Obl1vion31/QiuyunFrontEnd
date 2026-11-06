@@ -1,0 +1,73 @@
+import assert from 'node:assert/strict';
+import {readFile,mkdir,writeFile,rename} from 'node:fs/promises';
+import {admin,employee} from '../tests/auth.fixture';
+import {settleBusinessUI} from './visual-settle';
+const beforeRoot='/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-baseline-20261106';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);
+const browser=await chromium.launch({headless:true}),report:any={checks:[],motion:[],errors:[]};
+const pause=(ms:number)=>new Promise(r=>setTimeout(r,ms));
+async function cookies(base:string,actor:any){const r=await fetch(base+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>{const[name,...rest]=v.split(';')[0].split('=');return{name,value:rest.join('='),url:base};});}
+try{
+ for(const phase of (process.env.GLASS_PHASES??'before,after').split(',')){
+  const root=phase==='before'?beforeRoot:process.cwd(),info=JSON.parse(await readFile(root+'/.tools/workspace-preview-'+phase+'.json','utf8')),base=info.baseURL,folder='.tools/test-artifacts/workspace-glass/'+phase;
+  await mkdir(folder+'/screenshots',{recursive:true});await mkdir(folder+'/video',{recursive:true});
+  const boss=await cookies(base,admin);
+  const c=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});await c.addCookies(boss);
+  const p=await c.newPage();p.setDefaultTimeout(12000);await p.clock.setFixedTime(new Date(info.clock));p.on('pageerror',(e:Error)=>report.errors.push({phase,error:e.message}));
+  const chapters:any[]=[],cropRects:any[]=[];
+  async function nav(key:string){await p.goto(base+info.routes[key]);await p.waitForLoadState('networkidle');await settleBusinessUI(p);chapters.push({label:key,operatorMs:Date.now()});}
+  async function shot(name:string,locator?:any){await settleBusinessUI(p);await p.screenshot({path:folder+'/screenshots/'+name+'.png'});if(locator){const box=await locator.boundingBox();if(box)cropRects.push({name,...box});}}
+  async function top(locator:any){await locator.evaluate((n:HTMLElement)=>scrollTo({top:scrollY+n.getBoundingClientRect().top-96,behavior:'instant'}));await settleBusinessUI(p);}
+  await nav('monthly');
+  const history=p.locator('.monthly-core').getByRole('button',{name:'历史月份',exact:true});
+  if(phase==='after'){
+   await history.hover();await p.waitForTimeout(180);const hover=await history.evaluate((n:HTMLElement)=>({border:getComputedStyle(n).borderColor,shadow:getComputedStyle(n).boxShadow}));
+   const box=await history.boundingBox();await p.mouse.move(box.x+box.width*.2,box.y+box.height*.65);await p.mouse.down();await p.waitForTimeout(170);
+   const pressed=await history.evaluate((n:HTMLElement)=>({transform:getComputedStyle(n).transform,glint:getComputedStyle(n,'::after').opacity,x:n.style.getPropertyValue('--press-x')}));
+   assert(Number(pressed.glint)>.8,'按压亮斑实际可见');assert.notEqual(pressed.transform,'none');
+   await shot('motion-press-left-1440',history);
+   await p.mouse.move(box.x-8,box.y);await p.mouse.up();await p.waitForTimeout(450);
+   assert.equal(await history.evaluate((n:HTMLElement)=>getComputedStyle(n).transform),'none');
+   const currentBox=await history.boundingBox();await p.mouse.move(currentBox.x+currentBox.width*.8,currentBox.y+currentBox.height*.35);await p.mouse.down();await p.waitForTimeout(230);
+   const right=await history.evaluate((n:HTMLElement)=>({transform:getComputedStyle(n).transform,glint:getComputedStyle(n,'::after').opacity}));
+   assert(Number(right.glint)>.8);assert.match(right.transform,/matrix3d/);
+   await shot('motion-press-right-1440',history);
+   await p.mouse.up();report.motion.push({phase,hover,pressed,right,release:'380ms underdamped spring, returns to identity'});
+  }else await history.click();
+  const hs=p.locator('#monthly-history-sheet[open]');await hs.waitFor();await p.waitForLoadState('networkidle');await shot('monthly-history-1440',hs);await p.keyboard.press('Escape');await hs.waitFor({state:'hidden'});assert(await history.evaluate((n:Element)=>document.activeElement===n));
+  const source=p.locator('.monthly-core .ps-disclosure').first();await source.locator('summary').click();await p.waitForTimeout(75);if(phase==='after')assert((await source.evaluate((n:Element)=>n.getAnimations().length))>0);
+  await source.locator('summary').click();await p.waitForFunction(()=>!document.querySelector<HTMLDetailsElement>('.monthly-core .ps-disclosure')!.open);assert.equal(await source.getAttribute('open'),null);
+  await source.locator('summary').click();await p.waitForFunction(()=>!document.querySelector('.monthly-core .ps-disclosure')?.hasAttribute('data-motion-active'));await top(source);await shot('monthly-sources-1440');await source.locator('summary').click();await p.waitForTimeout(280);
+  const waste=p.locator('[data-monthly-waste]');await top(waste);await shot('monthly-waste-1440');
+  const all=waste.getByRole('button',{name:/查看全部空跑来源/});await all.click();await p.locator('#monthly-waste-sheet[open]').waitFor();await shot('monthly-waste-sheet-1440');await p.keyboard.press('Escape');await p.locator('#monthly-waste-sheet').waitFor({state:'hidden'});
+  await nav('weekly');await p.getByRole('radio',{name:'编辑模式',exact:true}).check();await p.getByRole('button',{name:'修改核心结论',exact:true}).click();
+  const core=p.getByRole('textbox',{name:'核心结论',exact:true}),original=await core.inputValue();await core.fill(original+'（未保存试验）');await p.getByRole('heading',{name:'下一步行动',exact:true}).click();await p.getByRole('radio',{name:'只读模式',exact:true}).check();await p.locator('[data-business-confirm][open]').waitFor();await shot('weekly-unsaved-1440');await p.locator('[data-confirm-cancel]').click();await p.locator('[data-business-confirm]').waitFor({state:'hidden'});await p.getByRole('button',{name:'修改核心结论',exact:true}).click();assert.equal(await core.inputValue(),original+'（未保存试验）');await core.fill(original);await p.getByRole('heading',{name:'下一步行动',exact:true}).click();await shot('weekly-edit-1440');
+  await nav('promotion');await p.locator('.promotion-data-disclosure>summary').first().click();await settleBusinessUI(p);
+  const first=p.locator('tr[data-inspector-key]:visible').first();await p.evaluate(()=>{(window as any).__glassDocument=document;(window as any).__glassList=document.querySelector('.lifecycle-list');});await first.click();await settleBusinessUI(p);
+  const pane=p.locator('[data-inspector].is-open');await shot('promotion-inspector-1440',pane);if(phase==='after'){const meta=pane.locator('.surface-resource-meta');await meta.locator('summary').focus();await p.keyboard.press('Enter');await p.waitForFunction(()=>!document.querySelector('[data-inspector].is-open .surface-resource-meta')?.hasAttribute('data-motion-active'));assert.match(await meta.innerText(),/2026-10-29/);await shot('promotion-metadata-1440',pane);await meta.locator('summary').click();await p.waitForFunction(()=>!document.querySelector<HTMLDetailsElement>('[data-inspector].is-open .surface-resource-meta')!.open);}
+  assert(await p.evaluate(()=>(window as any).__glassDocument===document&&(window as any).__glassList===document.querySelector('.lifecycle-list')));
+  const second=p.locator('tr[data-inspector-key]:visible').nth(1);await second.click();await settleBusinessUI(p);await shot('promotion-selection-1440');
+  await p.goBack();await settleBusinessUI(p);assert(await p.evaluate(()=>(window as any).__glassDocument===document));assert.equal(await p.locator('tr[data-inspector-key].selected').count(),1);
+  await pane.locator('[data-edit-trigger]').click();const edit=p.locator('dialog[data-edit-dialog][open]');await edit.waitFor();await settleBusinessUI(p);
+  const input=edit.locator('[name=spend]'),value=await input.inputValue();await input.fill(String(Number(value)+.5));await shot('promotion-edit-1440',edit);
+  await p.route('**/api/promotion-daily/*',route=>route.request().method()==='PATCH'?route.abort():route.continue());
+  await edit.getByRole('button',{name:'保存修改',exact:true}).click();await p.waitForTimeout(500);assert.equal(await input.inputValue(),String(Number(value)+.5));assert.match(await edit.locator('[data-edit-message]').innerText(),/无法连接|失败/);await shot('promotion-failure-1440');await p.unroute('**/api/promotion-daily/*');
+  await input.fill(value);await edit.getByRole('button',{name:'取消',exact:true}).click();await edit.waitFor({state:'hidden'});await p.keyboard.press('Escape');await p.waitForTimeout(120);if(await p.locator('[data-business-confirm][open]').count())await p.locator('[data-confirm-accept]').click();await pane.waitFor({state:'hidden'});
+  await nav('nonpromotion-history');await p.locator('[data-category-group]').first().locator('summary').click();await settleBusinessUI(p);await p.locator('.review-title-button:visible').first().click();await settleBusinessUI(p);await shot('nonpromotion-inspector-1440',p.locator('[data-inspector].is-open'));if(phase==='after'){const meta=p.locator('[data-inspector].is-open .surface-resource-meta');await meta.locator('summary').click();await p.waitForFunction(()=>!document.querySelector('[data-inspector].is-open .surface-resource-meta')?.hasAttribute('data-motion-active'));await shot('nonpromotion-metadata-1440');await meta.locator('summary').click();await p.waitForFunction(()=>!document.querySelector<HTMLDetailsElement>('[data-inspector].is-open .surface-resource-meta')!.open);}
+  const review=p.locator('[data-inspector].is-open [data-review-form]'),text=review.locator('[name=conclusion]'),old=await text.inputValue();await text.fill(old+'临时草稿');
+  await p.locator('[data-close-inspector]').click();await p.locator('[data-business-confirm][open]').waitFor();await shot('nonpromotion-unsaved-1440');await p.locator('[data-confirm-cancel]').click();await p.locator('[data-business-confirm]').waitFor({state:'hidden'});assert.equal(await text.inputValue(),old+'临时草稿');await text.fill(old);
+  await p.locator('[data-close-inspector]').click();if(await p.locator('[data-business-confirm][open]').count())await p.locator('[data-confirm-accept]').click();await p.locator('[data-inspector].is-open').waitFor({state:'hidden'});
+  await nav('operations');await p.locator('[data-monthly-operations] button').filter({has:p.locator('[data-value=published]')}).click();await settleBusinessUI(p);
+  const selected=p.locator('[data-monthly-operations] button:has([data-value=published])');if(phase==='after'){assert.equal(await p.getByRole('combobox',{name:'发布明细范围',exact:true}).inputValue(),'published');assert.match(await selected.evaluate((n:Element)=>getComputedStyle(n).boxShadow),/-2px/);}await shot('operations-linked-detail-1440');
+  await nav('annual');await p.locator('.item-cell').first().click();await settleBusinessUI(p);await shot('annual-inspector-1440',p.locator('[data-inspector].is-open'));await p.keyboard.press('Escape');await p.locator('[data-inspector].is-open').waitFor({state:'hidden'});await p.locator('[data-open-new]').click();await p.locator('#row-dialog[open]').waitFor();await shot('annual-editor-1440');await p.locator('#row-dialog [data-close-row]').first().click();await p.locator('#row-dialog').waitFor({state:'hidden'});
+  await nav('accounts');await p.locator('[data-account-create]').click();await p.locator('[data-account-create-dialog][open]').waitFor();await shot('account-create-1440');await p.keyboard.press('Escape');await p.locator('[data-account-create-dialog]').waitFor({state:'hidden'});
+  await nav('meetings');await p.locator('[data-open-create]').click();await p.locator('[data-create][open]').waitFor();await shot('meeting-create-1440');await p.keyboard.press('Escape');await p.locator('[data-create]').waitFor({state:'hidden'});
+  await nav('home');await p.emulateMedia({reducedMotion:'reduce'});await p.reload();await settleBusinessUI(p);await p.screenshot({path:folder+'/screenshots/home-1440.png'});await top(p.locator('.workflow'));await shot('home-workflow-1440');await top(p.locator('.systems'));await shot('home-systems-1440');
+  await writeFile(folder+'/video/chapters.json',JSON.stringify(chapters,null,2));await writeFile(folder+'/crop-rects.json',JSON.stringify(cropRects,null,2));await c.close();await rename(await p.video().path(),folder+'/video/interaction.webm');
+  const cc=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',reducedMotion:'reduce'});await cc.addCookies(boss);const q=await cc.newPage();await q.goto(base+info.routes.monthly);await settleBusinessUI(q);const h=q.locator('.monthly-core').getByRole('button',{name:'历史月份',exact:true});
+  if(phase==='after'){const b=await h.boundingBox();await q.mouse.move(b.x+b.width*.2,b.y+b.height*.5);await q.mouse.down();await q.waitForTimeout(150);assert.equal(await h.evaluate((n:Element)=>getComputedStyle(n).transform),'none');await q.mouse.move(0,0);await q.mouse.up();}
+  await q.screenshot({path:folder+'/screenshots/reduced-motion-1440.png'});await cc.close();
+  report.checks.push({phase,completed:true,video:'1440x1000 actual operations',isolated:true});
+ }
+ await writeFile('.tools/test-artifacts/workspace-glass/interactions.json',JSON.stringify(report,null,2));assert.deepEqual(report.errors,[]);console.log(JSON.stringify(report,null,2));
+}finally{await browser.close();}

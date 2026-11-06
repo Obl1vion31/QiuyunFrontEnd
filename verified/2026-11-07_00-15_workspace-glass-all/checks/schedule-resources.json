@@ -1,0 +1,74 @@
+[
+  {
+    "phase": "before",
+    "width": 1920,
+    "rect": {
+      "x": 1543,
+      "y": 226,
+      "width": 338,
+      "height": 754
+    },
+    "doc": "https://example.test/documents/2",
+    "post": "https://www.xiaohongshu.com/explore/000000000000000000002527"
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "rect": {
+      "x": 1063,
+      "y": 226,
+      "width": 338,
+      "height": 754
+    },
+    "doc": "https://example.test/documents/2",
+    "post": "https://www.xiaohongshu.com/explore/000000000000000000002527"
+  },
+  {
+    "phase": "before",
+    "width": 1024,
+    "rect": {
+      "x": 629,
+      "y": 72,
+      "width": 380,
+      "height": 928
+    },
+    "doc": "https://example.test/documents/2",
+    "post": "https://www.xiaohongshu.com/explore/000000000000000000002527"
+  },
+  {
+    "phase": "after",
+    "width": 1920,
+    "rect": {
+      "x": 1543,
+      "y": 228,
+      "width": 338,
+      "height": 752
+    },
+    "doc": "https://example.test/documents/2",
+    "post": "https://www.xiaohongshu.com/explore/000000000000000000002527"
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "rect": {
+      "x": 1063,
+      "y": 228,
+      "width": 338,
+      "height": 752
+    },
+    "doc": "https://example.test/documents/2",
+    "post": "https://www.xiaohongshu.com/explore/000000000000000000002527"
+  },
+  {
+    "phase": "after",
+    "width": 1024,
+    "rect": {
+      "x": 629,
+      "y": 72,
+      "width": 380,
+      "height": 928
+    },
+    "doc": "https://example.test/documents/2",
+    "post": "https://www.xiaohongshu.com/explore/000000000000000000002527"
+  }
+]

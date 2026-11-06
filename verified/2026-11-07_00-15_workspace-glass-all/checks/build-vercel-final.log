@@ -1,0 +1,96 @@
+23:52:43 [content] Syncing content
+23:52:43 [content] Astro config changed
+23:52:43 [content] Clearing content store
+23:52:43 [content] Synced content
+23:52:43 [types] Generated 54ms
+23:52:43 [build] output: "server"
+23:52:43 [build] mode: "server"
+23:52:43 [build] directory: /home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106/dist/
+23:52:43 [build] adapter: @astrojs/vercel
+23:52:43 [build] Collecting build info...
+23:52:43 [build] ✓ Completed in 255ms.
+23:52:44 [build] Building server entrypoints...
+23:52:49 [vite] ✓ built in 5.03s
+23:52:49 [build] ✓ Completed in 5.06s.
+
+ building client (vite)
+23:52:49 [vite] transforming...
+23:52:50 [vite] ✓ 171 modules transformed.
+23:52:50 [vite] rendering chunks...
+23:52:50 [vite] computing gzip size...
+23:52:50 [vite] dist/client/_astro/client.B9YBqyHK.js                                                              0.03 kB │ gzip:  0.05 kB
+23:52:50 [vite] dist/client/_astro/login.astro_astro_type_script_index_0_lang.Bspp03Y6.js                          0.07 kB │ gzip:  0.08 kB
+23:52:50 [vite] dist/client/_astro/page.DosqaVe5.js                                                                0.07 kB │ gzip:  0.08 kB
+23:52:50 [vite] dist/client/_astro/meeting-review.astro_astro_type_script_index_0_lang.CbFyD9YB.js                 0.08 kB │ gzip:  0.10 kB
+23:52:50 [vite] dist/client/_astro/monthly-operations.astro_astro_type_script_index_0_lang.CbFyD9YB.js             0.08 kB │ gzip:  0.10 kB
+23:52:50 [vite] dist/client/_astro/annual-plan.2a1a2ace.CihPWSFE.js                                                0.10 kB │ gzip:  0.10 kB
+23:52:50 [vite] dist/client/_astro/promotion-editor-lifecycle.ChKbKqc0.js                                          0.19 kB │ gzip:  0.16 kB
+23:52:50 [vite] dist/client/_astro/non-promotion-nodes.CKPU0Rj_.js                                                 0.23 kB │ gzip:  0.22 kB
+23:52:50 [vite] dist/client/_astro/BusinessConsoleFrame.astro_astro_type_script_index_0_lang.BkKQuuHU.js           0.32 kB │ gzip:  0.22 kB
+23:52:50 [vite] dist/client/_astro/business-date.CvCuF-15.js                                                       0.44 kB │ gzip:  0.35 kB
+23:52:50 [vite] dist/client/_astro/content-roles.DrA8x3ZQ.js                                                       0.44 kB │ gzip:  0.32 kB
+23:52:50 [vite] dist/client/_astro/operation-types.DUci0iWZ.js                                                     0.49 kB │ gzip:  0.30 kB
+23:52:50 [vite] dist/client/_astro/login.astro_astro_type_script_index_1_lang.lfRSADdN.js                          0.83 kB │ gzip:  0.50 kB
+23:52:50 [vite] dist/client/_astro/index.95d291e9.qz21F_Rw.js                                                      0.86 kB │ gzip:  0.44 kB
+23:52:50 [vite] dist/client/_astro/schedule-execution-history.DVlwAQ48.js                                          0.97 kB │ gzip:  0.67 kB
+23:52:50 [vite] dist/client/_astro/client.CEsBDP4Q.js                                                              1.00 kB │ gzip:  0.63 kB
+23:52:50 [vite] dist/client/_astro/jsx-runtime.ClP7wGfN.js                                                         1.00 kB │ gzip:  0.62 kB
+23:52:50 [vite] dist/client/_astro/monthly-plan-types.AQFVG7BB.js                                                  1.21 kB │ gzip:  0.73 kB
+23:52:50 [vite] dist/client/_astro/business-permissions.D1NzMVvd.js                                                1.22 kB │ gzip:  0.57 kB
+23:52:50 [vite] dist/client/_astro/BusinessDateTimeFields.astro_astro_type_script_index_0_lang.B--8MwvI.js         1.25 kB │ gzip:  0.55 kB
+23:52:50 [vite] dist/client/_astro/promotion-successors.lf7qCunP.js                                                1.49 kB │ gzip:  0.58 kB
+23:52:50 [vite] dist/client/_astro/ClientRouter.astro_astro_type_script_index_0_lang.CxYTjgcy.js                   1.69 kB │ gzip:  0.85 kB
+23:52:50 [vite] dist/client/_astro/BusinessAccountMenu.astro_astro_type_script_index_0_lang.DaxEo6e2.js            1.74 kB │ gzip:  0.98 kB
+23:52:50 [vite] dist/client/_astro/BusinessPromotionWaitRanges.astro_astro_type_script_index_0_lang.ejvVmoMA.js    1.76 kB │ gzip:  1.08 kB
+23:52:50 [vite] dist/client/_astro/business-read.lHADWRqp.js                                                       1.78 kB │ gzip:  0.93 kB
+23:52:50 [vite] dist/client/_astro/monthly-operations.070dbe56.CdeLeUUa.js                                         1.84 kB │ gzip:  0.77 kB
+23:52:50 [vite] dist/client/_astro/BusinessReviewDateAdd.astro_astro_type_script_index_0_lang.BKgy37Js.js          1.86 kB │ gzip:  1.02 kB
+23:52:50 [vite] dist/client/_astro/client.B8feUfe4.js                                                              1.87 kB │ gzip:  0.93 kB
+23:52:50 [vite] dist/client/_astro/index.B324nrla.js                                                               2.33 kB │ gzip:  1.07 kB
+23:52:50 [vite] dist/client/_astro/BusinessScheduleApprovals.astro_astro_type_script_index_0_lang.CeLyK6q_.js      2.63 kB │ gzip:  1.24 kB
+23:52:50 [vite] dist/client/_astro/BusinessUsageGuide.astro_astro_type_script_index_0_lang.D8LZCbeq.js             3.26 kB │ gzip:  1.37 kB
+23:52:50 [vite] dist/client/_astro/MeetingPdfArchive.Cc6FkBcd.js                                                   3.42 kB │ gzip:  1.46 kB
+23:52:50 [vite] dist/client/_astro/BusinessPostReferences.astro_astro_type_script_index_0_lang.lga9vyTA.js         3.94 kB │ gzip:  1.45 kB
+23:52:50 [vite] dist/client/_astro/index.astro_astro_type_script_index_0_lang.DTHbvJWS.js                          3.97 kB │ gzip:  1.59 kB
+23:52:50 [vite] dist/client/_astro/BusinessPromotionSummary.astro_astro_type_script_index_0_lang.BRKaioHO.js       4.71 kB │ gzip:  1.87 kB
+23:52:50 [vite] dist/client/_astro/BusinessPromotionInitialRow.astro_astro_type_script_index_0_lang.Be-gSqiZ.js    5.37 kB │ gzip:  1.96 kB
+23:52:50 [vite] dist/client/_astro/MonthlyArrangementPanel.astro_astro_type_script_index_0_lang.BgUezpdn.js        5.77 kB │ gzip:  2.33 kB
+23:52:50 [vite] dist/client/_astro/BusinessAccountManagement.astro_astro_type_script_index_0_lang.DcJVJmjH.js      6.05 kB │ gzip:  2.36 kB
+23:52:50 [vite] dist/client/_astro/index.DK-fsZOb.js                                                               6.81 kB │ gzip:  2.73 kB
+23:52:50 [vite] dist/client/_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.7JQM7L8D.js            6.93 kB │ gzip:  2.79 kB
+23:52:50 [vite] dist/client/_astro/business-dialog.DhYOcfzU.js                                                     6.95 kB │ gzip:  2.21 kB
+23:52:50 [vite] dist/client/_astro/BusinessPromotionDailyPosts.astro_astro_type_script_index_0_lang.izt0fGNA.js    7.16 kB │ gzip:  2.93 kB
+23:52:50 [vite] dist/client/_astro/BusinessPostLookup.astro_astro_type_script_index_0_lang.CIYr3L3i.js             7.75 kB │ gzip:  3.37 kB
+23:52:50 [vite] dist/client/_astro/BusinessMeetingDiscussion.CPXVro6U.js                                           8.43 kB │ gzip:  3.65 kB
+23:52:50 [vite] dist/client/_astro/ContentTunnel.BZoUH3j0.js                                                       9.69 kB │ gzip:  3.98 kB
+23:52:50 [vite] dist/client/_astro/BusinessPromotionMetricForm.astro_astro_type_script_index_0_lang.CbG3YrYv.js    9.88 kB │ gzip:  3.62 kB
+23:52:50 [vite] dist/client/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.DXa4nXrx.js             10.65 kB │ gzip:  3.94 kB
+23:52:50 [vite] dist/client/_astro/router.CxpQgbQp.js                                                             11.54 kB │ gzip:  4.05 kB
+23:52:50 [vite] dist/client/_astro/operations-schedule.astro_astro_type_script_index_0_lang.BHmwBjNT.js           15.97 kB │ gzip:  5.60 kB
+23:52:50 [vite] dist/client/_astro/non-promotion-review.astro_astro_type_script_index_0_lang.C-ovpbt-.js          16.01 kB │ gzip:  5.64 kB
+23:52:50 [vite] dist/client/_astro/BusinessPromotionTimeline.astro_astro_type_script_index_0_lang.Bc1ViStL.js     19.19 kB │ gzip:  5.94 kB
+23:52:50 [vite] dist/client/_astro/annual-plan.astro_astro_type_script_index_0_lang.ClwMFUb2.js                   19.51 kB │ gzip:  7.02 kB
+23:52:50 [vite] dist/client/_astro/operations-schedule.astro_astro_type_script_index_1_lang.Cw7LyV58.js           19.72 kB │ gzip:  7.22 kB
+23:52:50 [vite] dist/client/_astro/BusinessWeeklyMeeting.CYlG7U4t.js                                              20.61 kB │ gzip:  7.06 kB
+23:52:50 [vite] dist/client/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.DctAmXhE.js        23.89 kB │ gzip:  7.81 kB
+23:52:50 [vite] dist/client/_astro/BusinessMonthlyOperations.DJE7J67S.js                                          29.62 kB │ gzip:  9.31 kB
+23:52:50 [vite] dist/client/_astro/meeting-finalization.DPPFB98g.js                                               48.43 kB │ gzip: 14.52 kB
+23:52:50 [vite] dist/client/_astro/MonthlyMeetingSections.DFI_xicD.js                                             68.15 kB │ gzip: 20.04 kB
+23:52:50 [vite] dist/client/_astro/index.xK5eoQS5.js                                                             134.65 kB │ gzip: 43.22 kB
+23:52:50 [vite] ✓ built in 1.31s
+
+ prerendering static routes
+23:52:50 λ src/pages/fonts/business.css.ts
+23:52:50   └─ /fonts/business.css (+500ms)
+23:52:50 λ src/pages/fonts/business.js.ts
+23:52:50   └─ /fonts/business.js (+4ms)
+23:52:50 ▶ src/pages/index.astro
+23:52:50   └─ /index.html (+15ms)
+23:52:50 ✓ Completed in 568ms.
+
+23:52:50 [build] Rearranging server assets...
+23:52:50 [@astrojs/vercel] Bundling function ../../../../dist/server/entry.mjs
+23:52:53 [build] Waiting for integration "@astrojs/vercel", hook "astro:build:done"...
+23:52:59 [@astrojs/vercel] Copying static files to .vercel/output/static
+23:52:59 [build] Server built in 16.08s
+23:52:59 [build] Complete!

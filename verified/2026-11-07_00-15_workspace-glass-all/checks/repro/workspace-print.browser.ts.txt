@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {admin} from '../tests/auth.fixture';
+import {settleBusinessUI} from './visual-settle';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!),b=await chromium.launch({headless:true}),report:any=[];
+try{for(const phase of ['before','after']){
+const root=phase==='before'?'/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-baseline-20261106':process.cwd(),info=JSON.parse(await readFile(root+'/.tools/workspace-preview-'+phase+'.json','utf8'));
+const r=await fetch(info.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:info.baseURL,'Content-Type':'application/json'},body:JSON.stringify(admin)});
+const c=await b.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});await c.addCookies(r.headers.getSetCookie().map(v=>{const[name,...rest]=v.split(';')[0].split('=');return{name,value:rest.join('='),url:info.baseURL};}));
+const p=await c.newPage();await p.clock.setFixedTime(new Date(info.clock));await p.goto(info.baseURL+info.routes.monthly);await p.emulateMedia({media:'print',reducedMotion:'reduce'});await settleBusinessUI(p);
+const styles=await p.locator('.business-console-frame').evaluate((n:Element)=>({bg:getComputedStyle(n).backgroundImage,shadow:getComputedStyle(n).boxShadow,sidebar:getComputedStyle(document.querySelector('.business-sidebar')??n).display}));
+const content=await p.locator('main').innerText();assert.match(content,/30,438.46/);if(phase==='after')assert.equal(styles.bg,'none');
+await p.screenshot({path:'.tools/test-artifacts/workspace-glass/'+phase+'/screenshots/monthly-print-1440.png'});report.push({phase,styles});await c.close();
+}await writeFile('.tools/test-artifacts/workspace-glass/print.json',JSON.stringify(report,null,2));}finally{await b.close();}

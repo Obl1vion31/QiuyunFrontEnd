@@ -1,0 +1,52 @@
+[
+  {
+    "fraction": 0.2,
+    "box": {
+      "x": 1294,
+      "y": 205,
+      "width": 82,
+      "height": 36
+    },
+    "v": {
+      "transform": "matrix3d(0.985922, 0, 0.0123901, -1.77001e-05, 0, 0.986, 0, 0, -0.012566, 0, 0.999921, -0.00142846, 0, 1, 0, 1)",
+      "glint": "0.836012",
+      "pressed": true,
+      "box": {
+        "x": 1294.6064453125,
+        "y": 206.23983764648438,
+        "width": 80.845703125,
+        "height": 35.52177429199219,
+        "top": 206.23983764648438,
+        "right": 1375.4521484375,
+        "bottom": 241.76161193847656,
+        "left": 1294.6064453125
+      },
+      "hit": "<button type=\"button\" class=\"business-action-secondary\" data-surface-press=\"directional\" data-surface-pressed=\"\" style=\""
+    }
+  },
+  {
+    "fraction": 0.8,
+    "box": {
+      "x": 1294,
+      "y": 205,
+      "width": 82,
+      "height": 36
+    },
+    "v": {
+      "transform": "matrix3d(0.985922, 0, -0.0123901, 1.77001e-05, 0, 0.986, 0, 0, 0.012566, 0, 0.999921, -0.00142846, 0, 1, 0, 1)",
+      "glint": "0.85",
+      "pressed": true,
+      "box": {
+        "x": 1294.5478515625,
+        "y": 206.23983764648438,
+        "width": 80.845703125,
+        "height": 35.52177429199219,
+        "top": 206.23983764648438,
+        "right": 1375.3935546875,
+        "bottom": 241.76161193847656,
+        "left": 1294.5478515625
+      },
+      "hit": "<button type=\"button\" class=\"business-action-secondary\" data-surface-press=\"directional\" style=\"--press-x: 79.9999702267"
+    }
+  }
+]

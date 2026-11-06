@@ -1,0 +1,18 @@
+[
+  {
+    "phase": "before",
+    "styles": {
+      "bg": "none",
+      "shadow": "none",
+      "sidebar": "none"
+    }
+  },
+  {
+    "phase": "after",
+    "styles": {
+      "bg": "none",
+      "shadow": "none",
+      "sidebar": "none"
+    }
+  }
+]

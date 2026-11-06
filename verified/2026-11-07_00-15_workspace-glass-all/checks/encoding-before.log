@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: React development 流式中文／emoji分片与同步HTML逐字节一致
+not ok 1 - React development 流式中文／emoji分片与同步HTML逐字节一致
+  ---
+  duration_ms: 19.968719
+  type: 'test'
+  location: '/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106/tests/react-ssr-encoding.test.ts:1:841'
+  failureType: 'testCodeFailure'
+  error: |-
+    offset=0 不插入空字符
+
+    true !== false
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106/tests/react-ssr-encoding.test.ts:24:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: React production.min 流式中文／emoji分片与同步HTML逐字节一致
+not ok 2 - React production.min 流式中文／emoji分片与同步HTML逐字节一致
+  ---
+  duration_ms: 10.438014
+  type: 'test'
+  location: '/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106/tests/react-ssr-encoding.test.ts:1:841'
+  failureType: 'testCodeFailure'
+  error: |-
+    offset=0 不插入空字符
+
+    true !== false
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-20261106/tests/react-ssr-encoding.test.ts:24:11)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 347.316071

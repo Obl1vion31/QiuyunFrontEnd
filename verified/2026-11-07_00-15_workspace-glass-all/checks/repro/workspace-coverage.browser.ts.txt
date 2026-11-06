@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {admin,employee} from '../tests/auth.fixture';
+import {openPostLookup,settleBusinessUI} from './visual-settle';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);const b=await chromium.launch({headless:true});
+const report:any={geometry:[],fonts:[],auth:[],mobile:[],bytes:[],errors:[]};
+const folder='.tools/test-artifacts/workspace-glass';
+async function login(base:string,actor:any){const r=await fetch(base+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>{const[n,...rest]=v.split(';')[0].split('=');return{name:n,value:rest.join('='),url:base};});}
+try{
+ for(const phase of ['before','after']){
+  const root=phase==='before'?'/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-baseline-20261106':process.cwd(),info=JSON.parse(await readFile(root+'/.tools/workspace-preview-'+phase+'.json','utf8')),base=info.baseURL;
+  const cookies=await login(base,admin);
+  for(const width of [1920,1024]){
+   const c=await b.newContext({viewport:{width,height:1000},locale:'zh-CN'});await c.addCookies(cookies);const p=await c.newPage();p.on('pageerror',(e:Error)=>report.errors.push({phase,width,error:e.message}));
+   async function nav(key:string){await p.goto(base+info.routes[key]);await p.waitForLoadState('networkidle');await settleBusinessUI(p);}
+   async function shot(name:string){await settleBusinessUI(p);await p.screenshot({path:folder+'/'+phase+'/screenshots/'+name+'-'+width+'.png'});}
+   await nav('monthly');await p.getByRole('button',{name:'历史月份',exact:true}).click();await p.locator('#monthly-history-sheet[open]').waitFor();await p.waitForLoadState('networkidle');await shot('monthly-history');await p.keyboard.press('Escape');await p.locator('#monthly-history-sheet').waitFor({state:'hidden'});
+   await nav('promotion');await p.locator('.promotion-data-disclosure>summary').first().click();await settleBusinessUI(p);await p.locator('tr[data-inspector-key]:visible').first().click();await settleBusinessUI(p);await shot('promotion-inspector');
+   const pane=p.locator('[data-inspector].is-open');if(phase==='after'){const meta=pane.locator('.surface-resource-meta');await meta.locator('summary').click();await p.waitForFunction(()=>!document.querySelector('[data-inspector].is-open .surface-resource-meta')?.hasAttribute('data-motion-active'));await shot('promotion-metadata');await meta.locator('summary').click();}
+   await pane.locator('[data-edit-trigger]').click();await p.locator('[data-edit-dialog][open]').waitFor();await shot('promotion-edit');await p.keyboard.press('Escape');await p.locator('[data-edit-dialog][open]').waitFor({state:'hidden'});
+   await nav('nonpromotion-history');await p.locator('[data-category-group]').first().locator('summary').click();await settleBusinessUI(p);await p.locator('.review-title-button:visible').first().click();await settleBusinessUI(p);await shot('nonpromotion-inspector');
+   if(phase==='after'){const meta=p.locator('[data-inspector].is-open .surface-resource-meta');await meta.locator('summary').click();await p.waitForFunction(()=>!document.querySelector('[data-inspector].is-open .surface-resource-meta')?.hasAttribute('data-motion-active'));await shot('nonpromotion-metadata');}
+   await nav('annual');await p.locator('.item-cell').first().click();await settleBusinessUI(p);await shot('annual-inspector');await p.keyboard.press('Escape');await p.locator('[data-inspector].is-open').waitFor({state:'hidden'});await p.locator('[data-open-new]').click();await p.locator('#row-dialog[open]').waitFor();await shot('annual-editor');await p.keyboard.press('Escape');await p.locator('#row-dialog').waitFor({state:'hidden'});
+   await nav('accounts');await p.locator('[data-account-create]').click();await p.locator('[data-account-create-dialog][open]').waitFor();await shot('account-create');await p.keyboard.press('Escape');await p.locator('[data-account-create-dialog]').waitFor({state:'hidden'});
+   await nav('meetings');await p.locator('[data-open-create]').click();await p.locator('[data-create][open]').waitFor();await shot('meeting-create');await p.keyboard.press('Escape');await p.locator('[data-create]').waitFor({state:'hidden'});
+   await openPostLookup(p);await p.locator('[data-post-lookup][open]').waitFor();await shot('assistant');await p.keyboard.press('Escape');await p.locator('[data-post-lookup]').waitFor({state:'hidden'});
+   report.geometry.push({phase,width,panels:true});await c.close();
+  }
+  const c=await b.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});await c.addCookies(cookies);const p=await c.newPage();await p.goto(base+info.routes.meetings);await settleBusinessUI(p);await openPostLookup(p);await p.locator('[data-post-lookup][open]').waitFor();await settleBusinessUI(p);await p.screenshot({path:folder+'/'+phase+'/screenshots/assistant-1440.png'});await p.keyboard.press('Escape');await c.close();
+  for(const actor of [admin,employee]){
+   const c=await b.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'}),p=await c.newPage();await p.goto(base+'/login?next='+encodeURIComponent(info.routes.monthly));await settleBusinessUI(p);await p.locator('#username').fill(actor.username);await p.locator('#password').fill('fictional-wrong-password');await p.locator('button[type=submit]').click();await p.locator('[data-login-message]:visible').waitFor();assert.match(await p.locator('[data-login-message]').innerText(),/错误|不正确|失败/);assert.equal(await p.locator('#username').inputValue(),actor.username);assert.equal(await p.locator('#password').inputValue(),'fictional-wrong-password');
+   await p.locator('#password').fill(actor.password);await p.locator('button[type=submit]').click();await p.waitForURL('**/business/meeting-review?**');await p.locator('.monthly-core').waitFor();await settleBusinessUI(p);report.auth.push({phase,role:actor.role,invalidPreserved:true,realFormSuccess:true});
+   const cdp=await c.newCDPSession(p);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const doc=await cdp.send('DOM.getDocument'),node=await cdp.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'.monthly-core h2'}),fonts=(await cdp.send('CSS.getPlatformFontsForNode',{nodeId:node.nodeId})).fonts;assert(fonts.some((f:any)=>f.familyName==='MiSans VF'&&f.glyphCount>0));report.fonts.push({phase,role:actor.role,fonts});await c.close();
+  }
+ }
+ // 手机只核查新增遮挡和页面溢出，不作为排版交付。
+ const info=JSON.parse(await readFile('.tools/workspace-preview-after.json','utf8'));
+ for(const width of [390,320]){
+  const c=await b.newContext({viewport:{width,height:800},locale:'zh-CN',isMobile:true,hasTouch:true});await c.addCookies(await login(info.baseURL,admin));const p=await c.newPage();
+  for(const key of ['annual','promotion','nonpromotion-history','monthly','weekly','operations','accounts','permissions','guide']){
+   await p.goto(info.baseURL+info.routes[key]);await settleBusinessUI(p);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),key+' no page overflow');report.mobile.push({width,key,overflow:false});
+  }await c.close();
+ }
+ await writeFile(folder+'/coverage.json',JSON.stringify(report,null,2));assert.deepEqual(report.errors,[]);console.log(JSON.stringify({passed:true,panels:report.geometry,auth:report.auth,mobile:report.mobile.length,fonts:report.fonts.length},null,2));
+}finally{await b.close();}

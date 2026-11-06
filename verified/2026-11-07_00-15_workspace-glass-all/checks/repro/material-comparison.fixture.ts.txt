@@ -1,0 +1,87 @@
+import {eq,and} from 'drizzle-orm';
+import {savePrivate,saveCostMapping} from '../src/db/monthly-private';
+import {createHash} from 'node:crypto';
+import {seedPrivateSources,seedFrozenPrivateMeeting} from './stable-private-sources.fixture';
+import {seedHistoricalDay} from '../tests/promotion-day.fixture';
+import * as s from '../src/db/schema';
+const fixed=new Date('2026-11-06T04:00:00Z');
+const uid=(n:number)=>'ba510000-0000-4000-8000-'+String(n).padStart(12,'0');
+export async function seedMaterialComparison(db:any){
+ await seedPrivateSources(db);
+ // The upstream fixture includes stress/legacy data. Main comparison uses plausible current-source data;
+ // extreme/unknown cases are seeded outside the six-month presentation range below.
+ await db.update(s.operationsPromotionDailyMetric).set({spend:'980.00'}).where(and(eq(s.operationsPromotionDailyMetric.metricDate,'2026-06-03'),eq(s.operationsPromotionDailyMetric.stageTypeSnapshot,'scaling')));
+ await db.update(s.operationsPromotionDailyMetric).set({spend:'6000.00'}).where(and(eq(s.operationsPromotionDailyMetric.metricDate,'2026-08-03'),eq(s.operationsPromotionDailyMetric.stageTypeSnapshot,'scaling')));
+ await db.update(s.operationsPromotionDailyMetric).set({spend:'3000.00'}).where(and(eq(s.operationsPromotionDailyMetric.metricDate,'2026-08-06'),eq(s.operationsPromotionDailyMetric.stageTypeSnapshot,'scaling')));
+ await saveCostMapping(db,{expectedRevision:-1,entries:{'tmua:success-story':'course','interview:success-story':'course'}},'test_admin');
+ let sequence=0;
+ async function failed(month:string,name:string,spend:number,day:number,version=0){
+  const date=month+'-'+String(day).padStart(2,'0'),at=new Date(date+'T10:00:00+08:00'),id=++sequence;
+  const [content]=await db.insert(s.operationsContent).values({id:uid(id*10),platformNoteId:(1000+id).toString(16).padStart(24,'0'),operationType:'promotion_only',createdAt:at,updatedAt:at}).returning();
+  const [v]=await db.insert(s.operationsContentVersion).values({id:uid(id*10+1),contentId:content.id,contentName:name,versionNumber:version,workType:'new',subjectId:'interview',categoryId:'success-story',projectDocUrl:'https://example.test/learning-material',createdAt:at,updatedAt:at}).returning();
+  const [schedule]=await db.insert(s.operationsContentSchedule).values({id:uid(id*10+2),contentVersionId:v.id,plannedPublishAt:at,actualPublishAt:at,publicationUrl:'https://www.xiaohongshu.com/explore/'+content.platformNoteId,isPromoted:true,promotionStatus:'test_discarded',completionStatus:'on_time',createdAt:at,updatedAt:at}).returning();
+  const [campaign]=await db.insert(s.operationsPromotionCampaign).values({id:uid(id*10+3),scheduleId:schedule.id,startedOn:date,dailyReviewEnabledOn:date,initialStage:'testing',currentStage:null,currentStatus:'test_discarded',endedOn:date,createdAt:at,updatedAt:at}).returning();
+  await db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,stageType:'testing',startedOn:date,endedOn:date,outcome:'test_discarded'});
+  await db.insert(s.operationsPromotionDailyMetric).values({id:uid(id*10+4),campaignId:campaign.id,metricDate:date,dailyStatus:'active',actualStatusSnapshot:'testing',stageTypeSnapshot:'testing',sourceStageStartedOn:date,spend:spend.toFixed(2),platformOpenCount:0,actualOpenCount:0,platformLeadCount:0,actualLeadCount:0,reviewDecision:'test_discarded',createdAt:at,updatedAt:at});
+ }
+ async function paidCase(month:string,name:string,amount:number,open:number,lead:number){
+  const date=month+'-10',at=new Date(date+'T10:00:00+08:00'),n=1000+(++sequence);
+  const [content]=await db.insert(s.operationsContent).values({id:uid(n*10),platformNoteId:n.toString(16).padStart(24,'0'),operationType:'promotion_only'}).returning();
+  const [v]=await db.insert(s.operationsContentVersion).values({id:uid(n*10+1),contentId:content.id,contentName:name,subjectId:'tmua',categoryId:'small-class-or-tutoring',versionNumber:0,workType:'new',projectDocUrl:'https://example.test/learning-material'}).returning();
+  const [schedule]=await db.insert(s.operationsContentSchedule).values({id:uid(n*10+2),contentVersionId:v.id,plannedPublishAt:at,actualPublishAt:at,isPromoted:true,promotionStatus:'ended',completionStatus:'on_time'}).returning();
+  const [campaign]=await db.insert(s.operationsPromotionCampaign).values({id:uid(n*10+3),scheduleId:schedule.id,startedOn:date,dailyReviewEnabledOn:date,initialStage:'scaling',currentStage:null,currentStatus:'ended',endedOn:date}).returning();
+  await db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,stageType:'scaling',startedOn:date,endedOn:date,outcome:'ended'});
+  await db.insert(s.operationsPromotionDailyMetric).values({campaignId:campaign.id,metricDate:date,dailyStatus:'active',actualStatusSnapshot:'scaling',stageTypeSnapshot:'scaling',sourceStageStartedOn:date,spend:amount.toFixed(2),platformOpenCount:open,actualOpenCount:open,platformLeadCount:lead,actualLeadCount:lead,reviewDecision:'ended'});
+ }
+ await paidCase('2026-05','TMUA 课程获客 · 五月样例',6500,52,28);
+ await paidCase('2026-01','独立压力测试 · 长金额',12345678.90,1,1);
+ await paidCase('2026-02','独立边界测试 · 未知人数',1200,0,0);
+ for(const [month,spend]of [['2026-06',800],['2026-07',1350],['2026-08',1120],['2026-09',1180.82]] as const)await failed(month,'面试课 · 历史测试资料',spend,15);
+ for(const[i,spend]of [660.84,649.29,621.65,548.52,520.24,512.92].entries())await failed('2026-10',['面试课第一轮②','面试课第二轮①','面试课第一轮①','面试课第二轮②','面试课第二轮③','面试课成功案例'][i],spend,10+i*2,i%2);
+ const active=await seedHistoricalDay(db,'面试课第二轮①',Array(6).fill('testing'));
+ const waiting=await seedHistoricalDay(db,'面试课第二轮③',['testing','testing','testing','test_paused','test_paused','test_paused'],{decisions:['test_continue','test_continue','test_pause','wait_continue','wait_continue','wait_continue']});
+ const scaling=await seedHistoricalDay(db,'TMUA一月1v1',Array(6).fill('scaling'));
+ for(const[c,n]of [[active,1],[waiting,2],[scaling,3]] as const){
+  await db.update(s.operationsContent).set({platformNoteId:'6aad0ae90000000026030c4'+n,operationType:'promotion_only',updatedAt:fixed}).where(eq(s.operationsContent.id,c.post.content.id));
+  await db.update(s.operationsContentVersion).set({projectDocUrl:'https://example.test/learning-material',subjectId:n===3?'tmua':'interview',updatedAt:fixed}).where(eq(s.operationsContentVersion.id,c.post.version.id));
+  await db.update(s.operationsContentSchedule).set({publicationUrl:'https://www.xiaohongshu.com/explore/'+'6aad0ae90000000026030c4'+n,updatedAt:fixed}).where(eq(s.operationsContentSchedule.id,c.post.schedule.id));
+ }
+ const organic=[{id:uid(910),subjectId:'interview',source:'面试讲义',added:2,consulted:1,converted:1},{id:uid(911),subjectId:'tmua',source:'TMUA 试卷解析',added:159,consulted:0,converted:0}];
+ const single=(added:number|null,consulted:number|null,converted:number|null)=>[{subjectId:'tmua',demand:'course',added,consulted,converted}];
+ const currentRows=[
+  {subjectId:'tmua',demand:'course',added:75,consulted:32,converted:8},
+  {subjectId:'tmua',demand:'handout',added:35,consulted:13,converted:4},
+  {subjectId:'tmua',demand:'mock',added:12,consulted:6,converted:2},
+  {subjectId:'interview',demand:'course',added:18,consulted:10,converted:3},
+  {subjectId:'interview',demand:'handout',added:12,consulted:6,converted:2},
+  {subjectId:'step',demand:'course',added:12,consulted:5,converted:1},
+ ];
+ for(const [month,promotion]of [
+  ['2026-01',single(1,1,1)],['2026-02',single(null,null,null)],['2026-05',single(40,18,5)],
+  ['2026-06',[...single(24,10,3),{subjectId:'interview',demand:'course',added:0,consulted:0,converted:0}]],['2026-07',[...single(27,12,4),{subjectId:'interview',demand:'course',added:0,consulted:0,converted:0}]],
+  ['2026-08',[{subjectId:'tmua',demand:'course',added:48,consulted:20,converted:6},{subjectId:'interview',demand:'course',added:24,consulted:10,converted:3}]],
+  ['2026-09',currentRows.map(row=>({...row,added:Math.round(row.added*.92),consulted:Math.round(row.consulted*.92),converted:Math.max(1,Math.round(row.converted*.9))}))],
+  ['2026-10',currentRows],
+ ] as const)await savePrivate(db,{month,data:{schemaVersion:2,promotion:promotion as any,nonPromotion:month==='2026-10'?organic:[],note:''},expectedRevision:-1},'test_admin');
+ await db.update(s.operationsMonthlyPrivate).set({updatedAt:fixed});
+ const edgeCases={long:await seedFrozenPrivateMeeting(db,'2026-01','边界样例 · 长金额'),unknown:await seedFrozenPrivateMeeting(db,'2026-02','边界样例 · 未知值')};
+ const meeting=await seedFrozenPrivateMeeting(db,'2026-10','2026.10.01—10.31 月度业务复盘');
+ if(Object.values(meeting.monthly.core.privateData.totalCosts).some(value=>value===null))throw new Error('Demonstration private costs must all be known');
+ if(meeting.monthly.core.costHistory?.some((point:any)=>['actualOpenCost','actualLeadCost','added','consulted','converted'].some(key=>point[key]===null)))throw new Error('Main six-month cost history must have complete known values');
+ const planContent={groups:[
+  {id:uid(501),annualPlanId:null,annualVersion:null,name:'TMUA 推广讲义',subjectId:'tmua',categoryId:'promotional-handout',note:'',reason:'隔离样本',quantity:4},
+  {id:uid(502),annualPlanId:null,annualVersion:null,name:'面试课 成功案例',subjectId:'interview',categoryId:'success-story',note:'',reason:'隔离样本',quantity:4},
+  {id:uid(503),annualPlanId:null,annualVersion:null,name:'TMUA 模考',subjectId:'tmua',categoryId:'mock-exam',note:'',reason:'隔离样本',quantity:3},
+ ],items:Array.from({length:11},(_,i)=>({id:uid(600+i),groupId:uid(501+i%3),week:i===10?5:1+i%4,kind:'new',scheduleId:null}))};
+ const snapshot=structuredClone(meeting.snapshot) as any;
+ snapshot.draft.coreConclusion='课程与讲义分别核算，按来源核对咨询和成交。';
+ snapshot.draft.nextAction='完成首轮排期核对，优先跟进面试课讲义与 TMUA 模考。';
+ snapshot.draft.monthlyPlan.content=planContent;
+ await db.update(s.operationsMonthlyPlan).set({content:planContent,firstFinalizedAt:fixed}).where(eq(s.operationsMonthlyPlan.id,meeting.plan.id));
+ await db.update(s.operationsReviewMeetingVersion).set({snapshot,finalizedAt:fixed,createdAt:fixed,updatedAt:fixed}).where(eq(s.operationsReviewMeetingVersion.id,meeting.version.id));
+ await db.update(s.operationsReviewMeeting).set({draftSnapshot:snapshot.draft,createdAt:fixed,updatedAt:fixed}).where(eq(s.operationsReviewMeeting.id,meeting.meeting.id));
+ // A stable public data digest deliberately omits generated object/auth IDs.
+ const summary={clock:fixed.toISOString(),promotion:{title:active.post.version.contentName,dates:active.metrics.map((m:any)=>m.metricDate),states:active.metrics.map((m:any)=>m.actualStatusSnapshot),spend:active.metrics.map((m:any)=>Number(m.spend)),noteId:'6aad0ae90000000026030c41'},monthly:{month:'2026-10',waste:meeting.monthly.operations.spend.wasted,wasteHistory:meeting.monthly.operations.wasteHistory,core:{spend:meeting.monthly.core.spend,privateData:meeting.monthly.privateData.data,privateCosts:meeting.monthly.core.privateData.totalCosts,costHistory:meeting.monthly.core.costHistory?.map((point:any)=>({month:point.month,actualOpenCost:point.actualOpenCost,actualLeadCost:point.actualLeadCost,added:point.added,consulted:point.consulted,converted:point.converted}))},planGroups:planContent.groups,planItems:planContent.items}};
+ const digest=createHash('sha256').update(JSON.stringify(summary)).digest('hex');
+ return {active,waiting,scaling,meeting,edgeCases,summary,digest};
+}

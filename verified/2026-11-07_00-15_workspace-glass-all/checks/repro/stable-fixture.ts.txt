@@ -1,0 +1,24 @@
+import {createHash} from 'node:crypto';
+import {getTableName} from 'drizzle-orm';
+/** 仅为成对视觉夹具分配稳定主键，保留调用者明确指定的业务日期和ID。 */
+export function stableFixtureDb(db:any){
+ const counts=new Map<string,number>();
+ return new Proxy(db,{get(target,key){
+  if(key!=='insert'){const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}
+  return(table:any)=>{
+   const insert=target.insert(table);
+   return new Proxy(insert,{get(builder,method){
+    if(method!=='values'){const value=Reflect.get(builder,method);return typeof value==='function'?value.bind(builder):value;}
+    return(values:any)=>{
+     const map=(row:any)=>{
+      const name=getTableName(table),n=(counts.get(name)??0)+1;counts.set(name,n);
+      const h=createHash('sha256').update('workspace-glass-all/'+name+'/'+n).digest('hex');
+      const id=h.slice(0,8)+'-'+h.slice(8,12)+'-4'+h.slice(13,16)+'-8'+h.slice(17,20)+'-'+h.slice(20,32);
+      return {...(table.id?{id}:{}),...(table.createdAt?{createdAt:new Date('2026-11-06T04:00:00Z')}:{}),...(table.updatedAt?{updatedAt:new Date('2026-11-06T04:00:00Z')}:{}),...row};
+     };
+     return builder.values(Array.isArray(values)?values.map(map):map(values));
+    };
+   }});
+  };
+ }});
+}

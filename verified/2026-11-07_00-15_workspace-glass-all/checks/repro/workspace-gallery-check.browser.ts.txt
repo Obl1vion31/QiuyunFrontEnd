@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);
+const browser=await chromium.launch({headless:true}),facts:any=[],errors:string[]=[];
+const out='verified/2026-11-07_00-15_workspace-glass-all',url='http://127.0.0.1:34916/';
+try{
+const p=await browser.newPage({viewport:{width:1440,height:1000}});
+p.on('pageerror',(e:Error)=>errors.push(e.message));
+await p.goto(url+'?page=monthly&state=monthly-execution&mode=pair');
+const loaded=async()=>p.waitForFunction(()=>document.querySelectorAll('.frame img').length===2&&[...document.querySelectorAll<HTMLImageElement>('.frame img')].every(i=>i.complete&&i.naturalWidth>0));
+await loaded();await p.screenshot({path:out+'/gallery-1440.png'});
+const pages=JSON.parse(await readFile('.tools/workspace-gallery-pages.json','utf8'));
+for(const entry of pages){
+ await p.locator('#pages button[data-page="'+entry.id+'"]').click();await loaded();assert.equal(await p.locator('.error').count(),0);
+ for(const [state]of entry.states){await p.locator('#state').selectOption(state);await loaded();assert.equal(await p.locator('.error').count(),0);}
+ facts.push({page:entry.id,loaded:true,dimensions:await p.locator('.frame img').evaluateAll((ns:HTMLImageElement[])=>ns.map(n=>[n.naturalWidth,n.naturalHeight]))});
+}
+await p.locator('#pages button[data-page=monthly]').click();await p.locator('#state').selectOption('monthly-execution');await p.locator('#width').selectOption('1920');await loaded();assert.equal(await p.locator('.frame img').first().evaluate((n:HTMLImageElement)=>n.naturalWidth),1920);
+await p.locator('#width').selectOption('1024');await loaded();assert.equal(await p.locator('.frame img').first().evaluate((n:HTMLImageElement)=>n.naturalWidth),1024);
+await p.locator('[data-mode=video]').click();const player=p.locator('video');await player.evaluate((n:HTMLVideoElement)=>new Promise<void>((resolve,reject)=>{n.onloadedmetadata=()=>resolve();n.onerror=()=>reject(new Error('video load'));if(n.readyState>=1)resolve();}));
+for(const label of ['候选全站','原版全站','候选排期','原版排期','触压细节','触压放大','首屏过程']){
+ await p.getByRole('button',{name:label,exact:true}).click();await p.waitForFunction(()=>{const n=document.querySelector('video');return n&&n.readyState>=1&&Number.isFinite(n.duration);});
+ facts.push({video:label,duration:await player.evaluate((n:HTMLVideoElement)=>n.duration)});
+}
+await p.getByRole('button',{name:'候选全站',exact:true}).click();await player.evaluate((n:HTMLVideoElement)=>{n.muted=true;return n.play();});await p.waitForFunction(()=>document.querySelector('video')!.currentTime>.3);
+const range=await fetch(url+'asset/after/interaction.webm',{headers:{Range:'bytes=0-999'}});assert.equal(range.status,206);
+for(const phase of ['before','after']){
+ const q=await browser.newPage({viewport:{width:1440,height:1000}});await q.goto(url+'demo?phase='+phase+'&key=monthly');await q.locator('.monthly-core').waitFor();assert(!q.url().includes('/login'));facts.push({demo:phase,success:true});await q.goto(url+'demo?phase='+phase+'&key=schedule-resources');await q.locator('[data-inspector].is-open [data-inspector-doc][href]').waitFor();facts.push({demo:phase+' schedule',success:true});await q.close();
+}
+await p.goto(url+'?page=monthly&state=monthly-execution&mode=pair');await loaded();
+assert.deepEqual(errors,[]);await writeFile(out+'/checks/gallery.json',JSON.stringify({facts,errors},null,2));console.log('Gallery 14 modules/all states, seven videos, 3 desktop sizes and four actual app entries passed');
+}finally{await browser.close();}

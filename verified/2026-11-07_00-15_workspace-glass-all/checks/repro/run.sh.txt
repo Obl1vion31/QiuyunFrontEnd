@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+task_root=/home/obl1vion/projects/qiuyunFrontend
+export PATH="$task_root/.tools/runtime/node-v22.23.3-linux-x64/bin:$PATH"
+export PLAYWRIGHT_BROWSERS_PATH="$task_root/.tools/browsers"
+export PLAYWRIGHT_MODULE="$task_root/.tools/tooling/node_modules/playwright/index.mjs"
+export LD_LIBRARY_PATH="$task_root/.tools/system/root/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH:-}"
+export FONTCONFIG_FILE="$task_root/.tools/system/fonts.conf"
+export TEST_POSTGRES_URL="${TEST_POSTGRES_URL:-postgres://postgres@127.0.0.1:55445/postgres}"
+cd "$task_root/.tools/releases/workspace-glass-all-20261106"
+exec "$@"

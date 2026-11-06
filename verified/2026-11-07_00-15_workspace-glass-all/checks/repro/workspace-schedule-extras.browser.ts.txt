@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {admin,employee} from '../tests/auth.fixture';
+import {settleBusinessUI} from './visual-settle';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!),browser=await chromium.launch({headless:true}),report:any=[];
+try{for(const phase of ['before','after']){
+ const root=phase==='before'?'/home/obl1vion/projects/qiuyunFrontend/.tools/releases/workspace-glass-all-baseline-20261106':process.cwd(),info=JSON.parse(await readFile(root+'/.tools/schedule-preview-'+phase+'.json','utf8'));
+ const r=await fetch(info.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:info.baseURL,'Content-Type':'application/json'},body:JSON.stringify(employee)});
+ const c=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});await c.addCookies(r.headers.getSetCookie().map(v=>{const[name,...rest]=v.split(';')[0].split('=');return{name,value:rest.join('='),url:info.baseURL};}));
+ const p=await c.newPage();await p.clock.setFixedTime(new Date(info.clock));
+ for(const width of [1920,1440,1024]){
+  await p.setViewportSize({width,height:1000});await p.goto(info.baseURL+info.routes.schedule+'&row='+info.scenes.editing.posted);await p.locator('[data-inspector].is-open').waitFor();await p.waitForLoadState('networkidle');await settleBusinessUI(p);
+  const doc=p.locator('[data-inspector-doc]'),post=p.locator('[data-inspector-post]');assert.match(await doc.getAttribute('href'),/documents\/2$/);assert.match(await post.getAttribute('href'),/explore/);
+  if(phase==='after'){assert(await post.isVisible());assert(await p.locator('[data-inspector-planned]').isVisible());}
+  await p.screenshot({path:'.tools/test-artifacts/workspace-glass/'+phase+'/screenshots/schedule-resources-'+width+'.png'});
+  const rect=await p.locator('[data-inspector].is-open').boundingBox();report.push({phase,width,rect,doc:await doc.getAttribute('href'),post:await post.getAttribute('href')});
+ }
+ await c.close();
+}
+await writeFile('.tools/test-artifacts/workspace-glass/schedule-resources.json',JSON.stringify(report,null,2));}finally{await browser.close();}

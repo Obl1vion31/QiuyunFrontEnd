@@ -1,0 +1,183 @@
+{
+  "phase": "before",
+  "clock": "2026-11-06T12:00:00+08:00",
+  "digest": "ae9df6c561ef3f3e233c2385d33dd0cd9d115aa0e2ecacb385bcbb90ada4fbe8",
+  "checks": [
+    "three desktop widths; both roles; four stages; source keyboard/footer; real inspector resources and direct link; editor/publication; aborted save/input; rapid selection; reduced motion"
+  ],
+  "geometry": [
+    {
+      "name": "schedule-closed-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-editing-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-pending-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-confirmed-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-selection-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-inspector-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-editor-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-publication-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-missing-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-ledger-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-promotion-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-meeting-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-pending-admin-1920",
+      "width": 1920
+    },
+    {
+      "name": "schedule-closed-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-editing-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-pending-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-confirmed-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-selection-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-inspector-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-editor-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-publication-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-missing-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-ledger-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-promotion-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-meeting-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-pending-admin-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-closed-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-editing-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-pending-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-confirmed-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-selection-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-inspector-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-editor-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-publication-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-missing-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-ledger-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-promotion-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-meeting-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-pending-admin-1024",
+      "width": 1024
+    },
+    {
+      "name": "schedule-unsaved-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-occupancy-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-failure-1440",
+      "width": 1440
+    },
+    {
+      "name": "schedule-deep-link-1440",
+      "width": 1440
+    }
+  ],
+  "errors": []
+}

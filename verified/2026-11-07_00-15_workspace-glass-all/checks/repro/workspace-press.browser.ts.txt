@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
+import {admin} from '../tests/auth.fixture';
+import {settleBusinessUI} from './visual-settle';
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);
+const browser=await chromium.launch({headless:true});
+const info=JSON.parse(await readFile('.tools/workspace-preview-after.json','utf8'));
+const folder='.tools/test-artifacts/workspace-glass/after';await mkdir(folder+'/video',{recursive:true});
+try{
+const r=await fetch(info.baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:info.baseURL,'Content-Type':'application/json'},body:JSON.stringify(admin)});
+const ctx=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:folder+'/video',size:{width:1440,height:1000}}});
+await ctx.addCookies(r.headers.getSetCookie().map(v=>{const[name,...rest]=v.split(';')[0].split('=');return{name,value:rest.join('='),url:info.baseURL};}));
+const p=await ctx.newPage();await p.clock.setFixedTime(new Date(info.clock));await p.goto(info.baseURL+info.routes.monthly);await settleBusinessUI(p);
+const btn=p.locator('.monthly-core').getByRole('button',{name:'历史月份',exact:true}),facts:any[]=[];
+for(const fraction of [.2,.8]){
+ await btn.scrollIntoViewIfNeeded();await p.mouse.move(0,0);await settleBusinessUI(p);
+ const box=await btn.boundingBox();assert(box);
+ const x=box.x+box.width*fraction,y=box.y+box.height*.5;
+ await p.mouse.move(x,y);await p.mouse.down();await p.waitForTimeout(230);
+ const v=await btn.evaluate((n:HTMLElement)=>({transform:getComputedStyle(n).transform,glint:getComputedStyle(n,'::after').opacity,pressed:n.hasAttribute('data-surface-pressed'),box:n.getBoundingClientRect().toJSON(),hit:document.elementFromPoint(n.getBoundingClientRect().x+n.clientWidth*.5,n.getBoundingClientRect().y+n.clientHeight*.5)?.outerHTML.slice(0,120)}));
+ facts.push({fraction,box,v});console.log(JSON.stringify({fraction,box,v}));assert(v.pressed);assert(Number(v.glint)>.8);assert.match(v.transform,/matrix3d/);
+ await p.screenshot({path:folder+'/screenshots/motion-press-'+(fraction<.5?'left':'right')+'-1440.png'});
+ await p.mouse.move(0,0);await p.mouse.up();await p.waitForTimeout(450);assert.equal(await btn.evaluate((n:Element)=>getComputedStyle(n).transform),'none');
+}
+await btn.focus();await p.keyboard.down(' ');await p.waitForTimeout(230);assert.equal(await btn.getAttribute('data-surface-pressed'),'');await p.keyboard.up(' ');await p.locator('#monthly-history-sheet[open]').waitFor();await p.keyboard.press('Escape');await settleBusinessUI(p);
+await writeFile('.tools/test-artifacts/workspace-glass/press.json',JSON.stringify(facts,null,2));await ctx.close();await rename(await p.video().path(),folder+'/video/directional-press.webm');console.log(JSON.stringify(facts,null,2));
+}finally{await browser.close();}
