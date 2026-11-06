@@ -1,0 +1,17 @@
+{
+  "source": "ff3a64c",
+  "evidenceCommit": "48beb64",
+  "branch": "codex/scheduling-workspace",
+  "deploymentId": "dpl_6b4MKaoZvBSLYzGYmTmR35JrZHpp",
+  "readyState": "READY",
+  "candidate": "https://qiuyun-frontend-cv38gy18d-opgobl1v-5358.vercel.app",
+  "production": "https://qiuyun-frontend.vercel.app",
+  "sameDeployment": true,
+  "verifiedAt": "2026-11-06T19:24:22.446239+08:00",
+  "candidateChecks": 20,
+  "candidateAssets": 11,
+  "productionChecks": 20,
+  "productionAssets": 71,
+  "noSchemaMigration": true,
+  "noProductionTestData": true
+}

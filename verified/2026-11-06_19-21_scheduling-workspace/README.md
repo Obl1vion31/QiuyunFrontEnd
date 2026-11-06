@@ -1,6 +1,6 @@
 # 月计划回显与首轮排期工作区
 
-状态：已自检／待用户反馈；发布核对完成后补充部署回执。应用源码 ff3a64c，基线5933231，分支 codex/scheduling-workspace。全部页面、录像和PDF使用真实组件及最终Vercel运行包，数据来自同一隔离PostgreSQL虚构样本。
+状态：已发布、已自检／待用户反馈。应用源码 ff3a64c，基线5933231，分支 codex/scheduling-workspace。全部页面、录像和PDF使用真实组件及最终Vercel运行包，数据来自同一隔离PostgreSQL虚构样本。
 
 ## 已修复行为
 
@@ -45,3 +45,7 @@
 ## 前次验收补正
 
 [00-30批次](../2026-11-06_00-30_scheduling-review/README.md)未覆盖“完整21篇预排期／仅1篇实际安排”的真实入口，也未验收乱序、遗留／指定共同分周后的完整阅读。原通过结论不能证明这些状态，本批补齐并修复；旧图、录像和PDF保留，不作为当前外观。
+
+## 发布核对
+
+[正式工作台](https://qiuyun-frontend.vercel.app/business/operations-schedule)已指向部署 dpl_6b4MKaoZvBSLYzGYmTmR35JrZHpp，READY，与候选部署一致。应用源码ff3a64c已同步main；候选20项／11个关键资源、正式20项／71个资源哈希核对通过，包含登录保护、同源表单、跨站拒绝和新排期资源。[发布回执](release/release.json)、[正式检查](release/production.json)。

@@ -76,8 +76,23 @@
   },
   {
     "file": "README.md",
-    "bytes": 5495,
-    "sha256": "ed057f4612a0fe7416b120e22dac9db5e0efe41cc680c31623d19477c510fc6d"
+    "bytes": 5914,
+    "sha256": "d70066aad02ea06f0dd0b4bb44642182246f3cf7bb0cf5bcfbec43b90f5709d4"
+  },
+  {
+    "file": "release/candidate.json",
+    "bytes": 4159,
+    "sha256": "78c12aa56af33f38f6992cd0c938d6869b0b6c5ed6db9932a11f087ad4ee4e3a"
+  },
+  {
+    "file": "release/production.json",
+    "bytes": 14045,
+    "sha256": "d550da2aabf195f90b5ab86d08f8924cba4f8104bbdb2cf1dd0d48df792950ad"
+  },
+  {
+    "file": "release/release.json",
+    "bytes": 550,
+    "sha256": "2fad780f5e12abcb010c1ece42cab66bce49e9e28bc06f3fde639846bee6a75e"
   },
   {
     "file": "release/runtime-bundle.json",
