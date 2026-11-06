@@ -30,7 +30,7 @@ export async function savePrivate(db:Database,input:z.infer<typeof privateInput>
   if(isSourcePrivateData(incoming)){const ids=new Set<string>(),names=new Set<string>();for(const row of incoming.nonPromotion){const name=`${row.subjectId}:${row.source.trim()}`;if(ids.has(row.id)||names.has(name)||!taxonomy.subjects.some(s=>s.id===row.subjectId))throw new WorkflowError('来源名称重复或学科已失效，请核对。',422);ids.add(row.id);names.add(name);}}
   const [old]=await tx.select().from(privateTable).where(eq(privateTable.month,input.month)).for('update');
   if(old&&isSourcePrivateData(old.data)&&!source)throw new WorkflowError('私域录入方式已更新，请刷新后继续；当前输入请先保留。',409);
-  const data:StoredPrivateData=isSourcePrivateData(incoming)?incoming:{...incoming,rows:incoming.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null))};
+  const data:StoredPrivateData=isSourcePrivateData(incoming)?{...incoming,...sourceCountsProjection(incoming)}:{...incoming,rows:incoming.rows.filter(r=>[r.added,r.consulted,r.converted].some(v=>v!==null))};
   const history=[...(old?.history??[])];
   if(source&&old&&!isSourcePrivateData(old.data)&&!history.length)history.push({at:old.updatedAt.toISOString(),actor:old.updatedBy,data:old.data});
   const values={data,revision:(old?.revision??-1)+1,updatedAt:new Date(),updatedBy:actor,history:[...history,{at:new Date().toISOString(),actor,data}]};
@@ -68,5 +68,5 @@ export async function readMonthlyPrivate(db:Database,base:{query:{month:string;s
  const unmapped=subjects.reduce((n,s)=>n+s.unmapped,0),totalSpend=base.spend.spend;
  const catalog=includeSources?await db.select({data:privateTable.data}).from(privateTable).orderBy(privateTable.updatedAt):[];
  const sourceOptions=[...new Map(catalog.flatMap(r=>isSourcePrivateData(r.data)?r.data.nonPromotion.map(({id,subjectId,source})=>[id,{id,subjectId,source}] as const):[])).values()];
- return {data,sourceData:sourceData?{...sourceData,promotion:sourceRows}:null,sourceOptions,subjectNames:Object.fromEntries(base.taxonomy.subjects.map(s=>[s.id,s.name])),totalSpend,revision:row?.revision??-1,updatedAt:row?.updatedAt.toISOString()??null,updatedBy:row?.updatedBy??null,status,totalCosts:privateUnitCosts(sourceData&&unmapped>0?null:totalSpend,data.total),subjects,unmapped,mappingRevision:mapping.revision};
+ return {data,sourceData:sourceData?{schemaVersion:2 as const,promotion:sourceRows,nonPromotion:sourceData.nonPromotion,note:sourceData.note}:null,sourceOptions,subjectNames:Object.fromEntries(base.taxonomy.subjects.map(s=>[s.id,s.name])),totalSpend,revision:row?.revision??-1,updatedAt:row?.updatedAt.toISOString()??null,updatedBy:row?.updatedBy??null,status,totalCosts:privateUnitCosts(sourceData&&unmapped>0?null:totalSpend,data.total),subjects,unmapped,mappingRevision:mapping.revision};
 }

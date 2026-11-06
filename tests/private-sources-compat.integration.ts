@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {eq} from 'drizzle-orm';
+import {startPostgresFixture} from './postgres.fixture';
+import {seedPrivateSources,octoberData} from './private-sources.fixture';
+import {savePrivate} from '../src/db/monthly-private';
+import {readMonthlyOperations} from '../src/db/monthly-operations';
+import {admin} from './auth.fixture';
+import * as s from '../src/db/schema';
+const baseline=process.env.PRIVATE_BASELINE_SOURCE;assert(baseline,'请指定当前正式基线源码目录');
+const old=await import(pathToFileURL(baseline+'/src/db/monthly-private.ts').href);
+const f=await startPostgresFixture(),{db,baseURL}=f,checks:string[]=[];
+try{
+ await seedPrivateSources(db);const legacyBefore=(await db.select().from(s.operationsMonthlyPrivate).where(eq(s.operationsMonthlyPrivate.month,'2026-07')))[0];
+ await savePrivate(db,{month:'2026-10',expectedRevision:-1,data:octoberData},'test_admin');
+ const stored=()=>db.select().from(s.operationsMonthlyPrivate).where(eq(s.operationsMonthlyPrivate.month,'2026-10')).then(r=>r[0]);
+ const row=await stored();assert.deepEqual((row.data as any).total,{added:36,consulted:17,converted:6});assert.equal((row.data as any).nonPromotion[1].added,159);
+ const base=await readMonthlyOperations(db,{month:'2026-10',subject:'',category:''});const oldRead=await old.readMonthlyPrivate(db,base);assert.deepEqual(oldRead.data.total,{added:36,consulted:17,converted:6});assert.deepEqual(oldRead.totalCosts,{added:741.67,consulted:1570.59,converted:4450});checks.push('真实旧版读取新增来源月份成功，兼容投影仅包含推广人数');
+ const oldData={total:{added:1,consulted:1,converted:1},rows:[],note:'旧部署不得覆盖来源'};
+ await assert.rejects(()=>old.savePrivate(db,{month:'2026-10',expectedRevision:0,data:oldData},'test_admin'),(error:any)=>{const detail=error.cause??error;return detail.code==='23514'&&detail.constraint_name==='operations_monthly_private_sources_no_downgrade';});assert.deepEqual(await stored(),row);checks.push('实际旧版保存被数据库防降级约束拒绝，来源及历史逐字段保持');
+ const auth=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(admin)});assert.equal(auth.status,200);const cookie=auth.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
+ const read=async()=>{const r=await fetch(baseURL+'/api/monthly-operations?month=2026-10',{headers:{Cookie:cookie}});assert.equal(r.status,200);return r.json();};
+ const current=await read();assert(!('total' in current.privateData.sourceData));assert(!('rows' in current.privateData.sourceData));
+ const patch=async(data:any)=>fetch(baseURL+'/api/monthly-private-data',{method:'PATCH',headers:{Cookie:cookie,Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify({month:'2026-10',expectedRevision:-1,data})});assert.equal((await patch(oldData)).status,409);assert.equal((await patch(current.privateData.sourceData)).status,200);checks.push('新API不向录入草稿泄漏兼容字段，正常往返保存与旧标签页409均正确');
+ assert.deepEqual((await db.select().from(s.operationsMonthlyPrivate).where(eq(s.operationsMonthlyPrivate.month,'2026-07')))[0],legacyBefore);
+ await old.savePrivate(db,{month:'2026-07',expectedRevision:-1,data:oldData},'test_admin');checks.push('约束不改写旧记录，也不阻断尚未升级月份的原版本保存');
+ const latest=structuredClone(octoberData);latest.promotion[0].added=4;
+ const results=await Promise.allSettled([old.savePrivate(db,{month:'2026-10',expectedRevision:0,data:oldData},'test_admin'),savePrivate(db,{month:'2026-10',expectedRevision:0,data:latest},'test_admin')]);assert.equal(results[0].status,'rejected');assert.equal(results[1].status,'fulfilled');assert.equal(((await stored()).data as any).schemaVersion,2);assert.equal((await read()).privateData.data.total.added,37);checks.push('旧新写入并发只允许新来源更新，不恢复普通内容版本冲突');
+ await mkdir('.tools/publish',{recursive:true});await writeFile('.tools/publish/compatibility.json',JSON.stringify({passed:true,baseline,checks,productionDataWrites:false},null,2));console.log('COMPATIBILITY_OK '+checks.length);
+}finally{await f.stop();}
