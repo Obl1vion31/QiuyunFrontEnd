@@ -15,7 +15,7 @@ const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pe
  </header>
  <div class="arrangement-content"><slot/></div>
  {state.stage!=='closed'&&<section class="arrangement-review" aria-label="首轮排期核对">
- <details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 (<span data-arrangement-count>{state.rows.length}</span>)</summary>
+ <details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 ({state.comparison?<span>{state.comparison.rows.length}</span>:<span data-arrangement-count>{state.rows.length}</span>})</summary>
   {state.comparison?<ScheduleComparisonTable value={state.comparison} groupByWeek/>:<>  <div class="arrangement-table"><table><thead><tr><th>Week</th><th>帖子</th><th>学科／分类</th><th>计划时间</th><th>实发</th></tr></thead><tbody>{state.rows.map(row=><tr><td>Week {weekOf(businessDate(row.plannedAt))}</td><td>{row.name} · V{row.versionNumber}</td><td>{row.subjectName}／{row.categoryName??'未分类'}</td><td>{businessDateTime(row.plannedAt)}</td><td>{row.actualAt?businessDateTime(row.actualAt):'尚未发布'}</td></tr>)}</tbody></table></div></>}
 
  </details>
