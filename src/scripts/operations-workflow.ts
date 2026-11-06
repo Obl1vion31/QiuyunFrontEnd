@@ -4,7 +4,6 @@ import './promotion-timeline';
 import './schedule-approvals';
 import {appendChangeDiff} from './business-change-diff';
 import {mayOperate} from './business-permissions';
-import { configureDateTimeField } from './business-datetime';
 import { businessDateTime, delayDayLabel } from './business-date';
 import { getInspector } from './business-inspector';
 import { beginBusinessRead } from './business-read';
@@ -167,13 +166,6 @@ function initialize() {
           }
           details.append(row);
         }
-      }
-      if (!isAdmin && workflow.requiresPlanApproval && !pendingRequest) {
-        const details=element('details');details.append(element('summary','申请调整排期'));
-        const form=element('form');form.className='workflow-form business-form';hidden(form,'expectedPlanRevision',String(workflow.schedule.planRevision));
-        const dateTime=document.querySelector<HTMLTemplateElement>('[data-change-request-datetime]')!.content.cloneNode(true) as DocumentFragment;
-        configureDateTimeField(dateTime.querySelector<HTMLElement>('[data-datetime-field]')!,{value:inputTime(workflow.schedule.plannedPublishAt)});form.append(dateTime);
-        textField(form,'reason','改期申请理由');submitButton(form,'提交管理员审批');bindForm(form,`/api/operations-content/${id}/change-requests`,reload);details.append(form);panel!.append(details);
       }
       for(const request of workflow.changeProposals??[]){
         if(!request.key.startsWith('proposal:'))continue;

@@ -72,7 +72,7 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
   ]);
   const through = new Date(Math.min((actualOverride ?? schedule.actualPublishAt ?? now).getTime(), now.getTime()));
   return { schedule, delayLabel:publicationDelayLabel(schedule.plannedPublishAt,actualOverride??schedule.actualPublishAt), history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
-    registrationState: registrationState(schedule, now), requiresPlanApproval: requiresPlanApproval(schedule, now),
+    registrationState: registrationState(schedule, now), requiresPlanApproval: false,
     days: schedule.cancelledAt?[]:scheduleDelayItems(schedule, history, saved, through, now),
     overdueDays: !schedule.cancelledAt&&!schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now) : 0,
   };

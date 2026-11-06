@@ -199,7 +199,7 @@ const clientRows = rows.map((row) => {
   const child = rows.find((candidate) => candidate.sourceVersionId === row.versionId);
   const source = row.sourceVersionId ? rows.find((candidate) => candidate.versionId === row.sourceVersionId) : undefined;
   return {
-    ...row, requiresPlanApproval:requiresPlanApproval(row,now),
+    ...row, requiresPlanApproval:false,
     publicationState:publishingState(row),publicationLabel:publicationLabels[publishingState(row)],allowEmptyPublicationLink:mayKeepEmptyPublicationLink(row),
     plannedPublishAt: inputDateTime(row.plannedPublishAt),
     actualPublishAt: inputDateTime(row.actualPublishAt),
@@ -436,7 +436,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       </form>
     </BusinessFormSheet>
 
-    <template data-change-request-datetime><BusinessDateTimeFields name="plannedPublishAt" id="changeRequestPlannedPublishAt" dateName="requestedPublishDate" timeName="requestedPublishTime" dateLabel="申请的新发送日期" timeLabel="申请的新发送时间" label="申请的新发送时间" required/></template>
+
 
     <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow, delayThresholdMs }}>
       if(document.querySelector('[data-inspector-name]')){
