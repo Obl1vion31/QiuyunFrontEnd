@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: 来源分开：自然来源159人不进入推广成本分母
+ok 1 - 来源分开：自然来源159人不进入推广成本分母
+  ---
+  duration_ms: 3.929005
+  type: 'test'
+  ...
+# Subtest: 各项独立完整度：缺意向不抹掉加微与真实零成交
+ok 2 - 各项独立完整度：缺意向不抹掉加微与真实零成交
+  ---
+  duration_ms: 0.648637
+  type: 'test'
+  ...
+# Subtest: 有消耗但未提供人数的用途不能从推广总计中消失
+ok 3 - 有消耗但未提供人数的用途不能从推广总计中消失
+  ---
+  duration_ms: 0.608671
+  type: 'test'
+  ...
+# Subtest: 环比保留方向、零基数和未知的区别
+ok 4 - 环比保留方向、零基数和未知的区别
+  ---
+  duration_ms: 0.265862
+  type: 'test'
+  ...
+# Subtest: 只有课程实际推广：无事实的空讲义不阻断学科与全站成本
+ok 5 - 只有课程实际推广：无事实的空讲义不阻断学科与全站成本
+  ---
+  duration_ms: 0.726914
+  type: 'test'
+  ...
+# Subtest: 全空行按实际事实判定，手填真实零不被清除
+ok 6 - 全空行按实际事实判定，手填真实零不被清除
+  ---
+  duration_ms: 0.540082
+  type: 'test'
+  ...
+# Subtest: 费用先归整到分再计算单位成本，半分不受累加误差影响
+ok 7 - 费用先归整到分再计算单位成本，半分不受累加误差影响
+  ---
+  duration_ms: 0.25393
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 523.360331

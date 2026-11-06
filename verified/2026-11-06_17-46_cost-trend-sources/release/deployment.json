@@ -1,0 +1,15 @@
+{
+  "source": "bd311e6",
+  "regression": "4c3e358",
+  "id": "dpl_HzyjcTiYc1S5q8nhd95JfzxcV2i9",
+  "url": "qiuyun-frontend-cea1xseqv-opgobl1v-5358.vercel.app",
+  "readyState": "READY",
+  "formalDomain": "https://qiuyun-frontend.vercel.app",
+  "domainResolvesToCandidate": true,
+  "candidateChecks": 20,
+  "candidateAssets": 7,
+  "formalChecks": 20,
+  "formalAssets": 71,
+  "testBusinessWritesToProduction": false,
+  "migrations": false
+}

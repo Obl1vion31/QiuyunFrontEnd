@@ -1,0 +1,475 @@
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_annual_plan_block_plan_id_operations_annual_plan_id_fk" will be truncated to "operations_annual_plan_block_plan_id_operations_annual_plan_id_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_annual_plan_link_plan_id_operations_annual_plan_id_fk" will be truncated to "operations_annual_plan_link_plan_id_operations_annual_plan_id_f"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_annual_plan_version_plan_id_operations_annual_plan_id_fk" will be truncated to "operations_annual_plan_version_plan_id_operations_annual_plan_i"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_category_policy_version_category_id_operations_category_id_fk" will be truncated to "operations_category_policy_version_category_id_operations_categ"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_content_performance_metric_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_content_performance_metric_schedule_id_operations_co"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_content_performance_metric_custom_checkpoint_id_operations_non_promotion_custom_checkpoint_id_fk" will be truncated to "operations_content_performance_metric_custom_checkpoint_id_oper"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_content_schedule_content_version_id_operations_content_version_id_fk" will be truncated to "operations_content_schedule_content_version_id_operations_conte"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_content_version_source_version_id_operations_content_version_id_fk" will be truncated to "operations_content_version_source_version_id_operations_content"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_content_version_category_id_operations_category_id_fk" will be truncated to "operations_content_version_category_id_operations_category_id_f"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_meeting_attachment_meeting_version_id_operations_review_meeting_version_id_fk" will be truncated to "operations_meeting_attachment_meeting_version_id_operations_rev"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_meeting_attachment_meeting_id_operations_review_meeting_id_fk" will be truncated to "operations_meeting_attachment_meeting_id_operations_review_meet"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_sealed_version_id_operations_review_meeting_version_id_fk" will be truncated to "operations_monthly_plan_sealed_version_id_operations_review_mee"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_meeting_id_operations_review_meeting_id_fk" will be truncated to "operations_monthly_plan_meeting_id_operations_review_meeting_id"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_source_version_id_operations_review_meeting_version_id_fk" will be truncated to "operations_monthly_plan_source_version_id_operations_review_mee"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_locked_by_version_id_operations_review_meeting_version_id_fk" will be truncated to "operations_monthly_plan_locked_by_version_id_operations_review_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_assignment_plan_id_operations_monthly_plan_id_fk" will be truncated to "operations_monthly_plan_assignment_plan_id_operations_monthly_p"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_assignment_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_monthly_plan_assignment_schedule_id_operations_conte"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_monthly_plan_assignment_proposal_id_operations_change_proposal_id_fk" will be truncated to "operations_monthly_plan_assignment_proposal_id_operations_chang"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_checkpoint_event_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_non_promotion_checkpoint_event_schedule_id_operation"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_checkpoint_event_custom_checkpoint_id_operations_non_promotion_custom_checkpoint_id_fk" will be truncated to "operations_non_promotion_checkpoint_event_custom_checkpoint_id_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_custom_checkpoint_content_id_operations_content_id_fk" will be truncated to "operations_non_promotion_custom_checkpoint_content_id_operation"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_custom_checkpoint_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_non_promotion_custom_checkpoint_schedule_id_operatio"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_review_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_non_promotion_review_schedule_id_operations_content_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_review_metric_id_operations_content_performance_metric_id_fk" will be truncated to "operations_non_promotion_review_metric_id_operations_content_pe"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_review_custom_checkpoint_id_operations_non_promotion_custom_checkpoint_id_fk" will be truncated to "operations_non_promotion_review_custom_checkpoint_id_operations"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_review_plan_content_id_operations_content_id_fk" will be truncated to "operations_non_promotion_review_plan_content_id_operations_cont"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_review_plan_anchor_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_non_promotion_review_plan_anchor_schedule_id_operati"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_non_promotion_review_version_review_id_operations_non_promotion_review_id_fk" will be truncated to "operations_non_promotion_review_version_review_id_operations_no"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_campaign_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_promotion_campaign_schedule_id_operations_content_sc"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_daily_metric_campaign_id_operations_promotion_campaign_id_fk" will be truncated to "operations_promotion_daily_metric_campaign_id_operations_promot"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_day_decision_campaign_id_operations_promotion_campaign_id_fk" will be truncated to "operations_promotion_day_decision_campaign_id_operations_promot"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_hold_campaign_id_operations_promotion_campaign_id_fk" will be truncated to "operations_promotion_hold_campaign_id_operations_promotion_camp"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_pause_target_pause_id_operations_promotion_pause_id_fk" will be truncated to "operations_promotion_pause_target_pause_id_operations_promotion"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_pause_target_campaign_id_operations_promotion_campaign_id_fk" will be truncated to "operations_promotion_pause_target_campaign_id_operations_promot"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_stage_campaign_id_operations_promotion_campaign_id_fk" will be truncated to "operations_promotion_stage_campaign_id_operations_promotion_cam"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_stage_review_version_review_id_operations_promotion_stage_review_id_fk" will be truncated to "operations_promotion_stage_review_version_review_id_operations_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_start_plan_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_promotion_start_plan_schedule_id_operations_content_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_timeline_audit_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_promotion_timeline_audit_schedule_id_operations_cont"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_promotion_wait_range_campaign_id_operations_promotion_campaign_id_fk" will be truncated to "operations_promotion_wait_range_campaign_id_operations_promotio"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_publication_event_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_publication_event_schedule_id_operations_content_sch"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_publication_reservation_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_publication_reservation_schedule_id_operations_conte"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_review_action_item_created_meeting_id_operations_review_meeting_id_fk" will be truncated to "operations_review_action_item_created_meeting_id_operations_rev"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_review_action_item_resolved_meeting_id_operations_review_meeting_id_fk" will be truncated to "operations_review_action_item_resolved_meeting_id_operations_re"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_review_action_progress_item_id_operations_review_action_item_id_fk" will be truncated to "operations_review_action_progress_item_id_operations_review_act"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_review_action_progress_meeting_id_operations_review_meeting_id_fk" will be truncated to "operations_review_action_progress_meeting_id_operations_review_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_review_meeting_version_meeting_id_operations_review_meeting_id_fk" will be truncated to "operations_review_meeting_version_meeting_id_operations_review_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_schedule_change_request_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_schedule_change_request_schedule_id_operations_conte"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_schedule_delay_reason_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_schedule_delay_reason_schedule_id_operations_content"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_schedule_plan_history_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_schedule_plan_history_schedule_id_operations_content"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_schedule_usage_event_schedule_id_operations_content_schedule_id_fk" will be truncated to "operations_schedule_usage_event_schedule_id_operations_content_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42622',
+  message: 'identifier "operations_subject_category_category_id_operations_category_id_fk" will be truncated to "operations_subject_category_category_id_operations_category_id_"',
+  file: 'scansup.c',
+  line: '99',
+  routine: 'truncate_identifier'
+}
+PASS 真实旧口径首次录入仅生成两门实际推广课程，保存后学科与顶部成本回显一致
+PASS 已存空讲义读取即时修复且不写库，正常保存清理占位并保持推广兼容投影
+PASS 上月没有私域数据仍保留推广消耗和开口留资比较，六个月序列按指标缺值断开
+PASS 真实事实覆盖0／1／2／6有效月、真实0、缺值断线及当月不生成环比；私域单月显示暂无对比数据
+PASS PATCH成功、读取503明确区分；重试只读不重写，展开状态保留
+PASS 慢刷新期间的新输入与dirty保留，后续正常保存不丢修改
+PASS 关闭取消、键盘与未保存输入保护沿用公共实现
+PASS 三项完整性独立；真实0元推广用途仍保留，未填人数不能被忽略
+PASS 未封存当前月会读取最新成本，封存后的六个月趋势与事实保持原快照
+PASS 三档桌面运营／月会／录入／精简历史实际渲染，右图无默认日期且贴近主值且无页面级溢出
+PASS 快速切月旧响应不覆盖新选择，来源折叠按月份重置
+PASS 三份正式渲染PDF含完整来源，旧封存展示保持；长金额历史两列不截断
+PASS 390px仅核查页面溢出、明显遮挡和关闭保存入口
+PASS 总消耗及五项成本共六条趋势内嵌，新增PDF保留同样对应关系
+PASS 仅两个月事实时六条走势均铺满实际宽度，来源直接在结果表下展开
+COST_REPAIR_OK 15
