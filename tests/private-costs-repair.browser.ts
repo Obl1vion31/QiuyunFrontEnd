@@ -49,6 +49,8 @@ try{
  await sheet().getByRole('button',{name:'保存',exact:true}).click();await sheet().waitFor({state:'hidden'});
  assert.deepEqual((await read()).privateData.totalCosts,costs);assert.match(await page.locator('[data-monthly-cost-results]').innerText(),/1,395.13/);
  assert.equal(await page.locator('.ps-disclosure').count(),2);assert.equal(await page.locator('.ps-disclosure[open]').count(),0);
+ const disclosure=page.locator('.ps-disclosure').first();await disclosure.locator('summary').focus();await page.keyboard.press('Enter');assert.equal(await disclosure.getAttribute('open'),'');await page.keyboard.press('Space');assert.equal(await disclosure.getAttribute('open'),null);
+ const point=page.locator('[data-monthly-cost-trend="actualOpenCost"] .report-trend-point').last();await point.locator('button').focus();await page.keyboard.press('Enter');await point.locator('[data-popover-panel]').waitFor({state:'visible'});await page.screenshot({path:dir+'/screenshots/trend-keyboard-popover-1440.png'});await page.keyboard.press('Escape');await point.locator('[data-popover-panel]').waitFor({state:'hidden'});
  mark('真实旧口径首次录入仅生成两门实际推广课程，保存后学科与顶部成本回显一致');
  const baseline=(await read()).privateData.sourceData;
  const corrupt={...structuredClone(baseline),promotion:[...baseline.promotion,...['tmua','interview'].map(subjectId=>({subjectId,demand:'handout' as const,added:null,consulted:null,converted:null}))]};
