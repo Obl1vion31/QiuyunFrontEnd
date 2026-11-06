@@ -97,11 +97,19 @@
   },
   {
     "file": "README.md",
-    "sha256": "651c9c82f860707062e35a0fb4f68cfdcc96b8285c4891e7b3e2764353f2e00d"
+    "sha256": "d857d9a9024ce7fb81d0d180c1956711cdb861c42715218f4a7a1183d04f1a4b"
   },
   {
     "file": "release/candidate.json",
     "sha256": "382b67b3f81297bc54851c1a8f12201c23105093d867ead4e119ceafdde6504f"
+  },
+  {
+    "file": "release/production.json",
+    "sha256": "381ac10eff4b3bf26c04d78e9b8b56a6db42b84a6f6513c7e7153b944c477105"
+  },
+  {
+    "file": "release/release.json",
+    "sha256": "7a5c0c2b96dc6376acb4989ea60ebb51db89772498e020ad0dbcab7a26add075"
   },
   {
     "file": "release/runtime-bundle.json",

@@ -1,6 +1,6 @@
 # 预排期五条紧凑行
 
-状态：已自检／待用户反馈，候选检查通过，待正式域名核对。最终应用fd96de4，基线2f1a469（应用ff3a64c），分支codex/compact-preplan-rows。界面、录像与PDF均使用正式组件和实际Vercel运行包，全部样本在本机隔离PostgreSQL，未向正式库写入测试数据。
+状态：已发布、已自检／待用户反馈。最终应用fd96de4，基线2f1a469（应用ff3a64c），分支codex/compact-preplan-rows。界面、录像与PDF均使用正式组件和实际Vercel运行包，全部样本在本机隔离PostgreSQL，未向正式库写入测试数据。
 
 ## 实际变化与高度对照
 
@@ -37,3 +37,7 @@
 ## 前批补正
 
 [前批排期验收](../2026-11-06_19-21_scheduling-workspace/README.md)的样本按周使用单一新做来源，没有覆盖截图中同周五种来源的密度；本批换成16组来源的21篇样本并保留同样本前后证据。旧图及记录保留，当前密度以本批为准。
+
+## 发布结果
+
+[正式排期页](https://qiuyun-frontend.vercel.app/business/operations-schedule)已指向部署dpl_B1pGHf6JfZkeLxWkDzENeS6TZWpm，READY且与候选一致。应用fd96de4及证据已同步main；候选20项／11资源、正式20项／71资源哈希通过。[发布回执](release/release.json)、[正式检查](release/production.json)。
