@@ -1,11 +1,12 @@
 ---
 import BusinessSheet from './BusinessSheet.astro';
-interface Props { id: string; labelledby: string }
-const { id, labelledby } = Astro.props;
+interface Props { id: string; labelledby: string; embedded?: boolean }
+const { id, labelledby, embedded = false } = Astro.props;
+const Container = embedded ? 'section' : BusinessSheet;
 ---
-<BusinessSheet id={id} labelledby={labelledby} class="business-form-sheet"><slot /></BusinessSheet>
+<Container id={id} labelledby={labelledby} class="business-form-sheet" data-panel-view={embedded ? id === 'publication-dialog' ? 'publication' : 'form' : undefined} hidden={embedded || undefined}><slot /></Container>
 <style is:global>
-dialog.business-form-sheet>form{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%;min-height:0;margin:0}
+.business-form-sheet>form{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%;min-height:0;margin:0}
 .business-form-sheet .dialog-head{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;margin:0;padding:16px 20px;border-radius:0;color:#fff;background:#10243ef0;backdrop-filter:blur(16px)}
 .business-form-sheet .dialog-head h2{margin:0;font:600 18px/24px var(--console-font)}
 .business-form-sheet .dialog-head-actions{display:flex;align-items:center;gap:12px}

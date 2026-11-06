@@ -170,10 +170,10 @@ test('带 Inspector 的业务页在客户端切换后重新初始化交互', asy
       const client = await readFile(new URL('../src/scripts/annual-plan.ts', import.meta.url), 'utf8');
       assert.match(client, /document\.addEventListener\('astro:page-load', initializeAnnualPlan\)/);
       assert.match(client, /dataNode\.dataset\.bound/);
-    } else assert.match(source, /<script is:inline data-astro-rerun define:vars=/, `${page} 的交互脚本不会在 View Transition 后重跑`);
+    } else {assert.match(source,/scripts\/schedule-page\.js/);const client=await readFile(new URL('../src/scripts/schedule-page.js',import.meta.url),'utf8');assert.match(client,/astro:page-load/);}
   }
-  const schedule = await readFile(new URL('../src/pages/business/operations-schedule.astro', import.meta.url), 'utf8');
-  assert.match(schedule, /document\.querySelectorAll\('\[data-inspect-id\]'\)/);
+  const schedule = await readFile(new URL('../src/scripts/schedule-page.js', import.meta.url), 'utf8');
+  assert.match(schedule, /document\.querySelectorAll\('\[data-calendar-day\],\[data-inspect-id\],\[data-calendar-new\]'\)/);
   assert.match(schedule, /node\.addEventListener\('click',/);
 });
 

@@ -2,7 +2,7 @@
 interface Props { class?: string; label?: string; parameter?: string; templates?: boolean; [key: string]: unknown }
 const { class: className = '', label = '帖子详情', parameter, templates = false, ...attributes } = Astro.props;
 ---
-<aside {...attributes} class:list={['business-inspector', className]} data-inspector data-inspector-parameter={parameter} data-inspector-templates={templates || undefined} tabindex="-1" aria-label={label} hidden><slot /></aside>
+<aside {...attributes} class:list={['business-inspector', className]} data-inspector data-panel-view={attributes['data-inspector-contained'] ? 'detail' : undefined} data-inspector-parameter={parameter} data-inspector-templates={templates || undefined} tabindex="-1" aria-label={label} hidden><slot /></aside>
 <script>import '../scripts/business-inspector';</script>
 <style is:global>
 .business-inspector[data-inspector]{box-sizing:border-box;position:sticky;top:calc(var(--console-toolbar-height) + 20px);inset-inline-end:auto;align-self:start;flex:none;display:flex;flex-direction:column;width:0;height:var(--inspector-height,calc(100dvh - var(--console-toolbar-height) - 40px));max-height:calc(100dvh - var(--console-toolbar-height) - 40px);margin:0;overflow:hidden;border:0;border-radius:15px;background:#f9faf8;opacity:0;transform:translateX(18px);z-index:16;font-family:var(--console-font);line-height:1.4}

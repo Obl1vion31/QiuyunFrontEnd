@@ -13,7 +13,7 @@ export function applyBusinessPermissions(root:ParentNode=document){
   root.querySelectorAll<HTMLElement>('[data-business-operation]').forEach(node=>{
     const keys=node.dataset.businessOperation!.split(' ') as BusinessOperation[];
     const allowed=node.hasAttribute('data-business-any')?keys.some(key=>permissions[key]!=='disabled'):keys.every(key=>permissions[key]!=='disabled');
-    node.hidden=!allowed||keys.includes('schedule.delete')&&!stageAllows('schedule.delete');
+    node.hidden=node.dataset.businessEligible==='false'||!allowed||keys.includes('schedule.delete')&&!stageAllows('schedule.delete');
     if(node instanceof HTMLButtonElement)node.disabled=!allowed||!(node.hasAttribute('data-business-any')?keys.some(key=>stageAllows(key)):keys.every(key=>stageAllows(key)));
   });
 }

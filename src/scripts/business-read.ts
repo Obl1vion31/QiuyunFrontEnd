@@ -20,11 +20,12 @@ export function beginBusinessRead(target: HTMLElement, options: BusinessReadOpti
   const previousBusy = target.getAttribute('aria-busy');
   const inspector = target.closest<HTMLElement>('[data-inspector]');
   const dialog = target.closest<HTMLDialogElement>('dialog');
-  const container = inspector ?? dialog;
+  const container = dialog ?? inspector;
+  const view = target.closest<HTMLElement>('[data-panel-view]');
   const observer = container ? new MutationObserver(() => {
     if (container.hidden || container.dataset.closing === 'true' || !isCurrent()) cancel();
   }) : null;
-  const isCurrent = () => !ended && !controller.signal.aborted && target.isConnected && (!dialog || dialog.open) && reads.get(target) === operation && (options.isCurrent?.() ?? true);
+  const isCurrent = () => (!view || !view.hidden) && !ended && !controller.signal.aborted && target.isConnected && (!dialog || dialog.open) && reads.get(target) === operation && (options.isCurrent?.() ?? true);
   const cleanup = () => {
     if (ended) return;
     ended = true;
@@ -49,7 +50,7 @@ export function beginBusinessRead(target: HTMLElement, options: BusinessReadOpti
     target.setAttribute('aria-busy', 'true');
   }, 500);
   reads.set(target, operation); active.add(operation);
-  if (container) observer?.observe(container, { attributes: true, attributeFilter: ['hidden','open','data-closing','data-selected-id'] });
+  if (container) observer?.observe(container, { attributes: true, attributeFilter: ['hidden','open','data-closing','data-selected-id','data-view'] });
   if (options.signal?.aborted) cancel();
   else options.signal?.addEventListener('abort', cancel, { once: true });
   return operation;

@@ -103,3 +103,5 @@ ContentTunnel.module.css
 - `BusinessContentRoleFields.astro`：两个合集的条件职能单选，复用排期表单字段；`BusinessUsageGuide.astro`：系统设置管理员只读说明，标签及标准节点来自业务代码。
 
 `BusinessResourceLinks.astro` 是推广、非推广及排期共用的只读资料入口。静态模式接收documentUrl／postUrl／name，排期dynamic模式保留原data-inspector-doc／post绑定并消费既有摘要；资料和帖子保留原URL、真实域名与缺失状态，日期和待处理信息按任务保留。编辑、保存、权限和详情开关由原控制器负责。所有模块通过Frame共享材质，不复制公共壳层。
+
+- `BusinessFormSheet`的embedded模式仅将现有表单挂载到父Sheet，不建立第二个dialog；默认模式与其他页面不变。

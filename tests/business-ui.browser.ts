@@ -185,7 +185,7 @@ try {
       await page.route(`**/api/operations-content/${ids[1]}/workflow`,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'虚构读取失败'})}));
       const staleRequest=page.waitForRequest((request:any)=>request.url().includes(`/api/operations-content/${ids[0]}/workflow`));
       await page.locator(`[data-inspect-id="${ids[0]}"]`).first().click();
-      await page.locator('[data-inspector].is-open').waitFor();await staleRequest;
+      await page.locator('[data-inspector].is-open').waitFor();await staleRequest;await page.locator('[data-close-inspector]').click();await page.locator('#schedule-panel').waitFor({state:'hidden'});
       await page.locator(`[data-inspect-id="${ids[1]}"]`).first().click();
       await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await page.waitForTimeout(450);
       assert.equal(await page.locator('[data-inspector]').getAttribute('data-selected-id'),ids[1]);

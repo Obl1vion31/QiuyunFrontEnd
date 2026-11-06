@@ -73,10 +73,12 @@ function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, 
       else if(pane)getInspector(pane).setClean(); else document.documentElement.dataset.unsaved = 'false';
       if(response.status===202){
         if(otherDrafts){output.textContent=result.message??'已提交管理员审核。';document.dispatchEvent(new Event('business:workflow-updated'));}
+        else if(pane?.hasAttribute('data-inspector-contained'))document.dispatchEvent(new CustomEvent('business:schedule-execution-saved',{detail:{id:pane.dataset.selectedId,pending:true}}));
         else location.reload();
         return;
       }
       document.dispatchEvent(new Event('business:workflow-updated')); onSaved();
+      if(pane?.hasAttribute('data-inspector-contained')&&otherDrafts)document.dispatchEvent(new CustomEvent('business:schedule-execution-saved',{detail:{id:pane.dataset.selectedId,preserveInputs:true}}));
     } catch { output.textContent = '连接失败，当前输入已保留，请重试。'; }
     finally { button.disabled = false; }
   });
@@ -101,7 +103,7 @@ function initialize() {
   let panelToken = 0; let publicationId = ''; let publicationToken = 0;
   let pendingTimer: ReturnType<typeof setTimeout>; let publicationDays: DelayDay[] = [];
   const isAdmin = document.querySelector<HTMLElement>('[data-user-role]')?.dataset.userRole === 'admin';
-  const reload = () => { document.documentElement.dataset.unsaved = 'false'; location.reload(); };
+  const reload = () => {if(panel?.closest('[data-inspector-contained]'))document.dispatchEvent(new CustomEvent('business:schedule-execution-saved',{detail:{id:panel.dataset.scheduleId}}));else{document.documentElement.dataset.unsaved='false';location.reload();}};
   type ReasonDraft = {responsibility:string; reason:string; open:boolean};
   document.addEventListener('business:schedule-approval-decided',event=>{const id=(event as CustomEvent).detail?.id;if(id&&panel?.dataset.scheduleId===id)void showPanel(id);},{signal});
   async function showPanel(id: string, priorDrafts?:Map<string,ReasonDraft>) {
@@ -295,6 +297,8 @@ function initialize() {
   document.addEventListener('business:inspector-selection',event=>{if(!(event as CustomEvent).detail.id){++panelToken;stopLoading();}},{signal});
   signal.addEventListener('abort',()=>{stopLoading();stopPublicationRead();},{once:true});
   document.addEventListener('business:schedule-selected', event => showPanel((event as CustomEvent).detail.id), { signal });
+  document.addEventListener('business:schedule-panel-view',event=>{if((event as CustomEvent).detail.view!=='detail'){++panelToken;stopLoading();}if((event as CustomEvent).detail.view!=='publication'){++publicationToken;stopPublicationRead();clearTimeout(pendingTimer);}},{signal});
+  document.addEventListener('business:schedule-detail-resumed',()=>{if(panel?.dataset.scheduleId&&panel.dataset.ready!=='true')void showPanel(panel.dataset.scheduleId);},{signal});
   document.addEventListener('business:publication-opened', event => {
     publicationId = (event as CustomEvent).detail.id;publication!.dataset.collaborationResource=`schedule:${publicationId}`; host.replaceChildren(); publicationDays = [];
     publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden = false; showPublication();

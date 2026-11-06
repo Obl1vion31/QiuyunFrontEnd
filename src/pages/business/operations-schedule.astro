@@ -13,6 +13,8 @@ import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astr
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessResourceLinks from '../../components/BusinessResourceLinks.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
+import BusinessSheet from '../../components/BusinessSheet.astro';
+import '../../styles/schedule-panel.css';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import {operationsContent} from '../../db/schema';
 import BusinessReviewDateAdd from '../../components/BusinessReviewDateAdd.astro';
@@ -333,8 +335,12 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
               </MonthlyArrangementPanel>
             </section>
 
-            <BusinessInspector class="inspector" parameter="row" label="帖子详情">
-              <header><div><div class="inspector-header-meta"><span data-inspector-version>V0</span><small data-inspector-kind>新做帖</small></div><h2 data-inspector-name></h2></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
+
+          </div>}
+        </main>
+    <BusinessSheet id="schedule-panel" labelledby="schedule-detail-title" data-schedule-panel data-dialog-cancel-managed>
+            <BusinessInspector class="inspector" parameter="row" label="帖子详情" data-inspector-contained>
+              <header><div><div class="inspector-header-meta"><span data-inspector-version>V0</span><small data-inspector-kind>新做帖</small></div><h2 id="schedule-detail-title" data-inspector-name></h2></div><button type="button" data-close-inspector aria-label="关闭详情">×</button></header>
               <div class="inspector-body">
                 <section class="inspector-title"><p data-inspector-category></p></section>
                 <dl class="detail-list">
@@ -346,27 +352,23 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
                 <BusinessResourceLinks dynamic name="当前帖子"/>
-                <section class="non-plan-panel" data-review-plan-panel hidden aria-label="复盘计划">
+                <section class="non-plan-panel schedule-detail-section" data-review-plan-panel hidden aria-label="复盘计划">
                   <h3>运营类型与复盘计划</h3><p data-review-plan-summary></p>
                   <details data-business-operation="schedule.edit"><summary>管理复盘方式</summary><form class="business-form" data-review-plan-form><input type="hidden" name="action" value="reviewPlan"/><BusinessNonPromotionPlanFields prefix="inspector-review"/><output role="status"></output><button type="submit" class="business-action-primary">保存复盘计划</button></form></details>
                   <BusinessReviewDateAdd hidden/>
                   <div class="non-plan-nodes" data-review-node-list></div>
                 </section>
-                <details class="inspector-section inspector-reference" open><summary>版本与改帖</summary>
-                <section class="inspector-section"><span>版本关系</span><div class="version-path" data-inspector-path></div></section>
-                <section class="inspector-section" data-inspector-revision-section><span>本次改帖</span><strong>具体改动说明</strong><p data-inspector-revision-summary></p></section>
-                </details>
-                <section class="inspector-section schedule-workflow-history" data-schedule-workflow-history aria-label="历史记录" hidden></section>
+                <section class="schedule-detail-section inspector-version">
+                  <h3>版本与改帖</h3><div class="version-path" data-inspector-path aria-label="版本关系"></div>
+                  <div class="inspector-revision" data-inspector-revision-section><h4>具体改动说明</h4><p data-inspector-revision-summary></p></div>
+                </section>
+                <section class="inspector-section schedule-workflow-history schedule-detail-section" data-schedule-workflow-history aria-label="历史记录" hidden></section>
                 <section class="inspector-section" data-promotion-state-history hidden></section>
                 <details class="inspector-danger business-form" data-business-operation="schedule.delete" hidden={Astro.locals.user?.role!=='admin'}><summary>更多操作</summary><label>取消排期原因<textarea data-inspector-cancel-reason rows="2" maxlength="2000"></textarea></label><button type="button" data-inspector-delete>取消这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
               <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </BusinessInspector>
-          </div>}
-        </main>
-    </BusinessConsoleFrame>
-
-    <BusinessFormSheet id="schedule-dialog" labelledby="dialog-title">
+    <BusinessFormSheet embedded id="schedule-dialog" labelledby="dialog-title">
       <form class="business-form" id="schedule-form" action="/api/operations-content" method="post" novalidate>
         <header class="dialog-head">
           <div><span id="dialog-context" hidden>新建内容</span><h2 id="dialog-title">新做帖</h2></div>
@@ -413,7 +415,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
     </BusinessFormSheet>
 
     <script type="application/json" data-schedule-records set:html={JSON.stringify(clientRows).replace(/</g,'\\u003c')}/>
-    <BusinessFormSheet id="publication-dialog" labelledby="publication-title">
+    <BusinessFormSheet embedded id="publication-dialog" labelledby="publication-title">
       <form class="business-form" id="publication-form" novalidate>
         <header class="dialog-head"><div><h2 id="publication-title">发布登记</h2></div><button type="button" class="close-button" data-close-publication aria-label="关闭">×</button></header>
         <input type="hidden" name="plannedPublishAt" />
@@ -436,472 +438,14 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
       </form>
     </BusinessFormSheet>
 
+    </BusinessSheet>
+    </BusinessConsoleFrame>
+
     <template data-change-request-datetime><BusinessDateTimeFields name="plannedPublishAt" id="changeRequestPlannedPublishAt" dateName="requestedPublishDate" timeName="requestedPublishTime" dateLabel="申请的新发送日期" timeLabel="申请的新发送时间" label="申请的新发送时间" required/></template>
 
-    <script is:inline data-astro-rerun define:vars={{ clientRows, clientCategories, actorRole, requestedRow, delayThresholdMs }}>
-      if(document.querySelector('[data-inspector-name]')){
-      const permissions=JSON.parse(document.querySelector('#business-permissions')?.textContent||'{}');
-      const mayOperate=key=>{const state=document.querySelector('[data-arrangement-stage]');const pending=state?.dataset.arrangementStage==='review_pending'&&state.dataset.arrangementRole==='employee';if(pending&&!['schedule.publish'].includes(key))return false;if(state?.dataset.arrangementStage==='closed'&&['schedule.create','schedule.revise','schedule.reschedule','schedule.overdueReschedule'].includes(key))return false;return ['direct','review'].includes(permissions[key]);};
-      const rows = clientRows;
-      const categories = clientCategories;
-      const dialog = document.querySelector('#schedule-dialog');
-      const form = document.querySelector('#schedule-form');
-      const title = document.querySelector('#dialog-title');
-      const context = document.querySelector('#dialog-context');
-      const version = document.querySelector('.dialog-version');
-      const revisionOnly = document.querySelector('[data-revision-only]');
-      const sourcePreview = document.querySelector('[data-source-preview]');
-      const promotionHelp = document.querySelector('[data-promotion-help]');
-      const promotionPreview = document.querySelector('[data-promotion-preview]');
-      const usageChangeField = document.querySelector('.usage-change-field');
-      const categoryHelp = document.querySelector('[data-category-help]');
-      const categoryRequired = document.querySelector('[data-category-required]');
-      const message = document.querySelector('.form-message');
-      const submitButton = form.querySelector('button[type="submit"]');
-      const inspector = document.querySelector('[data-inspector]');
-      inspector.addEventListener('business:promotion-state-updated',event=>{
-        const {id,label,status}=event.detail;const record=rows.find(row=>row.id===id);if(record){record.promotionLabel=label;record.promotionStatus=status;}
-        if(inspector.dataset.selectedId===id)inspector.querySelector('[data-inspector-promotion]').textContent=label;
-        for(const node of document.querySelectorAll(`.schedule-row[data-inspect-id="${id}"] td:nth-child(4)>small`))node.textContent=label;
-      });
-      const inspectorEdit = document.querySelector('[data-inspector-edit]');
-      const inspectorRevise = document.querySelector('[data-inspector-revise]');
-      const inspectorDerived = document.querySelector('[data-inspector-derived]');
-      const inspectorPublication = document.querySelector('[data-inspector-publication]');
-      const inspectorDelete = document.querySelector('[data-inspector-delete]');
-      const inspectorDeleteError = document.querySelector('[data-inspector-delete-error]');
-      const publicationDialog = document.querySelector('#publication-dialog');
-      dialog.setAttribute('data-dialog-cancel-managed','');publicationDialog.setAttribute('data-dialog-cancel-managed','');
-      const publicationForm = document.querySelector('#publication-form');
-      let dirty = false;
-      let mode = 'new';
-      let activeRecord;
+    <script id="schedule-page-config" type="application/json" set:html={JSON.stringify({clientRows,clientCategories,actorRole,requestedRow,delayThresholdMs}).replace(/</g,'\\u003c')}/>
+    <script>import '../../scripts/schedule-page.js';</script>
 
-      const field = (name) => form.elements.namedItem(name);
-      const configureDateTime = (control, configuration) => control.closest('[data-datetime-field]').dispatchEvent(new CustomEvent('business:datetime-configure',{bubbles:true,detail:configuration}));
-      const setInspectorText = (selector, value) => {
-        const node = inspector.querySelector(selector);
-        if (node) node.textContent = value || '—';
-      };
-      const fillInspector = (record) => {
-        if (!record) return;
-        activeRecord = record;
-        inspector.querySelector('.inspector-actions').dataset.collaborationResource=`schedule:${record.id}`;
-        inspector.querySelector('.inspector-actions').dataset.collaborationLabel=record.contentName;
-        inspector.dataset.selectedId = record.id;
-        setInspectorText('[data-inspector-version]', `V${record.versionNumber}`);
-        setInspectorText('[data-inspector-kind]', record.workType === 'revision' ? '改帖' : '新做帖');
-        setInspectorText('[data-inspector-category]', record.categoryName ? `${record.subjectName} / ${record.categoryName}` : record.subjectName);
-        setInspectorText('[data-inspector-name]', record.contentName);
-        setInspectorText('[data-inspector-promotion]', record.promotionLabel);
-        setInspectorText('[data-inspector-planned]', record.plannedDisplay);
-        setInspectorText('[data-inspector-actual]', record.actualDisplay);
-        setInspectorText('[data-inspector-completion]', record.completionLabel);
-        setInspectorText('[data-inspector-delay-label]',record.delayLabel);inspector.querySelector('[data-inspector-delay-label]').hidden=!record.delayLabel;
-        inspector.querySelector('[data-inspector-completion-row]').hidden=record.completionLabel==='尚未登记';
-        inspector.querySelector('.inspector-reference').open=record.completionLabel!=='尚未登记';
-        setInspectorText('[data-inspector-revision-summary]', record.revisionSummary);
-        const revisionSection = inspector.querySelector('[data-inspector-revision-section]');
-        revisionSection.hidden = record.workType !== 'revision';
-        const path = inspector.querySelector('[data-inspector-path]');
-        path.replaceChildren();
-        const versions = record.sourceVersionNumber == null
-          ? [`V${record.versionNumber}`]
-          : [`V${record.sourceVersionNumber}`, `V${record.versionNumber}`];
-        if (record.childVersionNumber != null) versions.push(`V${record.childVersionNumber}`);
-        versions.forEach((label, index) => {
-          const chip = document.createElement('span');
-          chip.textContent = label;
-          path.append(chip);
-          if (index < versions.length - 1) path.append(document.createTextNode('→'));
-        });
-        inspectorRevise.hidden = record.childVersionNumber != null||!mayOperate('schedule.revise');
-        inspectorEdit.disabled=!mayOperate('schedule.edit')&&!mayOperate('schedule.reschedule')&&!mayOperate('schedule.overdueReschedule');
-        inspectorDerived.hidden = record.childVersionNumber == null;
-        inspectorDerived.textContent = record.childVersionNumber == null ? '' : `已派生 V${record.childVersionNumber}`;
-        inspectorPublication.textContent = record.actualPublishAt ? '查看／编辑发布登记' : '发布登记';
-        inspectorPublication.dataset.businessOperation=record.actualPublishAt?'schedule.publish schedule.correctPublication':'schedule.publish';
-        inspectorPublication.hidden=!mayOperate('schedule.publish')&&!(record.actualPublishAt&&mayOperate('schedule.correctPublication'));
-        inspectorDeleteError.textContent = '';document.querySelector('[data-inspector-cancel-reason]').value='';
-        document.dispatchEvent(new CustomEvent('business:schedule-selected', { detail: record }));
-      };
-      inspector.addEventListener('business:inspector-render-record', event => fillInspector(rows.find(row => row.id === event.detail.id)));
-      const openInspector = record => {
-        if (!record) return;
-        const trigger = document.querySelector(`[data-inspect-id="${CSS.escape(record.id)}"]`);
-        if (!inspector.dataset.inspectorReady) inspector.dataset.selectedId = record.id;
-        inspector.dispatchEvent(new CustomEvent('business:inspector-select', {detail:{id:record.id,trigger}}));
-      };
-      const updatePromotionPreview = () => {
-        const promoted = field('isPromoted').checked;
-        const actual = mode === 'edit' ? activeRecord?.actualPublishAt : null;
-        promotionPreview.hidden = !(mode === 'edit' && promoted && activeRecord?.isPromoted && actual);
-        const changingToNonPromotion = mode === 'edit' && activeRecord?.isPromoted && !promoted;
-        usageChangeField.hidden = !changingToNonPromotion;
-        field('usageChangeReason').required = changingToNonPromotion;
-        if (!promoted) {
-          field('promotionStatus').value = 'none';
-          promotionPreview.textContent = '非推广';
-          return;
-        }
-        if (!actual) {
-          field('promotionStatus').value = 'pending';
-          promotionPreview.textContent = '待推广 · 尚未登记';
-          return;
-        }
-        if (
-          mode === 'new'
-          || mode === 'revision'
-          || !activeRecord?.actualPublishAt
-          || !activeRecord?.isPromoted
-        ) {
-          field('promotionStatus').value = 'awaiting_promotion';
-          promotionPreview.textContent = '待开始推广 · 实发后在每日复盘确认测试';
-          return;
-        }
-        field('promotionStatus').value = activeRecord.promotionStatus;
-        promotionPreview.textContent = activeRecord.promotionLabel;
-      };
-      const clearErrors = () => {
-        message.textContent = '';
-        form.querySelectorAll('[data-error]').forEach((node) => node.textContent = '');
-        form.querySelectorAll('[aria-invalid="true"]').forEach((node) => node.removeAttribute('aria-invalid'));
-      };
-      const updateCategoryOptions = (selectedValue = '') => {
-        const subjectId = field('subjectId').value;
-        const categorySelect = field('categoryId');
-        const matching = categories.filter((category) => category.subjectId === subjectId);
-        categorySelect.replaceChildren();
-        const prompt = document.createElement('option');
-        prompt.value = '';
-        prompt.textContent = matching.length ? '请选择帖子分类' : '请先选择学科';
-        categorySelect.append(prompt);
-        matching.forEach((category) => {
-          const option = document.createElement('option');
-          option.value = category.id;
-          option.textContent = category.name;
-          categorySelect.append(option);
-        });
-        categorySelect.disabled = matching.length === 0;
-        categorySelect.required = matching.length > 0;
-        categoryRequired.hidden = matching.length === 0;
-        categoryHelp.textContent = '';
-        categorySelect.value = matching.some((category) => category.id === selectedValue) ? selectedValue : '';
-      };
-      const setRecordValues = (record) => {
-        field('subjectId').value = record.subjectId ?? '';
-        updateCategoryOptions(record.categoryId ?? '');
-        for (const [name, value] of Object.entries(record)) {
-          const control = form.elements.namedItem(name);
-          if (control instanceof HTMLInputElement && control.type === 'checkbox') control.checked = Boolean(value);
-          else if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement || control instanceof HTMLTextAreaElement) control.value = String(value ?? '');
-        }
-      };
-      const openForm = (nextMode, record, selectedDate = '') => {
-        const carry=nextMode==='new'?document.querySelector('[data-monthly-plan-pool]')?.dataset.scheduleId:null;
-        if(carry){const original=rows.find(r=>r.id===carry);if(original){nextMode='edit';record=original;}}
-        if(nextMode==='new'&&!mayOperate('schedule.create')||nextMode==='revision'&&!mayOperate('schedule.revise'))return;
-        form.querySelectorAll('[data-permission-preserved]').forEach(node=>node.remove());
-        form.querySelectorAll('input,select,textarea').forEach(control=>{control.disabled=false;control.readOnly=false;});
-        form.reset();
-        clearErrors();
-        mode = nextMode; form.dataset.scheduleMode=nextMode; applyPlanChange=false;
-        if(record)activeRecord = record;
-        revisionOnly.hidden = nextMode !== 'revision';
-        sourcePreview.hidden = nextMode !== 'revision';
-        field('promotionStatus').disabled = false;
-        promotionHelp.textContent = '';
-        updateCategoryOptions();
-
-        if(record){form.dataset.collaborationResource=`schedule:${record.id}`;form.dataset.collaborationLabel=record.contentName;}else{delete form.dataset.collaborationResource;delete form.dataset.collaborationLabel;}
-        if (nextMode === 'new') {
-          title.textContent = '新做帖';
-          context.textContent = '新建内容';
-          version.textContent = 'V0';
-          submitButton.textContent = '保存新做帖';
-          field('promotionStatus').value = 'none';
-          field('isPromoted').checked = false;
-        } else if (nextMode === 'edit') {
-          title.textContent = '编辑排期';
-          context.textContent = '排期详情';
-          version.textContent = `V${record.versionNumber}`;
-          submitButton.textContent = '保存排期';
-          setRecordValues(record);
-          field('recordId').value = record.id;
-        } else {
-          title.textContent = '创建改帖';
-          context.textContent = '创建改帖';
-          version.textContent = `V${record.versionNumber} → V${record.nextVersionNumber}`;
-          submitButton.textContent = `创建 V${record.nextVersionNumber}`;
-          setRecordValues(record);
-          field('sourceScheduleId').value = record.id;
-          field('plannedPublishAt').value = '';
-          field('promotionStatus').value = 'pending';
-          field('promotionStatus').disabled = true;
-          promotionHelp.textContent = '改帖将以“待推广”开始。';
-          const closing = record.promotionStatus === 'testing' ? '测试淘汰' : record.promotionStatus === 'scaling' ? '放量淘汰' : '保持当前状态';
-          sourcePreview.replaceChildren();
-          const sourceTitle = document.createElement('strong');
-          const sourceStatus = document.createElement('span');
-          sourceTitle.textContent = `来源 V${record.versionNumber} · ${record.contentName}`;
-          sourceStatus.textContent = `保存后来源版本：${closing}`;
-          sourcePreview.append(sourceTitle, sourceStatus);
-        }
-        configureDateTime(field('plannedPublishAt'),{value:field('plannedPublishAt').value,readOnly:false});
-        if(selectedDate)configureDateTime(field('plannedPublishAt'),{value:`${selectedDate}T${field('plannedPublishAt').value.split('T')[1]||'09:00'}`});
-        field('expectedPlanRevision').value = record?.planRevision ?? '';field('expectedWriteVersion').value=record?.writeVersion??'';
-        const planReason = document.querySelector('[data-plan-change-reason]');
-        planReason.hidden = true; field('planChangeReason').required = false;
-        updatePromotionPreview();
-        if(nextMode==='edit'){
-          const overdue=!record.actualPublishAt&&Date.now()-new Date(`${record.plannedPublishAt}:00+08:00`).getTime()>=delayThresholdMs;
-          configureDateTime(field('plannedPublishAt'),{readOnly:!mayOperate(overdue?'schedule.overdueReschedule':'schedule.reschedule')});
-          if(!mayOperate('schedule.edit'))for(const name of ['contentName','subjectId','categoryId','projectDocUrl','isPromoted','syncToMoments','contentRole','operationType','reviewDueOn','reviewDay7','reviewDay15']){
-            const control=field(name);
-            if(control.tagName==='SELECT'||control.type==='checkbox'){
-              control.disabled=true;if(control.type!=='checkbox'||control.checked){const preserved=document.createElement('input');preserved.type='hidden';preserved.name=name;preserved.value=control.type==='checkbox'?'on':control.value;preserved.dataset.permissionPreserved='';form.append(preserved);}
-            }else control.readOnly=true;
-          }
-        }
-        dirty = false;
-        dialog.showModal();document.dispatchEvent(new CustomEvent('business:schedule-form-opened',{detail:{mode:nextMode,record,selectedDate}}));
-        field('contentName').focus();
-      };
-      const switchMonthlyOriginal = async event => {
-        const detail=event.detail,original=rows.find(row=>row.id===detail.scheduleId);if(!original)return;
-        const hasNewPostInput=field('contentName').value.trim()||field('contentRole').value||field('projectDocUrl').value.trim()||field('syncToMoments').checked||form.dataset.operationTouched==='true';
-        if(dirty&&hasNewPostInput&&!await window.businessConfirm('将切换到原帖改期，当前新建输入尚未保存。',{title:'使用遗留排期',confirmLabel:'切换原排期',cancelLabel:'继续新建'})){detail.cancel();return;}
-        const chosenTime=field('plannedPublishAt').value;
-        dirty=false;document.documentElement.dataset.unsaved='false';openForm('edit',original,detail.date);
-        if(chosenTime)configureDateTime(field('plannedPublishAt'),{value:chosenTime});form.dispatchEvent(new Event('input',{bubbles:true}));
-      };
-      document.addEventListener('business:monthly-schedule-switch',switchMonthlyOriginal);
-      document.addEventListener('astro:before-swap',()=>document.removeEventListener('business:monthly-schedule-switch',switchMonthlyOriginal),{once:true});
-      const closeForm = async () => {
-        if (dirty && !await window.businessConfirm('有尚未保存的修改，是否放弃？')) return;
-        dirty = false;document.documentElement.dataset.unsaved='false';
-        dialog.close();
-      };
-      document.querySelector('[data-open-new]')?.addEventListener('click', () => openForm('new'));
-      document.querySelectorAll('[data-calendar-new]').forEach(button=>button.addEventListener('click',()=>openForm('new',undefined,button.dataset.calendarNew)));
-      document.querySelectorAll('[data-calendar-day]').forEach(cell=>cell.addEventListener('click',event=>{
-        if(event.composedPath().some(node=>node instanceof Element&&node.matches('button,a,[data-inspect-id]')))return;
-        if(mayOperate('schedule.create')||document.querySelector('[data-monthly-plan-pool]')?.dataset.scheduleId)openForm('new',undefined,cell.dataset.calendarDay);
-      }));
-      document.querySelectorAll('[data-inspect-id]').forEach((node) => {
-        const inspect = () => openInspector(rows.find((row) => row.id === node.dataset.inspectId));
-        node.addEventListener('click', event => { event.stopPropagation(); inspect(); });
-        node.addEventListener('keydown', (event) => {
-          if (event.target !== node) return;
-          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); inspect(); }
-        });
-      });
-      inspectorDelete?.addEventListener('click', async () => {
-        const record = activeRecord;
-        const error = inspectorDeleteError;
-        const reason=document.querySelector('[data-inspector-cancel-reason]').value.trim();
-        if(!reason){error.textContent='请填写取消排期的原因。';return;}
-        if (!record || inspectorDelete.disabled || !await window.businessConfirm(`确定取消“${record.contentName}”的排期吗？帖子内容和历史会保留。`,{title:'取消排期',confirmLabel:'确认取消',cancelLabel:'继续查看'})) return;
-        if(activeRecord?.id!==record.id)return;
-        inspectorDelete.disabled=true;
-        if (error) error.textContent = '';
-        try {
-          const response = await fetch(`/api/operations-content/${record.id}`, {
-            method: 'DELETE',
-            headers: { Accept: 'application/json','Content-Type':'application/json' },body:JSON.stringify({reason}),
-          });
-          const result = await response.json();
-          if (response.ok) {document.documentElement.dataset.unsaved='false'; window.location.reload(); return; }
-          if (error) error.textContent = result.message ?? '删除失败，请重试。';
-        } catch {
-          if (error) error.textContent = '无法连接服务，请稍后重试。';
-        } finally {
-          inspectorDelete.disabled=false;
-        }
-      });
-      const publicationControl = (name) => publicationForm.elements.namedItem(name);
-      const publicationStatus = document.querySelector('[data-publication-status]');
-      const publicationMessage = document.querySelector('[data-publication-message]');
-      let publicationDirty=false;
-      const updatePublicationStatus = () => {
-        const planned = publicationControl('plannedPublishAt').value;
-        const actual = publicationControl('actualPublishAt').value;
-        const delayed = Boolean(planned && actual) && new Date(`${actual}:00+08:00`).getTime() - new Date(`${planned}:00+08:00`).getTime() >= delayThresholdMs;
-        publicationStatus.value = actual ? delayed ? '延期发布' : '按时发布' : '待登记';
-        publicationStatus.className = `status-preview ${delayed ? 'completion-delayed' : ''}`;
-      };
-      const updatePublicationFields = () => {
-        const requiresMomentsConfirmation=Boolean(activeRecord?.syncToMoments&&!activeRecord?.actualPublishAt);
-        const moments=publicationForm.querySelector('[data-publication-moments]');moments.hidden=!requiresMomentsConfirmation;
-        for(const name of ['momentsSentConfirmed','momentsRequestSentConfirmed']){const control=publicationControl(name);control.disabled=!requiresMomentsConfirmation;control.required=requiresMomentsConfirmation;}
-        if(!requiresMomentsConfirmation||publicationControl('momentsSentConfirmed').checked&&publicationControl('momentsRequestSentConfirmed').checked)publicationForm.querySelector('[data-publication-moments-error]').textContent='';
-        const correcting=Boolean(activeRecord?.actualPublishAt)&&mayOperate('schedule.correctPublication')&&publicationControl('correctTime').checked;
-        const actual=publicationControl('actualPublishAt');configureDateTime(actual,{disabled:Boolean(activeRecord?.actualPublishAt)&&!correcting,required:!activeRecord?.actualPublishAt||correcting});
-        const keepEmpty=Boolean(activeRecord?.allowEmptyPublicationLink)&&actual.value<'2026-10-17T00:00';
-        publicationControl('publicationUrl').required=!keepEmpty;
-        document.querySelector('[data-publication-link-required]').hidden=keepEmpty;
-        publicationControl('projectDocUrl').required=!activeRecord?.actualPublishAt;
-        document.querySelector('[data-publication-doc-required]').hidden=Boolean(activeRecord?.actualPublishAt);
-        document.querySelector('[data-time-correction]').hidden=!correcting;
-        publicationControl('correctionReason').disabled=!correcting;publicationControl('correctionReason').required=correcting;
-        document.querySelector('[data-correction-toggle]').hidden=!activeRecord?.actualPublishAt||!mayOperate('schedule.correctPublication');
-        updatePublicationStatus();
-      };
-      const openPublication = (record) => {
-        if (!record) return;
-        activeRecord=record;publicationForm.dataset.collaborationResource=`schedule:${record.id}`;publicationForm.dataset.collaborationLabel=record.contentName;publicationForm.reset();publicationDirty=false;publicationForm.querySelector('[data-publication-moments-error]').textContent='';
-        publicationControl('publicationUrl').setCustomValidity('');
-        document.querySelector('[data-publication-link-preview]').textContent='';
-        publicationMessage.textContent='';document.querySelectorAll('[data-publication-error]').forEach(node=>node.textContent='');
-        document.querySelector('#publication-title').textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';
-        document.querySelector('[data-publication-name]').textContent=record.contentName;
-        document.querySelector('[data-publication-planned]').textContent=`应发 ${record.plannedDisplay}`;
-        publicationControl('plannedPublishAt').value=record.plannedPublishAt;
-        configureDateTime(publicationControl('actualPublishAt'),{value:record.actualPublishAt||''});
-        publicationControl('projectDocUrl').value=record.projectDocUrl||'';publicationControl('publicationUrl').value=record.publicationUrl||'';
-        publicationControl('expectedWriteVersion').value=record.writeVersion;publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;
-        updatePublicationFields();publicationDialog.showModal();
-        publicationControl(record.actualPublishAt?'publicationUrl':'actualPublishDate').focus();
-        document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));
-      };
-      const refreshReclaimed=event=>event.detail.waitUntil((async()=>{
-        if(event.target!==form&&event.target!==publicationForm)return;
-        const response=await fetch(location.href,{cache:'no-store',headers:{Accept:'text/html'}});if(!response.ok)throw new Error('读取最新排期失败，请重试。');
-        const fresh=new DOMParser().parseFromString(await response.text(),'text/html');const record=JSON.parse(fresh.querySelector('[data-schedule-records]').textContent).find(row=>row.id===activeRecord?.id);if(!record)throw new Error('记录已变化，请重新打开。');
-        if((dirty||publicationDirty)&&(record.planRevision!==activeRecord.planRevision||record.publicationRevision!==activeRecord.publicationRevision))throw new Error('排期已有新的保存内容，当前输入已保留。请核对后重新打开该记录。');
-        Object.assign(activeRecord,record);if(event.target===form&&!dirty)setRecordValues(activeRecord);
-        if(event.target===publicationForm&&!publicationDirty){publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;publicationControl('publicationUrl').value=record.publicationUrl||'';configureDateTime(publicationControl('actualPublishAt'),{value:record.actualPublishAt||''});publicationControl('projectDocUrl').value=record.projectDocUrl||'';updatePublicationFields();}
-      })());
-      form.addEventListener('business:edit-reclaimed',refreshReclaimed);publicationForm.addEventListener('business:edit-reclaimed',refreshReclaimed);
-      const closePublication=async()=>{if(publicationDirty&&!await window.businessConfirm('有尚未保存的发布登记，是否放弃？'))return;publicationDirty=false;document.documentElement.dataset.unsaved='false';publicationDialog.close();};
-      inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
-      document.querySelectorAll('[data-close-publication]').forEach((button) => button.addEventListener('click', closePublication));
-      publicationDialog.addEventListener('cancel', (event) => { event.preventDefault(); closePublication(); });
-      publicationForm.addEventListener('input',()=>{publicationDirty=true;document.documentElement.dataset.unsaved='true';updatePublicationFields();});
-      publicationControl('correctTime').addEventListener('change',updatePublicationFields);
-      publicationForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        publicationMessage.textContent='正在保存发布登记…';
-        const submit = publicationForm.querySelector('button[type="submit"]');
-        submit.disabled = true;
-        const body = new FormData(publicationForm);
-        try {
-          let response = await fetch(`/api/operations-content/${activeRecord.id}/publication`, { method: 'PATCH', body, headers: { Accept: 'application/json' } });
-          let result = await response.json();
-          if (response.status === 409 && result.resetRequired) {
-            const impact = result.impact ?? {};
-            if (await window.businessConfirm(`更正实发时间会重置 ${impact.startPlans ?? 0} 个首次待定安排、${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度指标。原记录归档保留，相关日期将重新开放补录。`,{title:'确认历史影响',confirmLabel:'确认更正'})) {
-              body.set('confirmPromotionReset', '1');
-              response = await fetch(`/api/operations-content/${activeRecord.id}/publication`, { method: 'PATCH', body, headers: { Accept: 'application/json' } });
-              result = await response.json();
-            }
-          }
-          if (response.ok) { publicationDirty=false;document.documentElement.dataset.unsaved='false';window.location.reload(); return; }
-          publicationMessage.textContent = result.message ?? '保存失败，请重试。';
-          for (const [name, errors] of Object.entries(result.fields ?? {})) {
-            const error = publicationForm.querySelector(`[data-publication-error="${name}"]`);
-            if (error) error.textContent = errors[0] ?? '';
-          }
-        } catch { publicationMessage.textContent = '无法连接服务，请稍后重试。'; }
-        finally { submit.disabled = false; }
-      });
-      inspectorEdit?.addEventListener('click', () => openForm('edit', activeRecord));
-      inspectorRevise?.addEventListener('click', () => openForm('revision', activeRecord));
-      document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', closeForm));
-      dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeForm(); });
-      form.addEventListener('input', () => {
-        dirty = true; document.documentElement.dataset.unsaved = 'true'; updatePromotionPreview();
-        const changed = mode === 'edit' && field('plannedPublishAt').value !== activeRecord?.plannedPublishAt;
-        document.querySelector('[data-plan-change-reason]').hidden = !changed; field('planChangeReason').required = changed;
-      });
-      field('subjectId').addEventListener('change', () => updateCategoryOptions());
-      let applyPlanChange = false;
-      const formSubmitLabel=()=>mode==='new'?'保存新做帖':mode==='revision'?`创建 V${activeRecord?.nextVersionNumber}`:'保存排期';
-      form.addEventListener('input',()=>{applyPlanChange=false;submitButton.textContent=formSubmitLabel();});
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        clearErrors();
-
-        if(!form.reportValidity())return;
-        submitButton.disabled = true;
-        submitButton.textContent = '正在保存…';
-        if (mode === 'revision') field('promotionStatus').disabled = false;
-        const body = new FormData(form);
-        if (mode === 'revision') field('promotionStatus').disabled = true;
-        const applicationSubmission = mode === 'edit' && actorRole === 'employee' && applyPlanChange;
-        if(applicationSubmission){body.set('reason',field('planChangeReason').value);}
-        const endpoint = applicationSubmission ? `/api/operations-content/${activeRecord.id}/change-requests` : mode === 'edit'
-          ? `/api/operations-content/${activeRecord.id}`
-          : mode === 'revision'
-            ? `/api/operations-content/versions/${activeRecord.versionId}/revisions`
-            : '/api/operations-content';
-        try {
-          let response = await fetch(endpoint, {
-            method: applicationSubmission ? 'POST' : mode === 'edit' ? 'PATCH' : 'POST',
-            body,
-            headers: { Accept: 'application/json' },
-          });
-          let result = await response.json();
-          if (response.status === 409 && result.resetRequired) {
-            const impact = result.impact ?? {};
-            const confirmed = await window.businessConfirm(
-              result.preserveHistory
-                ? `改为非推广会结束仍开放的推广阶段。${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据都会保留，转为持续复盘，按需添加截止日期，已有非推广结果保留。确定继续吗？`
-                : `修改实发日期会归档 ${impact.campaigns ?? 0} 个推广活动和 ${impact.dailyMetrics ?? 0} 条日度数据，并重置 ${impact.startPlans ?? 0} 个首次待定安排。确定继续吗？`,
-              {title:'确认历史影响',confirmLabel:'确认更正'},
-            );
-            if (confirmed) {
-              body.set('confirmPromotionReset', '1');
-              response = await fetch(endpoint, {
-                method: 'PATCH',
-                body,
-                headers: { Accept: 'application/json' },
-              });
-              result = await response.json();
-            }
-          }
-          if(response.status===202){dirty=false;document.documentElement.dataset.unsaved='false';window.location.reload();return;}
-          if (result.approvalRequired) { applyPlanChange=true;message.textContent=result.message;return; }
-          if (response.ok && applicationSubmission) {
-            applyPlanChange=false;
-            configureDateTime(field('plannedPublishAt'),{value:activeRecord.plannedPublishAt});
-            body.set('plannedPublishAt',activeRecord.plannedPublishAt);body.delete('reason');body.delete('planChangeReason');
-            response=await fetch(`/api/operations-content/${activeRecord.id}`,{method:'PATCH',body,headers:{Accept:'application/json'}});
-            result=await response.json();
-            if(!response.ok){message.textContent='改期申请已提交，其他修改尚未保存：'+(result.message??'请重试。');return;}
-          }
-          if (response.ok) { dirty = false; document.documentElement.dataset.unsaved = 'false'; window.location.reload(); return; }
-          if(result.code==='MONTHLY_PLAN_SOURCE_REQUIRED')form.dispatchEvent(new Event('business:monthly-source-required'));
-          message.textContent = result.message ?? '保存失败，请重试。';
-          for (const [name, errors] of Object.entries(result.fields ?? {})) {
-            const error = form.querySelector(`[data-error="${name}"]`);
-            const control = form.elements.namedItem(name);
-            if (error) error.textContent = errors[0] ?? '';
-            if (control instanceof HTMLElement) control.setAttribute('aria-invalid', 'true');
-          }
-          form.querySelector('[aria-invalid="true"]')?.focus();
-        } catch {
-          message.textContent = '无法连接服务，请稍后重试。';
-        } finally {
-          submitButton.disabled = false;
-          submitButton.textContent = applyPlanChange ? '提交改期申请' : formSubmitLabel();
-        }
-      });
-      document.addEventListener('business:publication-context',event=>{
-        const data=event.detail,record=rows.find(row=>row.id===data.schedule.id);if(!record||publicationDialog.open)return;
-        const asInput=value=>value?new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value)).replace(' ','T'):'';
-        record.publicationRevision=data.schedule.publicationRevision;record.publicationUrl=data.schedule.publicationUrl;
-        record.planRevision=data.schedule.planRevision;record.plannedPublishAt=asInput(data.schedule.plannedPublishAt);record.plannedDisplay=window.businessDateTime(data.schedule.plannedPublishAt);
-        record.publicationState=data.publicationState;record.publicationLabel=data.publicationLabel;
-        record.requiresPlanApproval=data.requiresPlanApproval;record.delayThresholdHours=data.schedule.delayThresholdHours;record.completionLabel=data.completionLabel;record.delayLabel=data.delayLabel;
-        record.actualPublishAt=asInput(data.schedule.actualPublishAt);record.allowEmptyPublicationLink=data.allowEmptyPublicationLink;
-        record.actualDisplay=data.schedule.actualPublishAt?window.businessDateTime(data.schedule.actualPublishAt):'—';
-        if(activeRecord?.id===record.id){setInspectorText('[data-inspector-planned]',record.plannedDisplay);setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';}
-      });
-      const initialRecord = rows.find(row => row.id === (requestedRow || location.hash.slice(1)));
-      if (initialRecord) openInspector(initialRecord);
-    }
-    </script>
     <script>import '../../scripts/operations-workflow';</script>
 <script>import '../../scripts/non-promotion-plan';
 import '../../scripts/operation-setup';</script>

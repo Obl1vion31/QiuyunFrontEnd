@@ -18,6 +18,9 @@ function organizeInspector(element: HTMLElement) {
 /** 公共详情交互；业务适配器只负责填充内容与保存。示例见 docs/code-study.md。 */
 export interface InspectorOptions {
   parameter?: string;
+  surface?: {open: () => void; close: () => Promise<void>};
+  isDirty?: () => boolean;
+  canLeave?: () => Promise<boolean>;
   render?: (id: string) => void;
   select?: (id: string | null) => void;
   localParameters?: string[];
@@ -47,12 +50,13 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   let currentUrl = new URL(location.href);
   let viewportFrame = 0;
   const fitViewport = () => {
-    if (element.hidden || !selected) return;
+    if (options.surface || element.hidden || !selected) return;
     setBusinessScrollLock(element,matchMedia('(max-width:900px)').matches);
     const top = element.getBoundingClientRect().top;
     element.style.setProperty('--inspector-height', `${Math.max(120, window.innerHeight - top - 20)}px`);
   };
   const queueViewport = () => {
+    if(options.surface)return;
     cancelAnimationFrame(viewportFrame);
     viewportFrame = requestAnimationFrame(fitViewport);
   };
@@ -64,9 +68,10 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   const baseUrl = (url:URL) => { const base = new URL(url); if(parameter)base.searchParams.delete(parameter); for(const name of options.localParameters??[])base.searchParams.delete(name); base.hash=''; return base.href; };
   const syncContext = () => { element.dataset.inspectorHistoryBase = baseUrl(currentUrl); element.dataset.inspectorLocalParameters = (options.localParameters??[]).join(','); };
   syncContext();
-  const dirty = () => element.dataset.dirty === 'true';
+  const dirty = () => options.isDirty?.() ?? element.dataset.dirty === 'true';
   const mayLeave = async () => {
     if (!dirty()) return true;
+    if(options.canLeave)return options.canLeave();
     if (!await businessConfirm('有尚未保存的修改，是否放弃？')) return false;
     options.discard?.();
     return true;
@@ -85,8 +90,8 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     element.dataset.selectedId = id ?? '';
     host?.classList.toggle('inspecting', !!id);
     options.select?.(id);
-    if (!options.select) document.querySelectorAll<HTMLElement>('[data-inspect-id]').forEach(row => {row.classList.toggle('selected',row.dataset.inspectId===id);row.setAttribute('aria-expanded',String(row.dataset.inspectId===id));});
-    document.querySelectorAll<HTMLElement>('[data-inspector-key]').forEach(row => {
+    if (!options.select) document.querySelectorAll<HTMLElement>('[data-inspect-id].selected,[data-inspect-id][aria-expanded=true]'+(id?', [data-inspect-id="'+CSS.escape(id)+'"]':'')).forEach(row => {row.classList.toggle('selected',row.dataset.inspectId===id);row.setAttribute('aria-expanded',String(row.dataset.inspectId===id));});
+    document.querySelectorAll<HTMLElement>('[data-inspector-key][aria-selected=true]'+(id?', [data-inspector-key="'+CSS.escape(id)+'"]':'')).forEach(row => {
       const active = row.dataset.inspectorKey === id;
       row.classList.toggle('selected', active);
       row.setAttribute('aria-selected', String(active));
@@ -99,7 +104,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
       return false;
     }
     const wasVisible=!element.hidden,wasClosing=element.dataset.closing==='true';
-    const previous=getComputedStyle(element),from={width:element.getBoundingClientRect().width,opacity:wasVisible?previous.opacity:'0',transform:wasVisible?previous.transform:'translateX(18px)'},oldGap=host?getComputedStyle(host).columnGap:'0px';
+    const previous=options.surface?null:getComputedStyle(element),from={width:options.surface?0:element.getBoundingClientRect().width,opacity:wasVisible?previous?.opacity??'1':'0',transform:wasVisible?previous?.transform??'none':'translateX(18px)'},oldGap=host&&!options.surface?getComputedStyle(host).columnGap:'0px';
     stopMotion();generation++;delete element.dataset.closing;
     if (source) trigger = source;
     else if (!trigger?.isConnected) trigger = document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(id)}"],[data-inspect-id="${CSS.escape(id)}"]`);
@@ -109,11 +114,12 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if (selected !== id) body.scrollTop = 0;
     select(id);
     element.hidden = false;
-    element.setAttribute('role', matchMedia('(max-width:900px)').matches ? 'dialog' : 'complementary');
-    element.setAttribute('aria-modal', String(matchMedia('(max-width:900px)').matches));
+    element.setAttribute('role', options.surface ? 'region' : matchMedia('(max-width:900px)').matches ? 'dialog' : 'complementary');
+    if(!options.surface)element.setAttribute('aria-modal', String(matchMedia('(max-width:900px)').matches));
     const token = generation;
     element.classList.add('is-open');fitViewport();
-    if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    if(options.surface)options.surface.open();
+    else if((!wasVisible||wasClosing)&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
       const dock=!!host&&getComputedStyle(element).position!=='fixed',width=element.getBoundingClientRect().width;
       const animations=[element.animate([{opacity:from.opacity,transform:from.transform,...(dock?{width:`${wasVisible?from.width:0}px`}:{})},{opacity:1,transform:'none',...(dock?{width:`${width}px`}:{})}],motionOptions)];
       if(dock)animations.push(host!.animate([{gap:oldGap},{gap:getComputedStyle(host!).columnGap}],motionOptions));
@@ -129,11 +135,12 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
       void mayLeave().then(accepted=>{if(accepted&&token===generation&&!signal.aborted){setClean();close(writeHistory);}});
       return false;
     }
-    if(element.hidden||element.dataset.closing==='true')return true;
-    const previous=getComputedStyle(element),from={width:element.getBoundingClientRect().width,opacity:previous.opacity,transform:previous.transform},oldGap=host?getComputedStyle(host).columnGap:'0px';
+    if(element.hidden&&!options.surface||element.dataset.closing==='true')return true;
+    const previous=options.surface?null:getComputedStyle(element),from={width:options.surface?0:element.getBoundingClientRect().width,opacity:previous?.opacity??'1',transform:previous?.transform??'none'},oldGap=host&&!options.surface?getComputedStyle(host).columnGap:'0px';
     stopMotion();generation++;setClean();element.dataset.closing='true';const token=generation;
     const finish=()=>{if(token!==generation||signal.aborted)return;element.hidden=true;element.classList.remove('is-open','open');delete element.dataset.closing;select(null);setBusinessScrollLock(element,false);const focusTarget=trigger?.getClientRects().length?trigger:trigger?.closest('details:not([open])')?.querySelector<HTMLElement>(':scope>summary');focusTarget?.focus({preventScroll:true});};
-    if(matchMedia('(prefers-reduced-motion:reduce)').matches)finish();
+    if(options.surface)void options.surface.close().then(finish);
+    else if(matchMedia('(prefers-reduced-motion:reduce)').matches)finish();
     else{
       const dock=!!host&&getComputedStyle(element).position!=='fixed';
       const animations=[element.animate([{opacity:from.opacity,transform:from.transform,...(dock?{width:`${from.width}px`}:{})},{opacity:0,transform:'translateX(18px)',...(dock?{width:'0px'}:{})}],motionOptions)];
@@ -254,7 +261,7 @@ function initialize() {
     const requested = new URL(location.href).searchParams.get(parameter);
     if (requested) controller.open(requested, document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(requested)}"]`), false);
   });
-  document.querySelectorAll<HTMLElement>('[data-inspector]:not([data-inspector-templates])').forEach(element => {
+  document.querySelectorAll<HTMLElement>('[data-inspector]:not([data-inspector-templates]):not([data-inspector-contained])').forEach(element => {
     const controller = getInspector(element);
     if (element.dataset.selectedId) controller.open(element.dataset.selectedId, null, false);
   });

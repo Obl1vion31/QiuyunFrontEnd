@@ -5,12 +5,6 @@ import {readBusiness} from './business-read';
 function initialize(){
  const panel=document.querySelector<HTMLElement>('[data-arrangement-stage]');if(!panel||panel.dataset.ready)return;panel.dataset.ready='true';
  const editable=panel.dataset.arrangementStage==='editing'||panel.dataset.arrangementStage==='confirmed'||panel.dataset.arrangementStage==='review_pending'&&panel.dataset.arrangementRole==='admin';
- const pool=document.querySelector<HTMLElement>('[data-monthly-plan-pool]');
- const selectSource=(id:string)=>{if(pool){pool.dataset.selectedItem=id;delete pool.dataset.scheduleId;}document.dispatchEvent(new CustomEvent('business:monthly-link-source',{detail:{itemId:id}}));};
- for(const button of document.querySelectorAll<HTMLButtonElement>('[data-monthly-plan-source]')){
-  button.addEventListener('click',()=>{if(button.disabled)return;selectSource(button.dataset.monthlyPlanSource!);for(const chip of document.querySelectorAll('[data-monthly-plan-source]'))chip.setAttribute('aria-pressed',String(chip===button));});
-  button.addEventListener('dragstart',event=>{if(button.disabled)return;event.dataTransfer?.setData('application/x-qiuyun-plan',button.dataset.monthlyPlanSource!);});
- }
  if(!editable){
   for(const button of document.querySelectorAll<HTMLButtonElement>('[data-open-new],[data-calendar-new]')){button.disabled=true;button.title=panel.querySelector('.arrangement-heading>p')?.textContent??'';}
  }
@@ -30,7 +24,7 @@ function initialize(){
    form.dataset.fingerprint=result.fingerprint;panel.querySelector<HTMLDetailsElement>('[data-arrangement-details]')!.open=true;output.textContent='核对清单已更新，请查看后再提交。';
   }catch(error){output.textContent=(error as Error).message;output.dataset.error='true';}finally{delete form.dataset.reading;buttons.forEach(b=>b.disabled=false);}
  });
- form?.addEventListener('input',()=>{document.documentElement.dataset.unsaved='true';});
+ form?.addEventListener('input',()=>{form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';});
  form?.addEventListener('submit',async event=>{
   event.preventDefault();if(form.dataset.busy||form.dataset.reading)return;
   const action=(event.submitter as HTMLButtonElement)?.value;if(!action||action!=='draft'&&!form.reportValidity())return;
@@ -40,13 +34,28 @@ function initialize(){
   try{
    const response=await fetch('/api/monthly-plans/'+form.dataset.planId+'/arrangement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,fingerprint:form.dataset.fingerprint,requestId:crypto.randomUUID(),reason})}),result=await response.json();
    if(!response.ok)throw new Error(result.message||'保存失败，请重试。');
-   if(action==='draft'){output.textContent='草稿已保存，可以继续排期。';if((form.elements.namedItem('reason') as HTMLInputElement).value===reason)document.documentElement.dataset.unsaved='false';}else{document.documentElement.dataset.unsaved='false';location.reload();}
+   if(action==='draft'){output.textContent='草稿已保存，可以继续排期。';if((form.elements.namedItem('reason') as HTMLInputElement).value===reason){form.dataset.dirty='false';document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));}}else{document.documentElement.dataset.unsaved='false';location.reload();}
   }catch(error){output.textContent=(error as Error).message;output.dataset.error='true';}finally{delete form.dataset.busy;buttons.forEach(b=>b.disabled=false);}
  });
- if(editable)for(const card of document.querySelectorAll<HTMLElement>('.calendar-item[data-inspect-id]')){card.draggable=true;card.addEventListener('dragstart',event=>{event.dataTransfer?.setData('application/x-qiuyun-schedule',card.dataset.inspectId!);});}
+ function bindCalendar(){
+ const pool=document.querySelector<HTMLElement>('[data-monthly-plan-pool]');
+ const selectSource=(id:string)=>{if(pool){pool.dataset.selectedItem=id;delete pool.dataset.scheduleId;}document.dispatchEvent(new CustomEvent('business:monthly-link-source',{detail:{itemId:id}}));};
+ for(const button of document.querySelectorAll<HTMLButtonElement>('[data-monthly-plan-source]')){
+  if(button.dataset.arrangementBound)continue;button.dataset.arrangementBound='true';
+  button.addEventListener('click',()=>{if(button.disabled)return;selectSource(button.dataset.monthlyPlanSource!);for(const chip of document.querySelectorAll('[data-monthly-plan-source]'))chip.setAttribute('aria-pressed',String(chip===button));});
+  button.addEventListener('dragstart',event=>{if(button.disabled)return;event.dataTransfer?.setData('application/x-qiuyun-plan',button.dataset.monthlyPlanSource!);});
+ }
+ if(editable)for(const card of document.querySelectorAll<HTMLElement>('.calendar-item[data-inspect-id]')){if(card.dataset.arrangementBound)continue;card.dataset.arrangementBound='true';card.draggable=true;card.addEventListener('dragstart',event=>{event.dataTransfer?.setData('application/x-qiuyun-schedule',card.dataset.inspectId!);});}
  if(editable)for(const day of document.querySelectorAll<HTMLElement>('[data-calendar-day]')){
+  if(day.dataset.arrangementBound)continue;day.dataset.arrangementBound='true';
   day.addEventListener('dragover',event=>{if(event.dataTransfer?.types.some(type=>['application/x-qiuyun-schedule','application/x-qiuyun-plan'].includes(type)))event.preventDefault();});
   day.addEventListener('drop',event=>{const scheduleId=event.dataTransfer?.getData('application/x-qiuyun-schedule'),planItem=event.dataTransfer?.getData('application/x-qiuyun-plan');if(!scheduleId&&!planItem)return;event.preventDefault();if(planItem){selectSource(planItem);day.querySelector<HTMLButtonElement>('[data-calendar-new]')?.click();return;}document.dispatchEvent(new CustomEvent('business:monthly-schedule-switch',{detail:{scheduleId,date:day.dataset.calendarDay,cancel:()=>{}}}));});
  }
+ }
+ bindCalendar();
+ const refreshed=()=>bindCalendar();
+ document.addEventListener('business:schedule-range-updated',refreshed);
+ document.addEventListener('astro:before-swap',()=>document.removeEventListener('business:schedule-range-updated',refreshed),{once:true});
+
 }
 initialize();document.addEventListener('astro:page-load',initialize);

@@ -1,0 +1,36 @@
+/* One modal surface; the calendar never participates in the panel animation. */
+#schedule-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:linear-gradient(145deg,#fcfefe,#edf5f9);border:1px solid #fff;isolation:isolate}
+#schedule-panel::backdrop{background:#173c532c;backdrop-filter:blur(3px)}
+#schedule-panel :is(.business-inspector,header,footer,.business-form-sheet,.surface-resource){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#schedule-panel>[data-panel-view]{flex:1;min-height:0;height:100%;width:100%;margin:0}
+#schedule-panel>[hidden]{display:none!important}
+#schedule-panel .business-inspector[data-inspector]{position:relative;inset:auto;align-self:auto;width:100%;min-width:0;height:100%;max-height:none;transform:none;opacity:1;border:0;border-radius:0;box-shadow:none;background:transparent}
+#schedule-panel .business-inspector>header,#schedule-panel .business-inspector>footer{width:100%;min-width:0;background:#f6fafce8}
+#schedule-panel .business-inspector>header{padding:20px 24px;min-height:86px}
+#schedule-panel .business-inspector>[data-inspector-body]{padding:22px 24px;scrollbar-gutter:stable}
+#schedule-panel .business-inspector>footer{padding:16px 24px}
+#schedule-panel .detail-list{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin:0 0 18px}
+#schedule-panel .detail-list>div{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:12px}
+#schedule-panel .surface-resources{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#schedule-panel .business-inspector .inspector-section{padding-block:0}
+#schedule-panel .business-inspector .schedule-detail-section{display:grid;gap:10px;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--console-line);background:transparent}
+#schedule-panel .schedule-detail-section>h3{margin:0;color:var(--console-ink);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
+#schedule-panel .schedule-detail-section>p,#schedule-panel .inspector-revision p{margin:0;color:var(--console-ink);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
+#schedule-panel .inspector-version{grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:14px}
+#schedule-panel .inspector-version .version-path{margin:0;min-height:0;align-items:center}
+#schedule-panel .inspector-revision{grid-column:1/-1;display:grid;gap:6px}
+#schedule-panel .inspector-revision h4{margin:0;color:var(--console-muted);font:500 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
+#schedule-panel [data-review-node-list]:empty{display:none}
+#schedule-panel .schedule-detail-section>details>summary{color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
+
+#schedule-panel .business-form-sheet{display:flex;flex-direction:column}
+#schedule-panel .business-form-sheet>form{width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+#schedule-panel .schedule-save-result{flex:0 0 100%;grid-column:1/-1;min-width:0;display:flex;justify-content:space-between;gap:12px;align-items:center;padding:0;color:#294b64;font:500 14px/22px var(--console-font)}
+#schedule-panel .dialog-actions:has(>.schedule-save-result:not([hidden])){flex-wrap:wrap}
+#schedule-panel .business-inspector-actions>.schedule-save-result{display:flex;grid-template-columns:none}
+#schedule-panel .schedule-save-result span{min-width:0}
+#schedule-panel .schedule-save-result button{flex:none}
+#schedule-panel .schedule-save-result[hidden]{display:none}
+html[data-schedule-panel-open] [data-glass-surface="schedule"] :is(.business-toolbar,.business-sidebar,.arrangement-panel,.status-strip){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@media(max-width:680px){#schedule-panel .detail-list,#schedule-panel .surface-resources{grid-template-columns:1fr}#schedule-panel .business-inspector>[data-inspector-body]{padding:18px}}
+@media(prefers-reduced-transparency:reduce){#schedule-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#f8fbfc}#schedule-panel::backdrop{backdrop-filter:none}}

@@ -56,6 +56,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
 
       const [sourceSchedule] = await transaction.select({
         id: operationsContentSchedule.id,
+        actualPublishAt: operationsContentSchedule.actualPublishAt,
         finalReviewOn: operationsContentSchedule.finalReviewOn,
         promotionStatus: operationsContentSchedule.promotionStatus,
       }).from(operationsContentSchedule).where(and(
@@ -63,6 +64,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         eq(operationsContentSchedule.contentVersionId, source.id),
       )).limit(1);
       if (!sourceSchedule) return { kind: 'missing-schedule' as const };
+      if (!sourceSchedule.actualPublishAt) return { kind: 'unpublished-source' as const };
 
       const [latest] = await transaction.select({ versionNumber: operationsContentVersion.versionNumber })
         .from(operationsContentVersion)
@@ -157,6 +159,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
 
     if (created.kind === 'waiting-plan') return Response.json({ message: '该版本仍有待定安排，请先在历史总览明确结束或淘汰原版本，再创建改帖。' }, { status: 409 });
     if (created.kind === 'missing') return Response.json({ message: '没有找到来源版本。' }, { status: 404 });
+    if (created.kind === 'unpublished-source') return Response.json({ code:'SOURCE_NOT_PUBLISHED', message:'请先完成原帖发布登记，再创建改帖。' }, { status:422 });
     if (created.kind === 'missing-schedule') return Response.json({ message: '来源排期与版本不匹配。' }, { status: 409 });
     if (created.kind === 'outdated-source') {
       return Response.json({ message: `该帖子已有 V${created.latestVersionNumber}，请从最新版本发起改帖。` }, { status: 409 });

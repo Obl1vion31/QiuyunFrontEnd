@@ -44,3 +44,5 @@ monthly-arrangement.ts 在原月历处理拖动及整月提交／核对／退回
 `workspace-glass.ts` 是共享反馈控制器，只处理显式data-surface-press入口及只读展开区域。少量资料、历史、明细和助手入口使用指针位置触压：90ms按下，最大约1.2°，380ms阻尼回正；只读来源及资料元信息使用可反向的220ms展开。原点击、键盘、业务保存、Inspector和Sheet控制器继续执行；不发请求、不新增轮询或业务状态。导航前取消监听与动画，减少动态效果保留颜色反馈。
 
 `business-resource-links.ts` 以同一只读渲染器适配排期资料；消费原business:schedule-selected摘要并在直接进入时读取已有SSR记录，不发请求、不接管Inspector选择或保存。导航清理监听，缺失入口移除href与键盘聚焦。
+
+- `schedule-page.js`：排期单层面板的页面适配、原表单与现有月份SSR局部同步；Inspector选择、滚动锁、焦点与未保存确认仍复用公共控制器。
