@@ -23,7 +23,7 @@ import BusinessConsoleToolbar from '../../components/BusinessConsoleToolbar.astr
 import BusinessToolbarActions from '../../components/BusinessToolbarActions.astro';
 import BusinessToolbarPeriodNav from '../../components/BusinessToolbarPeriodNav.astro';
 import BusinessToolbarSegmented from '../../components/BusinessToolbarSegmented.astro';
-import { asc, desc, eq,isNull,isNotNull } from 'drizzle-orm';
+import { asc, desc, eq,isNull } from 'drizzle-orm';
 import { getDb } from '../../db/client';
 import {
   operationsCategory,
@@ -46,13 +46,13 @@ const permissions=Astro.locals.businessPermissions=await effectiveBusinessPermis
 
 const completionLabels = { pending: '待发布', on_time: '按时发布', delayed: '延期发布' };
 const selectedView = Astro.url.searchParams.get('view') === 'promotion' ? 'promotion' : 'schedule';
-const selectedDisplay = Astro.url.searchParams.get('display') === 'ledger' || selectedView === 'promotion' || ['overdue','approvals','reasons','cancelled'].includes(Astro.url.searchParams.get('status') ?? '') ? 'ledger' : 'calendar';
-if (['reservation_approvals','publication_due'].includes(Astro.url.searchParams.get('status') ?? '')) {
-  const target = new URL(Astro.url); target.searchParams.delete('status'); target.searchParams.delete('display');
+const selectedDisplay = Astro.url.searchParams.get('display') === 'ledger' || selectedView === 'promotion' || ['overdue','approvals','reasons'].includes(Astro.url.searchParams.get('status') ?? '') ? 'ledger' : 'calendar';
+if (['reservation_approvals','publication_due','cancelled'].includes(Astro.url.searchParams.get('status') ?? '')) {
+  const target = new URL(Astro.url); target.searchParams.delete('status'); target.searchParams.delete('display');if(Astro.url.searchParams.get('status')==='cancelled')target.searchParams.delete('row');
   return Astro.redirect(target.pathname + target.search, 302);
 }
 const requestedStatus = Astro.url.searchParams.get('status');
-const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons', 'cancelled'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
+const selectedStatus = ['pending', 'overdue', 'published', 'approvals', 'reasons'].includes(requestedStatus ?? '') ? requestedStatus : 'all';
 const requestedPromotion = Astro.url.searchParams.get('promotion');
 const selectedPromotion = ['testing', 'test_paused', 'scaling', 'scaling_paused', 'test_pending', 'promotion_paused', 'awaiting_promotion', 'ended', 'test_discarded', 'formal_discarded'].includes(requestedPromotion ?? '') ? requestedPromotion : 'all';
 const now = new Date();
@@ -150,7 +150,7 @@ try {
     .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
     .innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).innerJoin(operationsSubject, eq(operationsContentVersion.subjectId, operationsSubject.id))
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
-    .where(selectedStatus==='cancelled'?isNotNull(operationsContentSchedule.cancelledAt):isNull(operationsContentSchedule.cancelledAt))
+    .where(isNull(operationsContentSchedule.cancelledAt))
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt)),
   teamScheduleNotifications(database),
   database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),

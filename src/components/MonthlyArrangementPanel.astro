@@ -24,6 +24,5 @@ const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pe
  </form>}
  {state.history.length>0&&<details class="arrangement-history"><summary>提交与核对记录 ({state.history.length})</summary><ul>{state.history.map(h=><li>{businessDateTime(h.at)} · {h.action==='submit'?'提交核对':h.action==='return'?'退回修改':'核对通过并封存'} · {h.reason}</li>)}</ul></details>}
  </section>}
- <footer class="arrangement-footer"><a href={'/business/operations-schedule?month='+month+'&status=cancelled&display=ledger'}>查看已撤下的安排</a></footer>
 </section>:<slot/>}
 <script>import '../scripts/monthly-arrangement';</script>
