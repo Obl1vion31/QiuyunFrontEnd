@@ -39,7 +39,7 @@ export async function readArrangement(db:Database,month:string){
  const rows=await arrangementRows(db,month);
  return {month,planId:plan.id,stage:!plan.firstFinalizedAt?'closed' as const:plan.arrangementStatus,
   rows,fingerprint:arrangementFingerprint(plan,rows),preplanned:plan.content.items.length+plan.additions.reduce((n,b)=>n+b.content.items.length,0),
-  comparison:plan.arrangementStatus==='confirmed'?await readScheduleComparison(db,month+'-01',new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10)):undefined,
+  comparison:plan.arrangementStatus==='confirmed'?await readScheduleComparison(db,month+'-01',new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10),new Date(),'current'):undefined,
   history:plan.arrangementHistory.filter(h=>h.action!=='draft'),draftReason:[...plan.arrangementHistory].reverse().find(h=>h.action==='draft'||h.action==='submit')?.reason??''};
 }
 export async function assertMeetingMutable(db:Database,meetingId:string){

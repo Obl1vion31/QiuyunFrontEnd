@@ -1,4 +1,4 @@
-.plan-comparison.monthly-section,.plan-comparison.weekly-paper{padding:16px 20px}
+.plan-comparison.monthly-section,.plan-comparison.weekly-paper{padding-block:16px}
 .plan-comparison{min-width:0;font:400 14px/22px var(--console-font)}
 .plan-comparison-overview{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 24px;min-width:0}
 .plan-comparison-overview h2{margin:0;font:600 18px/26px var(--console-font)}

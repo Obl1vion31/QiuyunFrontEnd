@@ -28,8 +28,8 @@ export function monthsInRange(from:string,through:string){
  const months:string[]=[];for(let month=from.slice(0,7);month<=through.slice(0,7);month=adjacentMonth(month,1))months.push(month);return months;
 }
 /** 回放截止后的结构变化；实发补登记仍按真实发生时间归属。 */
-export function buildScheduleComparison(baselines:ScheduleBaseline[],records:ExecutionRecord[],from:string,through:string,now=new Date()):ScheduleComparison {
- const asOf=new Date(Math.min(now.getTime(),new Date(through+'T23:59:59.999+08:00').getTime())).toISOString();
+export function buildScheduleComparison(baselines:ScheduleBaseline[],records:ExecutionRecord[],from:string,through:string,now=new Date(),scope:'period'|'current'='period'):ScheduleComparison {
+ const asOf=new Date(scope==='current'?now.getTime():Math.min(now.getTime(),new Date(through+'T23:59:59.999+08:00').getTime())).toISOString();
  const months=monthsInRange(from,through),baselineMonths=baselines.map(b=>b.month),complete=months.every(m=>baselineMonths.includes(m));
  const original=new Map<string,{item:BaselineItem;sealedAt:string}>();
  for(const baseline of baselines)for(const item of baseline.items){
@@ -95,7 +95,7 @@ export async function readScheduleBaselines(db:Database,months:string[]){
  }).from(s.operationsMonthlyPlan).leftJoin(s.operationsReviewMeetingVersion,eq(s.operationsReviewMeetingVersion.id,s.operationsMonthlyPlan.sealedVersionId)).where(inArray(s.operationsMonthlyPlan.month,months));
  return plans.flatMap(p=>{const b=p.baseline??(p.sealedAt?legacyScheduleBaseline(p.month,p.sealedAt.toISOString(),p.legacy):null);return b?[b]:[];});
 }
-export async function readScheduleComparison(db:Database,from:string,through:string,now=new Date()){
+export async function readScheduleComparison(db:Database,from:string,through:string,now=new Date(),scope:'period'|'current'='period'){
  const baselines=await readScheduleBaselines(db,monthsInRange(from,through));
  const start=new Date(from+'T00:00:00+08:00'),end=new Date(through+'T23:59:59.999+08:00'),ids=baselines.flatMap(b=>b.items.map(i=>i.id));
  const rows=await db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,versionId:s.operationsContentVersion.id,versionNumber:s.operationsContentVersion.versionNumber,
@@ -114,5 +114,5 @@ export async function readScheduleComparison(db:Database,from:string,through:str
    or (h->'before'->>'plannedAt')::timestamptz between ${start.toISOString()} and ${end.toISOString()}
    or (h->'after'->>'plannedAt')::timestamptz between ${start.toISOString()} and ${end.toISOString()})`,
  ));
- return buildScheduleComparison(baselines,rows.map(r=>({...r,plannedAt:r.plannedAt.toISOString(),actualAt:stamp(r.actualAt),cancelledAt:stamp(r.cancelledAt),createdAt:r.createdAt.toISOString()})),from,through,now);
+ return buildScheduleComparison(baselines,rows.map(r=>({...r,plannedAt:r.plannedAt.toISOString(),actualAt:stamp(r.actualAt),cancelledAt:stamp(r.cancelledAt),createdAt:r.createdAt.toISOString()})),from,through,now,scope);
 }
