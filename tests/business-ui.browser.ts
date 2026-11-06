@@ -9,7 +9,7 @@ import { mkdir,writeFile } from 'node:fs/promises';
 import { startFixture, admin } from './auth.fixture';
 import * as schema from '../src/db/schema';
 import { previousDateKey, shanghaiDateKey } from '../src/db/promotion-rules.mjs';
-const fixture = await startFixture(); const {db,baseURL}=fixture;
+const fixture = await startFixture({entry:process.env.BUSINESS_UI_ENTRY}); const {db,baseURL}=fixture;
 let browser:any;
 try {
   const today=shanghaiDateKey(new Date()), old=new Date(Date.now()-24*86400000), published=shanghaiDateKey(old);

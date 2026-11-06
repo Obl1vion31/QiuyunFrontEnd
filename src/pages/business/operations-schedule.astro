@@ -219,7 +219,7 @@ const actorRole = Astro.locals.user?.role;
 const requestedRow = Astro.url.searchParams.get('row') || Astro.url.hash.slice(1);
 const queueView = ['overdue','approvals','reasons'].includes(selectedStatus ?? '');
 const queueLabel = selectedStatus === 'overdue' ? '尚未登记' : selectedStatus === 'approvals' ? '待审批排期' : '待补延期理由';
-const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.subjectId,id:mapping.categoryId,name:postCategories.find(c=>c.id===mapping.categoryId)!.name,defaultIsPromoted:false}));
+const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.subjectId,id:mapping.categoryId,name:postCategories.find(c=>c.id===mapping.categoryId)!.name}));
 ---
 
 <!doctype html>
@@ -600,13 +600,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         categoryHelp.textContent = '';
         categorySelect.value = matching.some((category) => category.id === selectedValue) ? selectedValue : '';
       };
-      const applyCategoryPromotionDefault = () => {
-        if (mode !== 'new'||form.dataset.operationTouched==='true') return;
-        const category = categories.find((candidate) => candidate.subjectId === field('subjectId').value && candidate.id === field('categoryId').value);
-        if (!category) return;
-        field('isPromoted').checked = Boolean(category.defaultIsPromoted);field('operationType').value=category.defaultIsPromoted?'promotion_only':'non_promotion_standard';form.dataset.operationAuto='true';field('operationType').dispatchEvent(new Event('change'));form.dataset.operationAuto='false';
-        updatePromotionPreview();
-      };
       const setRecordValues = (record) => {
         field('subjectId').value = record.subjectId ?? '';
         updateCategoryOptions(record.categoryId ?? '');
@@ -624,7 +617,7 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         form.querySelectorAll('input,select,textarea').forEach(control=>{control.disabled=false;control.readOnly=false;});
         form.reset();
         clearErrors();
-        mode = nextMode; applyPlanChange=false;
+        mode = nextMode; form.dataset.scheduleMode=nextMode; applyPlanChange=false;
         if(record)activeRecord = record;
         revisionOnly.hidden = nextMode !== 'revision';
         sourcePreview.hidden = nextMode !== 'revision';
@@ -834,7 +827,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
         document.querySelector('[data-plan-change-reason]').hidden = !changed; field('planChangeReason').required = changed;
       });
       field('subjectId').addEventListener('change', () => updateCategoryOptions());
-      field('categoryId').addEventListener('change', applyCategoryPromotionDefault);
       let applyPlanChange = false;
       const formSubmitLabel=()=>mode==='new'?'保存新做帖':mode==='revision'?`创建 V${activeRecord?.nextVersionNumber}`:'保存排期';
       form.addEventListener('input',()=>{applyPlanChange=false;submitButton.textContent=formSubmitLabel();});

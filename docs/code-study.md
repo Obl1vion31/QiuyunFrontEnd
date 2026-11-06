@@ -289,3 +289,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 月度运营使用 `PrivateSourceEditor`，复用页面已有 `BusinessFormSheet` 容器、`business-dialog` 退出和公共未保存确认；固定头尾、正文单层滚动。保存后原位刷新结果，`onSaved`返回真实刷新成功与否；写入成功而读取失败时明确“已保存、结果未更新”，只重读重试，不再次PATCH。保存中继续输入使用草稿代次保留。推广来源只录明细，非推广可添加／更正／移除来源。管理员费用归属沿用原接口。
 
 月会 `MonthlyCoreResults` 使用 `PromotionPrivateTotals`，来源区及月度运营使用 `PrivateSourceResults`，HTML与PDF共用。只对存在 `sourceData` 的材料启用新表格；不根据当前数据库给旧冻结快照补来源。`/api/monthly-private-data` 要求 `data.schemaVersion: 2`，旧标签页得到明确刷新反馈；普通更正仍允许旧revision，不能重新引入CAS冲突。详细口径见 DECISIONS；本地复验入口为 `pnpm test:private-sources`。
+
+首轮排期共用arrangement接口的draft动作保存工作说明，复用现有JSON记录而不增加表列；读取只将真实提交／退回／封存交给核对历史，草稿说明单独回填。新建运营类型默认值集中于operation-types.defaultOperationType，operation-setup在来源分类变化及打开新建时应用；排期页面不再提供第二套一律非推广的默认逻辑，既有配置与人工选择优先。

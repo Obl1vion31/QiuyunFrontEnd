@@ -33,11 +33,11 @@ export const arrangementFingerprint=(plan:Plan,rows:Awaited<ReturnType<typeof ar
 })).digest('hex');
 export async function readArrangement(db:Database,month:string){
  const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.month,month));
- if(!plan)return {month,stage:'closed' as const,planId:null,rows:[],fingerprint:'',preplanned:0,history:[]};
+ if(!plan)return {month,stage:'closed' as const,planId:null,rows:[],fingerprint:'',preplanned:0,history:[],draftReason:''};
  const rows=await arrangementRows(db,month);
  return {month,planId:plan.id,stage:!plan.firstFinalizedAt?'closed' as const:plan.arrangementStatus,
   rows,fingerprint:arrangementFingerprint(plan,rows),preplanned:plan.content.items.length+plan.additions.reduce((n,b)=>n+b.content.items.length,0),
-  history:plan.arrangementHistory};
+  history:plan.arrangementHistory.filter(h=>h.action!=='draft'),draftReason:[...plan.arrangementHistory].reverse().find(h=>h.action==='draft'||h.action==='submit')?.reason??''};
 }
 export async function assertMeetingMutable(db:Database,meetingId:string){
  const [plan]=await db.select({sealed:s.operationsMonthlyPlan.sealedVersionId}).from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,meetingId));
@@ -60,15 +60,20 @@ export async function arrangedContent(db:Database,plan:Plan,rows:Awaited<ReturnT
  });
  return {groups,items};
 }
-export async function changeArrangement(db:Database,id:string,input:{action:'submit'|'confirm'|'return';fingerprint:string;requestId:string;reason:string},actor:OperationsUser){
+export async function changeArrangement(db:Database,id:string,input:{action:'draft'|'submit'|'confirm'|'return';fingerprint:string;requestId:string;reason:string},actor:OperationsUser){
  return db.transaction(async tx=>{
   await lockPromotionWorkflow(tx);
   const [plan]=await tx.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,id)).for('update');
   if(!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','本月尚未确认预排期，不能提交首轮排期。',422);
-  if(input.action!=='submit')requireAdmin(actor);
+  if(input.action==='confirm'||input.action==='return'||input.action==='draft'&&plan.arrangementStatus==='review_pending')requireAdmin(actor);
   const repeat=plan.arrangementHistory.find(h=>h.requestId===input.requestId);
   if(repeat){if(repeat.action!==input.action||repeat.actor!==actor.username||repeat.fingerprint!==input.fingerprint)throw new WorkflowError('请求标识已使用，请重新核对。',422);return readArrangement(tx,plan.month);}
   if(plan.arrangementStatus==='confirmed')throw new ArrangementError('MONTHLY_MEETING_SEALED','月例会已封存。',403);
+  if(input.action==='draft'){
+   const history:Plan['arrangementHistory']=[...plan.arrangementHistory,{at:new Date().toISOString(),actor:actor.username,action:'draft',reason:input.reason.trim(),requestId:input.requestId,fingerprint:input.fingerprint}];
+   await tx.update(s.operationsMonthlyPlan).set({arrangementHistory:history,updatedAt:new Date()}).where(eq(s.operationsMonthlyPlan.id,id));
+   return readArrangement(tx,plan.month);
+  }
   if(input.action==='submit'&&plan.arrangementStatus!=='editing'||input.action!=='submit'&&plan.arrangementStatus!=='review_pending')throw new ArrangementError('MONTHLY_STAGE_CHANGED','本月核对阶段已变化，请重新载入核对结果。');
   const rows=await arrangementRows(tx,plan.month),fingerprint=arrangementFingerprint(plan,rows);
   if(input.fingerprint!==fingerprint)throw new ArrangementError('ARRANGEMENT_CHANGED','首轮排期已有调整，请更新核对清单后再确认。当前填写已保留。');
