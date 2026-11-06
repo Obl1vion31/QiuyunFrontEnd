@@ -1,0 +1,52 @@
+{
+  "source": "e3928df",
+  "rules": {
+    "passed": 272,
+    "failed": 0
+  },
+  "typecheck": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "nodeBuild": "passed",
+  "vercelBuild": "passed",
+  "schema": "passed",
+  "sharedUi": "passed",
+  "nodeBrowserGroups": 13,
+  "finalVercelRuntimeBrowserGroups": 13,
+  "isolatedPostgres": true,
+  "stableScreenshots": 39,
+  "reviewedVideos": {
+    "workflow": "whole sequence sampled at 2fps",
+    "firstPaint": "whole sequence sampled at 10fps"
+  },
+  "reviewedPdf": {
+    "files": 2,
+    "pages": 8
+  },
+  "impeccableFindings": [],
+  "viewports": {
+    "desktop": [
+      1920,
+      1440,
+      1024
+    ],
+    "mobileLimited": [
+      390
+    ]
+  },
+  "productionChange": {
+    "authorizedWeekMove": true,
+    "totalUnchanged": 21,
+    "weeks": [
+      4,
+      5,
+      6,
+      5,
+      1
+    ],
+    "businessHistoryUnchanged": true,
+    "meetingVersionsUnchanged": true
+  },
+  "status": "已自检／待用户反馈，待正式提升"
+}

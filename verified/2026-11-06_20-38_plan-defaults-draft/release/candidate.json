@@ -1,0 +1,155 @@
+{
+  "passed": true,
+  "base": "https://qiuyun-frontend-nxktya24g-opgobl1v-5358.vercel.app",
+  "platformProtectionBypass": true,
+  "source": "e3928df",
+  "checks": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/business/annual-plan",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?month=2026-11",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/monthly-operations",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/api/monthly-plans?month=2026-11",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/business-notifications",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/collaboration/presence",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/collaboration/locks",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/promotion-daily/00000000-0000-4000-8000-000000000001",
+      "method": "PATCH",
+      "status": 403
+    }
+  ],
+  "assets": [
+    {
+      "path": "_astro/business-permissions.D1NzMVvd.js",
+      "sha256": "02e9d4f8c400f9dc95f0e3fe545ce105e1ec8534bb6e5b56d2d20cf8428541d8"
+    },
+    {
+      "path": "_astro/BusinessMonthlyOperations.CTNHTGlM.js",
+      "sha256": "41cb280925a70f572ff9829bcd92dc50730982ba47333031825a72b65bbbe0bc"
+    },
+    {
+      "path": "_astro/BusinessWeeklyMeeting.Cmx_c3JK.js",
+      "sha256": "81a3dc80d594c9c81b80b7460d28be19c87a80eef2ec9f882bf57fdd21e86b4e"
+    },
+    {
+      "path": "_astro/meeting-finalization.BAXNxbkt.js",
+      "sha256": "effd016c5ecdcb291334a98983c816cb965075625e3e541fd75e87e84534d1c7"
+    },
+    {
+      "path": "_astro/meeting-review.Ctc6iJ3c.css",
+      "sha256": "3031685f0c4d22a7204e429601818d1f6aef6ca2468bd276dfc19562ed6ab1d3"
+    },
+    {
+      "path": "_astro/MonthlyArrangementPanel.astro_astro_type_script_index_0_lang.BgUezpdn.js",
+      "sha256": "3bdd2b4f6ba1f38648f4009545ae9bba84d5729eaeb4b95800c3b6dd6aed285e"
+    },
+    {
+      "path": "_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.7JQM7L8D.js",
+      "sha256": "afea6b5a935c8951957e9596f6f83b860e9a07b5dd7df652e1e816a3638de762"
+    },
+    {
+      "path": "_astro/MonthlyMeetingSections.BoUuY38C.js",
+      "sha256": "9c289798d30e8027189918831ff6f5b06ed305bd14225a5b15aca2c93406acd2"
+    },
+    {
+      "path": "_astro/operations-schedule.BAsijnc9.css",
+      "sha256": "55a8e85fae9261a66bb90f43da65855625792410ed801465b156dd03eaa9e430"
+    },
+    {
+      "path": "fonts/business.css",
+      "sha256": "11e7db9be8534338218cdf30340086396469ebe77a5392b3766f332313fd92a0"
+    },
+    {
+      "path": "fonts/business.js",
+      "sha256": "75b80add18fc02182cd76880dba3f1fc741e31abeca2a79683e9b6c46b4db75a"
+    }
+  ],
+  "productionBusinessWrites": false
+}
