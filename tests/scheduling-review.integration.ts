@@ -40,9 +40,9 @@ try{
  await api(staff,'/api/meeting-reviews/'+created.id,save,200,'PATCH');
  await db.update(s.operationsContentSchedule).set({plannedPublishAt:new Date('2026-10-31T02:00Z')}).where(eq(s.operationsContentSchedule.id,carry.schedule.id));
  mark('预排期前新建与跨月移入均拒绝；遗留变月不再反向阻断同一份草稿');
- const privateData={total:{added:20,consulted:30,converted:4},rows:[],note:'隔离数据'};
+ const privateData={schemaVersion:2,promotion:[{subjectId:'tmua',demand:'handout',added:20,consulted:30,converted:4}],nonPromotion:[],note:'隔离数据'};
  await api(staff,'/api/monthly-private-data',{month:'2026-10',expectedRevision:-1,data:privateData},200,'PATCH');
- await api(staff,'/api/monthly-private-data',{month:'2026-10',expectedRevision:-1,data:{...privateData,total:{added:25,consulted:30,converted:4}}},200,'PATCH');
+ await api(staff,'/api/monthly-private-data',{month:'2026-10',expectedRevision:-1,data:{...privateData,promotion:[{subjectId:'tmua',demand:'handout',added:25,consulted:30,converted:4}]}},200,'PATCH');
  await api(boss,'/api/meeting-reviews/'+created.id,{...save,action:'finalize_version_draft',stage:'pre'},200,'PATCH');
  const pre=(await versions(created.id)).find(v=>v.lifecycleStatus==='finalized')!;
  const discussion=discussionFromDraft((await meeting(created.id)).draftSnapshot);

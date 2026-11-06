@@ -997,8 +997,8 @@ export const operationsMeetingAttachment = pgTable('operations_meeting_attachmen
 }, table => [uniqueIndex('operations_meeting_generated_pdf_idx').on(table.meetingVersionId).where(sql`${table.source} = 'generated'`),check('operations_meeting_attachment_source_check',sql`${table.source} IN ('image','manual','generated') AND (${table.source} = 'image' OR (${table.mimeType} = 'application/pdf' AND ${table.meetingVersionId} IS NOT NULL))`),check('operations_meeting_attachment_size_check', sql`${table.byteLength} > 0 AND ${table.byteLength} <= 3145728`), check('operations_meeting_attachment_type_check', sql`${table.mimeType} IN ('image/png','image/jpeg','image/webp','application/pdf')`)]);
 
 export const operationsMonthlyPrivate = pgTable('operations_monthly_private', {
-  month:text('month').primaryKey(), data:jsonb('data').$type<PrivateData>().notNull(), revision:integer('revision').notNull().default(0),
-  history:jsonb('history').$type<Array<{at:string;actor:string;data:PrivateData}>>().notNull().default([]),
+  month:text('month').primaryKey(), data:jsonb('data').$type<import('./monthly-plan-types').StoredPrivateData>().notNull(), revision:integer('revision').notNull().default(0),
+  history:jsonb('history').$type<Array<{at:string;actor:string;data:import('./monthly-plan-types').StoredPrivateData}>>().notNull().default([]),
   updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(), updatedBy:text('updated_by').notNull(),
 });
 export const operationsMonthlyCostMapping = pgTable('operations_monthly_cost_mapping', {

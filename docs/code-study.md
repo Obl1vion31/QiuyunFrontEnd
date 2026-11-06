@@ -227,7 +227,7 @@ flowchart LR
 
 延期归因在读模型集中生成：`scheduleRows[].delayAttribution` 为`operational`／`nonOperational`／`unknown`，非延期记录为null；`publication`补充`operationalDelayed`、`nonOperationalDelayed`、`unattributedDelayed`与`operationalDelayRate`。这些计数仅含当前应发月的已发布延期任务，原`operational`关注项保留含未登记任务的语义。全部／运营延期率均除以`registered`。卡片、分布和`operationalDelayed`明细使用同源字段；卡片选择为组件本地`delayScope`，只改卡片，不触发请求、明细切换或图表重播，业务筛选与刷新不重置。
 
-桌面激活侧栏月度入口，手机放在现有账号菜单；查看不建立编辑租约，私域写入使用角色与预期版本检查。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
+桌面激活侧栏月度入口，手机放在现有账号菜单；查看不建立编辑租约，私域普通写入按最后成功保存生效，保留角色校验、短事务锁及历史。`pnpm test:monthly` 使用隔离PGlite验证接口、双角色和五档视口，纯规则见 `tests/monthly-operations.test.ts`。
 
 侧栏新增同组模块应加入 `BusinessConsoleSidebar` 的 `groups.modules`，复用同一渲染和4px组内间距，不能在分组外追加独立链接。月度运营属于“复盘与沉淀”，手机继续在账号菜单进入；移动底栏的既有项目数保持。
 
@@ -268,7 +268,7 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 <MonthlyPrivatePanel data={workspace} summaryOnly admin={admin} onSaved={refresh} />
 ```
 
-月度展示接入：`BusinessMonthlyOperations` 保留四项执行KPI、关注条与双图，私域在明细前。图表播放绑定成功显示的 `data.query.month`，布局阶段准备待播放状态并在可见时播放；不重挂报表，原请求代次继续阻止旧响应。月会与历史Sheet共用 `MonthlyCoreResults`，人数／成本变化在主值旁，完整对照表只补原值。
+月度展示接入：`BusinessMonthlyOperations` 保留四项执行KPI、关注条与双图，私域在明细前。图表播放绑定成功显示的 `data.query.month`，布局阶段准备待播放状态并在可见时播放；不重挂报表，原请求代次继续阻止旧响应。月会与历史Sheet共用 `MonthlyCoreResults`，来源口径只在成本主值旁展示有效环比，人数仅作计算依据；旧快照保留原组件。
 
 月计划会议阅读由`MonthlyPlanSummary`的cards变体按Week展示紧凑名称卡，资料在共享气泡；其他执行摘要保留group汇总。原计划和追加在会议中投影到同一块Week板，写入仍归属各批次。`MonthlyPlanEditor`以editorSteps记录确认数量／分周／已确认，确认回调复用父会议保存，不创建第二套写入接口；新做量与遗留相加、已有排期占名额。编辑时读取当前执行数据，只读仍使用冻结材料。执行摘要复用`readMonthlyPlan`，新月度材料可选携带`executionPlan`并冻结；原快照没有登记状态时显示未记录，不查询当前数据库回填。编辑来源池常驻，不维护折叠状态；桌面绝对定位的pool-shell跟随Week高度，scroll子容器滚动，窄屏按SSR已知周数与Week最小高度在CSS中确定高度上限，避免常驻池在水合后重新测高跳动。编辑接收区最小高度108px，只读及打印保持原紧凑规格。气泡接入data-popover-scroll-boundary，触发点滚出池时关闭。上月未登记候选在数量阶段顶部显式勾选，未选择不占名额；既有遗留关系保持，新选择的真实排期可用独立来源组承载。新／遗留为独立展示标记，名称保持原文。来源池新做组使用PlanQuantity横排减号／可输入待分配量／加号，各阶段保持同一位置与顺序；每次拖动解析一个真实item ID，归零禁拖但仍可增加。遗留和已有排期各自独立且不重复生成。周次与移回使用同一写入函数，默认不常显下拉。新增保留旧分配，数量器只增减未分周的未关联新做名额；具体名额、遗留、审批、跨周和48小时在气泡内查看，不新增负责人。BusinessWeeklyMeeting明确传入planEditing，只读草稿不冒充编辑布局。会议草稿保存由React管理局部状态，BusinessWeeklyMeeting和BusinessMeetingDiscussion的写入带X-Business-Feedback: local；共享Frame跳过最近触发器的按钮改写，认证失效仍由公共提示处理。
 
@@ -281,3 +281,11 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。
 
 推广历史单日更正由 `promotion-day-edit.ts` 在事务内读取相邻有效状态，`promotion-day-rules.mjs` 校验两条衔接；`api/promotion-daily/[id]` 及已登记日的 `promotion-timeline` 共用该服务。`BusinessPromotionMetric` 只显示当日安排，原生状态选择和指标共用既有表单；`contextRequired` 返回三天上下文，客户端使用公共 `businessConfirm` 后带 `confirmDayContext/contextFingerprint` 重交。仅选中日状态及派生阶段重建，后续原始记录与冻结会议不改；旧 reviewDecision 字段仅为存储衔接和旧表单兼容。初始日期等重建仍使用 `promotion-history-correction.ts` 的独立影响预览，不混入历史单日流程。`promotionMetricStatus` 继续统一表格、Inspector及新会议材料的有效状态。
+
+### 私域来源接入
+
+`monthly-private-sources.ts` 负责来源格式识别、按人次汇总、缺值传播及成本差值；`readMonthlyPrivate` 联合已登记消耗与保存的推广用途，未填的付费用途保留空值。`sourceData` 是新来源结构，`data` 是只含推广的兼容投影；非推广绝不进入其总计。来源目录只用于复用名称及稳定ID，加入月份时三项人数重置为空。
+
+月度运营使用 `PrivateSourceEditor`，复用页面已有 `BusinessFormSheet` 容器、`business-dialog` 退出和公共未保存确认；固定头尾、正文单层滚动。保存后原位刷新结果，保存中继续输入使用草稿代次保留。推广来源只录明细，非推广可添加／更正／移除来源。管理员费用归属沿用原接口。
+
+月会 `MonthlyCoreResults` 使用 `PromotionPrivateTotals`，来源区及月度运营使用 `PrivateSourceResults`，HTML与PDF共用。只对存在 `sourceData` 的材料启用新表格；不根据当前数据库给旧冻结快照补来源。`/api/monthly-private-data` 要求 `data.schemaVersion: 2`，旧标签页得到明确刷新反馈；普通更正仍允许旧revision，不能重新引入CAS冲突。详细口径见 DECISIONS；本地复验入口为 `pnpm test:private-sources`。

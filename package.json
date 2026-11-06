@@ -52,6 +52,7 @@
     "test:moments": "node --import tsx tests/publication-moments.browser.ts",
     "test:summary-controls": "node --import tsx tests/summary-controls.browser.ts && node --import tsx tests/summary-peer.browser.ts",
     "test:meeting-display": "node --import tsx tests/meeting-display.browser.ts",
+    "test:private-sources": "node --import tsx tests/private-sources.browser.ts",
     "test:monthly": "node --import tsx tests/monthly-operations.browser.ts && node --import tsx tests/monthly-delay.browser.ts",
     "test:first-paint": "node --import tsx tests/business-first-paint.browser.ts",
     "test:monthly-links": "node --import tsx tests/monthly-plan-links.integration.ts && node --import tsx tests/monthly-plan-links.browser.ts",

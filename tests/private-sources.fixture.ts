@@ -1,0 +1,58 @@
+import {randomUUID} from 'node:crypto';
+import {eq} from 'drizzle-orm';
+import * as s from '../src/db/schema';
+import type {SourcePrivateData} from '../src/db/monthly-plan-types';
+import {readMonthlyMeeting} from '../src/db/monthly-meeting';
+
+export const organicIds={analysis:randomUUID(),interview:randomUUID(),long:randomUUID()};
+export const octoberData:SourcePrivateData={schemaVersion:2,promotion:[
+ {subjectId:'tmua',demand:'course',added:3,consulted:3,converted:2},
+ {subjectId:'tmua',demand:'handout',added:14,consulted:6,converted:1},
+ {subjectId:'tmua',demand:'mock',added:8,consulted:3,converted:1},
+ {subjectId:'interview',demand:'course',added:1,consulted:1,converted:0},
+ {subjectId:'interview',demand:'handout',added:6,consulted:2,converted:1},
+ {subjectId:'step',demand:'course',added:4,consulted:2,converted:1},
+],nonPromotion:[
+ {id:organicIds.interview,subjectId:'interview',source:'面试讲义',added:2,consulted:1,converted:1},
+ {id:organicIds.analysis,subjectId:'tmua',source:'TMUA 试卷解析 · 第一时间解析',added:159,consulted:0,converted:0},
+ {id:organicIds.long,subjectId:'step',source:'STEP 备考资料与往期试题解析：从基础方法到完整证明的专题整理',added:12,consulted:2,converted:0},
+],note:''};
+export async function seedPrivateSources(db:any){
+ const costs=[['tmua','small-class-or-tutoring',14000],['tmua','promotional-handout',2800],['tmua','mock-exam',1200],['interview','interview-course',5000],['interview','promotional-handout',900],['step','small-class-or-tutoring',2800]] as const;
+ async function paid(month:string,subject:string,category:string,amount:number,index:number){
+  const date=`${month}-${String(3+index*3).padStart(2,'0')}`,at=new Date(date+'T10:00:00+08:00');
+  const [content]=await db.insert(s.operationsContent).values({operationType:'promotion_only',platformNoteId:randomUUID().replaceAll('-','').slice(0,24)}).returning();
+  const [version]=await db.insert(s.operationsContentVersion).values({contentId:content.id,contentName:`${subject==='tmua'?'TMUA':subject==='step'?'STEP':'面试课'} ${category.includes('handout')?'讲义':category==='mock-exam'?'模考':'课程'}推广`,versionNumber:0,workType:'new',subjectId:subject,categoryId:category,projectDocUrl:'https://example.test/learning-material'}).returning();
+  const [schedule]=await db.insert(s.operationsContentSchedule).values({contentVersionId:version.id,plannedPublishAt:at,actualPublishAt:at,isPromoted:true,promotionStatus:'ended',completionStatus:'on_time'}).returning();
+  const [campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:date,dailyReviewEnabledOn:date,initialStage:'scaling',currentStage:null,currentStatus:'ended',endedOn:date}).returning();
+  await db.insert(s.operationsPromotionStage).values({campaignId:campaign.id,stageType:'scaling',startedOn:date,endedOn:date});
+  await db.insert(s.operationsPromotionDailyMetric).values({campaignId:campaign.id,metricDate:date,dailyStatus:'active',stageTypeSnapshot:'scaling',actualStatusSnapshot:'scaling',sourceStageStartedOn:date,spend:amount.toFixed(2),platformOpenCount:20+index,actualOpenCount:14+index,platformLeadCount:10+index,actualLeadCount:6+index,reviewDecision:'ended'});
+ }
+ for(const [month,factor] of [['2026-09',1.15],['2026-10',1]] as const){for(const [i,[subject,category,spend]] of costs.entries())await paid(month,subject,category,spend*factor,i);}
+ await paid('2026-06','tmua','small-class-or-tutoring',12345678.90,0);
+ await paid('2026-07','tmua','small-class-or-tutoring',700,0);
+ await paid('2026-08','tmua','small-class-or-tutoring',14000,0);await paid('2026-08','interview','interview-course',5000,1);
+ await paid('2026-11','tmua','small-class-or-tutoring',400,0);
+ const september:SourcePrivateData={...structuredClone(octoberData),promotion:octoberData.promotion.map((row,i)=>({...row,added:row.added!+1,consulted:row.consulted!+(i%2),converted:row.converted!+1})),nonPromotion:[]};
+ const august:SourcePrivateData={schemaVersion:2,promotion:octoberData.promotion.filter(row=>row.demand==='course'&&row.subjectId!=='step'),nonPromotion:octoberData.nonPromotion.slice(0,2),note:''};
+ const legacy={total:{added:162,consulted:3,converted:2},rows:[{subjectId:'tmua',demand:'total' as const,added:162,consulted:3,converted:2},{subjectId:'tmua',demand:'course' as const,added:162,consulted:3,converted:2}],note:''};
+ const data=[['2026-09',september],['2026-10',octoberData],['2026-08',august],['2026-07',legacy],['2026-06',{...august,promotion:[{subjectId:'tmua',demand:'course',added:1,consulted:1,converted:1}],nonPromotion:[octoberData.nonPromotion[2]]}],['2026-11',{schemaVersion:2,promotion:[{subjectId:'tmua',demand:'course',added:0,consulted:null,converted:0}],nonPromotion:[{...octoberData.nonPromotion[0],added:null,consulted:0,converted:0}],note:''}]];
+ for(const [month,value] of data)await db.insert(s.operationsMonthlyPrivate).values({month,data:value,updatedBy:'test_admin'});
+ return {legacy};
+}
+/** 快照通过正式月度读模型生成，封存身份仅在本机夹具中构造。 */
+export async function seedFrozenPrivateMeeting(db:any,month:string,name:string,legacy=false){
+ const from=month+'-01',through=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10);
+ const next=new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),6)).toISOString().slice(0,10);
+ const [meeting]=await db.insert(s.operationsReviewMeeting).values({name,meetingType:'monthly',meetingAt:new Date(next+'T16:00:00+08:00'),periodStart:from,periodEnd:through,status:'completed',currentVersionNumber:1,createdByLabel:'test_admin',draftSnapshot:{schemaVersion:4,workflowVersion:7,monthlySchemaVersion:1,coreConclusion:'推广获客按课程、讲义与模考分别核算；自然来源独立保留，不稀释推广成本。',nextAction:'持续核对课程意向及成交跟进，按原来源记录后续转化。',promotionInputs:{},issues:[],nonPromotionSelections:[]}}).returning();
+ const monthly=await readMonthlyMeeting(db,meeting);
+ if(legacy){for(const value of [monthly.privateData,monthly.core.privateData,monthly.core.comparison?.privateData])if(value){delete (value as any).sourceData;delete (value as any).sourceOptions;delete (value as any).totalSpend;delete (value as any).subjectNames;}}
+ const planContent={groups:[{id:randomUUID(),annualPlanId:null,annualVersion:null,name:'课程与讲义内容准备',subjectId:'tmua',categoryId:'promotional-handout',note:'',reason:'隔离验收资料',quantity:0}],items:[]};
+ const draft={...meeting.draftSnapshot,monthlyPlan:{id:randomUUID(),month:next.slice(0,7),revision:-1,content:planContent,additions:[]},materialSnapshot:{schemaVersion:4,monthly,promotions:[],nonPromotions:[],pending:[]}};
+ const generated={schemaVersion:4,monthly,periodStart:from,periodEnd:through,summary:{},promotions:[],nonPromotions:[],nonPromotionContext:[],pending:[],excludedNonPromotions:[],fingerprint:monthly.fingerprint};
+ const snapshot={schemaVersion:4,finalizationStage:'post',arrangementSealed:true,meeting:{id:meeting.id,name,meetingType:'monthly',periodStart:from,periodEnd:through},draft,generated};
+ const [version]=await db.insert(s.operationsReviewMeetingVersion).values({meetingId:meeting.id,versionNumber:1,lifecycleStatus:'finalized',snapshot,changeSummary:'隔离验收快照',finalizedAt:new Date(),finalizedByLabel:'test_admin'}).returning();
+ const [plan]=await db.insert(s.operationsMonthlyPlan).values({id:draft.monthlyPlan.id,month:next.slice(0,7),meetingId:meeting.id,content:planContent,firstFinalizedAt:new Date(),arrangementStatus:'confirmed',sealedVersionId:version.id}).returning();
+ await db.update(s.operationsReviewMeeting).set({draftSnapshot:draft}).where(eq(s.operationsReviewMeeting.id,meeting.id));
+ return {meeting,version,plan,snapshot,monthly};
+}

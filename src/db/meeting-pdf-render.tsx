@@ -9,13 +9,14 @@ import WeeklyMeetingPresentation from '../components/WeeklyMeetingPresentation';
 import weeklyCss from '../styles/meeting-weekly.css?raw';
 import monthlyCss from '../styles/monthly-meeting.css?raw';
 import changeCss from '../styles/metric-change.css?raw';
+import privateSourceCss from '../styles/private-sources.css?raw';
 import tokens from '../styles/business-tokens.css?raw';
 import fontCss from '../../public/fonts/misans-5.0.0/MiSansVF.css?raw';
 const fontFiles=import.meta.glob('../../public/fonts/misans-5.0.0/*.woff2',{eager:true,query:'?inline',import:'default'}) as Record<string,string>;
 const fonts=fontCss.replace(/url\('([^']+)'\)/g,(_match,name)=>`url('${Object.entries(fontFiles).find(([path])=>path.endsWith('/'+name))?.[1]??''}')`);
 export async function renderMeetingPdf(snapshot:any,versionNumber:number){
  const markup=renderToStaticMarkup(<><header className="meeting-print-heading"><h1>{snapshot.meeting?.name??'例会复盘'}</h1><p>{snapshot.meeting?.periodStart}—{snapshot.meeting?.periodEnd} · V{versionNumber} · 会后定稿{snapshot.displayInvalidated?' · 已回溯失效':''}</p></header><WeeklyMeetingPresentation snapshot={snapshot}/></>);
- const css=fonts+tokens+(monthlyCss+weeklyCss+changeCss+opsChartCss+reportCss).replace(/@import[^;]+;/g,'');
+ const css=fonts+tokens+(monthlyCss+weeklyCss+changeCss+opsChartCss+reportCss+privateSourceCss).replace(/@import[^;]+;/g,'');
  let browser;
  try{
   chromium.setGraphicsMode=false;

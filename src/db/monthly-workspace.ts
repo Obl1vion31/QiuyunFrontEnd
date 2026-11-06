@@ -10,7 +10,7 @@ export async function readMonthlyWorkspace(db:Database,query:MonthlyQuery){
  const now=new Date(),source=await readMonthlySource(db),base=buildMonthlyOperations(source,query,now);
  const history:{wasteHistory?:MonthlyWasteHistoryPoint[]}={wasteHistory:buildMonthlyWasteHistory(source,query,now)};
  const full=query.subject||query.category?buildMonthlyOperations(source,{month:query.month,subject:'',category:''},now):base;
- const privateData=await readMonthlyPrivate(db,full);
+ const privateData=await readMonthlyPrivate(db,full,true);
  const previous=query.month<shanghaiDateKey(now).slice(0,7)?buildMonthlyOperations(source,{month:adjacentMonth(query.month,-1),subject:'',category:''},now):null;
  const comparison=previous?{month:previous.query.month,spend:previous.spend,privateData:await readMonthlyPrivate(db,previous)}:null;
  const meetings=await db.select({id:operationsReviewMeeting.id,name:operationsReviewMeeting.name,version:operationsReviewMeeting.currentVersionNumber}).from(operationsReviewMeeting).where(and(eq(operationsReviewMeeting.meetingType,'monthly'),eq(operationsReviewMeeting.periodStart,query.month+'-01'),eq(operationsReviewMeeting.status,'completed')));
