@@ -11,9 +11,10 @@
 .arrangement-review details{font:400 14px/22px var(--console-font)}
 .arrangement-review summary{cursor:pointer;color:var(--console-blue);width:fit-content}
 .arrangement-review form{display:grid;grid-template-columns:minmax(240px,1fr) auto;align-items:end;gap:8px 16px}
-.arrangement-review form>label{display:grid;gap:6px}
+.arrangement-reason{display:grid;gap:6px}
+.arrangement-field-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .arrangement-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.arrangement-review output{grid-column:1/-1;font:400 13px/20px var(--console-font);color:var(--console-muted)}
+.arrangement-review output{font:400 13px/20px var(--console-font);color:var(--console-muted)}
 .arrangement-review output:empty{display:none}
 .arrangement-review output[data-error]{color:#9a3d28}
 .arrangement-table{overflow-x:auto;margin-top:12px}
