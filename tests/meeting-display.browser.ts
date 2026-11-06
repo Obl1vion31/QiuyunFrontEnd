@@ -164,8 +164,8 @@ try{
  const oldSnapshot=structuredClone(sourceVersion.snapshot) as any;delete oldSnapshot.generated.monthly.operations.wasteHistory;delete oldSnapshot.draft.monthlyPlan;
  const [oldMeeting]=await db.insert(s.operationsReviewMeeting).values({name:'历史月会 · 无空跑序列',meetingType:'monthly',periodStart:'2026-10-01',periodEnd:'2026-10-31',meetingAt:new Date('2026-11-01T16:00+08:00'),status:'completed',createdByLabel:'test_admin'}).returning();oldSnapshot.meeting={...oldSnapshot.meeting,id:oldMeeting.id,name:oldMeeting.name};
  await db.insert(s.operationsReviewMeetingVersion).values({meetingId:oldMeeting.id,versionNumber:0,lifecycleStatus:'finalized',snapshot:oldSnapshot,changeSummary:'隔离旧格式快照兼容样本'});
- await nav(oldMeeting.id,'&version=0');for(const width of [2560,1920,1440,1024,390,320]){await page.setViewportSize({width,height:1000});const waste=page.locator('[data-monthly-waste]');await waste.evaluate((n:HTMLElement)=>scrollTo(0,n.getBoundingClientRect().top+scrollY-100));assert.equal(await waste.locator('.report-waste-list>.report-waste-item').count(),5);assert.equal(await waste.locator('[data-waste-history] .report-trend').count(),0);await shot('waste-no-history-'+width);}
- checks.push('旧冻结材料无空跑序列：六档5条来源、明确无往期，不补实时历史');
+ await nav(oldMeeting.id,'&version=0&material=frozen');for(const width of [2560,1920,1440,1024,390,320]){await page.setViewportSize({width,height:1000});const waste=page.locator('[data-monthly-waste]');await waste.evaluate((n:HTMLElement)=>scrollTo(0,n.getBoundingClientRect().top+scrollY-100));assert.equal(await waste.locator('.report-waste-list>.report-waste-item').count(),3);assert.equal(await waste.locator('[data-waste-history] .report-trend').count(),0);await shot('waste-no-history-'+width);}
+ checks.push('旧冻结材料无空跑序列：六档3条来源、明确无往期，不补实时历史');
  assert.equal(errors.length,0,errors.join('\n'));await writeFile(dir+'/result.json',JSON.stringify({checks,errors,monthly:monthly.id,weekly:weekly.id,baseURL},null,2));console.log(checks.join('\n'));
  await writeFile(dir+'/chapters.json',JSON.stringify(chapters));await context.close();
 }finally{await browser?.close();await fixture.stop();}
