@@ -1,5 +1,7 @@
 # 私域来源与成本：正式发布
 
+> 验收纠正（2026-11-06）：本批遗漏“旧口径首次录入、仅课程实际推广、排期含讲义”的真实路径，空占位会阻断总成本，历史抽屉也仍有旧空需求表。原结论不覆盖这些状态；修复及补充验收见[私域汇总修复](../2026-11-06_16-02_monthly-cost-repair/README.md)。原证据保留。
+
 状态：**已自检／已发布**。应用 `77bc74c`；正式部署 `dpl_H5Ctm8PKDA2GxsSAfLt1oNZrjx1E` 为 READY，正式域名指向已核对。用户本轮“发布”覆盖先前本地样张的暂停发布指示。
 
 [正式月度运营](https://qiuyun-frontend.vercel.app/business/monthly-operations) · [例会总览](https://qiuyun-frontend.vercel.app/business/meeting-review) · [完整视觉标准与本地样张](../2026-11-06_13-22_private-sources/README.md)
