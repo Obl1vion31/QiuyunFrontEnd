@@ -326,7 +326,7 @@ const historyHref = (overrides: Record<string, string>) => {
               let response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
               let result = await response.json();
               if (response.status === 409 && result.contextRequired) {
-                if(!await businessConfirm(result.message,{title:'确认当日安排',confirmLabel:'确认修改当天'})){cancelled=true;message.textContent='已取消修改，输入已保留。';return;}
+                if(!await businessConfirm(result.message,{title:'确认当日安排',confirmLabel:'确认修改当天'})){cancelled=true;message.textContent='';return;}
                 data.set('confirmDayContext','true');data.set('contextFingerprint',result.contextFingerprint);
                 response=await fetch(`/api/promotion-daily/${metricId}`,{method:'PATCH',body:data,headers:{Accept:'application/json'}});
                 result=await response.json();

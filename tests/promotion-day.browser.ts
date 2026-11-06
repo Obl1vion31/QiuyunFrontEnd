@@ -41,7 +41,7 @@ try{
   const text=await confirm.innerText();for(const str of ['2026-10-30','2026-10-31','2026-11-01','测试中 → 测试暂停','前后日期保持原状'])assert(text.includes(str),text);
   await shot(page,'admin-'+width+'-02-context',confirm);await respondToBusinessConfirm(page,false);
   assert.equal(await editor.locator('[name=dayStatus]').inputValue(),'test_paused');assert.equal(await editor.locator('[name=note]').inputValue(),'核对10月31日暂停，当天指标保留，前后继续测试');assert.deepEqual(await promotionSnapshot(db,c.post.schedule.id),before);
-  assert(await editor.locator('[type=submit]').evaluate((e:Element)=>e===document.activeElement));
+  assert(await editor.locator('[type=submit]').evaluate((e:Element)=>e===document.activeElement));assert.equal(await editor.locator('[data-edit-message]').innerText(),'');
   await shot(page,'admin-'+width+'-03-cancel-preserved',editor);
   await save(page,editor);await confirm.waitFor();const done=page.waitForResponse((r:any)=>r.url().includes('/api/promotion-daily/')&&r.request().method()==='PATCH');const navigation=page.waitForNavigation({waitUntil:'networkidle'});
   await respondToBusinessConfirm(page,true);assert.equal((await done).status(),200);await navigation;
