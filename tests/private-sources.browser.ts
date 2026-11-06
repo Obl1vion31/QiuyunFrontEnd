@@ -10,7 +10,7 @@ import * as s from '../src/db/schema';
 const dir=process.env.PRIVATE_SOURCE_EVIDENCE_DIR??'.tools/test-artifacts/private-sources';
 await mkdir(dir+'/screenshots',{recursive:true});await mkdir(dir+'/videos',{recursive:true});await mkdir(dir+'/pdf',{recursive:true});
 const clockFile=process.cwd()+'/'+dir+'/clock.txt';await writeFile(clockFile,'2026-11-06T12:00:00+08:00');
-const fixture=await startPostgresFixture({clockFile}),{db,baseURL}=fixture;
+const fixture=await startPostgresFixture({clockFile,entry:process.env.PRIVATE_SOURCE_ENTRY}),{db,baseURL}=fixture;
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE??'/home/obl1vion/projects/qiuyunFrontend/.tools/tooling/node_modules/playwright/index.mjs');
 let browser:any,context:any,page:any,cookie='';const checks:string[]=[],images:any[]=[],errors:string[]=[],chapters:any[]=[];let started=0;
 const mark=(name:string)=>{checks.push(name);console.log('PASS '+name);};
