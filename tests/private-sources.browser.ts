@@ -66,7 +66,7 @@ try{
   await page.getByRole('button',{name:'录入／更正',exact:true}).click();await settleBusinessUI(page);await screen('editor-promotion-'+width,undefined,false);
   await page.locator('[aria-label="非推广来源录入"]').scrollIntoViewIfNeeded();await screen('editor-organic-'+width,undefined,false);
   await page.locator('#monthly-private-sheet').getByRole('button',{name:'关闭',exact:true}).click();await page.locator('#monthly-private-sheet').waitFor({state:'hidden'});
-  await go('/business/meeting-review?meeting='+october.meeting.id);await screen('meeting-current-'+width);await screen('meeting-core-'+width,page.locator('.monthly-core').first());await screen('meeting-sources-'+width,page.locator('[data-private-panel]'));
+  await go('/business/meeting-review?meeting='+october.meeting.id);await screen('meeting-current-'+width);await screen('meeting-core-'+width,page.locator('.monthly-core').first());await screen('meeting-sources-'+width,page.locator('.monthly-core .private-source-results'));
  }
  mark('1920/1440/1024月度运营、月会及两组录入实际渲染，无页面级溢出');
  await page.setViewportSize({width:1440,height:1000});await go('/business/monthly-operations?month=2026-10');

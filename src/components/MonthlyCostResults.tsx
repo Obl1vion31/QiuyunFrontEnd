@@ -4,8 +4,8 @@ import {SparkTrend} from './ReportCharts';
 import '../styles/monthly-cost-results.css';
 
 type Core=MonthlyWorkspace['core'];
-type CostKey='actualOpenCost'|'actualLeadCost'|'added'|'consulted'|'converted';
-const costs:Array<{key:CostKey;label:string}>=[
+type CostKey='spend'|'actualOpenCost'|'actualLeadCost'|'added'|'consulted'|'converted';
+const costs:Array<{key:Exclude<CostKey,'spend'>;label:string}>=[
  {key:'actualOpenCost',label:'开口成本'},{key:'actualLeadCost',label:'留资成本'},
  {key:'added',label:'私域增加成本'},{key:'consulted',label:'课程意向成本'},{key:'converted',label:'成交成本'},
 ];
@@ -26,13 +26,15 @@ export function MonthlyCostResults({core,summaryOnly=false}:{core:Core;summaryOn
   <dl className="mc-metrics" aria-label="月度成本结果">{fields.map(field=><div key={field.label} data-cost-metric={field.label}>
    <dt>{field.label}</dt><dd className="mc-value">{privateMoney(field.value)}</dd>
    {(field.basis||field.value!==null&&field.previous!==null)&&<dd className="mc-evidence">{field.basis&&<span>{field.basis}</span>}<PrivateCostChange value={field.value} previous={field.previous}/></dd>}
-   {!summaryOnly&&field.key!=='spend'&&<MonthlyCostTrend month={core.month} metric={field.key} label={field.label} points={core.costHistory}/>}
+   {!summaryOnly&&<MonthlyCostTrend month={core.month} metric={field.key} label={field.label} points={core.costHistory}/>}
   </div>)}</dl>
  </div>;
 }
 function MonthlyCostTrend({month,metric,label,points}:{month:string;metric:CostKey;label:string;points?:MonthlyCostHistoryPoint[]}){
- if(!points||points.filter(point=>point[metric]!==null).length<2)return null;
+ const first=points?.findIndex(point=>point[metric]!=null)??-1,last=points?.findLastIndex(point=>point[metric]!=null)??-1;
+ const visible=points?.slice(first,last+1)??[];
+ if(visible.filter(point=>point[metric]!=null).length<2)return <dd className="mc-no-trend">暂无对比数据</dd>;
  return <dd className="mc-trend" data-monthly-cost-trend={metric}>
-  <SparkTrend motionKey={month} plotHeight={44} interactive axis="month" label={label} points={points.map(point=>({from:point.from,through:point.through,key:point.month,label:point.month+(point.inProgress?' · 进行中':''),value:point[metric],valueLabel:privateMoney(point[metric]),current:point.month===month}))}/>
+  <SparkTrend motionKey={month} plotHeight={56} presentation="sparkline" interactive axis="month" label={label} points={visible.map(point=>({from:point.from,through:point.through,key:point.month,label:point.month+(point.inProgress?' · 进行中':''),value:point[metric]??null,valueLabel:privateMoney(point[metric]),current:point.month===month}))}/>
  </dd>;
 }

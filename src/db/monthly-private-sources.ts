@@ -15,7 +15,7 @@ export function sourceCountsProjection(data:SourcePrivateData):PrivateData{
  }),note:data.note};
 }
 export function privateUnitCosts(spend:number|null,counts:PrivateCounts){
- return Object.fromEntries(privateFields.map(key=>[key,spend!==null&&counts[key]!==null&&counts[key]!>0?Math.round(spend/counts[key]!*100)/100:null])) as PrivateCounts;
+ return Object.fromEntries(privateFields.map(key=>[key,spend!==null&&counts[key]!==null&&counts[key]!>0?Math.round(Math.round(spend*100)/counts[key]!)/100:null])) as PrivateCounts;
 }
 export function sourcePromotionRows(data:SourcePrivateData,scope:Array<{subjectId:string;demand:DemandType}>){
  const keys=new Map(scope.map(row=>[`${row.subjectId}:${row.demand}`,row]));

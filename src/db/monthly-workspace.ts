@@ -8,7 +8,7 @@ import {adjacentMonth} from './monthly-plan-types';
 import {shanghaiDateKey} from './promotion-rules.mjs';
 export interface MonthlyCostHistoryPoint {
  month:string;from:string;through:string;inProgress:boolean;
- actualOpenCost:number|null;actualLeadCost:number|null;added:number|null;consulted:number|null;converted:number|null;
+ spend?:number|null;actualOpenCost:number|null;actualLeadCost:number|null;added:number|null;consulted:number|null;converted:number|null;
 }
 export async function readMonthlyWorkspace(db:Database,query:MonthlyQuery){
  const now=new Date(),source=await readMonthlySource(db),base=buildMonthlyOperations(source,query,now);
@@ -25,7 +25,7 @@ export async function readMonthlyWorkspace(db:Database,query:MonthlyQuery){
  const comparison=previous?{month:previous.operations.query.month,spend:previous.operations.spend,privateData:previous.privateData}:null;
  const costHistory:MonthlyCostHistoryPoint[]=monthly.map(({operations,privateData:p})=>({
   month:operations.query.month,from:operations.from,through:operations.through,inProgress:operations.query.month>=currentMonth,
-  actualOpenCost:operations.spend.actualOpenCost,actualLeadCost:operations.spend.actualLeadCost,
+  spend:operations.spend.spend,actualOpenCost:operations.spend.actualOpenCost,actualLeadCost:operations.spend.actualLeadCost,
   added:p.sourceData?p.totalCosts.added:null,consulted:p.sourceData?p.totalCosts.consulted:null,converted:p.sourceData?p.totalCosts.converted:null,
  }));
  const meetings=await db.select({id:operationsReviewMeeting.id,name:operationsReviewMeeting.name,version:operationsReviewMeeting.currentVersionNumber}).from(operationsReviewMeeting).where(and(eq(operationsReviewMeeting.meetingType,'monthly'),eq(operationsReviewMeeting.periodStart,query.month+'-01'),eq(operationsReviewMeeting.status,'completed')));

@@ -25,7 +25,7 @@ export async function renderMeetingPdf(snapshot:any,versionNumber:number){
   const page=await browser.newPage();await page.setJavaScriptEnabled(false);
   await page.setRequestInterception(true);page.on('request',req=>{if(req.url().startsWith('data:')||req.url()==='about:blank')void req.continue();else void req.abort();});
   await page.setContent(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>${css}</style><body>${markup}</body></html>`,{waitUntil:'load',timeout:30000});
-  await page.evaluate(async()=>{document.querySelectorAll<HTMLDetailsElement>('.monthly-section details,.ps-legacy-records').forEach(detail=>{detail.open=true;});await document.fonts.ready;});
+  await page.evaluate(async()=>{document.querySelectorAll<HTMLDetailsElement>('.monthly-section details,.ps-disclosure,.ps-legacy-records').forEach(detail=>{detail.open=true;});await document.fonts.ready;});
   const bytes=await page.pdf({format:'A4',landscape:true,printBackground:true,preferCSSPageSize:true,waitForFonts:true,displayHeaderFooter:true,headerTemplate:'<span></span>',footerTemplate:`<div style="font:9px sans-serif;color:#667080;width:100%;text-align:right;margin:0 10mm">V${versionNumber} · <span class="pageNumber"></span> / <span class="totalPages"></span></div>`,timeout:30000});
   return Buffer.from(bytes);
  }finally{await browser?.close();}

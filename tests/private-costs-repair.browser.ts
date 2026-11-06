@@ -33,13 +33,15 @@ async function screenshot(name:string,fullPage=true){
 }
 async function trendLayout(){
  const values=await page.locator('[data-monthly-cost-trend]').evaluateAll((nodes:any[])=>nodes.map(n=>{
-  const box=n.getBoundingClientRect(),previous=n.previousElementSibling.getBoundingClientRect(),plot=n.querySelector('.report-trend-plot').getBoundingClientRect();
-  return {metric:n.dataset.monthlyCostTrend,inside:!!n.closest('[data-cost-metric]'),gap:box.left-previous.right,aligned:Math.abs((box.top+box.bottom)/2-(n.parentElement.querySelector('dt').getBoundingClientRect().top+previous.bottom)/2)<=1,height:plot.height,captionHeight:n.querySelector('figcaption').getBoundingClientRect().height,highlight:getComputedStyle(n.querySelector('.report-period-highlight')??n).display};
+  const box=n.getBoundingClientRect(),value=n.parentElement.querySelector('.mc-value').getBoundingClientRect(),plot=n.querySelector('.report-trend-plot').getBoundingClientRect();
+  const points=[...n.querySelectorAll('.report-trend-point button')].map((button:any)=>button.getAttribute('aria-label'));
+  return {metric:n.dataset.monthlyCostTrend,inside:!!n.closest('[data-cost-metric]'),gap:box.left-value.right,height:plot.height,width:plot.width,caption:!!n.querySelector('figcaption'),axis:!!n.querySelector('.report-axis'),points};
  }));
- for(const v of values){assert(v.inside);assert.equal(v.height,44);assert.equal(v.captionHeight,18);assert(v.gap>=12);assert(v.aligned);assert.equal(v.highlight,'none');}
+ for(const v of values){assert(v.inside);assert.equal(v.height,56);assert.equal(v.gap,20);assert.equal(v.caption,false);assert.equal(v.axis,false);assert(v.width>70);}
  assert.equal(await page.locator('.mc-trends').count(),0);const columns=await page.locator('.mc-metrics').first().evaluate((n:any)=>getComputedStyle(n).gridTemplateColumns.split(' ').length);if(await page.evaluate(()=>innerWidth)>=1440)assert.equal(columns,3);
  layouts.push({kind:'trends',viewport:await page.evaluate(()=>innerWidth),values});
 }
+
 async function sourceStates(root:any,name:string,capture=false){
  const groups=root.locator('.ps-disclosure'),summaries=groups.locator(':scope>summary');assert.equal(await groups.count(),2);
  async function check(state:string){
@@ -90,14 +92,14 @@ try{
  const value=await read();assert.equal(value.core.comparison.privateData.sourceData,null);assert(value.core.comparison.spend.spend>0);assert.equal(value.core.costHistory.length,6);assert.equal(value.core.costHistory.at(-2).added,null);
  assert.equal(value.core.costHistory.at(-1).added,costs.added);assert(value.core.costHistory.at(-2).actualOpenCost!==null);
  mark('上月没有私域数据仍保留推广消耗和开口留资比较，六个月序列按指标缺值断开');
- for(const [month,expected]of [['2026-05',0],['2026-06',0],['2026-07',2],['2026-11',2]] as const){
+ for(const [month,expected]of [['2026-05',0],['2026-06',0],['2026-07',3],['2026-11',3]] as const){
   await go('/business/monthly-operations?month='+month);
   const core=(await api('/api/monthly-operations?month='+month)).core;
   const known=core.costHistory.filter((p:any)=>p.actualOpenCost!==null).length;
   assert.equal(known,{'2026-05':0,'2026-06':1,'2026-07':2,'2026-11':6}[month]);
   assert.equal(await page.locator('[data-monthly-cost-trend]').count(),expected);
-  if(month==='2026-06')assert.equal(await page.locator('[data-cost-metric="开口成本"] dd').count(),2,'单月不留下图、说明或占位');
-  if(month==='2026-11')assert.equal(await page.locator('.mc-comparison').count(),0);
+  if(month==='2026-06')assert.equal(await page.locator('[data-cost-metric="开口成本"] .mc-no-trend').innerText(),'暂无对比数据');
+  if(month==='2026-11')assert.equal(await page.locator('.mc-comparison').count(),0);if(month==='2026-07')assert.equal(await page.locator('[data-monthly-cost-trend="actualOpenCost"] button').count(),2,'仅保留实际有数据的两个月');
  }
  const june=(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.metricDate,'2026-06-03')))[0];
  await db.update(s.operationsPromotionDailyMetric).set({spend:'0.00'}).where(eq(s.operationsPromotionDailyMetric.id,june.id));
@@ -108,7 +110,7 @@ try{
  await go('/business/monthly-operations?month=2026-10');assert.equal((await page.locator('[data-monthly-cost-trend="actualOpenCost"] [data-report-line]').getAttribute('d')).match(/M/g)?.length,2,'缺月保留断线');
  await screenshot('monthly-gap-1440');
  await db.insert(s.operationsPromotionDailyMetric).values(july);
- mark('真实事实覆盖0／1／2／6有效月、真实0、缺值断线及当月不生成环比；私域单月无图');
+ mark('真实事实覆盖0／1／2／6有效月、真实0、缺值断线及当月不生成环比；私域单月显示暂无对比数据');
  await go('/business/monthly-operations?month=2026-10');
  for(const label of ['推广总消耗','开口成本','留资成本'])assert.equal(await page.locator(`[data-cost-metric="${label}"] .ps-change`).count(),1);
  assert.equal(await page.locator('[data-cost-metric="私域增加成本"] .ps-change').count(),0);
@@ -144,7 +146,7 @@ try{
  const legacy=await seedFrozenPrivateMeeting(db,'2026-07','7月月例会 · 旧口径归档',true);
  const frozen=structuredClone(monthly.snapshot);
  await db.update(s.operationsMonthlyPlan).set({sealedVersionId:null,arrangementStatus:'editing'}).where(eq(s.operationsMonthlyPlan.id,monthly.plan.id));
- await go('/business/meeting-review?meeting='+monthly.meeting.id);assert.equal(await page.locator('.mc-value').count(),6);assert.equal(await page.locator('.ps-disclosure[open]').count(),0);
+ await go('/business/meeting-review?meeting='+monthly.meeting.id);assert.equal(await page.locator('.mc-value').count(),6);assert.equal(await page.locator('.ps-disclosure[open]').count(),0);assert.equal(await page.locator('[data-private-panel]').count(),0);assert.equal(await page.locator('.monthly-core .ps-disclosure').count(),2);
  await save(partial);await page.reload();await settleBusinessUI(page);assert.match(await page.locator('[data-cost-metric="课程意向成本"]').innerText(),/—/);
  await db.update(s.operationsMonthlyPlan).set({sealedVersionId:monthly.version.id,arrangementStatus:'confirmed'}).where(eq(s.operationsMonthlyPlan.id,monthly.plan.id));await page.reload();await settleBusinessUI(page);assert.match(await page.locator('[data-cost-metric="课程意向成本"]').innerText(),/1,860.18/);
  assert.deepEqual((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,monthly.version.id)))[0].snapshot,frozen);await save({...baseline,nonPromotion:octoberData.nonPromotion.slice(0,2)});
@@ -155,10 +157,10 @@ try{
   await page.setViewportSize({width,height:1000});await go('/business/monthly-operations?month=2026-10');await screenshot('monthly-collapsed-'+width);await trendLayout();await sourceStates(page.locator('[data-private-panel]'),'monthly-source-'+width,width===1440);
   for(const summary of await page.locator('.ps-disclosure>summary').all())await summary.click();await screenshot('monthly-expanded-'+width);
   await openEditor();await screenshot('editor-'+width,false);await page.keyboard.press('Escape');await sheet().waitFor({state:'hidden'});
-  await go('/business/meeting-review?meeting='+monthly.meeting.id);await screenshot('meeting-'+width);await trendLayout();await sourceStates(page.locator('[data-private-panel]'),'meeting-source-'+width,width===1440);
+  await go('/business/meeting-review?meeting='+monthly.meeting.id);await screenshot('meeting-'+width);await trendLayout();await sourceStates(page.locator('.monthly-core').first(),'meeting-source-'+width,width===1440);
   await page.getByRole('button',{name:'历史月份',exact:true}).click();const history=page.locator('#monthly-history-sheet');await history.locator('input[type="month"]').fill('2026-09');await history.locator('[data-monthly-cost-results]').waitFor();await settleBusinessUI(page);assert.equal(await history.getByText('学科私域结果',{exact:true}).count(),0);assert.equal(await history.locator('.monthly-subject-summary').count(),0);await screenshot('history-missing-'+width,false);await history.locator('input[type="month"]').fill('2026-10');await history.locator('[data-cost-metric="私域增加成本"] .mc-value').filter({hasText:'1,395.13'}).waitFor();await settleBusinessUI(page);await screenshot('history-costs-'+width,false);assert.equal(await history.locator('[data-monthly-cost-trend],.ps-disclosure,.ps-change,.mc-comparison').count(),0);assert.equal(await history.locator('.mc-value').count(),6);layouts.push({kind:'history-summary',viewport:width,metricCount:6,trendCount:0});await page.keyboard.press('Escape');await history.waitFor({state:'hidden'});
  }
- mark('三档桌面运营／月会／录入／精简历史实际渲染，右图日期单行且无页面级溢出');
+ mark('三档桌面运营／月会／录入／精简历史实际渲染，右图无默认日期且贴近主值且无页面级溢出');
  await page.setViewportSize({width:1440,height:1000});await go('/business/monthly-operations?month=2026-10');
  const priorMonth=await api('/api/monthly-operations?month=2026-09');
  await page.route('**/api/monthly-operations?month=2026-09*',async(route:any)=>{await new Promise(resolve=>setTimeout(resolve,800));await route.fulfill({json:priorMonth});});
@@ -172,9 +174,14 @@ try{
  mark('三份正式渲染PDF含完整来源，旧封存展示保持；长金额历史两列不截断');
  await page.setViewportSize({width:390,height:844});await go('/business/monthly-operations?month=2026-10');await screenshot('monthly-mobile-390');await openEditor();await screenshot('editor-mobile-390',false);await page.keyboard.press('Escape');await sheet().waitFor({state:'hidden'});mark('390px仅核查页面溢出、明显遮挡和关闭保存入口');
  for(const month of ['2026-08','2026-09'])await db.insert(s.operationsMonthlyPrivate).values(previousSources.find(row=>row.month===month)!);
- await page.setViewportSize({width:1440,height:1000});await go('/business/monthly-operations?month=2026-10');assert.equal(await page.locator('[data-monthly-cost-trend]').count(),5);await trendLayout();await screenshot('monthly-five-trends-1440');
- const allTrends=await seedFrozenPrivateMeeting(db,'2026-09','9月月例会 · 五项趋势核对');await go('/business/meeting-review?meeting='+allTrends.meeting.id);assert.equal(await page.locator('[data-monthly-cost-trend]').count(),5);await screenshot('meeting-five-trends-1440');
- const pdfResponse=await context.request.post(baseURL+'/api/meeting-versions/'+allTrends.version.id+'/pdf',{headers:{Origin:baseURL},data:{}});assert.equal(pdfResponse.status(),200,await pdfResponse.text());const pdfResult=await pdfResponse.json();const allPdf=await context.request.get(baseURL+'/api/meeting-attachments/'+pdfResult.id);assert.equal(allPdf.status(),200);await writeFile(`${dir}/pdf/meeting-five-trends.pdf`,await allPdf.body());mark('五项趋势同时内嵌，新增PDF保留同样对应关系');
+ await page.setViewportSize({width:1440,height:1000});await go('/business/monthly-operations?month=2026-10');assert.equal(await page.locator('[data-monthly-cost-trend]').count(),6);await trendLayout();await screenshot('monthly-five-trends-1440');
+ const allTrends=await seedFrozenPrivateMeeting(db,'2026-09','9月月例会 · 五项趋势核对');await go('/business/meeting-review?meeting='+allTrends.meeting.id);assert.equal(await page.locator('[data-monthly-cost-trend]').count(),6);await screenshot('meeting-five-trends-1440');
+ const pdfResponse=await context.request.post(baseURL+'/api/meeting-versions/'+allTrends.version.id+'/pdf',{headers:{Origin:baseURL},data:{}});assert.equal(pdfResponse.status(),200,await pdfResponse.text());const pdfResult=await pdfResponse.json();const allPdf=await context.request.get(baseURL+'/api/meeting-attachments/'+pdfResult.id);assert.equal(allPdf.status(),200);await writeFile(`${dir}/pdf/meeting-five-trends.pdf`,await allPdf.body());mark('总消耗及五项成本共六条趋势内嵌，新增PDF保留同样对应关系');
+ // 两个月的真实隔离事实单独验收：不让长金额边界样本遮蔽主要阅读场景。
+ await db.delete(s.operationsPromotionDailyMetric).where(lte(s.operationsPromotionDailyMetric.metricDate,'2026-08-31'));
+ await db.update(s.operationsMonthlyPlan).set({sealedVersionId:null,arrangementStatus:'editing'}).where(eq(s.operationsMonthlyPlan.id,monthly.plan.id));
+ for(const width of [1920,1440,1024]){await page.setViewportSize({width,height:1000});await go('/business/monthly-operations?month=2026-10');assert.equal(await page.locator('[data-monthly-cost-trend]').count(),6);for(const metric of await page.locator('[data-monthly-cost-trend]').all())assert.equal(await metric.locator('button').count(),2);await trendLayout();await screenshot('monthly-two-months-'+width);await go('/business/meeting-review?meeting='+monthly.meeting.id);assert.equal(await page.locator('.monthly-core .ps-disclosure').count(),2);assert.equal(await page.locator('[data-private-panel]').count(),0);await screenshot('meeting-two-months-'+width);}
+ mark('仅两个月事实时六条走势均铺满实际宽度，来源直接在结果表下展开');
  await context.close();context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN',recordVideo:{dir:dir+'/video',size:{width:1440,height:1000}}});await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:employee});page=await context.newPage();
  await go('/business/monthly-operations?month=2026-10');await page.reload();await settleBusinessUI(page);await page.getByRole('link',{name:'排期管理',exact:true}).first().click();await page.waitForURL('**/business/operations-schedule**');await page.getByRole('link',{name:'月度运营',exact:true}).first().click();await page.waitForURL('**/business/monthly-operations**');await settleBusinessUI(page);assert.equal(await page.locator('[data-monthly-cost-results]').count(),1);const firstPaint=page.video();await context.close();await firstPaint.saveAs(dir+'/video/first-paint.webm');
  assert.deepEqual(errors,[]);await writeFile(dir+'/checks.json',JSON.stringify({checks,images,layouts,errors,dataSource:'tests/private-sources.fixture.ts＋仅课程／空讲义隔离数据；全部位于本机独立PostgreSQL',baseURL},null,2));console.log('COST_REPAIR_OK '+checks.length);

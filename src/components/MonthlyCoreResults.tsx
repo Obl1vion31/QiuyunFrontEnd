@@ -2,10 +2,11 @@ import '../styles/metric-change.css';
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import type {MonthlyWorkspace} from '../db/monthly-workspace';
-import {PromotionPrivateTotals,PrivateCostChange} from './PrivateSourceResults';
+import {PromotionPrivateTotals,PrivateCostChange,PrivateSourceResults} from './PrivateSourceResults';
 import {adjacentMonth} from '../db/monthly-plan-types';
 import '../styles/monthly-meeting.css';
 import {MonthlyCostResults} from './MonthlyCostResults';
+import {LegacyPrivateRecords} from './MonthlyPrivatePanel';
 type Core=MonthlyWorkspace['core'];
 const money=(n:number|null)=>n==null?'—':`¥${n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const number=(n:number|null)=>n==null?'—':n.toLocaleString('zh-CN');
@@ -17,7 +18,7 @@ function Change({value,previous,amount=false}:{value:number|null;previous:number
 }
 export default function MonthlyCoreResults({core,history=true,embedded=false}:{core:Core;history?:boolean;embedded?:boolean}){
  const p=core.privateData,c=core.comparison;
- if(core.costHistory)return <section className="monthly-core" data-embedded={embedded||undefined} aria-label="月度核心结果"><header><div><h2>{embedded?'本月结果':'核心结果'}</h2><span className="monthly-core-scope">{core.month} · {core.costHistory.at(-1)?.inProgress?'截至当前':'完整自然月'}</span></div>{history&&<div className="business-filter"><MonthlyHistory month={core.month}/></div>}</header><MonthlyCostResults core={core}/></section>;
+ if(core.costHistory)return <section className="monthly-core" data-embedded={embedded||undefined} aria-label="月度核心结果"><header><div><h2>{embedded?'本月结果':'核心结果'}</h2><span className="monthly-core-scope">{core.month} · {core.costHistory.at(-1)?.inProgress?'截至当前':'完整自然月'}</span></div>{history&&<div className="business-filter"><MonthlyHistory month={core.month}/></div>}</header><MonthlyCostResults core={core}/>{p.sourceData?<PrivateSourceResults key={core.month} value={p} previous={c?.privateData} summaryOnly collapsible/>:<LegacyPrivateRecords value={p}/>}</section>;
  if(p.sourceData)return <section className="monthly-core" data-embedded={embedded||undefined} aria-label="月度核心结果"><header><div><h2>{embedded?'本月结果':'核心结果'}</h2><span className="monthly-core-scope">{core.month} · 全月推广来源</span></div>{history&&<div className="business-filter"><MonthlyHistory month={core.month}/></div>}</header><PromotionPrivateTotals value={p} previous={c?.privateData}/><dl className="monthly-outcomes ps-platform-outcomes">{(['actualOpen','actualLead'] as const).map((key,i)=><div key={key}><dt>{i?'实际留资':'实际开口'}<span>{number(core.spend[`${key}Count`])} 人</span></dt><dd><span>{i?'留资':'开口'}成本</span><strong>{money(core.spend[`${key}Cost`])}</strong><PrivateCostChange value={core.spend[`${key}Cost`]} previous={c?.spend[`${key}Cost`]??null}/></dd></div>)}</dl></section>;
  const comparisons=[
   ...(['added','consulted','converted'] as const).flatMap((key,i)=>[

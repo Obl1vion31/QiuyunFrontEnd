@@ -46,3 +46,8 @@ test('全空行按实际事实判定，手填真实零不被清除',()=>{
  assert.equal(rows.length,2);
  assert.deepEqual(sumPrivateCounts(rows),{added:null,consulted:null,converted:null});
 });
+
+// 日度费用以两位小数登记；浮点累加不应改变半分钱的四舍五入方向。
+test('费用先归整到分再计算单位成本，半分不受累加误差影响',()=>{
+ assert.deepEqual(privateUnitCosts(11891.179999999998,{added:13,consulted:13,converted:4}),{added:914.71,consulted:914.71,converted:2972.8});
+});
