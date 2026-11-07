@@ -308,5 +308,6 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 - content-config-values定义目录结构与兼容初值；content-config集中读取、事务修改及SQL有效名称表达式；taxonomy-store.readTaxonomy输出subjectCategories供年度／排期／复盘选择。不要使用全局category.name覆盖学科名称，也不要修改旧JSON或PDF。
 - /api/business-settings/content-config的GET／PATCH均限管理员，配置携带subjectId、expectedRevision及完整目录；保留用途／类型ID，新增类型在原基表和学科映射中建立身份。BusinessContentConfiguration复用公共Dialog和草稿保护；用途在私域表单及服务端同步动态读取。
+- ContentConfigurationTable供推广／非推广两组与用途目录复用，稳定ID预览顺序、松手调用原PATCH。Pointer capture由不移动的列表容器持有，行DOM换位与FLIP过渡相配合，拖动行显示等高空档和只读浮层；取消、Esc和窗口失焦清理。键盘使用同一提交路径。失败保留顺序并锁住其他配置写入，可重试、恢复或确认载入最新。非推广不渲染用途字段，旧实际推广使用的映射保留；新增非推广类型提交空用途，不改既有指标或冻结结果。
 - 月会PATCH动作revise_sealed_text只接收sourceVersionId、expectedUpdatedAt、coreConclusion、nextAction。meeting-sealed-revision校验最新有效版本与封存计划并复制快照，事务内生成新有效版本，不调用材料刷新、事项流转或计划发布。旧动作仍经assertMeetingMutable，不能通过普通修订绕过封存。
 - WeeklyMeetingPresentation.sealedTextOnly只开放两项文字；MonthlyCostResults标记最后有效月，点的透明热区和提示继续使用SparkTrend及business-popover。标记在像素坐标绘制，不受SVG缩放变成椭圆；公共样式不再提供节点放大。

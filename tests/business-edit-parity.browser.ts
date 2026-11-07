@@ -54,8 +54,7 @@ try {
  await dialog.getByRole('button',{name:'保存',exact:true}).click();await dialog.waitFor({state:'hidden'});
  const catalog=await api(boss,'/api/business-settings/content-config'),tmua=catalog.configurations.find((c:any)=>c.subjectId==='tmua'),step=catalog.configurations.find((c:any)=>c.subjectId==='step');
  assert.equal(step.config.types.find((t:any)=>t.id==='small-class-or-tutoring').name,'小班课和一对一');
- await page.getByRole('button',{name:'上移TMUA 专题课程',exact:true}).isDisabled().then((v:boolean)=>assert(v));
- await page.getByRole('button',{name:'下移TMUA 专题课程',exact:true}).focus();await page.keyboard.press('Enter');await page.getByRole('status').filter({hasText:'已保存'}).waitFor();
+ await page.getByRole('button',{name:'拖动TMUA 专题课程排序',exact:true}).focus();await page.keyboard.press('Space');await page.keyboard.press('ArrowDown');await page.keyboard.press('Space');await page.locator('.content-config-feedback').filter({hasText:'已保存'}).waitFor();
  await page.locator('.content-config-table tbody tr').filter({hasText:'TMUA 专题课程'}).getByRole('button',{name:'编辑',exact:true}).click();await dialog.getByLabel('名称',{exact:true}).fill('并发输入仍保留');
  const latest=(await api(boss,'/api/business-settings/content-config')).configurations.find((c:any)=>c.subjectId==='tmua');await api(boss,'/api/business-settings/content-config',{subjectId:'tmua',expectedRevision:latest.revision,config:latest.config});
  await dialog.getByRole('button',{name:'保存',exact:true}).click();await dialog.getByRole('alert').filter({hasText:'已更新'}).waitFor();assert.equal(await dialog.getByLabel('名称',{exact:true}).inputValue(),'并发输入仍保留');await shot(page,'admin-1440-config-conflict');
