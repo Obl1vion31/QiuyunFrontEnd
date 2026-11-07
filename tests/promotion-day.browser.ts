@@ -7,7 +7,7 @@ import {settleBusinessUI,respondToBusinessConfirm} from './business-confirm.help
 import {promotionSnapshot} from '../src/db/promotion-timeline';
 const dir=process.env.PROMOTION_DAY_DIR??'.tools/test-artifacts/promotion-day';await mkdir(dir+'/screenshots',{recursive:true});
 const clockFile=process.cwd()+'/'+dir+'/clock.txt';await writeFile(clockFile,'2026-11-06T10:00:00+08:00');
-const f=await startPostgresFixture({clockFile}),{db,baseURL}=f;
+const f=await startPostgresFixture({clockFile,entry:process.env.PROMOTION_DAY_ENTRY}),{db,baseURL}=f;
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);let browser:any,debug:any;const checks:string[]=[],images:string[]=[],errors:string[]=[],fonts:any[]=[];
 async function cookies(actor:any){const r=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>{const [name,...rest]=v.split(';')[0].split('=');return {name,value:rest.join('='),url:baseURL};});}
 async function shot(page:any,name:string,key?:any){

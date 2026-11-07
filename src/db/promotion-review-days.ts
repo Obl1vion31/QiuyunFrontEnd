@@ -2,19 +2,27 @@ import {normalizePromotionActualStatus,promotionActualLabels} from './promotion-
 import type {PromotionTimelineRow} from './promotion-pending';
 import {pendingPromotionPeriod} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
-import {campaignPauseWindows,campaignWaitWindows,firstMissingPromotionDate,promotionStateOn,promotionDayStatusEdit} from './promotion-state.mjs';
+import {campaignPauseWindows,campaignWaitWindows,firstMissingPromotionDate,promotionStateOn,promotionDayStatusEdit,promotionMetricStatus} from './promotion-state.mjs';
 import {nextDateKey,previousDateKey,shanghaiDateKey} from './promotion-rules.mjs';
 import {meetingDecisionOn,meetingNextDecision} from './meeting-decision-rules.mjs';
 import type {MeetingDecision} from './meeting-decisions';
 import {requiredPromotionStage} from './promotion-review-required';
+import type {operationsPromotionDailyMetric} from './schema';
+import {testingCycleOn} from './promotion-cycles.mjs';
+export type SavedReviewMetric=Pick<typeof operationsPromotionDailyMetric.$inferSelect,'id'|'campaignId'|'metricDate'|'updatedAt'|'dailyStatus'|'actualStatusSnapshot'|'recordKind'|'stageTypeSnapshot'|'spend'|'platformOpenCount'|'actualOpenCount'|'platformLeadCount'|'actualLeadCount'|'reviewDecision'|'note'>;
+export function retainsDailyReview(metric:Pick<SavedReviewMetric,'metricDate'|'updatedAt'|'recordKind'>,now=new Date()){
+ const today=shanghaiDateKey(now),yesterday=previousDateKey(today);
+ return metric.recordKind!=='test_residual'&&metric.metricDate<=yesterday&&(metric.metricDate===yesterday||shanghaiDateKey(new Date(metric.updatedAt))===today);
+}
 
 export interface ReviewDay {
  meetingDecision?:MeetingDecision;meetingNext?:string|null;
- date:string;campaignId?:string;kind:'metric'|'arrangement'|'preview';stage:string|null;status:string;
+ savedMetric?:SavedReviewMetric;
+ date:string;campaignId?:string;kind:'metric'|'arrangement'|'preview'|'saved';stage:string|null;status:string;
  actualStatus?:string;statusEditOptions?:Array<{value:string;label:string}>;defaultZero?:boolean;initialWaiting?:boolean;waitingThrough?:string;editable:boolean;blockedBy:string|null;opensAt:string;due:boolean;
 }
 /** 展示到今天，填写止于昨天；连续区间只保留当前状态及到期安排，不伪造指标。 */
-export function promotionReviewDays(rows:PromotionTimelineRow[],context:PromotionContext,now=new Date()){
+export function promotionReviewDays(rows:PromotionTimelineRow[],context:PromotionContext,now=new Date(),savedMetrics:SavedReviewMetric[]=[]){
  const today=shanghaiDateKey(now),yesterday=previousDateKey(today);
  return rows.flatMap(row=>{
   if(!row.isPromoted||row.publishedOn>today)return [];
@@ -33,10 +41,22 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
     const state=promotionStateOn(campaign,context,date);const terminal=(context.stateChanges??[]).find(c=>c.campaignId===campaign.id&&c.businessDate===date&&!c.meetingDecision&&['test_discarded','formal_discarded','ended'].includes(c.actualStatus??''));if(!state||(!state.currentStage&&!terminal))continue;
     days.push({date,campaignId:campaign.id,kind:'metric',stage:date===expected?(state.currentStage??terminal?.stageType??null):null,actualStatus:normalizePromotionActualStatus(state.currentStatus,state.currentStage),statusEditOptions:date===expected?promotionDayStatusEdit(campaign,context,date)?.options:undefined,defaultZero:['test_paused','test_pending','scaling_paused'].includes(normalizePromotionActualStatus(state.currentStatus,state.currentStage)),status:date===expected?(promotionActualLabels[normalizePromotionActualStatus(state.currentStatus,state.currentStage)]??'待安排'):'待安排',editable:date===expected,blockedBy:date===expected?null:expected,opensAt:`${nextDateKey(date)}T00:00:00+08:00`,due:true});
    }
+   for(const metric of savedMetrics.filter(m=>m.campaignId===campaign.id&&retainsDailyReview(m,now))){
+    const actual=promotionMetricStatus(campaign,context,metric);
+    days.push({date:metric.metricDate,campaignId:campaign.id,kind:'saved',savedMetric:metric,stage:metric.stageTypeSnapshot,actualStatus:actual,statusEditOptions:promotionDayStatusEdit(campaign,context,metric.metricDate)?.options,status:promotionActualLabels[actual]??actual,editable:false,blockedBy:null,opensAt:`${nextDateKey(metric.metricDate)}T00:00:00+08:00`,due:false});
+   }
   }
   days.sort((a,b)=>a.date.localeCompare(b.date));
   const firstDue=days.find(day=>day.due)?.date;
-  for(const day of days)if(day.kind==='metric'){const decision=meetingDecisionOn(context.meetingDecisions??[],day.campaignId,nextDateKey(day.date));if(decision){day.meetingDecision=decision;day.meetingNext=meetingNextDecision(day.actualStatus??'testing',decision.action==='restart_testing'?'restart_testing':decision.targetStatus);}}
+  for(const day of days)if(day.kind==='metric'||day.kind==='saved'){
+   const nextDate=nextDateKey(day.date),decision=meetingDecisionOn(context.meetingDecisions??[],day.campaignId,nextDate);
+   if(decision){day.meetingDecision=decision;day.meetingNext=meetingNextDecision(day.actualStatus??'testing',decision.action==='restart_testing'?'restart_testing':decision.targetStatus);}
+   else if(day.savedMetric){
+    const active=owned.find(c=>c.id===day.campaignId)??campaign!,nextState=promotionStateOn(active,context,nextDate),cycle=testingCycleOn(active,context,nextDate);
+    const restarting=nextState?.currentStatus==='testing'&&!!cycle&&cycle.number>1&&cycle.startedOn===nextDate;
+    day.meetingNext=meetingNextDecision(day.actualStatus,restarting?'restart_testing':nextState?.currentStatus)??day.savedMetric.reviewDecision;
+   }
+  }
   for(const day of days)if(day.kind==='metric'&&day.date!==firstDue){day.editable=false;day.blockedBy=firstDue??null;day.stage=null;day.status='待安排';}
   const state=campaign?promotionStateOn(campaign,context,today):null;
   const ended=!row.isPromoted||['ended','test_discarded','formal_discarded'].includes(state?.currentStatus??campaign?.currentStatus??row.promotionStatus);
@@ -60,7 +80,8 @@ export function promotionReviewQueue(posts:ReturnType<typeof promotionReviewDays
  const upcoming=records.filter(({day})=>day.kind==='preview'&&!day.waitingThrough&&!day.initialWaiting);
  const openingTimes=[...new Set(upcoming.map(({day})=>day.opensAt))].sort();
  const initial=records.filter(({row,day})=>day.kind==='arrangement'&&!row.campaign&&row.canArrangeInitial);
- return {ready,main:records.filter(record=>ready.includes(record)||initial.includes(record)),upcoming,openingGroups:openingTimes.map(opensAt=>({opensAt,records:upcoming.filter(({day})=>day.opensAt===opensAt)})),
+ const saved=records.filter(({day})=>day.kind==='saved');
+ return {ready,saved,main:records.filter(record=>ready.includes(record)||initial.includes(record)||saved.includes(record)),upcoming,openingGroups:openingTimes.map(opensAt=>({opensAt,records:upcoming.filter(({day})=>day.opensAt===opensAt)})),
   arrangements:records.filter(record=>record.day.kind==='arrangement'&&!initial.includes(record)),
   continuing:records.filter(({day})=>day.kind==='preview'&&(day.waitingThrough||day.initialWaiting)),
   blocked:records.filter(({day})=>day.kind==='metric'&&!day.editable)};

@@ -1,16 +1,16 @@
 ---
-import {promotionReviewDays,promotionReviewQueue} from '../db/promotion-review-days';
+import {promotionReviewDays,promotionReviewQueue,type SavedReviewMetric} from '../db/promotion-review-days';
 import type {PromotionTimelineRow} from '../db/promotion-pending';
 import type {PromotionContext} from '../db/promotion-state.mjs';
 import BusinessPromotionDecisionLabel from './BusinessPromotionDecisionLabel.astro';
 import BusinessPromotionReviewRecord from './BusinessPromotionReviewRecord.astro';
-interface Props {rows:PromotionTimelineRow[];context:PromotionContext;now?:Date}
-const {rows,context,now=new Date()}=Astro.props,queue=promotionReviewQueue(promotionReviewDays(rows,context,now));
+interface Props {rows:PromotionTimelineRow[];context:PromotionContext;metrics:SavedReviewMetric[];now?:Date}
+const {rows,context,metrics:knownMetrics,now=new Date()}=Astro.props,queue=promotionReviewQueue(promotionReviewDays(rows,context,now,knownMetrics));
 const shortOpening=(value:string)=>`${Number(value.slice(5,7))}/${Number(value.slice(8,10))} 00:00`;
 const groups=[{key:'arrangements',label:'待处理推广安排',records:queue.arrangements},{key:'blocked',label:'待前日复盘',records:queue.blocked},{key:'continuing',label:'待定 / 暂停中',records:queue.continuing}];
 const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台开口（人）','1'],['actualOpenCount','实际开口（人）','1'],['platformLeadCount','平台留资（人）','1'],['actualLeadCount','实际留资（人）','1']];
 ---
-<div class="promotion-pending-content" data-promotion-pending-body data-server-now={now.toISOString()} data-due-count={queue.ready.length}>
+<div class="promotion-pending-content" data-promotion-pending-body data-server-now={now.toISOString()} data-due-count={queue.ready.length} data-saved-count={queue.saved.length}>
  <p class="review-empty" data-review-empty hidden={queue.main.length>0}>今日暂无待填写复盘</p>
  <div class="review-entry-scroll" data-review-container="ready" hidden={!queue.main.length} tabindex="0" aria-label="每日复盘录入，可左右滚动">
   <div class="review-entry-grid review-entry-head"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span><BusinessPromotionDecisionLabel/></span><span/></div>
@@ -31,4 +31,4 @@ const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台�
   <template data-residual-template><form class="business-form review-metric-row review-entry-grid residual" data-residual-form><input type="hidden" name="campaignId"/><input type="hidden" name="metricDate"/><input type="hidden" name="recordKind" value="test_residual"/><input type="hidden" name="dailyStatus" value="waiting_action"/><input type="hidden" name="actualStatusSnapshot" value="test_discarded"/><input type="hidden" name="stageTypeSnapshot" value="testing"/><input type="hidden" name="sourceStageStartedOn"/><input type="hidden" name="reviewDecision" value="test_discarded"/><time class="review-date-block"/><div class="review-entry-identity"><strong data-residual-name/><small data-residual-version/></div><span class="review-day-state"><strong>淘汰后残留</strong></span>{metrics.map(([name,label,step])=><label class="review-number"><span class="review-field-label">{label}</span><input name={name} aria-label={label} type="number" min="0" step={step} required/></label>)}<div class="review-calculated"><div><span>开口成本</span><output data-open-cost>—</output></div><div><span>留资成本</span><output data-lead-cost>—</output></div></div><span class="review-no-next">无需后续动作</span><button type="submit" class="business-action-primary review-submit">完成补录</button><p role="status" data-form-message/></form></template>
  </section>
 </div>
-<script>import '../scripts/promotion-review-days';import '../scripts/promotion-residual';</script>
+<script>import '../scripts/promotion-review-days';import '../scripts/promotion-residual';import '../scripts/promotion-saved-review';</script>

@@ -59,6 +59,7 @@ function replacePromotionRow(old:Element,next:Element){
 function reconcileDailySchedule(scheduleId:string,fresh:Document){
  const body=document.querySelector<HTMLElement>('[data-promotion-pending-body]'),source=fresh.querySelector<HTMLElement>('[data-promotion-pending-body]');
  if(!body||!source)return;
+ const focused=document.activeElement instanceof HTMLElement&&body.contains(document.activeElement)?document.activeElement:null;
  const selector=`[data-review-record][data-review-post="${CSS.escape(scheduleId)}"]`;
  const existing=new Map([...body.querySelectorAll<HTMLElement>(selector)].map(row=>[row.dataset.reviewRecord!,row]));
  const ensureContainer=(next:HTMLElement)=>{
@@ -75,7 +76,12 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
   const key=next.dataset.reviewRecord!,old=existing.get(key),container=ensureContainer(next);if(!container)continue;
   let live:HTMLElement;
   const oldForm=old?.querySelector<HTMLFormElement>('[data-metric-form]'),nextForm=next.querySelector<HTMLFormElement>('[data-metric-form]');
-  if(old&&oldForm&&nextForm){
+  if(old&&(old.querySelector('[data-saved-review]')||next.querySelector('[data-saved-review]'))){
+   live=old;
+   const saved=old.querySelector<HTMLFormElement>('[data-saved-review][data-editing=true]'),source=next.querySelector<HTMLFormElement>('[data-saved-review]');
+   if(saved&&source&&saved.dataset.fingerprint===source.dataset.fingerprint)saved.dispatchEvent(new CustomEvent('business:saved-context-updated',{detail:{form:source}}));
+   if(!saved){for(const [key,value]of Object.entries(next.dataset))live.dataset[key]=value;live.replaceChildren(...[...next.childNodes].map(node=>node.cloneNode(true)));}
+  }else if(old&&oldForm&&nextForm){
    live=old;
    for(const [key,value]of Object.entries(next.dataset))live.dataset[key]=value;
    const changed=oldForm.dataset.actualStatus!==nextForm.dataset.actualStatus;
@@ -122,7 +128,10 @@ function reconcileDailySchedule(scheduleId:string,fresh:Document){
    if(live===cursor)cursor=cursor.nextElementSibling as HTMLElement|null;else container.insertBefore(live,cursor);
   }
  }
- body.dataset.serverNow=source.dataset.serverNow;body.dataset.dueCount=source.dataset.dueCount;
+ // 其他帖的已保存行跨午夜移出时，排序可能移动原输入；同一节点的焦点仍留在原处。
+ if(focused?.isConnected&&document.activeElement!==focused)focused.focus({preventScroll:true});
+ body.dataset.serverNow=source.dataset.serverNow;body.dataset.dueCount=source.dataset.dueCount;body.dataset.savedCount=source.dataset.savedCount;
+ const savedCount=document.querySelector<HTMLElement>('[data-promotion-saved-count]');if(savedCount){savedCount.textContent=` · 已保存 ${source.dataset.savedCount??0} 项`;savedCount.hidden=source.dataset.savedCount==='0';}
 }
 /** 仅替换本篇业务行；其他帖子输入、公共表头、工具栏与滚动保持原样。 */
 export async function refreshPromotionSchedule(scheduleId:string,freshDocument?:Document){

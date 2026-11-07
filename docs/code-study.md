@@ -137,9 +137,9 @@ flowchart LR
 
 移动端 Inspector 的焦点范围包含原生 `summary`，排除折叠内容中的字段；Chrome 的关闭 `details` 仍可能保留布局盒，不能只用 `getClientRects()` 判断键盘可达性。
 
-每日表单由 `promotion-daily-form.ts` 管理原行草稿、校验、计算与保存锁；`BusinessPostReferences` 仅展示资料，复用 `business-popover.ts` 与例会相同的原生气泡行为。版本行复用 `promotion-pending.css` 的18px行框和4px间距，资料按钮用伪元素扩展至24px点击区域，避免组件外边距与行内gap叠加。表格不再克隆到 Inspector；查看资料不导航或触发草稿确认，缺失 ID 的确认仍只更新本地草稿并随复盘原子保存。
+每日表单由 `promotion-daily-form.ts` 管理原行草稿、校验、计算与保存锁；已保存复盘仍使用 `BusinessPromotionMetricForm` 原行，仅以 `data-saved-review` 替代待填标记，`promotion-saved-review.ts` 管理继续编辑、取消、原位PATCH及只读重试。两者共用 `openStateBubble`，次日更正原因沿用同一气泡样式及 editor 生命周期，不往表格增加字段。`BusinessPostReferences` 仅展示资料，复用 `business-popover.ts` 与例会相同的原生气泡行为。版本行复用 `promotion-pending.css` 的18px行框和4px间距，资料按钮用伪元素扩展至24px点击区域，避免组件外边距与行内gap叠加。表格不再克隆到 Inspector；查看资料不导航或触发草稿确认，缺失 ID 的确认仍只更新本地草稿并随复盘原子保存。
 
-推广精确状态和后继选择共用 `promotion-successors.mjs`；`promotionDayStatusEdit` 排除该日已有覆盖后回放原状态，SSR 和事务共用更正选项，误选终态可恢复该日原状态且不开放历史终态之后重启。状态气泡只传行日期、目标状态与原因，保存后仍显示“修改”，次日安排独立；终态与进行中互改时原位恢复相应选择控件，保留数字草稿。`promotion-residual.ts` 复用日度 API 的笔记搜索／残留保存；服务端稳定归属由日度事实的 `sourceStageStartedOn` 及阶段聚合维护，不以临时阶段行 ID 关联。
+推广精确状态和后继选择共用 `promotion-successors.mjs`；`promotionDayStatusEdit` 排除该日已有覆盖后回放原状态，SSR 和事务共用更正选项，误选终态可恢复该日原状态且不开放历史终态之后重启。状态气泡只传行日期、目标状态与原因，保存后仍显示“修改”，次日安排独立；终态与进行中互改时原位恢复相应选择控件，保留数字草稿。`promotion-residual.ts` 复用日度 API 的笔记搜索／残留保存，明确选择活动与日期后才读取该排期的保存指纹，随补录提交并拒绝旧版本；不批量加载全部候选的历史。服务端稳定归属由日度事实的 `sourceStageStartedOn` 及阶段聚合维护，不以临时阶段行 ID 关联。
 
 ### 每日轻量补 ID 与批量复盘
 
@@ -185,7 +185,7 @@ flowchart LR
 
 `BusinessSectionHeader` 的 end 插槽可以是只读统计，也可以接 `<BusinessToolbarActions slot="end" variant="section">`。区块主按钮使用 `primary-action`，轻量按钮和链接无额外 margin；标题、计数、图标和状态变化均验收真实文字中线与可见12px间距。历史筛选的查看／重置共用同一操作组，年度新建的文字与加号由父级 gap 管理。顶部已有消费者省略 variant，保留8px间距及原样式，不将只读统计换成按钮。
 
-每日 `BusinessPromotionDailyPosts` 用 `promotionReviewQueue.main` 在同一 `review-entry-scroll` 内渲染可填指标和 `BusinessPromotionInitialRow`；`ready` 与 dueCount 继续只统计指标。初始灰行没有 `data-metric-form`，禁用框无提交名称，不伪造零。状态浮层复用 timeline 保存、公共确认与 promotion editor 生命周期；后者独立于右侧 plan 表单。保存成功通过 `business:operation-receipt` 复用公共通知外壳；即使该行进入待开放队列也可见，不增加一行反馈占位。排期／历史的 `BusinessPromotionPendingRows` 保留自身布局，不复制主表DOM；历史日期与选择按160px可读字段组换行，明确覆盖公共表单的 min-width:0，不能只检查无溢出而保留被裁切的日期。
+每日 `BusinessPromotionDailyPosts` 用 `promotionReviewQueue.main` 在同一 `review-entry-scroll` 内渲染可填、已保存指标和 `BusinessPromotionInitialRow`；`ready` 与 dueCount 继续只统计待填指标。页面已读取的完整 metrics 传给 `promotionReviewDays`，`retainsDailyReview`按上海日期保留昨日及今天更新的更早事实，不扩大公共context查询或增加轮询。原活动＋日期节点在首次保存后保留；编辑中的已存行不被重读覆盖，自己的状态保存以新指纹同步上下文，其他草稿／焦点／滚动保留。初始灰行没有 `data-metric-form`，禁用框无提交名称，不伪造零。状态浮层复用 timeline 保存、公共确认与 promotion editor 生命周期；后者独立于右侧 plan 表单。保存成功通过 `business:operation-receipt` 复用公共通知外壳，不增加一行反馈占位。排期／历史的 `BusinessPromotionPendingRows` 保留自身布局，不复制主表DOM；历史日期与选择按160px可读字段组换行，明确覆盖公共表单的 min-width:0，不能只检查无溢出而保留被裁切的日期。
 
 新首次待定用显式 null，省略字段保留旧接口语义。只读模型区分尚未安排与计划已存但截止为空，T+1按业务日期推导，不能按点击日重写草稿日期。局部刷新保留稳定记录键、其他指标节点、焦点及滚动。验收覆盖工具栏所有保存状态、五档视口、灰行与真实零值混排、有限／无截止、失败重试、关闭／导航／跨午夜草稿保护；实际查看图像和录像后才能计为通过。
 
@@ -284,6 +284,8 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 首页封面交互：`ContentTunnel`的外层figure继续承接统一相位与循环变换，`data-home-cover-face`内层承接指针3D弹簧。`home-motion`复用同一rAF与可见性生命周期，以外层命中区域跟随静止光标，暂停仅冻结横向相位；减少动态效果、粗指针、隐藏和回收清理材质层，不建立第二个永久动画循环。
 
 推广历史单日更正由 `promotion-day-edit.ts` 在事务内读取相邻有效状态，`promotion-day-rules.mjs` 校验两条衔接；`api/promotion-daily/[id]` 及已登记日的 `promotion-timeline` 共用该服务。`BusinessPromotionMetric` 只显示当日安排，原生状态选择和指标共用既有表单；`contextRequired` 返回三天上下文，客户端使用公共 `businessConfirm` 后带 `confirmDayContext/contextFingerprint` 重交。仅选中日状态及派生阶段重建，后续原始记录与冻结会议不改；旧 reviewDecision 字段仅为存储衔接和旧表单兼容。初始日期等重建仍使用 `promotion-history-correction.ts` 的独立影响预览，不混入历史单日流程。`promotionMetricStatus` 继续统一表格、Inspector及新会议材料的有效状态。
+
+每日已保存行显式提交 `dailyWorkspace` 与次日决定时，同一服务才启用 `nextDecision` 分支，服务端复核保留范围；旧历史表单仍只更正所选日。更正次日先验证前一日→当天→次日，次日已有指标时继续验证其后一天；保留人数／消耗和真实重测边界，不归档删除后续事实。`daily_review_correction`审计记录明确的当日与次日有效前后状态。状态不变的指标更正不弹状态确认；一次成功写入后读取失败仅重读。
 
 ### 私域来源接入
 

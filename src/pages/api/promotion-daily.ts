@@ -20,6 +20,7 @@ import { promotionDailyInputFromForm, promotionDailySchema } from '../../db/prom
 import { lockPromotionWorkflow, readPromotionContext } from '../../db/promotion-pauses';
 import { effectivePromotionStatus } from '../../db/promotion-state.mjs';
 import { WorkflowError,StaleWriteError } from '../../db/schedule-workflow';
+import {promotionSnapshot,timelineFingerprint} from '../../db/promotion-timeline';
 
 export const prerender = false;
 
@@ -41,7 +42,10 @@ export const GET: APIRoute = async ({ url }) => {
   const parsed=platformNoteIdSchema.safeParse(url.searchParams.get('noteId'));
   if(!parsed.success)return Response.json({message:'请输入有效的 24 位笔记 ID。'},{status:422});
   try{const candidates=await getDb().select({campaignId:operationsPromotionCampaign.id,scheduleId:operationsContentSchedule.id,contentName:operationsContentVersion.contentName,versionNumber:operationsContentVersion.versionNumber,platformNoteId:operationsContent.platformNoteId,startedOn:operationsPromotionCampaign.startedOn,endedOn:operationsPromotionCampaign.endedOn,sourceStageStartedOn:operationsPromotionCampaign.startedOn}).from(operationsPromotionCampaign).innerJoin(operationsContentSchedule,eq(operationsPromotionCampaign.scheduleId,operationsContentSchedule.id)).innerJoin(operationsContentVersion,eq(operationsContentSchedule.contentVersionId,operationsContentVersion.id)).innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).where(and(eq(operationsContent.platformNoteId,parsed.data),eq(operationsPromotionCampaign.currentStatus,'test_discarded')));
-   return Response.json({residualCandidates:candidates.map(c=>({...c,earliestDate:c.endedOn?nextDateKey(c.endedOn):null,latestDate:previousDateKey(shanghaiDateKey(new Date()))}))},{headers:{'Cache-Control':'no-store'}});
+   const selected=url.searchParams.get('campaignId'),candidate=selected?candidates.find(c=>c.campaignId===selected):null;
+   if(selected&&!candidate)return Response.json({message:'该活动已不适合补录，请重新查询并选择。'},{status:409});
+   const fingerprint=candidate?timelineFingerprint(await promotionSnapshot(getDb(),candidate.scheduleId)):undefined;
+   return Response.json({residualCandidates:candidates.map(c=>({...c,earliestDate:c.endedOn?nextDateKey(c.endedOn):null,latestDate:previousDateKey(shanghaiDateKey(new Date()))})),...(fingerprint?{fingerprint}:{})},{headers:{'Cache-Control':'no-store'}});
   }catch{return Response.json({message:'笔记查询失败，请重试。'},{status:503});}
  }
   const metricDate = requestedDate(url);

@@ -186,7 +186,8 @@ try {
 }
 Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 
-const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now);
+const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now,metrics);
+const savedCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='saved').length,0);
 const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='metric'&&day.editable).length,0);
 const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId});
 const lifecycleRows=overview.filter(row=>!row.closed&&row.latest);
@@ -235,8 +236,8 @@ const historyHref = (overrides: Record<string, string>) => {
             {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
           </section>
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
-            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small></Fragment><BusinessToolbarActions slot="end" variant="section"><button type="button" class="primary-action" data-save-all disabled={!pendingCount}>一键保存 ({pendingCount})</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history"><span>历史总览</span><span aria-hidden="true">↗</span></a></BusinessToolbarActions></BusinessSectionHeader></div>
-            <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} now={now}/>
+            <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small><small data-promotion-saved-count hidden={!savedCount}> · 已保存 {savedCount} 项</small></Fragment><BusinessToolbarActions slot="end" variant="section"><button type="button" class="primary-action" data-save-all disabled={!pendingCount}>一键保存 ({pendingCount})</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history"><span>历史总览</span><span aria-hidden="true">↗</span></a></BusinessToolbarActions></BusinessSectionHeader></div>
+            <BusinessPromotionDailyPosts rows={timelineRows} context={promotionContext} metrics={metrics} now={now}/>
           </section>
 
           </>}

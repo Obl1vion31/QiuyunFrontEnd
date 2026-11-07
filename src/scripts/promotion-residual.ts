@@ -15,17 +15,22 @@ function initialize(){
   }catch(error){message.textContent=error instanceof Error?error.message:'查询失败，请重试。';}finally{button.disabled=false;}
  });
  select.addEventListener('change',()=>{const candidate=candidates.find(item=>item.campaignId===select.value);date.min=candidate?.earliestDate??'';date.max=candidate?.latestDate??'';date.value='';});
- choices.addEventListener('submit',event=>{
+ choices.addEventListener('submit',async event=>{
   event.preventDefault();if(!choices.reportValidity())return;const candidate=candidates.find(item=>item.campaignId===select.value);if(!candidate)return;
-  const key=`${candidate.campaignId}:${date.value}`;if(rows.querySelector(`[data-residual-key="${CSS.escape(key)}"]`)){message.textContent='该日期已有补录行。';return;}
+  const metricDate=date.value,key=`${candidate.campaignId}:${metricDate}`;if(rows.querySelector(`[data-residual-key="${CSS.escape(key)}"]`)){message.textContent='该日期已有补录行。';return;}
+  const choose=choices.querySelector<HTMLButtonElement>('[type=submit]')!;if(choose.disabled)return;choose.disabled=true;let fingerprint:string;
+  try{
+   const result=await readBusiness(choices,async read=>{const query=new URLSearchParams({noteId:String(new FormData(search).get('noteId')),campaignId:candidate.campaignId}),response=await fetch('/api/promotion-daily?'+query,{signal:read.signal,cache:'no-store'}),result=await response.json();if(!response.ok)throw new Error(result.message??'读取失败，请重试。');return result;},{isCurrent:()=>!editor.hidden&&!choices.hidden&&select.value===candidate.campaignId&&date.value===metricDate});
+   if(!result)return;fingerprint=result.fingerprint;
+  }catch(error){message.textContent=error instanceof Error?error.message:'读取失败，请重试。';return;}finally{choose.disabled=false;}
   const template=editor.querySelector<HTMLTemplateElement>('[data-residual-template]')!,form=template.content.firstElementChild!.cloneNode(true) as HTMLFormElement;
-  form.dataset.residualKey=key;for(const [name,value]of Object.entries({campaignId:candidate.campaignId,metricDate:date.value,sourceStageStartedOn:candidate.sourceStageStartedOn}))(form.elements.namedItem(name) as HTMLInputElement).value=value;
+  form.dataset.residualKey=key;for(const [name,value]of Object.entries({campaignId:candidate.campaignId,metricDate,sourceStageStartedOn:candidate.sourceStageStartedOn}))(form.elements.namedItem(name) as HTMLInputElement).value=value;
   form.querySelector('[data-residual-name]')!.textContent=candidate.contentName;form.querySelector('[data-residual-version]')!.textContent=`V${candidate.versionNumber}`;const time=form.querySelector('time')!;time.dateTime=date.value;time.textContent=`${Number(date.value.slice(5,7))}月${Number(date.value.slice(8))}日`;
   const requestKey=randomRequestKey(),feedback=form.querySelector<HTMLElement>('[data-form-message]')!,submit=form.querySelector<HTMLButtonElement>('[type=submit]')!;let busy=false;
   form.addEventListener('input',()=>{form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';const values=Object.fromEntries(new FormData(form)),complete=['spend','platformOpenCount','actualOpenCount','platformLeadCount','actualLeadCount'].every(name=>values[name]!==''),spend=Number(values.spend);for(const [selector,name]of [['[data-open-cost]','actualOpenCount'],['[data-lead-cost]','actualLeadCount']])form.querySelector(selector)!.textContent=complete&&Number(values[name])>0?`¥${(spend/Number(values[name])).toFixed(2)}`:'—';});
   form.addEventListener('submit',async event=>{
    event.preventDefault();if(busy||!form.reportValidity())return;busy=true;submit.disabled=true;submit.textContent='正在保存…';feedback.textContent='';
-   try{const data=new FormData(form);data.set('requestKey',requestKey);const response=await fetch('/api/promotion-daily',{method:'POST',body:data,headers:{Accept:'application/json'}}),result=await response.json();if(!response.ok){feedback.textContent=result.message??'补录失败，输入已保留。';return;}
+   try{const data=new FormData(form);data.set('requestKey',requestKey);data.set('fingerprint',fingerprint);const response=await fetch('/api/promotion-daily',{method:'POST',body:data,headers:{Accept:'application/json'}}),result=await response.json();if(!response.ok){feedback.textContent=result.message??'补录失败，输入已保留。';return;}
     form.dataset.dirty='false';submit.textContent='已补录';submit.dataset.success='';feedback.textContent='补录已完成';await refreshPromotionSchedule(candidate.scheduleId);document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));for(const field of form.querySelectorAll<HTMLInputElement>('input'))field.disabled=true;submit.disabled=true;return;
    }catch{feedback.textContent='连接失败，输入已保留。';}finally{busy=false;if(form.dataset.dirty!=='false'){submit.disabled=false;submit.textContent='完成补录';}}
   });rows.hidden=false;rows.append(form);form.querySelector<HTMLInputElement>('[name=spend]')?.focus({preventScroll:true});message.textContent='';

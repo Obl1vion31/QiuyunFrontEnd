@@ -46,3 +46,13 @@ test('保存持续待定与尚未安排的业务历史可区分',()=>{
  assert.equal(promotionSnapshotLabel({plan:{waitingThrough:null,plannedOn:null},campaigns:[]},'2026-10-20','wait'),'持续待定');
  assert.equal(promotionSnapshotLabel({plan:null,campaigns:[]},'2026-10-20','wait'),'尚未开始');
 });
+
+test('每日工作区更正显示当日与次日有效状态，新轮复测不被相同测试状态隐藏',()=>{
+ const fact={id:'m',metricDate:'2026-10-17',actualStatusSnapshot:'testing',reviewDecision:'test_pause'};
+ const before={metrics:[fact],correctedDayStatus:'test_paused',correctedNextDayStatus:'testing'};
+ const after={metrics:[{...fact,reviewDecision:'restart_testing'}],correctedDayStatus:'test_paused',correctedNextDayStatus:'testing'};
+ const view=promotionAuditView(audit({action:'daily_review_correction',reason:'重新验证测试素材',before,after}));
+ assert.equal(view.visible,true);assert.equal(view.title,'每日复盘更正');
+ assert.equal(view.beforeLabel,'2026-10-17 测试暂停；2026-10-18 的安排：测试中');
+ assert.equal(view.afterLabel,'2026-10-17 测试暂停；2026-10-18 的安排：重新开始测试');
+});

@@ -18,7 +18,7 @@ export const PATCH:APIRoute=async({request,url,params,locals})=>{
   const data=parsed.data;
   if(data.changeDayStatus){
    if(!data.dayStatus)throw new WorkflowError('请选择当天的安排。',422);
-   const result=await saveHistoricalPromotionDay(getDb(),{metricId:params.id!,targetStatus:data.dayStatus,requestKey:data.requestKey,fingerprint:data.fingerprint,confirmDayContext:data.confirmDayContext,contextFingerprint:data.contextFingerprint,values:{spend:data.spend,platformOpenCount:data.platformOpenCount,actualOpenCount:data.actualOpenCount,platformLeadCount:data.platformLeadCount,actualLeadCount:data.actualLeadCount,note:data.note}},locals.user!);
+   const result=await saveHistoricalPromotionDay(getDb(),{metricId:params.id!,targetStatus:data.dayStatus,requestKey:data.requestKey,fingerprint:data.fingerprint,confirmDayContext:data.confirmDayContext,contextFingerprint:data.contextFingerprint,...(data.dailyWorkspace?{nextDecision:data.reviewDecision,reason:data.reason}:{}),values:{spend:data.spend,platformOpenCount:data.platformOpenCount,actualOpenCount:data.actualOpenCount,platformLeadCount:data.platformLeadCount,actualLeadCount:data.actualLeadCount,note:data.note}},locals.user!);
    return Response.json(result,{status:'contextRequired' in result?409:200});
   }
   const result=await getDb().transaction(async tx=>{

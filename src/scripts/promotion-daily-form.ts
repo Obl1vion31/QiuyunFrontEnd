@@ -43,7 +43,7 @@ function updateBubble(state:StateDraft){
  const caption=state.trigger.querySelector<HTMLElement>('[data-state-caption]');if(caption)caption.textContent=state.saved?'修改':state.target||state.reason?'未保存':'修改';
  setUnsaved();
 }
-async function openStateBubble(owner:HTMLFormElement){
+export async function openStateBubble(owner:HTMLFormElement){
  if(!await preparePromotionEditor('state'))return;
  const key=formKey(owner),trigger=owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')!;
  for(const state of stateDrafts.values())if(state.key!==key&&!state.form.hidden&&!await dismissStateBubble(state))return;
@@ -93,6 +93,7 @@ window.addEventListener('scroll',()=>{for(const state of stateDrafts.values())if
 document.addEventListener('astro:before-swap',()=>{for(const state of stateDrafts.values())state.form.remove();stateDrafts.clear();});
 function initialize(){
  const drafts=documents.get(document)??new Map<string,Draft>();documents.set(document,drafts);
+ const refreshBatch=()=>{const button=document.querySelector<HTMLButtonElement>('[data-save-all]');if(!button)return;const forms=[...document.querySelectorAll<HTMLFormElement>('#daily-table [data-review-container="ready"] [data-metric-form]')],busy=forms.some(form=>drafts.get(formKey(form))?.busy);button.disabled=!forms.length||busy;button.textContent=busy?'正在保存…':`一键保存 (${forms.length})`;};
  const render=(form:HTMLFormElement,draft:Draft)=>{
   for(const field of fields(form))if(field.name in draft.values&&field.value!==draft.values[field.name])field.value=draft.values[field.name];
   const complete=metricNames.every(name=>draft.values[name]!==''&&draft.values[name]!=null&&Number.isFinite(Number(draft.values[name])));
@@ -150,7 +151,7 @@ function initialize(){
     try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{state.message='保存已成功，列表更新失败，请刷新页面查看。';return;}
     drafts.delete(key);pending?.form.remove();stateDrafts.delete(key);
     setUnsaved();
-   }catch{state.message='无法连接服务，请稍后重试。';}finally{state.busy=false;sync(state);}
+   }catch{state.message='无法连接服务，请稍后重试。';}finally{state.busy=false;sync(state);refreshBatch();}
   });
  };
  document.querySelectorAll<HTMLFormElement>('[data-metric-form]').forEach(bind);
@@ -182,9 +183,9 @@ function initialize(){
    for(const form of forms){const key=formKey(form);drafts.delete(key);stateDrafts.get(key)?.form.remove();stateDrafts.delete(key);}
    setUnsaved();
   }catch{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
-  finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.disabled=!count;batch.textContent=`一键保存 (${count})`;}
+  finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}refreshBatch();}
  });}
- if(batch&&![...drafts.values()].some(d=>d.busy)){const count=document.querySelectorAll('#daily-table [data-review-container="ready"] [data-metric-form]').length;batch.textContent=`一键保存 (${count})`;batch.disabled=!count;}
+ refreshBatch();
 
  for(const form of document.querySelectorAll<HTMLFormElement>('[data-metric-form]:not([data-reclaim-ready])')){
   form.dataset.reclaimReady='true';

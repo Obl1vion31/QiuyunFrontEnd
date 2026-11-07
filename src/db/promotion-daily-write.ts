@@ -18,7 +18,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     id: string;
     username: string;
 }, fingerprintChecked = false) {
-    const today = shanghaiDateKey(new Date());
+    const now=new Date(),today = shanghaiDateKey(now);
     if (data.metricDate >= today)
         throw new WorkflowError('日度复盘按 T+1 填写，只能保存今天以前的数据。', 422);
     await transaction.execute(
@@ -111,6 +111,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         actualLeadCount: data.actualLeadCount,
         reviewDecision: data.reviewDecision,
         note: data.note ?? null,
+        reviewedAt:now,updatedAt:now,
     }).returning({ id: operationsPromotionDailyMetric.id });
     const audit = async (nextStatus: string) => { if (data.requestKey)
         await transaction.insert(operationsPromotionTimelineAudit).values({ scheduleId: campaign.scheduleId, requestKey: data.requestKey, businessDate: data.metricDate, action: residual ? 'test_residual' : 'daily_review', reason: data.note || '完成每日复盘', before: before ?? {}, after: { ...await promotionSnapshot(transaction, campaign.scheduleId), metricId: metric.id, nextStatus }, changedById: actor.id, changedByLabel: actor.username }); };

@@ -7,7 +7,7 @@ import {seedHistoricalDay} from './promotion-day.fixture';
 import {admin,employee} from './auth.fixture';
 import {promotionSnapshot,timelineFingerprint} from '../src/db/promotion-timeline';
 import * as s from '../src/db/schema';
-const dir='.tools/test-artifacts/promotion-day';await mkdir(dir,{recursive:true});const f=await startPostgresFixture(),{db,baseURL}=f,checks:string[]=[];
+const dir='.tools/test-artifacts/promotion-day';await mkdir(dir,{recursive:true});const f=await startPostgresFixture({entry:process.env.PROMOTION_DAY_ENTRY}),{db,baseURL}=f,checks:string[]=[];
 async function login(actor:any){const r=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(actor)});assert.equal(r.status,200);return r.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');}
 async function api(cookie:string,path:string,data:any,status=200,method='PATCH'){const r=await fetch(baseURL+path,{method,headers:{Cookie:cookie,Origin:baseURL,...(data instanceof FormData?{}:{'Content-Type':'application/json'})},body:data instanceof FormData?data:JSON.stringify(data)});const value=await r.json();assert.equal(r.status,status,JSON.stringify({path,value}));return value;}
 function form(metric:any,target:string,fingerprint:string,key=randomUUID()){const out=new FormData();for(const[k,v]of Object.entries({...metric,dayStatus:target,changeDayStatus:'true',requestKey:key,fingerprint}))if(v!=null)out.set(k,String(v));return out;}
