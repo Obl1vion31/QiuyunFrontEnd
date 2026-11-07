@@ -6,7 +6,7 @@
 
 `business-forms.css` 由 `BusinessConsoleFrame` 引入，集中维护常规表单 `business-form`、紧凑筛选 `business-filter` 与居中 `BusinessFormDialog` 的视觉规格。
 
-`business-navigation.css` 只负责目标布局骨架、低对比扫光和等待提示；沿用公共边界与磨砂变量，固定层独立于Sidebar。真实页面、表单及局部读取的样式仍由原组件维护，减少动态效果使用静态占位。
+`business-navigation.css` 只负责A方案的顶部蓝色细线与等待提示；固定层独立于Sidebar，减少动态效果显示静态细线。真实页面、表单与局部读取的样式仍由原组件维护。
 
 Sheet／Dialog 的遮罩进入、退出及面板退出动画也在此统一维护；面板进入位置由对应组件提供，关闭完成与滚动锁交由共享控制器处理。
 

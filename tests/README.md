@@ -1,8 +1,8 @@
 # 验证
 
-`pnpm test:navigation` 使用实际Astro路由与8篇隔离样本，覆盖管理员／员工、1920／1440／1024px的快速／800ms／2500ms切页，以及七模块目标骨架、键盘、取消返回、连续导航、前后退、草稿取消与失败回退。快速按HTML及样式的实际就绪时间判断，不能把网络控制延迟当作完整就绪时间。另验减少动态效果和390px明显遮挡／溢出；截图与原速录像保存到 `NAVIGATION_EVIDENCE_DIR`，实际查看后归档。`NAVIGATION_ENTRY`可指定正式Vercel运行包的本机适配入口，保持同一夹具和用例。
+`pnpm test:navigation` 使用实际Astro路由与8篇隔离样本，覆盖管理员／员工、1920／1440／1024px的快速／800ms／2500ms切页，以及七模块公共细线、保留原页、键盘、取消返回、连续导航、前后退、草稿取消与失败回退。快速按HTML及样式的实际就绪时间判断，不能把网络控制延迟当作完整就绪时间。另验减少动态效果和390px明显遮挡／溢出；截图与原速录像保存到 `NAVIGATION_EVIDENCE_DIR`，实际查看后归档。`NAVIGATION_ENTRY`可指定正式Vercel运行包的本机适配入口，保持同一夹具和用例。
 
-连续切页另逐帧断言骨架之间不闪回来源页。已有完整验收结果时，`NAVIGATION_ONLY_RAPID=1`可只补跑该段并更新原结果；该模式不能代替首次完整运行。
+连续切页另逐帧断言细线不中断。已有完整验收结果时，`NAVIGATION_ONLY_RAPID=1`可只补跑该段并更新原结果；该模式不能代替首次完整运行。
 
 `private-sources-compat.integration.ts` 使用真实PG及 `PRIVATE_BASELINE_SOURCE` 指定的正式旧源码，验证兼容读取、旧写入拒绝、新JSON往返、原月未变及并发。正式0049触发器同时安装到共享PG／PGlite夹具；发布包验收可通过 `startPostgresFixture({entry})` 指定实际打包服务入口，数据仍只在临时库。
 

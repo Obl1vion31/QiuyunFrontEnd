@@ -18,7 +18,7 @@
 
 `business-read.ts` 统一目标容器读取：`beginBusinessRead(target, {signal, isCurrent})` 返回请求信号、落地守卫和 `finish/cancel`；500ms 内保持安静，超过后仅目标区域显示一处反馈。相同目标的新读取取消旧任务，导航与 Inspector 关闭清理状态，业务在写入 DOM 前检查 `isCurrent()`。`readBusiness` 可包裹包含 JSON／HTML 解析的完整任务。
 
-`business-navigation.ts` 监听真正的Astro切页，120ms后按目标路由生成无业务值的布局骨架；数据及样式就绪取消未出现的占位，已出现的占位在实际swap后收尾。Sidebar仅保留导航选择及地址记忆，原位详情和保存不走骨架；取消与连续导航按Signal隔离并恢复原页可用性。
+`business-navigation.ts` 监听真正的Astro切页，原页保持可见；120ms后显示公共细线，1200ms后显示目标名称提示。数据及样式就绪取消未出现的反馈，实际swap后收尾；不维护逐页占位布局。Sidebar保留导航选择和地址记忆，原位详情与保存使用本地反馈，取消与连续导航按Signal隔离。
 
 - `business-dialog.ts`：站内未保存确认与 Sheet／Dialog 的面板、遮罩成对进出生命周期，以及详情／抽屉／嵌套确认共用的滚动锁；实际退出完成后才原生关闭，快速重开取消旧任务。
 - `business-permissions.ts`：读取服务端下发的操作权限、同步入口显示；服务端始终独立复核。

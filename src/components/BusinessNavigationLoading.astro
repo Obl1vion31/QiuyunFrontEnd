@@ -1,18 +1,9 @@
 ---
-import BusinessConsoleToolbar from './BusinessConsoleToolbar.astro';
-import BusinessToolbarSegmented from './BusinessToolbarSegmented.astro';
 import '../styles/business-navigation.css';
 ---
-<div class="business-navigation-loading" data-glass-surface="navigation" data-navigation-loading transition:persist="business-navigation-loading" role="status" aria-live="polite" hidden>
-  <template data-navigation-template><div aria-hidden="true" inert>
-    <BusinessConsoleToolbar title="正在打开页面" subtitle=" " loading>
-      <div slot="center" data-navigation-center><BusinessToolbarSegmented label="非推广复盘视图" items={[{label:'待复盘',href:'?view=pending',active:true},{label:'已复盘',href:'?view=history',active:false},{label:'不复盘',href:'?view=skipped',active:false}]}/></div>
-      <span slot="end" class="navigation-bone navigation-toolbar-bone"></span>
-    </BusinessConsoleToolbar>
-    <div class="business-console-content navigation-content" data-navigation-content></div>
-    <p class="navigation-wait" data-navigation-wait hidden></p>
-  </div></template>
-  <div data-navigation-surface></div>
-  <span class="navigation-announcement" data-navigation-announcement></span>
+<div class="business-navigation-feedback" data-navigation-loading transition:persist="business-navigation-loading" role="status" aria-live="polite" hidden>
+  <div class="business-navigation-progress" aria-hidden="true"><span></span><span></span></div>
+  <p class="business-navigation-message" data-navigation-wait aria-hidden="true" hidden></p>
+  <span class="business-navigation-announcement" data-navigation-announcement></span>
 </div>
 <script>import '../scripts/business-navigation';</script>

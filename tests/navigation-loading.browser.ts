@@ -15,7 +15,7 @@ const previous=rapidOnly?JSON.parse(await readFile(dir+'/result.json','utf8')):n
 const results:unknown[]=previous?previous.results.filter((item:any)=>!item.rapidNavigation):[],screenshots:string[]=previous?previous.screenshots.filter((name:string)=>!name.startsWith('cancel-return')&&!name.startsWith('rapid-latest')):[],videos:string[]=previous?previous.videos.filter((name:string)=>name!=='rapid-1440.webm'):[],errors:string[]=[];
 const routeNames=[['annual-plan','总周期规划','annual-plan'],['operations-schedule','排期管理','schedule'],['daily-promotion-review','推广帖复盘','daily-promotion'],['non-promotion-review','非推广复盘','non-promotion-review'],['meeting-review','例会总览','meeting-review'],['monthly-operations','月度运营','monthly-operations'],['settings','系统设置','settings']];
 async function shot(page:any,name:string){await page.screenshot({path:dir+'/screenshots/'+name+'.png'});screenshots.push(name+'.png');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,name+' 无页面级横向溢出');}
-async function settled(page:any,path:string){await page.waitForFunction((pathname:string)=>location.pathname===pathname&&!document.documentElement.dataset.businessNavigation,path,{timeout:15000});await page.waitForFunction(()=>!document.querySelector<HTMLElement>('[data-navigation-loading]')||document.querySelector<HTMLElement>('[data-navigation-loading]')!.hidden);}
+async function settled(page:any,path:string){await page.waitForFunction((pathname:string)=>location.pathname===pathname&&!document.documentElement.dataset.businessNavigation,path,{timeout:15000});await page.waitForFunction(()=>!document.querySelector<HTMLElement>('[data-navigation-loading]')||document.querySelector<HTMLElement>('[data-navigation-loading]')!.hidden);await page.evaluate(async()=>{const content=document.querySelector('.business-console-content');await Promise.all((content?.getAnimations({subtree:true})??[]).filter(animation=>animation.effect?.getComputedTiming().iterations!==Infinity).map(animation=>animation.finished.catch(()=>{})));});}
 async function contextFor(role:'admin'|'employee',width=1440,record=false,reduced=false){
  const context=await browser.newContext({viewport:{width,height:width===1920?1080:1000},locale:'zh-CN',reducedMotion:reduced?'reduce':'no-preference',...(record?{recordVideo:{dir:dir+'/raw-video',size:{width,height:width===1920?1080:1000}}}:{})});
  await context.addInitScript('window.__name=value=>value;');
@@ -42,25 +42,25 @@ try{
   const before=await page.locator('.business-console-workspace').boundingBox();
   await page.locator('[data-business-console-sidebar] a[data-module-id="non-promotion-review"]').hover();await page.waitForTimeout(160);assert.equal(reads,0,'悬停不预读业务 HTML');
   await page.locator('[data-business-console-sidebar] a[data-module-id="non-promotion-review"]').click();
-  let geometry,loadingTab;
+  let geometry;
   if(delay>120){
    await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===false);
-   assert.equal(await page.locator('.business-console-workspace').getAttribute('inert'),'','原页不接收误操作');
-   geometry=await page.locator('[data-navigation-loading]').boundingBox();assert.ok(Math.abs(geometry.x-before.x)<=1);assert.ok(Math.abs(geometry.width-before.width)<=1,'骨架宽度等于工作区');
-   assert.equal(await page.locator('[data-navigation-loading] .business-toolbar__title strong').innerText(),'非推广复盘');
-   loadingTab=await page.locator('[data-navigation-loading] .toolbar-segmented a.active').evaluate((el:Element)=>{const style=getComputedStyle(el);return {background:style.backgroundColor,color:style.color,font:style.font};});
-   assert.equal(await page.locator('[data-navigation-loading] input').count(),0,'骨架不伪造录入字段');
-   if(delay===2500){await page.locator('[data-navigation-wait]:visible').waitFor();}
+   assert.equal(await page.locator('.business-console-workspace').getAttribute('inert'),null,'等待时保留原页交互');
+   geometry=await page.locator('[data-navigation-loading]').boundingBox();assert.ok(Math.abs(geometry.x-before.x)<=1);assert.ok(Math.abs(geometry.width-before.width)<=1,'细线覆盖真实工作区宽度');assert.equal(geometry.height,3);
+   assert.equal(await page.locator('.business-toolbar__title strong').innerText(),'排期管理','保留原页标题和内容');
+   const toolbar=await page.locator('.business-toolbar').boundingBox();assert.ok(Math.abs(geometry.y-toolbar.y-toolbar.height+1)<=1,'细线贴合顶栏下边缘');
+   assert.equal(await page.locator('.navigation-bone,[data-navigation-template],[data-navigation-content]').count(),0,'不保留B占位布局');
+   assert.equal(await page.locator('.business-toolbar').count(),1,'等待时不复制工具栏');
+   if(delay===2500){await page.locator('[data-navigation-wait]:visible').waitFor();assert.equal(await page.locator('[data-navigation-wait]').innerText(),'正在打开非推广复盘…');}
    await shot(page,name+'-loading');
   }
   await settled(page,target);assert.equal(reads,1,'实际导航只读取一次业务 HTML');
   assert.equal(await page.locator('[data-review-body] [data-row-href]').count(),8);
   assert.equal(await page.locator('.business-toolbar').count(),1,'完成后只有一个真实工具栏');
-  if(loadingTab)assert.deepEqual(loadingTab,await page.locator('.business-console-workspace .toolbar-segmented a.active').evaluate((el:Element)=>{const style=getComputedStyle(el);return {background:style.backgroundColor,color:style.color,font:style.font};}),'骨架与结果的选中按钮共用视觉');
   assert.equal(await page.locator('.business-console-workspace').getAttribute('inert'),null);
   assert.equal(await page.evaluate(()=>(window as any).navigationSidebar===document.querySelector('[data-business-console-sidebar]')),true);
   const preparedMs=await page.evaluate(()=>(window as any).navigationPrepared);
-  if(preparedMs<120)assert.equal(await page.evaluate(()=>(window as any).navigationShows),0,'HTML 与样式均在 120ms 内就绪时不闪现骨架');
+  if(preparedMs<120)assert.equal(await page.evaluate(()=>(window as any).navigationShows),0,'HTML 与样式均在 120ms 内就绪时不闪现细线');
   await page.waitForTimeout(250);await shot(page,name+'-complete');
   const fonts=await page.locator('.business-console-workspace .business-toolbar__title strong').evaluate((el:Element)=>getComputedStyle(el).fontFamily);assert.match(fonts,/MiSans/);
   let actualFonts;
@@ -77,7 +77,7 @@ try{
   const {context,page}=await contextFor('admin',1440,true,true),html=await (await context.request.get(fixture.baseURL+target)).text();
   await page.route('**/business/non-promotion-review',async(route:any)=>{await pause(2500);await route.fulfill({contentType:'text/html; charset=utf-8',body:html});});
   await page.locator('[data-business-console-sidebar] a[data-module-id="non-promotion-review"]').click();await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===false);
-  assert.equal(await page.locator('[data-navigation-loading] .navigation-bone').first().evaluate((el:Element)=>getComputedStyle(el,'::after').animationName),'none');
+  assert.equal(await page.locator('.business-navigation-progress>span').first().evaluate((el:Element)=>getComputedStyle(el).animationName),'none');
   await shot(page,'reduced-1440-loading');await settled(page,target);await shot(page,'reduced-1440-complete');await close(context,page,'reduced-1440',true);results.push({reducedMotion:true,passed:true});
  }
  {
@@ -89,7 +89,7 @@ try{
   await page.locator('[data-business-console-sidebar] a[data-module-id="non-promotion-review"]').click();await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===false);
   await page.evaluate(()=>{const w=window as any;w.navigationContinuity=[];w.navigationWatching=true;function sample(){if(!w.navigationWatching)return;w.navigationContinuity.push({loading:document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===false,path:location.pathname});requestAnimationFrame(sample);}sample();});
   await page.locator('[data-business-console-sidebar] a[data-module-id="monthly-operations"]').click();await settled(page,'/business/monthly-operations');
-  const continuity=await page.evaluate(()=>{const w=window as any;w.navigationWatching=false;return w.navigationContinuity;});assert.ok(continuity.filter((frame:any)=>frame.path==='/business/operations-schedule').every((frame:any)=>frame.loading),'改选目标时不闪回原页');
+  const continuity=await page.evaluate(()=>{const w=window as any;w.navigationWatching=false;return w.navigationContinuity;});assert.ok(continuity.filter((frame:any)=>frame.path==='/business/operations-schedule').every((frame:any)=>frame.loading),'改选目标时细线不中断');
   await page.waitForTimeout(2700);assert.equal(new URL(page.url()).pathname,'/business/monthly-operations');
   await page.goBack();await settled(page,'/business/operations-schedule');await page.goForward();await settled(page,'/business/monthly-operations');await shot(page,'rapid-latest-1440');await close(context,page,'rapid-1440',true);results.push({rapidNavigation:true,history:true,continuity,passed:true});
  }
@@ -97,20 +97,20 @@ try{
   const {context,page}=await contextFor('admin',1440,true);await page.goto(fixture.baseURL+target);await settled(page,target);
   await page.locator('[data-row-href] [data-inspector-trigger]').first().click();const input=page.locator('[data-inspector] [data-review-form] input[name="readCount"]');await input.fill('123');
   await page.locator('[data-business-console-sidebar] a[data-module-id="monthly-operations"]').click();await page.locator('[data-business-confirm][open]').waitFor();
-  await page.waitForTimeout(250);assert.equal(await page.locator('[data-navigation-loading]:visible').count(),0,'草稿确认前不显示骨架');await page.getByRole('button',{name:'继续编辑',exact:true}).click();await page.locator('[data-business-confirm][open]').waitFor({state:'hidden'});assert.equal(await input.inputValue(),'123');await shot(page,'draft-retained-1440');await close(context,page,'draft-1440',true);results.push({draftProtection:true,passed:true});
+  await page.waitForTimeout(250);assert.equal(await page.locator('[data-navigation-loading]:visible').count(),0,'草稿确认前不显示切页反馈');await page.getByRole('button',{name:'继续编辑',exact:true}).click();await page.locator('[data-business-confirm][open]').waitFor({state:'hidden'});assert.equal(await input.inputValue(),'123');await shot(page,'draft-retained-1440');await close(context,page,'draft-1440',true);results.push({draftProtection:true,passed:true});
  }
  if(!rapidOnly){
   const {context,page}=await contextFor('admin');let attempts=0;
   await page.route('**/business/non-promotion-review',async(route:any)=>{attempts++;if(attempts===1){await pause(400);await route.abort('failed');}else await route.continue();});
   await page.locator('[data-business-console-sidebar] a[data-module-id="non-promotion-review"]').click();await settled(page,target);assert.equal(await page.locator('.business-console-workspace').getAttribute('inert'),null);assert.ok(attempts>=2,'Astro 原生失败回退可完成');results.push({networkFailureFallback:true,passed:true});await context.close();
  }
- // Every module uses the same loader, including keyboard navigation and its proper destination shape.
+ // Every module uses the same feedback, without maintaining per-page placeholders.
  if(!rapidOnly)for(const [module,title,id] of routeNames){
   const {context,page}=await contextFor('admin'),path='/business/'+module;
   if(module==='operations-schedule')await page.goto(fixture.baseURL+target);
   const href=await page.locator(`[data-business-console-sidebar] a[data-module-id="${id}"]`).getAttribute('href');
   const html=await (await context.request.get(new URL(href,fixture.baseURL).href)).text();await page.route((url:URL)=>url.pathname===path,async(route:any)=>{await pause(800);await route.fulfill({contentType:'text/html; charset=utf-8',body:html});});
-  await page.locator(`[data-business-console-sidebar] a[data-module-id="${id}"]`).focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===false);assert.equal(await page.locator('[data-navigation-loading] .business-toolbar__title strong').innerText(),title);await shot(page,'module-'+module+'-1440-loading');await settled(page,'/business/'+module);await shot(page,'module-'+module+'-1440-complete');await context.close();results.push({module,keyboard:true,passed:true});
+  await page.locator(`[data-business-console-sidebar] a[data-module-id="${id}"]`).focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===false);assert.equal(await page.locator('[data-navigation-announcement]').textContent(),'正在打开'+title);assert.equal(await page.locator('.business-toolbar').count(),1);await shot(page,'module-'+module+'-1440-loading');await settled(page,'/business/'+module);await shot(page,'module-'+module+'-1440-complete');await context.close();results.push({module,keyboard:true,passed:true});
  }
  await writeFile(dir+'/result.json',JSON.stringify({passed:errors.length===0,isolatedData:true,results,screenshots,videos,errors},null,2));assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,cases:results.length,screenshots:screenshots.length,videos:videos.length,errors}));
 }finally{await browser.close();await fixture.stop();}

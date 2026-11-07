@@ -1,11 +1,11 @@
 ---
 import BusinessAccountMenu from './BusinessAccountMenu.astro';
-interface Props { title: string; subtitle?: string; mobilePriority?: 'center' | 'end'; layout?: 'balanced' | 'title'; loading?: boolean }
-const { title, subtitle, mobilePriority = 'end', layout = 'balanced', loading = false } = Astro.props;
+interface Props { title: string; subtitle?: string; mobilePriority?: 'center' | 'end'; layout?: 'balanced' | 'title' }
+const { title, subtitle, mobilePriority = 'end', layout = 'balanced' } = Astro.props;
 ---
 
 <header class:list={["business-toolbar", `business-toolbar--mobile-${mobilePriority}`, `business-toolbar--${layout}`]}>
-  <div class="business-toolbar__identity"><div class="business-toolbar__title"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</div>{!loading&&<BusinessAccountMenu placement="toolbar" />}</div>
+  <div class="business-toolbar__identity"><div class="business-toolbar__title"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}</div><BusinessAccountMenu placement="toolbar" /></div>
   <div class="business-toolbar__center"><slot name="center" /></div>
   <div class="business-toolbar__end"><slot name="end" /></div>
 </header>

@@ -207,7 +207,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 
 .business-console-frame[data-glass-surface] .business-sidebar{background:#e7f1f0d9;border-right-color:#ffffffa6}
 .business-console-frame[data-glass-surface] :is(.business-sidebar__nav a.active,.business-sidebar__settings.active){color:#28558f;background:linear-gradient(125deg,#ffffffed,#d7e9f4d9);box-shadow:inset 0 1px 0 #fff,0 4px 12px -9px #254c6b77}
-.business-console-frame[data-glass-surface] .business-toolbar .toolbar-segmented a.active,.business-navigation-loading[data-glass-surface] .business-toolbar .toolbar-segmented a.active{background:#fff;color:#244e77;box-shadow:0 2px 6px #1d496a17}
+.business-console-frame[data-glass-surface] .business-toolbar .toolbar-segmented a.active{background:#fff;color:#244e77;box-shadow:0 2px 6px #1d496a17}
 .business-console-frame[data-glass-surface] .business-console-workspace .business-view-switch input[type=radio]:checked+span{color:#244e77;background:#fff;box-shadow:0 2px 6px #1d496a17}
 .business-console-frame[data-glass-surface] .business-view-switch label:has(input:checked){background:transparent;box-shadow:none}
 .business-console-frame[data-glass-surface] .business-view-switch input:disabled+span{color:#617383;background:transparent;box-shadow:none}
