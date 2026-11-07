@@ -54,11 +54,10 @@ document.addEventListener('astro:before-swap',event=>{
   if(!pending||transition.signal!==pending.signal)return;
   if(!transition.newDocument.querySelector('.business-console-workspace')){clear();return;}
   pending.swapped=true;
-  if(pending.shown){
-    // Avoid overlapping old/new text; skipping a native snapshot intentionally rejects ready.
-    void transition.viewTransition.ready.catch(error=>{if(error?.name!=='AbortError')throw error;});
-    transition.viewTransition.skipTransition();
-  }
+  // Native snapshots also overlap on fast history reads; A always hands off in place.
+  // Skipping a native snapshot intentionally rejects ready.
+  void transition.viewTransition.ready.catch(error=>{if(error?.name!=='AbortError')throw error;});
+  transition.viewTransition.skipTransition();
 });
 document.addEventListener('astro:page-load',()=>{
   if(pending&&!pending.swapped)return;
