@@ -1,0 +1,13 @@
+{
+  "source": "fe19776c943db8f07c6d07141250b85d5da40977",
+  "evidence": "69ea74b438239bed8afba5518a2edf05ea13b58e",
+  "deployment": "dpl_2yaKstAFMYBw1bHii7dRZTibPAAF",
+  "readyState": "READY",
+  "sameDeployment": true,
+  "production": "https://qiuyun-frontend.vercel.app",
+  "candidateChecks": 22,
+  "candidateAssets": 20,
+  "productionChecks": 22,
+  "productionAssets": 74,
+  "productionBusinessWrites": false
+}

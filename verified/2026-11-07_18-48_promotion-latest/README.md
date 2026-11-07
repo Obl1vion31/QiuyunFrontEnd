@@ -1,6 +1,6 @@
 # 每日已保存仅保留最新数据日
 
-应用`fe19776`，分支`codex/promotion-latest-day`。状态：已自检，待发布核对。本轮仅收紧已保存行的日期范围，原行布局与控件保持。
+应用`fe19776`，分支`codex/promotion-latest-day`。状态：已自检并发布，待用户反馈。本轮仅收紧已保存行的日期范围，原行布局与控件保持。
 
 旧范围把“今天更新过的更早日期”也放回主表，导致11月4、5、6日并列。现在仅保留上海昨日这一数据日：11月7日只保留6日；4、5日即使今天补录或修改，也只在历史总览查看。历史事实、累计结果及既有待补顺序保持。
 
@@ -24,3 +24,7 @@
 6日原行的高度、字段相对坐标、字号／字体、边框和底色与原版严格相等：[修改前几何](checks/before-row.json)、[修改后几何](checks/after-row.json)。[专项结果](checks/latest-day.json)、[原保存与失败重试回归](checks/saved-regression.json)、[汇总](checks/summary.json)。类型检查0错误、296规则、Vercel构建通过，实际运行包验证上述场景；[依赖、信任域与中文PDF生成烟测](checks/runtime.json)通过，PDF版式本轮未改。
 
 所有账号、帖子和金额均为虚构隔离数据；正式库未写入测试数据，无物理迁移。原始调试图及抽样帧在私有`.tools/promotion-latest/`。本批替换上一批“今天更新的旧日留在主表”的范围结论，既有原行视觉结论继续适用。
+
+## 正式核对
+
+正式域名与候选同为`dpl_2yaKstAFMYBw1bHii7dRZTibPAAF`，状态READY。候选22项／20资源与正式22项／74资源哈希通过，应用fe19776及验收69ea74b已同步main。[发布记录](checks/release.json)、[候选检查](checks/candidate-probe.json)、[正式检查](checks/production-probe.json)。
