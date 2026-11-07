@@ -1,9 +1,9 @@
 # 项目交接
 
-## 切页骨架屏 B（验证通过，2026-11-07）
+## 切页骨架屏 B（已发布，2026-11-07）
 
 - 应用35e19a5，分支codex/navigation-skeleton-release，隔离工作树.tools/releases/navigation-skeleton-20261107，基于be5f800；根工作区并行修改保持。120ms目标骨架、1200ms轻提示、180ms原位淡入；快速不补播，连续改选不闪回来源页，取消与草稿保护保持。
-- 296规则、类型0错误／0警告、schema、Node／最终Vercel构建、公共UI／共享读取／网络及依赖PDF生成烟测通过。双角色三档、29组、53图、8段889抽样帧实际查看；390仅明显遮挡与溢出。最后补检连续衔接，其余已审查合图像素一致。[本批索引](verified/2026-11-07_21-56_navigation-skeleton/README.md)。待发布后追加正式核对结果。
+- 296规则、类型0错误／0警告、schema、Node／最终Vercel构建、公共UI／共享读取／网络及依赖PDF生成烟测通过。双角色三档、29组、53图、8段889抽样帧实际查看；390仅明显遮挡与溢出。最后补检连续衔接，其余已审查合图像素一致。[本批索引](verified/2026-11-07_21-56_navigation-skeleton/README.md)。正式部署dpl_H4z4QD1tyRYw6fLBDVrZdEUuN952 READY，与候选一致；候选22项／21资源、正式22项／75资源核对通过，应用及验收已同步main。
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
