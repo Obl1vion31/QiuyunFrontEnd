@@ -21,3 +21,5 @@ Sheet／Dialog 的遮罩进入、退出及面板退出动画也在此统一维�
 已认可的桌面材质由 `workspace-glass.css` 管理，全部页面在 `data-glass-surface` 内使用公共宽度、MiSans、控件和面板；`schedule-glass.css` 负责排期连续筛选、日历／Week与详情的局部适配。主要容器承载光影，密集格子和输入保持清晰实底；比较颜色由指标语义标记维护，减少动态／透明度及打印有降级。`public-entry-glass.css` 承接首页与登录，不改九图构图与轮播。长期规则见设计规范，本轮整体验收保持本地、未发布。
 
 - `schedule-panel.css`：排期专属680px单层模态布局、内部视图与单层模糊优化，不改变其他Inspector消费者。
+
+- `schedule-history.css`统一排期详情及查帖中的折叠历史、主变化、理由及辅助时间／修订信息，保持公共字号和单正文滚动。

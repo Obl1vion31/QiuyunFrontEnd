@@ -326,7 +326,6 @@ const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.
                 aria-label={`V${row.versionNumber} ${row.contentName}，${row.isPromoted?'推广':'非推广'}，应发 ${displayDateTime(row.plannedPublishAt)}，${isOverdue(row)?'尚未登记':completionLabels[completionStatus(row.plannedPublishAt,row.actualPublishAt,row.delayThresholdHours)]}`}>
                 <span class="calendar-item-meta"><span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span><time>{displayDateTime(row.plannedPublishAt).split(' ')[1]}</time></span>
                 <span class="calendar-item-name"><span>{row.contentName}</span><b>V{row.versionNumber}</b></span>
-                {calendarMonthlyPlan?.items.filter(item=>item.schedule?.id===row.id).map(item=><small class="monthly-card-membership" title={'月计划 · Week '+item.week}>计划 W{item.week}{item.pending?' · 待审':''}</small>)}
               </button>)}
             </div></>}
           </div>)}

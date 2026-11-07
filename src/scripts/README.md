@@ -46,3 +46,5 @@ monthly-arrangement.ts 在原月历处理拖动及整月提交／核对／退回
 `business-resource-links.ts` 以同一只读渲染器适配排期资料；消费原business:schedule-selected摘要并在直接进入时读取已有SSR记录，不发请求、不接管Inspector选择或保存。导航清理监听，缺失入口移除href与键盘聚焦。
 
 - `schedule-page.js`：排期单层面板的页面适配、原表单与现有月份SSR局部同步；Inspector选择、滚动锁、焦点与未保存确认仍复用公共控制器。
+
+- `schedule-execution-history.ts`共用三组排期历史的DOM呈现；排期Inspector和助手查帖读取同一`historyGroups`，不各自解释原始快照。

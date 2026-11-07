@@ -352,7 +352,7 @@ export const operationsContentSchedule = pgTable(
     id: uuid('id').defaultRandom().primaryKey(),
     contentVersionId: uuid('content_version_id').notNull().references(() => operationsContentVersion.id, { onDelete: 'restrict' }),
     cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
-    executionHistory: jsonb('execution_history').$type<Array<{at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null}>>().notNull().default([]),
+    executionHistory: jsonb('execution_history').$type<import('./schedule-history').ScheduleExecutionEvent[]>().notNull().default([]),
     syncToMoments: boolean('sync_to_moments').notNull().default(false),
     isPromoted: boolean('is_promoted').notNull().default(false),
     promotionStatus: text('promotion_status').notNull().default('none'),

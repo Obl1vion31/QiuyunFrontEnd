@@ -244,3 +244,9 @@ React 18流式编码使用pnpm的react-dom@18.3.1补丁回移官方PR26228，版
 - 性能采样与录像分开：同样本、时钟、浏览器和视口记录requestAnimationFrame间隔，报告P95及最长停顿；固定业务Date而保留原生requestAnimationFrame与performance，不使用会模拟RAF的Playwright时钟；headless结果仅用于同环境对照，不能宣称用户实机帧率。上移问题同时记录页面／正文滚动、顶栏／侧栏坐标和焦点，不将未复现标为已定位。
 
 月排期V0专项：node --import tsx tests/schedule-v0.browser.ts，沿用本机TEST_POSTGRES_URL与PLAYWRIGHT_MODULE；SCHEDULE_V0_ENTRY指定实际运行包，SCHEDULE_V0_DIR指定产物。隔离25篇V0、4篇新增、1篇取消验证28篇，双角色、同Week／跨Week理由、待核对续改、管理员一步封存、旧清单冲突、V0后普通超时改期直接生效及敏感权限；周会截止后变更回放、实发补登记、月度与月会共用净构成。桌面1920／1440／1024分别查看默认折叠及展开，PDF逐页审查；手机仅明显问题。schedule-baseline.test.ts补充净数、同名ID、未知、旧基准和时间边界，不能用当前排期替代原始V0。
+
+### 排期历史与旧定稿归属
+
+`tests/schedule-history.test.ts`核对语义分组、同Week微调、跨月及未知依据；`monthly-plan-summary.test.ts`核对旧重复名额的两帖独立展示。`tests/schedule-history.browser.ts`通过本机隔离PostgreSQL复现22篇、明确遗留名额被早期未关联帖子抢用的入口，覆盖真实保存、混合修改、封存唯一性、旧冻结投影不变、查帖一致、键盘与未保存保护；实际运行最终包，在1920／1440／1024分别检查双角色详情、三组历史、V0明细和查帖，390仅检查明显问题。历史PDF保留，新生成的冻结月会PDF仍读冻结事实。
+
+首屏专项另以1440px新上下文录制慢字体／慢历史、硬刷新、暖刷新及真实站内导航；检查标题完整、字体稳定及局部历史读取，不以等待结束的静态图替代过程。

@@ -77,11 +77,23 @@ export function buildScheduleComparison(baselines:ScheduleBaseline[],records:Exe
 }
 
 /** 只读投影旧封存事实；缺少字段不以当前值补造。 */
-export function legacyScheduleBaseline(month:string,sealedAt:string,plan:any):ScheduleBaseline|null{
+export function legacyScheduleBaseline(month:string,sealedAt:string,plan:any,draft?:any,candidates?:any[]):ScheduleBaseline|null{
  if(!plan?.items||!Array.isArray(plan.items))return null;
  const items:BaselineItem[]=[];
+ const frozen=draft?.content?.items;
+ if(Array.isArray(frozen)&&Array.isArray(candidates)){
+  const ids=new Set<string>();
+  for(const item of [...frozen,...(draft.additions??[]).flatMap((b:any)=>b.content.items)]){
+   const row=candidates.find(r=>r.id===item.scheduleId);
+   if(!row?.plannedAt||ids.has(row.id))return null;
+   ids.add(row.id);items.push({id:row.id,name:row.name,plannedAt:stamp(row.plannedAt)!,itemId:item.id,versionNumber:row.versionNumber,subjectId:row.subjectId,subjectName:row.subjectName,categoryId:row.categoryId,categoryName:row.categoryName});
+  }
+  return {schemaVersion:1,month,sealedAt,items};
+ }
+ const ids=new Set<string>();
  for(const item of plan.items){
   if(!item.schedule?.id||!item.schedule.plannedAt)return null;
+  if(ids.has(item.schedule.id))return null;ids.add(item.schedule.id);
   items.push({id:item.schedule.id,name:item.schedule.name,plannedAt:stamp(item.schedule.plannedAt)!,itemId:item.id,
    subjectId:item.group?.subjectId,categoryId:item.group?.categoryId});
  }
@@ -92,8 +104,10 @@ export async function readScheduleBaselines(db:Database,months:string[]){
  const plans=await db.select({month:s.operationsMonthlyPlan.month,sealedAt:s.operationsMonthlyPlan.lockedAt,
   baseline:sql<ScheduleBaseline|null>`${s.operationsReviewMeetingVersion.snapshot}#>'{generated,scheduleBaseline}'`,
   legacy:sql<unknown>`${s.operationsReviewMeetingVersion.snapshot}#>'{generated,monthly,executionPlan}'`,
+  draft:sql<unknown>`${s.operationsReviewMeetingVersion.snapshot}#>'{draft,monthlyPlan}'`,
+  candidates:sql<any[]|null>`${s.operationsReviewMeetingVersion.snapshot}#>'{generated,monthly,candidates}'`,
  }).from(s.operationsMonthlyPlan).leftJoin(s.operationsReviewMeetingVersion,eq(s.operationsReviewMeetingVersion.id,s.operationsMonthlyPlan.sealedVersionId)).where(inArray(s.operationsMonthlyPlan.month,months));
- return plans.flatMap(p=>{const b=p.baseline??(p.sealedAt?legacyScheduleBaseline(p.month,p.sealedAt.toISOString(),p.legacy):null);return b?[b]:[];});
+ return plans.flatMap(p=>{const b=p.baseline??(p.sealedAt?legacyScheduleBaseline(p.month,p.sealedAt.toISOString(),p.legacy,p.draft,p.candidates??undefined):null);return b?[b]:[];});
 }
 export async function readScheduleComparison(db:Database,from:string,through:string,now=new Date(),scope:'period'|'current'='period'){
  const baselines=await readScheduleBaselines(db,monthsInRange(from,through));

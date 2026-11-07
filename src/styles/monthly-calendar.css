@@ -67,7 +67,6 @@
 .calendar-item{position:relative}
 .calendar-item .monthly-card-check{display:none;position:absolute;right:5px;bottom:7px;width:16px;height:16px;border:1px solid #7a8c9c;border-radius:4px;background:#fff;box-sizing:border-box}
 .calendar-item .monthly-card-check svg{display:none;width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none}
-.calendar-item .monthly-card-membership{display:block;color:inherit;opacity:.85;font:400 12px/18px var(--console-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .calendar-grid.monthly-link-selecting .calendar-item[data-monthly-eligible=false]{opacity:.55;cursor:default}
 .calendar-grid.monthly-link-selecting .calendar-item[data-monthly-eligible=true]{outline:1px solid var(--console-blue);outline-offset:-1px}
 .calendar-grid.monthly-link-selecting .calendar-item[data-monthly-eligible=true] .monthly-card-check{display:block}

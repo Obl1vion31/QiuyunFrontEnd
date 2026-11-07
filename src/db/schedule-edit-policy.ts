@@ -6,6 +6,7 @@ import {lockPromotionWorkflow} from './promotion-pauses';
 import {ArrangementError,assertMeetingMutable,dateMonth} from './monthly-arrangement';
 import {WorkflowError,ScheduleReasonError} from './schedule-workflow';
 import * as s from './schema';
+import {readSchedulePlanContexts} from './schedule-history-context';
 
 const structure=(r:Record<string,any>)=>({id:r.id,versionId:r.versionId,name:r.name,subjectId:r.subjectId,subjectName:r.subjectName,categoryId:r.categoryId,categoryName:r.categoryName,projectDocUrl:r.projectDocUrl,operationType:r.operationType,contentRole:r.contentRole,plannedAt:r.plannedAt,cancelledAt:r.cancelledAt,syncToMoments:r.syncToMoments,isPromoted:r.isPromoted});
 async function records(db:Database,contentIds:string[]){
@@ -52,16 +53,19 @@ export async function guardedScheduleWrite(db:Database,request:Request,actor:Ope
  const reason=String(values.changeReason||values.monthlyPlanReason||values.planChangeReason||values.reason||'').trim();
  if(plans.some(p=>p.arrangementStatus==='confirmed')&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
  if(request.method==='DELETE'){requireAdmin(actor);if(!reason)throw new WorkflowError('请填写取消排期的原因。',422);}
+ const beforeContexts=await readSchedulePlanContexts(db,before.map(r=>r.id));
  const response=await next();
  if(!response.ok)return response;
  const result=await response.clone().json().catch(()=>({}));
  if(!contentIds.length&&result.id){const [created]=await db.select({contentId:s.operationsContentVersion.contentId}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(eq(s.operationsContentSchedule.id,result.id));if(created)contentIds.push(created.contentId);}
  const after=await records(db,contentIds);
+ const afterContexts=await readSchedulePlanContexts(db,after.map(r=>r.id));
  for(const row of after){
   const old=before.find(r=>r.id===row.id),a=structure(row),b=old?structure(old):null;
-  if(JSON.stringify(a)===JSON.stringify(b))continue;
+  const planContext={before:beforeContexts.get(row.id)??[],after:afterContexts.get(row.id)??[]};
+  if(JSON.stringify(a)===JSON.stringify(b)&&JSON.stringify(planContext.before)===JSON.stringify(planContext.after))continue;
   const [saved]=await db.select({history:s.operationsContentSchedule.executionHistory}).from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,row.id));
-  await db.update(s.operationsContentSchedule).set({executionHistory:[...saved.history,{at:new Date().toISOString(),actor:actor.username,reason:reason||'首轮排期填写',before:b,after:a}]}).where(eq(s.operationsContentSchedule.id,row.id));
+  await db.update(s.operationsContentSchedule).set({executionHistory:[...saved.history,{at:new Date().toISOString(),actor:actor.username,reason:reason||'首轮排期填写',before:b,after:a,planContext}]}).where(eq(s.operationsContentSchedule.id,row.id));
  }
  return response;
 }

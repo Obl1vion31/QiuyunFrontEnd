@@ -1,0 +1,5 @@
+:is(#schedule-panel,[data-post-lookup]) .schedule-history-group>summary{cursor:pointer;padding:10px 0;font:500 var(--console-text)/1.6 var(--console-font);color:var(--console-ink)}
+:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history{display:grid;gap:6px;padding:12px 0;border-bottom:1px solid var(--console-line)}
+:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history:last-child{border-bottom:0}
+:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history p{margin:0;font:400 var(--console-text)/1.65 var(--console-font);color:var(--console-ink);white-space:pre-wrap;overflow-wrap:anywhere}
+:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history small{font:400 var(--console-caption)/1.6 var(--console-font);color:var(--console-muted)}

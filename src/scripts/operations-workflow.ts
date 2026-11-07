@@ -1,4 +1,6 @@
-import {executionDescription,type ExecutionEntry} from './schedule-execution-history';
+import {appendScheduleHistoryGroups,type ExecutionEntry} from './schedule-execution-history';
+import type {ScheduleHistoryGroups} from '../db/schedule-history';
+import '../styles/schedule-history.css';
 import type {PublicationMomentsConfirmation} from '../db/schema';
 import './promotion-timeline';
 import './schedule-approvals';
@@ -15,7 +17,7 @@ type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved:
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
 type ChangeProposal={key:string;name:string;title:string;requestedBy:string;reason:string;endpoint:string;scheduleId:string|null;diff:Array<{label:string;before:string;after:string}>};
-type Workflow = {delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};after:{actualPublishAt:string;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { executionHistory?:ExecutionEntry[]; id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type Workflow = {historyGroups:ScheduleHistoryGroups;delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};after:{actualPublishAt:string;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { executionHistory?:ExecutionEntry[]; id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -199,11 +201,7 @@ function initialize() {
           if(!details){details=history(`改期申请历史 ${workflow.applications.filter(item=>item.status!=='pending').length} 条`);details.dataset.applicationHistory='';}details.append(row);
         }
       }
-      if(workflow.schedule.executionHistory?.length){const details=history('排期执行记录 '+workflow.schedule.executionHistory.length+' 条');for(const entry of [...workflow.schedule.executionHistory].reverse()){const row=element('p',executionDescription(entry));row.className='workflow-plan-history';details.append(row);}}
-      if(workflow.history.length){
-        const details=history(`排期变更历史 ${workflow.history.length} 条`);
-        for(const plan of workflow.history){const row=element('p',`R${plan.revision} → R${plan.revision+1} · ${timeLabel(plan.plannedPublishAt)} → ${timeLabel(plan.newPlannedPublishAt)}\n${plan.changedByLabel}：${plan.reason}`);row.className='workflow-plan-history';details.append(row);}
-      }
+      appendScheduleHistoryGroups(historyHost,workflow.historyGroups);
       if(workflow.publicationHistory.length){
         const details=history(`发布登记与更正历史 ${workflow.publicationHistory.length} 条`);
         for(const entry of workflow.publicationHistory){const row=element('section');row.className='workflow-plan-history';row.append(element('p',`R${entry.revision} · ${entry.changedByLabel} · ${timeLabel(entry.createdAt)}\n实发：${entry.before.actualPublishAt?timeLabel(entry.before.actualPublishAt):'未登记'} → ${timeLabel(entry.after.actualPublishAt)}`));

@@ -1,16 +1,20 @@
-import {operationTypeLabels,type OperationType} from '../db/operation-types';
-import {contentRoleLabel} from '../db/content-roles';
 import {businessDateTime} from './business-date';
-export type ExecutionEntry={at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null};
-export function executionDescription(entry:ExecutionEntry){
- const before=entry.before,after=entry.after;
- const title=after?.cancelledAt?'取消排期':before?.cancelledAt&&!after?.cancelledAt?'重新安排':before===null?'建立排期':'调整排期';
- const changes:string[]=[];
- for(const [key,label] of [['name','标题'],['plannedAt','计划时间'],['subjectName','学科'],['categoryName','分类'],['projectDocUrl','项目文档'],['operationType','运营类型'],['contentRole','内容职能'],['syncToMoments','同步朋友圈'],['isPromoted','推广身份']] as const){
-  if((before?.[key]??null)===(after?.[key]??null))continue;
-  const format=(value:unknown)=>key==='syncToMoments'||key==='isPromoted'?(value?'是':'否'):value==null||value===''?'未填写':key==='plannedAt'?businessDateTime(String(value)):key==='operationType'?operationTypeLabels[value as OperationType]??String(value):key==='contentRole'?contentRoleLabel(String(value)):String(value);
-  if(before===null){if(after?.[key]==null||after[key]===''||(['syncToMoments','isPromoted'].includes(key)&&!after[key]))continue;changes.push(label+'：'+format(after[key]));}
-  else changes.push(label+'：'+format(before?.[key])+' → '+format(after?.[key]));
+import type {ScheduleHistoryGroups} from '../db/schedule-history';
+export function appendScheduleHistoryGroups(host:HTMLElement,groups:ScheduleHistoryGroups){
+ for(const group of groups){
+  if(!group.items.length)continue;
+  const fold=document.createElement('details');fold.dataset.scheduleHistoryGroup=group.key;fold.className='schedule-history-group';
+  const summary=document.createElement('summary');summary.textContent=`${group.title} (${group.items.length})`;fold.append(summary);
+  for(const entry of group.items){
+   const row=document.createElement('section');row.className='workflow-plan-history';
+   const main=document.createElement('p');main.textContent=entry.fromAt&&entry.toAt?`${businessDateTime(entry.fromAt)} → ${businessDateTime(entry.toAt)}`:entry.label;row.append(main);
+   for(const text of entry.details??[]){const p=document.createElement('p');p.textContent=text;row.append(p);}
+   if(entry.reason){const reason=document.createElement('p');reason.textContent=entry.reason;row.append(reason);}
+   const text=[entry.at?businessDateTime(entry.at):null,entry.actor,entry.revision!=null?`R${entry.revision} → R${entry.revision+1}`:null].filter(Boolean).join(' · ');
+   if(text){const meta=document.createElement('small');meta.textContent=text;row.append(meta);}
+   fold.append(row);
+  }
+  host.append(fold);
  }
- return title+(changes.length?' · '+changes.join('；'):'')+'\n'+businessDateTime(entry.at)+' · '+entry.actor+'：'+entry.reason;
 }
+export type {ScheduleExecutionEvent as ExecutionEntry} from '../db/schedule-history';

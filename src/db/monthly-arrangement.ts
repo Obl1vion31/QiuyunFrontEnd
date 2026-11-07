@@ -51,16 +51,19 @@ export async function arrangedContent(db:Database,plan:Plan,rows:Awaited<ReturnT
  const original=[...plan.content.items,...plan.additions.flatMap(b=>b.content.items)];
  const groups:PlanGroup[]=structuredClone([...plan.content.groups,...plan.additions.flatMap(b=>b.content.groups)]).map(g=>({...g,quantity:0}));
  const assignments=await db.select().from(s.operationsMonthlyPlanAssignment).where(eq(s.operationsMonthlyPlanAssignment.planId,plan.id));
- const used=new Set<string>();
+ // 先为明确关联保留名额，避免按日期排序的未关联帖子抢走后续帖子的来源。
+ const reserved=new Map<string,typeof original[number]>();
+ for(const row of rows){const link=assignments.find(a=>a.scheduleId===row.id),item=original.find(i=>i.scheduleId===row.id)??original.find(i=>i.id===link?.itemId&&!i.scheduleId);if(item)reserved.set(row.id,item);}
+ const used=new Set<string>([...reserved.values()].map(i=>i.id));
  const items=rows.map(row=>{
-  const link=assignments.find(a=>a.scheduleId===row.id);
-  const old=original.find(i=>i.id===link?.itemId||i.scheduleId===row.id)??original.find(i=>!used.has(i.id)&&groups.some(g=>g.id===i.groupId&&g.subjectId===row.subjectId&&g.categoryId===row.categoryId)&&i.week===weekOf(dateKey(row.plannedAt)))??original.find(i=>!used.has(i.id)&&groups.some(g=>g.id===i.groupId&&g.subjectId===row.subjectId&&g.categoryId===row.categoryId));
+  const old=reserved.get(row.id)??original.find(i=>!used.has(i.id)&&!i.scheduleId&&groups.some(g=>g.id===i.groupId&&g.subjectId===row.subjectId&&g.categoryId===row.categoryId)&&i.week===weekOf(dateKey(row.plannedAt)))??original.find(i=>!used.has(i.id)&&!i.scheduleId&&groups.some(g=>g.id===i.groupId&&g.subjectId===row.subjectId&&g.categoryId===row.categoryId));
   if(old)used.add(old.id);
   let group=groups.find(g=>g.id===old?.groupId&&g.subjectId===row.subjectId&&g.categoryId===row.categoryId)??groups.find(g=>g.subjectId===row.subjectId&&g.categoryId===row.categoryId);
   if(!group){const id='calendar:'+row.subjectId+':'+row.categoryId;group=groups.find(g=>g.id===id);if(!group){group={id,annualPlanId:null,annualVersion:null,name:row.name,subjectId:row.subjectId,categoryId:row.categoryId!,quantity:0,note:'',reason:'首轮排期核对确认'};groups.push(group);}}
   group.quantity=(group.quantity??0)+1;
-  return {id:old?.id??link?.itemId??row.id,groupId:group.id,week:weekOf(dateKey(row.plannedAt)),kind:old?.kind??'existing' as const,scheduleId:row.id};
+  return {id:old?.id??row.id,groupId:group.id,week:weekOf(dateKey(row.plannedAt)),kind:old?.kind??'existing' as const,scheduleId:row.id};
  });
+ if(new Set(items.map(i=>i.id)).size!==items.length||new Set(items.map(i=>i.scheduleId)).size!==items.length)throw new WorkflowError('计划名额或排期重复，请重新核对后定稿。',422);
  return {groups,items};
 }
 export async function changeArrangement(db:Database,id:string,input:{action:'draft'|'submit'|'confirm'|'return';fingerprint:string;requestId:string;reason:string},actor:OperationsUser){

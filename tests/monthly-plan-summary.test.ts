@@ -33,3 +33,12 @@ test('只读周板保留遗留、新做和指定原帖的真实身份',()=>{
  const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content,cards:true}));
  assert.match(html,/data-kind="carry">遗留/);assert.match(html,/data-kind="existing">指定/);assert.match(html,/data-kind="new">新/);
 });
+
+test('旧冻结重复名额按具体排期及冻结候选读，两帖分别呈现',()=>{
+ const next:PlanContent={...content,items:[{...content.items[0],id:'duplicate',scheduleId:'a'},{...content.items[0],id:'duplicate',scheduleId:'b',week:4}]};
+ const candidates=[{id:'a',name:'案例1',plannedAt:'2026-11-03T08:00:00Z',actualAt:null},{id:'b',name:'案例3',plannedAt:'2026-11-25T07:00:00Z',actualAt:null}];
+ const execution=next.items.map(item=>({...item,schedule:candidates[1],submittedAt:null,pending:false,history:[]}));
+ const html=renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content:next,candidates,execution:execution as any,cards:true}));
+ assert.equal((html.match(/data-plan-project=/g)??[]).length,2);assert.match(html,/案例1/);assert.match(html,/案例3/);assert.doesNotMatch(html,/×2/);assert.match(html,/2026-11-03 16:00/);assert.match(html,/2026-11-25 15:00/);
+ const missingHistory=execution.map(({history,...row})=>row);assert.doesNotThrow(()=>renderToStaticMarkup(React.createElement(MonthlyPlanSummary,{month:'2026-11',content:next,candidates,execution:missingHistory as any,cards:true})));
+});

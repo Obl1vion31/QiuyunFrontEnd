@@ -244,6 +244,9 @@
  .business-form.business-form .monthly-carry-option>label{min-height:44px;align-items:center}
 }
 @media print{.monthly-pool-shell{display:none!important}.monthly-plan-workflow .monthly-week{min-height:0}}
+@media print{
+ .monthly-section[data-monthly-issues]:has(tbody:empty){display:none}
+}
 
 .monthly-plan-compact .monthly-week-items>.monthly-plan-chip:has(>[data-plan-return]){position:relative;padding-right:18px}
 .monthly-plan-compact .monthly-chip-return{position:absolute;top:1px;right:1px;display:grid;place-items:center;width:24px;height:24px;min-height:24px;margin:0;padding:0;border:0;border-radius:4px;background:transparent;color:#667b84;cursor:pointer}

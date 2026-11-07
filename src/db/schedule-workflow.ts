@@ -13,6 +13,8 @@ import { operationsContentSchedule as schedules, operationsSchedulePlanHistory a
 import {operationsChangeProposal as proposals} from './schema';
 import {requireSchedulePlanReason} from './schedule-plan-reason';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
+import {readSchedulePlanContexts} from './schedule-history-context';
+import {groupScheduleHistory} from './schedule-history';
 
 export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 type Reader = Database | Transaction;
@@ -71,7 +73,8 @@ export async function readScheduleWorkflow(database: Reader, id: string, actualO
     database.select().from(publicationEvents).where(eq(publicationEvents.scheduleId,id)).orderBy(desc(publicationEvents.revision)),
   ]);
   const through = new Date(Math.min((actualOverride ?? schedule.actualPublishAt ?? now).getTime(), now.getTime()));
-  return { schedule, delayLabel:publicationDelayLabel(schedule.plannedPublishAt,actualOverride??schedule.actualPublishAt), history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
+  const contexts=await readSchedulePlanContexts(database,[id]);
+  return { schedule, historyGroups:groupScheduleHistory(schedule.executionHistory,history,contexts.get(id)), delayLabel:publicationDelayLabel(schedule.plannedPublishAt,actualOverride??schedule.actualPublishAt), history, applications, publicationReservations, publicationHistory, publicationState:publicationState(schedule), allowEmptyPublicationLink:mayKeepEmptyPublicationLink(schedule),
     registrationState: registrationState(schedule, now), requiresPlanApproval: false,
     days: schedule.cancelledAt?[]:scheduleDelayItems(schedule, history, saved, through, now),
     overdueDays: !schedule.cancelledAt&&!schedule.actualPublishAt ? delayDayCount(schedule.plannedPublishAt, now) : 0,
