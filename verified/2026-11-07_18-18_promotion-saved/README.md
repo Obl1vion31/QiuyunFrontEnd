@@ -1,6 +1,6 @@
 # 每日复盘保存后保留原行
 
-应用 `219dd80`，分支 `codex/promotion-saved-workspace`。状态：已自检，待发布核对。所有样张来自实际Vercel运行包及本机隔离PostgreSQL；固定10月7日查看10月6日复盘，账号、帖子与指标均为虚构样本。
+应用 `219dd80`，分支 `codex/promotion-saved-workspace`。状态：已自检并发布，待用户反馈。所有样张来自实际Vercel运行包及本机隔离PostgreSQL；固定10月7日查看10月6日复盘，账号、帖子与指标均为虚构样本。
 
 ## 直接对照
 
@@ -35,3 +35,9 @@
 [运行包依赖与信任域检查](checks/runtime.json)、[实际生成的中文PDF](pdf/runtime-monthly.pdf)及其[第1页](pdf/page-1.png)／[第2页](pdf/page-2.png)／[第3页](pdf/page-3.png)／[第4页](pdf/page-4.png)已查看。PDF是部署烟测，会议模板本轮未改变。正式数据库未写入测试数据，无物理迁移。
 
 本轮早期另做只读行、状态下拉和行内原因的样式已撤回；这些中间稿保留在私有调试目录，不作为最终验收。当前按用户确认的原行继承验收，并以同一行保存前后的实际几何和图像为依据。
+
+## 正式核对
+
+正式域名[内容工作台](https://qiuyun-frontend.vercel.app/business/daily-promotion-review)与候选同为`dpl_AWKxPzErgVoeMW9DERFsQosJRojV`，状态READY。候选22项／20资源及正式22项／74资源哈希检查通过；覆盖新PATCH入口、同源表单、外站拒绝及旧在线锁退役。应用219dd80与验收6aa2669已同步main。
+
+[发布记录](checks/release.json)、[候选检查](checks/candidate-probe.json)、[正式检查](checks/production-probe.json)。公网核对不写入测试业务数据。

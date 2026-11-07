@@ -1,0 +1,14 @@
+{
+  "source": "219dd805e16cf3491d1f8524b1f394145fc97aa7",
+  "evidence": "6aa2669f378cbd599f19785c0ef2bb8444ef5333",
+  "deployment": "dpl_AWKxPzErgVoeMW9DERFsQosJRojV",
+  "readyState": "READY",
+  "candidate": "qiuyun-frontend-5utfyv00p-opgobl1v-5358.vercel.app",
+  "production": "https://qiuyun-frontend.vercel.app",
+  "sameDeployment": true,
+  "candidateChecks": 22,
+  "candidateAssets": 20,
+  "productionChecks": 22,
+  "productionAssets": 74,
+  "productionBusinessWrites": false
+}
