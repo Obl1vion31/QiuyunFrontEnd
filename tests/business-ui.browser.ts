@@ -157,7 +157,8 @@ try {
     const inspector=page.locator('[data-inspector]');
     await inspector.locator('.correction summary').click();
     const readonly=await inspector.locator('.correction input[readonly]').evaluate((node:HTMLElement)=>({border:getComputedStyle(node).borderTopStyle,fill:getComputedStyle(node).backgroundColor}));
-    assert.deepEqual(readonly,{border:'dashed',fill:'rgb(248, 249, 251)'},'只读信息与可编辑字段明确区分');
+    assert.deepEqual(readonly,{border:'dashed',fill:'rgb(239, 244, 246)'},'只读信息使用共享禁用底色，与可编辑字段明确区分');
+    await inspector.locator('.correction input[readonly]').scrollIntoViewIfNeeded();await settleBusinessUI(page);await page.screenshot({path:`.tools/test-artifacts/readonly-inspector-ui-${width}.png`,fullPage:true});
     await inspector.locator('.correction summary').click();
     assert.equal(await inspector.locator('.rate input').first().evaluate((node:HTMLElement)=>getComputedStyle(node).borderTopWidth),'0px','复合百分比控件不重复边框');
     await inspector.locator('[name=conclusion]').focus();await inspector.locator('[data-review-form]').waitFor();await inspector.locator('[name=conclusion]').fill('尚未保存');assert.equal(await inspector.locator('[name=conclusion]').inputValue(),'尚未保存');

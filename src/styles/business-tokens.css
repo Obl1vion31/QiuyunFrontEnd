@@ -21,4 +21,7 @@
     --console-control-height:40px;
     --console-control-compact:36px;
     --console-control-radius:8px;
+    --console-control-disabled-bg:#eff4f6;
+    --console-control-disabled-ink:#53615a;
+    --console-control-disabled-border:#abb5af;
   }

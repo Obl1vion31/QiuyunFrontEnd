@@ -21,7 +21,9 @@
 :is(.business-form.business-form,.business-filter.business-filter) :is(input:where(:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file])),select) { height:var(--form-control-height); }
 .business-form.business-form textarea { min-height:80px; resize:vertical; }
 :is(.business-form.business-form,.business-filter.business-filter) :is(input,select,textarea):disabled,
-.business-form.business-form :is(input,textarea)[readonly] { color:#53615a; background:var(--console-surface-subtle); border-style:dashed; opacity:1; }
+.business-form.business-form :is(input,textarea)[readonly] { color:var(--console-control-disabled-ink); background:var(--console-control-disabled-bg); border-color:var(--console-control-disabled-border); border-style:dashed; opacity:1; -webkit-text-fill-color:currentColor; box-shadow:none; }
+:is(.business-form.business-form,.business-filter.business-filter) :is(input,select,textarea):disabled { cursor:not-allowed; }
+:is(.business-form.business-form,.business-filter.business-filter,.business-form-sheet) select:disabled { appearance:none; background-image:none; }
 .business-form.business-form label:has(>input[type=checkbox]) { display:flex; align-items:center; gap:8px; font-weight:500; }
 .business-form.business-form input[type=checkbox] { flex:none; width:18px; height:18px; min-height:0; margin:0; accent-color:var(--console-blue); }
 :is(.business-form.business-form,.business-filter.business-filter) button:not([aria-label]):not(.remove-row) {

@@ -47,7 +47,7 @@ function initialize(){
   const changed=()=>{const current=values(form);form.dataset.dirty=String(form.dataset.editing==='true'&&(metricNames.some(name=>current[name]===''||Number(current[name])!==Number(baseline[name]))||current.dayStatus!==baseline.dayStatus||current.reviewDecision!==baseline.reviewDecision));cost();unsaved();};
   const render=()=>{
    const editing=form.dataset.editing==='true';
-   for(const field of controls(form)){if(field.type==='hidden')continue;if(field instanceof HTMLInputElement){field.readOnly=!editing||busy;field.tabIndex=editing&&!busy?0:-1;}else field.disabled=!editing||busy;}
+   for(const field of controls(form)){if(field.type==='hidden')continue;field.disabled=!editing||busy;if(field instanceof HTMLInputElement)field.tabIndex=editing&&!busy?0:-1;}
    for(const button of form.querySelectorAll<HTMLButtonElement>('[data-meeting-change]'))button.disabled=!editing||busy;
    dayTrigger.disabled=!editing||busy||!JSON.parse(form.dataset.statusEditOptions??'[]').length;
    again.hidden=editing;again.disabled=busy;submit.hidden=!editing;submit.disabled=busy;cancel.hidden=!editing;cancel.disabled=busy;

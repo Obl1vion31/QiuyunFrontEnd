@@ -10,7 +10,7 @@ const dir=process.env.INITIAL_EVIDENCE_DIR||'.tools/test-artifacts/initial-arran
 await mkdir(dir,{recursive:true});
 const clockFile=new URL('../'+dir+'/clock.txt',import.meta.url).pathname;
 await writeFile(clockFile,'2026-10-28T12:00:00+08:00');
-const fixture=await startFixture({clockFile}),{db,baseURL}=fixture;
+const fixture=await startFixture({clockFile,entry:process.env.INITIAL_RUNTIME_ENTRY}),{db,baseURL}=fixture;
 let browser:any,context:any,page:any;const errors:string[]=[],geometry:unknown[]=[];
 async function seed(name:string,mode:'initial'|'wait'|'finite'|'expired'|'active'|'zero'){
  const [content]=await db.insert(s.operationsContent).values({platformNoteId:randomUUID().replaceAll('-','').slice(0,24)}).returning();

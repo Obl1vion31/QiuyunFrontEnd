@@ -20,9 +20,8 @@
 :is(.review-metric-row,.review-state-bubble,.review-residual-editor) .business-action-primary{height:40px;border:1px solid #244fc8;border-radius:6px;background:linear-gradient(#4272e3,#315fd6);box-shadow:0 1px 2px #2449a328,inset 0 1px #ffffff30;color:#fff;font:500 13px/22px var(--console-font);padding:8px 10px;white-space:nowrap;cursor:pointer}
 .review-metric-row .review-submit{padding-inline:6px}.review-submit[data-success]{background:#348866;border-color:#2d775a}.review-submit:disabled{cursor:wait;opacity:.75}
 .review-metric-row [data-form-message]{grid-column:2/-1;margin:0;color:#913c35;font:400 13px/20px var(--console-font)}.review-metric-row [data-form-message]:not(:empty){padding-bottom:8px}.review-metric-row [data-form-message]:empty{display:none}
-/* 保存仅锁定交互，字段沿用当前每日表的边框与白底，不改成另一套只读布局。 */
-#daily-table [data-saved-review] :is(.review-number input,.review-decision select):is([readonly],:disabled){border:1px solid #abb5af;border-radius:var(--console-control-radius);background:var(--console-surface);color:var(--console-ink);opacity:1;-webkit-text-fill-color:var(--console-ink);box-shadow:none}
 #daily-table [data-saved-review] [data-toggle-day-state]:disabled{opacity:1;cursor:default}
+.review-day-state:disabled>span{color:var(--console-control-disabled-ink)}
 .review-saved-actions{position:relative;align-self:stretch;display:grid;align-content:center;min-width:0}
 .review-saved-actions>.review-submit{width:100%}
 .review-saved-meta{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:10px;font:400 12px/16px var(--console-font);color:#28684f}
@@ -46,6 +45,7 @@
 #daily-table .review-day-state:disabled{opacity:1}
 
 #daily-table .review-number input{padding:8px}
+.review-initial-row .review-number input:disabled{color:var(--console-control-disabled-ink);background:var(--console-control-disabled-bg);border-color:var(--console-control-disabled-border);border-style:dashed;opacity:1;-webkit-text-fill-color:currentColor;cursor:not-allowed}
 
 /* 版本与资料按同一 18px 行框对齐；间距只由父级 gap 负责，点击热区不撑开排版。 */
 .review-version-line{display:flex;align-items:center;gap:4px;min-width:0}.review-version-line small{min-width:0}
@@ -69,7 +69,7 @@
 @media(max-width:600px){.review-entry-grid{grid-template-columns:84px var(--review-name-width,112px) 96px minmax(var(--review-spend-width),1.1fr) repeat(4,minmax(80px,1fr)) minmax(128px,1.6fr) 192px 112px;padding-inline:6px;min-width:calc(1108px + var(--review-name-width,112px))}.review-entry-scroll .review-date-block{position:static}}
 
 /* 首次推广共用主表列锚点，禁用框只表示无指标，不是零值。 */
-.review-initial-row{background:#fafbfc}.review-initial-row .review-number input:disabled{opacity:1;border-color:#e0e4ea;background:#f0f2f5;color:#778291;cursor:not-allowed}.review-initial-row .review-number input::placeholder{color:#85909d}.review-initial-state{display:grid;justify-items:center;min-width:0}.review-initial-state>small{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}.review-initial-next{display:contents!important}.review-initial-bubble{inset:auto;max-height:calc(100dvh - 24px)}.review-initial-bubble input[type=date]{box-sizing:border-box;width:100%;height:40px;border:1px solid #d2d9e4;border-radius:6px;padding:8px;background:#fff;color:var(--console-ink);font:400 14px/22px var(--console-font)}.review-initial-bubble output{color:#913c35;font:400 13px/20px var(--console-font)}.review-initial-bubble output:empty{display:none}.review-initial-hint{text-align:center}
+.review-initial-row{background:#fafbfc}.review-initial-row .review-number input::placeholder{color:#85909d}.review-initial-state{display:grid;justify-items:center;min-width:0}.review-initial-state>small{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}.review-initial-next{display:contents!important}.review-initial-bubble{inset:auto;max-height:calc(100dvh - 24px)}.review-initial-bubble input[type=date]{box-sizing:border-box;width:100%;height:40px;border:1px solid #d2d9e4;border-radius:6px;padding:8px;background:#fff;color:var(--console-ink);font:400 14px/22px var(--console-font)}.review-initial-bubble output{color:#913c35;font:400 13px/20px var(--console-font)}.review-initial-bubble output:empty{display:none}.review-initial-hint{text-align:center}
 @media(max-width:600px){.review-initial-bubble input[type=date]{font-size:16px}}
 /* 条件日期不参与行高；显式覆盖公共表单规格，辅助入口与主动作各自有确定尺寸。 */
 .review-initial-next.business-form .review-plan-decision:has([data-deadline-trigger]:not([hidden])){display:grid;grid-template-columns:minmax(128px,1fr) 56px;gap:8px;align-items:center}

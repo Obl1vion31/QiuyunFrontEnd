@@ -257,6 +257,6 @@
 .monthly-plan-quantity input::-webkit-inner-spin-button,.monthly-plan-quantity input::-webkit-outer-spin-button{appearance:none;margin:0}
 .monthly-plan-compact .monthly-plan-quantity button:hover:not(:disabled){background:#edf3f6}
 .monthly-plan-compact .monthly-plan-quantity button:disabled{color:#9aa9b1;cursor:default}
-.monthly-plan-compact .monthly-plan-quantity input:disabled{color:#74838e}
+.monthly-plan-compact .monthly-plan-quantity input:disabled{color:var(--console-control-disabled-ink)}
 .monthly-plan-compact .monthly-plan-quantity :is(button,input):focus-visible,.monthly-plan-compact .monthly-chip-return:focus-visible{outline:2px solid var(--console-blue);outline-offset:-2px}
 @media(max-width:650px){.monthly-plan-compact .monthly-pool-chip:has(>.monthly-plan-quantity){display:grid;grid-template-columns:minmax(0,1fr)}.monthly-plan-compact .monthly-pool-chip>.monthly-plan-quantity{justify-self:end;margin:0 4px 5px}.monthly-plan-compact .monthly-week-items>.monthly-plan-chip:has(>[data-plan-return]){padding-right:0}.monthly-plan-compact .monthly-chip-return{position:static;flex:none;align-self:flex-start;width:44px;height:44px;min-height:44px;margin:0}.monthly-plan-compact .monthly-plan-quantity{grid-template-columns:44px 44px 44px}.business-form.business-form .monthly-plan-quantity button,.monthly-plan-compact .monthly-plan-quantity button{width:44px;height:44px;min-height:44px}.business-form.business-form .monthly-plan-quantity input,.monthly-plan-compact .monthly-plan-quantity input{width:44px;height:44px;min-height:44px;font-size:16px}}

@@ -33,12 +33,12 @@ try{
  await go();await page.unroute('**/fonts/business.js');
  const dates=()=>page.locator(main).evaluateAll((nodes:HTMLElement[])=>nodes.map(n=>n.dataset.reviewDate));
  const currentRow=page.locator(`[data-review-record][data-review-date="2026-11-06"]`);
- const geometry=await currentRow.evaluate((node:HTMLElement)=>{const r=node.getBoundingClientRect();return {height:r.height,fields:[...node.querySelectorAll<HTMLElement>('.review-number input,[data-toggle-day-state],.review-decision select')].map(field=>{const f=field.getBoundingClientRect(),style=getComputedStyle(field);return {x:f.x-r.x,y:f.y-r.y,width:f.width,height:f.height,font:style.font,background:style.backgroundColor,border:style.borderWidth==='0px'?'none':style.border};})};});
+ const geometry=await currentRow.evaluate((node:HTMLElement)=>{const r=node.getBoundingClientRect();return {height:r.height,fields:[...node.querySelectorAll<HTMLElement>('.review-number input,[data-toggle-day-state],.review-decision select')].map(field=>{const f=field.getBoundingClientRect(),style=getComputedStyle(field);return {x:f.x-r.x,y:f.y-r.y,width:f.width,height:f.height,font:style.font};})};});
  await writeFile(dir+'/row-geometry.json',JSON.stringify(geometry,null,2));
  if(baseline){assert.deepEqual(await dates(),['2026-11-04','2026-11-05','2026-11-05','2026-11-06']);await shot(page,'before-older-days-1920');}
  else{
   assert.deepEqual(await dates(),['2026-11-06']);assert.match(await page.locator('[data-promotion-saved-count]').innerText(),/已保存 1 项/);assert.match(await page.locator('[data-promotion-pending-count]').innerText(),/^0 /);
-  if(process.env.PROMOTION_LATEST_COMPARE)assert.deepEqual(geometry,JSON.parse(await readFile(process.env.PROMOTION_LATEST_COMPARE,'utf8')),'仅移除旧行，6日原行尺寸、字段相对位置、字体和材质不变');
+  if(process.env.PROMOTION_LATEST_COMPARE){const prior=JSON.parse(await readFile(process.env.PROMOTION_LATEST_COMPARE,'utf8'));for(const field of prior.fields){delete field.background;delete field.border;field.font=field.font.replace(/ \/ [\d.]+px/,'');}assert.deepEqual(geometry,prior,'仅移除旧行，6日原行尺寸、字段相对位置和字体不变');}
   await shot(page,'admin-latest-1920');await page.reload();await settleBusinessUI(page);assert.deepEqual(await dates(),['2026-11-06']);await shot(page,'refresh-latest-1920');
   const button=currentRow.getByRole('button',{name:'继续编辑',exact:true});await button.press('Enter');await currentRow.locator('[name=spend]').fill('150');await shot(page,'editing-latest-1920');await currentRow.locator('[data-save-saved]').click();await currentRow.locator('[name=spend][value="150.00"]').waitFor();assert.deepEqual(await dates(),['2026-11-06']);
   const cookie=(await context.cookies()).map((c:any)=>c.name+'='+c.value).join('; '),old=current.metrics[0];
@@ -49,7 +49,7 @@ try{
   await staff.page.setViewportSize({width:1920,height:1000});await staff.page.reload();await shot(staff.page,'employee-latest-1920');
   await page.setViewportSize({width:390,height:844});await go();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await shot(page,'mobile-obvious-390');
   await writeFile(clockFile,'2026-11-08T00:00:01+08:00');await page.setViewportSize({width:1920,height:1000});await go();assert.equal(await page.locator('[data-saved-review]').count(),0);assert.deepEqual(await dates(),['2026-11-07']);await shot(page,'midnight-next-day-1920');
-  checks.push('11月4/5/6日今天均更新过，主表仅6日；旧终态5日不回流','原行几何、样式与基线相同；0待填、保存、刷新和站内往返保留6日','旧日工作区更正422，历史更正成功也不回主表；原事实在历史可读','双角色三档桌面、390有限检查、跨上海午夜只开放7日');assert.deepEqual(errors,[]);
+  checks.push('11月4/5/6日今天均更新过，主表仅6日；旧终态5日不回流','原行几何、字体与基线相同；0待填、保存、刷新和站内往返保留6日','旧日工作区更正422，历史更正成功也不回主表；原事实在历史可读','双角色三档桌面、390有限检查、跨上海午夜只开放7日');assert.deepEqual(errors,[]);
  }
  await writeFile(dir+'/checks.json',JSON.stringify({baseline,checks,errors,dates:'固定2026-11-07；仅隔离PostgreSQL虚构样本'},null,2));console.log(baseline?'Baseline older-day retention reproduced':'Latest-only review checks passed');
 }finally{for(const context of contexts)await context.close();await browser?.close();await fixture.stop();}

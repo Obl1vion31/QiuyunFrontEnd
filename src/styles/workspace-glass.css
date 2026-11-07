@@ -123,7 +123,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 [data-glass-surface] :is(.business-action-primary,.primary-action,button.primary){box-shadow:inset 0 1px 0 #ffffff40,0 4px 8px -5px #28528f66}
 [data-glass-surface] :is(.business-action-secondary,.review-entry-button,.quiet-button){border-color:#c5d8e1;background:#ffffffc9}
 [data-glass-surface] .business-form :is(input,textarea,select){background-color:#ffffffed}
-[data-glass-surface] .business-form :is(input,textarea,select):is(:disabled,[readonly]){background-color:#eff4f6}
+[data-glass-surface] .business-form :is(input,textarea,select):is(:disabled,[readonly]){background-color:var(--console-control-disabled-bg)}
 [data-glass-surface="annual-plan"] .summary-title{background:#f5fafbbd;border-bottom-color:var(--glass-line);padding-block:14px}
 [data-glass-surface="annual-plan"] :is(.summary-head,.head){background:#edf4f7}
 [data-glass-surface="annual-plan"] .section-band{background:#e7f0f3;color:#3d5361;border-color:#b7cbd6}
