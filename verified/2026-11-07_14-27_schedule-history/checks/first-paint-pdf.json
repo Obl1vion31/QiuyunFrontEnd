@@ -1,0 +1,25 @@
+{
+  "checks": [
+    "真实写入：遗留接入与W1→W4合一条；同Week微调仅日期；混合标题修改独立；查帖与详情一致",
+    "两遍分配保留明确来源，未关联早期帖子不抢名额；管理员一步定稿22篇ID唯一",
+    "旧冻结重复名额只读修正：两帖分别归属，V0仍22篇，原冻结JSON逐值不变",
+    "查帖三档、键盘折叠、定稿后带理由真实保存及未保存保护",
+    "有限390无页面溢出、关闭可达；冻结月会真实PDF生成",
+    "1440首屏：慢字体与慢历史、硬刷新、暖刷新和实际站内导航，从首次绘制录制"
+  ],
+  "images": [
+    "lookup-history-1920.png",
+    "lookup-history-1440.png",
+    "lookup-history-1024.png",
+    "saved-content-1440.png",
+    "detail-mobile-390.png",
+    "sealed-meeting-1440.png",
+    "first-paint-slow-1440.png",
+    "first-paint-hard-refresh-1440.png",
+    "first-paint-warm-refresh-1440.png",
+    "first-paint-internal-navigation-1440.png"
+  ],
+  "errors": [],
+  "data": "本机独立临时PostgreSQL，22篇排期；两帖重复旧名额仅注入该隔离库",
+  "status": "passed"
+}

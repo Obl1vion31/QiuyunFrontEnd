@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "mode": "after",
+  "readonly": true,
+  "baselineCount": 22,
+  "uniqueSchedules": 22,
+  "targetRevision": 3,
+  "targetPlannedAt": "2026-11-25T07:00:00.000Z",
+  "dateRevisions": [
+    0,
+    2
+  ],
+  "groups": [
+    {
+      "key": "execution",
+      "count": 2,
+      "labels": [
+        "上月遗留接入 11 月 · 原授权 W1 → 安排 W4",
+        "11 月预排期 · 原授权 W1 · 上月遗留"
+      ],
+      "reasons": [
+        "需求未到",
+        ""
+      ]
+    },
+    {
+      "key": "schedule",
+      "count": 2,
+      "labels": [
+        "应发时间调整",
+        "应发时间调整"
+      ],
+      "reasons": [
+        "需求未到",
+        "未收到需求"
+      ]
+    }
+  ],
+  "stable": {
+    "other_post": "f5d31479452f5a17b654ba82a3ba81e1",
+    "target_structure": "6c9ce70e012240b6f4bb22a6956187ad",
+    "plan": "c994a0b3934c6000d32ada18fb655b30",
+    "frozen": "ec235eaf79417196e22d9041c8e35bf7"
+  }
+}

@@ -2,6 +2,11 @@
 
 先读根 [README](README.md)、[AGENTS](AGENTS.md)，再按[文档导航](docs/README.md)进入目标主题。
 
+## 排期历史与旧定稿归属（已验证，发布中）
+
+- 应用7414a80，分支codex/schedule-history-semantics，基于最新单层Inspector及V0规则；根工作区无关修改保留。执行／日期／内容设置共用分组读模型，日历不附计划W号。先保留明确名额再分配剩余，旧读取使用冻结具体排期及候选，缺依据未知；历史原JSON和PDF保持。指定技术纠正已按授权完成定点清理。
+- 291规则、18项聚焦、schema、Node／Vercel构建、7组真实运行包专项、6组接口及公共UI通过；双角色三档、首屏慢请求、46图、两段录像与四页PDF已实际查看。[本批索引](verified/2026-11-07_14-27_schedule-history/README.md)。正式部署核对随后补记。
+
 ## 排期Inspector最终验收修正（已发布并同步main，2026-11-07）
 
 - 应用e541f99，分支codex/schedule-single-panel，独立工作树.tools/releases/schedule-single-panel-20261107；合入a55ad52保留最新V0规则，根工作区无关修改保留。

@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "checks": [
+    "exact two-record cleanup",
+    "unchanged current time, revision and other fields",
+    "normal reasons preserved",
+    "stale/repeated cleanup rolls back"
+  ]
+}

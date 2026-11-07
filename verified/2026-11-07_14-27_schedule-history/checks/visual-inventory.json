@@ -1,0 +1,22 @@
+{
+  "screenshots": 46,
+  "workspaceScreenshots": 0,
+  "pdfs": [
+    {
+      "file": "final/pdf/monthly-sealed.pdf",
+      "pages": 4
+    }
+  ],
+  "videos": [
+    {
+      "file": "final/video/workflow-1440.webm",
+      "fps": 2,
+      "frames": 164
+    },
+    {
+      "file": "final/video/first-paint-1440.webm",
+      "fps": 10,
+      "frames": 120
+    }
+  ]
+}
