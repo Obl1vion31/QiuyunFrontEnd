@@ -1,0 +1,98 @@
+{
+  "passed": true,
+  "checks": [
+    "鼠标手柄排序、相邻行让位、占位等高、松手只写一次且另一组及用途原值保持",
+    "硬刷新首次操作、键盘抓取／移动／保存及Esc取消均保持焦点和业务顺序",
+    "长列表底部自动滚动与组内边界，非推广排序可持久保存",
+    "用途复用手柄排序，网络失败保留预览并可重试；并发409可取消载入或确认恢复最新顺序",
+    "默认运营方式自动分组；非推广不显示或要求用途，新建无用途；已有费用映射及真实推广统计不改写",
+    "减少动态效果保留排序反馈，Esc清理拖动；空分组与手机明显溢出检查通过",
+    "站内导航后操作、实际自托管字体、按学科隔离、修改人历史及员工管理403保持"
+  ],
+  "images": [
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1920-types.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-types.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1024-types.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-drag-gap.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-drag-autoscroll.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1920-purposes.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-purposes.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1024-purposes.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-sort-retry.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-sort-conflict.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-promotion-editor.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-nonpromotion-editor.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1024-long-title-drag.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-type-group-changed.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-reduced-motion.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-empty-group.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-390-limited-overflow.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-320-limited-overflow.png",
+    ".tools/test-artifacts/content-config-drag-final/screenshots/admin-1440-navigation-types.png"
+  ],
+  "geometry": [
+    {
+      "width": 1920,
+      "main": {
+        "left": 232,
+        "right": 1905
+      },
+      "tables": [
+        {
+          "left": 256,
+          "right": 1881
+        },
+        {
+          "left": 256,
+          "right": 1881
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "main": {
+        "left": 232,
+        "right": 1425
+      },
+      "tables": [
+        {
+          "left": 256,
+          "right": 1401
+        },
+        {
+          "left": 256,
+          "right": 1401
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "main": {
+        "left": 232,
+        "right": 1009
+      },
+      "tables": [
+        {
+          "left": 256,
+          "right": 985
+        },
+        {
+          "left": 256,
+          "right": 985
+        }
+      ]
+    }
+  ],
+  "fonts": [
+    {
+      "familyName": "MiSans VF",
+      "postScriptName": "MiSansVF",
+      "isCustomFont": true,
+      "glyphCount": 5
+    }
+  ],
+  "errors": [],
+  "source": ".tools/serve-runtime.mjs",
+  "dataSource": "isolated PostgreSQL",
+  "productionBusinessWrites": false
+}

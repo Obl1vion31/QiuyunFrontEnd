@@ -1,0 +1,17 @@
+{
+  "applicationCommit": "a103485d2c13aa077abb75142e71cf6f893a57dd",
+  "ruleTestsPassed": 301,
+  "typeErrors": 0,
+  "typeWarnings": 0,
+  "typeHints": 59,
+  "schema": "passed; no schema changes",
+  "build": "Node and final Vercel passed",
+  "runtimeDependencies": "passed",
+  "actualVercelRuntimeBrowserGroups": 7,
+  "sharedBusinessUI": "passed",
+  "font": "CDP verified self-hosted MiSans VF glyphs",
+  "visualStatus": "19图与原速录像172个8fps抽样帧已实际查看，独立收尾问题修复复核通过",
+  "productionBusinessTestWrites": false,
+  "migrationRequired": false,
+  "actualRuntimeChinesePdfGeneration": "passed; 611865 bytes; generation smoke, not page-by-page visual review"
+}

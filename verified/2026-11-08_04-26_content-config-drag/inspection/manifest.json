@@ -1,0 +1,61 @@
+{
+  "status": "已自检并发布，待用户反馈",
+  "applicationCommit": "a103485d2c13aa077abb75142e71cf6f893a57dd",
+  "dataSource": "isolated PostgreSQL; tests/private-sources.fixture.ts; no production business writes",
+  "screenshots": [
+    "screenshots/admin-1024-long-title-drag.png",
+    "screenshots/admin-1024-purposes.png",
+    "screenshots/admin-1024-types.png",
+    "screenshots/admin-1440-drag-autoscroll.png",
+    "screenshots/admin-1440-drag-gap.png",
+    "screenshots/admin-1440-empty-group.png",
+    "screenshots/admin-1440-navigation-types.png",
+    "screenshots/admin-1440-nonpromotion-editor.png",
+    "screenshots/admin-1440-promotion-editor.png",
+    "screenshots/admin-1440-purposes.png",
+    "screenshots/admin-1440-reduced-motion.png",
+    "screenshots/admin-1440-sort-conflict.png",
+    "screenshots/admin-1440-sort-retry.png",
+    "screenshots/admin-1440-type-group-changed.png",
+    "screenshots/admin-1440-types.png",
+    "screenshots/admin-1920-purposes.png",
+    "screenshots/admin-1920-types.png",
+    "screenshots/admin-320-limited-overflow.png",
+    "screenshots/admin-390-limited-overflow.png"
+  ],
+  "videos": [
+    "video/admin-config.mp4"
+  ],
+  "sampleRateFps": 8,
+  "sampledFrames": 172,
+  "inspection": [
+    "inspection/motion-01.jpg",
+    "inspection/motion-02.jpg",
+    "inspection/motion-03.jpg",
+    "inspection/motion-04.jpg",
+    "inspection/motion-05.jpg",
+    "inspection/screens-01.jpg",
+    "inspection/screens-02.jpg",
+    "inspection/screens-03.jpg",
+    "inspection/screens-04.jpg"
+  ],
+  "independentReview": {
+    "initialScreenshotsViewed": 19,
+    "resolved": [
+      "恢复按钮接入公共浅边样式",
+      "整页图回顶部后采集，固定壳层正常",
+      "减少动效图采用实际可见视口，文字完整"
+    ],
+    "finalRecaptureScreenshotsViewed": 4,
+    "disposition": "ship",
+    "scope": "仅此前明确问题收尾；录像由父代理另行审查"
+  },
+  "viewportNote": "视频固定1440画布内切换1920／1440／1024／390／320，画布外灰边不是网页灰闪。手机仅检查明显溢出及关键入口。",
+  "parentReview": {
+    "screenshotsViewed": 19,
+    "sampledFramesViewed": 172,
+    "result": "三档布局、实际拖动让位、自动滚动、松手收尾、键盘、恢复操作、弹窗及减少动效未见明显残留问题。",
+    "fullPageCapture": "稳定整页图均回顶部，固定外壳正常；实际可见视口文字完整。"
+  },
+  "deploymentId": "dpl_HVLhcA4xKvVNQ3nM7nf8NXAqLrdA"
+}
