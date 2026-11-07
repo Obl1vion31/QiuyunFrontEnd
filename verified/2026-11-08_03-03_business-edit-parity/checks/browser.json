@@ -1,0 +1,384 @@
+{
+  "checks": [
+    "管理员配置：新增用途、改名、默认类型、按学科隔离、键盘排序、失败重试和并发保留输入",
+    "admin：月会文字修订生成PDF且冻结基准保持，非推广更正、笔记ID、年度增改及动态用途可用",
+    "employee：月会文字修订生成PDF且冻结基准保持，非推广更正、笔记ID、年度增改及动态用途可用"
+  ],
+  "images": [
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-types.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-types.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-types.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-config-retry.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-purposes.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-purposes.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-purposes.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-edit-type.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-config-conflict.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-new-type.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-390-config-overflow.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-monthly-points.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-point-tooltip.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-monthly-points.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-point-tooltip.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-monthly-points.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-point-tooltip.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-sealed-text-edit.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-sealed-text-saved.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-nonpromotion-correction-entry.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-annual-editable.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-dynamic-private-entry.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/admin-390-monthly-overflow.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1920-monthly-points.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1920-point-tooltip.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-monthly-points.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-point-tooltip.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1024-monthly-points.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1024-point-tooltip.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-sealed-text-edit.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-sealed-text-saved.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-nonpromotion-correction-entry.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-annual-editable.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-public-guide.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-dynamic-private-entry.png",
+    ".tools/test-artifacts/business-edit-runtime/screenshots/employee-390-monthly-overflow.png"
+  ],
+  "geometry": [
+    {
+      "role": "admin",
+      "width": 1920,
+      "styles": [
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 468.40625,
+          "y": 322.1875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 546.15625,
+          "y": 361.796875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 623.90625,
+          "y": 361.734375
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 699.15625,
+          "y": 361.703125
+        },
+        {
+          "current": true,
+          "opacity": "1",
+          "width": "9px",
+          "height": "9px",
+          "display": "block",
+          "transform": "none",
+          "x": 776.90625,
+          "y": 361.71875
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "styles": [
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 462,
+          "y": 322.1875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 502.65625,
+          "y": 361.796875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 543.3125,
+          "y": 361.734375
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 582.65625,
+          "y": 361.703125
+        },
+        {
+          "current": true,
+          "opacity": "1",
+          "width": "9px",
+          "height": "9px",
+          "display": "block",
+          "transform": "none",
+          "x": 623.3125,
+          "y": 361.71875
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "styles": [
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 460.96875,
+          "y": 322.1875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 495.640625,
+          "y": 361.796875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 530.296875,
+          "y": 361.734375
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 563.84375,
+          "y": 361.703125
+        },
+        {
+          "current": true,
+          "opacity": "1",
+          "width": "9px",
+          "height": "9px",
+          "display": "block",
+          "transform": "none",
+          "x": 598.515625,
+          "y": 361.71875
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "width": 1920,
+      "styles": [
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 468.40625,
+          "y": 322.1875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 546.15625,
+          "y": 361.796875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 623.90625,
+          "y": 361.734375
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 699.15625,
+          "y": 361.703125
+        },
+        {
+          "current": true,
+          "opacity": "1",
+          "width": "9px",
+          "height": "9px",
+          "display": "block",
+          "transform": "none",
+          "x": 776.90625,
+          "y": 361.71875
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "styles": [
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 462,
+          "y": 322.1875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 502.65625,
+          "y": 361.796875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 543.3125,
+          "y": 361.734375
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 582.65625,
+          "y": 361.703125
+        },
+        {
+          "current": true,
+          "opacity": "1",
+          "width": "9px",
+          "height": "9px",
+          "display": "block",
+          "transform": "none",
+          "x": 623.3125,
+          "y": 361.71875
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "width": 1024,
+      "styles": [
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 460.96875,
+          "y": 322.1875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 495.640625,
+          "y": 361.796875
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 530.296875,
+          "y": 361.734375
+        },
+        {
+          "current": false,
+          "opacity": "1",
+          "width": "6px",
+          "height": "6px",
+          "display": "block",
+          "transform": "none",
+          "x": 563.84375,
+          "y": 361.703125
+        },
+        {
+          "current": true,
+          "opacity": "1",
+          "width": "9px",
+          "height": "9px",
+          "display": "block",
+          "transform": "none",
+          "x": 598.515625,
+          "y": 361.71875
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

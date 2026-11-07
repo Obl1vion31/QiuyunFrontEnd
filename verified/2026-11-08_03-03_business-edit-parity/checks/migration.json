@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "migration": "0050_subject_content_config",
+  "backupBeforeMigration": true,
+  "originalTablesCompared": 56,
+  "originalTableDigestsUnchanged": true,
+  "seededSubjects": 4,
+  "seedNamesOrderDefaultsAndLegacyMappingsMatch": true,
+  "pendingMigrations": 0,
+  "businessTestWrites": false,
+  "applicationCommit": "1d0a5cd73424b106cfcb3b168e7821ec353df310",
+  "verifiedAt": "2026-11-07T19:18:07.276Z"
+}

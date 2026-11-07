@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "images": [
+    ".tools/test-artifacts/trend-consumers/screenshots/admin-1920-weekly.png",
+    ".tools/test-artifacts/trend-consumers/screenshots/admin-1440-weekly.png",
+    ".tools/test-artifacts/trend-consumers/screenshots/admin-1024-weekly.png",
+    ".tools/test-artifacts/trend-consumers/screenshots/employee-1920-weekly.png",
+    ".tools/test-artifacts/trend-consumers/screenshots/employee-1440-weekly.png",
+    ".tools/test-artifacts/trend-consumers/screenshots/employee-1024-weekly.png"
+  ],
+  "errors": [],
+  "dataSource": "seedPrivateSources + readWeeklyMaterial"
+}

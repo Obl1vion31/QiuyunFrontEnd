@@ -1,0 +1,149 @@
+TAP version 13
+# [2m2026-11-07T19:02:20.760Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# Subtest: 用户名登录保存哈希、注册关闭、无效凭据不创建会话
+ok 1 - 用户名登录保存哈希、注册关闭、无效凭据不创建会话
+  ---
+  duration_ms: 2444.266533
+  type: 'test'
+  ...
+# Subtest: 账号和完整用户名均可登录，短姓名不受账号最小长度限制
+ok 2 - 账号和完整用户名均可登录，短姓名不受账号最小长度限制
+  ---
+  duration_ms: 510.0104
+  type: 'test'
+  ...
+# [2m2026-11-07T19:02:21.546Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# Subtest: 重复与并发创建不改密码或角色
+ok 3 - 重复与并发创建不改密码或角色
+  ---
+  duration_ms: 329.065464
+  type: 'test'
+  ...
+# Subtest: 身份与角色来自数据库，伪造身份无效，角色更新即时读取
+ok 4 - 身份与角色来自数据库，伪造身份无效，角色更新即时读取
+  ---
+  duration_ms: 92.919997
+  type: 'test'
+  ...
+# Subtest: 退出、撤销和过期立即阻止访问，另一个账号会话保持
+ok 5 - 退出、撤销和过期立即阻止访问，另一个账号会话保持
+  ---
+  duration_ms: 254.896837
+  type: 'test'
+  ...
+# Subtest: 外部来源被拒绝，HTTPS cookie 使用 Secure
+ok 6 - 外部来源被拒绝，HTTPS cookie 使用 Secure
+  ---
+  duration_ms: 81.615752
+  type: 'test'
+  ...
+# [2m2026-11-07T19:02:22.162Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-11-07T19:02:22.179Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-11-07T19:02:22.184Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-11-07T19:02:22.185Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# [2m2026-11-07T19:02:22.224Z[0m [33mWARN[0m [1m[Better Auth]:[0m Invalid password
+# Subtest: 多个实例共享原子限流，重建实例不能重置
+ok 7 - 多个实例共享原子限流，重建实例不能重置
+  ---
+  duration_ms: 195.853813
+  type: 'test'
+  ...
+# Subtest: 请求权限覆盖旧入口、删除及未知写入，返回地址不能跳到外站
+ok 8 - 请求权限覆盖旧入口、删除及未知写入，返回地址不能跳到外站
+  ---
+  duration_ms: 2.090265
+  type: 'test'
+  ...
+# Subtest: 可配置写入的角色门禁与事务入口共用路径规则，尾斜杠不能绕过授权
+ok 9 - 可配置写入的角色门禁与事务入口共用路径规则，尾斜杠不能绕过授权
+  ---
+  duration_ms: 0.701098
+  type: 'test'
+  ...
+# Subtest: 兼容迁移导入原名称顺序和已保存用途，保留空归类且可重复执行
+ok 10 - 兼容迁移导入原名称顺序和已保存用途，保留空归类且可重复执行
+  ---
+  duration_ms: 1984.12474
+  type: 'test'
+  ...
+# Subtest: 学科独立名称、顺序及默认值；配置并发和用途引用在事务内校验
+ok 11 - 学科独立名称、顺序及默认值；配置并发和用途引用在事务内校验
+  ---
+  duration_ms: 51.979782
+  type: 'test'
+  ...
+# Subtest: 新增用途参与真实消耗与人数校验；往月重算不移动人数，冻结材料保留
+ok 12 - 新增用途参与真实消耗与人数校验；往月重算不移动人数，冻结材料保留
+  ---
+  duration_ms: 428.507306
+  type: 'test'
+  ...
+# Subtest: 双方封存文字修订直接追加有效版本，不改变计划、封存时间、统计或事项
+ok 13 - 双方封存文字修订直接追加有效版本，不改变计划、封存时间、统计或事项
+  ---
+  duration_ms: 95.352467
+  type: 'test'
+  ...
+# Subtest: 笔记ID更正保留业务历史，不改变原周排期或产生恢复计划标记
+ok 14 - 笔记ID更正保留业务历史，不改变原周排期或产生恢复计划标记
+  ---
+  duration_ms: 20.800018
+  type: 'test'
+  ...
+# Subtest: 月排期净构成25+4-1=28，新增后取消不占净新增，未知不伪造0
+ok 15 - 月排期净构成25+4-1=28，新增后取消不占净新增，未知不伪造0
+  ---
+  duration_ms: 13.562676
+  type: 'test'
+  ...
+# Subtest: 周会回放截止结构，不让后来的改期覆盖当期；未来实发不计本期
+ok 16 - 周会回放截止结构，不让后来的改期覆盖当期；未来实发不计本期
+  ---
+  duration_ms: 0.992672
+  type: 'test'
+  ...
+# Subtest: 真实同名排期按ID分别计数，实发按真实时间且不受当前应发范围限制
+ok 17 - 真实同名排期按ID分别计数，实发按真实时间且不受当前应发范围限制
+  ---
+  duration_ms: 1.558603
+  type: 'test'
+  ...
+# Subtest: 移出再移回恢复净构成，真实历史保留
+ok 18 - 移出再移回恢复净构成，真实历史保留
+  ---
+  duration_ms: 1.232754
+  type: 'test'
+  ...
+# Subtest: 旧封存只投影真实基准；定稿前同Week免理由、跨原Week和定稿后必填
+ok 19 - 旧封存只投影真实基准；定稿前同Week免理由、跨原Week和定稿后必填
+  ---
+  duration_ms: 0.473482
+  type: 'test'
+  ...
+# Subtest: 同毫秒多次调整按真实追加顺序回放
+ok 20 - 同毫秒多次调整按真实追加顺序回放
+  ---
+  duration_ms: 0.802327
+  type: 'test'
+  ...
+# Subtest: 跨月基准按排期ID去重，补建后的历史实发只计真实发生日
+ok 21 - 跨月基准按排期ID去重，补建后的历史实发只计真实发生日
+  ---
+  duration_ms: 1.153207
+  type: 'test'
+  ...
+# Subtest: 月度当前净构成跟随最新排期，周会仍按截止日回放
+ok 22 - 月度当前净构成跟随最新排期，周会仍按截止日回放
+  ---
+  duration_ms: 1.609717
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6130.000158

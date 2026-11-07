@@ -265,4 +265,4 @@ React 18流式编码使用pnpm的react-dom@18.3.1补丁回移官方PR26228，版
 
 业务同权与配置专项：business-edit-parity.test.ts验证兼容迁移、学科隔离、目录冲突、动态用途与冻结材料；business-edit-parity.browser.ts使用本机TEST_POSTGRES_URL、PLAYWRIGHT_MODULE及PLAYWRIGHT_BROWSERS_PATH，可用PARITY_ENTRY指定实际运行包。覆盖配置失败／冲突、键盘排序、双角色月会文字新版本／PDF、非推广更正、笔记ID、年度与动态私域。员工访问业务配置仍403，公共说明不包含维护入口；1920／1440／1024逐态查看，390仅检查明显遮挡和页面溢出。推广历史专项同步按员工与管理员同权验证三天确认和状态衔接。
 
-business-edit-parity.integration.ts使用同一隔离PostgreSQL验证预排期确认后的双方普通编辑、配置默认值与人工覆盖、旧维护接口退役及排期授权不误拦非推广跳过／恢复。trend-consumers.browser.ts检查共享趋势在周会中的三档桌面、双方角色与真实圆点几何；可用PARITY_ENTRY指定实际运行包、TREND_DIR指定证据目录。
+business-edit-parity.integration.ts使用同一隔离PostgreSQL验证预排期确认后的双方普通编辑、配置默认值与人工覆盖、旧维护接口退役及排期授权不误拦非推广跳过／恢复。trend-consumers.browser.ts检查共享趋势在周会中的三档桌面、双方角色与真实圆点几何；可用PARITY_ENTRY指定实际运行包，证据保存到.tools/test-artifacts/trend-consumers。

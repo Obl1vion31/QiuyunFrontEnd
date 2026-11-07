@@ -1,0 +1,14 @@
+{
+  "status": "published",
+  "applicationCommit": "1d0a5cd73424b106cfcb3b168e7821ec353df310",
+  "deploymentId": "dpl_BpUTbxMCAWDDXfWispG3A1gK6ugt",
+  "readyState": "READY",
+  "officialUrl": "https://qiuyun-frontend.vercel.app",
+  "candidateUrl": "https://qiuyun-frontend-7owqz0ro5-opgobl1v-5358.vercel.app",
+  "candidateMatchesOfficialDeployment": true,
+  "candidateChecks": 26,
+  "candidateAssets": 25,
+  "officialChecks": 26,
+  "officialAssets": 77,
+  "productionBusinessTestWrites": false
+}

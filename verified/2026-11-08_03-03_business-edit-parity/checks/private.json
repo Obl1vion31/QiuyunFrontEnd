@@ -1,0 +1,3597 @@
+{
+  "checks": [
+    "真实旧口径首次录入仅生成两门实际推广课程，保存后学科与顶部成本回显一致",
+    "已存空讲义读取即时修复且不写库，正常保存清理占位并保持推广兼容投影",
+    "上月没有私域数据仍保留推广消耗和开口留资比较，六个月序列按指标缺值断开",
+    "真实事实覆盖0／1／2／6有效月、真实0、缺值断线及当月不生成环比；私域单月显示暂无对比数据",
+    "PATCH成功、读取503明确区分；重试只读不重写，展开状态保留",
+    "慢刷新期间的新输入与dirty保留，后续正常保存不丢修改",
+    "关闭取消、键盘与未保存输入保护沿用公共实现",
+    "三项完整性独立；真实0元推广用途仍保留，未填人数不能被忽略",
+    "未封存当前月会读取最新成本，封存后的六个月趋势与事实保持原快照",
+    "三档桌面运营／月会／录入／精简历史实际渲染，右图无默认日期且贴近主值且无页面级溢出",
+    "快速切月旧响应不覆盖新选择，来源折叠按月份重置",
+    "三份正式渲染PDF含完整来源，旧封存展示保持；长金额历史两列不截断",
+    "390px仅核查页面溢出、明显遮挡和关闭保存入口",
+    "总消耗及五项成本共六条趋势内嵌，新增PDF保留同样对应关系",
+    "仅两个月事实时六条走势均铺满实际宽度，来源直接在结果表下展开"
+  ],
+  "images": [
+    {
+      "name": "monthly-gap-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-collapsed-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-expanded-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-missing-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 1263,
+          "y": 218,
+          "w": 281,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 1577,
+          "y": 218,
+          "w": 280,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 1263,
+          "y": 331,
+          "w": 281,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 1577,
+          "y": 331,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1263,
+          "y": 444,
+          "w": 281,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1577,
+          "y": 444,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-costs-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 1263,
+          "y": 218,
+          "w": 281,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 1577,
+          "y": 218,
+          "w": 280,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1263,
+          "y": 331,
+          "w": 281,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 1577,
+          "y": 331,
+          "w": 280,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 1263,
+          "y": 444,
+          "w": 281,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1577,
+          "y": 444,
+          "w": 280,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-collapsed-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-expanded-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 452,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-missing-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 188,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 188,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 188,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 302,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 302,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 302,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 218,
+          "w": 281,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 218,
+          "w": 280,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 331,
+          "w": 281,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 331,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 444,
+          "w": 281,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 444,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-costs-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 188,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 188,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 188,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 302,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 302,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 302,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 218,
+          "w": 281,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 218,
+          "w": 280,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 331,
+          "w": 281,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 331,
+          "w": 280,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 444,
+          "w": 281,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 444,
+          "w": 280,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-collapsed-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1304,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1304,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1418,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1418,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1532,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1532,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-expanded-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1304,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1304,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1418,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1418,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1532,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1532,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 609,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 609,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 723,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 723,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 837,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 837,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 452,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 566,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 566,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-missing-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 452,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 566,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 566,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 367,
+          "y": 218,
+          "w": 281,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 681,
+          "y": 218,
+          "w": 280,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 367,
+          "y": 331,
+          "w": 281,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 681,
+          "y": 331,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 367,
+          "y": 444,
+          "w": 281,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 681,
+          "y": 444,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-costs-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 452,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 566,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 566,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        },
+        {
+          "x": 367,
+          "y": 218,
+          "w": 281,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 681,
+          "y": 218,
+          "w": 280,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 367,
+          "y": 331,
+          "w": 281,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 681,
+          "y": 331,
+          "w": 280,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 367,
+          "y": 444,
+          "w": 281,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 681,
+          "y": 444,
+          "w": 280,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "history-long-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 310,
+          "w": 187,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 310,
+          "w": 151,
+          "text": "¥881,834.21",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 310,
+          "w": 165,
+          "text": "¥2,057,613.15",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 423,
+          "w": 187,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 423,
+          "w": 187,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 423,
+          "w": 187,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 218,
+          "w": 281,
+          "text": "¥12,345,678.90",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 218,
+          "w": 280,
+          "text": "¥881,834.21",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 331,
+          "w": 281,
+          "text": "¥2,057,613.15",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 331,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 783,
+          "y": 444,
+          "w": 281,
+          "text": "—",
+          "overflow": false
+        },
+        {
+          "x": 1097,
+          "y": 444,
+          "w": 280,
+          "text": "—",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "legacy-frozen-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"Times New Roman\"",
+      "metrics": []
+    },
+    {
+      "name": "monthly-mobile-390",
+      "viewport": 390,
+      "scrollWidth": 375,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 44,
+          "y": 1757,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1870,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1984,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 2098,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 2211,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 2324,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "editor-mobile-390",
+      "viewport": 390,
+      "scrollWidth": 375,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 44,
+          "y": 533,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 646,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 760,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 874,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 987,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 44,
+          "y": 1100,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-five-trends-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-five-trends-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 138,
+          "text": "¥30,705.00",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 93,
+          "text": "¥310.15",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 101,
+          "text": "¥602.06",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 97,
+          "text": "¥731.07",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 452,
+          "w": 122,
+          "text": "¥1,535.25",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 452,
+          "w": 123,
+          "text": "¥2,558.75",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-two-months-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 822,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1349,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-two-months-1920",
+      "viewport": 1920,
+      "scrollWidth": 1905,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 338,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 823.328125,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1347.65625,
+          "y": 452,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-two-months-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1036,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1036,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1036,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 295,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 662,
+          "y": 1150,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1029,
+          "y": 1150,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-two-months-1440",
+      "viewport": 1440,
+      "scrollWidth": 1425,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 338,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 299,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 663.328125,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 1027.65625,
+          "y": 452,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "monthly-two-months-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 294,
+          "y": 1304,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1304,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1418,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1418,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 294,
+          "y": 1532,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 1532,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "name": "meeting-two-months-1024",
+      "viewport": 1024,
+      "scrollWidth": 1009,
+      "font": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "metrics": [
+        {
+          "x": 298,
+          "y": 338,
+          "w": 125,
+          "text": "¥5,580.53",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 338,
+          "w": 97,
+          "text": "¥180.02",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 452,
+          "w": 100,
+          "text": "¥372.04",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 452,
+          "w": 116,
+          "text": "¥1,395.13",
+          "overflow": false
+        },
+        {
+          "x": 298,
+          "y": 566,
+          "w": 116,
+          "text": "¥1,860.18",
+          "overflow": false
+        },
+        {
+          "x": 637.5,
+          "y": 566,
+          "w": 120,
+          "text": "¥2,790.27",
+          "overflow": false
+        }
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "kind": "trends",
+      "viewport": 1920,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 350,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 377,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 374,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 1239,
+          "bottom": 1283,
+          "summaryTop": 1239,
+          "summaryBottom": 1283,
+          "summaryHeight": 44,
+          "textTop": 1249,
+          "textBottom": 1273,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1283,
+          "bottom": 1328,
+          "summaryTop": 1284,
+          "summaryBottom": 1328,
+          "summaryHeight": 44,
+          "textTop": 1294,
+          "textBottom": 1318,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 857,
+          "bottom": 902,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 857,
+          "bottom": 1087,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 522,
+          "bottom": 752,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1920",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 522,
+          "bottom": 567,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "trends",
+      "viewport": 1920,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 347.328125,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 374.328125,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 371.328125,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 541,
+          "bottom": 585,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 585,
+          "bottom": 630,
+          "summaryTop": 586,
+          "summaryBottom": 630,
+          "summaryHeight": 44,
+          "textTop": 596,
+          "textBottom": 620,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 541,
+          "bottom": 920,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 920,
+          "bottom": 965,
+          "summaryTop": 921,
+          "summaryBottom": 965,
+          "summaryHeight": 44,
+          "textTop": 931,
+          "textBottom": 955,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 541,
+          "bottom": 920,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 920,
+          "bottom": 1150,
+          "summaryTop": 921,
+          "summaryBottom": 965,
+          "summaryHeight": 44,
+          "textTop": 931,
+          "textBottom": 955,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 541,
+          "bottom": 585,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 585,
+          "bottom": 815,
+          "summaryTop": 586,
+          "summaryBottom": 630,
+          "summaryHeight": 44,
+          "textTop": 596,
+          "textBottom": 620,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1920",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 541,
+          "bottom": 585,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 585,
+          "bottom": 630,
+          "summaryTop": 586,
+          "summaryBottom": 630,
+          "summaryHeight": 44,
+          "textTop": 596,
+          "textBottom": 620,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "history-summary",
+      "viewport": 1920,
+      "metricCount": 6,
+      "trendCount": 0
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 190,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 217,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 214,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 1239,
+          "bottom": 1283,
+          "summaryTop": 1239,
+          "summaryBottom": 1283,
+          "summaryHeight": 44,
+          "textTop": 1249,
+          "textBottom": 1273,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1283,
+          "bottom": 1328,
+          "summaryTop": 1284,
+          "summaryBottom": 1328,
+          "summaryHeight": 44,
+          "textTop": 1294,
+          "textBottom": 1318,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 455,
+          "bottom": 834,
+          "summaryTop": 455,
+          "summaryBottom": 499,
+          "summaryHeight": 44,
+          "textTop": 465,
+          "textBottom": 489,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 834,
+          "bottom": 879,
+          "summaryTop": 835,
+          "summaryBottom": 879,
+          "summaryHeight": 44,
+          "textTop": 845,
+          "textBottom": 869,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 455,
+          "bottom": 834,
+          "summaryTop": 455,
+          "summaryBottom": 499,
+          "summaryHeight": 44,
+          "textTop": 465,
+          "textBottom": 489,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 834,
+          "bottom": 1064,
+          "summaryTop": 835,
+          "summaryBottom": 879,
+          "summaryHeight": 44,
+          "textTop": 845,
+          "textBottom": 869,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 435,
+          "bottom": 665,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1440",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 435,
+          "bottom": 480,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 187.328125,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 214.328125,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 211.34375,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 541,
+          "bottom": 585,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 585,
+          "bottom": 630,
+          "summaryTop": 586,
+          "summaryBottom": 630,
+          "summaryHeight": 44,
+          "textTop": 596,
+          "textBottom": 620,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 541,
+          "bottom": 920,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 920,
+          "bottom": 965,
+          "summaryTop": 921,
+          "summaryBottom": 965,
+          "summaryHeight": 44,
+          "textTop": 931,
+          "textBottom": 955,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 541,
+          "bottom": 920,
+          "summaryTop": 541,
+          "summaryBottom": 585,
+          "summaryHeight": 44,
+          "textTop": 551,
+          "textBottom": 575,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 920,
+          "bottom": 1150,
+          "summaryTop": 921,
+          "summaryBottom": 965,
+          "summaryHeight": 44,
+          "textTop": 931,
+          "textBottom": 955,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 435,
+          "bottom": 665,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1440",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 391,
+          "bottom": 435,
+          "summaryTop": 391,
+          "summaryBottom": 435,
+          "summaryHeight": 44,
+          "textTop": 401,
+          "textBottom": 425,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 435,
+          "bottom": 480,
+          "summaryTop": 436,
+          "summaryBottom": 480,
+          "summaryHeight": 44,
+          "textTop": 446,
+          "textBottom": 470,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "history-summary",
+      "viewport": 1440,
+      "metricCount": 6,
+      "trendCount": 0
+    },
+    {
+      "kind": "trends",
+      "viewport": 1024,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 165.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 192.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 190.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 1621,
+          "bottom": 1665,
+          "summaryTop": 1621,
+          "summaryBottom": 1665,
+          "summaryHeight": 44,
+          "textTop": 1631,
+          "textBottom": 1655,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1665,
+          "bottom": 1710,
+          "summaryTop": 1666,
+          "summaryBottom": 1710,
+          "summaryHeight": 44,
+          "textTop": 1676,
+          "textBottom": 1700,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 857,
+          "bottom": 902,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 478,
+          "bottom": 857,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 857,
+          "bottom": 1087,
+          "summaryTop": 858,
+          "summaryBottom": 902,
+          "summaryHeight": 44,
+          "textTop": 868,
+          "textBottom": 892,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 522,
+          "bottom": 752,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "monthly-source-1024",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 478,
+          "bottom": 522,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 522,
+          "bottom": 567,
+          "summaryTop": 523,
+          "summaryBottom": 567,
+          "summaryHeight": 44,
+          "textTop": 533,
+          "textBottom": 557,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "trends",
+      "viewport": 1024,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 161.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 188.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 186.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "closed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 655,
+          "bottom": 699,
+          "summaryTop": 655,
+          "summaryBottom": 699,
+          "summaryHeight": 44,
+          "textTop": 665,
+          "textBottom": 689,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 699,
+          "bottom": 744,
+          "summaryTop": 700,
+          "summaryBottom": 744,
+          "summaryHeight": 44,
+          "textTop": 710,
+          "textBottom": 734,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "promotion",
+      "boxes": [
+        {
+          "open": true,
+          "top": 655,
+          "bottom": 1034,
+          "summaryTop": 655,
+          "summaryBottom": 699,
+          "summaryHeight": 44,
+          "textTop": 665,
+          "textBottom": 689,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 1034,
+          "bottom": 1079,
+          "summaryTop": 1035,
+          "summaryBottom": 1079,
+          "summaryHeight": 44,
+          "textTop": 1045,
+          "textBottom": 1069,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "both",
+      "boxes": [
+        {
+          "open": true,
+          "top": 98,
+          "bottom": 477,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 477,
+          "bottom": 707,
+          "summaryTop": 478,
+          "summaryBottom": 522,
+          "summaryHeight": 44,
+          "textTop": 488,
+          "textBottom": 512,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "organic",
+      "boxes": [
+        {
+          "open": false,
+          "top": 98,
+          "bottom": 142,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": true,
+          "top": 142,
+          "bottom": 372,
+          "summaryTop": 143,
+          "summaryBottom": 187,
+          "summaryHeight": 44,
+          "textTop": 153,
+          "textBottom": 177,
+          "tableGap": 12,
+          "bottomGap": 20,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "sources",
+      "name": "meeting-source-1024",
+      "state": "reclosed",
+      "boxes": [
+        {
+          "open": false,
+          "top": 98,
+          "bottom": 142,
+          "summaryTop": 98,
+          "summaryBottom": 142,
+          "summaryHeight": 44,
+          "textTop": 108,
+          "textBottom": 132,
+          "tableGap": 0,
+          "bottomGap": -303,
+          "margin": "0px",
+          "padding": "0px"
+        },
+        {
+          "open": false,
+          "top": 142,
+          "bottom": 187,
+          "summaryTop": 143,
+          "summaryBottom": 187,
+          "summaryHeight": 44,
+          "textTop": 153,
+          "textBottom": 177,
+          "tableGap": 0,
+          "bottomGap": -153,
+          "margin": "0px",
+          "padding": "0px"
+        }
+      ],
+      "card": null
+    },
+    {
+      "kind": "history-summary",
+      "viewport": 1024,
+      "metricCount": 6,
+      "trendCount": 0
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 190,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥12,345,678.90",
+            "2026-07：¥700.00",
+            "2026-08：¥19,000.00",
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 217,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥881,834.21",
+            "2026-07：¥50.00",
+            "2026-08：¥655.17",
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 214,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-06：¥2,057,613.15",
+            "2026-07：¥116.67",
+            "2026-08：¥1,461.54",
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        },
+        {
+          "metric": "added",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 198,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-08：¥4,750.00",
+            "2026-09：¥731.07",
+            "2026-10：¥1,395.13"
+          ]
+        },
+        {
+          "metric": "consulted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 198,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-08：¥4,750.00",
+            "2026-09：¥1,535.25",
+            "2026-10：¥1,860.18"
+          ]
+        },
+        {
+          "metric": "converted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 194,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-08：¥9,500.00",
+            "2026-09：¥2,558.75",
+            "2026-10：¥2,790.27"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "trends",
+      "viewport": 1920,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 350,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 377,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 374,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        },
+        {
+          "metric": "added",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 358,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥731.07",
+            "2026-10：¥1,395.13"
+          ]
+        },
+        {
+          "metric": "consulted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 358,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥1,535.25",
+            "2026-10：¥1,860.18"
+          ]
+        },
+        {
+          "metric": "converted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 354,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥2,558.75",
+            "2026-10：¥2,790.27"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "trends",
+      "viewport": 1440,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 190,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 217,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 214,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        },
+        {
+          "metric": "added",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 198,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥731.07",
+            "2026-10：¥1,395.13"
+          ]
+        },
+        {
+          "metric": "consulted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 198,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥1,535.25",
+            "2026-10：¥1,860.18"
+          ]
+        },
+        {
+          "metric": "converted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 194,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥2,558.75",
+            "2026-10：¥2,790.27"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "trends",
+      "viewport": 1024,
+      "values": [
+        {
+          "metric": "spend",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 165.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥30,705.00",
+            "2026-10：¥5,580.53"
+          ]
+        },
+        {
+          "metric": "actualOpenCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 192.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥310.15",
+            "2026-10：¥180.02"
+          ]
+        },
+        {
+          "metric": "actualLeadCost",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 190.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥602.06",
+            "2026-10：¥372.04"
+          ]
+        },
+        {
+          "metric": "added",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 173.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥731.07",
+            "2026-10：¥1,395.13"
+          ]
+        },
+        {
+          "metric": "consulted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 174.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥1,535.25",
+            "2026-10：¥1,860.18"
+          ]
+        },
+        {
+          "metric": "converted",
+          "inside": true,
+          "gap": 20,
+          "height": 56,
+          "width": 169.5,
+          "caption": false,
+          "axis": false,
+          "points": [
+            "2026-09：¥2,558.75",
+            "2026-10：¥2,790.27"
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "dataSource": "tests/private-sources.fixture.ts＋仅课程／空讲义隔离数据；全部位于本机独立PostgreSQL",
+  "baseURL": "http://127.0.0.1:38089"
+}

@@ -1,0 +1,279 @@
+{
+  "status": "已自检并发布，待用户反馈",
+  "dataSource": "isolated PostgreSQL; tests/private-sources.fixture.ts and promotion-day.fixture.ts; no production test writes",
+  "screenshots": [
+    {
+      "file": "screenshots/admin-1024-monthly-points.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-monthly-points.png"
+    },
+    {
+      "file": "screenshots/admin-1024-point-tooltip.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-point-tooltip.png"
+    },
+    {
+      "file": "screenshots/admin-1024-purposes.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-purposes.png"
+    },
+    {
+      "file": "screenshots/admin-1024-types.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1024-types.png"
+    },
+    {
+      "file": "screenshots/admin-1440-annual-editable.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-annual-editable.png"
+    },
+    {
+      "file": "screenshots/admin-1440-config-conflict.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-config-conflict.png"
+    },
+    {
+      "file": "screenshots/admin-1440-config-retry.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-config-retry.png"
+    },
+    {
+      "file": "screenshots/admin-1440-dynamic-private-entry.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-dynamic-private-entry.png"
+    },
+    {
+      "file": "screenshots/admin-1440-edit-type.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-edit-type.png"
+    },
+    {
+      "file": "screenshots/admin-1440-monthly-points.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-monthly-points.png"
+    },
+    {
+      "file": "screenshots/admin-1440-new-type.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-new-type.png"
+    },
+    {
+      "file": "screenshots/admin-1440-nonpromotion-correction-entry.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-nonpromotion-correction-entry.png"
+    },
+    {
+      "file": "screenshots/admin-1440-point-tooltip.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-point-tooltip.png"
+    },
+    {
+      "file": "screenshots/admin-1440-purposes.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-purposes.png"
+    },
+    {
+      "file": "screenshots/admin-1440-sealed-text-edit.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-sealed-text-edit.png"
+    },
+    {
+      "file": "screenshots/admin-1440-sealed-text-saved.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-sealed-text-saved.png"
+    },
+    {
+      "file": "screenshots/admin-1440-types.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1440-types.png"
+    },
+    {
+      "file": "screenshots/admin-1920-monthly-points.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-monthly-points.png"
+    },
+    {
+      "file": "screenshots/admin-1920-point-tooltip.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-point-tooltip.png"
+    },
+    {
+      "file": "screenshots/admin-1920-purposes.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-purposes.png"
+    },
+    {
+      "file": "screenshots/admin-1920-types.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-1920-types.png"
+    },
+    {
+      "file": "screenshots/admin-390-config-overflow.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-390-config-overflow.png"
+    },
+    {
+      "file": "screenshots/admin-390-monthly-overflow.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/admin-390-monthly-overflow.png"
+    },
+    {
+      "file": "screenshots/employee-1024-monthly-points.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1024-monthly-points.png"
+    },
+    {
+      "file": "screenshots/employee-1024-point-tooltip.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1024-point-tooltip.png"
+    },
+    {
+      "file": "screenshots/employee-1440-annual-editable.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-annual-editable.png"
+    },
+    {
+      "file": "screenshots/employee-1440-dynamic-private-entry.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-dynamic-private-entry.png"
+    },
+    {
+      "file": "screenshots/employee-1440-monthly-points.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-monthly-points.png"
+    },
+    {
+      "file": "screenshots/employee-1440-nonpromotion-correction-entry.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-nonpromotion-correction-entry.png"
+    },
+    {
+      "file": "screenshots/employee-1440-point-tooltip.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-point-tooltip.png"
+    },
+    {
+      "file": "screenshots/employee-1440-public-guide.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-public-guide.png"
+    },
+    {
+      "file": "screenshots/employee-1440-sealed-text-edit.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-sealed-text-edit.png"
+    },
+    {
+      "file": "screenshots/employee-1440-sealed-text-saved.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1440-sealed-text-saved.png"
+    },
+    {
+      "file": "screenshots/employee-1920-monthly-points.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1920-monthly-points.png"
+    },
+    {
+      "file": "screenshots/employee-1920-point-tooltip.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-1920-point-tooltip.png"
+    },
+    {
+      "file": "screenshots/employee-390-monthly-overflow.png",
+      "source": ".tools/test-artifacts/business-edit-runtime/screenshots/employee-390-monthly-overflow.png"
+    },
+    {
+      "file": "screenshots/weekly-admin-1024-weekly.png",
+      "source": ".tools/test-artifacts/trend-consumers/screenshots/admin-1024-weekly.png"
+    },
+    {
+      "file": "screenshots/weekly-admin-1440-weekly.png",
+      "source": ".tools/test-artifacts/trend-consumers/screenshots/admin-1440-weekly.png"
+    },
+    {
+      "file": "screenshots/weekly-admin-1920-weekly.png",
+      "source": ".tools/test-artifacts/trend-consumers/screenshots/admin-1920-weekly.png"
+    },
+    {
+      "file": "screenshots/weekly-employee-1024-weekly.png",
+      "source": ".tools/test-artifacts/trend-consumers/screenshots/employee-1024-weekly.png"
+    },
+    {
+      "file": "screenshots/weekly-employee-1440-weekly.png",
+      "source": ".tools/test-artifacts/trend-consumers/screenshots/employee-1440-weekly.png"
+    },
+    {
+      "file": "screenshots/weekly-employee-1920-weekly.png",
+      "source": ".tools/test-artifacts/trend-consumers/screenshots/employee-1920-weekly.png"
+    },
+    {
+      "file": "screenshots/private-monthly-five-trends-1440.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/monthly-five-trends-1440.png"
+    },
+    {
+      "file": "screenshots/private-monthly-gap-1440.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/monthly-gap-1440.png"
+    },
+    {
+      "file": "screenshots/private-monthly-two-months-1024.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/monthly-two-months-1024.png"
+    },
+    {
+      "file": "screenshots/private-monthly-two-months-1440.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/monthly-two-months-1440.png"
+    },
+    {
+      "file": "screenshots/private-monthly-two-months-1920.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/monthly-two-months-1920.png"
+    },
+    {
+      "file": "screenshots/private-history-missing-1440.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/history-missing-1440.png"
+    },
+    {
+      "file": "screenshots/private-editor-mobile-390.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/editor-mobile-390.png"
+    },
+    {
+      "file": "screenshots/private-trend-keyboard-popover-1440.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/trend-keyboard-popover-1440.png"
+    },
+    {
+      "file": "screenshots/private-saved-refresh-failed-1440.png",
+      "source": ".tools/test-artifacts/private-costs-final/screenshots/saved-refresh-failed-1440.png"
+    },
+    {
+      "file": "screenshots/promotion-admin-1440-01-before.png",
+      "source": ".tools/test-artifacts/promotion-day/screenshots/admin-1440-01-before.png"
+    },
+    {
+      "file": "screenshots/promotion-admin-1440-02-context.png",
+      "source": ".tools/test-artifacts/promotion-day/screenshots/admin-1440-02-context.png"
+    },
+    {
+      "file": "screenshots/promotion-admin-1024-02-context.png",
+      "source": ".tools/test-artifacts/promotion-day/screenshots/admin-1024-02-context.png"
+    },
+    {
+      "file": "screenshots/promotion-admin-1920-04-after.png",
+      "source": ".tools/test-artifacts/promotion-day/screenshots/admin-1920-04-after.png"
+    },
+    {
+      "file": "screenshots/promotion-employee-1440-01-network-preserved.png",
+      "source": ".tools/test-artifacts/promotion-day/screenshots/employee-1440-01-network-preserved.png"
+    },
+    {
+      "file": "screenshots/promotion-employee-1440-02-context.png",
+      "source": ".tools/test-artifacts/promotion-day/screenshots/employee-1440-02-context.png"
+    }
+  ],
+  "videos": [
+    "video/admin-1440.mp4",
+    "video/employee-1440.mp4"
+  ],
+  "sampledFrames": 525,
+  "inspection": [
+    "inspection/screens-01.jpg",
+    "inspection/screens-02.jpg",
+    "inspection/screens-03.jpg",
+    "inspection/screens-04.jpg",
+    "inspection/screens-05.jpg",
+    "inspection/screens-06.jpg",
+    "inspection/screens-07.jpg",
+    "inspection/admin-motion-01.jpg",
+    "inspection/admin-motion-02.jpg",
+    "inspection/admin-motion-03.jpg",
+    "inspection/admin-motion-04.jpg",
+    "inspection/admin-motion-05.jpg",
+    "inspection/admin-motion-06.jpg",
+    "inspection/admin-motion-07.jpg",
+    "inspection/admin-motion-08.jpg",
+    "inspection/admin-motion-09.jpg",
+    "inspection/admin-motion-10.jpg",
+    "inspection/admin-motion-11.jpg",
+    "inspection/employee-motion-01.jpg",
+    "inspection/employee-motion-02.jpg",
+    "inspection/employee-motion-03.jpg",
+    "inspection/employee-motion-04.jpg"
+  ],
+  "applicationCommit": "1d0a5cd73424b106cfcb3b168e7821ec353df310",
+  "review": {
+    "screenshotsViewed": 57,
+    "sampledFramesViewed": 525,
+    "sampleRateFps": 8,
+    "desktopWidths": [
+      1920,
+      1440,
+      1024
+    ],
+    "mobileScope": "390px仅明显遮挡、关闭入口与页面级溢出",
+    "independentReview": "圆点伪元素display修复后复核通过；未扩大到其他设计范围",
+    "result": "配置表、弹窗、趋势及封存文字编辑未见明显错位或遮挡",
+    "recordingNote": "录像固定1440画布内主动切换视口，灰色区域是画布边界；非页面灰闪。"
+  },
+  "deploymentId": "dpl_BpUTbxMCAWDDXfWispG3A1gK6ugt"
+}

@@ -1,0 +1,30 @@
+{
+  "applicationCommit": "1d0a5cd73424b106cfcb3b168e7821ec353df310",
+  "ruleTests": {
+    "passed": 301,
+    "failed": 0
+  },
+  "finalTargetedTests": {
+    "passed": 22,
+    "failed": 0
+  },
+  "typeCheck": {
+    "errors": 0,
+    "warnings": 0,
+    "hints": 59
+  },
+  "schemaCheck": "passed",
+  "nodeAndVercelBuild": "passed",
+  "vercelPackageDependenciesAndOriginManifest": "passed",
+  "browser": "actual Vercel runtime, isolated PostgreSQL",
+  "httpIntegration": "实际运行包3组通过",
+  "promotionHistory": "真实PostgreSQL状态衔接、三天确认、并发及双角色浏览器通过",
+  "monthlyWorkflow": "现有scheduling-review.integration通过",
+  "privateCostRepair": "实际运行包15组通过",
+  "weeklyTrendConsumers": "双方角色3档桌面通过",
+  "sharedBusinessUI": "passed",
+  "pdf": "生成新修订PDF，原封存PDF字节不变；本轮未对PDF逐页作版式验收",
+  "visualReview": "57图、2段录像525个8fps抽样帧已实际查看",
+  "legacySuiteNote": "meeting-display旧专项停于已过期monthly-operations选择器，未标为整套通过；受影响走势另由当前15组成本专项和6张周会趋势实测覆盖。",
+  "productionTestWrites": false
+}
