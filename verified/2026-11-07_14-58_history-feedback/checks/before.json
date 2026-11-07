@@ -1,0 +1,28 @@
+{
+  "baseline": true,
+  "checks": [
+    {
+      "role": "admin",
+      "width": 1440,
+      "create": {
+        "height": 102.375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n首轮排期填写\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "create": {
+        "height": 102.375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n首轮排期填写\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    }
+  ],
+  "errors": []
+}

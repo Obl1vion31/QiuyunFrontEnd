@@ -1,0 +1,39 @@
+{
+  "application": "4ed8e4a",
+  "status": "已自检，待用户反馈",
+  "screenshots": 21,
+  "desktopWidths": [
+    1920,
+    1440,
+    1024
+  ],
+  "roles": [
+    "admin",
+    "employee"
+  ],
+  "source": "本机独立临时PostgreSQL；真实HTTP首次创建、跨Week及内容更新；测试账号均虚构",
+  "creationRowHeight": {
+    "before": 102.375,
+    "after": 40.09375
+  },
+  "unitTests": 291,
+  "builds": [
+    "Node",
+    "Vercel"
+  ],
+  "typeErrors": 0,
+  "browserSuites": [
+    "schedule-history-feedback",
+    "schedule-inspector-loading",
+    "schedule-panel",
+    "business-read",
+    "business-ui"
+  ],
+  "videoReview": {
+    "interactionFps": 3,
+    "interactionFrames": 150,
+    "firstPaintFps": 10,
+    "firstPaintFrames": 124
+  },
+  "publication": "待正式核对"
+}

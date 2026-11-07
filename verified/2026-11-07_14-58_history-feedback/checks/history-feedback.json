@@ -1,0 +1,88 @@
+{
+  "baseline": false,
+  "checks": [
+    {
+      "role": "admin",
+      "width": 1920,
+      "create": {
+        "height": 40.09375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "create": {
+        "height": 40.09375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "create": {
+        "height": 40.09375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "role": "employee",
+      "width": 1920,
+      "create": {
+        "height": 40.09375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "create": {
+        "height": 40.09375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "role": "employee",
+      "width": 1024,
+      "create": {
+        "height": 40.09375,
+        "font": "14px",
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "text": "建立排期\n\n2026-11-07 12:00 · test_admin",
+        "overflow": false
+      }
+    },
+    {
+      "slowRead": true,
+      "empty": true,
+      "failureRetry": true,
+      "closeSwitchStale": true
+    },
+    {
+      "sharedLookup": true,
+      "meaningfulReasons": true,
+      "unsavedProtection": true,
+      "reducedMotion": true,
+      "mobileObviousCheck": true
+    },
+    {
+      "firstPaint": "direct cold slow font/data, hard refresh, warm refresh, internal navigation; actual recording"
+    }
+  ],
+  "errors": []
+}
