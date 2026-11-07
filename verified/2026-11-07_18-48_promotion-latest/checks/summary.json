@@ -1,0 +1,22 @@
+{
+  "source": "fe19776c943db8f07c6d07141250b85d5da40977",
+  "branch": "codex/promotion-latest-day",
+  "runtime": "actual Vercel prebuilt bundle",
+  "unitTests": 296,
+  "typeErrors": 0,
+  "latestDayBrowser": true,
+  "savedWorkspaceRegression": true,
+  "desktopWidths": [
+    1920,
+    1440,
+    1024
+  ],
+  "mobileLimitedCheck": [
+    390
+  ],
+  "finalScreenshotsReviewed": 13,
+  "baselineAndComparisonReviewed": true,
+  "videoFramesReviewed": 70,
+  "originalRowGeometryEqual": true,
+  "productionTestDataWrites": false
+}

@@ -1,0 +1,68 @@
+{
+  "height": 72,
+  "fields": [
+    {
+      "x": 292,
+      "y": 15.5,
+      "width": 96,
+      "height": 40,
+      "font": "500 14px / 22px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgba(0, 0, 0, 0)",
+      "border": "none"
+    },
+    {
+      "x": 398,
+      "y": 15.5,
+      "width": 136.625,
+      "height": 40,
+      "font": "14px / 22px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(171, 181, 175)"
+    },
+    {
+      "x": 544.625,
+      "y": 15.5,
+      "width": 124.21875,
+      "height": 40,
+      "font": "14px / 22px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(171, 181, 175)"
+    },
+    {
+      "x": 678.84375,
+      "y": 15.5,
+      "width": 124.21875,
+      "height": 40,
+      "font": "14px / 22px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(171, 181, 175)"
+    },
+    {
+      "x": 813.0625,
+      "y": 15.5,
+      "width": 124.21875,
+      "height": 40,
+      "font": "14px / 22px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(171, 181, 175)"
+    },
+    {
+      "x": 947.28125,
+      "y": 15.5,
+      "width": 124.21875,
+      "height": 40,
+      "font": "14px / 22px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(171, 181, 175)"
+    },
+    {
+      "x": 1290.25,
+      "y": 15.5,
+      "width": 198.75,
+      "height": 40,
+      "font": "14px \"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "background": "rgb(255, 255, 255)",
+      "border": "1px solid rgb(171, 181, 175)"
+    }
+  ]
+}
