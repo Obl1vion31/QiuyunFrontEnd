@@ -1,0 +1,189 @@
+{
+  "passed": true,
+  "base": "https://qiuyun-frontend-e5emlt4p4-opgobl1v-5358.vercel.app",
+  "platformProtectionBypass": true,
+  "source": "4ed8e4a",
+  "checks": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/business/annual-plan",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?month=2026-11",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/monthly-operations",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/api/monthly-plans?month=2026-11",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/business-notifications",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/content-search?id=44d3321a-5ea2-5cac-8c72-d0085dcc8a6e",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/operations-content/44d3321a-5ea2-5cac-8c72-d0085dcc8a6e/workflow",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/collaboration/presence",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/collaboration/locks",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/promotion-daily/00000000-0000-4000-8000-000000000001",
+      "method": "PATCH",
+      "status": 403
+    }
+  ],
+  "assets": [
+    {
+      "path": "_astro/annual-plan.BNr04GpL.css",
+      "sha256": "529ac4fc86274eda17b238efc55e5352255e2a455254f7f79339c3dd9876fb44"
+    },
+    {
+      "path": "_astro/annual-plan.DDMgbaTg.css",
+      "sha256": "98293c352596de4bffcad446a4682ffb4ac54139744017c0078d6213e16045e5"
+    },
+    {
+      "path": "_astro/business-permissions.BhA4diT7.js",
+      "sha256": "2e5751e36a078368fdd41884850238515b725ca77af36b46252b6e3f51486e29"
+    },
+    {
+      "path": "_astro/BusinessMonthlyOperations.DJTYMcJi.js",
+      "sha256": "d6becd134bbcd8ad222c7b2907d19d1f23cceed9699ce03a50c5fdc3323c802a"
+    },
+    {
+      "path": "_astro/BusinessPostLookup.astro_astro_type_script_index_0_lang.BCMeD27b.js",
+      "sha256": "d38198b96d15773ae1b8a73718caa8b7626f951415e74a19cf2d5aabab0c3472"
+    },
+    {
+      "path": "_astro/BusinessWeeklyMeeting.DK6SfH6x.js",
+      "sha256": "5dcdd6f2140201e4f2c1feaf800086f38211ec58a8416d188b20b51d53a2ef35"
+    },
+    {
+      "path": "_astro/meeting-finalization.BFn69ahm.js",
+      "sha256": "6812799a9ab50eb0bee7d48f2722027d5564c74f84b37463bc6c9928dedede1c"
+    },
+    {
+      "path": "_astro/meeting-review.ClWYW9g-.css",
+      "sha256": "da08dc468ebdbb019e687cceceeec4e9c0ad1b9fb643a30650eb988ddb663bf9"
+    },
+    {
+      "path": "_astro/MonthlyArrangementPanel.astro_astro_type_script_index_0_lang.B9yEafUu.js",
+      "sha256": "97ad275263bf5449b3976c1396b1d9a96708e1b8d229d314c04b33da07f8128a"
+    },
+    {
+      "path": "_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.CxwYJD_-.js",
+      "sha256": "145cdd513ce1757ef11aaddde185080442e4dc9ea8fb156aa61e83f691c901f6"
+    },
+    {
+      "path": "_astro/MonthlyMeetingSections.BhU9U35S.js",
+      "sha256": "028000e1d7af7441947bf0ce7bb53ed8cdd142269ed0bb390a7ff2e9de7b18bc"
+    },
+    {
+      "path": "_astro/operations-schedule.astro_astro_type_script_index_1_lang.B2hW2Nc6.js",
+      "sha256": "dbdb7db900b77a92aadf1d8cfdd6cce8c38907726ece800d1f4a11552696793e"
+    },
+    {
+      "path": "_astro/operations-schedule.astro_astro_type_script_index_2_lang.D811r6tM.js",
+      "sha256": "b6333722fbd3074d40cfa1f7bc4004ad903757c5209298c6306b19514bb57bdf"
+    },
+    {
+      "path": "_astro/operations-schedule.BpnIboux.css",
+      "sha256": "9c922b3362db6388ae1e854a5ec4e9b830230e1ae3097b3a7146137ae8552d1c"
+    },
+    {
+      "path": "_astro/schedule-history.CndMMQAE.js",
+      "sha256": "5c11d3a069677b585740e8b4b1d7538e5da46e89765b645670f2025bd40238ed"
+    },
+    {
+      "path": "fonts/business.css",
+      "sha256": "11e7db9be8534338218cdf30340086396469ebe77a5392b3766f332313fd92a0"
+    },
+    {
+      "path": "fonts/business.js",
+      "sha256": "75b80add18fc02182cd76880dba3f1fc741e31abeca2a79683e9b6c46b4db75a"
+    }
+  ],
+  "productionBusinessWrites": false
+}

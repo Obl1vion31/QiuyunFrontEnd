@@ -35,5 +35,14 @@
     "firstPaintFps": 10,
     "firstPaintFrames": 124
   },
-  "publication": "待正式核对"
+  "publication": {
+    "application": "4ed8e4a",
+    "evidenceCommit": "7db250c",
+    "deploymentId": "dpl_HeTUoMBDDLj7CWBZY8Ya3jFc3eub",
+    "readyState": "READY",
+    "sameCandidate": true,
+    "formal": "https://qiuyun-frontend.vercel.app",
+    "checks": 22,
+    "assets": 73
+  }
 }
