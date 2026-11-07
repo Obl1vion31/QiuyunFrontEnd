@@ -1,0 +1,17 @@
+{
+  "source": "f523e88588b65e205d30b36959e6963742a2cba7",
+  "evidenceCommit": "9d51717",
+  "branch": "codex/promotion-disabled-fields",
+  "production": "https://qiuyun-frontend.vercel.app",
+  "deploymentId": "dpl_7n63XEUrX7R6wRwHR1nBeXHc8HLV",
+  "candidate": "https://qiuyun-frontend-9fje1h944-opgobl1v-5358.vercel.app",
+  "readyState": "READY",
+  "candidateAndProductionSameDeployment": true,
+  "candidateChecks": 22,
+  "candidateAssets": 20,
+  "productionChecks": 22,
+  "productionAssets": 74,
+  "verifiedAt": "2026-11-07T19:38:37.765167+08:00",
+  "productionBusinessTestWrites": 0,
+  "mainSynced": true
+}
