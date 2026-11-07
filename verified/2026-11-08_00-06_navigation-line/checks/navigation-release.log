@@ -1,0 +1,23 @@
+
+> qiuyun-frontend-system@0.1.0 test:navigation /home/obl1vion/projects/qiuyunFrontend/.tools/releases/navigation-line-20261107
+> node --import tsx tests/navigation-loading.browser.ts
+
+admin-1440-80 passed; document and styles ready in 111ms
+admin-1440-800 passed; document and styles ready in 830ms
+admin-1440-2500 passed; document and styles ready in 2524ms
+admin-1920-80 passed; document and styles ready in 102ms
+admin-1920-800 passed; document and styles ready in 829ms
+admin-1920-2500 passed; document and styles ready in 2526ms
+admin-1024-80 passed; document and styles ready in 107ms
+admin-1024-800 passed; document and styles ready in 828ms
+admin-1024-2500 passed; document and styles ready in 2524ms
+employee-1440-80 passed; document and styles ready in 106ms
+employee-1440-800 passed; document and styles ready in 830ms
+employee-1440-2500 passed; document and styles ready in 2531ms
+employee-1920-80 passed; document and styles ready in 108ms
+employee-1920-800 passed; document and styles ready in 836ms
+employee-1920-2500 passed; document and styles ready in 2531ms
+employee-1024-80 passed; document and styles ready in 104ms
+employee-1024-800 passed; document and styles ready in 828ms
+employee-1024-2500 passed; document and styles ready in 2524ms
+{"passed":true,"cases":29,"screenshots":53,"videos":8,"errors":[]}

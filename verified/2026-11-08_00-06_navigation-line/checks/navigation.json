@@ -1,0 +1,442 @@
+{
+  "passed": true,
+  "isolatedData": true,
+  "results": [
+    {
+      "name": "admin-1440-80",
+      "role": "admin",
+      "width": 1440,
+      "delay": 80,
+      "preparedMs": 110.69999998807907,
+      "reads": 1,
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1440-800",
+      "role": "admin",
+      "width": 1440,
+      "delay": 800,
+      "preparedMs": 830.3999999910593,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1193,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1440-2500",
+      "role": "admin",
+      "width": 1440,
+      "delay": 2500,
+      "preparedMs": 2523.5999999940395,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1193,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "actualFonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 5
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "admin-1920-80",
+      "role": "admin",
+      "width": 1920,
+      "delay": 80,
+      "preparedMs": 102.30000001192093,
+      "reads": 1,
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1920-800",
+      "role": "admin",
+      "width": 1920,
+      "delay": 800,
+      "preparedMs": 828.7000000029802,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1673,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1920-2500",
+      "role": "admin",
+      "width": 1920,
+      "delay": 2500,
+      "preparedMs": 2526,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1673,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1024-80",
+      "role": "admin",
+      "width": 1024,
+      "delay": 80,
+      "preparedMs": 106.79999999701977,
+      "reads": 1,
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1024-800",
+      "role": "admin",
+      "width": 1024,
+      "delay": 800,
+      "preparedMs": 827.5,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 777,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "admin-1024-2500",
+      "role": "admin",
+      "width": 1024,
+      "delay": 2500,
+      "preparedMs": 2524.2999999970198,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 777,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1440-80",
+      "role": "employee",
+      "width": 1440,
+      "delay": 80,
+      "preparedMs": 105.59999999403954,
+      "reads": 1,
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1440-800",
+      "role": "employee",
+      "width": 1440,
+      "delay": 800,
+      "preparedMs": 829.7000000029802,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1193,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1440-2500",
+      "role": "employee",
+      "width": 1440,
+      "delay": 2500,
+      "preparedMs": 2530.699999988079,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1193,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1920-80",
+      "role": "employee",
+      "width": 1920,
+      "delay": 80,
+      "preparedMs": 108.40000000596046,
+      "reads": 1,
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1920-800",
+      "role": "employee",
+      "width": 1920,
+      "delay": 800,
+      "preparedMs": 836,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1673,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1920-2500",
+      "role": "employee",
+      "width": 1920,
+      "delay": 2500,
+      "preparedMs": 2530.7999999970198,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 1673,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1024-80",
+      "role": "employee",
+      "width": 1024,
+      "delay": 80,
+      "preparedMs": 103.70000000298023,
+      "reads": 1,
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1024-800",
+      "role": "employee",
+      "width": 1024,
+      "delay": 800,
+      "preparedMs": 828.2000000029802,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 777,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "name": "employee-1024-2500",
+      "role": "employee",
+      "width": 1024,
+      "delay": 2500,
+      "preparedMs": 2524,
+      "reads": 1,
+      "geometry": {
+        "x": 232,
+        "y": 71,
+        "width": 777,
+        "height": 3
+      },
+      "fonts": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+      "passed": true
+    },
+    {
+      "reducedMotion": true,
+      "passed": true
+    },
+    {
+      "rapidNavigation": true,
+      "history": true,
+      "continuity": [
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/operations-schedule"
+        },
+        {
+          "loading": true,
+          "path": "/business/monthly-operations"
+        },
+        {
+          "loading": false,
+          "path": "/business/monthly-operations"
+        },
+        {
+          "loading": false,
+          "path": "/business/monthly-operations"
+        },
+        {
+          "loading": false,
+          "path": "/business/monthly-operations"
+        },
+        {
+          "loading": false,
+          "path": "/business/monthly-operations"
+        },
+        {
+          "loading": false,
+          "path": "/business/monthly-operations"
+        },
+        {
+          "loading": false,
+          "path": "/business/monthly-operations"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "draftProtection": true,
+      "passed": true
+    },
+    {
+      "networkFailureFallback": true,
+      "passed": true
+    },
+    {
+      "module": "annual-plan",
+      "keyboard": true,
+      "passed": true
+    },
+    {
+      "module": "operations-schedule",
+      "keyboard": true,
+      "passed": true
+    },
+    {
+      "module": "daily-promotion-review",
+      "keyboard": true,
+      "passed": true
+    },
+    {
+      "module": "non-promotion-review",
+      "keyboard": true,
+      "passed": true
+    },
+    {
+      "module": "meeting-review",
+      "keyboard": true,
+      "passed": true
+    },
+    {
+      "module": "monthly-operations",
+      "keyboard": true,
+      "passed": true
+    },
+    {
+      "module": "settings",
+      "keyboard": true,
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    "../screenshots/admin-1440-80-complete.png",
+    "../screenshots/admin-1440-800-loading.png",
+    "../screenshots/admin-1440-800-complete.png",
+    "../screenshots/admin-1440-2500-loading.png",
+    "../screenshots/admin-1440-2500-complete.png",
+    "../screenshots/admin-1920-80-complete.png",
+    "../screenshots/admin-1920-800-loading.png",
+    "../screenshots/admin-1920-800-complete.png",
+    "../screenshots/admin-1920-2500-loading.png",
+    "../screenshots/admin-1920-2500-complete.png",
+    "../screenshots/admin-1024-80-complete.png",
+    "../screenshots/admin-1024-800-loading.png",
+    "../screenshots/admin-1024-800-complete.png",
+    "../screenshots/admin-1024-2500-loading.png",
+    "../screenshots/admin-1024-2500-complete.png",
+    "../screenshots/employee-1440-80-complete.png",
+    "../screenshots/employee-1440-800-loading.png",
+    "../screenshots/employee-1440-800-complete.png",
+    "../screenshots/employee-1440-2500-loading.png",
+    "../screenshots/employee-1440-2500-complete.png",
+    "../screenshots/employee-1920-80-complete.png",
+    "../screenshots/employee-1920-800-loading.png",
+    "../screenshots/employee-1920-800-complete.png",
+    "../screenshots/employee-1920-2500-loading.png",
+    "../screenshots/employee-1920-2500-complete.png",
+    "../screenshots/employee-1024-80-complete.png",
+    "../screenshots/employee-1024-800-loading.png",
+    "../screenshots/employee-1024-800-complete.png",
+    "../screenshots/employee-1024-2500-loading.png",
+    "../screenshots/employee-1024-2500-complete.png",
+    "../screenshots/mobile-390-loading.png",
+    "../screenshots/mobile-390-complete.png",
+    "../screenshots/mobile-390-reduced-loading.png",
+    "../screenshots/mobile-390-reduced-complete.png",
+    "../screenshots/reduced-1440-loading.png",
+    "../screenshots/reduced-1440-complete.png",
+    "../screenshots/cancel-return-1440.png",
+    "../screenshots/rapid-latest-1440.png",
+    "../screenshots/draft-retained-1440.png",
+    "../screenshots/module-annual-plan-1440-loading.png",
+    "../screenshots/module-annual-plan-1440-complete.png",
+    "../screenshots/module-operations-schedule-1440-loading.png",
+    "../screenshots/module-operations-schedule-1440-complete.png",
+    "../screenshots/module-daily-promotion-review-1440-loading.png",
+    "../screenshots/module-daily-promotion-review-1440-complete.png",
+    "../screenshots/module-non-promotion-review-1440-loading.png",
+    "../screenshots/module-non-promotion-review-1440-complete.png",
+    "../screenshots/module-meeting-review-1440-loading.png",
+    "../screenshots/module-meeting-review-1440-complete.png",
+    "../screenshots/module-monthly-operations-1440-loading.png",
+    "../screenshots/module-monthly-operations-1440-complete.png",
+    "../screenshots/module-settings-1440-loading.png",
+    "../screenshots/module-settings-1440-complete.png"
+  ],
+  "videos": [
+    "../video/admin-1440-80.mp4",
+    "../video/admin-1440-800.mp4",
+    "../video/admin-1440-2500.mp4",
+    "../video/admin-1920-2500.mp4",
+    "../video/admin-1024-2500.mp4",
+    "../video/reduced-1440.mp4",
+    "../video/rapid-1440.mp4",
+    "../video/draft-1440.mp4"
+  ],
+  "errors": []
+}

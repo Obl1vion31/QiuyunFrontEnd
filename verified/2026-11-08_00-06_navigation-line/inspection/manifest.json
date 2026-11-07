@@ -1,0 +1,115 @@
+{
+  "screenshots": 53,
+  "screenshotSheets": [
+    "inspection/screens-1.png",
+    "inspection/screens-2.png",
+    "inspection/screens-3.png",
+    "inspection/screens-4.png",
+    "inspection/screens-5.png",
+    "inspection/screens-6.png",
+    "inspection/screens-7.png",
+    "inspection/screens-8.png",
+    "inspection/screens-9.png",
+    "inspection/screens-10.png",
+    "inspection/screens-11.png",
+    "inspection/screens-12.png",
+    "inspection/screens-13.png",
+    "inspection/mobile.png"
+  ],
+  "videos": [
+    {
+      "name": "admin-1440-80",
+      "file": "video/admin-1440-80.mp4",
+      "frames": 57,
+      "trimmedLeadingSeconds": 0.36,
+      "contacts": [
+        "inspection/motion-admin-1440-80-1.png",
+        "inspection/motion-admin-1440-80-2.png"
+      ]
+    },
+    {
+      "name": "admin-1440-800",
+      "file": "video/admin-1440-800.mp4",
+      "frames": 88,
+      "trimmedLeadingSeconds": 0.28,
+      "contacts": [
+        "inspection/motion-admin-1440-800-1.png",
+        "inspection/motion-admin-1440-800-2.png",
+        "inspection/motion-admin-1440-800-3.png"
+      ]
+    },
+    {
+      "name": "admin-1440-2500",
+      "file": "video/admin-1440-2500.mp4",
+      "frames": 126,
+      "trimmedLeadingSeconds": 0.32,
+      "contacts": [
+        "inspection/motion-admin-1440-2500-1.png",
+        "inspection/motion-admin-1440-2500-2.png",
+        "inspection/motion-admin-1440-2500-3.png",
+        "inspection/motion-admin-1440-2500-4.png"
+      ]
+    },
+    {
+      "name": "admin-1920-2500",
+      "file": "video/admin-1920-2500.mp4",
+      "frames": 130,
+      "trimmedLeadingSeconds": 0,
+      "contacts": [
+        "inspection/motion-admin-1920-2500-1.png",
+        "inspection/motion-admin-1920-2500-2.png",
+        "inspection/motion-admin-1920-2500-3.png",
+        "inspection/motion-admin-1920-2500-4.png"
+      ]
+    },
+    {
+      "name": "admin-1024-2500",
+      "file": "video/admin-1024-2500.mp4",
+      "frames": 94,
+      "trimmedLeadingSeconds": 0,
+      "contacts": [
+        "inspection/motion-admin-1024-2500-1.png",
+        "inspection/motion-admin-1024-2500-2.png",
+        "inspection/motion-admin-1024-2500-3.png"
+      ]
+    },
+    {
+      "name": "reduced-1440",
+      "file": "video/reduced-1440.mp4",
+      "frames": 101,
+      "trimmedLeadingSeconds": 0.32,
+      "contacts": [
+        "inspection/motion-reduced-1440-1.png",
+        "inspection/motion-reduced-1440-2.png",
+        "inspection/motion-reduced-1440-3.png"
+      ]
+    },
+    {
+      "name": "rapid-1440",
+      "file": "video/rapid-1440.mp4",
+      "frames": 239,
+      "trimmedLeadingSeconds": 0.24,
+      "contacts": [
+        "inspection/motion-rapid-1440-1.png",
+        "inspection/motion-rapid-1440-2.png",
+        "inspection/motion-rapid-1440-3.png",
+        "inspection/motion-rapid-1440-4.png",
+        "inspection/motion-rapid-1440-5.png",
+        "inspection/motion-rapid-1440-6.png"
+      ]
+    },
+    {
+      "name": "draft-1440",
+      "file": "video/draft-1440.mp4",
+      "frames": 76,
+      "trimmedLeadingSeconds": 0,
+      "contacts": [
+        "inspection/motion-draft-1440-1.png",
+        "inspection/motion-draft-1440-2.png"
+      ]
+    }
+  ],
+  "totalFrames": 911,
+  "appSource": "bb2bd399fab1a5ff86540e77e1b1a5522d08eab7",
+  "actualReview": "全部53张稳定状态图、8段原速录像及其抽样帧合图已实际查看。"
+}

@@ -1,5 +1,10 @@
 # 项目交接
 
+## 切页 A 替换B（验证通过，2026-11-08）
+
+- 应用bb2bd39，分支codex/navigation-line-release，隔离工作树.tools/releases/navigation-line-20261107，基于791efd5；保留根工作区并行修改。用户撤销B，移除逐页骨架、复制Toolbar及相关专用样式；原页保持、120ms公共蓝线、1200ms提示及180ms原位交接，减少动态效果为静态反馈。
+- 296规则、类型0错误／0警告、最终Vercel构建、公共UI／网络及依赖PDF生成烟测通过。双角色三档、29组、53图、8段911抽样帧已实际查看，390仅明显遮挡与溢出；稳定截图等有限动画结束。[本批索引](verified/2026-11-08_00-06_navigation-line/README.md)。待发布后追加正式核对。
+
 ## 切页骨架屏 B（历史，用户已撤销，2026-11-07）
 
 - 应用35e19a5，分支codex/navigation-skeleton-release，隔离工作树.tools/releases/navigation-skeleton-20261107，基于be5f800；根工作区并行修改保持。120ms目标骨架、1200ms轻提示、180ms原位淡入；快速不补播，连续改选不闪回来源页，取消与草稿保护保持。

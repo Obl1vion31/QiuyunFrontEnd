@@ -1,0 +1,9 @@
+---
+import '../styles/business-navigation.css';
+---
+<div class="business-navigation-feedback" data-navigation-loading transition:persist="business-navigation-loading" role="status" aria-live="polite" hidden>
+  <div class="business-navigation-progress" aria-hidden="true"><span></span><span></span></div>
+  <p class="business-navigation-message" data-navigation-wait aria-hidden="true" hidden></p>
+  <span class="business-navigation-announcement" data-navigation-announcement></span>
+</div>
+<script>import '../scripts/business-navigation';</script>
