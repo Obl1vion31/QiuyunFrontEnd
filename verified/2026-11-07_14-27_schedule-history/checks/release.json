@@ -5,5 +5,14 @@
     "url": "qiuyun-frontend-6uvf8bbc8-opgobl1v-5358.vercel.app",
     "readyState": "READY"
   },
-  "production": "pending"
+  "production": {
+    "id": "dpl_8MEmtTubFP5EMjZH5pCuwfzPW8q4",
+    "readyState": "READY",
+    "url": "https://qiuyun-frontend.vercel.app",
+    "sameAsCandidate": true,
+    "checks": 22,
+    "assets": 73,
+    "applicationCommit": "7414a80",
+    "archiveCommit": "d0a0a91"
+  }
 }
