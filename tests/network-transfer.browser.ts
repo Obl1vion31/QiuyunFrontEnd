@@ -16,7 +16,7 @@ const proxy=createServer(client=>{const upstream=connect(Number(target.port)||54
 await new Promise<void>(r=>proxy.listen(0,'127.0.0.1',r));
 const forwarded=new URL(originalURL);forwarded.hostname='127.0.0.1';forwarded.port=String((proxy.address() as {port:number}).port);process.env.TEST_POSTGRES_URL=forwarded.href;
 const clockFile=new URL('../'+dir+'/clock.txt',import.meta.url).pathname,now=new Date('2026-11-05T12:00:00+08:00');await writeFile(clockFile,now.toISOString());
-const fixture=await startPostgresFixture({clockFile}),{db,baseURL}=fixture;let browser:any;
+const fixture=await startPostgresFixture({clockFile,entry:process.env.NETWORK_ENTRY}),{db,baseURL}=fixture;let browser:any;
 const expectedOverdue:string[]=[],expectedMissing:string[]=[],expectedApproval:string[]=[],errors:string[]=[];
 const hours=(n:number)=>new Date(now.getTime()+n*3600000);
 try{
@@ -77,7 +77,7 @@ try{
   await page.route('**/api/business-notifications',async(route:any)=>{oldStarted();await oldGate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...result,overdue:999})});});
   await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));await oldReady;
   await page.locator('[data-module-id=schedule]').click();await page.waitForURL('**/business/operations-schedule**');await page.waitForFunction(()=>document.querySelector('[data-schedule-count=overdue]')?.textContent==='6');releaseOld();await page.waitForLoadState('networkidle');assert.equal(await page.locator('[data-schedule-count=overdue]').innerText(),'6');await page.unroute('**/api/business-notifications');
-  await page.waitForFunction(()=>document.querySelector('.business-console-progress')?.getAttribute('aria-hidden')==='true');
+  await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===true);
   for(const width of [1920,1440,1024,390,320]){await page.setViewportSize({width,height:width<500?780:1000});await settleBusinessUI(page);await page.screenshot({path:`${dir}/schedule-${width}.png`});}
  }
  const videoPath=await page.video()?.path();

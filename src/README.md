@@ -22,6 +22,8 @@
 
 修改共享导航、字体或布局进入共享组件，不在页面复制壳层。客户端不得导入数据库连接和认证密钥。业务写入使用服务端校验与事务，角色从已验证会话读取。新增入口同步检查[已确认边界](../docs/DECISIONS.md)和对应目录说明。
 
+切页占位由 `BusinessNavigationLoading`、`scripts/business-navigation.ts` 和 `styles/business-navigation.css` 共用；只描述目标布局，不请求或缓存业务结果，Toolbar继续复用共享组件。加载生命周期沿用Astro，原位详情／展开和写入仍由原控制器处理。
+
 推广页承载每日／历史；新增阶段复盘进入周例会，`BusinessPromotionStageView` 只读展示旧快照。`meeting-review.astro` 区分旧 v2/v3 编辑与 v4 周／月例会，v4 候选／基准在 `db/meeting-weekly-material.ts`，卡片和编辑在 `BusinessWeeklyMeeting`／`WeeklyReviewCards`。图片只走认证接口，不放入公开资源。
 
 推广状态由 `db/promotion-timeline.ts` 维护业务日期、首次安排、实际当日暂停及历史更正；历史已登记日由 `db/promotion-day-edit.ts` 统一处理单日修改、相邻衔接与三天确认；推广历史和排期通过同一组件展示。排期待审直接位于排期管理，设置向全员提供使用说明（维护区仅管理员），账号管理、操作授权和旧年度审核兼容地址继续仅管理员可用；学科和分类在年度规划内联追加，全站共用数据库字典。

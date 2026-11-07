@@ -2,6 +2,7 @@
 import '../styles/workspace-glass.css';
 import '../styles/schedule-glass.css';
 import BusinessConsoleSidebar from './BusinessConsoleSidebar.astro';
+import BusinessNavigationLoading from './BusinessNavigationLoading.astro';
 import BusinessPostLookup from './BusinessPostLookup.astro';
 import '../styles/business-tokens.css';
 import '../styles/business-forms.css';
@@ -46,7 +47,8 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
   <script is:inline type="application/json" id="business-permissions" set:html={JSON.stringify(permissions).replace(/</g,'\\u003c')}/>
   {notifications&&<script is:inline type="application/json" data-schedule-notification-snapshot set:html={JSON.stringify(notifications).replace(/</g,'\\u003c')}/>}
   <BusinessConsoleSidebar active={active} notifications={notifications} />
-  <section class="workspace business-console-workspace"><slot /></section>
+  <section class="workspace business-console-workspace" transition:animate="none"><slot /></section>
+  <BusinessNavigationLoading />
   <BusinessPostLookup/>
   <div class="business-operation-feedback" data-operation-feedback role="status" aria-live="polite" aria-hidden="true">
     <span class="business-operation-feedback__spinner" aria-hidden="true"></span>

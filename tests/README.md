@@ -1,5 +1,9 @@
 # 验证
 
+`pnpm test:navigation` 使用实际Astro路由与8篇隔离样本，覆盖管理员／员工、1920／1440／1024px的快速／800ms／2500ms切页，以及七模块目标骨架、键盘、取消返回、连续导航、前后退、草稿取消与失败回退。快速按HTML及样式的实际就绪时间判断，不能把网络控制延迟当作完整就绪时间。另验减少动态效果和390px明显遮挡／溢出；截图与原速录像保存到 `NAVIGATION_EVIDENCE_DIR`，实际查看后归档。`NAVIGATION_ENTRY`可指定正式Vercel运行包的本机适配入口，保持同一夹具和用例。
+
+连续切页另逐帧断言骨架之间不闪回来源页。已有完整验收结果时，`NAVIGATION_ONLY_RAPID=1`可只补跑该段并更新原结果；该模式不能代替首次完整运行。
+
 `private-sources-compat.integration.ts` 使用真实PG及 `PRIVATE_BASELINE_SOURCE` 指定的正式旧源码，验证兼容读取、旧写入拒绝、新JSON往返、原月未变及并发。正式0049触发器同时安装到共享PG／PGlite夹具；发布包验收可通过 `startPostgresFixture({entry})` 指定实际打包服务入口，数据仍只在临时库。
 
 `pnpm test:private-sources` 使用本机 `TEST_POSTGRES_URL` 创建独立临时 PostgreSQL，运行正式构建组件、API和PDF渲染器；完成后清理临时库，不读取生产环境。`PRIVATE_SOURCE_EVIDENCE_DIR` 指定产物，`PRIVATE_SOURCE_KEEP_SERVER=1` 可保留本地预览进程供查看。覆盖来源增删改、零／缺值、旧口径拒绝写入、失败重试、慢保存新输入、角色、月会实时／冻结对照与三档桌面；159人自然来源不混入推广成本。前置缺费专项对照尚无消耗记录与真实登记0元，表格、汇总及只读录入均保持区别。首屏与操作分别录制，最终图须查看后才归档。纯规则见 `private-sources.test.ts`，当前封存主流程 `scheduling-review.integration.ts` 使用同一新格式。
