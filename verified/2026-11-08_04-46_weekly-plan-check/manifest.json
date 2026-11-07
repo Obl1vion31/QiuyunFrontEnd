@@ -1,0 +1,129 @@
+{
+  "source": "361755d",
+  "application": "a103485",
+  "runtimeEntrySha256": "9199b8390d69518ac07ee2d9639d805e66332cf598007063647ee1b98cb2f059",
+  "data": "synthetic isolated PostgreSQL",
+  "status": "已实测，待用户反馈",
+  "assets": [
+    {
+      "path": "screenshots/admin-weekly-expanded-1024.png",
+      "sha256": "d0502389e721e30563d47518909a3a095422c01647ae47654599b9480f5b94c8",
+      "bytes": 436715
+    },
+    {
+      "path": "screenshots/admin-weekly-expanded-1440.png",
+      "sha256": "36af345674b6811a2025c116474f5bbea380c075b7002d357361aa3aa8f12be7",
+      "bytes": 604721
+    },
+    {
+      "path": "screenshots/admin-weekly-expanded-1920.png",
+      "sha256": "0f589b926e3f4bc20f8b8ba3165d6dbbca9147581258a33b58613eadffd88b53",
+      "bytes": 721713
+    },
+    {
+      "path": "screenshots/admin-weekly-overview-1024.png",
+      "sha256": "74f415de3e3fc95fa47326df2364a9cf0cf6f931797e5a120a9de49e5549f32d",
+      "bytes": 412551
+    },
+    {
+      "path": "screenshots/admin-weekly-overview-1440.png",
+      "sha256": "8c642be1448828d8d5f5fd633c7d0f287200341c07a8ff1794b16a6190478b23",
+      "bytes": 547783
+    },
+    {
+      "path": "screenshots/admin-weekly-overview-1920.png",
+      "sha256": "cb9b55833946e2925e572cce7704a2b084181385f4c040ee069f9fe5fd9e91e7",
+      "bytes": 648086
+    },
+    {
+      "path": "screenshots/admin-weekly-reason-1024.png",
+      "sha256": "249fa4dca1b5f56fc8f8da66e3baed7bb56b4e8584069ee18f46fa4f6271f9a0",
+      "bytes": 249959
+    },
+    {
+      "path": "screenshots/admin-weekly-reason-1440.png",
+      "sha256": "9aa584673c845f6988ad028964dcbb5d88de4af1fa742aadcb5ffbdaab116fc0",
+      "bytes": 389061
+    },
+    {
+      "path": "screenshots/admin-weekly-reason-1920.png",
+      "sha256": "b5fc7571b8bf66fd1b2c7c3b5d02881a9a933e024c88ec118f99f58f013120bb",
+      "bytes": 519410
+    },
+    {
+      "path": "screenshots/admin-weekly-table-1024.png",
+      "sha256": "6a78892d5dd6ed79e74eaf182e83b52c31aaa15b72528fd08bbae558cd10ef57",
+      "bytes": 261920
+    },
+    {
+      "path": "screenshots/admin-weekly-table-1440.png",
+      "sha256": "be72ffa6046417908e209602803e343df36889a79775693efc30008847d84c71",
+      "bytes": 344781
+    },
+    {
+      "path": "screenshots/admin-weekly-table-1920.png",
+      "sha256": "af2a11aad30c8c2603e3a22c877d24f3ac15258b3a0fca991063b402378ad870",
+      "bytes": 472631
+    },
+    {
+      "path": "screenshots/employee-weekly-expanded-1024.png",
+      "sha256": "d36cc7614837c899ce3007d44f31f1ae160e13784a5fc4575e831146e29c2de6",
+      "bytes": 435081
+    },
+    {
+      "path": "screenshots/employee-weekly-expanded-1440.png",
+      "sha256": "7659ffdfcd4b39e04c3568c89bae158fec7dc4941b5143b56de72891bd1deacb",
+      "bytes": 603506
+    },
+    {
+      "path": "screenshots/employee-weekly-expanded-1920.png",
+      "sha256": "d7a707063aff64e0f5cc18f47dfafb0437cdc5d617e52ad444deda30dabf2052",
+      "bytes": 719903
+    },
+    {
+      "path": "screenshots/employee-weekly-overview-1024.png",
+      "sha256": "385dce0e3d63ce0c3a901f791fcc388b51cd4053bc4b8c23265f038f4d5f1cdb",
+      "bytes": 406252
+    },
+    {
+      "path": "screenshots/employee-weekly-overview-1440.png",
+      "sha256": "d2d386c8c4430ae888d89cf03306634286dfb6383b429d18127d146dcc748d7e",
+      "bytes": 542035
+    },
+    {
+      "path": "screenshots/employee-weekly-overview-1920.png",
+      "sha256": "f681affbaa081b81ac2142c3a7bfb8ec29d74aa70a2a569421e5a4eb6370d5f7",
+      "bytes": 645032
+    },
+    {
+      "path": "screenshots/employee-weekly-reason-1024.png",
+      "sha256": "249fa4dca1b5f56fc8f8da66e3baed7bb56b4e8584069ee18f46fa4f6271f9a0",
+      "bytes": 249959
+    },
+    {
+      "path": "screenshots/employee-weekly-reason-1440.png",
+      "sha256": "9aa584673c845f6988ad028964dcbb5d88de4af1fa742aadcb5ffbdaab116fc0",
+      "bytes": 389061
+    },
+    {
+      "path": "screenshots/employee-weekly-reason-1920.png",
+      "sha256": "b5fc7571b8bf66fd1b2c7c3b5d02881a9a933e024c88ec118f99f58f013120bb",
+      "bytes": 519410
+    },
+    {
+      "path": "screenshots/employee-weekly-table-1024.png",
+      "sha256": "6a78892d5dd6ed79e74eaf182e83b52c31aaa15b72528fd08bbae558cd10ef57",
+      "bytes": 261920
+    },
+    {
+      "path": "screenshots/employee-weekly-table-1440.png",
+      "sha256": "be72ffa6046417908e209602803e343df36889a79775693efc30008847d84c71",
+      "bytes": 344781
+    },
+    {
+      "path": "screenshots/employee-weekly-table-1920.png",
+      "sha256": "af2a11aad30c8c2603e3a22c877d24f3ac15258b3a0fca991063b402378ad870",
+      "bytes": 472631
+    }
+  ]
+}

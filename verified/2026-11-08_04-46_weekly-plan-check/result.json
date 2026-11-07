@@ -1,0 +1,78 @@
+{
+  "passed": true,
+  "source": "361755d",
+  "application": "a103485",
+  "runtime": "actual Vercel package",
+  "clock": "2026-11-08T12:00:00+08:00",
+  "data": "isolated PostgreSQL synthetic sample; database fixture creation timestamps aligned to historical server clock",
+  "checks": [
+    "真实月排期定稿、员工改期/新增/发布、周会两次定稿，结果为原计划5、调整后6、实发5、未登记2",
+    "两种角色在1920/1440/1024真实打开周会、键盘展开明细和原因；8条排期可读，计数一致，页面无横向溢出",
+    "截止后改期不倒改本周；补登记按真实实发日入样；重新读取为实发6、未登记1，旧周会定稿仍保留实发5、未登记2"
+  ],
+  "expected": {
+    "original": 5,
+    "current": 6,
+    "published": 5,
+    "missing": 2
+  },
+  "scenes": [
+    {
+      "role": "admin",
+      "width": 1920,
+      "summary": "本期排期执行核对\n\nV0原应发 5 篇\n调整后应发 6 篇\n区间实发 5 篇\n\n到期未登记 2 篇"
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "summary": "本期排期执行核对\n\nV0原应发 5 篇\n调整后应发 6 篇\n区间实发 5 篇\n\n到期未登记 2 篇"
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "summary": "本期排期执行核对\n\nV0原应发 5 篇\n调整后应发 6 篇\n区间实发 5 篇\n\n到期未登记 2 篇"
+    },
+    {
+      "role": "employee",
+      "width": 1920,
+      "summary": "本期排期执行核对\n\nV0原应发 5 篇\n调整后应发 6 篇\n区间实发 5 篇\n\n到期未登记 2 篇"
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "summary": "本期排期执行核对\n\nV0原应发 5 篇\n调整后应发 6 篇\n区间实发 5 篇\n\n到期未登记 2 篇"
+    },
+    {
+      "role": "employee",
+      "width": 1024,
+      "summary": "本期排期执行核对\n\nV0原应发 5 篇\n调整后应发 6 篇\n区间实发 5 篇\n\n到期未登记 2 篇"
+    }
+  ],
+  "images": [
+    "admin-weekly-overview-1920.png",
+    "admin-weekly-expanded-1920.png",
+    "admin-weekly-table-1920.png",
+    "admin-weekly-reason-1920.png",
+    "admin-weekly-overview-1440.png",
+    "admin-weekly-expanded-1440.png",
+    "admin-weekly-table-1440.png",
+    "admin-weekly-reason-1440.png",
+    "admin-weekly-overview-1024.png",
+    "admin-weekly-expanded-1024.png",
+    "admin-weekly-table-1024.png",
+    "admin-weekly-reason-1024.png",
+    "employee-weekly-overview-1920.png",
+    "employee-weekly-expanded-1920.png",
+    "employee-weekly-table-1920.png",
+    "employee-weekly-reason-1920.png",
+    "employee-weekly-overview-1440.png",
+    "employee-weekly-expanded-1440.png",
+    "employee-weekly-table-1440.png",
+    "employee-weekly-reason-1440.png",
+    "employee-weekly-overview-1024.png",
+    "employee-weekly-expanded-1024.png",
+    "employee-weekly-table-1024.png",
+    "employee-weekly-reason-1024.png"
+  ],
+  "errors": []
+}
