@@ -1,0 +1,30 @@
+{
+  "source": "219dd805e16cf3491d1f8524b1f394145fc97aa7",
+  "branch": "codex/promotion-saved-workspace",
+  "runtime": "actual Vercel prebuilt bundle",
+  "data": "isolated local PostgreSQL; main scenario is 2026-10-07, fictional users only",
+  "unitTests": 296,
+  "typeErrors": 0,
+  "build": true,
+  "schema": true,
+  "savedWorkspace": true,
+  "originalWorkbench": true,
+  "historicalDay": true,
+  "publicUI": true,
+  "desktopWidths": [
+    1920,
+    1440,
+    1024
+  ],
+  "mobileLimitedCheck": [
+    390
+  ],
+  "screenshotsReviewed": 24,
+  "comparisonImageReviewed": true,
+  "videoFramesReviewed": {
+    "interaction": 151,
+    "firstPaint": 84
+  },
+  "pdfSmokePagesReviewed": 4,
+  "productionTestDataWrites": false
+}

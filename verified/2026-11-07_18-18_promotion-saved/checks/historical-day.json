@@ -1,0 +1,142 @@
+{
+  "passed": true,
+  "checks": [
+    "1440桌面：当日表单、三日确认、取消焦点/输入保留、保存只改10/31、6天指标合计195不变、无横向溢出",
+    "待定接次日旧轮测试：明确显示具体日期/两端状态，选择保留、未弹删除后续确认、数据库未变",
+    "1920桌面：当日表单、三日确认、取消焦点/输入保留、保存只改10/31、6天指标合计195不变、无横向溢出",
+    "1024桌面：当日表单、三日确认、取消焦点/输入保留、保存只改10/31、6天指标合计195不变、无横向溢出",
+    "员工原权限不扩大：暂停/待定单日更正需三日确认；断网保留金额和选择，重试只改当天",
+    "使用说明：管理员/员工1920/1440/1024内容一致、允许/不允许示例可读，员工无管理入口，实际MiSans字形"
+  ],
+  "images": [
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-01-before.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-01-before-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-01-before-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-02-context.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-02-context-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-03-cancel-preserved.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-03-cancel-preserved-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-04-after.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-04-after-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-04-after-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-05-invalid-adjacency.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-05-invalid-adjacency-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-01-before.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-01-before-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-01-before-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-02-context.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-02-context-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-03-cancel-preserved.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-03-cancel-preserved-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-04-after.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-04-after-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-04-after-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-01-before.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-01-before-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-01-before-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-02-context.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-02-context-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-03-cancel-preserved.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-03-cancel-preserved-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-04-after.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-04-after-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-04-after-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-01-network-preserved.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-01-network-preserved-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-02-context.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-02-context-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-guide.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-guide-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1920-guide-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-guide.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-guide-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1440-guide-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-guide.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-guide-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/admin-1024-guide-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1920-guide.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1920-guide-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1920-guide-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-guide.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-guide-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1440-guide-detail.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1024-guide.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1024-guide-full.png",
+    ".tools/promotion-saved/legacy-day/screenshots/employee-1024-guide-detail.png"
+  ],
+  "fonts": [
+    {
+      "role": "admin",
+      "width": 1920,
+      "actual": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "actual": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "actual": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "width": 1920,
+      "actual": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "actual": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    },
+    {
+      "role": "employee",
+      "width": 1024,
+      "actual": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 6
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

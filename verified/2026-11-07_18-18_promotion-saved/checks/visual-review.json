@@ -1,0 +1,18 @@
+{
+  "screenshots": 24,
+  "videos": [
+    {
+      "label": "interaction",
+      "file": ".tools/promotion-saved/release-final/video/page@0339f7409c5eae4cb4ce81975804c30b.webm",
+      "fps": 4,
+      "frames": 151
+    },
+    {
+      "label": "first-paint",
+      "file": ".tools/promotion-saved/release-final/first-paint/page@07e8d1c9c148d7a9147b629f2f80d0ca.webm",
+      "fps": 12,
+      "frames": 84
+    }
+  ],
+  "sheets": 22
+}
