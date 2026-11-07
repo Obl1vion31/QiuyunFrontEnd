@@ -32,9 +32,9 @@ test('昨天已保存记录仍在主区，真实零保留且待填数为0',()=>{
  const fact=savedMetric('2026-10-19'),days=promotionReviewDays([row],{...context,metrics:[fact]},at('2026-10-20T12:00:00'),[fact]),queue=promotionReviewQueue(days);
  assert.equal(queue.ready.length,0);assert.equal(queue.main.length,1);assert.equal(queue.saved.length,1);assert.equal(queue.main[0].day.kind,'saved');assert.equal(queue.main[0].day.savedMetric?.spend,'0.00');assert.equal(queue.upcoming[0].day.date,'2026-10-20');
 });
-test('今天补录的更早事实保留，次日主区转入新的昨日，不以待办数量控制显示',()=>{
+test('主区仅保留昨日已存，今天补录或更正旧日也不回流，次日切换到新的昨日',()=>{
  const older={...row.campaign!,startedOn:'2026-10-18'},facts=[savedMetric('2026-10-18'),savedMetric('2026-10-19')],scoped={...context,campaigns:[older],metrics:facts};
- const today=promotionReviewQueue(promotionReviewDays([{...row,campaign:older}],scoped,at('2026-10-20T12:00:00'),facts));assert.deepEqual(today.saved.map(r=>r.day.date),['2026-10-18','2026-10-19']);
+ const today=promotionReviewQueue(promotionReviewDays([{...row,campaign:older}],scoped,at('2026-10-20T12:00:00'),facts));assert.deepEqual(today.saved.map(r=>r.day.date),['2026-10-19']);assert.equal(today.main.some(r=>r.day.date==='2026-10-18'),false);
  const tomorrow=promotionReviewQueue(promotionReviewDays([{...row,campaign:older}],scoped,at('2026-10-21T00:00:01'),facts));assert.equal(tomorrow.saved.length,0);assert.equal(tomorrow.ready[0].day.date,'2026-10-20');
 });
 test('误选终态后仍保留昨日已保存行；残留指标不混入正常复盘工作区',()=>{

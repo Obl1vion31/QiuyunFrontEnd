@@ -185,7 +185,7 @@ flowchart LR
 
 `BusinessSectionHeader` 的 end 插槽可以是只读统计，也可以接 `<BusinessToolbarActions slot="end" variant="section">`。区块主按钮使用 `primary-action`，轻量按钮和链接无额外 margin；标题、计数、图标和状态变化均验收真实文字中线与可见12px间距。历史筛选的查看／重置共用同一操作组，年度新建的文字与加号由父级 gap 管理。顶部已有消费者省略 variant，保留8px间距及原样式，不将只读统计换成按钮。
 
-每日 `BusinessPromotionDailyPosts` 用 `promotionReviewQueue.main` 在同一 `review-entry-scroll` 内渲染可填、已保存指标和 `BusinessPromotionInitialRow`；`ready` 与 dueCount 继续只统计待填指标。页面已读取的完整 metrics 传给 `promotionReviewDays`，`retainsDailyReview`按上海日期保留昨日及今天更新的更早事实，不扩大公共context查询或增加轮询。原活动＋日期节点在首次保存后保留；编辑中的已存行不被重读覆盖，自己的状态保存以新指纹同步上下文，其他草稿／焦点／滚动保留。初始灰行没有 `data-metric-form`，禁用框无提交名称，不伪造零。状态浮层复用 timeline 保存、公共确认与 promotion editor 生命周期；后者独立于右侧 plan 表单。保存成功通过 `business:operation-receipt` 复用公共通知外壳，不增加一行反馈占位。排期／历史的 `BusinessPromotionPendingRows` 保留自身布局，不复制主表DOM；历史日期与选择按160px可读字段组换行，明确覆盖公共表单的 min-width:0，不能只检查无溢出而保留被裁切的日期。
+每日 `BusinessPromotionDailyPosts` 用 `promotionReviewQueue.main` 在同一 `review-entry-scroll` 内渲染可填、已保存指标和 `BusinessPromotionInitialRow`；`ready` 与 dueCount 继续只统计待填指标。页面已读取的完整 metrics 传给 `promotionReviewDays`，`retainsDailyReview`按上海日期仅保留昨日事实，忽略旧日的更新时间，不扩大公共context查询或增加轮询。原活动＋日期节点在首次保存后保留；编辑中的已存行不被重读覆盖，自己的状态保存以新指纹同步上下文，其他草稿／焦点／滚动保留。初始灰行没有 `data-metric-form`，禁用框无提交名称，不伪造零。状态浮层复用 timeline 保存、公共确认与 promotion editor 生命周期；后者独立于右侧 plan 表单。保存成功通过 `business:operation-receipt` 复用公共通知外壳，不增加一行反馈占位。排期／历史的 `BusinessPromotionPendingRows` 保留自身布局，不复制主表DOM；历史日期与选择按160px可读字段组换行，明确覆盖公共表单的 min-width:0，不能只检查无溢出而保留被裁切的日期。
 
 新首次待定用显式 null，省略字段保留旧接口语义。只读模型区分尚未安排与计划已存但截止为空，T+1按业务日期推导，不能按点击日重写草稿日期。局部刷新保留稳定记录键、其他指标节点、焦点及滚动。验收覆盖工具栏所有保存状态、五档视口、灰行与真实零值混排、有限／无截止、失败重试、关闭／导航／跨午夜草稿保护；实际查看图像和录像后才能计为通过。
 

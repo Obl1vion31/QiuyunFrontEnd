@@ -10,9 +10,8 @@ import {requiredPromotionStage} from './promotion-review-required';
 import type {operationsPromotionDailyMetric} from './schema';
 import {testingCycleOn} from './promotion-cycles.mjs';
 export type SavedReviewMetric=Pick<typeof operationsPromotionDailyMetric.$inferSelect,'id'|'campaignId'|'metricDate'|'updatedAt'|'dailyStatus'|'actualStatusSnapshot'|'recordKind'|'stageTypeSnapshot'|'spend'|'platformOpenCount'|'actualOpenCount'|'platformLeadCount'|'actualLeadCount'|'reviewDecision'|'note'>;
-export function retainsDailyReview(metric:Pick<SavedReviewMetric,'metricDate'|'updatedAt'|'recordKind'>,now=new Date()){
- const today=shanghaiDateKey(now),yesterday=previousDateKey(today);
- return metric.recordKind!=='test_residual'&&metric.metricDate<=yesterday&&(metric.metricDate===yesterday||shanghaiDateKey(new Date(metric.updatedAt))===today);
+export function retainsDailyReview(metric:Pick<SavedReviewMetric,'metricDate'|'recordKind'>,now=new Date()){
+ return metric.recordKind!=='test_residual'&&metric.metricDate===previousDateKey(shanghaiDateKey(now));
 }
 
 export interface ReviewDay {
