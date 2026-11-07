@@ -1,0 +1,5 @@
+
+> qiuyun-frontend-system@0.1.0 test:navigation /home/obl1vion/projects/qiuyunFrontend/.tools/releases/navigation-skeleton-20261107
+> node --import tsx tests/navigation-loading.browser.ts
+
+{"passed":true,"cases":29,"screenshots":53,"videos":8,"errors":[]}
