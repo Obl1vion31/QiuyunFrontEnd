@@ -20,7 +20,7 @@
     "targetScreenshots": 28,
     "sharedScreenshots": 8,
     "baselineScreenshots": 3,
-    "comparisonAndCrop": 2,
+    "comparisonAndCrop": 3,
     "videoSampledFrames": 151,
     "sampleFps": 4
   },
