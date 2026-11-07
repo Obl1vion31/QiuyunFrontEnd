@@ -1,0 +1,29 @@
+{
+  "source": "f523e88588b65e205d30b36959e6963742a2cba7",
+  "typeCheck": {
+    "errors": 0,
+    "warnings": 0,
+    "hints": 49
+  },
+  "unit": {
+    "passed": 296,
+    "failed": 0
+  },
+  "build": "Vercel production prebuilt passed",
+  "browser": {
+    "promotionDisabled": "passed",
+    "savedRegression": "passed",
+    "publicUI": "passed",
+    "initialArrangement": "passed"
+  },
+  "visualReview": {
+    "targetScreenshots": 28,
+    "sharedScreenshots": 8,
+    "baselineScreenshots": 3,
+    "comparisonAndCrop": 2,
+    "videoSampledFrames": 151,
+    "sampleFps": 4
+  },
+  "data": "仅本机隔离数据库的虚构样本；正式业务测试写入为0",
+  "mobile": "390px明显遮挡、整页溢出和横滚右端入口；未作为手机填写排版验收"
+}
