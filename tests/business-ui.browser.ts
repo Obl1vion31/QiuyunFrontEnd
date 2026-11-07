@@ -187,9 +187,9 @@ try {
       await page.locator(`[data-inspect-id="${ids[0]}"]`).first().click();
       await page.locator('[data-inspector].is-open').waitFor();await staleRequest;await page.locator('[data-close-inspector]').click();await page.locator('#schedule-panel').waitFor({state:'hidden'});
       await page.locator(`[data-inspect-id="${ids[1]}"]`).first().click();
-      await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').waitFor();await page.waitForTimeout(450);
+      await page.locator('[data-schedule-workflow-history]').getByText('虚构读取失败').waitFor();await page.waitForTimeout(450);
       assert.equal(await page.locator('[data-inspector]').getAttribute('data-selected-id'),ids[1]);
-      assert.equal(await page.locator('[data-schedule-workflow]').getByText('虚构读取失败').count(),1,'晚到的旧请求不覆盖新选择');
+      assert.equal(await page.locator('[data-schedule-workflow-history]').getByText('虚构读取失败').count(),1,'晚到的旧请求不覆盖新选择');
       await page.unroute(`**/api/operations-content/${ids[1]}/workflow`);await page.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});
       await page.keyboard.press('Escape');await page.locator('[data-inspector]').waitFor({state:'hidden'});
     }

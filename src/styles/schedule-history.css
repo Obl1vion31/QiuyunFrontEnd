@@ -3,3 +3,9 @@
 :is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history:last-child{border-bottom:0}
 :is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history p{margin:0;font:400 var(--console-text)/1.65 var(--console-font);color:var(--console-ink);white-space:pre-wrap;overflow-wrap:anywhere}
 :is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history small{font:400 var(--console-caption)/1.6 var(--console-font);color:var(--console-muted)}
+:is(#schedule-panel,[data-post-lookup]) .schedule-history-group:not([data-schedule-history-group=content]) .workflow-plan-history{gap:4px;padding:8px 0}
+:is(#schedule-panel,[data-post-lookup]) [data-schedule-history-group=execution] .schedule-history-heading{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:12px;row-gap:2px}
+:is(#schedule-panel,[data-post-lookup]) [data-schedule-history-group=execution] .schedule-history-heading small{white-space:normal}
+#schedule-panel [data-schedule-workflow-history]>.business-read-feedback{position:static;justify-self:start;max-width:100%;padding:0;border:0;background:transparent;box-shadow:none}
+#schedule-panel [data-schedule-workflow-history]>.schedule-history-status{margin:0;font:400 var(--console-text)/var(--console-text-leading) var(--console-font);color:var(--console-muted)}
+#schedule-panel [data-schedule-workflow-history]>button{justify-self:start}

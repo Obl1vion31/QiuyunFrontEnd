@@ -79,7 +79,7 @@ try{
  await detail(waiting.schedule.id);await p.waitForTimeout(1800);assert.equal(await p.locator('[data-inspector]').getAttribute('data-selected-id'),waiting.schedule.id);await p.unroute('**/business/operations-schedule?**');
  checks.push('已发布才可真实创建V1；新未发V1隐藏改帖；写入成功后读取失败只重试读取');
  await p.locator('[data-close-inspector]').click();await p.locator('#schedule-panel').waitFor({state:'hidden'});await p.route('**/api/operations-content/'+sent.schedule.id+'/workflow',async(r:any)=>{const response=await r.fetch();await new Promise(resolve=>setTimeout(resolve,1600));await r.fulfill({response});});
- await detail(sent.schedule.id);await p.locator('[data-inspector-body]>.business-read-feedback').waitFor();
+ await detail(sent.schedule.id);await p.locator('[data-schedule-workflow-history]>.business-read-feedback').waitFor();
  assert.equal(await p.locator('[data-inspector-loading]').count(),0,'慢读取不覆盖已知详情');assert(await p.locator('[data-inspector-name]').isVisible());
  await p.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});await p.waitForLoadState('networkidle');
  assert.equal(await p.locator('[data-review-node-add]').isVisible(),false,'标准复盘不能被权限刷新重新显示追加日期');

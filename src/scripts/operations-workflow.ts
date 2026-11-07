@@ -117,17 +117,19 @@ function initialize() {
       if (data.has('dayNumber')) retained.set(`${data.get('planRevision')}:${data.get('dayNumber')}`, {responsibility:String(data.get('responsibility')),reason:String(data.get('reason')),open:form.closest('details')?.open ?? true});
     }
     panel!.dataset.scheduleId = id; panel!.dataset.ready = 'false'; panel!.hidden = true;
-    historyHost.replaceChildren(); historyHost.hidden = true;
-    panel!.replaceChildren();stopLoading();
+    stopLoading();
+    historyHost.replaceChildren(element('h3','历史记录'));historyHost.hidden=false;
+    panel!.replaceChildren();
     const pane=panel!.closest<HTMLElement>('[data-inspector]')!;
-    const readTarget=pane.hasAttribute('data-inspector-contained')?pane.querySelector<HTMLElement>('.inspector-body')!:pane;
-    const read=beginBusinessRead(readTarget,{signal,label:'正在读取执行记录…',isCurrent:()=>token===panelToken&&pane.dataset.selectedId===id});
+    const read=beginBusinessRead(historyHost,{signal,label:'正在读取历史记录…',isCurrent:()=>token===panelToken&&pane.dataset.selectedId===id});
+    historyHost.setAttribute('aria-busy','true');
     const cleanup=read.finish;stopLoading=read.cancel;
     if(retained.size)panel!.dispatchEvent(new Event('input',{bubbles:true}));
     try {
       const [workflow,timelineResponse] = await Promise.all([getWorkflow(id,undefined,read.signal),fetch(`/api/operations-content/${id}/promotion-timeline`,{cache:'no-store',signal:read.signal})]);
       const timelineHtml=timelineResponse.ok?await timelineResponse.text():'';
       if (!read.isCurrent()) return;
+      historyHost.replaceChildren();
       const timelineHost=document.querySelector<HTMLElement>('[data-promotion-state-history]');if(timelineHost){timelineHost.innerHTML=timelineHtml;timelineHost.hidden=!timelineHost.querySelector('.promotion-timeline');document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}
       panel!.replaceChildren();
       const resultLabel = workflow.schedule.actualPublishAt
@@ -220,13 +222,15 @@ function initialize() {
         }
       }
       if(panel!.childElementCount){panel!.prepend(element('h3','待处理'));panel!.hidden=false;}
-      if(historyHost.childElementCount){historyHost.prepend(element('h3','历史记录'));historyHost.hidden=false;}
+      if(!historyHost.childElementCount){const empty=element('p','暂无历史记录');empty.className='schedule-history-status';historyHost.append(empty);}
+      historyHost.prepend(element('h3','历史记录'));
       panel!.dataset.loadedScheduleId=id;panel!.dataset.ready='true';
       if(retained.size)(panel!.querySelector('form[data-dirty=true]')??historyHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
     } catch(error){
       if(!read.isCurrent())return;
-      panel!.replaceChildren(element('p',error instanceof Error?error.message:'读取失败。'));
-      const button=element('button','重新读取');button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));panel!.append(button);panel!.hidden=false;
+      const message=element('p',`历史记录读取失败。${error instanceof Error?error.message:'请重试。'}`);message.className='schedule-history-status';message.setAttribute('role','alert');
+      historyHost.replaceChildren(element('h3','历史记录'),message);
+      const button=element('button','重新读取');button.type='button';button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));historyHost.append(button);
     } finally {if(token===panelToken)cleanup();}
   }
   const linkControl=publication.elements.namedItem('publicationUrl') as HTMLTextAreaElement;

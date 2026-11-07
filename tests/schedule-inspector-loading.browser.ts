@@ -1,4 +1,4 @@
-/** 排期真实 Inspector：加载空容器不应绘制业务分隔线；写入仅隔离库。 */
+/** 排期真实 Inspector：空待办隐藏，历史区独立反馈读取；写入仅隔离库。 */
 import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {startFixture,admin} from './auth.fixture';
@@ -6,7 +6,7 @@ import * as s from '../src/db/schema';
 import {completionStatus} from '../src/db/schedule-rules.mjs';
 const baseline=process.env.INSPECTOR_LOADING_BASELINE==='1';
 const folder=process.env.INSPECTOR_LOADING_DIR||'.tools/test-artifacts/inspector-loading';await mkdir(folder,{recursive:true});
-const fixture=await startFixture(),{db,baseURL}=fixture;let browser:any;const checks:any[]=[],errors:string[]=[],releaseReads:Array<()=>void>=[];
+const fixture=await startFixture({entry:process.env.INSPECTOR_LOADING_ENTRY}),{db,baseURL}=fixture;let browser:any;const checks:any[]=[],errors:string[]=[],releaseReads:Array<()=>void>=[];
 try{
  const login=await fetch(baseURL+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify(admin)});assert.equal(login.status,200);const cookie=login.headers.getSetCookie().map(v=>v.split(';')[0]).join('; ');
  async function seed(name:string,hours:number,revision=false){
@@ -18,7 +18,7 @@ try{
  }
  const first=await seed('面试课加载验收③',24,true),second=await seed('面试课另一篇验收',25),pending=await seed('有真实待处理事项的验收帖',-30);
  const workflows=new Map();for(const post of [first,second,pending]){const r=await fetch(baseURL+`/api/operations-content/${post.id}/workflow`,{headers:{Cookie:cookie}});assert.equal(r.status,200);workflows.set(post.id,await r.json());}
- const pw=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
+ const pw=await import(process.env.PLAYWRIGHT_MODULE??new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await pw.chromium.launch({headless:true});
  for(const width of baseline?[1440]:[1920,1440,1280,1024,390,320]){
   const context=await browser.newContext({viewport:{width,height:1000},locale:'zh-CN',recordVideo:width===1440?{dir:folder+'/video',size:{width:1440,height:1000}}:undefined});
   await context.addCookies(cookie.split('; ').map(v=>({name:v.slice(0,v.indexOf('=')),value:v.slice(v.indexOf('=')+1),url:baseURL})));
@@ -30,11 +30,11 @@ try{
   const pane=page.locator('[data-inspector]'),panel=page.locator('[data-schedule-workflow]');
   const open=async(id:string)=>{await page.locator(`[data-inspect-id="${id}"]`).first().evaluate((n:HTMLElement)=>n.click());await pane.locator(`[data-schedule-workflow][data-schedule-id="${id}"][data-ready=false]`).waitFor({state:'attached'});};
   await open(first.id);await page.waitForTimeout(260);
-  const geometry=()=>page.evaluate(()=>{const panel=document.querySelector<HTMLElement>('[data-schedule-workflow]')!,reference=document.querySelector('.inspector-reference')!,r=panel.getBoundingClientRect();return {hidden:panel.hidden,height:r.height,children:panel.childElementCount,referenceY:reference.getBoundingClientRect().top,scrollY,loaders:document.querySelectorAll('[data-inspector-loading]').length};});
+  const geometry=()=>page.evaluate(()=>{const panel=document.querySelector<HTMLElement>('[data-schedule-workflow]')!,reference=document.querySelector('[data-schedule-resources]')!,r=panel.getBoundingClientRect();return {hidden:panel.hidden,height:r.height,children:panel.childElementCount,referenceY:reference.getBoundingClientRect().top,scrollY,loaders:document.querySelectorAll('[data-schedule-workflow-history] [data-business-read-loading]').length};});
   const early=await geometry();await page.screenshot({path:`${folder}/loading-early-${width}.png`});
   if(baseline){assert.equal(early.children,0);assert.ok(early.height>0);checks.push({width,reproduced:true,early});release();await context.close();break;}
   assert.equal(early.height,0,'读取时空待处理区域不能占高或画边线');assert.equal(early.hidden,true);assert.equal(early.loaders,0);
-  await page.locator('[data-inspector-loading]').waitFor();assert.equal(await page.locator('[data-inspector-loading]').count(),1);await page.screenshot({path:`${folder}/loading-slow-${width}.png`});
+  const history=page.locator('[data-schedule-workflow-history]');await history.locator('[data-business-read-loading]').waitFor();assert.equal(await history.locator('[data-business-read-loading]').count(),1);await page.screenshot({path:`${folder}/loading-slow-${width}.png`});
   release();await panel.locator('..').locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});
   const ready=await geometry();assert.equal(ready.height,0);assert.equal(ready.hidden,true);assert.ok(Math.abs(ready.referenceY-early.referenceY)<=1);assert.equal(ready.scrollY,early.scrollY);assert.equal(ready.loaders,0);await page.screenshot({path:`${folder}/ready-empty-${width}.png`});
   await page.unroute(firstPath);
@@ -44,8 +44,8 @@ try{
   await page.route(secondPath,async(route:any)=>{await holdSecond;try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(workflows.get(second.id))});}catch{}});
   await open(second.id);assert.equal((await geometry()).height,0);await page.locator('[data-close-inspector]').click();await pane.waitFor({state:'hidden'});releaseSecond();await page.unroute(secondPath);assert.equal(await page.locator('[data-inspector-loading]').count(),0);
   // 失败保持可见且允许重试；成功无待办后重新收起。
-  await page.route(secondPath,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'验收读取失败'})}));await page.locator(`[data-inspect-id="${second.id}"]`).first().evaluate((n:HTMLElement)=>n.click());await panel.getByRole('button',{name:'重新读取',exact:true}).waitFor();assert.equal(await panel.isVisible(),true);
-  await page.unroute(secondPath);await panel.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});assert.equal((await geometry()).height,0);
+  await page.route(secondPath,(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'验收读取失败'})}));await page.locator(`[data-inspect-id="${second.id}"]`).first().evaluate((n:HTMLElement)=>n.click());await history.getByRole('button',{name:'重新读取',exact:true}).waitFor();assert.equal(await panel.isVisible(),false);assert.equal(await history.getByRole('alert').isVisible(),true);
+  await page.unroute(secondPath);await history.getByRole('button',{name:'重新读取',exact:true}).click();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});assert.equal((await geometry()).height,0);
   await page.emulateMedia({reducedMotion:'reduce'});await page.locator('[data-close-inspector]').click();await pane.waitFor({state:'hidden'});await page.locator(`[data-inspect-id="${first.id}"]`).first().evaluate((n:HTMLElement)=>n.click());await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});assert.equal((await geometry()).height,0);
   checks.push({width,early,ready,pendingVisible:true,failureRetry:true,closeReopen:true,reducedMotion:true});await context.close();
  }

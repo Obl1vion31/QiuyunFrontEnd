@@ -105,7 +105,7 @@ flowchart LR
 
 模板中的业务表单由页面适配器代理事件；`business:inspector-render` 只初始化新挂载内容，不导航、不重建列表。需要异步补充时立即显示本地内容，在请求后比较选择和请求代次，失败在面板内提供重试；排期的 [operations-workflow](../src/scripts/operations-workflow.ts) 是完整实例。
 
-排期 `showPanel` 读取时清空并隐藏待处理分组，收到真实待办或错误后才显现，空结果继续隐藏；历史与推广片段同样从隐藏空态开始。慢读由 Inspector 的共享500ms反馈承担，不能用空的带边框业务区代替。`test:inspector-loading` 检查快慢读取期间的实际高度、资料起点与重试、切帖、关闭清理。
+排期 `showPanel` 读取时清空并隐藏待处理分组，收到真实待办才显现，空结果继续隐藏。历史区立即显示标题，以该区为 `beginBusinessRead` 目标，设置 `aria-busy`；超过500ms显示就地读取反馈，成功后再区分非空分组与“暂无历史记录”，失败与只读重试也留在此区。关闭、切帖或离开详情复用原取消与代次校验，不增加请求。`test:inspector-loading` 检查快慢读取期间的实际高度、资料起点与重试、切帖、关闭清理；`schedule-history-feedback.browser.ts`检查双角色紧凑记录和共享查帖呈现。
 
 新增或变更共享模式时同时修改此表及行为验收，避免示例与运行代码分离。服务端读模型只允许 SSR/API 使用；浏览器中的 `import type` 仅提供类型，不能导入连接或执行数据库查询。
 
@@ -298,3 +298,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 月排期V0接入：schedule-plan-policy共用定稿前跨原Week与定稿后理由语义，schedule-plan-reason负责服务端计划依据；页面不得另写“只要日期变了就必填”。管理员confirm直接执行原封存事务，generated.scheduleBaseline冻结精确基准；schedule-baseline批量投影基准及执行历史，按截止回放结构。ScheduleExecutionSummary用于月度、月会及周会，ScheduleComparisonTable复用于已定稿排期底部清单；无单独的刷新常驻入口。新增对照进入材料指纹与快照，时钟读取值不入业务指纹。PDF内联同一CSS并展开明细；旧版只读可靠冻结字段。
 
 排期历史接入：`schedule-history.groupScheduleHistory`集中分组，`schedule-history-context`按关联及对应预排期版本取得原授权Week；`guardedScheduleWrite`只在实际结构或计划关联变化时追加带可选`planContext`的完整快照。workflow和content-search都返回`historyGroups`并保留旧字段，两个入口通过`appendScheduleHistoryGroups`及`schedule-history.css`显示。日历移除membership徽标，V0回放继续用原始before／after。`arrangedContent`先预留明确来源、再分配未用名额并校验唯一；`readMonthlyPlan`在已封存时优先具体scheduleId，`legacyScheduleBaseline`只投影同次冻结draft和candidates，MonthlyPlanSummary同样按具体排期身份组织旧重复名额。无依据不回读当前安排补历史。
+
+`appendScheduleHistoryGroups`按组键设置密度：执行主行合并事件及元信息，初建仅在展示层省略系统兜底原因；真实原因、内容明细及底层快照保留。日期组收紧间距，内容设置组保留明细阅读间距；两入口共用样式，不分别拼装记录。
