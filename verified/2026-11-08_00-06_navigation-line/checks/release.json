@@ -1,0 +1,15 @@
+{
+  "source": "bb2bd399fab1a5ff86540e77e1b1a5522d08eab7",
+  "gitMainBeforeRecord": "5afdc3383cfa7ff39e305aaf43746670a7d3df5d",
+  "deployment": "dpl_6SZt5JDiHfVNPfY8oHcoNqaZfKb8",
+  "state": "READY",
+  "candidate": "https://qiuyun-frontend-leskl4zg7-opgobl1v-5358.vercel.app",
+  "production": "https://qiuyun-frontend.vercel.app",
+  "sameDeployment": true,
+  "candidateChecks": 22,
+  "candidateAssets": 20,
+  "productionChecks": 22,
+  "productionAssets": 74,
+  "productionBusinessWrites": false,
+  "checkedAt": "2026-11-07T16:09:39.255Z"
+}
