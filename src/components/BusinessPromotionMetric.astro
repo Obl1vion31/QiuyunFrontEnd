@@ -8,8 +8,8 @@ const {metric,entry}=Astro.props;
 const formatFullDate=(date:string)=>date;
 const actualStatus=metric.effectiveActualStatus??metric.actualStatusSnapshot??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot);
 const residual=metric.recordKind==='test_residual',stateLabel=residual?'淘汰后残留':promotionActualLabels[actualStatus]??actualStatus;
-const canEditState=Astro.locals.user?.role==='admin'||['test_paused','test_pending'].includes(actualStatus);
-const allowedForRole=(status:string)=>Astro.locals.user?.role==='admin'||status===actualStatus||['test_paused','test_pending'].includes(actualStatus)&&['test_paused','test_pending'].includes(status);
+const canEditState=true;
+const allowedForRole=(_status:string)=>true;
 ---
 <article class="promotion-day" data-metric-card={metric.id}>
  <header><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{stateLabel}</span></header>

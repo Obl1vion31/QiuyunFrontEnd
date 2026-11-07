@@ -1,3 +1,4 @@
+import {reviseSealedMeetingText} from '../../../db/meeting-sealed-revision';
 import {StaleWriteError} from '../../../db/schedule-workflow';
 import {preserveMonthlyMeetingIdentity} from '../../../db/monthly-meeting';
 import {checkMonthlyPlan,deleteUnpublishedMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from '../../../db/monthly-plans';
@@ -39,6 +40,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   if (!params.id) return Response.json({ message: '缺少会议编号。' }, { status: 400 });
   let payload: { action?: string; draft?: WeeklyMeetingDraft; expectedUpdatedAt?: string; changeSummary?: string;periodStart?:string;periodEnd?:string;sourceVersionId?:string;draftVersionId?:string;stage?:string;discussion?:unknown };
   try { payload = await request.json(); } catch { return Response.json({ message: '请求格式无效。' }, { status: 400 }); }
+  if(payload.action==='revise_sealed_text'){try{const result=await reviseSealedMeetingText(getDb(),params.id,payload,locals.operationsUser||'unknown');let pdfStatus:string;try{pdfStatus=(await ensureMeetingPdf(getDb(),result.versionId,locals.operationsUser||'unknown')).status;}catch{pdfStatus='failed';}return Response.json({ok:true,...result,pdfStatus});}catch(error){return workflowErrorResponse(error);}}
   if(['save_discussion','finalize_discussion','save_version_revision','finalize_version'].includes(payload.action??''))return Response.json({message:'例会流程已更新，请刷新页面后继续，输入已保留。'},{status:409});
   if(['save_version_draft','finalize_version_draft','rollback_version'].includes(payload.action??'')&&!payload.draft){
     try{const result=await reviseMeetingVersion(getDb(),params.id,payload,locals.operationsUser||'unknown');let pdfStatus:string|undefined;if(result.stage==='post'&&result.lifecycleStatus==='finalized'){try{pdfStatus=(await ensureMeetingPdf(getDb(),result.versionId,locals.operationsUser||'unknown')).status;}catch{pdfStatus='failed';}}return Response.json({ok:true,...result,pdfStatus});}catch(error){return workflowErrorResponse(error);}

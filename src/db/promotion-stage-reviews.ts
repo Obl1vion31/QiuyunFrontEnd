@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 import {StaleWriteError} from './schedule-workflow';
 import {promotionTotals} from './promotion-overview';
 import { asc, eq } from 'drizzle-orm';
@@ -67,7 +68,7 @@ function aggregateAttributedStageRows(input:Parameters<typeof aggregateStageRows
 export async function generateStageSnapshot(db: Database, periodStart: string, periodEnd: string, name = ''): Promise<StageSnapshot> {
   const [context, daily, content] = await Promise.all([
     readPromotionContext(db), db.select().from(metrics).orderBy(asc(metrics.metricDate)),
-    db.select({ scheduleId: schedules.id, contentVersionId: versions.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectName: subjects.name, categoryName: categories.name, projectDocUrl: versions.projectDocUrl }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
+    db.select({ scheduleId: schedules.id, contentVersionId: versions.id, contentId: versions.contentId, contentName: versions.contentName, versionNumber: versions.versionNumber, subjectName: subjects.name, categoryName: effectiveCategoryName(versions.subjectId,versions.categoryId,categories.name), projectDocUrl: versions.projectDocUrl }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
   ]);
   const rows = context.campaigns.flatMap(campaign => {
     if (campaign.startedOn > periodEnd) return [];

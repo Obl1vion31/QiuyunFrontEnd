@@ -1,5 +1,5 @@
 export const demandTypes = ['course', 'handout', 'mock'] as const;
-export type DemandType = typeof demandTypes[number];
+export type DemandType = string;
 export const demandLabels: Record<DemandType, string> = {course:'课程', handout:'讲义', mock:'模考'};
 export type PrivateCounts = {added:number|null; consulted:number|null; converted:number|null};
 export type PrivateRow = PrivateCounts & {subjectId:string; demand:DemandType|'total'};

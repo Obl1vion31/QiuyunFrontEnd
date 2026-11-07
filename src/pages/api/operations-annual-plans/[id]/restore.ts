@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from '../../../../db/content-config';
 import type { APIRoute } from 'astro';
 import { lockAnnualPlanWrites } from '../../../../db/annual-plan-storage';
 import { and, eq } from 'drizzle-orm';
@@ -88,7 +89,7 @@ export const POST: APIRoute = async ({ params, request, url, locals }) => {
         subjectName = subject.name;
       }
       if (validated.data.categoryId && validated.data.subjectId) {
-        const [category] = await transaction.select({ name: operationsCategory.name })
+        const [category] = await transaction.select({ name: effectiveCategoryName(operationsSubjectCategory.subjectId,operationsCategory.id,operationsCategory.name) })
           .from(operationsSubjectCategory)
           .innerJoin(operationsCategory, eq(operationsSubjectCategory.categoryId, operationsCategory.id))
           .where(and(

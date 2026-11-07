@@ -13,6 +13,7 @@ export async function effectiveBusinessPermissions(db:Reader,user:OperationsUser
   const result=defaultBusinessPermissions();
   if(user.role==='admin'){for(const [key] of businessOperations)result[key]='direct';return result;}
   for(const row of await db.select().from(permissions).where(eq(permissions.userId,user.id))){if(row.operation in result)result[row.operation as BusinessOperation]=row.mode;}
+  for(const [key,group] of businessOperations)if(group==='annual')result[key]='direct';
   for(const key of ['schedule.create','schedule.revise','schedule.edit','schedule.reschedule','schedule.overdueReschedule'] as const)if(result[key]==='review')result[key]='direct';
   return result;
 }
@@ -23,13 +24,14 @@ export async function requireBusinessOperation(db:Reader,user:OperationsUser,ope
 export const lockBusinessWrites=(db:Reader)=>db.execute(sql`select pg_advisory_xact_lock(69742,0)`);
 export async function updateAccountPermissions(db:Database,actor:OperationsUser,userId:string,next:BusinessPermissions,expected:BusinessPermissions){
   requireAdmin(actor);
+  next={...next};for(const [key,group] of businessOperations)if(group==='annual')next[key]='direct';
   return db.transaction(async tx=>{
     await lockBusinessWrites(tx);
     const [user]=await tx.select({id:authUser.id,username:authUser.username,role:authUser.role}).from(authUser).where(eq(authUser.id,userId));
     if(!user||user.role!=='employee')throw new AccessDenied('仅能配置现有员工账号的业务权限。');
     const before=await effectiveBusinessPermissions(tx,user);
     if(JSON.stringify(before)!==JSON.stringify(expected))return false;
-    for(const [operation] of businessOperations)if(before[operation]!==next[operation])await tx.insert(permissions).values({userId,operation,mode:next[operation]}).onConflictDoUpdate({target:[permissions.userId,permissions.operation],set:{mode:next[operation],updatedAt:new Date()}});
+    for(const [operation,group] of businessOperations)if(group!=='annual'&&before[operation]!==next[operation])await tx.insert(permissions).values({userId,operation,mode:next[operation]}).onConflictDoUpdate({target:[permissions.userId,permissions.operation],set:{mode:next[operation],updatedAt:new Date()}});
     await tx.insert(audit).values({userId,before,after:next,changedById:actor.id,changedByLabel:actor.username});
     const changed=businessOperations.filter(([key])=>before[key]!==next[key]).map(([key])=>key);
     if(changed.length){

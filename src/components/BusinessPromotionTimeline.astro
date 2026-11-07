@@ -15,7 +15,7 @@ interface Props {rows?:Awaited<ReturnType<typeof readPromotionTimeline>>;history
 const {rows:given,history=false,scheduleId,embedded=false,businessDate,audits:givenAudits}=Astro.props;
 const all=given??await readPromotionTimeline(getDb(),new Date(),scheduleId);
 const statusContext=history?await readPromotionContext(getDb()):null;
-const today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today),admin=Astro.locals.user?.role==='admin';
+const today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today);
 const visible=all.filter(row=>history||isPendingPromotionRow(row));
 const audits=givenAudits??(history&&visible.length?await getDb().select().from(operationsPromotionTimelineAudit).where(inArray(operationsPromotionTimelineAudit.scheduleId,visible.map(row=>row.scheduleId))).orderBy(desc(operationsPromotionTimelineAudit.createdAt)):[]);
 const auditRows=audits.map(promotionAuditView).filter(audit=>audit.visible);

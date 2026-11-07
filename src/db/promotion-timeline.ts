@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 import {correctPromotionHistory,PromotionHistoryPreview} from './promotion-history-correction';
 import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
@@ -7,7 +8,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { and,asc,desc,eq,inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
-import { requireAdmin, type OperationsUser } from '../auth/permissions';
+import { type OperationsUser } from '../auth/permissions';
 import { lockSchedule, WorkflowError, type Transaction } from './schedule-workflow';
 import { lockPromotionWorkflow, readPromotionContext, guardPromotionStart, attachPromotionToActivePause } from './promotion-pauses';
 import { businessDate } from './promotion-wait-ranges';
@@ -49,7 +50,7 @@ export const timelineFingerprint = (value: unknown) => createHash('sha256').upda
 
 export async function readPromotionTimeline(db: Reader, now = new Date(), onlySchedule?: string, existingContext?: Awaited<ReturnType<typeof readPromotionContext>>) {
   const [rows, plans, context, schedules, allMetrics, allStages] = await Promise.all([
-    db.select({scheduleId:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,platformNoteId:s.operationsContent.platformNoteId,categoryName:s.operationsCategory.name,projectDocUrl:s.operationsContentVersion.projectDocUrl,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,publicationUrl:s.operationsContentSchedule.publicationUrl,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
+    db.select({scheduleId:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,platformNoteId:s.operationsContent.platformNoteId,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),projectDocUrl:s.operationsContentVersion.projectDocUrl,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,publicationUrl:s.operationsContentSchedule.publicationUrl,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
     db.select().from(s.operationsPromotionStartPlan), existingContext??readPromotionContext(db), db.select().from(s.operationsContentSchedule), db.select().from(s.operationsPromotionDailyMetric).orderBy(asc(s.operationsPromotionDailyMetric.metricDate)), db.select().from(s.operationsPromotionStage).orderBy(asc(s.operationsPromotionStage.startedOn)),
   ]);
   const today=shanghaiDateKey(now), yesterday=previousDateKey(today);
@@ -97,8 +98,6 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       await tx.insert(s.operationsPromotionStartPlan).values({scheduleId:schedule.id,waitingThrough,...values,revision:(existingPlan?.revision??-1)+1,updatedAt:now}).onConflictDoUpdate({target:s.operationsPromotionStartPlan.scheduleId,set:{...values,revision:(existingPlan?.revision??-1)+1,updatedAt:now}});
     };
     const dayEdit=campaign&&promotionDayStatusEdit(campaign,context,date);
-    const similar=input.action==='status'&&['test_paused','test_pending'].includes(dayEdit?.currentStatus??'')&&['test_paused','test_pending'].includes(input.targetStatus??'');
-    if(!similar&&before.metrics.some(m=>m.metricDate>=date))requireAdmin(actor);
     if(!input.reason&&['start_testing','start_scaling'].includes(input.action)&&(campaign||before.plan&&date<(waitingThrough??publishedOn)))throw new WorkflowError('请填写历史更正原因。',422);
     if(input.action==='status'){
       if(!campaign)throw new WorkflowError('尚未开始的帖子请先选择首次安排。');
@@ -177,8 +176,6 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
       const facts=before.metrics.filter(m=>m.campaignId===campaign!.id);
       const windows=[...campaignPauseWindows(campaign,context),...campaignWaitWindows(campaign,context),...context.holds.filter(h=>h.campaignId===campaign!.id)];
       if(input.action==='pause'){
-        const expected=firstMissingPromotionDate(facts,campaign.startedOn,windows);
-        if(date!==expected)requireAdmin(actor);
         if(!input.reason)throw new WorkflowError('请填写暂停原因。',422);
         const state=promotionStateOn(campaign,context,date);
         if(!state?.currentStage)throw new WorkflowError('该日没有可暂停的推广阶段。');

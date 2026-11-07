@@ -4,12 +4,12 @@ import type {PromotionTimelineRow} from '../db/promotion-pending';
 import {pendingPromotionPeriod} from '../db/promotion-pending';
 import {shanghaiDateKey,previousDateKey} from '../db/promotion-rules.mjs';
 interface Props {rows:PromotionTimelineRow[];preview?:boolean;embedded?:boolean;now?:Date}
-const {rows,preview=false,embedded=false,now=new Date()}=Astro.props,today=shanghaiDateKey(now),yesterday=previousDateKey(today),admin=Astro.locals.user?.role==='admin';
+const {rows,preview=false,embedded=false,now=new Date()}=Astro.props,today=shanghaiDateKey(now),yesterday=previousDateKey(today);
 const items=rows.map(row=>({row,period:pendingPromotionPeriod(row,now,preview)})).sort((a,b)=>(a.period?.endedOn??a.row.date).localeCompare(b.period?.endedOn??b.row.date));
 ---
 {items.length>0&&<section class="promotion-timeline promotion-pending-rows" aria-label="推广安排与持续状态">
  {items.map(({row,period})=>{
-  const editable=admin||!!period?.range||!row.hasMetrics;
+  const editable=true;
   const editorId=`pending-arrangement-${row.scheduleId}`;
   const waitAction=period?.range?'next':'wait';
   return <article class:list={['review-pending-row',{'is-initial':!period,'is-continuing':!!period,'is-due':period?.due}]} data-timeline-row={row.scheduleId} data-pending-row data-pending-record={`${row.scheduleId}:${period?.endedOn??row.date}`} data-promotion-status={row.campaign?.currentStatus??row.promotionStatus} data-promotion-label={period?.status??'推广待开始'}>

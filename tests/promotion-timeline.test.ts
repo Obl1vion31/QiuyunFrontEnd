@@ -106,12 +106,12 @@ test('当日阶段覆盖后暂停保留原阶段，不能把已测试的前一�
  await changePromotionTimeline(db,await input(row.id,{reviewDate:'2026-10-18',action:'pause',reason:'当日放量临时暂停'}),staff,now);
  snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.ranges[0].stageType,'scaling');assert.equal(snapshot.metrics.length,1);assert.equal(snapshot.decisions.length,1);
 });
-test('冲突指标先预览不落库，确认后保留原事实审计，并阻止员工破坏历史',async()=>{
+test('冲突指标先预览不落库，确认后保留原事实审计，员工与管理员均需影响确认',async()=>{
  const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:'start_testing'}),staff,now);let snapshot=await promotionSnapshot(db,row.id);await db.insert(s.operationsPromotionDailyMetric).values(metric(snapshot.campaigns[0].id,'2026-10-17'));
- const body=await input(row.id,{action:'start_scaling',reason:'历史阶段更正'});await assert.rejects(changePromotionTimeline(db,body,staff,now),/管理员/);
+ const body=await input(row.id,{action:'start_scaling',reason:'历史阶段更正'});const staffPreview=await changePromotionTimeline(db,body,staff,now);assert.ok('confirmationRequired' in staffPreview);
  const preview=await changePromotionTimeline(db,body,admin,now);assert.ok('confirmationRequired' in preview);assert.equal((await promotionSnapshot(db,row.id)).campaigns[0].initialStage,'testing');
- await changePromotionTimeline(db,{...body,confirmImpact:true},admin,now);snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.metrics.length,0);assert.equal(snapshot.campaigns[0].initialStage,'scaling');
- const audits=await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,body.requestKey));assert.equal((audits[0].before.metrics as unknown[]).length,1);
+ await changePromotionTimeline(db,{...body,confirmImpact:true},staff,now);snapshot=await promotionSnapshot(db,row.id);assert.equal(snapshot.metrics.length,0);assert.equal(snapshot.campaigns[0].initialStage,'scaling');
+ const audits=await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,body.requestKey));assert.equal((audits[0].before.metrics as unknown[]).length,1);assert.equal(audits[0].changedById,staff.id);
 });
 test('更正发布时间也须确认首次待定影响，确认后清理计划并保留原始审计',async()=>{
  const row=await seed();await changePromotionTimeline(db,await input(row.id,{action:'wait',waitingThrough:'2026-10-20'}),staff,now);

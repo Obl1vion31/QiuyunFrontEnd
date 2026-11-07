@@ -6,6 +6,15 @@ const at=(day:number,hour='10')=>'2026-11-'+String(day).padStart(2,'0')+'T'+hour
 const item=(id:string,day=10):BaselineItem=>({id,name:id,plannedAt:new Date(at(day)).toISOString(),versionId:id+'-v',versionNumber:0});
 const record=(i:BaselineItem):ExecutionRecord=>({...i,createdAt:'2026-10-30T00:00:00Z',cancelledAt:null,actualAt:null,history:[]});
 const baseline=(items:BaselineItem[]):ScheduleBaseline=>({schemaVersion:1,month:'2026-11',sealedAt:'2026-11-01T00:00:00Z',items});
+
+test('笔记ID更正保留业务历史，不改变原周排期或产生恢复计划标记',()=>{
+ const original=item('shared-note',7),live=record(original);
+ live.history=[{kind:'note_id_correction',at:new Date(at(9)).toISOString(),actor:'employee',reason:'同步全部版本',before:{...original,platformNoteId:'old'},after:{...original,platformNoteId:'new'}}];
+ const past=buildScheduleComparison([baseline([original])],[live],'2026-11-01','2026-11-07',new Date(at(30)));
+ assert.equal(past.current,1);assert.equal(past.removed,0);assert.equal(past.rows[0].plannedAt,original.plannedAt);
+ const current=buildScheduleComparison([baseline([original])],[live],'2026-11-01','2026-11-30',new Date(at(30)),'current');
+ assert.equal(current.current,1);assert.equal(current.rows[0].changed,false);assert(!current.rows[0].flags.includes('已恢复原计划'));assert.equal(live.history.length,1);
+});
 test('月排期净构成25+4-1=28，新增后取消不占净新增，未知不伪造0',()=>{
  const original=Array.from({length:25},(_,n)=>item('base-'+n));
  const rows=original.map(record);rows[0].cancelledAt=at(3);

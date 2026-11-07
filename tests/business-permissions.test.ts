@@ -30,9 +30,9 @@ async function call(path:string,method:string,input:Record<string,unknown>,handl
  const context={request,url:new URL(request.url),locals:{user:employee,operationsUser:employee.username,session:null},params} as APIContext;
  return withDatabase(db,()=>runBusinessWrite(context,()=>Promise.resolve(handler(context))));
 }
-test('默认矩阵保留员工日常排期能力，年度写入和敏感操作关闭',async()=>{
+test('默认矩阵开放年度写入与日常排期，敏感排期操作仍受限',async()=>{
  const permissions=await effectiveBusinessPermissions(db,employee);assert.deepEqual(permissions,defaultBusinessPermissions());
- assert.equal((await call('/api/operations-annual-plans','POST',{},createAnnual)).status,403);
+ assert.equal((await call('/api/operations-annual-plans','POST',{},createAnnual)).status,422);
  const result=await call('/api/operations-content','POST',values('虚构直接新增'),createPost);assert.equal(result.status,201);
  const row=await result.json();assert.ok((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,row.id))).length);
 });
@@ -59,19 +59,18 @@ test('员工取消仍不能通过普通授权或旧审核配置绕过管理员�
  assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,created.id))).length,1);
  await grant({'schedule.edit':'direct','schedule.delete':'disabled'});
 });
-test('年度启停与内容编辑独立授权，内容审核后才改变名称',async()=>{
- await grant({'annual.create':'direct','annual.toggle':'direct','annual.edit':'disabled'});
- const input={year:2027,sectionKey:'subject:tmua',sectionLabel:'TMUA 细致规划',subjectId:'tmua',categoryId:'temporary',rowName:'虚构独立权限规划',note:null,sortOrder:0,isActive:true,blocks:[],links:[]};
- const created=await (await call('/api/operations-annual-plans','POST',input,createAnnual)).json();
- const change={...input,isActive:false,expectedVersionNumber:0};
- assert.equal((await call(`/api/operations-annual-plans/${created.id}`,'PATCH',change,editAnnual,{id:created.id})).status,200);
- const blocked=await call(`/api/operations-annual-plans/${created.id}`,'PATCH',{...change,rowName:'无权编辑',expectedVersionNumber:1},editAnnual,{id:created.id});assert.equal(blocked.status,403);
- await grant({'annual.edit':'review'});
- const pending=await (await call(`/api/operations-annual-plans/${created.id}`,'PATCH',{...change,rowName:'审核后的名称',expectedVersionNumber:1},editAnnual,{id:created.id})).json();
- assert.equal((await db.select().from(s.operationsAnnualPlan).where(eq(s.operationsAnnualPlan.id,created.id)))[0].rowName,input.rowName);
- assert.equal((await withDatabase(db,()=>decideProposal(pending.requestId,true,'',admin,origin))).status,200);
- assert.equal((await db.select().from(s.operationsAnnualPlan).where(eq(s.operationsAnnualPlan.id,created.id)))[0].rowName,'审核后的名称');
+test('年度写入忽略旧关闭与审核配置，直接保存并保留修改人',async()=>{
+ const input={year:2027,sectionKey:'subject:tmua',sectionLabel:'TMUA 细致规划',subjectId:'tmua',categoryId:'temporary',rowName:'年度同权验收',note:null,sortOrder:0,isActive:true,blocks:[],links:[]};
+ await db.insert(s.operationsAccountPermission).values([{userId:employee.id,operation:'annual.create',mode:'disabled'},{userId:employee.id,operation:'annual.edit',mode:'review'}]).onConflictDoUpdate({target:[s.operationsAccountPermission.userId,s.operationsAccountPermission.operation],set:{mode:'disabled'}});
+ assert.equal((await effectiveBusinessPermissions(db,employee))['annual.edit'],'direct');
+ const created=await(await call('/api/operations-annual-plans','POST',input,createAnnual)).json();
+ const saved=await call('/api/operations-annual-plans/'+created.id,'PATCH',{...input,rowName:'员工已直接更正',expectedVersionNumber:0},editAnnual,{id:created.id});
+ assert.equal(saved.status,200,await saved.text());
+ const [row]=await db.select().from(s.operationsAnnualPlan).where(eq(s.operationsAnnualPlan.id,created.id));assert.equal(row.rowName,'员工已直接更正');
+ const versions=await db.select().from(s.operationsAnnualPlanVersion).where(eq(s.operationsAnnualPlanVersion.planId,created.id));assert.equal(versions.length,2);
+ assert.equal((await db.select().from(s.operationsChangeProposal)).filter(p=>p.module==='annual').length,0);
 });
+
 test('实发时间更正授权不依赖链接编辑权限，保留原操作者与更正历史',async()=>{
  await grant({'schedule.create':'direct','schedule.publish':'disabled','schedule.correctPublication':'direct'});
  const input=values('虚构独立时间更正'),created=await (await call('/api/operations-content','POST',input,createPost)).json();

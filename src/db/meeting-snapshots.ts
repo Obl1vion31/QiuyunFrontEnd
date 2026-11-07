@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 /** 例会事实只由服务端读取；客户端只能传引用编号和人工文字。 */
 import { and, asc, desc, eq, ne, inArray, isNull } from 'drizzle-orm';
 import {meetingNonPromotionSelections} from './meeting-history';
@@ -37,7 +38,7 @@ export const meetingDraftSchema = z.object({
 });
 export async function readMeetingMaterial(db: Database, meeting: typeof meetings.$inferSelect) {
   const [content, campaignRows, daily, reviews, checkpointEvents, priorVersions] = await Promise.all([
-    db.select({ scheduleId: schedules.id, contentVersionId: versions.id, contentId: versions.contentId, versionNumber: versions.versionNumber, contentName: versions.contentName, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: categories.name, projectDocUrl: versions.projectDocUrl, isPromoted: schedules.isPromoted, plannedPublishAt: schedules.plannedPublishAt, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
+    db.select({ scheduleId: schedules.id, contentVersionId: versions.id, contentId: versions.contentId, versionNumber: versions.versionNumber, contentName: versions.contentName, subjectName: subjects.name, categoryId: versions.categoryId, categoryName: effectiveCategoryName(versions.subjectId,versions.categoryId,categories.name), projectDocUrl: versions.projectDocUrl, isPromoted: schedules.isPromoted, plannedPublishAt: schedules.plannedPublishAt, actualPublishAt: schedules.actualPublishAt }).from(schedules).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(subjects, eq(versions.subjectId, subjects.id)).leftJoin(categories, eq(versions.categoryId, categories.id)),
     db.select().from(campaigns), db.select().from(metrics).orderBy(asc(metrics.metricDate)), db.select().from(nonPromotions), readCheckpointEvents(db),
     db.select({selections:meetingNonPromotionSelections}).from(meetingVersions).innerJoin(meetings,and(eq(meetings.id,meetingVersions.meetingId),eq(meetings.currentVersionNumber,meetingVersions.versionNumber)))
       .where(and(eq(meetings.status,'completed'),ne(meetings.id,meeting.id),ne(meetingVersions.lifecycleStatus,'draft'),isNull(meetingVersions.invalidatedAt))),

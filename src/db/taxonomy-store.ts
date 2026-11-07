@@ -1,13 +1,15 @@
-import {asc,eq,sql} from 'drizzle-orm';
+import {eq,sql} from 'drizzle-orm';
 import {randomUUID} from 'node:crypto';
 import type {Database} from './client';
 import {operationsSubject as subjects,operationsCategory as categories,operationsSubjectCategory as mappings} from './schema';
 import {createPostSchemas} from './validation';
 import {WorkflowError} from './schedule-workflow';
+import {readContentConfigurations} from './content-config';
 
 export async function readTaxonomy(db:Database){
- const [subjectRows,categoryRows,mappingRows]=await Promise.all([db.select().from(subjects).orderBy(asc(subjects.sortOrder),asc(subjects.name)),db.select().from(categories).orderBy(asc(categories.sortOrder),asc(categories.name)),db.select().from(mappings)]);
- return {subjects:subjectRows,postCategories:categoryRows,subjectCategoryMappings:mappingRows};
+ const catalog=await readContentConfigurations(db);
+ const subjectCategories=catalog.configurations.flatMap(c=>c.config.types.map((t,sortOrder)=>({...t,subjectId:c.subjectId,sortOrder})));
+ return {...catalog,subjectCategories};
 }
 export async function readPostSchemas(db:Database){return createPostSchemas(await readTaxonomy(db));}
 export async function appendTaxonomy(db:Database,input:{kind:'subject'|'category';name:string;subjectId?:string;id?:string}){

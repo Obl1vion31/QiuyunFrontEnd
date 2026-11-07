@@ -17,9 +17,6 @@
 .mc-trend .report-trend-line{stroke-width:2.3}
 .mc-trend .report-trend figcaption>span:nth-child(2),.mc-trend .report-period-highlight{display:none}
 .mc-trend .report-trend circle{display:none}
-.mc-trend .report-trend-point>button::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:5px;height:5px;background:#fff;opacity:0;border:1.5px solid #617fa9;border-radius:50%}
-.mc-trend .report-trend-point:last-child>button::after{width:7px;height:7px;background:#617fa9;opacity:1}
-.mc-trend .report-trend-point>button:is(:hover,:focus-visible)::after{opacity:1}
 @container monthly-costs (min-width:900px){.mc-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.mc-metrics>div{border-top:1px solid var(--console-line);border-left:0}.mc-metrics>div:nth-child(-n+3){border-top:0}.mc-metrics>div:nth-child(3n+2),.mc-metrics>div:nth-child(3n){border-left:1px solid var(--console-line)}}
 @container monthly-costs (max-width:480px){.mc-metrics{grid-template-columns:1fr}.mc-metrics>div:nth-child(n){border-left:0;border-top:1px solid var(--console-line)}.mc-metrics>div:first-child{border-top:0}.mc-metrics>div{padding:16px}}
 @media print{

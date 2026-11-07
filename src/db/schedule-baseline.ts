@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 import {and,eq,inArray,or,sql,gte,lt} from 'drizzle-orm';
 import type {Database} from './client';
 import * as s from './schema';
@@ -10,7 +11,7 @@ export interface BaselineItem {
  operationType?:string|null;contentRole?:string|null;isPromoted?:boolean;syncToMoments?:boolean;projectDocUrl?:string|null;itemId?:string|null;
 }
 export interface ScheduleBaseline {schemaVersion:1;month:string;sealedAt:string;items:BaselineItem[]}
-export interface ExecutionChange {at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null}
+export interface ExecutionChange {kind?:'note_id_correction';at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null}
 export interface ExecutionRecord extends BaselineItem {createdAt:string;cancelledAt:string|null;actualAt:string|null;history:ExecutionChange[]}
 export interface ExecutionComparisonRow {
  id:string;name:string;versionNumber?:number;subjectName?:string;categoryName?:string|null;
@@ -36,7 +37,7 @@ export function buildScheduleComparison(baselines:ScheduleBaseline[],records:Exe
   const old=original.get(item.id);
   if(!old||!inDates(old.item.plannedAt,from,through)&&inDates(item.plannedAt,from,through))original.set(item.id,{item,sealedAt:baseline.sealedAt});
  }
- const source=new Map(records.map(r=>[r.id,r]));
+ const source=new Map(records.map(r=>[r.id,{...r,history:r.history.filter(event=>event.kind!=='note_id_correction')} ]));
  const rows:ExecutionComparisonRow[]=[];
  let originalCount=0,current=0,added=0,removed=0,published=0,missing=0;
  for(const id of new Set([...original.keys(),...source.keys()])){
@@ -113,7 +114,7 @@ export async function readScheduleComparison(db:Database,from:string,through:str
  const baselines=await readScheduleBaselines(db,monthsInRange(from,through));
  const start=new Date(from+'T00:00:00+08:00'),end=new Date(through+'T23:59:59.999+08:00'),ids=baselines.flatMap(b=>b.items.map(i=>i.id));
  const rows=await db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,versionId:s.operationsContentVersion.id,versionNumber:s.operationsContentVersion.versionNumber,
-  name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,subjectName:s.operationsSubject.name,categoryId:s.operationsContentVersion.categoryId,categoryName:s.operationsCategory.name,
+  name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,subjectName:s.operationsSubject.name,categoryId:s.operationsContentVersion.categoryId,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),
   operationType:s.operationsContent.operationType,contentRole:s.operationsContent.contentRole,projectDocUrl:s.operationsContentVersion.projectDocUrl,
   isPromoted:s.operationsContentSchedule.isPromoted,syncToMoments:s.operationsContentSchedule.syncToMoments,plannedAt:s.operationsContentSchedule.plannedPublishAt,
   actualAt:s.operationsContentSchedule.actualPublishAt,cancelledAt:s.operationsContentSchedule.cancelledAt,createdAt:s.operationsContentSchedule.createdAt,history:s.operationsContentSchedule.executionHistory,

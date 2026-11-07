@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 import {and,eq,inArray,isNull} from 'drizzle-orm';
 import type {Database} from './client';
 import type {OperationsUser} from '../auth/permissions';
@@ -8,15 +9,16 @@ import {WorkflowError,ScheduleReasonError} from './schedule-workflow';
 import * as s from './schema';
 import {readSchedulePlanContexts} from './schedule-history-context';
 
-const structure=(r:Record<string,any>)=>({id:r.id,versionId:r.versionId,name:r.name,subjectId:r.subjectId,subjectName:r.subjectName,categoryId:r.categoryId,categoryName:r.categoryName,projectDocUrl:r.projectDocUrl,operationType:r.operationType,contentRole:r.contentRole,plannedAt:r.plannedAt,cancelledAt:r.cancelledAt,syncToMoments:r.syncToMoments,isPromoted:r.isPromoted});
+const structure=(r:Record<string,any>)=>({id:r.id,versionId:r.versionId,name:r.name,subjectId:r.subjectId,subjectName:r.subjectName,categoryId:r.categoryId,categoryName:r.categoryName,projectDocUrl:r.projectDocUrl,operationType:r.operationType,contentRole:r.contentRole,plannedAt:r.plannedAt,cancelledAt:r.cancelledAt,syncToMoments:r.syncToMoments,isPromoted:r.isPromoted,platformNoteId:r.platformNoteId});
 async function records(db:Database,contentIds:string[]){
  if(!contentIds.length)return [];
- return db.select({id:s.operationsContentSchedule.id,versionId:s.operationsContentVersion.id,name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,subjectName:s.operationsSubject.name,categoryName:s.operationsCategory.name,categoryId:s.operationsContentVersion.categoryId,projectDocUrl:s.operationsContentVersion.projectDocUrl,operationType:s.operationsContent.operationType,contentRole:s.operationsContent.contentRole,plannedAt:s.operationsContentSchedule.plannedPublishAt,cancelledAt:s.operationsContentSchedule.cancelledAt,syncToMoments:s.operationsContentSchedule.syncToMoments,isPromoted:s.operationsContentSchedule.isPromoted})
+ return db.select({platformNoteId:s.operationsContent.platformNoteId,id:s.operationsContentSchedule.id,versionId:s.operationsContentVersion.id,name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,subjectName:s.operationsSubject.name,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),categoryId:s.operationsContentVersion.categoryId,projectDocUrl:s.operationsContentVersion.projectDocUrl,operationType:s.operationsContent.operationType,contentRole:s.operationsContent.contentRole,plannedAt:s.operationsContentSchedule.plannedPublishAt,cancelledAt:s.operationsContentSchedule.cancelledAt,syncToMoments:s.operationsContentSchedule.syncToMoments,isPromoted:s.operationsContentSchedule.isPromoted})
  .from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId)).where(inArray(s.operationsContent.id,contentIds));
 }
 async function bodyOf(request:Request):Promise<Record<string,any>>{
  try{const copy=request.clone();return copy.headers.get('content-type')?.includes('application/json')?await copy.json():Object.fromEntries((await copy.formData()).entries());}catch{return {};}
 }
+export async function readScheduleStructures(db:Database,contentIds:string[]){return (await records(db,contentIds)).map(structure);}
 /** 请求与审批重放共用；持锁到写入完成，不能在前端禁用或审批预览后绕过。 */
 export async function guardedScheduleWrite(db:Database,request:Request,actor:OperationsUser,next:()=>Promise<Response>){
  const path=new URL(request.url).pathname,parts=path.split('/').filter(Boolean);
@@ -24,7 +26,13 @@ export async function guardedScheduleWrite(db:Database,request:Request,actor:Ope
  if(parts[1]==='meeting-attachments'){let meetingId=String(values.meetingId??'');if(parts[2]){const [attachment]=await db.select({meetingId:s.operationsMeetingAttachment.meetingId}).from(s.operationsMeetingAttachment).where(eq(s.operationsMeetingAttachment.id,parts[2]));meetingId=attachment?.meetingId??'';}if(meetingId)await assertMeetingMutable(db,meetingId);return next();}
  if(parts[1]==='meeting-reviews'){
   const ids=parts[2]?[parts[2]]:Array.isArray(values.ids)?values.ids:[];
-  for(const id of ids)if(/^[0-9a-f-]{36}$/i.test(id)){await assertMeetingMutable(db,id);const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,id));if(plan&&actor.role!=='admin'&&(plan.firstFinalizedAt||values.stage==='post'||values.action==='finalize_post'))throw new ArrangementError('MONTHLY_ADMIN_CONFIRMATION','预排期由管理员确认；预排期后请在排期页落实首轮安排。',403);}
+  for(const id of ids)if(/^[0-9a-f-]{36}$/i.test(id)){
+   if(values.action==='revise_sealed_text')continue;
+   await assertMeetingMutable(db,id);
+   const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,id));
+   const confirming=values.stage==='post'||values.action==='finalize_post';
+   if(plan&&!plan.firstFinalizedAt&&confirming)requireAdmin(actor);
+  }
   return next();
  }
  const schedulePath=parts[1]==='operations-content',monthlyLink=parts[1]==='monthly-plans'&&parts[3]==='links',legacyApproval=parts[1]==='schedule-change-requests';

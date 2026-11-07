@@ -39,17 +39,6 @@ function initializeAnnualPlan() {
     select.disabled = !section.subjectId;
     if ([...select.options].some(option => option.value === selectedCategory)) select.value = selectedCategory;
   };
-  all('[data-open-taxonomy]',rowForm).forEach(button=>button.addEventListener('click',()=>{const editor=q<HTMLElement>(`[data-taxonomy-editor="${button.dataset.openTaxonomy}"]`,rowForm);editor.hidden=false;q<HTMLInputElement>('[data-taxonomy-name]',editor).focus();}));
-  all('[data-cancel-taxonomy]',rowForm).forEach(button=>button.addEventListener('click',()=>{button.closest<HTMLElement>('[data-taxonomy-editor]')!.hidden=true;}));
-  all<HTMLButtonElement>('[data-create-taxonomy]',rowForm).forEach(button=>button.addEventListener('click',async()=>{
-   const editor=button.closest<HTMLElement>('[data-taxonomy-editor]')!,input=q<HTMLInputElement>('[data-taxonomy-name]',editor),out=q<HTMLOutputElement>('output',editor),kind=button.dataset.createTaxonomy,subjectId=field('subjectId').value;
-   if(!input.value.trim()){out.textContent='请填写名称';input.focus();return}if(kind==='category'&&!subjectId){out.textContent='请先选择学科';return}button.disabled=true;out.textContent='正在创建…';
-   try{const response=await fetch('/api/taxonomy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,name:input.value.trim(),subjectId})}),result=await response.json();if(!response.ok)throw new Error(result.message||'创建失败');
-    categories.splice(0,categories.length,...result.subjectCategoryMappings.map((m:{subjectId:string;categoryId:string})=>({...m,...result.postCategories.find((c:{id:string})=>c.id===m.categoryId)})));
-    if(kind==='subject'){const section={key:'subject:'+result.item.id,label:result.item.name,subjectId:result.item.id,tone:sections.length%4};if(!sections.some(s=>s.key===section.key)){sections.push(section);(field('sectionChoice') as unknown as HTMLSelectElement).add(new Option(section.label,section.key));}field('sectionChoice').value=section.key;applySection(section.key);}else applySection(field('sectionChoice').value,result.item.id);
-    input.value='';editor.hidden=true;out.textContent='';markDirty();
-   }catch(e){out.textContent=e instanceof Error?e.message:'连接失败，输入已保留。'}finally{button.disabled=false;}
-  }));
   function collectBlock(node: HTMLElement, index = 0): PlanBlock {
     const startSlot = Number(q<HTMLSelectElement>('[data-start]', node).value); const endSlot = Number(q<HTMLSelectElement>('[data-end]', node).value);
     const mode = q<HTMLSelectElement>('[data-promotion-mode]', node).value;

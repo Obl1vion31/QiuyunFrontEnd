@@ -4,13 +4,13 @@ import {shanghaiDateKey} from './promotion-rules.mjs';
 import {weekOf} from './monthly-plan-types';
 
 export type SchedulePlanContext={planId:string;itemId:string;month:string;week:number|null;kind:'new'|'carry'|'existing';at:string};
-export type ScheduleExecutionEvent={at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null;planContext?:{before:SchedulePlanContext[];after:SchedulePlanContext[]}};
+export type ScheduleExecutionEvent={kind?:'note_id_correction';at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null;planContext?:{before:SchedulePlanContext[];after:SchedulePlanContext[]}};
 export type ScheduleHistoryItem={at:string|null;actor:string|null;reason:string;label:string;details?:string[];fromAt?:string;toAt?:string;revision?:number};
 export type ScheduleHistoryGroups=Array<{key:'execution'|'schedule'|'content';title:string;items:ScheduleHistoryItem[]}>;
 type DateChange={revision:number;plannedPublishAt:Date|string;newPlannedPublishAt:Date|string;endedAt?:Date|string;changedByLabel:string;reason:string};
 const iso=(value:Date|string)=>new Date(value).toISOString();
 const date=(value:unknown)=>typeof value==='string'||value instanceof Date?shanghaiDateKey(new Date(value)):null;
-const fields=[['name','标题'],['subjectName','学科'],['categoryName','分类'],['projectDocUrl','项目文档'],['operationType','运营类型'],['contentRole','内容职能'],['syncToMoments','同步朋友圈'],['isPromoted','推广身份']] as const;
+const fields=[['platformNoteId','笔记ID'],['name','标题'],['subjectName','学科'],['categoryName','分类'],['projectDocUrl','项目文档'],['operationType','运营类型'],['contentRole','内容职能'],['syncToMoments','同步朋友圈'],['isPromoted','推广身份']] as const;
 const format=(key:string,value:unknown)=>key==='syncToMoments'||key==='isPromoted'?(value?'是':'否'):value==null||value===''?'未填写':key==='operationType'?operationTypeLabels[value as OperationType]??String(value):key==='contentRole'?contentRoleLabel(String(value)):String(value);
 
 /** 业务历史的共享读模型；原始前后快照继续独立用于截止回放。 */

@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from '../../db/content-config';
 import {writePromotionDaily} from '../../db/promotion-daily-write';
 import {platformNoteIdSchema} from '../../db/platform-note-id';
 import type { APIRoute } from 'astro';
@@ -57,7 +58,7 @@ export const GET: APIRoute = async ({ url }) => {
       contentName: operationsContentVersion.contentName,
       versionNumber: operationsContentVersion.versionNumber,
       subjectName: operationsSubject.name,
-      categoryName: operationsCategory.name,
+      categoryName: effectiveCategoryName(operationsContentVersion.subjectId,operationsContentVersion.categoryId,operationsCategory.name),
       currentStatus: operationsPromotionCampaign.currentStatus,
       currentStage: operationsPromotionCampaign.currentStage,
       startedOn: operationsPromotionCampaign.startedOn,

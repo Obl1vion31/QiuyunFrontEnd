@@ -54,13 +54,13 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 /* 最新56px走势保留布局；圆点用像素尺寸，避免容器缩放成椭圆。 */
 @media screen{
  [data-glass-surface] .report-trend:has(.report-trend-point) svg circle{opacity:0}
- [data-glass-surface] .report-trend-point>button{display:grid;place-items:center;color:inherit}
- [data-glass-surface] .report-trend-point>button::after{content:"";position:static;inset:auto;transform:none;box-sizing:border-box;width:6px;height:6px;border:1.5px solid currentColor;border-radius:50%;background:#fff;transition:transform 140ms var(--console-motion-ease)}
- [data-glass-surface] .report-trend-point[data-current]>button::after{width:9px;height:9px;border:2px solid #fff;background:currentColor;box-shadow:0 1px 2px #21344d25}
- [data-glass-surface] .report-trend-point>button:is(:hover,:focus-visible,[aria-expanded=true])::after{transform:scale(1.25)}
+ [data-glass-surface] .report-trend .report-trend-point>button{display:grid;place-items:center;color:inherit}
+ [data-glass-surface] .report-trend .report-trend-point>button::after{content:"";display:block;position:static;inset:auto;transform:none;box-sizing:border-box;width:6px;height:6px;border:1.5px solid currentColor;border-radius:50%;background:#fff;opacity:1}
+ [data-glass-surface] .report-trend .report-trend-point[data-current]>button::after{width:9px;height:9px;border:2px solid #fff;background:currentColor;box-shadow:0 1px 2px #21344d25}
+ [data-glass-surface] .report-trend .report-trend-point>button:is(:hover,:focus-visible,[aria-expanded=true])::after{transform:none}
  [data-glass-surface] .report-trend:not([data-chart-pending]) .report-trend-point[data-current]>button::after{animation:monthly-current-settle 260ms 260ms var(--console-motion-ease) backwards}
 }
-@keyframes monthly-current-settle{from{opacity:.35;transform:scale(.65)}to{opacity:1;transform:scale(1)}}
+@keyframes monthly-current-settle{from{opacity:.35}to{opacity:1}}
 @media(max-width:650px){[data-glass-surface] .report-execution-kpis>div{padding:16px;min-height:124px}}
 @media(prefers-reduced-motion:reduce){
  [data-glass-surface] [data-surface-pressed]{transform:none}

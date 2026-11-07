@@ -3,7 +3,7 @@ import {syncContinuousCheckpoints} from './continuous-schedule';
 import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
-import { requireAdmin, type OperationsUser } from '../auth/permissions';
+import { type OperationsUser } from '../auth/permissions';
 import { WorkflowError } from './schedule-workflow';
 import { lockPromotionWorkflow, readPromotionContext, guardPromotionStart } from './promotion-pauses';
 import { nextDateKey, replayPromotionHistory, shanghaiDateKey } from './promotion-rules.mjs';
@@ -43,8 +43,6 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
     context.waitRanges = context.waitRanges.filter(r => r.id !== existing?.id);
     const actual = await tx.select().from(metrics).where(eq(metrics.campaignId, campaign.id)).orderBy(asc(metrics.metricDate));
     const boundsChanged = !existing || input.startedOn !== existing.startedOn || input.stageType !== existing.stageType;
-    const historical = (boundsChanged && input.startedOn < today) || (existing?.nextEffectiveOn && existing.nextEffectiveOn <= today && (existing.nextDecision !== input.nextDecision || existing.nextEffectiveOn !== input.nextEffectiveOn)) || (input.nextEffectiveOn && input.nextEffectiveOn < today);
-    if (historical) requireAdmin(actor);
     if (input.startedOn < campaign.startedOn) throw new WorkflowError('区间不能早于推广开始日。', 422);
     if (input.nextDecision && input.endedOn > today) throw new WorkflowError('请在区间最后一天安排下一步，或先延长待定区间。', 422);
     if(input.stageType==='testing'&&input.nextDecision==='test_continue'&&existing?.nextDecision!=='test_continue')throw new WorkflowError('测试结束待定不能继续原轮测试，请选择重新开始测试。',422);
@@ -66,7 +64,7 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
     const state = replayPromotionHistory(campaign.startedOn, retained, { ...promotionReplayOptions(campaign, rangeContext), asOf: through });
     const deleted:typeof actual=[];
     if (!state) throw new WorkflowError('区间与已有生命周期或后续安排冲突；真实指标已保留，请先核对后续状态。');
-    if(changedFacts.length){requireAdmin(actor);if(!input.confirmCascade)return {confirmationRequired:true,impact:{dailyMetrics:changedFacts.length,from:changedFacts[0].metricDate,through:changedFacts.at(-1)!.metricDate}};}
+    if(changedFacts.length){if(!input.confirmCascade)return {confirmationRequired:true,impact:{dailyMetrics:changedFacts.length,from:changedFacts[0].metricDate,through:changedFacts.at(-1)!.metricDate}};}
     if (boundsChanged) {
       const before = promotionStateOn(campaign, { ...context, metrics: retained }, input.startedOn);
       if (!before?.currentStage || before.currentStage !== input.stageType) throw new WorkflowError('区间与已有生命周期不一致：开始日阶段已变更、结束或淘汰。');

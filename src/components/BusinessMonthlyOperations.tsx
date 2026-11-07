@@ -57,7 +57,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
  },[data?.query.month]);
  function show(next:View,filter:Detail){setView(next);setDetail(filter);requestAnimationFrame(()=>{details.current?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});details.current?.focus({preventScroll:true});});}
  const taxonomy=data?.taxonomy;
- const categories=taxonomy?.postCategories.filter(c=>!query.subject||taxonomy.subjectCategoryMappings.some(m=>m.subjectId===query.subject&&m.categoryId===c.id))??[];
+ const categories=taxonomy?.subjectCategories.filter(c=>query.subject?c.subjectId===query.subject:taxonomy.subjectCategories.find(t=>t.id===c.id)===c)??[];
  const scheduleRows=data?.scheduleRows.filter(row=>detail==='published'?row.publishedThisMonth:detail==='moved'?row.movedOut:detail==='changed'?row.changedPending:row.currentMonth&&(detail==='onTime'?row.status==='on_time':detail==='pending'?!row.actualAt&&!row.missing:detail==='delayed'?row.status==='delayed':detail==='operationalDelayed'?row.delayAttribution==='operational':detail==='missing'?row.missing:detail==='severe'?row.severe:detail==='operational'?row.operational:true))??[];
  const spendRows=data?.spendRows.filter(row=>detail==='wasted'?row.wasted>0:detail.startsWith('subject:')?row.subjectId===detail.slice(8):detail.startsWith('group:')?data.categories.find(g=>g.key===detail.slice(6))?.scheduleIds.includes(row.scheduleId):true)??[];
  const pub=data?.publication,spend=data?.spend;

@@ -35,6 +35,6 @@ function MonthlyCostTrend({month,metric,label,points}:{month:string;metric:CostK
  const visible=points?.slice(first,last+1)??[];
  if(visible.filter(point=>point[metric]!=null).length<2)return <dd className="mc-no-trend">暂无对比数据</dd>;
  return <dd className="mc-trend" data-monthly-cost-trend={metric}>
-  <SparkTrend motionKey={month} plotHeight={56} presentation="sparkline" interactive axis="month" label={label} points={visible.map(point=>({from:point.from,through:point.through,key:point.month,label:point.month+(point.inProgress?' · 进行中':''),value:point[metric]??null,valueLabel:privateMoney(point[metric]),current:point.month===month}))}/>
+  <SparkTrend motionKey={month} plotHeight={56} presentation="sparkline" interactive axis="month" label={label} points={visible.map(point=>({from:point.from,through:point.through,key:point.month,label:point.month+(point.inProgress?' · 进行中':''),value:point[metric]??null,valueLabel:privateMoney(point[metric]),current:point.month===points![last].month}))}/>
  </dd>;
 }

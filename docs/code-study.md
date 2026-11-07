@@ -249,7 +249,7 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 - monthly-workspace／monthly-private 维护同源月份统计，人数普通保存以最后成功值为准；MonthlyPrivatePanel 复用公共 Sheet。
 - monthly-meeting 生成月度材料；当前未封存会议读取最新材料，但已确认预排期的draft.monthlyPlan必须来自plan.content和additions，不能用arrangedContent提前替换。arrangedContent仅在管理员confirm封存事务中把实际月历转成最终基准。历史带material=frozen及已封存仍读原快照。MonthlyMeetingSections的计划在预排期后只读，网页与PDF继续复用。
 - monthly-arrangement 读取投影后的活动月排期、生成结构指纹及最终实际计划；POST /api/monthly-plans/:id/arrangement 的 submit／return／confirm 事务串行化整月提交与单帖变动，确认时建立最终冻结版本。
-- schedule-edit-policy 同时接入 middleware 和 business-approvals 重放；检查前后月份与共享内容影响的全部版本。review_pending 保持员工排期编辑权限，confirmed 的普通调整要求理由并直接生效，取消仅管理员；封存会议所有写入口拒绝。
+- schedule-edit-policy 同时接入 middleware 和 business-approvals 重放；检查前后月份与共享内容影响的全部版本。review_pending 保持员工排期编辑权限，confirmed 的普通调整要求理由并直接生效，取消仅管理员；封存会议普通写入仍拒绝，只有revise_sealed_text经独立白名单事务可更正两项总结文字。
 - MonthlyArrangementPanel 通过默认slot包住原月历／台账，阶段标题、Week计划、日期格、核对表单共用边界；撤下列表与入口已移除，旧cancelled查询转回普通月历，查帖不再链接已撤下的排期；推广视角透传slot，不增加无关阶段。MonthlyCalendarPlan 按monthWeeks以五条紧凑行呈现：208px左列集中周次、日期和数量，右列标签全量展示并仅在本周换行；共用说明／选择底栏，CSS替换提示而不复制选择状态。新做、遗留、指定仍归周；compactPlanItems仅合并无独立进展的新做，实际已安排／待审不能再作新建来源。monthly-arrangement 在原格网拖动、原表单落实，保存同步清单与计数；定稿冲突才一次性重读核对，不重挂日历。monthly-calendar沿公共readBusiness自动补读，失败才显示来源重试，切月及离场取消旧响应；空同日提示不渲染，不复制Inspector。旧 links 接口仅兼容首轮执行关系，不改最终基准。
 - operations-content DELETE 仅设置 cancelledAt，撤下预约／待审并保留原帖与历史；executionHistory 的前后内容由排期Inspector和查帖共用展示，withoutLegacyDelay 对新默认空值保持旧指纹兼容。
 
@@ -296,10 +296,17 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 月会 `MonthlyCoreResults` 使用 `PromotionPrivateTotals`，来源区及月度运营使用 `PrivateSourceResults`，HTML与PDF共用。只对存在 `sourceData` 的材料启用新表格；不根据当前数据库给旧冻结快照补来源。`/api/monthly-private-data` 要求 `data.schemaVersion: 2`，旧标签页得到明确刷新反馈；普通更正仍允许旧revision，不能重新引入CAS冲突。详细口径见 DECISIONS；本地复验入口为 `pnpm test:private-sources`。
 
-首轮排期共用arrangement接口的draft动作保存工作说明，复用现有JSON记录而不增加表列；读取只将真实提交／退回／封存交给核对历史，草稿说明单独回填。新建运营类型默认值集中于operation-types.defaultOperationType，operation-setup在来源分类变化及打开新建时应用；排期页面不再提供第二套一律非推广的默认逻辑，既有配置与人工选择优先。
+首轮排期共用arrangement接口的draft动作保存工作说明，复用现有JSON记录而不增加表列；读取只将真实提交／退回／封存交给核对历史，草稿说明单独回填。新建运营类型默认值读取按学科content-config配置，operation-types.defaultOperationType仅作为兼容初值，operation-setup在来源分类变化及打开新建时应用；排期页面不再提供第二套一律非推广的默认逻辑，既有配置与人工选择优先。
 
 月排期V0接入：schedule-plan-policy共用定稿前跨原Week与定稿后理由语义，schedule-plan-reason负责服务端计划依据；页面不得另写“只要日期变了就必填”。管理员confirm直接执行原封存事务，generated.scheduleBaseline冻结精确基准；schedule-baseline批量投影基准及执行历史，按截止回放结构。ScheduleExecutionSummary用于月度、月会及周会，ScheduleComparisonTable复用于已定稿排期底部清单；无单独的刷新常驻入口。新增对照进入材料指纹与快照，时钟读取值不入业务指纹。PDF内联同一CSS并展开明细；旧版只读可靠冻结字段。
 
 排期历史接入：`schedule-history.groupScheduleHistory`集中分组，`schedule-history-context`按关联及对应预排期版本取得原授权Week；`guardedScheduleWrite`只在实际结构或计划关联变化时追加带可选`planContext`的完整快照。workflow和content-search都返回`historyGroups`并保留旧字段，两个入口通过`appendScheduleHistoryGroups`及`schedule-history.css`显示。日历移除membership徽标，V0回放继续用原始before／after。`arrangedContent`先预留明确来源、再分配未用名额并校验唯一；`readMonthlyPlan`在已封存时优先具体scheduleId，`legacyScheduleBaseline`只投影同次冻结draft和candidates，MonthlyPlanSummary同样按具体排期身份组织旧重复名额。无依据不回读当前安排补历史。
 
 `appendScheduleHistoryGroups`按组键设置密度：执行主行合并事件及元信息，初建仅在展示层省略系统兜底原因；真实原因、内容明细及底层快照保留。日期组收紧间距，内容设置组保留明细阅读间距；两入口共用样式，不分别拼装记录。
+
+### 业务配置与封存文字接入
+
+- content-config-values定义目录结构与兼容初值；content-config集中读取、事务修改及SQL有效名称表达式；taxonomy-store.readTaxonomy输出subjectCategories供年度／排期／复盘选择。不要使用全局category.name覆盖学科名称，也不要修改旧JSON或PDF。
+- /api/business-settings/content-config的GET／PATCH均限管理员，配置携带subjectId、expectedRevision及完整目录；保留用途／类型ID，新增类型在原基表和学科映射中建立身份。BusinessContentConfiguration复用公共Dialog和草稿保护；用途在私域表单及服务端同步动态读取。
+- 月会PATCH动作revise_sealed_text只接收sourceVersionId、expectedUpdatedAt、coreConclusion、nextAction。meeting-sealed-revision校验最新有效版本与封存计划并复制快照，事务内生成新有效版本，不调用材料刷新、事项流转或计划发布。旧动作仍经assertMeetingMutable，不能通过普通修订绕过封存。
+- WeeklyMeetingPresentation.sealedTextOnly只开放两项文字；MonthlyCostResults标记最后有效月，点的透明热区和提示继续使用SparkTrend及business-popover。标记在像素坐标绘制，不受SVG缩放变成椭圆；公共样式不再提供节点放大。

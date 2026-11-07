@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from '../../db/content-config';
 import type {APIRoute} from 'astro';
 import {and,desc,eq,ilike,inArray,isNull,or,sql} from 'drizzle-orm';
 import {z} from 'zod';
@@ -8,7 +9,7 @@ import {promotionAuditView} from '../../db/promotion-audit-view';
 import {readScheduleWorkflow,WorkflowError} from '../../db/schedule-workflow';
 import {workflowErrorResponse} from '../../db/workflow-api';
 export const prerender=false;
-const selection={cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:s.operationsCategory.name,planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
+const selection={cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
 function posts(){return getDb().select(selection).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId));}
 export const GET:APIRoute=async({url})=>{
  try{

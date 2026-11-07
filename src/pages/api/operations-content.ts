@@ -2,7 +2,8 @@ import {saveContentRole} from '../../db/content-role-workflow';
 import {monthlyScheduleInput,claimMonthlySchedule} from '../../db/monthly-plans';
 import {workflowErrorResponse} from '../../db/workflow-api';
 import {saveOperationSetup} from '../../db/operation-setup';
-import {readPostSchemas} from '../../db/taxonomy-store';
+import {readTaxonomy} from '../../db/taxonomy-store';
+import {isPromotionType} from '../../db/operation-types';
 import type { APIRoute } from 'astro';
 import { getDb } from '../../db/client';
 import {
@@ -11,6 +12,7 @@ import {
   operationsContentVersion,
 } from '../../db/schema';
 import {
+  createPostSchemas,
   issuesByField,
   newPostInputFromForm,
 } from '../../db/validation';
@@ -27,7 +29,9 @@ export const POST: APIRoute = async ({ request, redirect, url, locals }) => {
   } catch {
     return Response.json({ message: '请求必须使用有效的表单格式。' }, { status: 400 });
   }
-  const result = (await readPostSchemas(getDb())).newPostSchema.safeParse(newPostInputFromForm(form));
+  const taxonomy=await readTaxonomy(getDb()),input=newPostInputFromForm(form);
+  if(!input.operationType){const configured=taxonomy.subjectCategories.find(c=>c.subjectId===input.subjectId&&c.id===input.categoryId);if(configured){input.operationType=configured.defaultOperationType;input.isPromoted=isPromotionType(configured.defaultOperationType);}}
+  const result = createPostSchemas(taxonomy).newPostSchema.safeParse(input);
   const wantsJson = request.headers.get('accept')?.includes('application/json');
   if (!result.success) {
     return Response.json({ message: '请检查标记的字段。', fields: issuesByField(result.error.issues) }, { status: 422 });

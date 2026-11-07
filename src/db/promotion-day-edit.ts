@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {asc,eq,sql} from 'drizzle-orm';
-import {requireAdmin,type OperationsUser} from '../auth/permissions';
+import {type OperationsUser} from '../auth/permissions';
 import type {Database} from './client';
 import {WorkflowError,StaleWriteError} from './schedule-workflow';
 import {lockPromotionWorkflow,readPromotionContext} from './promotion-pauses';
@@ -45,9 +45,6 @@ export async function saveHistoricalPromotionDay(db:Database,input:HistoricalDay
   if(!Object.hasOwn(promotionActualLabels,target))throw new WorkflowError('请选择有效的当日安排。',422);
   const statusChanged=target!==current;
   if(!input.fingerprint||input.fingerprint!==timelineFingerprint(before))throw new StaleWriteError('这篇帖子的记录已更新，请重新打开当天详情核对后再修改。输入已保留。');
-  if(statusChanged){
-   if(!(['test_paused','test_pending'].includes(current)&&['test_paused','test_pending'].includes(target)))requireAdmin(actor);
-  }
   const rows=before.metrics.filter(m=>m.campaignId===campaign.id&&m.recordKind!=='test_residual');
   const neighbour=(day:string)=>{
    const recorded=rows.find(m=>m.metricDate===day);
@@ -60,7 +57,6 @@ export async function saveHistoricalPromotionDay(db:Database,input:HistoricalDay
   if(workspace&&!nextTarget)throw new WorkflowError('请选择与当日状态相符的次日安排。',422);
   const nextChanged=workspace&&(nextTarget!==next.status||input.nextDecision==='restart_testing'&&!restarted(next.date));
   if(nextChanged&&meetingDecisionOn(context.meetingDecisions,campaign.id,next.date))throw new WorkflowError('次日安排由例会确定，请使用该行例会安排的“修改”入口并填写理由。',422);
-  if(nextChanged&&next.date<shanghaiDateKey(now)&&!(['test_paused','test_pending'].includes(next.status??'')&&['test_paused','test_pending'].includes(nextTarget!)))requireAdmin(actor);
   if(workspace&&(statusChanged||nextChanged)&&!input.reason?.trim())throw new WorkflowError('请填写当日状态或次日安排的更正原因。',422);
   const following=neighbour(nextDateKey(next.date));
   const dayContext={previous,current:{date,before:current,beforeLabel:label(current),after:target,afterLabel:label(target)},next:{...next,...(workspace?{after:nextTarget,afterLabel:label(nextTarget)}:{})}};

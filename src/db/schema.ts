@@ -1001,6 +1001,15 @@ export const operationsMonthlyPrivate = pgTable('operations_monthly_private', {
   history:jsonb('history').$type<Array<{at:string;actor:string;data:import('./monthly-plan-types').StoredPrivateData}>>().notNull().default([]),
   updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(), updatedBy:text('updated_by').notNull(),
 });
+export const operationsContentConfig = pgTable('operations_content_config', {
+  subjectId:text('subject_id').primaryKey().references(()=>operationsSubject.id,{onDelete:'restrict'}),
+  config:jsonb('config').$type<import('./content-config-values').ContentConfiguration>().notNull(),
+  revision:integer('revision').notNull().default(0),
+  updatedById:text('updated_by_id').references(()=>authUser.id,{onDelete:'set null'}),
+  updatedBy:text('updated_by').notNull(),
+  updatedAt:timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(),
+  history:jsonb('history').$type<Array<{at:string;actorId:string;actor:string;before?:import('./content-config-values').ContentConfiguration;config:import('./content-config-values').ContentConfiguration}>>().notNull().default([]),
+});
 export const operationsMonthlyCostMapping = pgTable('operations_monthly_cost_mapping', {
   id:text('id').primaryKey(), entries:jsonb('entries').$type<Record<string,DemandType|null>>().notNull(), revision:integer('revision').notNull().default(0),
   history:jsonb('history').$type<Array<{at:string;actor:string;entries:Record<string,DemandType|null>}>>().notNull().default([]),

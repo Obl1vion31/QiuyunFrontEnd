@@ -11,11 +11,15 @@ import { getDb } from '../../db/client';
 import BusinessPendingChanges from '../../components/BusinessPendingChanges.astro';
 import {effectiveBusinessPermissions} from '../../auth/business-permissions';
 import {businessOperations,permissionModes} from '../../auth/business-capabilities';
+import BusinessContentConfiguration from '../../components/BusinessContentConfiguration';
+import BusinessFormDialog from '../../components/BusinessFormDialog.astro';
+import {readContentConfigurations} from '../../db/content-config';
 import {authUser} from '../../db/schema';
 export const prerender = false;
 const administrator=isAdmin(Astro.locals.user);
-const view=Astro.url.searchParams.get('view')==='guide'?'guide':Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
-const accounts=!administrator||view==='guide'?[]:await getDb().select({id:authUser.id,username:authUser.username,name:authUser.name,role:authUser.role,enabled:authUser.enabled,updatedAt:authUser.updatedAt}).from(authUser).orderBy(authUser.username);
+const view=Astro.url.searchParams.get('view')==='business'?'business':Astro.url.searchParams.get('view')==='guide'?'guide':Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
+const contentCatalog=administrator&&view==='business'?await readContentConfigurations(getDb()):null;
+const accounts=!administrator||!['accounts','permissions'].includes(view)?[]:await getDb().select({id:authUser.id,username:authUser.username,name:authUser.name,role:authUser.role,enabled:authUser.enabled,updatedAt:authUser.updatedAt}).from(authUser).orderBy(authUser.username);
 const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
 ---
 <!doctype html>
@@ -25,15 +29,16 @@ const grants=await Promise.all(accounts.map(async user=>({...user,permissions:aw
 <BusinessConsoleFrame active="settings">
   <BusinessConsoleToolbar title="系统设置" subtitle={administrator?'账号权限、操作授权与使用说明':'业务规则与操作说明'} />
   <main class="business-console-content">
-    {administrator&&<nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a><a href="?view=guide" aria-current={view==='guide'?'page':undefined}>使用说明</a></nav>}
-    {view!=='guide'&&<BusinessPageHeader title={view==='approvals'?'待审核变更':view==='accounts'?'账号管理':'操作授权'} />}
+    {administrator&&<nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a><a href="?view=business" aria-current={view==='business'?'page':undefined}>业务配置</a><a href="?view=guide" aria-current={view==='guide'?'page':undefined}>使用说明</a></nav>}
+    {view!=='guide'&&<BusinessPageHeader title={view==='approvals'?'待审核变更':view==='accounts'?'账号管理':view==='business'?'业务配置':'操作授权'} />}
     {view==='guide'&&<BusinessUsageGuide/>}
+    {contentCatalog&&<><BusinessContentConfiguration initial={contentCatalog} client:load/><BusinessFormDialog id="content-config-dialog" labelledby="content-config-title" width={520}/></>}
     {view==='accounts'&&<BusinessAccountManagement accounts={accounts}/>}
     {view==='permissions'&&<section class="account-permissions business-form">
       <label>账号<select data-permission-account>{grants.map(user=><option value={user.id}>{user.username} · {user.role==='admin'?'管理员':'员工'}</option>)}</select></label>
       {grants.map(user=><form data-account-permissions={user.id} data-permissions={JSON.stringify(user.permissions)} hidden={user.id!==grants[0]?.id}>
         <p>账号性质：{user.role==='admin'?'管理员':'员工'}</p>
-        {(['annual','schedule'] as const).map(module=><section><header><h2>{module==='annual'?'总周期规划':'排期管理'}</h2>{user.role==='employee'&&<button type="button" class="business-action-secondary" data-readonly-module={module}>设为仅查看</button>}</header><p>查看内容及历史：开放</p><div class="permissions-table"><table><colgroup><col class="permission-operation"/><col class="permission-mode"/></colgroup><thead><tr><th>操作</th><th><span>权限</span></th></tr></thead><tbody>{businessOperations.filter(([,group])=>group===module).map(([key,,label])=><tr><th><label for={`${user.id}-${key}`}>{label}</label></th><td><select id={`${user.id}-${key}`} name={key} disabled={user.role==='admin'}>{Object.entries(permissionModes).filter(([mode])=>mode!=='review'||!['schedule.create','schedule.revise','schedule.edit','schedule.reschedule','schedule.overdueReschedule'].includes(key)).map(([mode,text])=><option value={mode} selected={user.permissions[key]===mode}>{text}</option>)}</select></td></tr>)}</tbody></table></div></section>)}
+        {(['schedule'] as const).map(module=><section><header><h2>排期管理</h2>{user.role==='employee'&&<button type="button" class="business-action-secondary" data-readonly-module={module}>设为仅查看</button>}</header><p>查看内容及历史：开放</p><div class="permissions-table"><table><colgroup><col class="permission-operation"/><col class="permission-mode"/></colgroup><thead><tr><th>操作</th><th><span>权限</span></th></tr></thead><tbody>{businessOperations.filter(([,group])=>group===module).map(([key,,label])=><tr><th><label for={`${user.id}-${key}`}>{label}</label></th><td><select id={`${user.id}-${key}`} name={key} disabled={user.role==='admin'}>{Object.entries(permissionModes).filter(([mode])=>mode!=='review'||!['schedule.create','schedule.revise','schedule.edit','schedule.reschedule','schedule.overdueReschedule'].includes(key)).map(([mode,text])=><option value={mode} selected={user.permissions[key]===mode}>{text}</option>)}</select></td></tr>)}</tbody></table></div></section>)}
         {user.role==='employee'&&<div class="permission-actions"><output role="alert"/><button type="submit" class="business-action-primary">保存账号权限</button></div>}
       </form>)}
     </section>}
@@ -55,7 +60,7 @@ document.querySelectorAll<HTMLFormElement>('[data-account-permissions]').forEach
  const dirty=()=>{form.dataset.dirty='true';document.documentElement.dataset.unsaved='true';};form.addEventListener('input',dirty);
  form.querySelectorAll<HTMLButtonElement>('[data-readonly-module]').forEach(button=>button.addEventListener('click',()=>{form.querySelectorAll<HTMLSelectElement>(`select[name^="${button.dataset.readonlyModule}."]`).forEach(select=>select.value='disabled');dirty();}));
  form.addEventListener('submit',async event=>{event.preventDefault();const output=form.querySelector('output')!;output.textContent='正在保存…';
- try{const permissions=Object.fromEntries(new FormData(form));const response=await fetch('/api/business-settings/account-permissions',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:form.dataset.accountPermissions,permissions,expected:JSON.parse(form.dataset.permissions!)})});const result=await response.json();output.textContent=response.ok?'已保存':result.message;
+ try{const permissions={...JSON.parse(form.dataset.permissions!),...Object.fromEntries(new FormData(form))};const response=await fetch('/api/business-settings/account-permissions',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:form.dataset.accountPermissions,permissions,expected:JSON.parse(form.dataset.permissions!)})});const result=await response.json();output.textContent=response.ok?'已保存':result.message;
  if(response.ok){form.dataset.permissions=JSON.stringify(permissions);delete form.dataset.dirty;document.documentElement.dataset.unsaved='false';}}
  catch{output.textContent='连接失败，当前选择已保留。';}});
 });

@@ -262,3 +262,7 @@ React 18流式编码使用pnpm的react-dom@18.3.1补丁回移官方PR26228，版
 `promotion-latest.browser.ts`使用11月4／5／6日今天均更新的隔离真实记录，复现旧日回流并验证主表仅保留6日。对比修改前后6日原行的几何和字体，锁定颜色按公共禁用规范验收；覆盖保存、刷新、历史更正后不回流、历史可读、双角色三档、390有限检查及跨午夜。`PROMOTION_LATEST_BASELINE=1`运行旧构建对照，`PROMOTION_LATEST_COMPARE`指定原行几何记录；最终图和录像仍须实际查看。
 
 `promotion-disabled.browser.ts` 使用固定11月7日的隔离PostgreSQL及正式组件，验证已保存五项指标与次日选择实际禁用、鼠标／焦点不可进入、禁用下拉无箭头、键盘继续编辑及保存／取消后的外观切换。对照首次推广和非推广分类筛选的真实计算底色、文字、边框与透明度；三档桌面分别比较修改前后原行几何及字体，双角色实际截图，390px仅核查明显遮挡与整页溢出。`PROMOTION_DISABLED_BASELINE=1`记录旧构建，`PROMOTION_DISABLED_COMPARE`指定三档几何JSON；`PROMOTION_DISABLED_ENTRY`指定Vercel运行包，`PROMOTION_DISABLED_DIR`指定产物目录。操作录像须实际查看，不能只凭computed style通过。
+
+业务同权与配置专项：business-edit-parity.test.ts验证兼容迁移、学科隔离、目录冲突、动态用途与冻结材料；business-edit-parity.browser.ts使用本机TEST_POSTGRES_URL、PLAYWRIGHT_MODULE及PLAYWRIGHT_BROWSERS_PATH，可用PARITY_ENTRY指定实际运行包。覆盖配置失败／冲突、键盘排序、双角色月会文字新版本／PDF、非推广更正、笔记ID、年度与动态私域。员工访问业务配置仍403，公共说明不包含维护入口；1920／1440／1024逐态查看，390仅检查明显遮挡和页面溢出。推广历史专项同步按员工与管理员同权验证三天确认和状态衔接。
+
+business-edit-parity.integration.ts使用同一隔离PostgreSQL验证预排期确认后的双方普通编辑、配置默认值与人工覆盖、旧维护接口退役及排期授权不误拦非推广跳过／恢复。trend-consumers.browser.ts检查共享趋势在周会中的三档桌面、双方角色与真实圆点几何；可用PARITY_ENTRY指定实际运行包、TREND_DIR指定证据目录。

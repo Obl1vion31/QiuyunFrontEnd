@@ -48,13 +48,13 @@ test('未来区间按日生效；到期不自动恢复，无未来指标或逐�
   assert.equal(nextReviewDate('2026-10-16',campaign.startedOn,campaignWaitWindows(campaign,resumed)),'2026-10-21');
   await assert.rejects(saveWaitRange(db,{...input,expectedRevision:0},employee,saved.id,last),/已被更新/);
 });
-test('推广暂停可延期并转结束，员工不能覆盖历史；存在事实先预览影响并确认',async()=>{
+test('推广暂停可延期并转结束，双方更正历史均需预览影响并确认',async()=>{
   const {campaign}=await seed('scaling');await db.insert(schema.operationsPromotionDailyMetric).values([metricValues(campaign.id,'2026-10-15','scaling_continue','scaling'),metricValues(campaign.id,'2026-10-16','scaling_continue','scaling')]);
   const input=waitRangeSchema.parse({campaignId:campaign.id,requestKey:randomUUID(),startedOn:'2026-10-16',endedOn:'2026-10-18',stageType:'scaling',reason:'虚构待确认'});
-  await assert.rejects(saveWaitRange(db,input,employee,undefined,now),/管理员/);
+  const employeePreview=await saveWaitRange(db,input,employee,undefined,now);assert.equal(employeePreview.confirmationRequired,true);
   const preview=await saveWaitRange(db,input,admin,undefined,now);assert.equal(preview.confirmationRequired,true);assert.equal(preview.impact?.dailyMetrics,1);
   assert.equal((await db.select().from(schema.operationsPromotionWaitRange).where(eq(schema.operationsPromotionWaitRange.campaignId,campaign.id))).length,0);
-  const saved=await saveWaitRange(db,{...input,confirmCascade:true},admin,undefined,now);
+  const saved=await saveWaitRange(db,{...input,confirmCascade:true},employee,undefined,now);
   const retainedFacts=await db.select().from(schema.operationsPromotionDailyMetric).where(eq(schema.operationsPromotionDailyMetric.campaignId,campaign.id));assert.equal(retainedFacts.length,2);assert.equal(retainedFacts.reduce((sum,fact)=>sum+Number(fact.spend),0),40,'旧区间更正保留真实跑量');assert.equal(retainedFacts.find(fact=>fact.metricDate==='2026-10-16')?.actualStatusSnapshot,null,'不补造旧历史的精确状态');
   await saveWaitRange(db,{...input,endedOn:'2026-10-20',expectedRevision:0},employee,saved.id,now);
   const end=new Date('2026-10-20T12:00:00+08:00');

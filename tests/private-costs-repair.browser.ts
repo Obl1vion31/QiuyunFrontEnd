@@ -20,7 +20,7 @@ const costs={added:1395.13,consulted:1860.18,converted:2790.27};
 async function go(path:string){await page.goto(baseURL+path);await settleBusinessUI(page);}
 async function api(path:string,data?:unknown){const r=data===undefined?await context.request.get(baseURL+path):await context.request.patch(baseURL+path,{headers:{Origin:baseURL},data});assert.equal(r.status(),200,await r.text());return r.json();}
 const read=()=>api('/api/monthly-operations?month=2026-10');
-const save=(data:any,month='2026-10')=>api('/api/monthly-private-data',{month,expectedRevision:-1,data});
+const save=async(data:any,month='2026-10')=>{const [row]=await db.select().from(s.operationsMonthlyPrivate).where(eq(s.operationsMonthlyPrivate.month,month));return api('/api/monthly-private-data',{month,expectedRevision:row?.revision??-1,data});};
 const input=(label:string)=>page.locator('#monthly-private-sheet').getByRole('spinbutton',{name:label,exact:true});
 const sheet=()=>page.locator('#monthly-private-sheet');
 async function openEditor(){await page.getByRole('button',{name:'录入／更正',exact:true}).click();await settleBusinessUI(page);}

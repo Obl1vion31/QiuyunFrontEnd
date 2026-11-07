@@ -1,4 +1,5 @@
 ---
+import {effectiveCategoryName} from '../../db/content-config';
 import BusinessViewSwitch from '../../components/BusinessViewSwitch.astro';
 import BusinessPromotionDataTable from '../../components/BusinessPromotionDataTable.astro';
 import BusinessPromotionSummary from '../../components/BusinessPromotionSummary.astro';
@@ -127,7 +128,7 @@ try {
     contentName: operationsContentVersion.contentName,
     versionNumber: operationsContentVersion.versionNumber,
     subjectName: operationsSubject.name,
-    categoryName: operationsCategory.name,
+    categoryName: effectiveCategoryName(operationsContentVersion.subjectId,operationsContentVersion.categoryId,operationsCategory.name),
     contentId: operationsContent.id,
     platformNoteId: operationsContent.platformNoteId,
   }).from(operationsPromotionCampaign)

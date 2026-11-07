@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {asc,eq,inArray} from 'drizzle-orm';
-import {requireAdmin,type OperationsUser} from '../auth/permissions';
+import {type OperationsUser} from '../auth/permissions';
 import {WorkflowError,type Transaction} from './schedule-workflow';
 import {readPromotionContext} from './promotion-pauses';
 import {promotionReplayOptions,promotionStateOn} from './promotion-state.mjs';
@@ -36,7 +36,7 @@ export async function correctPromotionHistory(tx:Transaction,input:{
   const state=replayPromotionHistory(campaign.startedOn,kept,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(now)});
   if(!state)throw new WorkflowError('首次起投更正与已有安排无法衔接，本次未保存。',422);
   if(removed.length){
-   requireAdmin(actor);if(!reason.trim())throw new WorkflowError('请填写首次起投更正原因。',422);
+   if(!reason.trim())throw new WorkflowError('请填写首次起投更正原因。',422);
    const dates=removed.map(m=>m.metricDate).sort();
    const impact:HistoryImpact={originCorrection:true,dailyMetrics:removed.length,dates,arrangements:0,waitRanges:0,dayDecisions:0,holds:0,from:dates[0],through:dates.at(-1)!,message:'首次起投日期或阶段更正，将归档与新起点不兼容的记录，保留其余指标。'};
    if(!confirmed)throw new PromotionHistoryPreview(impact);
@@ -58,7 +58,7 @@ export async function correctPromotionHistory(tx:Transaction,input:{
  const invalidResume=holds.some(h=>h.startedOn<=date&&h.endedOn>date&&dayState&&!nextActualPromotionState(dayState.currentStatus,h.resumeStage==='testing'?'test_continue':'scaling_continue'));
  if(state&&!roundChanged&&!invalidResume)return {state:replayPromotionHistory(campaign.startedOn,metrics,{...promotionReplayOptions(campaign,context),asOf:shanghaiDateKey(now)})!,archived:0,impact:null};
  const tail=metrics.filter(m=>m.metricDate>date);
- requireAdmin(actor);
+
  if(!reason.trim())throw new WorkflowError('请填写更正后续推广记录的原因。',422);
  // 移除的是活动执行关系；完整旧值保留在调用方同事务的 before/after 审计。
  for(const d of decisions){

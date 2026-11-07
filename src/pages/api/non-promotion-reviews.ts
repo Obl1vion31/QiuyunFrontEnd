@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from '../../db/content-config';
 import {sameNonPromotionCohort} from '../../db/content-roles';
 import {lockPromotionWorkflow} from '../../db/promotion-pauses';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
@@ -54,7 +55,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
         subjectId: operationsContentVersion.subjectId,
         subjectName: operationsSubject.name,
         categoryId: operationsContentVersion.categoryId,
-        categoryName: operationsCategory.name,
+        categoryName: effectiveCategoryName(operationsContentVersion.subjectId,operationsContentVersion.categoryId,operationsCategory.name),
       }).from(operationsContentSchedule)
         .innerJoin(operationsContentVersion, eq(operationsContentSchedule.contentVersionId, operationsContentVersion.id))
         .innerJoin(operationsContent, eq(operationsContentVersion.contentId, operationsContent.id))

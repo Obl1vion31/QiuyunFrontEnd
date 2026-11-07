@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 import { randomUUID } from 'node:crypto';
 import { and, eq, getTableColumns, inArray, ne, sql } from 'drizzle-orm';
 import type { Database } from './client';
@@ -17,7 +18,7 @@ export async function copyAnnualYear(database: Database, sourceYear: number, tar
     const [target] = await transaction.select({ id: plans.id }).from(plans).where(eq(plans.year, targetYear)).limit(1);
     const [targetInfo] = await transaction.select().from(years).where(eq(years.year, targetYear)).limit(1);
     if (target || targetInfo?.instructions?.trim()) return { kind: 'occupied' as const };
-    const source = await transaction.select({ ...getTableColumns(plans), subjectName: operationsSubject.name, categoryName: operationsCategory.name })
+    const source = await transaction.select({ ...getTableColumns(plans), subjectName: operationsSubject.name, categoryName: effectiveCategoryName(plans.subjectId,plans.categoryId,operationsCategory.name) })
       .from(plans).leftJoin(operationsSubject, eq(plans.subjectId, operationsSubject.id)).leftJoin(operationsCategory, eq(plans.categoryId, operationsCategory.id))
       .where(and(eq(plans.year, sourceYear), ne(plans.sectionKey, 'general')));
     if (!source.length) return { kind: 'missing' as const };

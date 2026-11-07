@@ -1,4 +1,5 @@
 ---
+import {effectiveCategoryName} from '../../db/content-config';
 import {scheduleWriteVersion} from '../../db/schedule-write-version';
 import BusinessContentRoleFields from '../../components/BusinessContentRoleFields.astro';
 import {readMonthlyCalendar} from '../../db/monthly-plan-links';
@@ -38,7 +39,7 @@ import { readPromotionContext } from '../../db/promotion-pauses';
 import { effectivePromotionStatus, promotionLabels, type PromotionContext } from '../../db/promotion-state.mjs';
 import { operationsPromotionCampaign } from '../../db/schema';
 import {readTaxonomy} from '../../db/taxonomy-store';
-const {postCategories,subjectCategoryMappings,subjects}=await readTaxonomy(getDb());
+const {subjectCategories,postCategories,subjectCategoryMappings,subjects}=await readTaxonomy(getDb());
 import { publicationLabels,publicationState,mayKeepEmptyPublicationLink } from '../../db/publication-rules.mjs';
 import { teamScheduleNotifications } from '../../db/schedule-workflow';
 import { businessDateTime } from '../../scripts/business-date';
@@ -137,7 +138,7 @@ try {
     subjectId: operationsContentVersion.subjectId,
     subjectName: operationsSubject.name,
     categoryId: operationsContentVersion.categoryId,
-    categoryName: operationsCategory.name,
+    categoryName: effectiveCategoryName(operationsContentVersion.subjectId,operationsContentVersion.categoryId,operationsCategory.name),
     revisionSummary: operationsContentVersion.revisionSummary,
     projectDocUrl: operationsContentVersion.projectDocUrl,
     syncToMoments: operationsContentSchedule.syncToMoments,
@@ -222,7 +223,7 @@ const actorRole = Astro.locals.user?.role;
 const requestedRow = Astro.url.searchParams.get('row') || Astro.url.hash.slice(1);
 const queueView = ['overdue','approvals','reasons'].includes(selectedStatus ?? '');
 const queueLabel = selectedStatus === 'overdue' ? '尚未登记' : selectedStatus === 'approvals' ? '待审批排期' : '待补延期理由';
-const clientCategories=subjectCategoryMappings.map(mapping=>({subjectId:mapping.subjectId,id:mapping.categoryId,name:postCategories.find(c=>c.id===mapping.categoryId)!.name}));
+const clientCategories=subjectCategories;
 ---
 
 <!doctype html>

@@ -1,3 +1,4 @@
+import {effectiveCategoryName} from './content-config';
 import {readScheduleComparison} from './schedule-baseline';
 import type {ScheduleBaseline} from './schedule-baseline';
 import {createHash} from 'node:crypto';
@@ -17,7 +18,7 @@ export const dateMonth=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'A
 const dateKey=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai'}).format(date);
 export async function arrangementRows(db:Database,month:string){
  return db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,versionId:s.operationsContentVersion.id,
-  subjectName:s.operationsSubject.name,categoryName:s.operationsCategory.name,versionNumber:s.operationsContentVersion.versionNumber,name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,
+  subjectName:s.operationsSubject.name,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),versionNumber:s.operationsContentVersion.versionNumber,name:s.operationsContentVersion.contentName,subjectId:s.operationsContentVersion.subjectId,
   categoryId:s.operationsContentVersion.categoryId,operationType:s.operationsContent.operationType,contentRole:s.operationsContent.contentRole,
   projectDocUrl:s.operationsContentVersion.projectDocUrl,isPromoted:s.operationsContentSchedule.isPromoted,syncToMoments:s.operationsContentSchedule.syncToMoments,
   plannedItemId:sql<string|null>`(select a.item_id from operations_monthly_plan_assignment a join operations_monthly_plan p on p.id=a.plan_id where a.schedule_id=${s.operationsContentSchedule.id} and p.month=${month} limit 1)`,
