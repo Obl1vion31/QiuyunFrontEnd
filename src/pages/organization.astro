@@ -1,0 +1,22 @@
+---
+import SiteIcons from '../components/SiteIcons.astro';
+import BusinessConsoleFonts from '../components/BusinessConsoleFonts.astro';
+import BusinessConsoleFrame from '../components/BusinessConsoleFrame.astro';
+import BusinessConsoleToolbar from '../components/BusinessConsoleToolbar.astro';
+import BusinessViewSwitch from '../components/BusinessViewSwitch.astro';
+import OrganizationWorkspace from '../components/OrganizationWorkspace.astro';
+import { getDb } from '../db/client';
+import { readOrganization } from '../db/organization';
+import '../styles/organization.css';
+export const prerender = false;
+const workspace = await readOrganization(getDb());
+const view = Astro.url.searchParams.get('view') === 'people' ? 'people' : 'roles';
+---
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>组织与人员 · 内容工作台</title><SiteIcons/><BusinessConsoleFonts/></head><body>
+  <BusinessConsoleFrame active="organization">
+    <BusinessConsoleToolbar title="组织与人员" subtitle="岗位分工与团队任职" mobilePriority="center" transition:persist="organization-toolbar">
+      <BusinessViewSwitch slot="center" label="组织视图" name="organization-view" value={view} items={[{ label: '岗位与协作', value: 'roles' }, { label: '人员任职', value: 'people' }]} data-organization-view/>
+    </BusinessConsoleToolbar>
+    <main class="business-console-content organization-content"><OrganizationWorkspace workspace={workspace} view={view} editable={Astro.locals.user?.role === 'admin'}/></main>
+  </BusinessConsoleFrame>
+</body></html>

@@ -17,6 +17,7 @@ flowchart LR
 | 功能 | 页面入口 | 主要规则与接口 |
 | --- | --- | --- |
 | 总枢纽首页 | `src/pages/index.astro` | `src/data/home.ts`、`ContentTunnel`、`src/scripts/home-motion.ts`；浅弧与平带连续循环，后两区采用紧凑阅读布局 |
+| 组织与人员 | `src/pages/organization.astro` | `src/data/organization.ts`、`src/db/organization.ts`、`api/organization.ts`；岗位职责、资料与现有账号的多岗位任职 |
 | 年度规划 | `src/pages/business/annual-plan.astro` | `src/db/annual-plan*`、`api/operations-annual-plans*` |
 | 排期与版本 | `src/pages/business/operations-schedule.astro` | `src/db/validation.ts`、`api/operations-content*` |
 | 延期与改期审批 | 排期 Inspector | `schedule-rules.mjs`、`schedule-workflow.ts`、`schedule-delay-cleanup.ts`、改期与逐日理由接口 |
@@ -63,6 +64,8 @@ flowchart LR
 
 ## 共享界面接入
 
+`OrganizationWorkspace`复用公共Toolbar／ViewSwitch、SectionHeader、ToolbarActions和FormSheet。`organization.ts`按已知SSR模型就近编辑，保存局部更新职责、负责人及人员行，不替换公共节点；同路径视图前后退接入`business:local-history-pop`，草稿关闭和导航复用公共确认与退出动画。流程IntersectionObserver只在可见后启动一次，填写和保存不重播。`GET/PATCH /api/organization`复用会话与同源保护，服务端严格校验且仅管理员可写；短事务锁使任职替换与审计前后值一致，重复同值不追加更正。账号权限及现有业务事实不随任职更改。
+
 排期移动与对换由`schedule-placement-ui.ts`接入现有单层Sheet的placement视图；日历使用独立拖放类型，不干扰月计划来源拖放。GET/POST `/api/operations-content/[id]/placement`仅按需读取源帖及目标日，事务内使用现有改期函数、双方资源锁、共享月份门禁和执行历史；请求键收在既有JSON执行历史中，不增加表。普通保存仍走原入口。
 
 `form-changes.ts`用于排期与发布的实际值比较；日期比较拆分控件值，版本／请求凭据排除，逐日理由按所属日期归一化。运营配置、月计划来源和发布复盘计划在实际回填后发送`business:form-rebase`及字段名，只更新未被用户输入覆盖的基线。不得在异步结束时整表重置基线。
@@ -79,7 +82,7 @@ flowchart LR
 
 | 场景 | 真实实现 | 修改入口 |
 | --- | --- | --- |
-| 应用壳层与正文留白 | [Frame](../src/components/BusinessConsoleFrame.astro)、[排期](../src/pages/business/operations-schedule.astro) | 七页统一使用`main.business-console-content`与Frame变量，业务样式只作用于正文内部；月度运营由Astro的公共main包裹React Island，React根节点不再限宽或设置页面级padding；推广、例会和设置不覆盖公共main的宽度。`tests/business-content.helper.ts`比较公共正文及真实面板边界；横向裁切使用 clip，避免创建滚动祖先导致覆盖详情打开后工具栏失去吸顶 |
+| 应用壳层与正文留白 | [Frame](../src/components/BusinessConsoleFrame.astro)、[排期](../src/pages/business/operations-schedule.astro) | 各页统一使用`main.business-console-content`与Frame变量，业务样式只作用于正文内部；月度运营由Astro的公共main包裹React Island，React根节点不再限宽或设置页面级padding；推广、例会和设置不覆盖公共main的宽度。`tests/business-content.helper.ts`比较公共正文及真实面板边界；横向裁切使用 clip，避免创建滚动祖先导致覆盖详情打开后工具栏失去吸顶 |
 | 说明目录与局部章节历史 | [说明组件](../src/components/BusinessUsageGuide.astro)、[目录控制器](../src/scripts/usage-guide.ts)、[Frame](../src/components/BusinessConsoleFrame.astro) | 服务端按角色输出章节与两处目录，正文保留对照表；窄屏复用`business-popover`。点击push锚点、滚动只改高亮；Frame在公共草稿保护后派发可取消的`business:local-history-pop`，本页认领同路径查询的章节前后退，避免Astro重复换页。离开清理监听、观察器及待执行帧；共享Inspector历史照常处理 |
 | 公共标题和视角切换 | [Toolbar](../src/components/BusinessConsoleToolbar.astro)、[推广顶栏](../src/components/BusinessPromotionToolbar.astro) | 命名插槽组合控件；推广 `transition:persist` 保留顶栏及按钮，切换后同步激活态 |
 | 已加载详情模板 | [非推广](../src/pages/business/non-promotion-review.astro)、[推广每日与历史](../src/pages/business/daily-promotion-review.astro) | 行 `data-inspector-key`，行内标题／动作按钮加 `data-inspector-trigger`（不重复行键），惰性 `template[data-inspector-template]`，`BusinessInspector parameter="row" templates`；公共控制器在稳定父容器委托事件，本帖局部刷新后仍可打开详情；阅读详情不触发外部草稿离开确认，清理面板时保留其他表单的未保存保护 |

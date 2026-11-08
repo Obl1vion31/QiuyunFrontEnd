@@ -1,0 +1,13 @@
+---
+import { positionNames, type OrganizationMember } from '../data/organization';
+import BusinessToolbarActions from './BusinessToolbarActions.astro';
+interface Props { member?: OrganizationMember; managers?: string[]; editable?: boolean }
+const { member, managers = [], editable = false } = Astro.props;
+---
+<tr data-org-member={member?.id ?? ''}>
+  <td><strong data-member-name>{member?.name ?? ''}</strong><span class="org-secondary" data-member-status>{member && !member.enabled ? '账号已停用' : ''}</span></td>
+  <td data-member-username>{member?.username ?? ''}</td>
+  <td><div class="org-tags" data-member-positions>{member?.positions.length ? member.positions.map(key => <span>{positionNames[key]}</span>) : <span class="org-unassigned">待安排</span>}</div></td>
+  <td data-member-managers>{member?.positions.includes('supervisor') ? '共同管理团队' : managers.join('、') || '待安排'}</td>
+  {editable && <td><BusinessToolbarActions variant="section"><button type="button" data-edit-member={member?.id ?? ''}>编辑任职</button></BusinessToolbarActions></td>}
+</tr>

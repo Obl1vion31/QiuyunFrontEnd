@@ -34,7 +34,7 @@ function show(state:Pending){
 document.addEventListener('astro:before-preparation',event=>{
   const transition=event as TransitionBeforePreparationEvent,continueLoading=pending?.shown;
   clear();arrival?.cancel();arrival=undefined;
-  if(transition.formData||transition.to.origin!==location.origin||!transition.to.pathname.startsWith('/business/'))return;
+  if(transition.formData||transition.to.origin!==location.origin||!(transition.to.pathname.startsWith('/business/')||transition.to.pathname==='/organization'))return;
   const workspace=document.querySelector<HTMLElement>('.business-console-workspace');if(!workspace)return;
   const link=[...document.querySelectorAll<HTMLAnchorElement>('[data-module-href]')].find(link=>new URL(link.dataset.moduleHref!,location.origin).pathname===transition.to.pathname);
   const state:Pending={signal:transition.signal,timer:0,messageTimer:0,shown:false,swapped:false,workspace,busy:workspace.getAttribute('aria-busy'),label:link?.querySelector('strong')?.textContent?.trim()||'页面'};

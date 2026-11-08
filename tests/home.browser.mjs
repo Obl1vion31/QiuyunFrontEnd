@@ -5,7 +5,7 @@ import {createServer} from 'node:http';
 import {once} from 'node:events';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-const {chromium}=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),raw=resolve(root,'.tools/test-artifacts/home-release'),batch=resolve(root,process.env.HOME_EVIDENCE_DIR||'.tools/test-artifacts/home-release/evidence');
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.jpg':'image/jpeg','.pdf':'application/pdf'};
 const server=createServer(async(req,res)=>{try{let path=decodeURIComponent(new URL(req.url,'http://localhost').pathname),base;if(path.startsWith('/reference/')){base=resolve(root,'verified/2026-10-23_13-42_home-loop/preview');path=path.slice('/reference'.length);}else if(path==='/'||path.startsWith('/_astro/')){base=resolve(root,'dist/client');if(path==='/')path='/index.html';}else if(path.startsWith('/fonts/')||path.startsWith('/images/home/')||path.startsWith('/images/brand/'))base=resolve(root,'public');else{res.writeHead(404);res.end();return;}const file=resolve(base,'.'+path);if(!file.startsWith(base+sep))throw Error('Invalid path');res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404);res.end();}});

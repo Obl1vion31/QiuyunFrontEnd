@@ -47,7 +47,7 @@ export function safeReturnTo(value: string | null | undefined, origin: string) {
   if (value) {
     try {
       const target = new URL(value, origin);
-      if (target.origin === origin && target.pathname.startsWith('/business/')) return `${target.pathname}${target.search}${target.hash}`;
+      if (target.origin === origin && (target.pathname.startsWith('/business/') || target.pathname === '/organization' || target.pathname.startsWith('/organization/'))) return `${target.pathname}${target.search}${target.hash}`;
     } catch { /* 无效返回地址使用业务默认入口。 */ }
   }
   return '/business/operations-schedule';

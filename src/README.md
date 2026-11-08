@@ -8,12 +8,13 @@
 | `components/ContentTunnel.tsx`、`scripts/home-motion.ts` | 首屏浅弧→平带的连续循环、暂停与可见性管理 |
 | `styles/home.css`、`components/ContentTunnel.module.css` | 首页基础排版、紧凑后两区与首屏局部样式 |
 | `pages/login.astro` | 账号或完整用户名登录 |
+| `pages/organization.astro` | 组织岗位、协作资料与现有人员任职；管理员维护，员工只读 |
 | `pages/business/` | 年度规划、排期、推广、非推广、月度运营、例会和设置页面 |
 | `pages/api/` | 同源、登录与权限校验后的 HTTP 入口 |
 | `components/` | 共享控制台、工具栏、Inspector、指标与暂停控件 |
 | `scripts/` | 打包后的浏览器交互与共享时间格式 |
 | `styles/` | 显式接入的共享表单、筛选和对话框规范 |
-| `data/` | 首页文案与公开封面配置 |
+| `data/` | 首页文案、公开封面及组织岗位的共享类型／初始职责 |
 | `db/` | schema、数据库连接、业务事务和共享纯规则 |
 | `auth/` | Better Auth、内部账号和权限 |
 | `middleware.ts` | 业务页／接口访问保护与性能计时 |
@@ -32,6 +33,6 @@
 
 账号管理的行结构由 `BusinessAccountRow.astro` 共用；`account-management.ts` 处理新增、改名及改号，服务端复用 `auth/identifiers.ts` 边界与 `auth/provision.ts` 事务创建。标识解析在 Better Auth 之前完成，密码验证和会话仍由原认证服务负责。
 
-七个工作台页的head共用 `BusinessConsoleFonts`；`styles/business-font-assets.ts` 为 `pages/fonts/business.css.ts` 与 `business.js.ts` 构建生成共享静态字体资源，常用原始切片在正文解析前同步准备，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
+各工作台页的head共用 `BusinessConsoleFonts`；`styles/business-font-assets.ts` 为 `pages/fonts/business.css.ts` 与 `business.js.ts` 构建生成共享静态字体资源，常用原始切片在正文解析前同步准备，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
 
 排期月度阶段由 MonthlyArrangementPanel、monthly-arrangement 与 schedule-edit-policy 共用；首轮在原月历落实、整月提交、管理员核对及永久封存。审批重放也经过同一事务守卫。取消排期标记撤下，schedule-execution-history 在排期与查帖共用前后变更展示。

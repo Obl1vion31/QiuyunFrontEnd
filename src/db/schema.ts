@@ -73,6 +73,28 @@ export const accountManagementAudit = pgTable('account_management_audit', {
  createdAt:timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
 });
 
+export const organizationPosition = pgTable('organization_position', {
+  key: text('key').$type<import('../data/organization').PositionKey>().primaryKey(),
+  responsibilities: text('responsibilities').notNull(),
+  deliverables: text('deliverables').notNull(),
+  collaboration: text('collaboration').notNull(),
+  references: jsonb('references').$type<import('../data/organization').OrganizationReference[]>().notNull().default([]),
+}, table => [check('organization_position_key_check', sql`${table.key} IN ('supervisor','media','design','touchpoint')`)]);
+
+export const organizationAssignment = pgTable('organization_assignment', {
+  userId: text('user_id').notNull().references(() => authUser.id, { onDelete: 'restrict' }),
+  positionKey: text('position_key').$type<import('../data/organization').PositionKey>().notNull().references(() => organizationPosition.key, { onDelete: 'restrict' }),
+}, table => [primaryKey({ columns: [table.userId, table.positionKey] })]);
+
+export const organizationChange = pgTable('organization_change', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  targetKind: text('target_kind').$type<'position' | 'member'>().notNull(),
+  targetId: text('target_id').notNull(),
+  before: jsonb('before').notNull(), after: jsonb('after').notNull(),
+  actorId: text('actor_id').notNull().references(() => authUser.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const authRateLimit = pgTable('auth_rate_limit', {
   id: text('id').primaryKey(), key: text('key').notNull().unique(), count: integer('count').notNull(),
   lastRequest: bigint('last_request', { mode: 'number' }).notNull(),

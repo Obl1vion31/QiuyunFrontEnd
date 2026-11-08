@@ -1,5 +1,7 @@
 # 验证
 
+`pnpm test:organization`使用真实隔离PostgreSQL验证实际迁移、既有账号／认证／字典保持、初始兼任、稳定用户ID、同源与角色、严格字段与资料链接、重复同值及并发审计；随后以双角色运行真实浏览器，覆盖三档桌面两视图、职责／任职Sheet、未保存取消、失败保留与重试、资料往返、权限不变、前后退及减少动态。首屏从绘制开始记录慢字体与暖刷新，核对实际MiSans、导航及正文位置；390／320px只核查明显溢出和关闭可达。`ORG_ENTRY`可指定正式运行包，`ORG_DIR`指定证据目录；`ORG_KEEP_SERVER=1`仅为隔离预览保留进程，截图和录像实际查看后再归档。
+
 `schedule-placement.integration.ts`使用真实隔离PostgreSQL验证空日移动、多帖对换、请求幂等、同键不同内容拒绝、并发抢占、整批回滚、跨Week／月份门禁、账号禁用、管理员封存及8号调整不改写1—7号截止对照。`schedule-placement.browser.ts`验证双角色三档真实拖拽、键盘替代、未修改关闭、改回原值、慢回填、失败保留、单层Sheet及周会默认区间，并采集真实截图和录像；`PLACEMENT_ENTRY`支持实际发布包，`PLACEMENT_DIR`指定证据目录。
 
 `meeting-finalization-permissions.test.ts`覆盖周／月会的角色与预排期资格；`meeting-finalization-permissions.browser.ts`使用隔离PostgreSQL，双方真实点击周会会后定稿、取消确认及生成PDF；月会验证员工首次确认按钮禁用、直调403、管理员点击成功，已确认后既有文字编辑可用，最终封存仅管理员、封存后双方仅保留文字修订。`MEETING_PERMISSION_ENTRY`可指向实际发布包，`MEETING_PERMISSION_DIR`指定三档桌面截图与实际操作录像；服务端与浏览器时钟固定一致。原`test:meeting-discussion`应完整通过，不再把员工按钮禁用列为已知限制。

@@ -5,7 +5,7 @@ import BusinessScheduleNotifications from './BusinessScheduleNotifications.astro
 import BusinessAssistantEntry from './BusinessAssistantEntry.astro';
 import QiuyunMark from './QiuyunMark';
 import type {teamScheduleNotifications} from '../db/schedule-workflow';
-type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings' | 'organization';
 interface Props { active: ModuleId;notifications?:Awaited<ReturnType<typeof teamScheduleNotifications>> }
 const { active,notifications } = Astro.props;
 const settingsHref=Astro.locals.user?.role==='employee'?'/business/settings?view=guide':'/business/settings';
@@ -63,7 +63,12 @@ const iconPaths = {
       </div>
     </section>)}
 
-    <section class="business-sidebar__group"><h2>系统</h2><div>    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href={settingsHref} data-module-id="settings" data-module-href={settingsHref} data-astro-prefetch="false" aria-current={active === 'settings' ? 'page' : undefined}>
+    <section class="business-sidebar__group"><h2>系统</h2><div>
+    <a class:list={{active: active === 'organization'}} href="/organization" data-module-id="organization" data-module-href="/organization" data-astro-prefetch="false" aria-current={active === 'organization' ? 'page' : undefined}>
+      <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></svg>
+      <strong>组织与人员</strong>
+    </a>
+    <a class:list={['business-sidebar__settings', { active: active === 'settings' }]} href={settingsHref} data-module-id="settings" data-module-href={settingsHref} data-astro-prefetch="false" aria-current={active === 'settings' ? 'page' : undefined}>
       <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.settings} /></svg>
       <strong>系统设置</strong>
     </a></div></section>

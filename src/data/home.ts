@@ -134,9 +134,10 @@ export const homeContent = {
         id: 'people',
         eyebrow: '02 / GROWTH',
         title: '组织与人员',
-        summary: '岗位、能力、SOP 与成长路径。',
-        cta: '建设中',
-        status: 'placeholder',
+        summary: '岗位分工、人员任职与协作资料。',
+        cta: '进入组织与人员',
+        status: 'external',
+        href: '/organization',
       },
       {
         id: 'performance',

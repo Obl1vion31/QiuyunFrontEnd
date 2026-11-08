@@ -4,6 +4,8 @@
 
 ## 当前文件
 
+`OrganizationWorkspace.astro`组织岗位、人员与单个编辑Sheet；`OrganizationMemberRow.astro`复用SSR与保存后的人员行。局部视图和保存由`src/scripts/organization.ts`接入，沿用共享标题、操作组、表单、确认及退出动画。
+
 - `SiteIcons.astro`：首页、登录和全部业务页的共享站点图标引用；资源源文件位于 `public/images/brand/`。
 - `QiuyunMark.tsx` 与同名CSS Module：Astro／React共用的静态网页品牌图形，36px常规／24px页脚，深底浅色底板或浅底透明，不单独创建客户端岛。
 - `ContentTunnel.tsx`：首页 React Island，负责滚动进度、封面循环、流程状态和首屏结构。

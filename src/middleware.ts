@@ -16,6 +16,7 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
   // 旧标签页仍可能轮询；退役接口在身份查询前返回，不再消耗协作数据库读写。
   if(!realtimeEditingEnabled&&url.pathname.startsWith('/api/collaboration/'))return collaborationDisabledResponse();
   const protectedPath = url.pathname === '/business' || url.pathname.startsWith('/business/')
+    || url.pathname === '/organization' || url.pathname.startsWith('/organization/')
     || (url.pathname.startsWith('/api/') && !url.pathname.startsWith('/api/auth/'));
   if (!protectedPath && url.pathname !== '/login') return next();
   const startedAt = performance.now();

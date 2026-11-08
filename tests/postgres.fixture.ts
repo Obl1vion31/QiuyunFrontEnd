@@ -12,7 +12,7 @@ import * as schema from '../src/db/schema';
 import {subjects,postCategories,subjectCategoryMappings} from '../src/db/taxonomy';
 import {provisionAccount} from '../src/auth/provision';
 import {admin,employee} from './auth.fixture';
-export async function startPostgresFixture(options:{clockFile?:string;entry?:string}={}){
+export async function startPostgresFixture(options:{clockFile?:string;entry?:string;accounts?:Array<Parameters<typeof provisionAccount>[1]>}={}){
  const raw=process.env.TEST_POSTGRES_URL;assert.ok(raw,'请指定本机隔离服务 TEST_POSTGRES_URL');const target=new URL(raw);assert.ok(['127.0.0.1','localhost'].includes(target.hostname),'测试服务只能在本机');
  const name='qiuyun_test_'+randomUUID().replaceAll('-',''),maintenance=postgres(raw,{max:1});await maintenance.unsafe(`create database "${name}"`);target.pathname='/'+name;target.searchParams.set('max','10');
  const database=createDatabase(target.href),db=database.db;
@@ -23,7 +23,7 @@ export async function startPostgresFixture(options:{clockFile?:string;entry?:str
   const privateGuard=await readFile(new URL('../drizzle/0049_monthly_private_source_guard.sql',import.meta.url),'utf8');
   for(const statement of privateGuard.split('--> statement-breakpoint'))await db.execute((await import('drizzle-orm')).sql.raw(statement));
   await db.insert(schema.operationsSubject).values(subjects.map((row,index)=>({...row,sortOrder:index*10})));await db.insert(schema.operationsCategory).values(postCategories.map((row,index)=>({...row,sortOrder:index*10})));await db.insert(schema.operationsSubjectCategory).values([...subjectCategoryMappings]);
-  await provisionAccount(db,admin);await provisionAccount(db,employee);await provisionAccount(db,{username:'test_other',password:'fictional-other-password',role:'employee'});
+  for(const account of options.accounts??[admin,employee,{username:'test_other',password:'fictional-other-password',role:'employee' as const}])await provisionAccount(db,account);
  }catch(error){await database.close();await maintenance.unsafe(`drop database "${name}"`);await maintenance.end();throw error;}
  const probe=createServer();probe.listen(0,'127.0.0.1');await once(probe,'listening');const address=probe.address();assert.ok(address&&typeof address==='object');const port=address.port;await new Promise<void>(resolve=>probe.close(()=>resolve()));
  const baseURL=`http://127.0.0.1:${port}`,child=spawn(process.execPath,[...(options.clockFile?['--import',new URL('./clock.fixture.mjs',import.meta.url).pathname]:[]),options.entry??'dist/server/entry.mjs'],{env:{...process.env,...(options.clockFile?{FIXTURE_CLOCK_FILE:options.clockFile}:{}),HOST:'127.0.0.1',PORT:String(port),NODE_ENV:'test',DATABASE_URL:target.href,BETTER_AUTH_URL:baseURL,BETTER_AUTH_SECRET:'fictional-browser-secret-at-least-32-characters'},stdio:['ignore','pipe','pipe']});let logs='';child.stdout.on('data',chunk=>logs+=chunk);child.stderr.on('data',chunk=>logs+=chunk);

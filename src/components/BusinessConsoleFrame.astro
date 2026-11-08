@@ -15,7 +15,7 @@ import {getDb} from '../db/client';
 import {effectiveBusinessPermissions} from '../auth/business-permissions';
 import {defaultBusinessPermissions} from '../auth/business-capabilities';
 import type {teamScheduleNotifications} from '../db/schedule-workflow';
-type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings';
+type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings' | 'organization';
 interface Props { active: ModuleId;notifications?:Awaited<ReturnType<typeof teamScheduleNotifications>> }
 const { active,notifications } = Astro.props;
 let permissions=defaultBusinessPermissions();
