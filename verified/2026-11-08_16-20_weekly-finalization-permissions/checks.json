@@ -1,0 +1,85 @@
+{
+  "checks": [
+    "employee：无月计划的周会，维持原文字也可从会前转会后；取消不新增版本，真实保存及PDF成功",
+    "admin：无月计划的周会，维持原文字也可从会前转会后；取消不新增版本，真实保存及PDF成功",
+    "月会首次预排期：员工按钮禁用、直调接口403且无变化；管理员真实点击确认成功",
+    "月会预排期已确认后，员工原有文字修订真实保存成功，不重置确认时间、不改计划、不提前封存",
+    "月会封存：员工直调403、管理员成功；封存后双方普通修改均403，界面仅保留既有两项文字修订入口"
+  ],
+  "errors": [],
+  "videos": {
+    "admin": "video/admin.webm",
+    "employee": "video/employee.webm"
+  },
+  "isolatedPostgres": true,
+  "sourceBaseline": "1e75712",
+  "applicationCommit": "583c4df",
+  "fixedClock": "2026-11-05T12:00:00+08:00",
+  "runtime": "Vercel prebuilt _render.func",
+  "viewports": [
+    [
+      1920,
+      1000
+    ],
+    [
+      1440,
+      1000
+    ],
+    [
+      1024,
+      1000
+    ]
+  ],
+  "screenshots": 24,
+  "visualReview": {
+    "screenshots": 24,
+    "videoSamplingFps": 2,
+    "frames": {
+      "admin": 79,
+      "employee": 83
+    }
+  },
+  "rules": {
+    "pass": 303,
+    "fail": 0
+  },
+  "typecheck": {
+    "errors": 0,
+    "warnings": 0,
+    "existingHints": 59
+  },
+  "schema": "passed; no schema change",
+  "builds": [
+    "node",
+    "vercel"
+  ],
+  "monthlyWorkflow": [
+    "PASS 预排期前新建与跨月移入均拒绝；遗留变月不再反向阻断同一份草稿",
+    "PASS 管理员确认预排期才放行首轮；单帖暂存不锁月，整月提交幂等且待核对员工仍可编辑",
+    "PASS 待核对真实实发正常；退回重交、管理员改后必须更新核对，确认冻结最新月度数据且整场拒绝再编辑",
+    "PASS 封存后临时新增及取消只改执行历史，不动基准；取消保留内容，实发不能取消，未预排期下月不能直接延期",
+    "PASS 整月提交与新增真实并发：新增始终可保存，旧提交依据有变化时重新核对",
+    "PASS 封存附件写入拒绝；普通排期旧审核配置不再产生新申请，敏感事实权限保持独立"
+  ],
+  "backendGuardChanges": false,
+  "productionTestBusinessWrites": 0,
+  "weeklyFullRegression": [
+    "四档桌面只读/编辑、pp与单处样本、无会议内PDF入口",
+    "V3草稿重复保存及同号定稿、草稿不生成PDF、事项真实中线与表头居中、旧版只读、退出取消保留输入、冻结指标不刷新",
+    "会后自动HTML PDF、幂等、同源保护、浏览器打印同款",
+    "回溯确认取消/执行、失效版本保留、恢复稿重新确认",
+    "生效日零点锁定安排和回溯，保留文字编辑",
+    "切编辑/打开文本框不置脏，恢复文字和进度后按钮置灰；首次草稿确认默认继续编辑、取消无版本且保留输入，同版实际修改保存无重复弹窗，已存草稿直接同号定稿"
+  ],
+  "deployment": {
+    "id": "dpl_H5SPC1v8KLDy92A83AiLTkJLhUJK",
+    "status": "READY",
+    "candidate": "https://qiuyun-frontend-875meme19-opgobl1v-5358.vercel.app",
+    "production": "https://qiuyun-frontend.vercel.app",
+    "sameDeployment": true,
+    "candidateChecks": 26,
+    "candidateAssets": 27,
+    "productionChecks": 26,
+    "productionAssets": 77
+  }
+}

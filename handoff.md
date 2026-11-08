@@ -1,10 +1,15 @@
 # 项目交接
 
+## 员工周会定稿权限（已发布，2026-11-08）
+
+- 应用583c4df，分支codex/weekly-finalization-permissions，复用隔离工作树.tools/releases/meeting-pdf-portrait-20261108，基线1e75712；根工作区并行修改保持。共用按钮按会议类型计算资格，周会不再误用月计划确认状态；服务端月会首次预排期与最终封存管理员门禁、既有文字修订和其他校验保持。
+- 303规则、schema、类型0错误／0警告及Node／Vercel构建通过，既有59条hint保持。原先阻断的完整周会回归、月度封存与并发链路、实际包双方权限及真实保存通过；三档桌面24图、两段录像162抽样帧已查看，[本批索引](verified/2026-11-08_16-20_weekly-finalization-permissions/README.md)。无迁移或正式测试业务写入。正式部署dpl_H5SPC1v8KLDy92A83AiLTkJLhUJK READY，正式与候选一致；候选26项／27资源、正式26项／77资源通过。
+
 ## 周／月例会 PDF 竖版（已发布，2026-11-08）
 
 - 应用f97c34c，分支codex/meeting-pdf-portrait，独立工作树.tools/releases/meeting-pdf-portrait-20261108，基线361755d；根工作区并行修改保持。共享纸面改为A4竖版，指标两列、逐帖通栏及紧凑留白，宽表重复表头、长文字连续分页；浏览器打印展开同一冻结依据并恢复折叠与滚动。旧横版指纹继续命中，归档原件不自动覆盖。
 - 302规则、schema、Node／Vercel构建、类型0错误／0警告及公共UI通过；原有59条hint保留。实际包独立展开Chromium，双方生成／下载／缓存／打印恢复及冻结JSON不变通过；三档桌面实际检查，390仅查溢出，标题字形以CDP核实MiSans。月会同样本6→5页、周会3页，长金额／结论／观察／事项、Week 5及12个原资料链接完整；PDF逐页渲染并查看，主要纸面另存144dpi图：[验收与对照](verified/2026-11-08_15-24_meeting-pdf-portrait/README.md)。
-- 旧meeting-discussion综合用例在PDF前的员工会后定稿按钮断言中止：361755d现有canConfirmPlan条件未区分周会，员工无monthly plan状态时按钮被禁用。本轮未扩改权限，该用例未计通过；独立PDF专项覆盖双方并通过，保留该真实待办。
+- 当时旧meeting-discussion综合用例在PDF前的员工会后定稿按钮断言中止：361755d的canConfirmPlan条件未区分周会。本轮未计通过；此问题现由上方“员工周会定稿权限”修复并重新跑通完整用例，原PDF专项记录保留。
 - 正式部署dpl_7s4viyajwVinWWm3DHBUHhW7PYaJ READY；候选26项／27资源、正式26项／77资源一致。无迁移或正式测试业务写入。
 
 ## 业务配置分组与手柄排序（已发布，2026-11-08）
