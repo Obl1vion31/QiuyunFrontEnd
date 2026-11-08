@@ -1,0 +1,158 @@
+{
+  "passed": true,
+  "checks": [
+    "真实GET/HEAD、员工默认跳转、管理员默认账号、员工仅说明SSR、管理页/API403、未登录及无缓存",
+    "双角色五档纵向正文/目录/日期/页尾、点击不重载、前后退/刷新锚点、手动滚动不写历史、键盘定位、侧栏记忆不越权、真实MiSans",
+    "桌面/手机实际目录录像及减少动态效果"
+  ],
+  "screens": [
+    "admin-intro-1920.png",
+    "admin-dates-1920.png",
+    "admin-end-1920.png",
+    "admin-intro-1440.png",
+    "admin-dates-1440.png",
+    "admin-end-1440.png",
+    "admin-intro-1024.png",
+    "admin-directory-1024.png",
+    "admin-dates-1024.png",
+    "admin-end-1024.png",
+    "admin-intro-390.png",
+    "admin-directory-390.png",
+    "admin-dates-390.png",
+    "admin-end-390.png",
+    "admin-intro-320.png",
+    "admin-directory-320.png",
+    "admin-dates-320.png",
+    "admin-end-320.png",
+    "employee-intro-1920.png",
+    "employee-dates-1920.png",
+    "employee-end-1920.png",
+    "employee-intro-1440.png",
+    "employee-dates-1440.png",
+    "employee-end-1440.png",
+    "employee-intro-1024.png",
+    "employee-directory-1024.png",
+    "employee-dates-1024.png",
+    "employee-end-1024.png",
+    "employee-intro-390.png",
+    "employee-directory-390.png",
+    "employee-dates-390.png",
+    "employee-end-390.png",
+    "employee-intro-320.png",
+    "employee-directory-320.png",
+    "employee-dates-320.png",
+    "employee-end-320.png",
+    "employee-reduced-390.png"
+  ],
+  "fonts": [
+    {
+      "role": "admin",
+      "selector": "#guide-versions h3",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 5
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "18px",
+        "lineHeight": "28px",
+        "weight": "600"
+      }
+    },
+    {
+      "role": "admin",
+      "selector": "#guide-versions .guide-lead",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "16px",
+        "lineHeight": "28px",
+        "weight": "400"
+      }
+    },
+    {
+      "role": "admin",
+      "selector": "#guide-types .guide-table:nth-of-type(1) tbody tr:first-child td",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 20
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "14px",
+        "lineHeight": "24px",
+        "weight": "400"
+      }
+    },
+    {
+      "role": "employee",
+      "selector": "#guide-versions h3",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 5
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "18px",
+        "lineHeight": "28px",
+        "weight": "600"
+      }
+    },
+    {
+      "role": "employee",
+      "selector": "#guide-versions .guide-lead",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 24
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "16px",
+        "lineHeight": "28px",
+        "weight": "400"
+      }
+    },
+    {
+      "role": "employee",
+      "selector": "#guide-types .guide-table:nth-of-type(1) tbody tr:first-child td",
+      "fonts": [
+        {
+          "familyName": "MiSans VF",
+          "postScriptName": "MiSansVF",
+          "isCustomFont": true,
+          "glyphCount": 20
+        }
+      ],
+      "style": {
+        "family": "\"MiSans VF\", \"PingFang SC\", \"Microsoft YaHei\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+        "size": "14px",
+        "lineHeight": "24px",
+        "weight": "400"
+      }
+    }
+  ],
+  "errors": []
+}

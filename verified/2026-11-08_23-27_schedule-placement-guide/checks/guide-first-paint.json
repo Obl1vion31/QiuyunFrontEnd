@@ -1,0 +1,590 @@
+{
+  "passed": true,
+  "database": "isolated PGlite",
+  "cases": [
+    {
+      "name": "admin-cold-1440",
+      "samples": 77,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin-warm-1440",
+      "samples": 79,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin-navigation-1440",
+      "samples": 168,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin-slow-1440",
+      "samples": 81,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": []
+    },
+    {
+      "name": "admin-cold-390",
+      "samples": 88,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin-warm-390",
+      "samples": 89,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin-navigation-390",
+      "samples": 176,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "admin-slow-390",
+      "samples": 87,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": []
+    },
+    {
+      "name": "employee-cold-1440",
+      "samples": 80,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "employee-warm-1440",
+      "samples": 78,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "employee-navigation-1440",
+      "samples": 164,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "employee-slow-1440",
+      "samples": 79,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        0
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": []
+    },
+    {
+      "name": "employee-cold-390",
+      "samples": 88,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "employee-warm-390",
+      "samples": 91,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "employee-navigation-390",
+      "samples": 180,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": [
+        {
+          "selector": ".guide-main h1",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 4
+            }
+          ]
+        },
+        {
+          "selector": ".guide-intro",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 24
+            }
+          ]
+        },
+        {
+          "selector": "#guide-types td",
+          "fonts": [
+            {
+              "familyName": "MiSans VF",
+              "postScriptName": "MiSansVF",
+              "isCustomFont": true,
+              "glyphCount": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "employee-slow-390",
+      "samples": 88,
+      "allVisibleFramesUseMiSans": true,
+      "directoryHeights": [
+        60
+      ],
+      "maxTextTopDelta": 0,
+      "maxTextWidthDelta": 0.0,
+      "fonts": []
+    }
+  ]
+}

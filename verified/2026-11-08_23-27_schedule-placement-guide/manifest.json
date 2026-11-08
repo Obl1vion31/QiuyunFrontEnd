@@ -1,0 +1,452 @@
+{
+  "source": "e1cc794",
+  "baseline": "881740d",
+  "branch": "codex/schedule-placement-guide",
+  "status": "已发布，已自检，待用户反馈",
+  "clock": "2026-11-08 12:00 Asia/Shanghai",
+  "runtime": "实际Vercel运行包，独立PostgreSQL；说明页回归另用隔离PGlite",
+  "screens": [
+    {
+      "file": "screenshots/admin-before-seal-1440.png",
+      "role": "admin",
+      "state": "before-seal",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-calendar-1024.png",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-calendar-1440.png",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-calendar-1920.png",
+      "role": "admin",
+      "state": "calendar",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-edit-unchanged-1024.png",
+      "role": "admin",
+      "state": "edit-unchanged",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-edit-unchanged-1440.png",
+      "role": "admin",
+      "state": "edit-unchanged",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-edit-unchanged-1920.png",
+      "role": "admin",
+      "state": "edit-unchanged",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-empty-day-moved-1024.png",
+      "role": "admin",
+      "state": "empty-day-moved",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-empty-day-moved-1440.png",
+      "role": "admin",
+      "state": "empty-day-moved",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-empty-day-moved-1920.png",
+      "role": "admin",
+      "state": "empty-day-moved",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-guide-full-1440.png",
+      "role": "admin",
+      "state": "guide-full",
+      "width": 1440,
+      "height": 6779
+    },
+    {
+      "file": "screenshots/admin-guide-monthly-1024.png",
+      "role": "admin",
+      "state": "guide-monthly",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-guide-monthly-1440.png",
+      "role": "admin",
+      "state": "guide-monthly",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-guide-monthly-1920.png",
+      "role": "admin",
+      "state": "guide-monthly",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-guide-operation-1024.png",
+      "role": "admin",
+      "state": "guide-operation",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-guide-operation-1440.png",
+      "role": "admin",
+      "state": "guide-operation",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-guide-operation-1920.png",
+      "role": "admin",
+      "state": "guide-operation",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-keyboard-reduced-1440.png",
+      "role": "admin",
+      "state": "keyboard-reduced",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-placement-choice-1024.png",
+      "role": "admin",
+      "state": "placement-choice",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-placement-choice-1440.png",
+      "role": "admin",
+      "state": "placement-choice",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-placement-choice-1920.png",
+      "role": "admin",
+      "state": "placement-choice",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-preplan-closed-1440.png",
+      "role": "admin",
+      "state": "preplan-closed",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-review-pending-1440.png",
+      "role": "admin",
+      "state": "review-pending",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-save-failed-1440.png",
+      "role": "admin",
+      "state": "save-failed",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-saved-read-failed-1440.png",
+      "role": "admin",
+      "state": "saved-read-failed",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-sealed-placement-reason-1024.png",
+      "role": "admin",
+      "state": "sealed-placement-reason",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-sealed-placement-reason-1440.png",
+      "role": "admin",
+      "state": "sealed-placement-reason",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-sealed-placement-reason-1920.png",
+      "role": "admin",
+      "state": "sealed-placement-reason",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-sealed-placement-reason-bottom-1440.png",
+      "role": "admin",
+      "state": "sealed-placement-reason-bottom",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-swapped-1440.png",
+      "role": "admin",
+      "state": "swapped",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/admin-weekly-range-1440.png",
+      "role": "admin",
+      "state": "weekly-range",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-calendar-1024.png",
+      "role": "employee",
+      "state": "calendar",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-calendar-1440.png",
+      "role": "employee",
+      "state": "calendar",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-calendar-1920.png",
+      "role": "employee",
+      "state": "calendar",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-edit-unchanged-1024.png",
+      "role": "employee",
+      "state": "edit-unchanged",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-edit-unchanged-1440.png",
+      "role": "employee",
+      "state": "edit-unchanged",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-edit-unchanged-1920.png",
+      "role": "employee",
+      "state": "edit-unchanged",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-empty-day-moved-1024.png",
+      "role": "employee",
+      "state": "empty-day-moved",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-empty-day-moved-1440.png",
+      "role": "employee",
+      "state": "empty-day-moved",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-empty-day-moved-1920.png",
+      "role": "employee",
+      "state": "empty-day-moved",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-guide-full-1440.png",
+      "role": "employee",
+      "state": "guide-full",
+      "width": 1440,
+      "height": 6223
+    },
+    {
+      "file": "screenshots/employee-guide-monthly-1024.png",
+      "role": "employee",
+      "state": "guide-monthly",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-guide-monthly-1440.png",
+      "role": "employee",
+      "state": "guide-monthly",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-guide-monthly-1920.png",
+      "role": "employee",
+      "state": "guide-monthly",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-guide-operation-1024.png",
+      "role": "employee",
+      "state": "guide-operation",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-guide-operation-1440.png",
+      "role": "employee",
+      "state": "guide-operation",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-guide-operation-1920.png",
+      "role": "employee",
+      "state": "guide-operation",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-keyboard-reduced-1440.png",
+      "role": "employee",
+      "state": "keyboard-reduced",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-placement-choice-1024.png",
+      "role": "employee",
+      "state": "placement-choice",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-placement-choice-1440.png",
+      "role": "employee",
+      "state": "placement-choice",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-placement-choice-1920.png",
+      "role": "employee",
+      "state": "placement-choice",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-preplan-closed-1440.png",
+      "role": "employee",
+      "state": "preplan-closed",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-review-pending-1440.png",
+      "role": "employee",
+      "state": "review-pending",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-save-failed-1440.png",
+      "role": "employee",
+      "state": "save-failed",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-saved-read-failed-1440.png",
+      "role": "employee",
+      "state": "saved-read-failed",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-sealed-placement-reason-1024.png",
+      "role": "employee",
+      "state": "sealed-placement-reason",
+      "width": 1024,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-sealed-placement-reason-1440.png",
+      "role": "employee",
+      "state": "sealed-placement-reason",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-sealed-placement-reason-1920.png",
+      "role": "employee",
+      "state": "sealed-placement-reason",
+      "width": 1920,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-sealed-placement-reason-bottom-1440.png",
+      "role": "employee",
+      "state": "sealed-placement-reason-bottom",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-swapped-1440.png",
+      "role": "employee",
+      "state": "swapped",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "screenshots/employee-weekly-range-1440.png",
+      "role": "employee",
+      "state": "weekly-range",
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "videoSampling": {
+    "fullFlowFps": 2,
+    "fullFlowFrames": 144,
+    "motionFps": 20,
+    "motionFrames": 60
+  },
+  "release": {
+    "deployment": "dpl_B5eGFvhcHrdkFVhUP5w1q11zQsb3",
+    "url": "https://qiuyun-frontend.vercel.app",
+    "candidateChecks": 28,
+    "candidateAssets": 30,
+    "productionChecks": 28,
+    "productionAssets": 80,
+    "productionBusinessWrites": false
+  }
+}

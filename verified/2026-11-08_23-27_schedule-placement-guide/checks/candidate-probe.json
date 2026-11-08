@@ -1,0 +1,271 @@
+{
+  "passed": true,
+  "base": "https://qiuyun-frontend-5lrns7s2m-opgobl1v-5358.vercel.app",
+  "platformProtectionBypass": true,
+  "source": "e1cc794",
+  "checks": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/login",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/business/annual-plan",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?month=2026-11",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/non-promotion-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/meeting-review",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/monthly-operations",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings?view=business",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/business/settings?view=guide",
+      "method": "GET",
+      "status": 302
+    },
+    {
+      "path": "/api/business-settings/content-config",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-cost-mapping",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-plans?month=2026-11",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/business-notifications",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/content-search?id=44d3321a-5ea2-5cac-8c72-d0085dcc8a6e",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/operations-content/44d3321a-5ea2-5cac-8c72-d0085dcc8a6e/workflow",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/collaboration/presence",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/collaboration/locks",
+      "method": "GET",
+      "status": 410
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/monthly-plans/00000000-0000-4000-8000-000000000001/arrangement",
+      "method": "POST",
+      "status": 403
+    },
+    {
+      "path": "/api/promotion-timeline",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/promotion-daily/00000000-0000-4000-8000-000000000001",
+      "method": "PATCH",
+      "status": 403
+    },
+    {
+      "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/placement?date=2026-11-10",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/placement",
+      "method": "POST",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "path": "_astro/annual-plan.B0bGOLX6.css",
+      "sha256": "0ea79c83c087b0f446a22a4ac4947399772d557bee255176239d8d94a3eca22b"
+    },
+    {
+      "path": "_astro/annual-plan.LBrugSQ3.css",
+      "sha256": "493b0f174ea02c20acdc6faf462f9b2c7e99834ae5a615f7b41a539a3d56dfa0"
+    },
+    {
+      "path": "_astro/business-permissions.BhA4diT7.js",
+      "sha256": "2e5751e36a078368fdd41884850238515b725ca77af36b46252b6e3f51486e29"
+    },
+    {
+      "path": "_astro/BusinessContentConfiguration.Da7wU9uk.js",
+      "sha256": "7003edffb55f5627e0346dc9a2757915c98dd1c81e4105341194f872e16ad4bf"
+    },
+    {
+      "path": "_astro/BusinessMeetingDiscussion.DLcOBpYN.js",
+      "sha256": "dc22bf0492ee8b513d507de92607df28462848f447acef3eb5b6581f12af399d"
+    },
+    {
+      "path": "_astro/BusinessMonthlyOperations.By6UrkaC.js",
+      "sha256": "3e2f12327c135181a29d227729ddce0356c7bcd2552185d28111b04d5a34d18b"
+    },
+    {
+      "path": "_astro/BusinessPostLookup.astro_astro_type_script_index_0_lang.BCMeD27b.js",
+      "sha256": "d38198b96d15773ae1b8a73718caa8b7626f951415e74a19cf2d5aabab0c3472"
+    },
+    {
+      "path": "_astro/BusinessPromotionDailyPosts.astro_astro_type_script_index_0_lang.D7zrAGbq.js",
+      "sha256": "70510e8b168d364157203cb3a558cfe6c0d0a14b0591dacc24cce7680f830d57"
+    },
+    {
+      "path": "_astro/BusinessPromotionTimeline.astro_astro_type_script_index_0_lang.BAREiNoI.js",
+      "sha256": "07dcbff4892f2492b6202f8f5636f17112cfbeb1f7400603bd3ce64546082135"
+    },
+    {
+      "path": "_astro/BusinessPromotionWaitRanges.astro_astro_type_script_index_0_lang.b13wP7sM.js",
+      "sha256": "9865a7b0d24eb1892cf0d2ceb4ada9c8e43bfbefdc7d59d628be3075d612f6ef"
+    },
+    {
+      "path": "_astro/BusinessWeeklyMeeting.CO-rFLD2.js",
+      "sha256": "29e88bddacebad2dbf086d29ea88a223a9eff90323894a9676e2f78f53daa408"
+    },
+    {
+      "path": "_astro/daily-promotion-review.BV4iK5ub.css",
+      "sha256": "ee888e7848e634cc10ce4964faadcd5bfc9f132f8d7513f15bd2ee4a648bd176"
+    },
+    {
+      "path": "_astro/meeting-finalization.RFKWvrZ2.js",
+      "sha256": "eec7ddd3cf474cb697925142668c4c9283f741132a57918055e9f698e0a8ff06"
+    },
+    {
+      "path": "_astro/meeting-review.astro_astro_type_script_index_0_lang.Clz0q63t.js",
+      "sha256": "8b12d0d24aa17f0f710aa723a63b0e8efd8a505b872e1771a724ca6a37262ecc"
+    },
+    {
+      "path": "_astro/meeting-review.CQjfcw48.css",
+      "sha256": "0f8da4657efab4fcb278b4cee2c6c6d517ff1abccc5c817240d3f0593511083d"
+    },
+    {
+      "path": "_astro/meeting-review.z5KC5-lc.css",
+      "sha256": "7b6a7f260747bdbc36bba2f22c1be361aa0b53db396eb9c637a3c42e1665da85"
+    },
+    {
+      "path": "_astro/MonthlyArrangementPanel.astro_astro_type_script_index_0_lang.B-L1QJpr.js",
+      "sha256": "6f8bf284c8d22ae80ca7ba834dde8ad291430ce7f0122eea44d433e4370ee12b"
+    },
+    {
+      "path": "_astro/MonthlyCalendarPlan.astro_astro_type_script_index_0_lang.PRagXXP4.js",
+      "sha256": "96f31e950050f191ecf6e408edb62340742f5300426937808b752b8f1ccf4aca"
+    },
+    {
+      "path": "_astro/MonthlyMeetingSections.CPVyE90L.js",
+      "sha256": "f2ee79e14d2fec5416ee2318928eac0f03d3394426b341ecf05940d1563ae7ec"
+    },
+    {
+      "path": "_astro/operations-schedule.astro_astro_type_script_index_0_lang.57gVcl5H.js",
+      "sha256": "53c33f2171b4837396a5bcb54d63eddebec27731ce002ad2ebd1bcb12b99eaf1"
+    },
+    {
+      "path": "_astro/operations-schedule.astro_astro_type_script_index_1_lang.Du5tzGcI.js",
+      "sha256": "7a2128f9399d030730239d883bcf71f02216d1ed47b3debe69fd093bfbe1f094"
+    },
+    {
+      "path": "_astro/operations-schedule.astro_astro_type_script_index_2_lang.BR9iZl_c.js",
+      "sha256": "e667357bf09251a1dbf56d5669685bee793c61f27538fda7c49a50eacb83f5a6"
+    },
+    {
+      "path": "_astro/operations-schedule.CwBukXSE.css",
+      "sha256": "80770cba90ee0536d87d65edbdb0b76b2074faf36fa17eb3e65425b30dd9ff43"
+    },
+    {
+      "path": "_astro/schedule-history.CndMMQAE.js",
+      "sha256": "5c11d3a069677b585740e8b4b1d7538e5da46e89765b645670f2025bd40238ed"
+    },
+    {
+      "path": "_astro/settings.DSPGdvh7.css",
+      "sha256": "be2ed41e8e2eeb31bc1e5d64515efb0ac30a0d01a148c95eb7635d2b51933f9d"
+    },
+    {
+      "path": "fonts/business.css",
+      "sha256": "11e7db9be8534338218cdf30340086396469ebe77a5392b3766f332313fd92a0"
+    },
+    {
+      "path": "fonts/business.js",
+      "sha256": "75b80add18fc02182cd76880dba3f1fc741e31abeca2a79683e9b6c46b4db75a"
+    },
+    {
+      "path": "images/guide/monthly-review.png",
+      "sha256": "054ef86490e452e280134274b24d9dd9c548fcfa455700eb10c3d5cab7c438b8"
+    },
+    {
+      "path": "images/guide/placement-choice.png",
+      "sha256": "bb9be934f9a003faeab3d503eb9a8cd2fce57e456f8acb39e11c015cb5e38a1e"
+    },
+    {
+      "path": "images/guide/placement-empty.png",
+      "sha256": "c4558618d51bda3e863962d0176c4e3e89e1bd4948d49be87d72f6f115f41515"
+    }
+  ],
+  "productionBusinessWrites": false
+}
