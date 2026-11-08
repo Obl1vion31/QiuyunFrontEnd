@@ -1,0 +1,51 @@
+{
+  "disposition": "ship",
+  "reviewer": "impeccable_finish_reviewer",
+  "reviewMode": "独立只读完成审查；未启动浏览器、服务或其他代理，未访问生产或改写业务数据。仅写此审查文件。",
+  "artifact": "/home/obl1vion/projects/qiuyunFrontend/.tools/releases/organization-people-20261109",
+  "inputs": {
+    "authority": ["原始批准方案及父代理提供的五块方向合约", "AGENTS.md", "docs/DESIGN.md", "docs/code-study.md 共享界面接入", "src/styles/workspace-glass.css 作为已确认共享材质入口", "Impeccable craft-floor.md"],
+    "persistenceException": "代码先行的既有工作台扩展。项目禁止例行为单阶段创建产品定义文档，README 与 DECISIONS/DESIGN/code-study 为指定持久化上下文；PRODUCT.md、图片 comp、comp-diff、comp-led state 与新世界 seed 不适用。",
+    "detector": "checks/design-detector.json 为 []，未运行第二次扫描。",
+    "unread": ["workspace-glass.css 的完整正文（按既有共享实现及 DESIGN 认可规则审查，本次未修改）", "后端与测试文件的全部正文（仅抽样 read model、保存校验及迁移；本次不是完整后端复审）", "两段 webm 的实时连续播放（实际审查父代理提供的全片逐秒及首屏加密抽样图）"]
+  },
+  "coverage": {
+    "evidenceValid": true,
+    "captureCount": 28,
+    "captureInventory": "已核对 screenshots/ 下全部28个PNG的存在、名称与尺寸；通过 desktop-01/02 和 limited-touch-01 contact sheets 实际查看全部28图；无空白、黑块或内容与名称不符的稳定图。职责图为从文档顶部开始的全页图，编辑图含页面全页余下部分。",
+    "desktop": "admin 与 employee 各自的 roles/people，分别查看1920、1440、1024宽度；真实隔离库测试账号、三人及四岗。",
+    "desktopStates": ["主管共同管理及三岗职责/交付默认可读", "人员一人一行与三岗兼任", "管理员维护入口与员工只读", "职责与资料编辑Sheet", "任职编辑Sheet", "保存失败保留输入及可重试反馈", "冷慢字体首屏早期/稳定", "暖刷新早期/稳定"],
+    "rawImagesOpened": ["admin-roles-1440.png", "admin-people-1024.png", "admin-role-editor-1440.png", "admin-save-error-1440.png"],
+    "motion": "实际打开 video-admin-01..04.jpg 与 video-employee-01..02.jpg；检查首屏从空白到内容、两视图切换、编辑开关/保存与失败、局部回显、流程线有限变化及有限手机切换的抽样。录像视口缩小时的灰色外围是记录画布，稳定PNG没有该问题。",
+    "fontEvidence": "organization.json 的冷慢首屏记录明确为自定义 MiSans VF，并提供连续稳定的 nav/mainX/title 几何；早期/稳定截图亦已查看。",
+    "limitedTouch": "admin 与 employee 的390/320宽度两视图，以及390宽度任职编辑；只核对明显遮挡、页面级溢出和关闭可达。表格按已批准模式内部横滚，不将此结论表述为完整手机排版验收。",
+    "liveInteraction": "本审查按角色限制未另行执行；未保存/Esc/后退、焦点、失败重试和减少动态依据已提供的真实运行检查记录、代码及抽样证据判断。"
+  },
+  "persistence": {
+    "status": "pass",
+    "specifics": "README 的组织入口、DESIGN 的两视图/Sheet/有限流程动效及 code-study 的真实接入说明与当前实现一致；PRODUCT/comp/seed 的不适用由项目规则及扩展性质确认，不要求补造。"
+  },
+  "fidelity": [
+    {"element": "TYPE", "state": "match", "evidence": "MiSans 字形、清晰中文主次、正文/辅助/操作层级与共享工作台一致；实际字体记录支持截图所见。"},
+    {"element": "MATERIAL", "state": "match", "evidence": "主要容器为已有透光磨砂、细亮边与柔和偏移阴影；正文、表格及输入清晰，无新增伪物理材质。"},
+    {"element": "GROUND", "state": "match", "evidence": "浅青蓝环境底与父代理明确的 OWN-WORLD、DESIGN 已确认磨砂规则一致；无新色温方向。无图片comp，因此不宣称像素色差复现。"},
+    {"element": "主管→三岗职责/交付→五步流程", "state": "match", "evidence": "阅读顺序、主管两人共同管理、三岗责任与交付均默认可见；协作/资料就近展开。"},
+    {"element": "人员任职", "state": "match", "evidence": "三人各一行；同一运营同事三岗兼任清楚；账号管理回原设置模块。"},
+    {"element": "权限与编辑", "state": "match", "evidence": "管理员入口和员工只读截图分开；同一个公共Sheet，稳定深蓝头部和底部动作；失败反馈保留当前输入。"},
+    {"element": "框架连续性", "state": "match", "evidence": "Sidebar、72px Toolbar、分段切换与正文公共左右界沿现有共享组件；selectView仅切换现存内容节点。"},
+    {"element": "窄屏表格", "state": "adaptation", "evidence": "依据DESIGN的窄屏内部横滚规则保留720px表格可读最小宽度，符合当次仅检查手机明显问题的范围。"},
+    {"element": "动效", "state": "match", "evidence": "只有进入可见区域的流程线有限播放；编辑/局部保存不重播，源码有减少动态完成态。抽样未见稳定内容丢失或外壳重排。"}
+  ],
+  "contract": {
+    "THESIS": "pass：一处读清主管、岗位职责、交付与个人兼任。",
+    "OWN-WORLD": "pass：沿用已认可磨砂、工作台蓝/深蓝、MiSans和公共组件。",
+    "STORY": "pass：方向→文档与任务→设计→审查与发布→承接，反馈说明就近收束。",
+    "FIRST VIEWPORT": "pass：共享Toolbar和稳定左侧栏，主管横条接职责表；窄桌面完整内容自然向下延伸。",
+    "FORM": "pass：代码先行的表格与协作流程扩展；未引入新世界或新图片comp。"
+  },
+  "ceiling": "reached：Operate/Read 方向已使用共享框架、真实内容、清晰表格、稳定Sheet及一处有限语义动效；无应追加的新视觉装置。",
+  "truth": "pass：截图使用明确标为测试的隔离账号；源码/迁移仅关联既有用户名任职，不创建员工或绩效/薪资/转化结果；前台分工与认证权限分开。",
+  "floor": "pass：未发现本次需要修正的kicker、装饰性编号、伪材料、渐变文字或无内容卡片。既有工作台磨砂为用户确认的具体材质，按项目视觉真相继承。",
+  "material_fixes": [],
+  "keep": "保留清晰中文职责与交付的默认可见、一人一行的兼任表达、共享磨砂/MiSans几何及单正文滚动的稳定Sheet。"
+}

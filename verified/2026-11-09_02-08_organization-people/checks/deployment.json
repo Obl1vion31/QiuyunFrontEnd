@@ -1,0 +1,16 @@
+{
+  "applicationCommit": "05eeb06",
+  "deploymentId": "dpl_2VjY4bSVWj5vbAGhdCgAecVpdnDG",
+  "candidate": "https://qiuyun-frontend-dz6b5ces5-opgobl1v-5358.vercel.app",
+  "production": "https://qiuyun-frontend.vercel.app",
+  "status": "Ready",
+  "candidateMatchesProduction": true,
+  "authenticatedProductionRead": {
+    "roles": true,
+    "people": true,
+    "accountCount": 3,
+    "approvedAssignmentsConfirmed": true,
+    "businessWrites": false
+  },
+  "checkedAt": "2026-11-08T18:25:03.165Z"
+}

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "lastMigration": "0050_subject_content_config",
+  "pendingMigration": "0051_organization_people",
+  "accountsMatched": 3,
+  "existingOrganizationTables": 0,
+  "expectedPositions": 4,
+  "expectedAssignments": 5,
+  "businessWrites": false
+}

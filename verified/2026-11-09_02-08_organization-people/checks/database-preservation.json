@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "migration": "0051_organization_people",
+  "existingTablesUnchanged": 57,
+  "newTables": [
+    "organization_assignment",
+    "organization_change",
+    "organization_position"
+  ],
+  "positions": 4,
+  "assignments": 5,
+  "initialBusinessChanges": 0,
+  "backup": "private ignored .tools/backups; not shipped",
+  "dataSource": "approved existing accounts; no user or credential changes"
+}

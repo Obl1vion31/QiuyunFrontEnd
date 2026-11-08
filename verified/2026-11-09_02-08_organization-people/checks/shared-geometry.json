@@ -1,0 +1,3593 @@
+[
+  {
+    "label": "annual-plan",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".content-stage",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".daily-section",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 2560,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 2545,
+      "width": 2313
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 256,
+        "right": 2521,
+        "width": 2265
+      }
+    ]
+  },
+  {
+    "label": "annual-plan",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".content-stage",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".daily-section",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "annual-plan",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".content-stage",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".daily-section",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 1440,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1425,
+      "width": 1193
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 256,
+        "right": 1401,
+        "width": 1145
+      }
+    ]
+  },
+  {
+    "label": "annual-plan",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".content-stage",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".daily-section",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 1280,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1265,
+      "width": 1033
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 256,
+        "right": 1241,
+        "width": 985
+      }
+    ]
+  },
+  {
+    "label": "annual-plan",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".content-stage",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".daily-section",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 1024,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1009,
+      "width": 777
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 256,
+        "right": 985,
+        "width": 729
+      }
+    ]
+  },
+  {
+    "label": "annual-plan",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".content-stage",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".daily-section",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 390,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 375,
+      "width": 375
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 10,
+        "right": 365,
+        "width": 355
+      }
+    ]
+  },
+  {
+    "label": "annual-plan",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "operations-schedule",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".content-stage",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".daily-section",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "meeting-review",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "monthly-operations",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "settings",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".account-permissions",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".account-permissions>form",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "daily-promotion-review?view=history&mode=day",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".history-workspace",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=1",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=history&group=0",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "non-promotion-review?view=skipped",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "settings?view=accounts",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "settings?view=guide",
+    "viewport": 320,
+    "scrollY": 0,
+    "toolbarBottom": 62,
+    "workspace": {
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "main": {
+      "top": 62,
+      "left": 0,
+      "right": 305,
+      "width": 305
+    },
+    "padding": [
+      10,
+      10
+    ],
+    "areas": [
+      {
+        "selector": ".usage-guide",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      },
+      {
+        "selector": ".guide-layout",
+        "left": 10,
+        "right": 295,
+        "width": 285
+      }
+    ]
+  },
+  {
+    "label": "navigation-annual-plan",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".summary-shell",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".matrix-shell",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "navigation-operations-schedule",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".content-layout",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".content-stage",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "navigation-daily-promotion-review",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".calendar-section",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".daily-section",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "navigation-non-promotion-review",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".review-controls",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": ".review-workspace",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "navigation-meeting-review",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": ".meeting-records",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "navigation-monthly-operations",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-monthly-operations]",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": "[data-monthly-operations]>form",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": "[data-monthly-operations]>div",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      },
+      {
+        "selector": "[data-report-month]",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  },
+  {
+    "label": "navigation-settings",
+    "viewport": 1920,
+    "scrollY": 0,
+    "toolbarBottom": 72,
+    "workspace": {
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "main": {
+      "top": 72,
+      "left": 232,
+      "right": 1905,
+      "width": 1673
+    },
+    "padding": [
+      24,
+      24
+    ],
+    "areas": [
+      {
+        "selector": "[data-account-management]",
+        "left": 256,
+        "right": 1881,
+        "width": 1625
+      }
+    ]
+  }
+]

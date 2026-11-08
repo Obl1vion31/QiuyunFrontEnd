@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "packages": [
+    "react",
+    "react-dom",
+    "puppeteer-core",
+    "@sparticuz/chromium"
+  ],
+  "compressedChromium": true,
+  "inlineChineseFonts": true,
+  "externalRequests": "blocked by renderer",
+  "pdfs": [
+    {
+      "name": "weekly",
+      "bytes": 185186
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "applicationCommit": "05eeb06",
+  "typecheck": {
+    "errors": 0,
+    "warnings": 0,
+    "existingHints": 59
+  },
+  "existingRules": 303,
+  "schema": true,
+  "nodeBuild": true,
+  "vercelBuild": true,
+  "organizationNode": {
+    "integration": true,
+    "browser": true
+  },
+  "organizationVercel": {
+    "integration": true,
+    "browser": true
+  },
+  "sharedUi": true,
+  "navigationCases": 29,
+  "firstPaintCases": 17,
+  "home": true,
+  "desktop": [
+    1920,
+    1440,
+    1024
+  ],
+  "limitedTouch": [
+    390,
+    320
+  ],
+  "visualReview": "ship",
+  "productionPreservation": {
+    "existingTablesUnchanged": 57,
+    "newTables": 3
+  },
+  "chromeOrganizationScheduleReturn": {
+    "actualVercelBundle": true,
+    "toolbar": {
+      "left": 232,
+      "top": 0,
+      "height": 72
+    },
+    "viewPreserved": "people",
+    "previewInvalidation": "旧Node预览在切换构建后失效；正式包新隔离进程已复验通过。"
+  }
+}
