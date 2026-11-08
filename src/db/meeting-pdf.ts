@@ -7,9 +7,12 @@ import {WorkflowError} from './schedule-workflow';
 export async function ensureMeetingPdf(db:Database,versionId:string,actor:string,render?:(snapshot:any,versionNumber:number)=>Promise<Buffer>){
  const [version]=await db.select().from(versions).where(eq(versions.id,versionId));
  if(!version||version.lifecycleStatus==='draft'||(version.snapshot as any).finalizationStage!=='post')throw new WorkflowError('只有会后定稿可生成PDF。',422);
- const fingerprint=createHash('sha256').update('meeting-html-landscape-v4:'+!!version.invalidatedAt+':'+JSON.stringify(version.snapshot)).digest('hex');
+ const source=!!version.invalidatedAt+':'+JSON.stringify(version.snapshot);
+ const fingerprint=createHash('sha256').update('meeting-html-portrait-v5:'+source).digest('hex');
  const [existing]=await db.select({id:attachments.id,renderFingerprint:attachments.renderFingerprint}).from(attachments).where(and(eq(attachments.meetingVersionId,versionId),eq(attachments.source,'generated')));
- if(existing?.renderFingerprint===fingerprint)return {status:'ready',id:existing.id};
+ // 纸面改版只影响新生成文件；同一冻结内容已有的横版原件继续复用。
+ const previousFingerprint=createHash('sha256').update('meeting-html-landscape-v4:'+source).digest('hex');
+ if(existing&&(existing.renderFingerprint===fingerprint||existing.renderFingerprint===previousFingerprint))return {status:'ready',id:existing.id};
  const startedAt=new Date();
  const [lease]=await db.update(versions).set({pdfStatus:'pending',pdfStartedAt:startedAt}).where(and(eq(versions.id,versionId),or(isNull(versions.pdfStartedAt),lt(versions.pdfStartedAt,new Date(Date.now()-120000))))).returning({id:versions.id});
  if(!lease)return {status:'pending'};

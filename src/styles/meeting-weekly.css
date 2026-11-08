@@ -153,8 +153,7 @@
 .weekly-promotion-arrangement select{width:100%}.weekly-rollback{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:20px}.weekly-rollback small{color:var(--console-muted)}
 .version-nav>fieldset.business-view-switch[data-meeting-mode]{margin-left:auto}
 
-/* 网页与服务端PDF共用的打印覆盖必须位于普通样式之后。 */
-@page{size:A4 landscape;margin:10mm 10mm 13mm}
+/* 纸面尺寸与周／月例会重排统一见 meeting-print.css。 */
 /* The metric value and delta form one readable unit in every meeting mode. */
 .weekly-rate-value{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap}
 .weekly-rate-value>input{min-width:0;width:100%}

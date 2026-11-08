@@ -4,9 +4,32 @@ import {PGlite} from '@electric-sql/pglite';
 import {drizzle} from 'drizzle-orm/pglite';
 import {eq} from 'drizzle-orm';
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {migrateFixture} from './migrate-fixture';
 import * as s from '../src/db/schema';
 import {ensureMeetingPdf} from '../src/db/meeting-pdf';
+test('纸面改版保留已归档横版原件，新版本生成竖版且重复请求复用文件',async()=>{
+ const pg=new PGlite(),db=drizzle(pg,{schema:s});
+ try{
+  await migrateFixture(pg);
+  const[m]=await db.insert(s.operationsReviewMeeting).values({name:'竖版归档隔离报告',periodStart:'2026-10-01',periodEnd:'2026-10-07',meetingAt:new Date(),createdByLabel:'fixture'}).returning();
+  const snapshot={finalizationStage:'post',meeting:{name:'竖版归档隔离报告'},draft:{coreConclusion:'原冻结结论'}};
+  const[v]=await db.insert(s.operationsReviewMeetingVersion).values({meetingId:m.id,versionNumber:0,snapshot,changeSummary:'旧横版',finalizedByLabel:'fixture',pdfStatus:'ready'}).returning();
+  const oldFingerprint=createHash('sha256').update('meeting-html-landscape-v4:false:'+JSON.stringify(v.snapshot)).digest('hex');
+  const[old]=await db.insert(s.operationsMeetingAttachment).values({meetingId:m.id,meetingVersionId:v.id,source:'generated',name:'landscape-original.pdf',mimeType:'application/pdf',byteLength:17,base64:Buffer.from('%PDF-old-original').toString('base64'),renderFingerprint:oldFingerprint,createdByLabel:'fixture'}).returning();
+  const before=await db.select().from(s.operationsMeetingAttachment);
+  assert.deepEqual(await ensureMeetingPdf(db,v.id,'fixture',async()=>{throw new Error('不得重建已归档横版');}),{status:'ready',id:old.id});
+  assert.deepEqual(await db.select().from(s.operationsMeetingAttachment),before,'字节、名称、指纹与归档人全部不变');
+  const[next]=await db.insert(s.operationsReviewMeetingVersion).values({meetingId:m.id,versionNumber:1,snapshot:{...snapshot,draft:{coreConclusion:'新修订结论'}},changeSummary:'新竖版',finalizedByLabel:'fixture'}).returning();
+  let calls=0;const result=await ensureMeetingPdf(db,next.id,'fixture',async()=>{calls++;return Buffer.from('%PDF-new-portrait');});
+  assert.equal(result.status,'ready');
+  assert.deepEqual(await ensureMeetingPdf(db,next.id,'fixture',async()=>{calls++;throw new Error('不能重复生成');}),result);
+  assert.equal(calls,1);
+  const files=await db.select().from(s.operationsMeetingAttachment);assert.equal(files.length,2);
+  assert.deepEqual(files.find(file=>file.id===old.id),old);
+  assert.equal(JSON.stringify((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,v.id)))[0].snapshot),JSON.stringify(v.snapshot));
+ }finally{await pg.close();}
+});
 test('PDF失败与中断可独立重试，同版本并发生成只归档一次，不重复定稿',async()=>{
  const pg=new PGlite(),db=drizzle(pg,{schema:s});
  try{

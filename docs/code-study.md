@@ -63,6 +63,8 @@ flowchart LR
 
 ## 共享界面接入
 
+例会纸面统一由 `src/styles/meeting-print.css` 维护A4竖版与密度；会议页面正常引入，`meeting-pdf-render.tsx`在其余展示CSS之后内联同一文件。浏览器打印和服务端PDF使用相同纸面规则，不改变屏幕布局。`meeting-pdf.ts`的新渲染指纹区分竖版，同时识别同一冻结来源的旧横版指纹，直接返回旧附件；新版本或尚无归档的版本才使用当前渲染器。
+
 站点图标统一在各 HTML 页面 head 中接入 `SiteIcons.astro`，沿用同一 SVG／ICO 与 Apple 图标及缓存版本。主图位于 `public/images/brand/`，SVG 为三个纯矢量路径，透明 PNG 和平台图标均由该源导出；不将文字稿或内嵌位图当作 SVG 交付。
 
 网页内的品牌图形使用静态React组件 `QiuyunMark`，Astro直接SSR、首页由现有React Island复用，不单独新增客户端岛。`surface="tile"`用于首页、登录和页脚的深底区域，侧栏默认透明；`size={24}`仅用于页脚，其余36px。父级负责8px图文间距与品牌链接的可访问名称，组件负责固定占位、原图比例及浅底板。侧栏的两行文字在同一内部网格中保持原高度，不能由新增图标推移提醒或导航。
