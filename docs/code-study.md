@@ -64,6 +64,8 @@ flowchart LR
 
 ## 共享界面接入
 
+先按[本轮检查选择](../tests/README.md#本轮如何选择检查)确定受影响的共享消费者和验收路径；下列实例及专项覆盖说明用于定位，不要求每次全部执行。首屏、角色、动效与PDF分别按实际变动触发，相关结果在输入未变时复用。
+
 `OrganizationWorkspace`复用公共Toolbar／ViewSwitch、SectionHeader、ToolbarActions和FormSheet。`organization.ts`按已知SSR模型就近编辑，保存局部更新职责、负责人及人员行，不替换公共节点；同路径视图前后退接入`business:local-history-pop`，草稿关闭和导航复用公共确认与退出动画。流程IntersectionObserver只在可见后启动一次，填写和保存不重播。`GET/PATCH /api/organization`复用会话与同源保护，服务端严格校验且仅管理员可写；短事务锁使任职替换与审计前后值一致，重复同值不追加更正。账号权限及现有业务事实不随任职更改。
 
 排期移动与对换由`schedule-placement-ui.ts`接入现有单层Sheet的placement视图；日历使用独立拖放类型，不干扰月计划来源拖放。GET/POST `/api/operations-content/[id]/placement`仅按需读取源帖及目标日，事务内使用现有改期函数、双方资源锁、共享月份门禁和执行历史；请求键收在既有JSON执行历史中，不增加表。普通保存仍走原入口。
@@ -199,7 +201,7 @@ flowchart LR
 
 每日 `BusinessPromotionDailyPosts` 用 `promotionReviewQueue.main` 在同一 `review-entry-scroll` 内渲染可填、已保存指标和 `BusinessPromotionInitialRow`；`ready` 与 dueCount 继续只统计待填指标。页面已读取的完整 metrics 传给 `promotionReviewDays`，`retainsDailyReview`按上海日期仅保留昨日事实，忽略旧日的更新时间，不扩大公共context查询或增加轮询。原活动＋日期节点在首次保存后保留；编辑中的已存行不被重读覆盖，自己的状态保存以新指纹同步上下文，其他草稿／焦点／滚动保留。初始灰行没有 `data-metric-form`，禁用框无提交名称，不伪造零。状态浮层复用 timeline 保存、公共确认与 promotion editor 生命周期；后者独立于右侧 plan 表单。保存成功通过 `business:operation-receipt` 复用公共通知外壳，不增加一行反馈占位。排期／历史的 `BusinessPromotionPendingRows` 保留自身布局，不复制主表DOM；历史日期与选择按160px可读字段组换行，明确覆盖公共表单的 min-width:0，不能只检查无溢出而保留被裁切的日期。
 
-新首次待定用显式 null，省略字段保留旧接口语义。只读模型区分尚未安排与计划已存但截止为空，T+1按业务日期推导，不能按点击日重写草稿日期。局部刷新保留稳定记录键、其他指标节点、焦点及滚动。验收覆盖工具栏所有保存状态、五档视口、灰行与真实零值混排、有限／无截止、失败重试、关闭／导航／跨午夜草稿保护；实际查看图像和录像后才能计为通过。
+新首次待定用显式 null，省略字段保留旧接口语义。只读模型区分尚未安排与计划已存但截止为空，T+1按业务日期推导，不能按点击日重写草稿日期。局部刷新保留稳定记录键、其他指标节点、焦点及滚动。修改本流程或其共享布局时，按受影响状态与断点检查保存、灰行／真实零值、截止条件、失败重试及草稿保护，实际查看相关图像和必要过程；不固定扩展到五档全矩阵。
 
 共享数据界面的条件态接入：`BusinessPromotionInitialRow` 的下一步日期仍属于原 plan 表单，只通过 `data-deadline-panel` 原生手动气泡查看／编辑，不嵌套表单、不增第二次保存；控制器负责开关、焦点、视口定位，关闭不清空字段，取消才重置该行。`promotion-timeline` 继续负责唯一写入及空截止语义。日期气泡、取消及出错都必须与默认态对照实测，字体与尺寸要在公共 business-form 样式生效后读取。
 

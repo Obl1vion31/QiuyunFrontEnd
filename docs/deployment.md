@@ -6,15 +6,23 @@
 
 Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` 和 `ENABLE_EXPERIMENTAL_COREPACK=1`。数据库连接与认证密钥设为 Secret；认证 URL 使用正式 HTTPS 根地址。本机 `.env` 保留本机 URL，预览环境不连接共享业务库。
 
-更新代码时先执行 `pnpm check`、`pnpm test`、`pnpm db:check`、`pnpm build`；认证和权限变化还需要隔离浏览器验收。安装并登录 Vercel CLI 后，在已关联的仓库根目录运行：
+先按[检查选择](../tests/README.md#本轮如何选择检查)验证本次改动。`pnpm build`已包含类型检查；有本次有效构建结果时不再重复`pnpm check`。规则／接口／浏览器选受影响路径，schema或迁移变化才运行`pnpm db:check`；认证和权限变化保留相关角色及直调接口验证。
+
+仅修改未参与应用构建的说明文档／协作规范时，检查文档后提交、同步main即可，不构建或部署网站。需要发布应用时，安装并登录Vercel CLI，在已关联的仓库根目录运行：
 
 ```bash
 vercel deploy --prod
 ```
 
-本机使用 `--prebuilt` 发布时，构建必须带 `VERCEL=1 VERCEL_ENV=production`。`astro.config.mjs` 显式信任正式 HTTPS 域名，不依赖本机 `.env` 中的认证 URL；不得通过关闭 `security.checkOrigin` 或放开全部域名解决表单错误。发布前核对生成的 manifest 包含正式域名；发布后使用无登录的同源 `multipart/form-data`／URL 编码表单检查业务 API 返回 401，外站 Origin 仍返回 403。仅检查 JSON 请求会漏掉框架提前拒绝表单的问题。
+本机使用 `--prebuilt` 发布时，构建必须带 `VERCEL=1 VERCEL_ENV=production`。优先构建并验收实际发布目标，同一输入的产物不重复构建；Node与Vercel只有在adapter差异或现有夹具确需分别验证时才各构建一次。应用输入变化后仅重建最终受影响目标，说明文档／验收记录变化不触发重建。
 
-隔离源码构建必须在该目录执行 `pnpm install --frozen-lockfile`，不能将仓库外的 `node_modules` 软链进构建目录；Vercel文件追踪可能遗漏链接目标。发布前核对运行包中React等外置依赖、Chromium压缩运行文件及内联MiSans字体，并用实际运行包执行中文PDF验证。需要先验证动态路由时，使用 `deploy --prebuilt --prod --skip-domain`，经独立部署地址检查后再 `vercel promote`；不要把静态资源成功当成服务端运行成功。
+`astro.config.mjs`显式信任正式HTTPS域名，不依赖本机`.env`中的认证URL；不得关闭`security.checkOrigin`或放开全部域名。发布前核对manifest包含正式域名。认证、来源校验、域名或adapter变化时，补测相关业务API的匿名同源`multipart/form-data`／URL编码表单401及外站403，不能只检查JSON；普通模块发布不重复遍历无关接口。
+
+新的隔离构建目录须执行`pnpm install --frozen-lockfile`，不能软链仓库外的`node_modules`，避免Vercel追踪漏文件；同一目录的依赖已匹配锁文件时无需反复安装。新增运行时依赖、改变引用路径、adapter或打包追踪时，核对实际包中受影响的外置依赖。
+
+中文PDF验证只在PDF生成／导出／打印链路，PDF实际使用的共享组件、打印样式或字体，以及其Chromium／Puppeteer等依赖、运行环境或打包追踪发生变化时执行。用实际目标包和最小代表样本验证受影响内容；共享打印组件同时影响周／月会时才分别覆盖。普通业务页面、文档修改和仅重新打包不触发PDF生成，也不重复运行整套例会流程。
+
+需要先验证动态路由时，使用`deploy --prebuilt --prod --skip-domain`，核对候选后再`vercel promote`。同一部署ID提升到正式域名后，确认域名指向、受影响入口、登录边界及新增／修改资源；候选已经通过的同包完整套件不在正式域名再跑一遍。不可用静态资源成功替代受影响服务端功能验证。
 
 新增迁移时先运行 `pnpm db:backup` 保存私有数据备份，核对待执行迁移，再运行 `pnpm db:migrate`；确认既有业务事实保持一致后发布。构建不执行迁移，后续结构变更需兼容仍运行的旧版本。
 
@@ -57,4 +65,4 @@ chmod 0755 .tools/cloudflared
 
 ## 验收与回滚
 
-应用发布后核对正式域名、登录保护和新资源；写入与角色验收使用隔离数据库。Git 推送不触发自动部署。回滚应用不恢复数据库，结构变化必须兼容旧版本，恢复数据需要核对版本和外键顺序后单独执行。
+应用发布后核对部署ID、正式域名、受影响入口、登录保护和本次变动资源；未改变的首页封面、字体切片和无关模块不逐项重测或重复哈希。改到公共资源分发或入口保护时再扩大对应范围。写入与角色验收使用隔离数据库。Git推送不触发自动部署。回滚应用不恢复数据库，结构变化须兼容旧版本；恢复数据需核对版本和外键顺序后单独执行。
