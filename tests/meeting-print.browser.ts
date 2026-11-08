@@ -45,7 +45,9 @@ try{
    await page.setViewportSize({width:794,height:1123});await page.emulateMedia({media:'print'});
    const print=await page.locator('[data-weekly-snapshot]').evaluate((node:HTMLElement)=>({width:node.getBoundingClientRect().width,zoom:getComputedStyle(document.body).zoom,font:getComputedStyle(node).fontFamily}));
    assert.equal(Number(print.zoom),1);assert(print.font.includes('MiSans'));assert(print.width>700&&print.width<=794);
+   const folded=await page.locator('[data-weekly-snapshot] details').evaluateAll((nodes:HTMLDetailsElement[])=>nodes.map(node=>node.open));
    await page.pdf({path:dir+'/pdf/'+actor.role+'-'+sample.kind+'-browser.pdf',format:'A4',landscape:false,preferCSSPageSize:true,printBackground:true});await page.emulateMedia({media:'screen'});
+   assert.deepEqual(await page.locator('[data-weekly-snapshot] details').evaluateAll((nodes:HTMLDetailsElement[])=>nodes.map(node=>node.open)),folded,'打印后恢复原折叠状态');
    const [after]=await f.db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,sample.version.id));assert.deepEqual(after.snapshot,sample.version.snapshot,'导出和打印不改冻结数据');
    checks.push(actor.role+' '+sample.kind+'：生成／下载／缓存／屏幕三档／390溢出／实际打印与冻结不变');
   }

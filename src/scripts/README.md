@@ -16,6 +16,8 @@
 
 `business-date.ts` 统一工作台完整时间的上海时区显示；SSR 与浏览器共用，不转换业务日期键或替代原生日期选择控件。
 
+`meeting-print.ts`共享例会冻结依据的展开选择器，浏览器打印前展开、打印后恢复折叠及滚动，离页清理；服务端PDF复用相同选择器。仅作用于已有会议正文，不发请求、不改业务数据。
+
 `business-read.ts` 统一目标容器读取：`beginBusinessRead(target, {signal, isCurrent})` 返回请求信号、落地守卫和 `finish/cancel`；500ms 内保持安静，超过后仅目标区域显示一处反馈。相同目标的新读取取消旧任务，导航与 Inspector 关闭清理状态，业务在写入 DOM 前检查 `isCurrent()`。`readBusiness` 可包裹包含 JSON／HTML 解析的完整任务。
 
 `business-navigation.ts` 监听真正的Astro切页，原页保持可见；120ms后显示公共细线，1200ms后显示目标名称提示。数据及样式就绪取消未出现的反馈，实际swap后收尾；不维护逐页占位布局。Sidebar保留导航选择和地址记忆，原位详情与保存使用本地反馈，取消与连续导航按Signal隔离。

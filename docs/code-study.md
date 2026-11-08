@@ -63,7 +63,7 @@ flowchart LR
 
 ## 共享界面接入
 
-例会纸面统一由 `src/styles/meeting-print.css` 维护A4竖版与密度；会议页面正常引入，`meeting-pdf-render.tsx`在其余展示CSS之后内联同一文件。浏览器打印和服务端PDF使用相同纸面规则，不改变屏幕布局。`meeting-pdf.ts`的新渲染指纹区分竖版，同时识别同一冻结来源的旧横版指纹，直接返回旧附件；新版本或尚无归档的版本才使用当前渲染器。
+例会纸面统一由 `src/styles/meeting-print.css` 维护A4竖版与密度；会议页面正常引入，`meeting-pdf-render.tsx`在其余展示CSS之后内联同一文件。`meeting-print.ts`共享应展开的冻结依据选择器，浏览器beforeprint展开、afterprint恢复折叠和滚动，离页清理；服务端使用同一选择器。打印不改变屏幕布局或读写业务数据。`meeting-pdf.ts`的新渲染指纹区分竖版，同时识别同一冻结来源的旧横版指纹，直接返回旧附件；新版本或尚无归档的版本才使用当前渲染器。
 
 站点图标统一在各 HTML 页面 head 中接入 `SiteIcons.astro`，沿用同一 SVG／ICO 与 Apple 图标及缓存版本。主图位于 `public/images/brand/`，SVG 为三个纯矢量路径，透明 PNG 和平台图标均由该源导出；不将文字稿或内嵌位图当作 SVG 交付。
 
