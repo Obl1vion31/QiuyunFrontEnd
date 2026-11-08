@@ -1,5 +1,7 @@
 # 验证
 
+`meeting-finalization-permissions.test.ts`覆盖周／月会的角色与预排期资格；`meeting-finalization-permissions.browser.ts`使用隔离PostgreSQL，双方真实点击周会会后定稿、取消确认及生成PDF；月会验证员工首次确认按钮禁用、直调403、管理员点击成功，已确认后既有文字编辑可用，最终封存仅管理员、封存后双方仅保留文字修订。`MEETING_PERMISSION_ENTRY`可指向实际发布包，`MEETING_PERMISSION_DIR`指定三档桌面截图与实际操作录像；服务端与浏览器时钟固定一致。原`test:meeting-discussion`应完整通过，不再把员工按钮禁用列为已知限制。
+
 `pnpm test:meeting-print` 使用本机隔离PostgreSQL和真实PDF接口，覆盖双方生成／下载／归档缓存、当前来源口径月会、空态周会、三档桌面及390px明显溢出、MiSans与原生浏览器竖版打印，核对打印后恢复折叠及冻结JSON不变。`MEETING_PRINT_ENTRY`可指定正式运行包适配器，`MEETING_PRINT_DIR`指定证据目录。非空周会、Week 5、宽数值及长文字另用同一冻结样本对照原版与候选，并将所有PDF逐页渲染查看。
 
 `pnpm test:navigation` 使用实际Astro路由与8篇隔离样本，覆盖管理员／员工、1920／1440／1024px的快速／800ms／2500ms切页，以及七模块公共细线、保留原页、键盘、取消返回、连续导航、前后退、草稿取消与失败回退。快速按HTML及样式的实际就绪时间判断，不能把网络控制延迟当作完整就绪时间。另验减少动态效果和390px明显遮挡／溢出；截图与原速录像保存到 `NAVIGATION_EVIDENCE_DIR`，实际查看后归档。`NAVIGATION_ENTRY`可指定正式Vercel运行包的本机适配入口，保持同一夹具和用例。

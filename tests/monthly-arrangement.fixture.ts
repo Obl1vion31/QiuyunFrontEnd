@@ -6,7 +6,7 @@ import type {PlanContent} from '../src/db/monthly-plan-types';
 import type {Database} from '../src/db/client';
 import {discussionFromDraft} from '../src/db/meeting-discussion-values';
 import * as s from '../src/db/schema';
-export async function prepareMonthlyArrangement(db:Database,baseURL:string,cookie:string,options:{content?:PlanContent;month?:string}={}){
+export async function prepareMonthlyArrangement(db:Database,baseURL:string,cookie:string,options:{content?:PlanContent;month?:string;stage?:'pre'|'post'}={}){
  const month=options.month??'2026-11',period=adjacentMonth(month,-1),through=period+'-'+String(new Date(Number(month.slice(0,4)),Number(month.slice(5))-1,0).getDate()).padStart(2,'0');
  async function call(path:string,body:any,form=false){const values=new FormData();if(form)for(const[k,v]of Object.entries(body))values.set(k,String(v));const response=await fetch(baseURL+path,{method:form?'POST':'PATCH',headers:{Cookie:cookie,Origin:baseURL,Accept:'application/json',...(!form?{'Content-Type':'application/json'}:{})},body:form?values:JSON.stringify(body)});const result=await response.json();assert(response.ok,JSON.stringify(result));return result;}
  await call('/api/monthly-private-data',{month:period,expectedRevision:-1,data:{schemaVersion:2,promotion:[{subjectId:'tmua',demand:'handout',added:20,consulted:12,converted:2}],nonPromotion:[],note:'隔离验收数据'}});
@@ -17,6 +17,6 @@ export async function prepareMonthlyArrangement(db:Database,baseURL:string,cooki
  draft.monthlyPlan.content=options.content??{groups:[{id:groupId,annualPlanId:null,annualVersion:null,name:'TMUA 讲义',subjectId:'tmua',categoryId:'promotional-handout',quantity:2,note:'隔离验收来源',reason:'月会确认'}],items:[{id:randomUUID(),groupId,kind:'new',week:2,scheduleId:null},{id:randomUUID(),groupId,kind:'new',week:3,scheduleId:null}]};draft.monthlyPlan.editorSteps={original:'confirmed'};
  await call('/api/meeting-reviews/'+meeting.id,{action:'finalize_version_draft',stage:'pre',draftVersionId:initial.id,draft,expectedUpdatedAt:row.updatedAt.toISOString()});
  const [fresh]=await db.select().from(s.operationsReviewMeeting).where(eq(s.operationsReviewMeeting.id,meeting.id)),[pre]=await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.meetingId,meeting.id));
- await call('/api/meeting-reviews/'+meeting.id,{action:'finalize_version_draft',stage:'post',sourceVersionId:pre.id,discussion:discussionFromDraft(fresh.draftSnapshot),expectedUpdatedAt:fresh.updatedAt.toISOString()});
+ if(options.stage!=='pre')await call('/api/meeting-reviews/'+meeting.id,{action:'finalize_version_draft',stage:'post',sourceVersionId:pre.id,discussion:discussionFromDraft(fresh.draftSnapshot),expectedUpdatedAt:fresh.updatedAt.toISOString()});
  return {meetingId:meeting.id,planId:draft.monthlyPlan.id};
 }

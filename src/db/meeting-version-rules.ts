@@ -1,4 +1,8 @@
 import {nextDateKey,shanghaiDateKey} from './promotion-rules.mjs';
+/** 月会首次确认预排期须管理员；周会不依赖月计划是否存在。其他定稿校验独立保留。 */
+export function canFinalizeMeetingPost(meetingType:string,role:'admin'|'employee'|undefined,preplanConfirmed=false){
+ return !!role&&(meetingType==='weekly'||meetingType==='monthly'&&(role==='admin'||preplanConfirmed));
+}
 export function meetingEffectiveOn(meeting:{meetingAt:Date|string},versions:Array<{snapshot:any;versionNumber:number}>){
  const ordered=[...versions].filter(v=>(v as any).lifecycleStatus!=='draft').sort((a,b)=>a.versionNumber-b.versionNumber);
  return ordered.find(v=>v.snapshot.finalizationStage==='post'&&v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??ordered.find(v=>v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??nextDateKey(shanghaiDateKey(new Date(meeting.meetingAt)));

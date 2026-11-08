@@ -150,6 +150,8 @@ flowchart LR
 
 ### 周例会卡片与读取反馈
 
+周／月会共用讨论组件的`canFinalizePost`必须由页面明确传入，通过`canFinalizeMeetingPost`按会议类型判断：周会双方均可进入定稿，不能依赖月计划记录；月会首次确认预排期仅管理员，已有预排期后的原修订入口保持。该能力只表达角色／阶段资格，历史只读、到期、缺项、保存中及未修改等条件仍独立生效。服务端`guardedScheduleWrite`保留首次预排期的管理员校验，`changeArrangement`独立校验最终封存，不能仅靠前端禁用。
+
 `meeting-decisions.ts` 仅投影决定策略、生效日、决定数组、撤销事件和必要排序字段，再调用原决定回放；不能因缩小读取而排除带撤销事件的草稿或失效版。`meeting-history.ts` 为周会比较及旧版候选计数投影 JSON，保留缺失／null 与原事实，避免重复传输卡片的比较证据。`monthly-meeting.ts` 的事项读取按上海月界筛选，取每场最新有效会后事项。`content-search.ts` 在 PostgreSQL 内递归匹配字符串 scheduleId，只返回关联例会元信息。
 
 推广日度将已读上下文交给 `readPromotionTimeline`；周会将上下文交给 `readReviewPlanning`，复用仅在本次请求内。例会总览只读摘要，选中后才取该场草稿及当前显示版本的完整快照，其他版本仅取导航、决定与回溯摘要；上一期行动只读行动文字。版本展示、回溯和 PDF 仍读取对应完整冻结快照，保存版本凭据不做缓存。
