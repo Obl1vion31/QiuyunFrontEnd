@@ -1,0 +1,801 @@
+{
+  "sourceBaseline": "361755d",
+  "application": "f97c34c",
+  "data": "隔离PostgreSQL、已保存合成冻结样本；无正式测试业务写入",
+  "skills": [
+    "Impeccable 4.8.0",
+    "PDF 26.1030.10813"
+  ],
+  "rules": {
+    "passed": 302,
+    "failed": 0
+  },
+  "typecheck": {
+    "errors": 0,
+    "warnings": 0,
+    "existingHints": 59
+  },
+  "schema": "passed",
+  "nodeBuild": "passed",
+  "vercelBuild": "passed",
+  "sharedUI": "passed",
+  "runtime": {
+    "passed": true,
+    "checks": [
+      "admin monthly-current：生成／下载／缓存／屏幕三档／390溢出／实际打印与冻结不变",
+      "admin weekly-empty：生成／下载／缓存／屏幕三档／390溢出／实际打印与冻结不变",
+      "employee monthly-current：生成／下载／缓存／屏幕三档／390溢出／实际打印与冻结不变",
+      "employee weekly-empty：生成／下载／缓存／屏幕三档／390溢出／实际打印与冻结不变"
+    ],
+    "errors": [],
+    "fontEvidence": [
+      {
+        "role": "admin",
+        "sample": "monthly-current",
+        "fonts": [
+          {
+            "familyName": "MiSans VF",
+            "postScriptName": "MiSansVF",
+            "isCustomFont": true,
+            "glyphCount": 4
+          }
+        ]
+      },
+      {
+        "role": "admin",
+        "sample": "weekly-empty",
+        "fonts": [
+          {
+            "familyName": "MiSans VF",
+            "postScriptName": "MiSansVF",
+            "isCustomFont": true,
+            "glyphCount": 4
+          }
+        ]
+      },
+      {
+        "role": "employee",
+        "sample": "monthly-current",
+        "fonts": [
+          {
+            "familyName": "MiSans VF",
+            "postScriptName": "MiSansVF",
+            "isCustomFont": true,
+            "glyphCount": 4
+          }
+        ]
+      },
+      {
+        "role": "employee",
+        "sample": "weekly-empty",
+        "fonts": [
+          {
+            "familyName": "MiSans VF",
+            "postScriptName": "MiSansVF",
+            "isCustomFont": true,
+            "glyphCount": 4
+          }
+        ]
+      }
+    ],
+    "isolatedPostgres": true
+  },
+  "pdfInspection": [
+    {
+      "phase": "before",
+      "name": "monthly-current",
+      "pages": 6,
+      "sizes": [
+        [
+          841.9,
+          595.0
+        ]
+      ],
+      "bytes": 941310,
+      "overflow": [],
+      "characters": 3155,
+      "pageCharacters": [
+        874,
+        849,
+        560,
+        284,
+        354,
+        229
+      ],
+      "links": 0
+    },
+    {
+      "phase": "before",
+      "name": "monthly",
+      "pages": 6,
+      "sizes": [
+        [
+          841.9,
+          595.0
+        ]
+      ],
+      "bytes": 1122350,
+      "overflow": [],
+      "characters": 2768,
+      "pageCharacters": [
+        479,
+        561,
+        505,
+        536,
+        294,
+        388
+      ],
+      "links": 12
+    },
+    {
+      "phase": "before",
+      "name": "weekly",
+      "pages": 3,
+      "sizes": [
+        [
+          841.9,
+          595.0
+        ]
+      ],
+      "bytes": 876797,
+      "overflow": [],
+      "characters": 1604,
+      "pageCharacters": [
+        461,
+        838,
+        303
+      ],
+      "links": 0
+    },
+    {
+      "phase": "after",
+      "name": "monthly-current",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 859922,
+      "overflow": [],
+      "characters": 3114,
+      "pageCharacters": [
+        1006,
+        718,
+        698,
+        459,
+        229
+      ],
+      "links": 0
+    },
+    {
+      "phase": "after",
+      "name": "monthly-long",
+      "pages": 7,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 1115951,
+      "overflow": [],
+      "characters": 7802,
+      "pageCharacters": [
+        1246,
+        2612,
+        931,
+        609,
+        526,
+        696,
+        1176
+      ],
+      "links": 12,
+      "markers": {
+        "END-CONCLUSION": true,
+        "END-ACTION": true,
+        "END-ISSUE-0": true,
+        "END-ISSUE-1": true,
+        "END-ISSUE-2": true,
+        "END-ISSUE-3": true,
+        "END-ISSUE-4": true,
+        "END-ISSUE-5": true,
+        "END-ISSUE-6": true,
+        "END-ISSUE-7": true,
+        "END-ISSUE-8": true,
+        "END-ISSUE-9": true,
+        "END-ISSUE-10": true,
+        "END-ISSUE-11": true,
+        "END-ISSUE-12": true,
+        "END-ISSUE-13": true,
+        "END-ISSUE-14": true,
+        "END-ISSUE-15": true,
+        "END-ISSUE-16": true,
+        "END-ISSUE-17": true
+      }
+    },
+    {
+      "phase": "after",
+      "name": "monthly",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 1021355,
+      "overflow": [],
+      "characters": 2765,
+      "pageCharacters": [
+        539,
+        931,
+        609,
+        526,
+        156
+      ],
+      "links": 12
+    },
+    {
+      "phase": "after",
+      "name": "weekly-long",
+      "pages": 7,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 1149682,
+      "overflow": [],
+      "characters": 8895,
+      "pageCharacters": [
+        1672,
+        2110,
+        1699,
+        1032,
+        654,
+        1231,
+        491
+      ],
+      "links": 0,
+      "markers": {
+        "END-CONCLUSION": true,
+        "END-ACTION": true,
+        "END-ISSUE-0": true,
+        "END-ISSUE-1": true,
+        "END-ISSUE-2": true,
+        "END-ISSUE-3": true,
+        "END-ISSUE-4": true,
+        "END-ISSUE-5": true,
+        "END-ISSUE-6": true,
+        "END-ISSUE-7": true,
+        "END-ISSUE-8": true,
+        "END-ISSUE-9": true,
+        "END-ISSUE-10": true,
+        "END-ISSUE-11": true,
+        "END-ISSUE-12": true,
+        "END-ISSUE-13": true,
+        "END-ISSUE-14": true,
+        "END-ISSUE-15": true,
+        "END-ISSUE-16": true,
+        "END-ISSUE-17": true,
+        "END-OBSERVATION": true
+      }
+    },
+    {
+      "phase": "after",
+      "name": "weekly",
+      "pages": 3,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 838319,
+      "overflow": [],
+      "characters": 1605,
+      "pageCharacters": [
+        462,
+        675,
+        466
+      ],
+      "links": 0
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "admin-monthly-current-browser",
+      "pages": 4,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 554159,
+      "overflow": [],
+      "characters": 1355,
+      "pageCharacters": [
+        434,
+        357,
+        427,
+        134
+      ],
+      "links": 6
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "admin-monthly-current",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 859922,
+      "overflow": [],
+      "characters": 3114,
+      "pageCharacters": [
+        1006,
+        718,
+        698,
+        459,
+        229
+      ],
+      "links": 0
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "admin-weekly-empty-browser",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 199014,
+      "overflow": [],
+      "characters": 217,
+      "pageCharacters": [
+        217
+      ],
+      "links": 0
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "admin-weekly-empty",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 208409,
+      "overflow": [],
+      "characters": 228,
+      "pageCharacters": [
+        228
+      ],
+      "links": 0
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "employee-monthly-current-browser",
+      "pages": 4,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 554159,
+      "overflow": [],
+      "characters": 1355,
+      "pageCharacters": [
+        434,
+        357,
+        427,
+        134
+      ],
+      "links": 6
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "employee-monthly-current",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 859922,
+      "overflow": [],
+      "characters": 3114,
+      "pageCharacters": [
+        1006,
+        718,
+        698,
+        459,
+        229
+      ],
+      "links": 0
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "employee-weekly-empty-browser",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 199014,
+      "overflow": [],
+      "characters": 217,
+      "pageCharacters": [
+        217
+      ],
+      "links": 0
+    },
+    {
+      "phase": "browser/pdf",
+      "name": "employee-weekly-empty",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 208409,
+      "overflow": [],
+      "characters": 228,
+      "pageCharacters": [
+        228
+      ],
+      "links": 0
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "admin-monthly-current-browser",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 710723,
+      "overflow": [],
+      "characters": 3123,
+      "pageCharacters": [
+        908,
+        858,
+        687,
+        225,
+        441
+      ],
+      "links": 12
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "admin-monthly-current",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 859922,
+      "overflow": [],
+      "characters": 3114,
+      "pageCharacters": [
+        1006,
+        718,
+        698,
+        459,
+        229
+      ],
+      "links": 0
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "admin-weekly-empty-browser",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 199014,
+      "overflow": [],
+      "characters": 217,
+      "pageCharacters": [
+        217
+      ],
+      "links": 0
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "admin-weekly-empty",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 208409,
+      "overflow": [],
+      "characters": 228,
+      "pageCharacters": [
+        228
+      ],
+      "links": 0
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "employee-monthly-current-browser",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 710723,
+      "overflow": [],
+      "characters": 3123,
+      "pageCharacters": [
+        908,
+        858,
+        687,
+        225,
+        441
+      ],
+      "links": 12
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "employee-monthly-current",
+      "pages": 5,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 859922,
+      "overflow": [],
+      "characters": 3114,
+      "pageCharacters": [
+        1006,
+        718,
+        698,
+        459,
+        229
+      ],
+      "links": 0
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "employee-weekly-empty-browser",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 199014,
+      "overflow": [],
+      "characters": 217,
+      "pageCharacters": [
+        217
+      ],
+      "links": 0
+    },
+    {
+      "phase": "runtime/pdf",
+      "name": "employee-weekly-empty",
+      "pages": 1,
+      "sizes": [
+        [
+          595.0,
+          841.9
+        ]
+      ],
+      "bytes": 208409,
+      "overflow": [],
+      "characters": 228,
+      "pageCharacters": [
+        228
+      ],
+      "links": 0
+    }
+  ],
+  "comparison": [
+    {
+      "kind": "monthly-current",
+      "currencyValuesUnchanged": true,
+      "uniqueCurrencyValues": 66
+    },
+    {
+      "kind": "monthly-legacy",
+      "currencyValuesUnchanged": true,
+      "uniqueCurrencyValues": 24
+    },
+    {
+      "kind": "weekly",
+      "currencyValuesUnchanged": true,
+      "uniqueCurrencyValues": 14
+    }
+  ],
+  "files": [
+    {
+      "file": "monthly-before.pdf",
+      "pages": 6,
+      "bytes": 941310,
+      "sha256": "8f6c7850e451c768af7343fd93a2748887038145ff897df3016707919a00f39c",
+      "size": [
+        841.9,
+        595.0
+      ],
+      "fonts": [
+        "",
+        "BBAAAA+WenQuanYiZenHei",
+        "KBAAAA+DejaVuSans"
+      ],
+      "links": 0
+    },
+    {
+      "file": "monthly-after.pdf",
+      "pages": 5,
+      "bytes": 859922,
+      "sha256": "cc84a6f3acfbc2542a45117e995bf1bac904fb6b0c316c76db482cf746ee84fc",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "FBAAAA+WenQuanYiZenHei",
+        "PDAAAA+WenQuanYiZenHei",
+        "TBAAAA+DejaVuSans"
+      ],
+      "links": 0
+    },
+    {
+      "file": "weekly-before.pdf",
+      "pages": 3,
+      "bytes": 876797,
+      "sha256": "8f7199fc42dfaed9d2d83695008f7dd33bb34c888b6be2b743d25d69872e5c7d",
+      "size": [
+        841.9,
+        595.0
+      ],
+      "fonts": [
+        "",
+        "FCAAAA+WenQuanYiZenHei",
+        "PCAAAA+DejaVuSans"
+      ],
+      "links": 0
+    },
+    {
+      "file": "weekly-after.pdf",
+      "pages": 3,
+      "bytes": 838319,
+      "sha256": "e238c5b20e24aa53b8bd9ad6ab0c6f841dc600ba79b7997f5c0135a4b93c0b53",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "ACAAAA+WenQuanYiZenHei",
+        "KCAAAA+DejaVuSans"
+      ],
+      "links": 0
+    },
+    {
+      "file": "monthly-legacy.pdf",
+      "pages": 5,
+      "bytes": 1021355,
+      "sha256": "577637b2d201ca07b46821f676943f4a887305f0ccdc1e9bfbab06c8fe6e8e4b",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "KCAAAA+DejaVuSans",
+        "MBAAAA+WenQuanYiZenHei",
+        "TBAAAA+WenQuanYiZenHei"
+      ],
+      "links": 12
+    },
+    {
+      "file": "monthly-long.pdf",
+      "pages": 7,
+      "bytes": 1115951,
+      "sha256": "d430bcd5d0ca59cdfec6c2b271aae0ce3da0f8507b558b9b3f607c55196e20b9",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "HCAAAA+DejaVuSans",
+        "MBAAAA+WenQuanYiZenHei",
+        "TBAAAA+WenQuanYiZenHei"
+      ],
+      "links": 12
+    },
+    {
+      "file": "weekly-long.pdf",
+      "pages": 7,
+      "bytes": 1149682,
+      "sha256": "536bdbe9eaeacdce1ca2101754c2ad94e1e8cc16d0ce3b096c91362cfaeab6c7",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "BCAAAA+WenQuanYiZenHei",
+        "GBAAAA+DejaVuSans"
+      ],
+      "links": 0
+    },
+    {
+      "file": "weekly-empty.pdf",
+      "pages": 1,
+      "bytes": 208409,
+      "sha256": "17be2fc0d09a05843e7e52ab55b648c9757a8a299bf7b00c34bb31c4221a03d4",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "UBAAAA+DejaVuSans"
+      ],
+      "links": 0
+    },
+    {
+      "file": "monthly-browser-print.pdf",
+      "pages": 5,
+      "bytes": 710723,
+      "sha256": "2f5931908207a9a925fbe6e503f7f13838f6ef4138518815bb8be71aa27d6bb2",
+      "size": [
+        595.0,
+        841.9
+      ],
+      "fonts": [
+        "",
+        "DBAAAA+WenQuanYiZenHei"
+      ],
+      "links": 12
+    }
+  ],
+  "knownFailure": "旧meeting-discussion.browser.ts在PDF前的员工会后定稿按钮断言失败；361755d已有canConfirmPlan角色门禁，本轮未修改权限。",
+  "release": {
+    "candidateAssets": 27,
+    "status": "published",
+    "source": "f97c34c",
+    "domain": "https://qiuyun-frontend.vercel.app",
+    "deployment": "dpl_7s4viyajwVinWWm3DHBUHhW7PYaJ",
+    "productionChecks": 26,
+    "candidateChecks": 26,
+    "productionAssets": 77
+  }
+}

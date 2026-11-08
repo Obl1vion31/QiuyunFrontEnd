@@ -12,7 +12,7 @@ for(const name of ['screenshots','pdf'])await mkdir(dir+'/'+name,{recursive:true
 const clockFile=process.cwd()+'/'+dir+'/clock.txt';await writeFile(clockFile,'2026-11-07T12:00:00+08:00');
 const f=await startPostgresFixture({clockFile,entry:process.env.MEETING_PRINT_ENTRY});
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE??new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);
-let browser:any;const errors:string[]=[],checks:string[]=[];
+let browser:any;const errors:string[]=[],checks:string[]=[],fontEvidence:any[]=[];
 try{
  await seedPrivateSources(f.db);
  const monthly=await seedFrozenPrivateMeeting(f.db,'2026-10','竖版验收 · 月度业务复盘');
@@ -36,8 +36,12 @@ try{
    const [file]=await f.db.select().from(s.operationsMeetingAttachment).where(eq(s.operationsMeetingAttachment.id,result.id));assert.equal(file.byteLength,bytes.length);
    await page.goto(f.baseURL+'/business/meeting-review?meeting='+sample.meeting.id+'&version='+sample.version.versionNumber);await settleBusinessUI(page);
    assert.equal(await page.locator('[data-weekly-snapshot]').count(),1);
+   const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');
+   const documentNode=await cdp.send('DOM.getDocument'),heading=await cdp.send('DOM.querySelector',{nodeId:documentNode.root.nodeId,selector:'[data-weekly-snapshot] h2'}),font=await cdp.send('CSS.getPlatformFontsForNode',{nodeId:heading.nodeId});
+   assert(font.fonts.some((item:any)=>item.isCustomFont&&/MiSans/i.test(item.familyName)&&item.glyphCount>0),'实际标题字形应使用MiSans');fontEvidence.push({role:actor.role,sample:sample.kind,fonts:font.fonts});await cdp.detach();
    for(const width of [1920,1440,1024]){
     await page.setViewportSize({width,height:1000});await page.evaluate(()=>scrollTo(0,0));await settleBusinessUI(page);
+    for(const chart of await page.locator('[data-monthly-chart],[data-report-chart]').all()){await chart.scrollIntoViewIfNeeded();await settleBusinessUI(page);}await page.evaluate(()=>scrollTo(0,0));await settleBusinessUI(page);
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'屏幕布局不溢出');
     await page.screenshot({path:dir+'/screenshots/'+actor.role+'-'+sample.kind+'-'+width+'.png',fullPage:true});
    }
@@ -53,5 +57,5 @@ try{
   }
   await context.close();
  }
- assert.deepEqual(errors,[]);await writeFile(dir+'/result.json',JSON.stringify({passed:true,checks,errors,isolatedPostgres:true},null,2));console.log(checks.join('\n'));
+ assert.deepEqual(errors,[]);await writeFile(dir+'/result.json',JSON.stringify({passed:true,checks,errors,fontEvidence,isolatedPostgres:true},null,2));console.log(checks.join('\n'));
 }finally{await browser?.close();await f.stop();}

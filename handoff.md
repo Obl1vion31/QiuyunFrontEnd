@@ -1,5 +1,12 @@
 # 项目交接
 
+## 周／月例会 PDF 竖版（已发布，2026-11-08）
+
+- 应用f97c34c，分支codex/meeting-pdf-portrait，独立工作树.tools/releases/meeting-pdf-portrait-20261108，基线361755d；根工作区并行修改保持。共享纸面改为A4竖版，指标两列、逐帖通栏及紧凑留白，宽表重复表头、长文字连续分页；浏览器打印展开同一冻结依据并恢复折叠与滚动。旧横版指纹继续命中，归档原件不自动覆盖。
+- 302规则、schema、Node／Vercel构建、类型0错误／0警告及公共UI通过；原有59条hint保留。实际包独立展开Chromium，双方生成／下载／缓存／打印恢复及冻结JSON不变通过；三档桌面实际检查，390仅查溢出，标题字形以CDP核实MiSans。月会同样本6→5页、周会3页，长金额／结论／观察／事项、Week 5及12个原资料链接完整；PDF逐页渲染并查看，主要纸面另存144dpi图：[验收与对照](verified/2026-11-08_15-24_meeting-pdf-portrait/README.md)。
+- 旧meeting-discussion综合用例在PDF前的员工会后定稿按钮断言中止：361755d现有canConfirmPlan条件未区分周会，员工无monthly plan状态时按钮被禁用。本轮未扩改权限，该用例未计通过；独立PDF专项覆盖双方并通过，保留该真实待办。
+- 正式部署dpl_7s4viyajwVinWWm3DHBUHhW7PYaJ READY；候选26项／27资源、正式26项／77资源一致。无迁移或正式测试业务写入。
+
 ## 业务配置分组与手柄排序（已发布，2026-11-08）
 
 - 应用a103485，分支codex/content-config-drag，复用隔离工作树.tools/releases/business-edit-parity-20261108，基于0316626；根工作区并行修改保持。按默认运营类型分成推广／非推广两组；只有推广显示用途，新增非推广空用途，隐藏旧字段不清实际推广使用的映射。
