@@ -1,0 +1,38 @@
+---
+import BusinessFormSheet from './BusinessFormSheet.astro';
+import BusinessDateTimeFields from './BusinessDateTimeFields.astro';
+---
+<BusinessFormSheet embedded id="placement-dialog" labelledby="placement-title">
+ <form id="placement-form" class="business-form">
+  <header class="dialog-head"><h2 id="placement-title">移动／对换排期</h2><button type="button" class="close-button" data-placement-close aria-label="关闭">×</button></header>
+  <div class="sheet-body">
+   <div data-placement-fields>
+   <p class="placement-source" data-placement-source></p>
+   <label class="placement-date">移到哪一天<input type="date" name="destination" required/></label>
+   <fieldset class="placement-options"><legend>如何调整</legend><div data-placement-options></div></fieldset>
+   <section class="placement-preview" aria-label="调整前后对照"><h3>调整预览</h3><div data-placement-preview></div></section>
+   <div class="form-grid">
+    <BusinessDateTimeFields name="placementNext" id="placement-next" dateName="placementNextDate" timeName="placementNextTime" dateLabel="移入日期" timeLabel="移入时刻" label="新的应发时间" required/>
+    <div data-placement-return hidden><BusinessDateTimeFields name="placementReturn" id="placement-return" dateName="placementReturnDate" timeName="placementReturnTime" dateLabel="换回日期" timeLabel="换回时刻" label="对换帖新的应发时间"/></div>
+   </div>
+   <label class="placement-reason" data-placement-reason hidden><span>调整原因 <b>*</b></span><textarea name="reason" rows="3" maxlength="2000"></textarea><small data-placement-reason-hint></small></label>
+   </div>
+   <output class="form-message" data-placement-message role="status"></output>
+   <button type="button" class="business-action-secondary" data-placement-recheck hidden>重新核对</button>
+  </div>
+  <footer class="dialog-actions"><button type="button" data-placement-cancel>取消</button><button type="submit" class="save-button">保存调整</button></footer>
+ </form>
+</BusinessFormSheet>
+<style>
+.placement-source{margin:0 0 20px;font:500 16px/26px var(--console-font);overflow-wrap:anywhere}
+.placement-date,.placement-reason{display:grid;gap:8px;margin:0 0 20px}
+.placement-options{margin:0 0 24px;padding:0;border:0;min-width:0}.placement-options legend{font-weight:500;margin-bottom:10px}
+[data-placement-options]{display:grid;gap:8px}[data-placement-options] :global(label){display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;padding:12px;border:1px solid var(--console-line);border-radius:10px;align-items:start}
+[data-placement-options] :global(label:has(:checked)){border-color:var(--console-blue);background:#edf3ff}
+[data-placement-options] :global(small){display:block;color:var(--console-muted);font-size:12px;line-height:20px}
+[data-placement-options] :global(input){margin-top:3px!important}
+.placement-preview{margin:0 0 20px;padding-block:16px;border-block:1px solid var(--console-line)}
+.placement-preview h3{font-size:14px;margin:0 0 10px}.placement-preview :global(p){margin:8px 0;overflow-wrap:anywhere;font-size:14px;line-height:24px}
+[data-placement-return]{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.placement-reason{margin-top:20px}.placement-reason small{color:var(--console-muted)}[data-placement-recheck]{margin-top:12px}
+</style>

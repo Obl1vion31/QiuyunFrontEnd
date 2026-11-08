@@ -19,10 +19,39 @@ async function bodyOf(request:Request):Promise<Record<string,any>>{
  try{const copy=request.clone();return copy.headers.get('content-type')?.includes('application/json')?await copy.json():Object.fromEntries((await copy.formData()).entries());}catch{return {};}
 }
 export async function readScheduleStructures(db:Database,contentIds:string[]){return (await records(db,contentIds)).map(structure);}
+/** 单帖和成对改期共用月份门禁；事务调用者负责短期锁和原子写入。 */
+export async function assertScheduleMonthRules(db:Database,input:{months:string[];current?:Pick<typeof s.operationsContentSchedule.$inferSelect,'actualPublishAt'|'cancelledAt'>;newMonth:string;creating:boolean;moving:boolean;reason:string}){
+ const {current,newMonth,creating,moving,reason}=input;
+ const plans=input.months.length?await db.select({month:s.operationsMonthlyPlan.month,firstFinalizedAt:s.operationsMonthlyPlan.firstFinalizedAt,arrangementStatus:s.operationsMonthlyPlan.arrangementStatus}).from(s.operationsMonthlyPlan).where(inArray(s.operationsMonthlyPlan.month,input.months)):[];
+ for(const month of input.months){
+  const plan=plans.find(p=>p.month===month);
+  if((creating||moving)&&month===newMonth&&!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',month+' 尚未确认预排期，不能新增或移入排期。当前输入已保留。',422);
+  if(current&&!moving&&!plan?.firstFinalizedAt&&!current.actualPublishAt&&!current.cancelledAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','遗留内容在月例会确认预排期前保持原安排，不能提前改动。',422);
+ }
+ if(plans.some(p=>p.arrangementStatus==='confirmed')&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
+}
+export async function captureScheduleExecution(db:Database,scheduleIds:string[]){
+ const links=await db.select({contentId:s.operationsContentVersion.contentId}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(inArray(s.operationsContentSchedule.id,scheduleIds));
+ const contentIds=[...new Set(links.map(r=>r.contentId))],before=await records(db,contentIds);
+ return {contentIds,before,contexts:await readSchedulePlanContexts(db,before.map(r=>r.id))};
+}
+export type PlacementReceipt={requestKey:string;inputHash:string;actorId:string;action:'move'|'swap';sourceId:string;targetId?:string;ids:string[]};
+export async function appendScheduleExecution(db:Database,captured:{contentIds:string[];before:Awaited<ReturnType<typeof records>>;contexts:Awaited<ReturnType<typeof readSchedulePlanContexts>>},actor:OperationsUser,reason:string,placement?:PlacementReceipt){
+ const after=await records(db,captured.contentIds),afterContexts=await readSchedulePlanContexts(db,after.map(r=>r.id));
+ for(const row of after){
+  const old=captured.before.find(r=>r.id===row.id),a=structure(row),b=old?structure(old):null;
+  const planContext={before:captured.contexts.get(row.id)??[],after:afterContexts.get(row.id)??[]};
+  if(JSON.stringify(a)===JSON.stringify(b)&&JSON.stringify(planContext.before)===JSON.stringify(planContext.after))continue;
+  const [saved]=await db.select({history:s.operationsContentSchedule.executionHistory}).from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,row.id));
+  await db.update(s.operationsContentSchedule).set({executionHistory:[...saved.history,{at:new Date().toISOString(),actor:actor.username,reason:reason||'首轮排期填写',before:b,after:a,planContext,...(placement?{placement}:{})}]}).where(eq(s.operationsContentSchedule.id,row.id));
+ }
+}
 /** 请求与审批重放共用；持锁到写入完成，不能在前端禁用或审批预览后绕过。 */
 export async function guardedScheduleWrite(db:Database,request:Request,actor:OperationsUser,next:()=>Promise<Response>){
  const path=new URL(request.url).pathname,parts=path.split('/').filter(Boolean);
  const values=await bodyOf(request);
+ // 成对改期在专用事务内对两端共用上述门禁与历史，不能只检查 URL 中的一篇。
+ if(parts[1]==='operations-content'&&parts[3]==='placement')return next();
  if(parts[1]==='meeting-attachments'){let meetingId=String(values.meetingId??'');if(parts[2]){const [attachment]=await db.select({meetingId:s.operationsMeetingAttachment.meetingId}).from(s.operationsMeetingAttachment).where(eq(s.operationsMeetingAttachment.id,parts[2]));meetingId=attachment?.meetingId??'';}if(meetingId)await assertMeetingMutable(db,meetingId);return next();}
  if(parts[1]==='meeting-reviews'){
   const ids=parts[2]?[parts[2]]:Array.isArray(values.ids)?values.ids:[];
@@ -49,31 +78,17 @@ export async function guardedScheduleWrite(db:Database,request:Request,actor:Ope
  if(monthlyLink){const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,parts[2]));if(plan)months.add(plan.month);}
  const publication=parts[3]==='publication'&&values.action!=='reviewPlan';
  if(publication)return next();
- const plans=months.size?await db.select().from(s.operationsMonthlyPlan).where(inArray(s.operationsMonthlyPlan.month,[...months])):[];
  const newMonth=String(values.plannedPublishAt??'').slice(0,7);
  const creating=schedulePath&&(!parts[2]||parts[2]==='versions'||!!current?.schedule.cancelledAt);
  const moving=!!current&&!!newMonth&&newMonth!==dateMonth(current.schedule.plannedPublishAt);
- for(const month of months){
-  const plan=plans.find(p=>p.month===month);
-  if((creating||moving)&&month===newMonth&&!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',month+' 尚未确认预排期，不能新增或移入排期。当前输入已保留。',422);
-  if(current&&!moving&&!plan?.firstFinalizedAt&&!current.schedule.actualPublishAt&&!current.schedule.cancelledAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','遗留内容在月例会确认预排期前保持原安排，不能提前改动。',422);
- }
  const reason=String(values.changeReason||values.monthlyPlanReason||values.planChangeReason||values.reason||'').trim();
- if(plans.some(p=>p.arrangementStatus==='confirmed')&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
+ await assertScheduleMonthRules(db,{months:[...months],current:current?.schedule,newMonth,creating,moving,reason});
  if(request.method==='DELETE'){requireAdmin(actor);if(!reason)throw new WorkflowError('请填写取消排期的原因。',422);}
  const beforeContexts=await readSchedulePlanContexts(db,before.map(r=>r.id));
  const response=await next();
  if(!response.ok)return response;
  const result=await response.clone().json().catch(()=>({}));
  if(!contentIds.length&&result.id){const [created]=await db.select({contentId:s.operationsContentVersion.contentId}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(eq(s.operationsContentSchedule.id,result.id));if(created)contentIds.push(created.contentId);}
- const after=await records(db,contentIds);
- const afterContexts=await readSchedulePlanContexts(db,after.map(r=>r.id));
- for(const row of after){
-  const old=before.find(r=>r.id===row.id),a=structure(row),b=old?structure(old):null;
-  const planContext={before:beforeContexts.get(row.id)??[],after:afterContexts.get(row.id)??[]};
-  if(JSON.stringify(a)===JSON.stringify(b)&&JSON.stringify(planContext.before)===JSON.stringify(planContext.after))continue;
-  const [saved]=await db.select({history:s.operationsContentSchedule.executionHistory}).from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,row.id));
-  await db.update(s.operationsContentSchedule).set({executionHistory:[...saved.history,{at:new Date().toISOString(),actor:actor.username,reason:reason||'首轮排期填写',before:b,after:a,planContext}]}).where(eq(s.operationsContentSchedule.id,row.id));
- }
+ await appendScheduleExecution(db,{contentIds,before,contexts:beforeContexts},actor,reason);
  return response;
 }

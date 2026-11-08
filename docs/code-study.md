@@ -63,6 +63,10 @@ flowchart LR
 
 ## 共享界面接入
 
+排期移动与对换由`schedule-placement-ui.ts`接入现有单层Sheet的placement视图；日历使用独立拖放类型，不干扰月计划来源拖放。GET/POST `/api/operations-content/[id]/placement`仅按需读取源帖及目标日，事务内使用现有改期函数、双方资源锁、共享月份门禁和执行历史；请求键收在既有JSON执行历史中，不增加表。普通保存仍走原入口。
+
+`form-changes.ts`用于排期与发布的实际值比较；日期比较拆分控件值，版本／请求凭据排除，逐日理由按所属日期归一化。运营配置、月计划来源和发布复盘计划在实际回填后发送`business:form-rebase`及字段名，只更新未被用户输入覆盖的基线。不得在异步结束时整表重置基线。
+
 例会纸面统一由 `src/styles/meeting-print.css` 维护A4竖版与密度；会议页面正常引入，`meeting-pdf-render.tsx`在其余展示CSS之后内联同一文件。`meeting-print.ts`共享应展开的冻结依据选择器，浏览器beforeprint展开、afterprint恢复折叠和滚动，离页清理；服务端使用同一选择器。打印不改变屏幕布局或读写业务数据。`meeting-pdf.ts`的新渲染指纹区分竖版，同时识别同一冻结来源的旧横版指纹，直接返回旧附件；新版本或尚无归档的版本才使用当前渲染器。
 
 站点图标统一在各 HTML 页面 head 中接入 `SiteIcons.astro`，沿用同一 SVG／ICO 与 Apple 图标及缓存版本。主图位于 `public/images/brand/`，SVG 为三个纯矢量路径，透明 PNG 和平台图标均由该源导出；不将文字稿或内嵌位图当作 SVG 交付。

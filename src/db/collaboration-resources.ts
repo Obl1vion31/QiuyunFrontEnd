@@ -10,6 +10,7 @@ export function writeResources(path:string,method:string,data:Record<string,unkn
  }
  if(kind==='monthly-plans'&&parts[3]==='links')return id?['monthly:'+id]:[];
  if(kind==='operations-content'){
+  if(parts[3]==='placement')return [...new Set([id,text('targetScheduleId')].filter(Boolean))].map(value=>'schedule:'+value);
   if(parts[3]==='platform-note-id')return [`content:${id}`];
   if(id==='versions')return text('sourceScheduleId')?[`schedule:${text('sourceScheduleId')}`]:[];
   return id?[`schedule:${id}`]:[];

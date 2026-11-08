@@ -46,11 +46,10 @@ function initialize(){
   button.addEventListener('click',()=>{if(button.disabled)return;selectSource(button.dataset.monthlyPlanSource!);for(const chip of document.querySelectorAll('[data-monthly-plan-source]'))chip.setAttribute('aria-pressed',String(chip===button));});
   button.addEventListener('dragstart',event=>{if(button.disabled)return;event.dataTransfer?.setData('application/x-qiuyun-plan',button.dataset.monthlyPlanSource!);});
  }
- if(editable)for(const card of document.querySelectorAll<HTMLElement>('.calendar-item[data-inspect-id]')){if(card.dataset.arrangementBound)continue;card.dataset.arrangementBound='true';card.draggable=true;card.addEventListener('dragstart',event=>{event.dataTransfer?.setData('application/x-qiuyun-schedule',card.dataset.inspectId!);});}
  if(editable)for(const day of document.querySelectorAll<HTMLElement>('[data-calendar-day]')){
   if(day.dataset.arrangementBound)continue;day.dataset.arrangementBound='true';
-  day.addEventListener('dragover',event=>{if(event.dataTransfer?.types.some(type=>['application/x-qiuyun-schedule','application/x-qiuyun-plan'].includes(type)))event.preventDefault();});
-  day.addEventListener('drop',event=>{const scheduleId=event.dataTransfer?.getData('application/x-qiuyun-schedule'),planItem=event.dataTransfer?.getData('application/x-qiuyun-plan');if(!scheduleId&&!planItem)return;event.preventDefault();if(planItem){selectSource(planItem);day.querySelector<HTMLButtonElement>('[data-calendar-new]')?.click();return;}document.dispatchEvent(new CustomEvent('business:monthly-schedule-switch',{detail:{scheduleId,date:day.dataset.calendarDay,cancel:()=>{}}}));});
+  day.addEventListener('dragover',event=>{if(event.dataTransfer?.types.includes('application/x-qiuyun-plan'))event.preventDefault();});
+  day.addEventListener('drop',event=>{const planItem=event.dataTransfer?.getData('application/x-qiuyun-plan');if(!planItem)return;event.preventDefault();selectSource(planItem);day.querySelector<HTMLButtonElement>('[data-calendar-new]')?.click();});
  }
  }
  bindCalendar();

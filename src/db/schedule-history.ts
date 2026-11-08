@@ -4,7 +4,7 @@ import {shanghaiDateKey} from './promotion-rules.mjs';
 import {weekOf} from './monthly-plan-types';
 
 export type SchedulePlanContext={planId:string;itemId:string;month:string;week:number|null;kind:'new'|'carry'|'existing';at:string};
-export type ScheduleExecutionEvent={kind?:'note_id_correction';at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null;planContext?:{before:SchedulePlanContext[];after:SchedulePlanContext[]}};
+export type ScheduleExecutionEvent={kind?:'note_id_correction';at:string;actor:string;reason:string;before:Record<string,unknown>|null;after:Record<string,unknown>|null;planContext?:{before:SchedulePlanContext[];after:SchedulePlanContext[]};placement?:import('./schedule-edit-policy').PlacementReceipt};
 export type ScheduleHistoryItem={at:string|null;actor:string|null;reason:string;label:string;details?:string[];fromAt?:string;toAt?:string;revision?:number};
 export type ScheduleHistoryGroups=Array<{key:'execution'|'schedule'|'content';title:string;items:ScheduleHistoryItem[]}>;
 type DateChange={revision:number;plannedPublishAt:Date|string;newPlannedPublishAt:Date|string;endedAt?:Date|string;changedByLabel:string;reason:string};

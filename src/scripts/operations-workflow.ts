@@ -286,6 +286,7 @@ function initialize() {
       }
       const section = publication!.querySelector<HTMLElement>('[data-publication-delay]')!; section.hidden = publicationDays.length === 0;
       host.dataset.ready = 'true';
+      publication!.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:[...host.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('input,textarea')].filter(field=>!field.value||field instanceof HTMLInputElement&&field.type==='radio'&&!field.checked).map(field=>field.name)}}));
     } catch (error) { if (read.isCurrent()) status.textContent = error instanceof Error ? error.message : '读取失败，请重新选择实发时间。'; } finally {read.finish();}
   }
   document.addEventListener('business:inspector-selection',event=>{if(!(event as CustomEvent).detail.id){++panelToken;stopLoading();}},{signal});

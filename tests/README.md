@@ -1,5 +1,7 @@
 # 验证
 
+`schedule-placement.integration.ts`使用真实隔离PostgreSQL验证空日移动、多帖对换、请求幂等、同键不同内容拒绝、并发抢占、整批回滚、跨Week／月份门禁、账号禁用、管理员封存及8号调整不改写1—7号截止对照。`schedule-placement.browser.ts`验证双角色三档真实拖拽、键盘替代、未修改关闭、改回原值、慢回填、失败保留、单层Sheet及周会默认区间，并采集真实截图和录像；`PLACEMENT_ENTRY`支持实际发布包，`PLACEMENT_DIR`指定证据目录。
+
 `meeting-finalization-permissions.test.ts`覆盖周／月会的角色与预排期资格；`meeting-finalization-permissions.browser.ts`使用隔离PostgreSQL，双方真实点击周会会后定稿、取消确认及生成PDF；月会验证员工首次确认按钮禁用、直调403、管理员点击成功，已确认后既有文字编辑可用，最终封存仅管理员、封存后双方仅保留文字修订。`MEETING_PERMISSION_ENTRY`可指向实际发布包，`MEETING_PERMISSION_DIR`指定三档桌面截图与实际操作录像；服务端与浏览器时钟固定一致。原`test:meeting-discussion`应完整通过，不再把员工按钮禁用列为已知限制。
 
 `pnpm test:meeting-print` 使用本机隔离PostgreSQL和真实PDF接口，覆盖双方生成／下载／归档缓存、当前来源口径月会、空态周会、三档桌面及390px明显溢出、MiSans与原生浏览器竖版打印，核对打印后恢复折叠及冻结JSON不变。`MEETING_PRINT_ENTRY`可指定正式运行包适配器，`MEETING_PRINT_DIR`指定证据目录。非空周会、Week 5、宽数值及长文字另用同一冻结样本对照原版与候选，并将所有PDF逐页渲染查看。

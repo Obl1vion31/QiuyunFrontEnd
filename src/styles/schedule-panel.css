@@ -33,4 +33,10 @@
 #schedule-panel .schedule-save-result[hidden]{display:none}
 html[data-schedule-panel-open] [data-glass-surface="schedule"] :is(.business-toolbar,.business-sidebar,.arrangement-panel,.status-strip){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 @media(max-width:680px){#schedule-panel .detail-list,#schedule-panel .surface-resources{grid-template-columns:1fr}#schedule-panel .business-inspector>[data-inspector-body]{padding:18px}}
+.calendar-day[data-placement-over]{outline:2px solid var(--console-blue);outline-offset:-3px;background:#edf3ff}
+.calendar-item[draggable=true]{cursor:grab}.calendar-item.placement-dragging{opacity:.55;cursor:grabbing}
+.schedule-placement-feedback{position:fixed;right:24px;bottom:24px;z-index:35;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 48px);padding:12px 16px;border:1px solid var(--console-line);border-radius:10px;background:var(--console-paper);box-shadow:0 8px 24px #173c5320}
+.schedule-placement-feedback:has(output:empty):has(button[hidden]){display:none}
+.schedule-placement-status{display:block;color:var(--console-blue);font:500 14px/22px var(--console-font)}
+.schedule-placement-status:empty{display:none}
 @media(prefers-reduced-transparency:reduce){#schedule-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#f8fbfc}#schedule-panel::backdrop{backdrop-filter:none}}

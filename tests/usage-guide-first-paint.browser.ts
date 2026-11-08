@@ -3,7 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {startFixture,admin,employee} from './auth.fixture';
 const folder='.tools/test-artifacts/usage-guide/first-paint';
 await mkdir(folder+'/screenshots',{recursive:true});await mkdir(folder+'/video',{recursive:true});
-const fixture=await startFixture();let browser:any;const results:any[]=[];
+const fixture=await startFixture({entry:process.env.USAGE_GUIDE_ENTRY});let browser:any;const results:any[]=[];
 const telemetry=`(()=>{window.guideFrames=[];window.startGuideSampling=()=>{window.guideFrames=[];let start=0;const sample=()=>{const root=document.querySelector('[data-usage-guide]');if(root){if(!start)start=performance.now();const selectors=['.guide-main h1','.guide-intro','#guide-types td'];const texts=selectors.map(q=>{const e=root.querySelector(q),r=document.createRange();r.selectNodeContents(e);return {width:r.getBoundingClientRect().width,top:e.getBoundingClientRect().top,left:e.getBoundingClientRect().left};});const directory=root.querySelector('[data-guide-mobile]'),side=document.querySelector('.business-sidebar__nav');window.guideFrames.push({t:performance.now()-start,fontReady:document.fonts.check('500 16px "MiSans VF"','使用说明类型决定复盘安排'),texts,directory:directory.getBoundingClientRect().height,nav:side?.getBoundingClientRect().top});}if(!start||performance.now()-start<1500)requestAnimationFrame(sample);};requestAnimationFrame(sample);};window.startGuideSampling();})();`;
 try{
  const {chromium}=await import(new URL('../.tools/tooling/node_modules/playwright/index.mjs',import.meta.url).href);browser=await chromium.launch({headless:true});

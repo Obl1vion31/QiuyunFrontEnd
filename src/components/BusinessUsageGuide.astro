@@ -11,6 +11,7 @@ const sections=[
  {id:'guide-dates',label:'日期与统计区间'},
  {id:'guide-promotion',label:'推广历史更正'},
  {id:'guide-compare',label:'同类比较'},
+ {id:'guide-monthly',label:'月例会与排期'},
  ...(administrator?[{id:'guide-maintain',label:'维护入口'}]:[]),
 ];
 const descriptions={
@@ -33,10 +34,11 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
     </nav>
    </div>
    <BusinessPageHeader title="使用说明"/>
-   <p class="guide-intro">先定类型与职能，再按节点录入真实数据。</p>
+   <p class="guide-intro">先了解日常业务操作，再按月会确定的计划落实排期。</p>
    <article class="guide-content" aria-label="工作台使用说明">
+    <h2 class="guide-part-title">第一部分：日常业务操作</h2>
     <section id="guide-types" data-guide-section>
-     <h2 tabindex="-1">运营类型与内容职能</h2>
+     <h3 tabindex="-1">运营类型与内容职能</h3>
      <p class="guide-lead">类型决定复盘安排，职能决定比较分组。</p>
      <div class="guide-table"><table><thead><tr><th>运营类型</th><th>复盘安排</th></tr></thead><tbody>{operationTypes.map(type=><tr><th scope="row">{operationTypeLabels[type]}</th><td>{descriptions[type]}</td></tr>)}</tbody></table></div>
      <div class="guide-table"><table><thead><tr><th>规划分类</th><th>可选内容职能</th></tr></thead><tbody>{Object.entries(categoryContentRoles).map(([category,roles])=><tr><th scope="row">{categoryNames[category as keyof typeof categoryNames]}</th><td>{roles.map(role=>contentRoleLabels[role]).join('、')}</td></tr>)}</tbody></table></div>
@@ -44,16 +46,16 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
      <p class="guide-note">两项在排期中维护，填写指标时无需重复选择。职能由原帖各版本共用，不改变年度目标、排期和月度篇数。未明确归类的旧帖不进入已细分均值。</p>
     </section>
     <section id="guide-versions" data-guide-section>
-     <h2 tabindex="-1">发布与改帖</h2>
+     <h3 tabindex="-1">发布与改帖</h3>
      <p class="guide-lead">普通非推广沿用原计划，推广后持续按实发版本分段。</p>
      <div class="guide-table"><table><thead><tr><th>帖子类型</th><th>改版后如何处理</th></tr></thead><tbody>
       <tr><th scope="row">普通非推广</th><td>继承运营类型、职能和笔记ID，继续V0未完成节点，不另建样本或重复入样。</td></tr>
       <tr><th scope="row">推广后持续复盘</th><td>新草稿／排期不停止旧版；新版实发时间生效后，旧版退出待办，已录只读保留、未录停止追填。新版继承最终日期，过期须重选；测试或直接放量正常结束后，再开启本版持续复盘。</td></tr>
      </tbody></table></div>
      <p class="guide-note">暂停、待定、淘汰均不触发持续复盘。旧版未完成节点不迁给新版。</p>
-     <h3 id="guide-monthly-links-title">月计划与首轮排期</h3><p>管理员确认预排期后，在原月历落实帖子和日期。双方可以保存草稿；员工提交核对后仍能编辑，直到管理员“定稿并封存”。同原计划Week内微调无需理由，跨原计划Week须填写原因。</p><p>定稿形成“月排期V0”。之后新增、编辑和改期填写理由即可生效，在周会集中核对；取消仍由管理员操作。正常登记实发和更新帖子链接不需要调整理由。周会按复盘区间核对，月度运营和月会按全月查看原计划、净新增、净删减及实发。</p><p>会前核实“到期未登记”，补齐真实发布或说明改期。未完成内容保留原月原日期，下月确认预排期后再明确接纳；历史V0与封存材料保持原值。已封存月会可修订“核心结论、下一步行动”，保存即追加新V号；计划、指标及事项不随文字修订改变。</p></section>
+    </section>
     <section id="guide-dates" data-guide-section>
-     <h2 tabindex="-1">日期与统计区间</h2>
+     <h3 tabindex="-1">日期与统计区间</h3>
      <p class="guide-lead">按页面标出的完整区间，填写已开放节点的真实数据。</p>
      <div class="guide-table"><table><thead><tr><th>复盘方式</th><th>统计区间与开放时间</th></tr></thead><tbody>
       <tr><th scope="row">常规</th><td>原帖最早实发日至数据截至日。实发后{reviewCheckpoints.map(point=>point.days).join('／')}天为标准节点，允许前后一天；数据截至日不晚于昨天，启用首轮时先处理首轮。</td></tr>
@@ -67,9 +69,9 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
      </ul>
     </section>
     <section id="guide-promotion" data-guide-section>
-     <h2 tabindex="-1">推广历史更正</h2>
+     <h3 tabindex="-1">推广历史更正</h3>
      <p class="guide-lead">在推广生命周期展开每日记录，进入某一天的详情，点击“编辑这一天”，修改的是那一天的“当日安排”。</p>
-     <h3>只核对前一天、当天和后一天</h3>
+     <h4>只核对前一天、当天和后一天</h4>
      <p>保存时会展示三天的日期和状态，请确认上下文。确认后只修改选中的当天；前后日期保持原状，不自动修改或删除后续记录。当天的指标和备注仍在同一表单填写。</p>
      <div class="guide-table"><table><thead><tr><th>前一天 → 修改后的当天 → 后一天</th><th>能否保存</th></tr></thead><tbody>
       <tr><th scope="row">测试中 → 测试暂停 → 测试中</th><td>可以。只把中间这一天改成暂停，前后两天继续测试。</td></tr>
@@ -80,7 +82,7 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
       <tr><th scope="row">测试中 → 放量中 → 测试中</th><td>不能直接衔接。进入放量后不能回到原轮测试。</td></tr>
      </tbody></table></div>
      <div class="guide-example"><h3>只更正10月31日</h3><p>10月29日至11月3日原来都是“测试中”。把10月31日改为“测试暂停”，确认框显示：10月30日测试中、10月31日测试暂停、11月1日测试中。两侧都能衔接，所以可以保存；其余五天不变。</p></div>
-     <h3>遇到提示时怎么办</h3>
+     <h4>遇到提示时怎么办</h4>
      <ul>
       <li>提示哪两天不能衔接，就核对这两天的实际状态后重新选择；系统不会靠清空后续记录来完成这次单日修改。</li>
       <li>取消确认会保留选择、指标和备注。断网或保存失败也保留输入；若其他人更新了前后记录，需要重新核对上下文。</li>
@@ -89,12 +91,42 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
      <p class="guide-note">管理员和员工都能填写、更正历史状态与区间、修订复盘及更正笔记ID；更正他人记录同样留存实际修改人。双方均需核对日期、状态衔接和影响范围。</p>
     </section>
     <section id="guide-compare" data-guide-section>
-     <h2 tabindex="-1">同类比较</h2>
+     <h3 tabindex="-1">同类比较</h3>
      <p class="guide-lead">标准节点按同学科、同规划分类、同内容职能、同节点比较。</p>
      <ul>
       <li>两个合集分别分组，其他分类沿用原口径。即时帖额外开启的标准节点可参与对应基准，自定义节点不混入标准均值。</li>
       <li>方式筛选只改变展示，不改变共享基准。阅读量与两项比率分别计算算术均值：缺失排除，真实零参与，有效样本不足时单独标明。</li>
       <li>两轮样本可能不同，均值对照不代表同帖增长。“引流互动”仍须正常填写全部指标。</li>
+     </ul>
+    </section>
+    <section id="guide-monthly" data-guide-section>
+     <h2 tabindex="-1" class="guide-part-title">第二部分：月例会与排期</h2>
+     <p class="guide-lead">先确认本月要做什么，再落实日期；封存后调整执行，不重写月会基准。</p>
+     <ol class="guide-flow" aria-label="月会与排期流程">
+      <li><strong>填写计划草稿</strong><span>数量、来源、分配 Week</span></li>
+      <li><strong>确认预排期</strong><span>管理员确认后才能排当月</span></li>
+      <li><strong>落实首轮排期</strong><span>填写具体帖子与发送时间</span></li>
+      <li><strong>提交核对</strong><span>提交后仍可继续编辑</span></li>
+      <li><strong>定稿并封存</strong><span>管理员形成月排期 V0</span></li>
+     </ol>
+     <h3 id="guide-monthly-links-title">先分 Week，再落实具体帖子</h3>
+     <p>Week 1 为1—7日，Week 2 为8—14日，Week 3 为15—21日，Week 4 为22—28日，Week 5 为29日至月底。月计划草稿不创建真实帖子，未分完可暂存；管理员确认预排期前须分配完 Week。会前定稿不开放当月排期。</p>
+     <p>预排期后，计划部分在月会中只读。进入排期管理，从计划来源落实帖子；已有或遗留内容使用原帖，不重复新建。同原计划 Week 微调无需理由，跨原计划 Week 填写原因。首轮提交核对后仍能编辑；管理员按最新核对结果定稿并封存。</p>
+     <figure class="guide-operation"><a href="/images/guide/monthly-review.png" target="_blank" rel="noopener" aria-label="查看清晰操作图"><img src="/images/guide/monthly-review.png" width="1198" height="249" loading="lazy" alt="操作示例：首轮排期、提交核对和管理员定稿并封存的真实入口"/></a><figcaption>操作示例：首轮安排在排期页完成；管理员通过“定稿并封存”形成不可变月排期 V0。</figcaption></figure>
+     <h3>8号开会：复盘过去，调整未来</h3>
+     <div class="guide-period" aria-label="8号周会的复盘和调整范围"><div><strong>1—7号</strong><span>核对已经发生的执行与发布</span></div><div><strong>8号及以后</strong><span>调整未发布帖子的应发安排</span></div></div>
+     <p>8号新建周会，默认截止7号，不包含当天。首次默认最近七天，即1—7号；已有周会从上一场复盘截止次日接续，具体以会议标出的区间为准。8号当天调整8号及以后的排期，不改写1—7号的截止对照。推广“次日安排”与帖子的“应发时间”是两件事：改发帖日期请在排期管理操作。</p>
+     <h3>拖到空日期，或选择加入／对换</h3>
+     <p>未发布帖子可以拖到目标日期。空日期保留原发送时刻；无需理由且时间有效时直接保存。目标日已有帖子时，选“加入当天”，或选一篇未发布帖子对换。当天始终按应发时刻排列，不需要手动排序。也可打开帖子详情，点击“移动／对换”，用键盘选择日期。</p>
+     <figure class="guide-operation"><a href="/images/guide/placement-empty.png" target="_blank" rel="noopener" aria-label="查看清晰操作图"><img src="/images/guide/placement-empty.png" width="1198" height="391" loading="lazy" alt="操作示例：将帖子拖到空日期，保存后在新日期出现"/></a><figcaption>操作示例：空日期直接移入；原卡片在保存成功后更新，读取和保存失败不会移动。</figcaption></figure>
+     <figure class="guide-operation"><a href="/images/guide/placement-choice.png" target="_blank" rel="noopener" aria-label="查看清晰操作图"><img src="/images/guide/placement-choice.png" width="744" height="1040" loading="lazy" alt="操作示例：选择加入当天或与某一篇帖子对换，并核对两篇的新时间"/></a><figcaption>操作示例：对换默认交换完整应发时间。若换回今天的时刻已过，手动补选未来时刻；原因在同一面板填写，两篇一起保存。</figcaption></figure>
+     <h3>封存后怎么改，哪些内容保持不动</h3>
+     <ul>
+      <li>封存后新增、编辑、移动与对换填写原因即可按权限生效；取消排期由管理员填写原因操作，帖子与历史保留。实发登记和补充帖子链接不需要排期调整理由。</li>
+      <li>月排期 V0、冻结计划与材料保留原值，后续变更进入执行历史；周会按复盘区间核对，月度运营按当前全月执行查看。封存后的月会仅“核心结论、下一步行动”可追加文字版本，不重算计划与指标。</li>
+      <li>未完成内容留在原月原日期，不统一改到月底。下个月确认预排期后，再明确接纳遗留并安排新日期；不能提前移入尚未确认预排期的月份。</li>
+      <li>未发布排期不能改到已经过去的时间。对换时两篇都要有合法的新时间；目标日或排期变化时重新核对，系统不会只保存其中一篇。</li>
+      <li>只打开编辑、查看资料或改回原值，不提示放弃修改。确有未保存内容时，取消确认会保留输入、焦点与位置；保存失败也可继续修改。</li>
      </ul>
     </section>
     {administrator&&<section id="guide-maintain" data-guide-section>
@@ -122,7 +154,14 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
 .guide-layout{display:grid;grid-template-columns:minmax(0,1fr) 184px;gap:40px;align-items:start;width:100%}
 .guide-main{min-width:0}.guide-intro{max-width:72ch;margin:12px 0 24px;color:var(--console-muted);font:400 16px/28px var(--console-font);text-wrap:pretty}
 .guide-content{font:400 16px/28px var(--console-font);overflow-wrap:break-word}.guide-content section{padding-block:24px;border-top:1px solid var(--console-line);scroll-margin-top:var(--guide-scroll-offset)}
+.guide-content section>h3:first-child{margin:0 0 12px;font:600 18px/28px var(--console-font)}
 .guide-content h2{margin:0 0 12px;font:600 18px/28px var(--console-font);text-wrap:balance}.guide-content h3{margin:24px 0 8px;font:500 16px/26px var(--console-font);text-wrap:balance}
+.guide-content .guide-part-title{font-size:22px;line-height:32px;margin:0 0 20px}
+.guide-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0;list-style:none;gap:14px;margin:24px 0}.guide-flow li{padding:12px 0;border-top:2px solid var(--console-blue);margin:0!important}.guide-flow strong,.guide-flow span{display:block}.guide-flow span{font-size:13px;line-height:22px;color:var(--console-muted);margin-top:6px}
+.guide-period{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:16px 0;margin:16px 0;border-block:1px solid var(--console-line)}.guide-period strong,.guide-period span{display:block}.guide-period strong{font-size:20px}.guide-period span{font-size:14px;color:var(--console-muted)}
+.guide-operation{margin:24px 0}.guide-operation img{display:block;max-width:100%;height:auto;border:1px solid var(--console-line);border-radius:12px}.guide-operation figcaption{margin-top:10px;color:var(--console-muted);font:400 14px/24px var(--console-font)}
+@media(max-width:650px){.guide-flow{grid-template-columns:1fr}.guide-period{grid-template-columns:1fr}.guide-content .guide-part-title{font-size:20px}}
+.guide-content h4{margin:20px 0 8px;font:500 16px/26px var(--console-font)}
 .guide-content p{margin:0 0 12px;text-wrap:pretty}.guide-content strong{font-weight:500}.guide-content ul{margin:12px 0 0;padding-left:1.25em}.guide-content li{padding-left:4px}.guide-content li+li{margin-top:10px}.guide-content li::marker{color:var(--console-muted)}
 .guide-lead{max-width:80ch;color:var(--console-ink)}
 .guide-example{margin-block:20px;padding:14px 16px;font:400 14px/24px var(--console-font);background:var(--console-surface)}.guide-example h3{margin:0 0 8px;font-size:14px;line-height:24px}.guide-example p:last-child{margin-bottom:0}.guide-example time{white-space:nowrap;font-variant-numeric:tabular-nums}

@@ -1,3 +1,5 @@
+import {trackFormChanges} from './form-changes';
+import {initializePlacement} from './schedule-placement-ui';
 import {getInspector} from './business-inspector';
 import {businessConfirm,closeBusinessDialog} from './business-dialog';
 import {applyBusinessPermissions,mayOperate} from './business-permissions';
@@ -45,8 +47,11 @@ function initialize(){
       pageLife.signal.addEventListener('abort',()=>delete document.documentElement.dataset.schedulePanelOpen);
       document.addEventListener('astro:before-swap',()=>pageLife.abort(),{once:true});
       const isView=name=>sheet.open&&sheet.dataset.view===name;
-      const panelDirty=()=>dirty||publicationDirty||inspector.dataset.dirty==='true';
-      const markClean=()=>{dirty=false;publicationDirty=false;form.dataset.dirty='false';publicationForm.dataset.dirty='false';inspector.dataset.dirty='false';inspector.querySelectorAll('form[data-dirty]').forEach(f=>f.dataset.dirty='false');document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));};
+      let placement;
+      const formChanges=trackFormChanges(form,()=>{dirty=formChanges.dirty;});
+      const publicationChanges=trackFormChanges(publicationForm,()=>{publicationDirty=publicationChanges.dirty;});
+      const panelDirty=()=>formChanges.dirty||publicationChanges.dirty||placement?.isDirty()||inspector.dataset.dirty==='true';
+      const markClean=()=>{formChanges.capture();publicationChanges.capture();placement?.clean();dirty=false;publicationDirty=false;form.dataset.dirty='false';publicationForm.dataset.dirty='false';inspector.dataset.dirty='false';inspector.querySelectorAll('form[data-dirty]').forEach(f=>f.dataset.dirty='false');document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));};
       async function mayLeavePanel(){
         if(!panelDirty())return true;
         if(leaving)return leaving;
@@ -59,8 +64,9 @@ function initialize(){
         if(!sheet.open||sheet.dataset.closing==='true'){if(!sheet.open)priorFocus=document.activeElement;sheet.showModal();document.documentElement.dataset.schedulePanelOpen='true';}
         sheet.dataset.view=name;
         inspector.hidden=name!=='detail';dialog.hidden=name!=='form';publicationDialog.hidden=name!=='publication';
-        sheet.setAttribute('aria-labelledby',name==='detail'?'schedule-detail-title':name==='form'?'dialog-title':'publication-title');
-        const target=name==='detail'?inspector:name==='form'?dialog:publicationDialog;
+        document.querySelector('#placement-dialog').hidden=name!=='placement';
+        sheet.setAttribute('aria-labelledby',name==='placement'?'placement-title':name==='detail'?'schedule-detail-title':name==='form'?'dialog-title':'publication-title');
+        const target=name==='placement'?document.querySelector('#placement-dialog'):name==='detail'?inspector:name==='form'?dialog:publicationDialog;
         target.querySelector('footer')?.prepend(result);
         if(!matchMedia('(prefers-reduced-motion:reduce)').matches)target.animate([{opacity:.6},{opacity:1}],{duration:120,easing:'ease-out'});
         document.dispatchEvent(new CustomEvent('business:schedule-panel-view',{detail:{view:name,id:activeRecord?.id}}));
@@ -321,7 +327,7 @@ function initialize(){
             }else control.readOnly=true;
           }
         }
-        dirty = false;
+        formChanges.capture();
         showView('form');document.dispatchEvent(new CustomEvent('business:schedule-form-opened',{detail:{mode:nextMode,record,selectedDate}}));
         field('contentName').focus({preventScroll:true});
       };
@@ -416,7 +422,7 @@ function initialize(){
         configureDateTime(publicationControl('actualPublishAt'),{value:record.actualPublishAt||''});
         publicationControl('projectDocUrl').value=record.projectDocUrl||'';publicationControl('publicationUrl').value=record.publicationUrl||'';
         publicationControl('expectedWriteVersion').value=record.writeVersion;publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;
-        updatePublicationFields();showView('publication');
+        updatePublicationFields();publicationChanges.capture();showView('publication');
         publicationControl(record.actualPublishAt?'publicationUrl':'actualPublishDate').focus({preventScroll:true});
         document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));
       };
@@ -431,7 +437,7 @@ function initialize(){
       form.addEventListener('business:edit-reclaimed',refreshReclaimed);publicationForm.addEventListener('business:edit-reclaimed',refreshReclaimed);
       inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
       document.querySelectorAll('[data-close-publication]').forEach(button=>button.addEventListener('click',event=>{void (event.currentTarget.closest('header')?closePanel():returnToDetail());}));
-      publicationForm.addEventListener('input',()=>{publicationDirty=true;document.documentElement.dataset.unsaved='true';updatePublicationFields();});
+      publicationForm.addEventListener('input',()=>{updatePublicationFields();});
       publicationControl('correctTime').addEventListener('change',updatePublicationFields);
       publicationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -463,7 +469,7 @@ function initialize(){
       inspectorEdit?.addEventListener('click', () => openForm('edit', activeRecord));
       inspectorRevise?.addEventListener('click', () => openForm('revision', activeRecord));
       form.addEventListener('input', () => {
-        dirty = true; document.documentElement.dataset.unsaved = 'true'; updatePromotionPreview();
+        updatePromotionPreview();
       });
       field('subjectId').addEventListener('change', () => updateCategoryOptions());
       let applyPlanChange = false;
@@ -556,6 +562,11 @@ function initialize(){
         if(event.detail.preserveInputs)void refreshRange().then(()=>{const next=rows.find(r=>r.id===activeRecord.id);if(next)Object.assign(activeRecord,next);}).catch(()=>{result.hidden=false;resultText.textContent='已保存，列表更新失败。请稍后更新核对清单。';retry.hidden=true;});
         else void finishSaved({id:activeRecord.id,month:activeRecord.plannedPublishAt.slice(0,7),pending:event.detail.pending});
       },{signal:pageLife.signal});
+      placement=initializePlacement({rows,signal:pageLife.signal,canLeave:mayLeavePanel,
+        show:record=>{activeRecord=record;result.hidden=true;showView('placement');},
+        cancel:returnToDetail,close:closePanel,
+        saved:async(id)=>{try{await refreshRange();if(controller.selected===id&&['detail','placement'].includes(sheet.dataset.view)){const record=rows.find(row=>row.id===id);if(record)fillInspector(record);}return true;}catch{return false;}},
+      });
       const initialRecord = rows.find(row => row.id === (requestedRow || location.hash.slice(1)));
       if (initialRecord) openInspector(initialRecord);
     

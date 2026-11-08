@@ -13,6 +13,7 @@ import BusinessScheduleApprovals from '../../components/BusinessScheduleApproval
 import BusinessDateTimeFields from '../../components/BusinessDateTimeFields.astro';
 import BusinessInspector from '../../components/BusinessInspector.astro';
 import BusinessResourceLinks from '../../components/BusinessResourceLinks.astro';
+import SchedulePlacement from '../../components/SchedulePlacement.astro';
 import BusinessFormSheet from '../../components/BusinessFormSheet.astro';
 import BusinessSheet from '../../components/BusinessSheet.astro';
 import '../../styles/schedule-panel.css';
@@ -366,7 +367,7 @@ const clientCategories=subjectCategories;
                 <section class="inspector-section" data-promotion-state-history hidden></section>
                 <details class="inspector-danger business-form" data-business-operation="schedule.delete" hidden={Astro.locals.user?.role!=='admin'}><summary>更多操作</summary><label>取消排期原因<textarea data-inspector-cancel-reason rows="2" maxlength="2000"></textarea></label><button type="button" data-inspector-delete>取消这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
-              <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
+              <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-placement hidden>移动／对换</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>
             </BusinessInspector>
     <BusinessFormSheet embedded id="schedule-dialog" labelledby="dialog-title">
       <form class="business-form" id="schedule-form" action="/api/operations-content" method="post" novalidate>
@@ -438,6 +439,7 @@ const clientCategories=subjectCategories;
       </form>
     </BusinessFormSheet>
 
+      <SchedulePlacement/>
     </BusinessSheet>
     </BusinessConsoleFrame>
 
