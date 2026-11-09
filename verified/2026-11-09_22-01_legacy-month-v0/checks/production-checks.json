@@ -1,0 +1,24 @@
+{
+  "target": "https://qiuyun-frontend.vercel.app",
+  "checks": [
+    {
+      "route": "/business/operations-schedule?month=2026-10",
+      "status": "302",
+      "expected": 302,
+      "passed": true
+    },
+    {
+      "route": "/api/auth/get-session",
+      "status": "200",
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "route": "/api/operations-content/356324bf-230a-490d-a29d-7de34eb268d3",
+      "status": "401",
+      "expected": 401,
+      "passed": true
+    }
+  ],
+  "passed": true
+}
