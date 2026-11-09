@@ -1,0 +1,44 @@
+{
+  "target": "https://qiuyun-frontend-p8s5mkm9a-opgobl1v-5358.vercel.app",
+  "checks": [
+    {
+      "route": "/business/operations-schedule?month=2026-10",
+      "status": "302",
+      "expected": 302,
+      "passed": true
+    },
+    {
+      "route": "/business/settings?view=guide",
+      "status": "302",
+      "expected": 302,
+      "passed": true
+    },
+    {
+      "route": "/api/auth/get-session",
+      "status": "200",
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "route": "/api/operations-content/356324bf-230a-490d-a29d-7de34eb268d3",
+      "status": "401",
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "route": "/_astro/operations-schedule.astro_astro_type_script_index_0_lang.57gVcl5H.js",
+      "status": "200",
+      "expected": 200,
+      "passed": true,
+      "sha256": "53c33f2171b4837396a5bcb54d63eddebec27731ce002ad2ebd1bcb12b99eaf1"
+    },
+    {
+      "route": "/_astro/settings.C_74jfiy.css",
+      "status": "200",
+      "expected": 200,
+      "passed": true,
+      "sha256": "c84228b637b8ce91525d8a404c952388e8f828926509437a7e877879f7631fd6"
+    }
+  ],
+  "passed": true
+}

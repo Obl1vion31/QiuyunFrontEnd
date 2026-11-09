@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "checks": [
+    "说明双角色1440目录顺序、权限边界、取消编号示例、键盘、前后退与刷新锚点；1024和有限390无明显溢出，管理入口仍403"
+  ],
+  "screens": [
+    "admin-guide-actions-1440",
+    "admin-guide-versions-1440",
+    "admin-guide-monthly-1440",
+    "admin-guide-end-1440",
+    "employee-guide-actions-1440",
+    "employee-guide-high-impact-1440",
+    "employee-guide-versions-1440",
+    "employee-guide-cancel-example-1440",
+    "employee-guide-reviews-1440",
+    "employee-guide-end-1440",
+    "employee-guide-actions-1024",
+    "employee-guide-versions-1024",
+    "employee-guide-directory-390",
+    "employee-guide-versions-390"
+  ],
+  "errors": [],
+  "dataSource": "真实隔离PostgreSQL与虚构业务数据，实际Vercel目标包",
+  "productionWrites": false
+}

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "管理员与员工同一已发V0：取消V1后入口恢复、最新有效标识与V2预览一致",
+    "员工真实创建V2，旧V0在管理员刷新后与新未发V2均无改帖入口",
+    "V2真实发布登记后不重载整页即恢复改帖、预览V3；关闭员工改帖权限后入口仍隐藏"
+  ],
+  "screens": [
+    "admin-restored-1440",
+    "employee-restored-1440",
+    "employee-revision-v2-1440",
+    "employee-created-v2-1440",
+    "employee-published-v2-1440"
+  ],
+  "errors": []
+}
