@@ -268,7 +268,9 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 - MonthlyArrangementPanel 通过默认slot包住原月历／台账，阶段标题、Week计划、日期格、核对表单共用边界；撤下列表与入口已移除，旧cancelled查询转回普通月历，查帖不再链接已撤下的排期；推广视角透传slot，不增加无关阶段。MonthlyCalendarPlan 按monthWeeks以五条紧凑行呈现：208px左列集中周次、日期和数量，右列标签全量展示并仅在本周换行；共用说明／选择底栏，CSS替换提示而不复制选择状态。新做、遗留、指定仍归周；compactPlanItems仅合并无独立进展的新做，实际已安排／待审不能再作新建来源。monthly-arrangement 在原格网拖动、原表单落实，保存同步清单与计数；定稿冲突才一次性重读核对，不重挂日历。monthly-calendar沿公共readBusiness自动补读，失败才显示来源重试，切月及离场取消旧响应；空同日提示不渲染，不复制Inspector。旧 links 接口仅兼容首轮执行关系，不改最终基准。
 - operations-content DELETE 仅设置 cancelledAt，撤下预约／待审并保留原帖与历史；executionHistory 的前后内容由排期Inspector和查帖共用展示，withoutLegacyDelay 对新默认空值保持旧指纹兼容。
 
-内容职能接入：`content-roles`共用固定选项、分组键与`sameNonPromotionCohort`；`BusinessContentRoleFields`及`operation-setup`只在两个合集显示单选，`content-role-workflow`在原排期事务保存并记录业务更正。新字段为空不改变旧审批指纹。`non-promotion-read-model`、指标保存及`meeting-weekly-material`共用职能入样条件；持续指标保存预期起点，旧数据以已存`statisticsFrom`冻结与展示。管理员`BusinessUsageGuide`由既有settings门禁覆盖。
+内容职能接入：`content-roles`共用固定选项、分组键与`sameNonPromotionCohort`；`BusinessContentRoleFields`及`operation-setup`只在两个合集显示单选，`content-role-workflow`在原排期事务保存并记录业务更正。新字段为空不改变旧审批指纹。`non-promotion-read-model`、指标保存及`meeting-weekly-material`共用职能入样条件；持续指标保存预期起点，旧数据以已存`statisticsFrom`冻结与展示。`BusinessUsageGuide`向全员提供公共操作与权限说明，维护章节及目录由服务端仅向管理员输出，settings管理入口保留原门禁。
+
+改帖资格由浏览器安全的`content-version-rules`统一计算：仍有未取消排期的最高版本决定`isLatestActiveVersion`，所有历史版本决定`nextVersionNumber`。排期SSR只补读版本ID、内容ID和编号；入口、表单及实发局部回显共用`canCreateRevision`。创建接口在原事务锁内重新读取同一内容的全部版本及有效排期，取消来源拒绝，编号不回收；不修改取消记录或已结束推广事实。
 
 标准基准资格由`anchorReviewPosts.standardCohortEligible`统一推导，读模型、指标保存与例会材料复用；客户端使用服务端`cohortEligible`组织原位明细，不将推广后持续遗留的标准事实重新归入分类均值。
 

@@ -1,6 +1,7 @@
 ---
 import {effectiveCategoryName} from '../../db/content-config';
 import {scheduleWriteVersion} from '../../db/schedule-write-version';
+import {contentRevisionStates,type ContentVersionReference} from '../../db/content-version-rules';
 import BusinessContentRoleFields from '../../components/BusinessContentRoleFields.astro';
 import {readMonthlyCalendar} from '../../db/monthly-plan-links';
 import MonthlyCalendarPlan from '../../components/MonthlyCalendarPlan.astro';
@@ -113,6 +114,7 @@ let notifications: Awaited<ReturnType<typeof teamScheduleNotifications>> | undef
 let databaseError = '';
 let promotionContext: PromotionContext = { pauses: [], targets: [], holds: [] };
 let campaignRows: Array<typeof operationsPromotionCampaign.$inferSelect> = [];
+let versionHistory:ContentVersionReference[]=[];
 const rowStatus = (row: { id: string; promotionStatus: string }) => {
   const campaign = campaignRows.find(c => c.scheduleId === row.id);
   return effectivePromotionStatus(row.promotionStatus, campaign?.currentStage ?? null, campaign?.id ?? null, promotionContext);
@@ -128,7 +130,7 @@ let rows: Array<{
 const databaseStartedAt = performance.now();
 try {
   const database = getDb();
-  [rows, notifications, campaignRows, promotionContext] = await Promise.all([database.select({
+  [rows, notifications, campaignRows, promotionContext,versionHistory] = await Promise.all([database.select({
     id: operationsContentSchedule.id,writeVersion:scheduleWriteVersion,
     versionId: operationsContentVersion.id,
     contentId: operationsContentVersion.contentId,contentRole:operationsContent.contentRole,operationType:operationsContent.operationType,
@@ -160,7 +162,8 @@ try {
   teamScheduleNotifications(database),
   database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),
   readPromotionContext(database),
-  ]) as [typeof rows, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext ];
+  database.select({id:operationsContentVersion.id,contentId:operationsContentVersion.contentId,versionNumber:operationsContentVersion.versionNumber}).from(operationsContentVersion),
+  ]) as [typeof rows, Awaited<ReturnType<typeof teamScheduleNotifications>>, typeof campaignRows, typeof promotionContext,typeof versionHistory ];
 } catch (error) {
   console.error('operations schedule query failed', error);
   databaseError = '数据库暂时不可用。请检查开发库连接和最新迁移后重试。';
@@ -199,7 +202,9 @@ const calendarCells = Array.from({ length: Math.ceil((firstWeekday + daysInMonth
   const key = valid ? `${selectedMonth}-${String(day).padStart(2, '0')}` : '';
   return { day, key, valid, rows: valid ? activeRows.filter((row) => dayKey(row.plannedPublishAt) === key) : [] };
 });
+const revisionStates=contentRevisionStates(versionHistory,rows.map(row=>({id:row.versionId,contentId:row.contentId,versionNumber:row.versionNumber})));
 const clientRows = rows.map((row) => {
+  const revisionState=revisionStates.get(row.contentId)!;
   const child = rows.find((candidate) => candidate.sourceVersionId === row.versionId);
   const source = row.sourceVersionId ? rows.find((candidate) => candidate.versionId === row.sourceVersionId) : undefined;
   return {
@@ -215,7 +220,8 @@ const clientRows = rows.map((row) => {
     plannedDisplay: displayDateTime(row.plannedPublishAt),
     actualDisplay: row.actualPublishAt ? displayDateTime(row.actualPublishAt) : '—',
     sourceScheduleId: row.id,
-    nextVersionNumber: Math.max(...rows.filter((candidate) => candidate.contentId === row.contentId).map((candidate) => candidate.versionNumber), row.versionNumber) + 1,
+    isLatestActiveVersion:revisionState.latestActiveVersionId===row.versionId,
+    nextVersionNumber:revisionState.nextVersionNumber,
     childVersionNumber: child?.versionNumber ?? null,
     sourceVersionNumber: source?.versionNumber ?? null,
   };

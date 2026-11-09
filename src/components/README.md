@@ -103,7 +103,7 @@ ContentTunnel.module.css
 
 `NonPromotionReviewRow`承载三种方式的同一事实行、缺失语义和Inspector入口，`NonPromotionCategoryMetric`展示独立有效样本的分类均值及比率细轨，`NonPromotionReadingTrend`展示持续复盘真实日期累计阅读量；不复制编辑表单或详情开关。
 
-- `BusinessContentRoleFields.astro`：两个合集的条件职能单选，复用排期表单字段；`BusinessUsageGuide.astro`：系统设置管理员只读说明，标签及标准节点来自业务代码。
+- `BusinessContentRoleFields.astro`：两个合集的条件职能单选，复用排期表单字段；`BusinessUsageGuide.astro`：全员使用说明，按常用操作、条件和高影响任务整理全站主要按钮与权限，保留统计口径及真实操作图；维护章节和对应目录仅管理员可见，标签及标准节点来自业务代码。
 
 `BusinessResourceLinks.astro` 是推广、非推广及排期共用的只读资料入口。静态模式接收documentUrl／postUrl／name，排期dynamic模式保留原data-inspector-doc／post绑定并消费既有摘要；资料和帖子保留原URL、真实域名与缺失状态，日期和待处理信息按任务保留。编辑、保存、权限和详情开关由原控制器负责。所有模块通过Frame共享材质，不复制公共壳层。
 
