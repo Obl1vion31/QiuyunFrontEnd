@@ -1,0 +1,19 @@
+{
+  "source": "5aba905",
+  "baseline": "311e7da",
+  "status": "已发布，已自检，待用户反馈",
+  "scope": "周会四项总览的标记与底纹；1920×1000管理员，纯样式共用呈现",
+  "sample": "隔离PGlite，上海时钟2026-11-09 12:00，真实API会前／会后定稿",
+  "build": {
+    "adapter": "Vercel",
+    "errors": 0,
+    "warnings": 0,
+    "existingHints": 59
+  },
+  "productionBusinessWrites": false,
+  "chartFix": "fd0410a",
+  "preservedConcurrentFeature": "1b1314f",
+  "deployment": "dpl_D4Wr7jyB2U8iXFicVcPMueGB3QBx",
+  "productionChecks": 5,
+  "verifiedAssets": 4
+}

@@ -1,0 +1,22 @@
+{
+  "baseline": false,
+  "checks": [
+    "8天复盘区间：每项仅一个末有效实心点，无可见竖条；进入动效及键盘不增加标记",
+    "正常7天复盘区间同样只强调末有效点",
+    "末周成本未知时强调前一有效点，真实0消耗仍强调末周；缺值不补0",
+    "成本全未知时没有实心或空心数据点，不制造零值",
+    "减少动态效果、冻结JSON和已生成PDF字节保持；实际运行包生成周会PDF成功"
+  ],
+  "errors": [],
+  "geometry": {
+    "x": 281,
+    "y": 211,
+    "width": 1575,
+    "height": 295.734375
+  },
+  "pdfSha256": "6a6c197edee9cf9fb44625061a03fefbc5276c92b3ed15f76ddae65739bd8b4f",
+  "role": "admin",
+  "viewport": "1920x1000",
+  "database": "isolated PGlite",
+  "productionBusinessWrites": false
+}

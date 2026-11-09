@@ -1,0 +1,18 @@
+{
+  "baseline": true,
+  "checks": [
+    "复现：11月1—8日同时出现两个实心点与两条底纹"
+  ],
+  "errors": [],
+  "geometry": {
+    "x": 281,
+    "y": 211,
+    "width": 1575,
+    "height": 295.734375
+  },
+  "pdfSha256": "21f2987ff0f9acc4e7d7ee6d53ea381a098228589258fe9db78a16cf3e4decb1",
+  "role": "admin",
+  "viewport": "1920x1000",
+  "database": "isolated PGlite",
+  "productionBusinessWrites": false
+}

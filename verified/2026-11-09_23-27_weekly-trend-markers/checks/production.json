@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "source": "5aba905",
+  "chartFix": "fd0410a",
+  "preservedConcurrentFeature": "1b1314f",
+  "base": "https://qiuyun-frontend.vercel.app",
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/business/meeting-review",
+      "status": 302
+    },
+    {
+      "path": "/business/settings?view=guide",
+      "status": 302
+    },
+    {
+      "path": "/business/operations-schedule?month=2026-10",
+      "status": 302
+    },
+    {
+      "path": "/api/meeting-reviews/00000000-0000-4000-8000-000000000001",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_astro/meeting-finalization.DtyNmlp4.js",
+      "sha256": "87bffa85ff847ce4ac92d1d48c8e37f6a7ebf06678c6aecaa67e3e9a33b35275"
+    },
+    {
+      "path": "/_astro/monthly-operations.ugU_YM6D.css",
+      "sha256": "5280cde2342671dc6d42f9c878f2aee6ce5c0999509cc4177485665ed64f767b"
+    },
+    {
+      "path": "/_astro/operations-schedule.astro_astro_type_script_index_2_lang.D_rPduIM.js",
+      "sha256": "a56da4ea7b1bbb7c9373e4ad0700865aadd7c9c8514fe7eded3167f54788ff36"
+    },
+    {
+      "path": "/_astro/settings.C_74jfiy.css",
+      "sha256": "c84228b637b8ce91525d8a404c952388e8f828926509437a7e877879f7631fd6"
+    }
+  ],
+  "productionBusinessWrites": false
+}
