@@ -10,11 +10,11 @@ const state=provided??await readArrangement(getDb(),month),admin=Astro.locals.us
 const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pending:'等待管理员核对',confirmed:'月排期 V0 已定稿'};
 ---
 {active?<section class="arrangement-panel" data-arrangement-stage={state.stage} data-arrangement-role={admin?'admin':'employee'} aria-label="本月排期工作区">
- <header class:list={["arrangement-heading",{"is-sealed":state.stage==='confirmed'}]}><div class="arrangement-title"><h2>{labels[state.stage]}</h2>{state.stage!=='closed'&&<p class="arrangement-counts">{state.stage==='confirmed'?'定稿计划':'预排期'} <b data-arrangement-planned>{state.preplanned}</b> 篇<span aria-hidden="true"> · </span>当前安排 <b data-arrangement-count>{state.rows.length}</b> 篇</p>}</div>
- {state.stage==='closed'?<p>本月确认预排期后才能新增或移入排期。已发布记录保留。</p>:state.stage==='confirmed'?null:<p>{state.stage==='review_pending'?'已提交管理员核对，定稿前仍可继续排期。':'单帖保存用于暂存；整月排好后再提交核对。'}</p>}
+ <header class:list={["arrangement-heading",{"is-sealed":state.stage==='confirmed'}]}><div class="arrangement-title"><h2>{state.legacyV0?'历史月排期 V0':labels[state.stage]}</h2>{state.stage!=='closed'&&<p class="arrangement-counts">{!state.legacyV0&&<>{state.stage==='confirmed'?'定稿计划':'预排期'} <b data-arrangement-planned>{state.preplanned}</b> 篇<span aria-hidden="true"> · </span></>}当前安排 <b data-arrangement-count>{state.rows.length}</b> 篇</p>}</div>
+ {state.stage==='closed'?<p>本月确认预排期后才能新增或移入排期。已发布记录保留。</p>:state.legacyV0?<p>历史月份沿用既有排期，后续调整请填写原因。</p>:state.stage==='confirmed'?null:<p>{state.stage==='review_pending'?'已提交管理员核对，定稿前仍可继续排期。':'单帖保存用于暂存；整月排好后再提交核对。'}</p>}
  </header>
  <div class="arrangement-content"><slot/></div>
- {state.stage!=='closed'&&<section class="arrangement-review" aria-label="首轮排期核对">
+ {state.stage!=='closed'&&!state.legacyV0&&<section class="arrangement-review" aria-label="首轮排期核对">
  <details data-arrangement-details open={state.stage==='review_pending'&&admin}><summary>首轮排期核对清单 ({state.comparison?<span>{state.comparison.rows.length}</span>:<span data-arrangement-count>{state.rows.length}</span>})</summary>
   {state.comparison?<ScheduleComparisonTable value={state.comparison} groupByWeek/>:<>  <div class="arrangement-table"><table><thead><tr><th>Week</th><th>帖子</th><th>学科／分类</th><th>计划时间</th><th>实发</th></tr></thead><tbody>{state.rows.map(row=><tr><td>Week {weekOf(businessDate(row.plannedAt))}</td><td>{row.name} · V{row.versionNumber}</td><td>{row.subjectName}／{row.categoryName??'未分类'}</td><td>{businessDateTime(row.plannedAt)}</td><td>{row.actualAt?businessDateTime(row.actualAt):'尚未发布'}</td></tr>)}</tbody></table></div></>}
 

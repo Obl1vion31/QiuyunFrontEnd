@@ -15,6 +15,8 @@ export class ArrangementError extends WorkflowError {
  constructor(public override readonly code:string,message:string,status=409){super(message,status);}
 }
 export const dateMonth=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit'}).format(date);
+// 预排期从2026-11启用；更早月份沿用历史月排期V0，不补造确认或封存记录。
+export const isLegacyScheduleMonth=(month:string)=>month<'2026-11';
 const dateKey=(date:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai'}).format(date);
 export async function arrangementRows(db:Database,month:string){
  return db.select({id:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,versionId:s.operationsContentVersion.id,
@@ -36,9 +38,10 @@ export const arrangementFingerprint=(plan:Plan,rows:Awaited<ReturnType<typeof ar
 })).digest('hex');
 export async function readArrangement(db:Database,month:string){
  const [plan]=await db.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.month,month));
- if(!plan)return {month,stage:'closed' as const,planId:null,rows:[],fingerprint:'',preplanned:0,history:[],draftReason:'',comparison:undefined};
+ if(!plan?.firstFinalizedAt&&isLegacyScheduleMonth(month))return {month,stage:'confirmed' as const,legacyV0:true,planId:null,rows:await arrangementRows(db,month),fingerprint:'',preplanned:0,history:[],draftReason:'',comparison:undefined};
+ if(!plan)return {month,stage:'closed' as const,legacyV0:false,planId:null,rows:[],fingerprint:'',preplanned:0,history:[],draftReason:'',comparison:undefined};
  const rows=await arrangementRows(db,month);
- return {month,planId:plan.id,stage:!plan.firstFinalizedAt?'closed' as const:plan.arrangementStatus,
+ return {month,planId:plan.id,legacyV0:false,stage:!plan.firstFinalizedAt?'closed' as const:plan.arrangementStatus,
   rows,fingerprint:arrangementFingerprint(plan,rows),preplanned:plan.content.items.length+plan.additions.reduce((n,b)=>n+b.content.items.length,0),
   comparison:plan.arrangementStatus==='confirmed'?await readScheduleComparison(db,month+'-01',new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),0)).toISOString().slice(0,10),new Date(),'current'):undefined,
   history:plan.arrangementHistory.filter(h=>h.action!=='draft'),draftReason:[...plan.arrangementHistory].reverse().find(h=>h.action==='draft'||h.action==='submit')?.reason??''};

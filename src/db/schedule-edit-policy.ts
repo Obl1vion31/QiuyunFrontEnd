@@ -4,7 +4,7 @@ import type {Database} from './client';
 import type {OperationsUser} from '../auth/permissions';
 import {requireAdmin} from '../auth/permissions';
 import {lockPromotionWorkflow} from './promotion-pauses';
-import {ArrangementError,assertMeetingMutable,dateMonth} from './monthly-arrangement';
+import {ArrangementError,assertMeetingMutable,dateMonth,isLegacyScheduleMonth} from './monthly-arrangement';
 import {WorkflowError,ScheduleReasonError} from './schedule-workflow';
 import * as s from './schema';
 import {readSchedulePlanContexts} from './schedule-history-context';
@@ -25,10 +25,11 @@ export async function assertScheduleMonthRules(db:Database,input:{months:string[
  const plans=input.months.length?await db.select({month:s.operationsMonthlyPlan.month,firstFinalizedAt:s.operationsMonthlyPlan.firstFinalizedAt,arrangementStatus:s.operationsMonthlyPlan.arrangementStatus}).from(s.operationsMonthlyPlan).where(inArray(s.operationsMonthlyPlan.month,input.months)):[];
  for(const month of input.months){
   const plan=plans.find(p=>p.month===month);
-  if((creating||moving)&&month===newMonth&&!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',month+' 尚未确认预排期，不能新增或移入排期。当前输入已保留。',422);
-  if(current&&!moving&&!plan?.firstFinalizedAt&&!current.actualPublishAt&&!current.cancelledAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','遗留内容在月例会确认预排期前保持原安排，不能提前改动。',422);
+  const preplanned=isLegacyScheduleMonth(month)||!!plan?.firstFinalizedAt;
+  if((creating||moving)&&month===newMonth&&!preplanned)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',month+' 尚未确认预排期，不能新增或移入排期。当前输入已保留。',422);
+  if(current&&!moving&&!preplanned&&!current.actualPublishAt&&!current.cancelledAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','遗留内容在月例会确认预排期前保持原安排，不能提前改动。',422);
  }
- if(plans.some(p=>p.arrangementStatus==='confirmed')&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
+ if((input.months.some(isLegacyScheduleMonth)||plans.some(p=>p.arrangementStatus==='confirmed'))&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
 }
 export async function captureScheduleExecution(db:Database,scheduleIds:string[]){
  const links=await db.select({contentId:s.operationsContentVersion.contentId}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(inArray(s.operationsContentSchedule.id,scheduleIds));

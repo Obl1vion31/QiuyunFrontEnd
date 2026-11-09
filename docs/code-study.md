@@ -64,6 +64,8 @@ flowchart LR
 
 ## 共享界面接入
 
+历史月份兼容由`monthly-arrangement.isLegacyScheduleMonth`共用：2026-11为预排期起点，之前缺少已确认计划时`readArrangement`返回只读`legacyV0`状态，`MonthlyArrangementPanel`沿原V0外壳显示当前排期；`schedule-edit-policy`共用边界并保留原因要求。页面和实际写入同时兼容，不创建计划或确认记录；真实基准／冻结快照仍由原入口读取。
+
 先按[本轮检查选择](../tests/README.md#本轮如何选择检查)确定受影响的共享消费者和验收路径；下列实例及专项覆盖说明用于定位，不要求每次全部执行。首屏、角色、动效与PDF分别按实际变动触发，相关结果在输入未变时复用。
 
 `OrganizationWorkspace`复用公共Toolbar／ViewSwitch、SectionHeader、ToolbarActions和FormSheet。`organization.ts`按已知SSR模型就近编辑，保存局部更新职责、负责人及人员行，不替换公共节点；同路径视图前后退接入`business:local-history-pop`，草稿关闭和导航复用公共确认与退出动画。流程IntersectionObserver只在可见后启动一次，填写和保存不重播。`GET/PATCH /api/organization`复用会话与同源保护，服务端严格校验且仅管理员可写；短事务锁使任职替换与审计前后值一致，重复同值不追加更正。账号权限及现有业务事实不随任职更改。
