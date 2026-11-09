@@ -24,6 +24,7 @@
 .report-trend circle{fill:#fff;stroke:currentColor;stroke-width:1.7}
 .report-trend circle.is-current{fill:currentColor}.report-trend circle:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px}
 .report-period-highlight{fill:#438b800b}
+.report-weekly-overview .report-period-highlight{display:none}
 .report-trend figcaption{display:flex;justify-content:space-between;gap:4px;margin-top:3px;font:400 12px/18px var(--console-font);color:var(--console-muted)}
 .report-kpi-spend .report-trend{color:var(--report-blue)}
 .report-data-gap{margin:12px 0 0}
