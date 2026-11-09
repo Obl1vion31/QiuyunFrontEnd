@@ -6,12 +6,14 @@ import {categoryContentRoles,contentRoleLabels} from '../db/content-roles';
 import {reviewCheckpoints} from '../db/stage-review-rules.mjs';
 const administrator=isAdmin(Astro.locals.user);
 const sections=[
+ {id:'guide-actions',label:'操作与权限速查'},
+ {id:'guide-versions',label:'排期、发布与改帖'},
+ {id:'guide-reviews',label:'日常复盘与保存'},
+ {id:'guide-monthly',label:'年度规划与月会排期'},
  {id:'guide-types',label:'运营类型与内容职能'},
- {id:'guide-versions',label:'发布与改帖'},
  {id:'guide-dates',label:'日期与统计区间'},
- {id:'guide-promotion',label:'推广历史更正'},
  {id:'guide-compare',label:'同类比较'},
- {id:'guide-monthly',label:'月例会与排期'},
+ {id:'guide-promotion',label:'推广历史更正'},
  ...(administrator?[{id:'guide-maintain',label:'维护入口'}]:[]),
 ];
 const descriptions={
@@ -34,74 +36,81 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
     </nav>
    </div>
    <BusinessPageHeader title="使用说明"/>
-   <p class="guide-intro">先了解日常业务操作，再按月会确定的计划落实排期。</p>
+   <p class="guide-intro">先查要做的操作与权限，再按发布、复盘和月会流程完成工作。</p>
    <article class="guide-content" aria-label="工作台使用说明">
-    <h2 class="guide-part-title">第一部分：日常业务操作</h2>
-    <section id="guide-types" data-guide-section>
-     <h3 tabindex="-1">运营类型与内容职能</h3>
-     <p class="guide-lead">类型决定复盘安排，职能决定比较分组。</p>
-     <div class="guide-table"><table><thead><tr><th>运营类型</th><th>复盘安排</th></tr></thead><tbody>{operationTypes.map(type=><tr><th scope="row">{operationTypeLabels[type]}</th><td>{descriptions[type]}</td></tr>)}</tbody></table></div>
-     <div class="guide-table"><table><thead><tr><th>规划分类</th><th>可选内容职能</th></tr></thead><tbody>{Object.entries(categoryContentRoles).map(([category,roles])=><tr><th scope="row">{categoryNames[category as keyof typeof categoryNames]}</th><td>{roles.map(role=>contentRoleLabels[role]).join('、')}</td></tr>)}</tbody></table></div>
-     <p class="guide-note">神预判选“内容预判”，分数线预估／预测选“分数线预测”，完整版选“试题解析”；拉群、讨论、祈祷、预告等选“引流互动”，系统故障／成绩复核提醒选“通知提醒”。</p>
-     <p class="guide-note">两项在排期中维护，填写指标时无需重复选择。职能由原帖各版本共用，不改变年度目标、排期和月度篇数。未明确归类的旧帖不进入已细分均值。</p>
+    <section id="guide-actions" data-guide-section>
+     <h2 tabindex="-1">操作与权限速查</h2>
+     <p class="guide-lead">管理员和员工都能处理日常业务。排期操作另受账号授权限制；组织中的岗位与兼任关系不会自动改变账号权限。按钮没有出现或不能点击，也可能是当前对象、日期或月份尚不符合条件。</p>
+     <h3>日常优先：规划、发布与数据录入</h3>
+     <div class="guide-table"><table><thead><tr><th>操作与用途</th><th>谁能用、何时能用</th><th>结果与下一步</th></tr></thead><tbody>
+      <tr><th scope="row">年度规划：保存规划行、复制年度</th><td>管理员与员工均可直接操作。</td><td>维护目标与年度安排；真实修改追加版本，复制后核对目标年度。</td></tr>
+      <tr><th scope="row">排期：新做帖</th><td>账号已开放新建，且目标月份已开放排期。</td><td>建立V0与应发安排；真正发布后再登记实发。</td></tr>
+      <tr><th scope="row">排期：发布登记</th><td>账号已开放发布登记。</td><td>登记实发时间、项目文档和帖子链接；首次要求同步朋友圈时还须确认发送。</td></tr>
+      <tr><th scope="row">推广／非推广复盘：保存</th><td>管理员与员工均可；填写已开放日期或节点。</td><td>保存真实指标与安排，缺数据保留未知，不把缺失当作零。</td></tr>
+      <tr><th scope="row">月度运营：私域数据</th><td>管理员与员工均可录入与保存。</td><td>按实际行为发生月填写人数与来源，成本按已登记消耗和有效人数计算。</td></tr>
+      <tr><th scope="row">例会：新建例会、保存草稿</th><td>管理员与员工均可。</td><td>先核对复盘区间和来源；草稿可继续编辑，定稿前补齐待处理项。</td></tr>
+     </tbody></table></div>
+     <h3>按需调整：先看对象和业务条件</h3>
+     <div class="guide-table"><table><thead><tr><th>操作与用途</th><th>谁能用、何时能用</th><th>结果与影响</th></tr></thead><tbody>
+      <tr><th scope="row">编辑排期、移动／对换</th><td>按账号的编辑及正常／超时改期权限；移动与对换只处理未发布排期。</td><td>修改安排，不产生内容新版。目标月、时间与原因必须符合要求。</td></tr>
+      <tr><th scope="row">创建改帖</th><td>账号已开放改帖，来源是已登记实发的最新有效版本。</td><td>建立下一编号与待发布排期；具体条件见下方“排期、发布与改帖”。</td></tr>
+      <tr><th scope="row">继续编辑、跳过／恢复</th><td>管理员与员工按对应记录和节点的状态操作。</td><td>更正已保存复盘，或明确处理未复盘节点；操作仍保留历史。</td></tr>
+      <tr><th scope="row">周会会前／会后定稿</th><td>管理员与员工均可；须满足本场会议的到期、完整性和版本条件。</td><td>冻结本版材料；拟议安排在会前定稿时不生效，会后按其生效日期处理。</td></tr>
+     </tbody></table></div>
+     <h3>先确认影响：历史、取消与封存</h3>
+     <div class="guide-table"><table><thead><tr><th>操作与用途</th><th>谁能用、何时能用</th><th>结果与影响</th></tr></thead><tbody>
+      <tr><th scope="row">更正已有实发时间、已有关联推广时改为非推广</th><td>员工需单独授权，默认关闭；按配置直接生效或提交审核。</td><td>核对历史影响预览与原因，保留已有推广事实和审计记录。</td></tr>
+      <tr><th scope="row">推广历史更正</th><td>管理员与员工均可；核对日期衔接，涉及后续数据时先确认影响。</td><td>修改真实发生的安排；不通过清空后续记录消除冲突。</td></tr>
+      <tr><th scope="row">取消排期</th><td>仅管理员，且排期尚未登记实发；必须填写原因。</td><td>撤下排期，保留版本与历史。取消新版后，原已发有效版本可继续改帖。</td></tr>
+      <tr><th scope="row">确认预排期、定稿并封存</th><td>仅管理员；会前定稿不能替代确认预排期。</td><td>先开放执行月，再将核对后的首轮安排冻结为月排期V0。</td></tr>
+      <tr><th scope="row">组织与设置维护</th><td>仅管理员维护岗位、人员任职、账号、操作授权与业务配置；员工可查看组织与公共说明。</td><td>按真实业务维护；授权变化后以最新账号权限为准。</td></tr>
+     </tbody></table></div>
+     <p class="guide-note">普通新建、改帖、编辑和改期在权限开放时直接保存。账号授权不能替代发布、版本、月份和封存条件；有权限仍需满足当前任务的业务要求。</p>
     </section>
     <section id="guide-versions" data-guide-section>
-     <h3 tabindex="-1">发布与改帖</h3>
-     <p class="guide-lead">普通非推广沿用原计划，推广后持续按实发版本分段。</p>
+     <h2 tabindex="-1">排期、发布与改帖</h2>
+     <p class="guide-lead">改安排用“编辑排期”，改内容版本用“创建改帖”，完成发布用“发布登记”。</p>
+     <div class="guide-table"><table><thead><tr><th>按钮</th><th>何时使用与操作结果</th></tr></thead><tbody>
+      <tr><th scope="row">新做帖</th><td>建立独立内容V0，填写应发日期、学科与分类。</td></tr>
+      <tr><th scope="row">编辑排期</th><td>更正资料、用途与允许调整的应发时间，不增加内容版本。</td></tr>
+      <tr><th scope="row">移动／对换</th><td>调整未发布帖子的日期，或原子交换两篇应发时间；不能代替内容改版。</td></tr>
+      <tr><th scope="row">发布登记</th><td>首次登记实发与链接；“查看／编辑发布登记”用于核对和按权限更正。只在小红书发布、工作台未登记实发，仍不具备改帖资格。</td></tr>
+      <tr><th scope="row">创建改帖</th><td>从已发的最新有效版本建立新版本与待发布排期。填写新版应发时间、具体改动说明及需要的调整原因；项目文档可暂空。</td></tr>
+      <tr><th scope="row">取消排期</th><td>管理员撤下未发布排期并留原因；不是删除内容版本，也不是撤回小红书上的帖子。</td></tr>
+     </tbody></table></div>
+     <h3>哪些已发布帖子能继续改帖</h3>
+     <ul>
+      <li>最新有效版本，是仍有未取消排期的最高版本。V0或V1、V2都可作为来源，但必须已登记实发；系统沿用实发时间非空的登记口径，未来实发登记也按已登记处理。</li>
+      <li>已有有效新版时，旧版入口关闭。即使旧版已发、新版未发，也要先处理新版，不能从旧版另起一个有效分支。</li>
+      <li>2026-10及以前按历史月排期V0维护，调整需原因；2026-11起先由管理员确认预排期。新版目标月份也须开放，封存后仍可带原因调整执行。</li>
+      <li>账号未开放改帖、来源未登记实发或不是最新有效版本时，入口不显示或不可用。推广活动有待定安排且当前阶段仍未结束时，提交会要求先明确结束或淘汰原版本。</li>
+     </ul>
+     <div class="guide-example"><h3>取消新版后继续改帖</h3><p>V0已发布，V1未发布并被取消：V0恢复改帖资格，新建编号为V2；若再取消V2，则从V0创建V3。V1、V2的取消记录保留，编号不回收。只要仍有更高的有效版本，就不能从V0继续派生。</p></div>
+     <p>创建成功后，新版本尚未发布，运营类型沿用原帖。原版仍在普通测试／放量阶段时，创建会将其结束为测试淘汰／放量淘汰；取消新版不会自动恢复原推广阶段。“推广后持续复盘”的最终复盘日期不能早于新版应发日期。</p>
+     <h3>改版后的复盘如何衔接</h3>
      <div class="guide-table"><table><thead><tr><th>帖子类型</th><th>改版后如何处理</th></tr></thead><tbody>
       <tr><th scope="row">普通非推广</th><td>继承运营类型、职能和笔记ID，继续V0未完成节点，不另建样本或重复入样。</td></tr>
       <tr><th scope="row">推广后持续复盘</th><td>新草稿／排期不停止旧版；新版实发时间生效后，旧版退出待办，已录只读保留、未录停止追填。新版继承最终日期，过期须重选；测试或直接放量正常结束后，再开启本版持续复盘。</td></tr>
      </tbody></table></div>
      <p class="guide-note">暂停、待定、淘汰均不触发持续复盘。旧版未完成节点不迁给新版。</p>
     </section>
-    <section id="guide-dates" data-guide-section>
-     <h3 tabindex="-1">日期与统计区间</h3>
-     <p class="guide-lead">按页面标出的完整区间，填写已开放节点的真实数据。</p>
-     <div class="guide-table"><table><thead><tr><th>复盘方式</th><th>统计区间与开放时间</th></tr></thead><tbody>
-      <tr><th scope="row">常规</th><td>原帖最早实发日至数据截至日。实发后{reviewCheckpoints.map(point=>point.days).join('／')}天为标准节点，允许前后一天；数据截至日不晚于昨天，启用首轮时先处理首轮。</td></tr>
-      <tr><th scope="row">即时</th><td>原帖最早实发日至指定截止日，截止次日起录入。</td></tr>
-      <tr><th scope="row">推广后持续</th><td>本版推广正常结束次日至节点截止日。每满7天一次，最终日期不足7天也收尾，截止次日起录入。各节点共用固定起点，累计结果不相加。</td></tr>
+    <section id="guide-reviews" data-guide-section>
+     <h2 tabindex="-1">日常复盘与保存</h2>
+     <p class="guide-lead">先补齐已开放的真实数据，再设置后续安排；保存和定稿承担不同任务。</p>
+     <div class="guide-table"><table><thead><tr><th>入口与按钮</th><th>前提与操作</th><th>结果与注意事项</th></tr></thead><tbody>
+      <tr><th scope="row">推广每日：保存、继续编辑</th><td>从次日起填写数据日；保存后点击“继续编辑”更正该行。</td><td>昨日已保存行保留原位置，更早日期在历史查看与更正。一键保存只提交已填写复盘，不承担批量停投。</td></tr>
+      <tr><th scope="row">当日安排／次日安排</th><td>当日安排更正当前数据日，次日安排从下一日生效。</td><td>两者不能互相代替；改帖子应发日期应回排期管理。暂停、待定仍需复盘，真实零填零，有跑量按实际填写。</td></tr>
+      <tr><th scope="row">重新开始测试</th><td>在测试暂停或测试结束待定的相应安排中选择。</td><td>次日开启同帖新测试轮；恢复原轮不分轮，放量后回测须创建改帖。</td></tr>
+      <tr><th scope="row">非推广：录入、跳过／恢复</th><td>进入已开放节点填写指标；明确不复盘时填写跳过原因，需要时恢复。</td><td>按页面完整统计区间填真实数据，未到期不提前录入；改版不重复建立普通非推广样本。</td></tr>
+      <tr><th scope="row">月度运营：私域数据</th><td>核对月份、学科、来源与用途后保存。</td><td>人数按真实记录维护；未知与零分开，不从成本倒推人数。来源归属配置由管理员维护。</td></tr>
+      <tr><th scope="row">例会：保存草稿、会前／会后定稿</th><td>先补齐材料，再核对区间、结论和下一步安排。</td><td>保存草稿不等于定稿；定稿保存当时的依据。周会双方同条件操作，月会预排期确认与最终封存由管理员执行。</td></tr>
      </tbody></table></div>
-     <div class="guide-example"><h3>持续复盘日期示例</h3><p>推广在 <time>2026-11-05</time> 结束，最终日期为 <time>2026-11-24</time>：自动安排 <time>2026-11-12</time>、<time>2026-11-19</time>、<time>2026-11-24</time>，每次都从 <time>2026-11-06</time> 起统计。</p></div>
-     <ul class="guide-notes">
-      <li>填写曝光、阅读量和3秒阅读率，点击率自动计算。零曝光显示“—”，有曝光而零阅读显示0%；缺数据不拿整篇累计值代填。</li>
-      <li>旧计划补上最终日期后转自动安排。调整最终日期只协调未录节点，不能早于已录结果；更正推广结束日不改写旧区间，旧口径和定稿结果保留历史。</li>
-     </ul>
-    </section>
-    <section id="guide-promotion" data-guide-section>
-     <h3 tabindex="-1">推广历史更正</h3>
-     <p class="guide-lead">在推广生命周期展开每日记录，进入某一天的详情，点击“编辑这一天”，修改的是那一天的“当日安排”。</p>
-     <h4>只核对前一天、当天和后一天</h4>
-     <p>保存时会展示三天的日期和状态，请确认上下文。确认后只修改选中的当天；前后日期保持原状，不自动修改或删除后续记录。当天的指标和备注仍在同一表单填写。</p>
-     <div class="guide-table"><table><thead><tr><th>前一天 → 修改后的当天 → 后一天</th><th>能否保存</th></tr></thead><tbody>
-      <tr><th scope="row">测试中 → 测试暂停 → 测试中</th><td>可以。只把中间这一天改成暂停，前后两天继续测试。</td></tr>
-      <tr><th scope="row">测试暂停 → 测试中 → 测试暂停</th><td>可以。只恢复中间这一天测试，不把后面几天一起改掉。</td></tr>
-      <tr><th scope="row">放量中 → 放量暂停 → 放量中</th><td>可以。同一放量阶段内单日暂停，其他日期和指标保留。</td></tr>
-      <tr><th scope="row">测试中 → 测试结束待定 → 原轮测试中</th><td>不能直接衔接。原轮已经结束；如果实际只是中途暂停，请改为“测试暂停”。后一天本来已有新轮复测标记时，保留该新轮核对。</td></tr>
-      <tr><th scope="row">测试中 → 测试淘汰 → 测试中</th><td>不能直接衔接。淘汰后不能在下一天继续原轮测试；请核对实际发生的状态。</td></tr>
-      <tr><th scope="row">测试中 → 放量中 → 测试中</th><td>不能直接衔接。进入放量后不能回到原轮测试。</td></tr>
-     </tbody></table></div>
-     <div class="guide-example"><h3>只更正10月31日</h3><p>10月29日至11月3日原来都是“测试中”。把10月31日改为“测试暂停”，确认框显示：10月30日测试中、10月31日测试暂停、11月1日测试中。两侧都能衔接，所以可以保存；其余五天不变。</p></div>
-     <h4>遇到提示时怎么办</h4>
-     <ul>
-      <li>提示哪两天不能衔接，就核对这两天的实际状态后重新选择；系统不会靠清空后续记录来完成这次单日修改。</li>
-      <li>取消确认会保留选择、指标和备注。断网或保存失败也保留输入；若其他人更新了前后记录，需要重新核对上下文。</li>
-      <li>只更正金额、人数或备注，不改当日安排时，直接按原保存方式处理，不弹三天状态确认。</li>
-     </ul>
-     <p class="guide-note">管理员和员工都能填写、更正历史状态与区间、修订复盘及更正笔记ID；更正他人记录同样留存实际修改人。双方均需核对日期、状态衔接和影响范围。</p>
-    </section>
-    <section id="guide-compare" data-guide-section>
-     <h3 tabindex="-1">同类比较</h3>
-     <p class="guide-lead">标准节点按同学科、同规划分类、同内容职能、同节点比较。</p>
-     <ul>
-      <li>两个合集分别分组，其他分类沿用原口径。即时帖额外开启的标准节点可参与对应基准，自定义节点不混入标准均值。</li>
-      <li>方式筛选只改变展示，不改变共享基准。阅读量与两项比率分别计算算术均值：缺失排除，真实零参与，有效样本不足时单独标明。</li>
-      <li>两轮样本可能不同，均值对照不代表同帖增长。“引流互动”仍须正常填写全部指标。</li>
-     </ul>
+     <p class="guide-note">保存失败保留输入，按提示修正后重试；提示依据变化时先重新核对。只查看、打开后未改动或改回原值，不应产生放弃修改确认。</p>
     </section>
     <section id="guide-monthly" data-guide-section>
-     <h2 tabindex="-1" class="guide-part-title">第二部分：月例会与排期</h2>
+     <h2 tabindex="-1">年度规划与月会排期</h2>
      <p class="guide-lead">先确认本月要做什么，再落实日期；封存后调整执行，不重写月会基准。</p>
+     <p>年度规划维护目标与数量；月会将本月来源分配到Week，再落实具体帖子。年度规划全员可编辑、复制与恢复，真实调整保留历史；不能用修改年度目标代替已经发生的发布与复盘事实。</p>
      <ol class="guide-flow" aria-label="月会与排期流程">
       <li><strong>填写计划草稿</strong><span>数量、来源、分配 Week</span></li>
       <li><strong>确认预排期</strong><span>管理员确认后才能排当月</span></li>
@@ -122,12 +131,65 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
      <figure class="guide-operation"><a href="/images/guide/placement-choice.png" target="_blank" rel="noopener" aria-label="查看清晰操作图"><img src="/images/guide/placement-choice.png" width="744" height="1040" loading="lazy" alt="操作示例：选择加入当天或与某一篇帖子对换，并核对两篇的新时间"/></a><figcaption>操作示例：对换默认交换完整应发时间。若换回今天的时刻已过，手动补选未来时刻；原因在同一面板填写，两篇一起保存。</figcaption></figure>
      <h3>封存后怎么改，哪些内容保持不动</h3>
      <ul>
-      <li>封存后新增、编辑、移动与对换填写原因即可按权限生效；取消排期由管理员填写原因操作，帖子与历史保留。实发登记和补充帖子链接不需要排期调整理由。</li>
+      <li>2026-10及以前沿用历史月排期V0，后续调整填写原因，不补造确认或封存记录。预排期启用后的月份封存后，新增、编辑、移动与对换填写原因即可按权限生效；取消排期由管理员填写原因操作，帖子与历史保留。实发登记和补充帖子链接不需要排期调整理由。</li>
       <li>月排期 V0、冻结计划与材料保留原值，后续变更进入执行历史；周会按复盘区间核对，月度运营按当前全月执行查看。封存后的月会仅“核心结论、下一步行动”可追加文字版本，不重算计划与指标。</li>
       <li>未完成内容留在原月原日期，不统一改到月底。下个月确认预排期后，再明确接纳遗留并安排新日期；不能提前移入尚未确认预排期的月份。</li>
       <li>未发布排期不能改到已经过去的时间。对换时两篇都要有合法的新时间；目标日或排期变化时重新核对，系统不会只保存其中一篇。</li>
       <li>只打开编辑、查看资料或改回原值，不提示放弃修改。确有未保存内容时，取消确认会保留输入、焦点与位置；保存失败也可继续修改。</li>
      </ul>
+    </section>
+    <section id="guide-types" data-guide-section>
+     <h2 tabindex="-1">运营类型与内容职能</h2>
+     <p class="guide-lead">类型决定复盘安排，职能决定比较分组。</p>
+     <div class="guide-table"><table><thead><tr><th>运营类型</th><th>复盘安排</th></tr></thead><tbody>{operationTypes.map(type=><tr><th scope="row">{operationTypeLabels[type]}</th><td>{descriptions[type]}</td></tr>)}</tbody></table></div>
+     <div class="guide-table"><table><thead><tr><th>规划分类</th><th>可选内容职能</th></tr></thead><tbody>{Object.entries(categoryContentRoles).map(([category,roles])=><tr><th scope="row">{categoryNames[category as keyof typeof categoryNames]}</th><td>{roles.map(role=>contentRoleLabels[role]).join('、')}</td></tr>)}</tbody></table></div>
+     <p class="guide-note">神预判选“内容预判”，分数线预估／预测选“分数线预测”，完整版选“试题解析”；拉群、讨论、祈祷、预告等选“引流互动”，系统故障／成绩复核提醒选“通知提醒”。</p>
+     <p class="guide-note">两项在排期中维护，填写指标时无需重复选择。职能由原帖各版本共用，不改变年度目标、排期和月度篇数。未明确归类的旧帖不进入已细分均值。</p>
+    </section>
+    <section id="guide-dates" data-guide-section>
+     <h2 tabindex="-1">日期与统计区间</h2>
+     <p class="guide-lead">按页面标出的完整区间，填写已开放节点的真实数据。</p>
+     <div class="guide-table"><table><thead><tr><th>复盘方式</th><th>统计区间与开放时间</th></tr></thead><tbody>
+      <tr><th scope="row">常规</th><td>原帖最早实发日至数据截至日。实发后{reviewCheckpoints.map(point=>point.days).join('／')}天为标准节点，允许前后一天；数据截至日不晚于昨天，启用首轮时先处理首轮。</td></tr>
+      <tr><th scope="row">即时</th><td>原帖最早实发日至指定截止日，截止次日起录入。</td></tr>
+      <tr><th scope="row">推广后持续</th><td>本版推广正常结束次日至节点截止日。每满7天一次，最终日期不足7天也收尾，截止次日起录入。各节点共用固定起点，累计结果不相加。</td></tr>
+     </tbody></table></div>
+     <div class="guide-example"><h3>持续复盘日期示例</h3><p>推广在 <time>2026-11-05</time> 结束，最终日期为 <time>2026-11-24</time>：自动安排 <time>2026-11-12</time>、<time>2026-11-19</time>、<time>2026-11-24</time>，每次都从 <time>2026-11-06</time> 起统计。</p></div>
+     <ul class="guide-notes">
+      <li>填写曝光、阅读量和3秒阅读率，点击率自动计算。零曝光显示“—”，有曝光而零阅读显示0%；缺数据不拿整篇累计值代填。</li>
+      <li>旧计划补上最终日期后转自动安排。调整最终日期只协调未录节点，不能早于已录结果；更正推广结束日不改写旧区间，旧口径和定稿结果保留历史。</li>
+     </ul>
+    </section>
+    <section id="guide-compare" data-guide-section>
+     <h2 tabindex="-1">同类比较</h2>
+     <p class="guide-lead">标准节点按同学科、同规划分类、同内容职能、同节点比较。</p>
+     <ul>
+      <li>两个合集分别分组，其他分类沿用原口径。即时帖额外开启的标准节点可参与对应基准，自定义节点不混入标准均值。</li>
+      <li>方式筛选只改变展示，不改变共享基准。阅读量与两项比率分别计算算术均值：缺失排除，真实零参与，有效样本不足时单独标明。</li>
+      <li>两轮样本可能不同，均值对照不代表同帖增长。“引流互动”仍须正常填写全部指标。</li>
+     </ul>
+    </section>
+    <section id="guide-promotion" data-guide-section>
+     <h2 tabindex="-1">推广历史更正</h2>
+     <p class="guide-lead">在推广生命周期展开每日记录，进入某一天的详情，点击“编辑这一天”，修改的是那一天的“当日安排”。</p>
+     <h3>只核对前一天、当天和后一天</h3>
+     <p>保存时会展示三天的日期和状态，请确认上下文。确认后只修改选中的当天；前后日期保持原状，不自动修改或删除后续记录。当天的指标和备注仍在同一表单填写。</p>
+     <div class="guide-table"><table><thead><tr><th>前一天 → 修改后的当天 → 后一天</th><th>能否保存</th></tr></thead><tbody>
+      <tr><th scope="row">测试中 → 测试暂停 → 测试中</th><td>可以。只把中间这一天改成暂停，前后两天继续测试。</td></tr>
+      <tr><th scope="row">测试暂停 → 测试中 → 测试暂停</th><td>可以。只恢复中间这一天测试，不把后面几天一起改掉。</td></tr>
+      <tr><th scope="row">放量中 → 放量暂停 → 放量中</th><td>可以。同一放量阶段内单日暂停，其他日期和指标保留。</td></tr>
+      <tr><th scope="row">测试中 → 测试结束待定 → 原轮测试中</th><td>不能直接衔接。原轮已经结束；如果实际只是中途暂停，请改为“测试暂停”。后一天本来已有新轮复测标记时，保留该新轮核对。</td></tr>
+      <tr><th scope="row">测试中 → 测试淘汰 → 测试中</th><td>不能直接衔接。淘汰后不能在下一天继续原轮测试；请核对实际发生的状态。</td></tr>
+      <tr><th scope="row">测试中 → 放量中 → 测试中</th><td>不能直接衔接。进入放量后不能回到原轮测试。</td></tr>
+     </tbody></table></div>
+     <div class="guide-example"><h3>只更正10月31日</h3><p>10月29日至11月3日原来都是“测试中”。把10月31日改为“测试暂停”，确认框显示：10月30日测试中、10月31日测试暂停、11月1日测试中。两侧都能衔接，所以可以保存；其余五天不变。</p></div>
+     <h3>遇到提示时怎么办</h3>
+     <ul>
+      <li>提示哪两天不能衔接，就核对这两天的实际状态后重新选择；系统不会靠清空后续记录来完成这次单日修改。</li>
+      <li>取消确认会保留选择、指标和备注。断网或保存失败也保留输入；若其他人更新了前后记录，需要重新核对上下文。</li>
+      <li>只更正金额、人数或备注，不改当日安排时，直接按原保存方式处理，不弹三天状态确认。</li>
+     </ul>
+     <p class="guide-note">管理员和员工都能填写、更正历史状态与区间、修订复盘及更正笔记ID；更正他人记录同样留存实际修改人。双方均需核对日期、状态衔接和影响范围。</p>
     </section>
     {administrator&&<section id="guide-maintain" data-guide-section>
      <h2 tabindex="-1">维护入口</h2>
@@ -138,7 +200,9 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
       <tr><th scope="row"><a href="/business/daily-promotion-review">推广帖复盘</a></th><td>推广日度与正常结束</td></tr>
       <tr><th scope="row"><a href="/business/non-promotion-review">非推广复盘</a></th><td>节点指标与统计区间</td></tr>
       <tr><th scope="row"><a href="?view=business">业务配置</a></th><td>按学科维护帖子类型、默认运营类型、推广用途和顺序；归属调整重算实时成本，保留已录人数与封存结果</td></tr>
-      <tr><th scope="row"><a href="?view=permissions">操作授权</a></th><td>排期特殊权限；管理审核入口保持</td></tr>
+      <tr><th scope="row"><a href="/organization">组织与人员</a></th><td>岗位职责、交付资料及现有账号任职；岗位不代替账号授权</td></tr>
+      <tr><th scope="row"><a href="?view=accounts">账号管理</a></th><td>维护现有账号资料与启停，保留业务身份</td></tr>
+      <tr><th scope="row"><a href="?view=permissions">操作授权</a></th><td>管理员维护员工排期权限；普通新建、改帖、编辑与改期直接保存，特殊操作按配置处理</td></tr>
      </tbody></table></div>
     </section>}
    </article>
@@ -154,18 +218,16 @@ const categoryNames={'score-release-collection':'出分合集','first-analysis-s
 .guide-layout{display:grid;grid-template-columns:minmax(0,1fr) 184px;gap:40px;align-items:start;width:100%}
 .guide-main{min-width:0}.guide-intro{max-width:72ch;margin:12px 0 24px;color:var(--console-muted);font:400 16px/28px var(--console-font);text-wrap:pretty}
 .guide-content{font:400 16px/28px var(--console-font);overflow-wrap:break-word}.guide-content section{padding-block:24px;border-top:1px solid var(--console-line);scroll-margin-top:var(--guide-scroll-offset)}
-.guide-content section>h3:first-child{margin:0 0 12px;font:600 18px/28px var(--console-font)}
+.guide-content section:first-child{padding-top:0;border-top:0}
 .guide-content h2{margin:0 0 12px;font:600 18px/28px var(--console-font);text-wrap:balance}.guide-content h3{margin:24px 0 8px;font:500 16px/26px var(--console-font);text-wrap:balance}
-.guide-content .guide-part-title{font-size:22px;line-height:32px;margin:0 0 20px}
 .guide-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0;list-style:none;gap:14px;margin:24px 0}.guide-flow li{padding:12px 0;border-top:2px solid var(--console-blue);margin:0!important}.guide-flow strong,.guide-flow span{display:block}.guide-flow span{font-size:13px;line-height:22px;color:var(--console-muted);margin-top:6px}
 .guide-period{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:16px 0;margin:16px 0;border-block:1px solid var(--console-line)}.guide-period strong,.guide-period span{display:block}.guide-period strong{font-size:20px}.guide-period span{font-size:14px;color:var(--console-muted)}
 .guide-operation{margin:24px 0}.guide-operation img{display:block;max-width:100%;height:auto;border:1px solid var(--console-line);border-radius:12px}.guide-operation figcaption{margin-top:10px;color:var(--console-muted);font:400 14px/24px var(--console-font)}
-@media(max-width:650px){.guide-flow{grid-template-columns:1fr}.guide-period{grid-template-columns:1fr}.guide-content .guide-part-title{font-size:20px}}
-.guide-content h4{margin:20px 0 8px;font:500 16px/26px var(--console-font)}
+@media(max-width:650px){.guide-flow{grid-template-columns:1fr}.guide-period{grid-template-columns:1fr}}
 .guide-content p{margin:0 0 12px;text-wrap:pretty}.guide-content strong{font-weight:500}.guide-content ul{margin:12px 0 0;padding-left:1.25em}.guide-content li{padding-left:4px}.guide-content li+li{margin-top:10px}.guide-content li::marker{color:var(--console-muted)}
 .guide-lead{max-width:80ch;color:var(--console-ink)}
 .guide-example{margin-block:20px;padding:14px 16px;font:400 14px/24px var(--console-font);background:var(--console-surface)}.guide-example h3{margin:0 0 8px;font-size:14px;line-height:24px}.guide-example p:last-child{margin-bottom:0}.guide-example time{white-space:nowrap;font-variant-numeric:tabular-nums}
-.usage-guide a{color:var(--console-blue);text-decoration-thickness:1px;text-underline-offset:4px}.usage-guide :is(a,button,h2):focus-visible{outline:2px solid var(--console-blue);outline-offset:4px;border-radius:2px}
+.usage-guide a{color:var(--console-blue);text-decoration-thickness:1px;text-underline-offset:4px}.usage-guide :is(a,button,h2,h3):focus-visible{outline:2px solid var(--console-blue);outline-offset:4px;border-radius:2px}
 .guide-directory{position:sticky;top:calc(var(--console-toolbar-height) + 28px);padding-top:4px}.guide-directory>p{margin:0 0 12px;color:var(--console-muted);font:400 12px/20px var(--console-font)}.guide-directory nav{border-left:1px solid var(--console-line)}
 .guide-directory a,.guide-directory-menu a{position:relative;display:block;padding:10px 0 10px 16px;color:var(--console-muted);font:400 13px/22px var(--console-font);text-decoration:none}.guide-directory a[aria-current],.guide-directory-menu a[aria-current]{color:var(--console-blue);font-weight:500}.guide-directory a[aria-current]::before,.guide-directory-menu a[aria-current]::before{position:absolute;left:-1px;top:11px;bottom:11px;width:1px;background:var(--console-blue);content:''}.guide-directory a:hover,.guide-directory-menu a:hover{color:var(--console-ink)}
 .guide-mobile-directory{display:none}.guide-directory-toggle{width:100%;min-height:44px;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--console-line);border-radius:var(--console-control-radius);background:var(--console-surface);color:var(--console-ink);font:400 14px/22px var(--console-font);text-align:left;cursor:pointer}.guide-directory-toggle>span{color:var(--console-muted);font-size:13px}.guide-directory-toggle strong{min-width:0;flex:1;font-weight:500}.guide-directory-toggle svg{flex:none}.guide-directory-toggle[aria-expanded=true] svg{transform:rotate(180deg)}

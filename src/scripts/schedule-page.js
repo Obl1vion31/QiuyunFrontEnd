@@ -1,4 +1,5 @@
 import {trackFormChanges} from './form-changes';
+import {canCreateRevision} from '../db/content-version-rules';
 import {initializePlacement} from './schedule-placement-ui';
 import {getInspector} from './business-inspector';
 import {businessConfirm,closeBusinessDialog} from './business-dialog';
@@ -176,7 +177,7 @@ function initialize(){
           path.append(chip);
           if (index < versions.length - 1) path.append(document.createTextNode('→'));
         });
-        inspectorRevise.dataset.businessEligible=String(!!record.actualPublishAt&&record.childVersionNumber==null);
+        inspectorRevise.dataset.businessEligible=String(canCreateRevision(record));
         inspectorRevise.hidden = inspectorRevise.dataset.businessEligible!=='true'||!mayOperate('schedule.revise');
         inspectorEdit.disabled=!mayOperate('schedule.edit')&&!mayOperate('schedule.reschedule')&&!mayOperate('schedule.overdueReschedule');
         inspectorDerived.hidden = record.childVersionNumber == null;
@@ -260,7 +261,7 @@ function initialize(){
       };
       const openForm = async (nextMode, record, selectedDate = '') => {
         if(savedTarget){await finishSaved(savedTarget,true);if(savedTarget)return;}record=rows.find(row=>row.id===record?.id)??record;if(!await mayLeavePanel())return;
-        if(nextMode==='revision'&&(!record?.actualPublishAt||record.childVersionNumber!=null))return;
+        if(nextMode==='revision'&&(!record||!canCreateRevision(record)))return;
         result.hidden=true;
         const carry=nextMode==='new'?document.querySelector('[data-monthly-plan-pool]')?.dataset.scheduleId:null;
         if(carry){const original=rows.find(r=>r.id===carry);if(original){nextMode='edit';record=original;}}
@@ -555,7 +556,7 @@ function initialize(){
         record.requiresPlanApproval=data.requiresPlanApproval;record.delayThresholdHours=data.schedule.delayThresholdHours;record.completionLabel=data.completionLabel;record.delayLabel=data.delayLabel;
         record.actualPublishAt=asInput(data.schedule.actualPublishAt);record.allowEmptyPublicationLink=data.allowEmptyPublicationLink;
         record.actualDisplay=data.schedule.actualPublishAt?window.businessDateTime(data.schedule.actualPublishAt):'—';
-        if(activeRecord?.id===record.id){inspectorRevise.dataset.businessEligible=String(!!record.actualPublishAt&&record.childVersionNumber==null);applyBusinessPermissions(inspector);setInspectorText('[data-inspector-planned]',record.plannedDisplay);setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';}
+        if(activeRecord?.id===record.id){inspectorRevise.dataset.businessEligible=String(canCreateRevision(record));applyBusinessPermissions(inspector);setInspectorText('[data-inspector-planned]',record.plannedDisplay);setInspectorText('[data-inspector-actual]',record.actualDisplay);inspectorPublication.textContent=record.actualPublishAt?'查看／编辑发布登记':'发布登记';}
       },{signal:pageLife.signal});
       document.addEventListener('business:schedule-execution-saved',event=>{
         if(!activeRecord||event.detail.id!==activeRecord.id)return;

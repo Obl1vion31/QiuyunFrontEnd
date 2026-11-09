@@ -1,4 +1,5 @@
 import {WorkflowError} from '../../../../../db/schedule-workflow';
+import {canCreateRevision,contentRevisionStates} from '../../../../../db/content-version-rules';
 import {workflowErrorResponse} from '../../../../../db/workflow-api';
 import {validReviewDate} from '../../../../../db/non-promotion-nodes';
 import {isPromotionType} from '../../../../../db/operation-types';
@@ -57,6 +58,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
       const [sourceSchedule] = await transaction.select({
         id: operationsContentSchedule.id,
         actualPublishAt: operationsContentSchedule.actualPublishAt,
+        cancelledAt: operationsContentSchedule.cancelledAt,
         finalReviewOn: operationsContentSchedule.finalReviewOn,
         promotionStatus: operationsContentSchedule.promotionStatus,
       }).from(operationsContentSchedule).where(and(
@@ -64,19 +66,20 @@ export const POST: APIRoute = async ({ params, request, url }) => {
         eq(operationsContentSchedule.contentVersionId, source.id),
       )).limit(1);
       if (!sourceSchedule) return { kind: 'missing-schedule' as const };
-      if (!sourceSchedule.actualPublishAt) return { kind: 'unpublished-source' as const };
+      if (sourceSchedule.cancelledAt) return { kind: 'cancelled-source' as const };
 
-      const [latest] = await transaction.select({ versionNumber: operationsContentVersion.versionNumber })
+      const versionRows = await transaction.select({id:operationsContentVersion.id,contentId:operationsContentVersion.contentId,versionNumber:operationsContentVersion.versionNumber,activeScheduleId:operationsContentSchedule.id})
         .from(operationsContentVersion)
-        .where(eq(operationsContentVersion.contentId, source.contentId))
-        .orderBy(desc(operationsContentVersion.versionNumber))
-        .limit(1);
-      if (latest && latest.versionNumber !== source.versionNumber) {
-        return { kind: 'outdated-source' as const, latestVersionNumber: latest.versionNumber };
+        .leftJoin(operationsContentSchedule,and(eq(operationsContentSchedule.contentVersionId,operationsContentVersion.id),isNull(operationsContentSchedule.cancelledAt)))
+        .where(eq(operationsContentVersion.contentId, source.contentId));
+      const state=contentRevisionStates(versionRows,versionRows.filter(version=>version.activeScheduleId)).get(source.contentId)!;
+      if (!canCreateRevision({actualPublishAt:sourceSchedule.actualPublishAt,isLatestActiveVersion:state.latestActiveVersionId===source.id})) {
+        if(!sourceSchedule.actualPublishAt)return {kind:'unpublished-source' as const};
+        return { kind: 'outdated-source' as const, latestVersionNumber: state.latestActiveVersionNumber };
       }
       const finalReviewOn=result.data.finalReviewOn??sourceSchedule.finalReviewOn;
       if(post.operationType==='promotion_then_continuous'&&(!finalReviewOn||!validReviewDate(finalReviewOn)||finalReviewOn<shanghaiDateKey(result.data.plannedPublishAt)))throw new WorkflowError('请重新选择不早于新版应发日期的最终复盘日期。',422);
-      const nextVersionNumber = (latest?.versionNumber ?? source.versionNumber) + 1;
+      const nextVersionNumber = state.nextVersionNumber;
 
       const [activeCampaign] = await transaction.select({
         id: operationsPromotionCampaign.id,
@@ -161,6 +164,7 @@ export const POST: APIRoute = async ({ params, request, url }) => {
     if (created.kind === 'missing') return Response.json({ message: '没有找到来源版本。' }, { status: 404 });
     if (created.kind === 'unpublished-source') return Response.json({ code:'SOURCE_NOT_PUBLISHED', message:'请先完成原帖发布登记，再创建改帖。' }, { status:422 });
     if (created.kind === 'missing-schedule') return Response.json({ message: '来源排期与版本不匹配。' }, { status: 409 });
+    if (created.kind === 'cancelled-source') return Response.json({ message: '来源排期已取消，请从最新有效的已发布版本创建改帖。' }, { status: 409 });
     if (created.kind === 'outdated-source') {
       return Response.json({ message: `该帖子已有 V${created.latestVersionNumber}，请从最新版本发起改帖。` }, { status: 409 });
     }
