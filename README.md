@@ -87,6 +87,8 @@ Astro 5、React 18、TypeScript、Neon PostgreSQL、Drizzle ORM、Better Auth。
 
 ## 日常使用与发布
 
+小红书聚光接入先完成应用创建及管理员授权；正式回调地址为 `/api/integrations/xiaohongshu/callback`，当前仅申请 `report_service` 报表读取权限。服务端凭据配置、授权入口和安全边界见 [接入说明](src/integrations/README.md)。现有业务复盘仍按原入口保存。
+
 周／月例会新生成PDF统一使用A4竖版，保留完整数据、中文文字与版本页码；已有同一冻结内容的横版归档继续复用。浏览器直接打印会展开冻结依据，结束后恢复原折叠与滚动。
 
 - 年度规划：`/business/annual-plan`，总规划由学科细致规划自动汇总。

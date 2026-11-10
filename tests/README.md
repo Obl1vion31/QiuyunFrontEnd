@@ -22,6 +22,8 @@
 
 ### 组合命令去重
 
+聚光接入修改按需运行 `node --import tsx --test tests/xiaohongshu-juguang.test.ts` 与 `node --import tsx tests/xiaohongshu-juguang.integration.ts`。后者支持 `TEST_POSTGRES_URL` 指定本机隔离 PostgreSQL、`JUGUANG_ENTRY` 指定实际目标运行入口，覆盖精确公开回调、角色／同源门禁、一次性 state 的会话／应用绑定、并发消费、真实迁移与加密持久化。上游凭据未创建时，只验证官方协议结构及断网故障，不将其记为真实聚光授权成功。
+
 下表是当前main核对的关系，其他分支或后续变化以本分支`package.json`及入口文件为准。确认覆盖相同后，同一输入下一行只选一个入口；组合已含子项不再另跑。保留旧别名兼容调用，不删除有效测试。
 
 | 常用入口 | 已覆盖的别名／子项 |

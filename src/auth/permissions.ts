@@ -18,6 +18,7 @@ export const permissionErrorResponse = (error: unknown) => error instanceof Acce
 
 export function requiresAdmin(path: string, method: string, settingsView?: string | null) {
   const normalized = path.replace(/\/+$/, '');
+  if (normalized.startsWith('/api/integrations/xiaohongshu/')) return true;
   if (normalized === '/business/settings') return !(['GET','HEAD'].includes(method) && settingsView === 'guide');
   if (normalized.startsWith('/api/business-settings') || normalized === '/api/stage-reviews/category-policies') return true;
   if(normalized.startsWith('/api/admin/accounts'))return true;

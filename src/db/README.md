@@ -23,6 +23,8 @@
 
 账号表使用 `auth_` 前缀，用户角色、会话和限流与业务事实分开保存。`client.ts` 提供本机／Neon 共用的可关闭连接与惰性共享连接，调整单地址连接尝试时限，测试通过显式连接串使用隔离库。
 
+`xiaohongshu_juguang_connection` 独立保存聚光应用／授权账号、加密令牌、授权广告主与有效期；仅服务端接入层使用，不写入帖子、复盘指标或会议快照。授权 state 使用 `auth_verification` 的 `juguang-oauth:` 命名空间，绑定本站管理员会话，过期或重复回调不能交换令牌。
+
 - `promotion-wait-ranges.ts`：逐帖待定区间、次日生效计划、并发版本与历史级联保护。
 - `promotion-stage-reviews.ts`：自选区间测试／放量聚合、缺口和来源事实、不可变 V0/V1+ 快照。
 - `meeting-snapshots.ts`：旧 v2/v3 例会兼容与通用草稿校验；`meeting-weekly-material.ts`：v4 周例会的实际日期候选、跨期阶段、基准、来源指纹及二轮首轮对照；可编辑旧草稿缺失的日度状态按真实记录只读补齐，冻结视图不补。
