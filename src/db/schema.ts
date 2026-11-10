@@ -61,6 +61,7 @@ export const xiaohongshuJuguangConnection = pgTable('xiaohongshu_juguang_connect
   accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }).notNull(),
   refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }).notNull(),
   advertisers: jsonb('advertisers').$type<{ advertiser_id: number; advertiser_name: string }[]>().notNull(),
+  lastCheck: jsonb('last_check').$type<import('../integrations/juguang-check-types').JuguangCheck>(),
   scope: text('scope'), updatedBy: text('updated_by').notNull().references(() => authUser.id, { onDelete: 'restrict' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

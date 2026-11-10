@@ -1,0 +1,68 @@
+---
+import BusinessSectionHeader from './BusinessSectionHeader.astro';
+import { businessDateTime } from '../scripts/business-date';
+import { juguangConnectionStatus, juguangCallbackUrl } from '../integrations/xiaohongshu-juguang';
+import { juguangInterfaces, juguangFields } from '../integrations/juguang-usage';
+let status: Awaited<ReturnType<typeof juguangConnectionStatus>> | undefined;
+let error = '';
+try { status = await juguangConnectionStatus(); } catch { error = '暂时无法读取连接状态，请重新加载后重试。'; }
+const connections = status?.connections ?? [];
+const result = Astro.url.searchParams.get('juguang');
+const outcomes: Record<string,string> = { authorized:'聚光授权已完成，账户信息已更新。', retry:'授权未完成，请重新发起；原有连接已保留。', expired:'登录或授权已过期，请重新登录后发起授权。' };
+const outcome = result ? outcomes[result] : '';
+---
+<div class="juguang-management business-form" data-juguang-management>
+  {outcome&&<p class="integration-notice" role="status">{outcome}</p>}
+  <section class="integration-panel">
+    <BusinessSectionHeader title="小红书聚光" description="推广帖离线报表 · 管理员维护" contained>
+      {status?.configured&&<form slot="end" method="post" action="/api/integrations/xiaohongshu/authorize" data-astro-reload><button type="submit" class="business-action-primary">{connections.length?'重新授权':'连接聚光账户'}</button></form>}
+    </BusinessSectionHeader>
+    <div class="integration-body">
+      {error?<p class="integration-notice" role="alert">{error} <a href="?view=integrations" data-astro-reload>重新加载</a></p>:<>
+        <dl class="integration-config">
+          <div><dt>应用凭据</dt><dd>{status?.configured?'已配置':'尚未配置'}</dd></div>
+          <div><dt>App ID</dt><dd>{status?.configured&&'appId' in status?<code>{status.appId}</code>:'—'}</dd></div>
+          <div><dt>申请权限</dt><dd>报表读取 <code>report_service</code></dd></div>
+        </dl>
+        {!status?.configured&&<p class="integration-notice">请在服务端 Production 环境配置应用 ID 和 Secret，配置完成后重新加载本页。</p>}
+        {status?.configured&&!connections.length&&<p class="integration-notice">尚未连接广告账户，请先完成聚光授权。</p>}
+      </>}
+      <p class="integration-description">工作台通过官方 OAuth 连接聚光。项目后端运行在 Vercel，应用密钥保存在 Production 环境，授权令牌在项目数据库中加密保存。浏览器不接收密钥或令牌。</p>
+      <dl class="callback-address"><dt>授权回调地址</dt><dd><code>{juguangCallbackUrl(Astro.url.origin)}</code></dd></dl>
+      {connections.map(record=>{
+        const reauthorize = record.needsReauthorization;
+        return <section class="authorization-record" data-juguang-connection={record.authorizationUserId}>
+          <div class="connection-heading"><div><h3 data-account-title>已授权账户 ({record.advertisers.length})</h3><span class:list={['connection-state',{'connection-state--attention':reauthorize}]} data-grant-state>{reauthorize?'需要重新授权':'授权有效'}</span></div><button type="button" class="business-action-secondary" data-juguang-check disabled>检查连接</button></div>
+          {connections.length>1&&<p class="integration-description">授权来源 <code>{record.authorizationUserId}</code></p>}
+          <div class="connection-dates"><span>授权续期截止：<time data-refresh-expiry>{businessDateTime(record.refreshTokenExpiresAt)}</time></span><span>访问令牌到期：<time data-access-expiry>{businessDateTime(record.accessTokenExpiresAt)}</time>，检查时按需刷新</span></div>
+          <p class="scope-description">实际授权：<code data-actual-scope>{record.scope??'平台未返回权限信息'}</code></p>
+          <div class="integration-table"><table><thead><tr><th>广告账户</th><th>账户 ID</th><th>最近检查结果</th></tr></thead><tbody>{record.advertisers.map(account=>{
+            const checked = record.lastCheck?.accounts.find(item=>item.advertiserId===account.advertiser_id);
+            return <tr data-advertiser={account.advertiser_id}><td>{account.advertiser_name||'未返回账户名称'}</td><td><code>{account.advertiser_id}</code></td><td data-account-check data-check-state={checked?.status??'unknown'}>{checked?.message??'尚未检查'}</td></tr>;
+          })}</tbody></table></div>
+          {!record.advertisers.length&&<p class="integration-notice">平台未返回可读广告账户，请重新授权并核对账户范围。</p>}
+          <output class="check-feedback" aria-live="polite" data-check-feedback>{record.lastCheck?'上次检查：'+businessDateTime(record.lastCheck.checkedAt):'点击“检查连接”验证各账户的离线报表权限；空报表也可验证连接。'}</output>
+        </section>;
+      })}
+    </div>
+  </section>
+  <section class="integration-panel">
+    <BusinessSectionHeader title="接口与当前用途" description="这里只列出本站已经接触的接口，按实际接入程度维护。" contained />
+    <div class="integration-table"><table class="interface-table"><thead><tr><th>接口</th><th>读取内容</th><th>数据用在哪里</th></tr></thead><tbody>{juguangInterfaces.map(item=><tr><td><strong>{item.name}</strong><span class="interface-state">{item.state}</span><code class="api-path">POST {item.path}</code></td><td>{item.fields}</td><td>{item.use}</td></tr>)}</tbody></table></div>
+  </section>
+  <section class="integration-panel">
+    <BusinessSectionHeader title="推广复盘的数据边界" description="本轮只管理连接与检查结果；推广复盘继续使用现有人工录入。" contained />
+    <div class="integration-table"><table class="field-table"><thead><tr><th>聚光字段</th><th>含义</th><th>当前使用方式</th></tr></thead><tbody>{juguangFields.map(item=><tr><td><code>{item.field}</code></td><td>{item.name}</td><td>{item.use}</td></tr>)}</tbody></table></div>
+    <div class="integration-body integration-boundary">
+      <p>读取范围由已授权广告账户、笔记 ID、日期范围及归因口径共同决定。离线核心数据通常在次日 10 点后产出；连接检查使用北京时间前两天的数据，减少尚未产出的影响。查询成功但没有记录，不能解释为笔记自然数据为零。</p>
+      <p>实际开口、实际留资、复盘判断及后续安排继续由业务人员维护。当前授权仅包含聚光报表读取，不包含笔记素材列表、实时数据、广告创编、账户财务或非推广自然数据接入。</p>
+      <p>每次新增接口、使用字段或数据去向时，同步更新本页的接口、用途与接入程度，再开放相应功能。</p>
+      <p class="official-links">官方依据：<a href="https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=3803" target="_blank" rel="noreferrer">笔记离线报表</a><a href="https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=4927" target="_blank" rel="noreferrer">指标字典</a><a href="https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=3195" target="_blank" rel="noreferrer">授权范围</a></p>
+    </div>
+  </section>
+</div>
+<script>import '../scripts/juguang-management';</script>
+<style>
+.juguang-management{margin-top:20px;display:grid;gap:24px;min-width:0}.integration-panel{min-width:0;border:1px solid var(--console-line);border-radius:12px;background:var(--console-surface);overflow:hidden}.integration-body{padding:18px;display:grid;gap:16px;min-width:0}.integration-config{display:flex;flex-wrap:wrap;gap:20px 48px;margin:0}.integration-config>div{display:grid;gap:4px}.juguang-management dt{font:400 13px/20px var(--console-font);color:var(--console-muted)}.juguang-management dd{margin:0;font:400 14px/22px var(--console-font);overflow-wrap:anywhere}.integration-description,.integration-boundary p{margin:0;font:400 14px/22px var(--console-font);color:var(--console-muted)}.callback-address{display:grid;gap:4px;margin:0}.juguang-management code{font-size:12px;overflow-wrap:anywhere}.authorization-record{display:grid;gap:12px;padding-top:18px;border-top:1px solid var(--console-line);min-width:0}.connection-heading,.connection-heading>div{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.connection-heading{justify-content:space-between}.connection-heading h3{margin:0;font:600 16px/24px var(--console-font)}.connection-state{font:500 13px/20px var(--console-font);color:#226245}.connection-state--attention{color:#9c3b24}.connection-dates{display:flex;flex-wrap:wrap;gap:8px 24px;font:400 13px/20px var(--console-font);color:var(--console-muted)}.scope-description{margin:0;font:400 13px/20px var(--console-font);color:var(--console-muted)}.integration-table{overflow:auto}.integration-table table{width:100%;border-collapse:collapse;text-align:left;font:400 14px/22px var(--console-font)}.integration-table :is(th,td){padding:12px 18px;border-bottom:1px solid var(--console-line);vertical-align:top}.integration-table th{font-weight:500;background:var(--console-surface-subtle);color:var(--console-muted);white-space:nowrap}.integration-table tbody tr:last-child td{border-bottom:0}.authorization-record .integration-table{border:1px solid var(--console-line);border-radius:8px}.authorization-record table{min-width:540px}.authorization-record th:first-child{width:38%}.authorization-record th:nth-child(2){width:18%}.interface-table{min-width:740px;table-layout:fixed}.interface-table th:first-child{width:40%}.interface-table th:nth-child(2){width:25%}.interface-table strong{font-weight:500}.interface-state{margin-left:10px;color:var(--console-muted);font-size:12px}.api-path{display:block;margin-top:4px;color:var(--console-muted)}.field-table{min-width:680px}.field-table th:first-child{width:24%}.field-table th:nth-child(2){width:24%}.check-feedback{display:block;color:var(--console-muted);font:400 13px/20px var(--console-font)}.integration-notice{margin:0;font:400 14px/22px var(--console-font);color:var(--console-ink)}[data-check-state=error],[data-check-state=reauthorize]{color:#9c3b24}.official-links{display:flex;flex-wrap:wrap;gap:8px 16px}.juguang-management a{color:var(--console-blue)}
+@media(max-width:620px){.integration-body{padding:14px}.integration-config{gap:12px 24px}.connection-heading{align-items:flex-start}.integration-table :is(th,td){padding:10px 14px}.connection-dates{display:grid;gap:6px}}
+</style>

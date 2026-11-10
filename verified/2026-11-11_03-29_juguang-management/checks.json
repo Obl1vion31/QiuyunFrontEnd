@@ -1,0 +1,36 @@
+{
+  "geometry": {
+    "left": 256,
+    "right": 1401,
+    "expectedLeft": 256,
+    "expectedRight": 1401,
+    "overflow": false
+  },
+  "neighbour": {
+    "left": 256,
+    "right": 1401
+  },
+  "fonts": [
+    {
+      "familyName": "MiSans VF",
+      "postScriptName": "MiSansVF",
+      "isCustomFont": true,
+      "glyphCount": 4
+    }
+  ],
+  "states": [
+    "empty",
+    "authorized",
+    "checking",
+    "healthy",
+    "partial",
+    "reauthorize"
+  ],
+  "widths": [
+    1440,
+    1024,
+    390
+  ],
+  "nativeAuthorization": true,
+  "employeeDenied": true
+}

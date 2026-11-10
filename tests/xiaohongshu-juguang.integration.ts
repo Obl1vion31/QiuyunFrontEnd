@@ -37,6 +37,7 @@ try {
   await db.execute(sql`drop table xiaohongshu_juguang_connection`);
   const migration = await readFile(new URL('../drizzle/0052_xiaohongshu_juguang.sql', import.meta.url), 'utf8');
   for (const statement of migration.split('--> statement-breakpoint')) await db.execute(sql.raw(statement));
+  await db.execute(sql.raw(await readFile(new URL('../drizzle/0053_juguang_connection_check.sql', import.meta.url), 'utf8')));
   assert.deepEqual(await db.select().from(authUser), before);
   checks.push('真实迁移只追加连接表，既有账号保持');
 
@@ -45,7 +46,8 @@ try {
   assert.equal(ready.headers.get('referrer-policy'), 'no-referrer');
   assert.match(ready.headers.get('cache-control')!, /no-store/);
   assert.equal((await request(path + '/callback', 'HEAD')).status, 200);
-  for (const route of [path + '/callback?auth_code=fictional', path + '/status', '/api/promotion-daily']) assert.equal((await request(route)).status, 401);
+  for (const route of [path + '/status', '/api/promotion-daily']) assert.equal((await request(route)).status, 401);
+  const expiredSession=await request(path+'/callback?auth_code=fictional'); assert.equal(expiredSession.status,303);assert.ok(!expiredSession.headers.get('location')!.includes('auth_code'));
   assert.equal((await request(path + '/authorize', 'POST')).status, 401);
   assert.equal((await request(path + '/authorize')).status, 401);
   assert.equal((await request(path + '/callback/')).status, 401, '公开例外只覆盖精确登记路径');
@@ -70,9 +72,9 @@ try {
   assert.match(landing, /data-astro-reload/); assert.match(landing, /method="post"/);
   assert.deepEqual(await db.select({ id: authVerification.id }).from(authVerification), statesBeforeLanding);
   const status = await request(path + '/status', 'GET', boss.cookie);
-  assert.deepEqual(await status.json(), { service: 'xiaohongshu_juguang', requestedScopes: ['report_service'], configured: true, connections: [] });
+  assert.deepEqual(await status.json(), { service: 'xiaohongshu_juguang', requestedScopes: ['report_service'], configured: true, appId: '42', connections: [] });
   const incomplete = await request(path + '/callback?auth_code=fictional', 'GET', boss.cookie);
-  assert.equal(incomplete.status, 400); assert.ok(!(await incomplete.text()).includes('auth_code=fictional'));
+  assert.equal(incomplete.status, 303); assert.equal(incomplete.headers.get('location'), '/business/settings?view=integrations&juguang=retry');
   checks.push('管理员／员工权限、确认页GET无副作用、同源POST发起、跨站写入拒绝、HEAD无副作用及状态不暴露令牌');
 
   const started = await request(path + '/authorize', 'POST', boss.cookie); assert.equal(started.status, 303);

@@ -20,6 +20,8 @@
 - 失败补测失败项及关联风险；输入未变且无未解决问题时不重跑全套。规则、接口和浏览器的不同断言不能仅因名称相近就省略，也不能跳过断言后声称完整通过。
 - 仅归档必要稳定图、改变过程的短录屏和摘要；原始日志、逐帧DOM／几何与重复采样留在`.tools/test-artifacts/`，定位时定点读取，不每轮全部提交或重录。实际视觉审查、权限、未保存保护与数据安全按受影响范围保留。
 
+聚光接入管理另外运行 `tests/juguang-management.integration.ts` 与 `tests/juguang-management.browser.ts`，使用 `NODE_ENV=test`、显式本机 `TEST_POSTGRES_URL` 和实际 Vercel 包。`tests/juguang-server.fixture.mjs` 仅在隔离测试库中注入上游官方协议响应／网络故障，本站页面、路由、权限、加密及数据库均为正式实现；不把协议夹具记为真实平台授权。`JUGUANG_APP_ENTRY` 指定实际运行入口（默认工作树 `.tools/serve-vercel.mjs`），浏览器另使用已有 `PLAYWRIGHT_MODULE` 和 `JUGUANG_EVIDENCE_DIR`。正式平台读取另行核验，不向平台发送虚构凭据。
+
 ### 组合命令去重
 
 聚光接入修改按需运行 `node --import tsx --test tests/xiaohongshu-juguang.test.ts` 与 `node --import tsx tests/xiaohongshu-juguang.integration.ts`。后者支持 `TEST_POSTGRES_URL` 指定本机隔离 PostgreSQL、`JUGUANG_ENTRY` 指定实际目标运行入口，覆盖精确公开回调、角色／同源门禁、一次性 state 的会话／应用绑定、并发消费、真实迁移与加密持久化。上游凭据未创建时，只验证官方协议结构及断网故障，不将其记为真实聚光授权成功。

@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, createHash, hkdfSync, randomBytes, randomUUID } from 'node:crypto';
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { getDb } from '../db/client';
+import { getDb, withDatabase } from '../db/client';
 import { authVerification, xiaohongshuJuguangConnection } from '../db/schema';
 
 export const JUGUANG_CALLBACK_PATH = '/api/integrations/xiaohongshu/callback';
@@ -150,7 +150,7 @@ export async function saveJuguangConnection(token: JuguangTokenData, appId: stri
     encryptedTokens: encryptJuguangTokens({ accessToken: token.access_token, refreshToken: token.refresh_token }, `${appId}:${token.user_id}`),
     accessTokenExpiresAt: new Date(now.getTime() + token.access_token_expires_in * 1000),
     refreshTokenExpiresAt: new Date(now.getTime() + token.refresh_token_expires_in * 1000),
-    advertisers: token.approval_advertisers ?? [], scope: token.scope ?? null, updatedBy: userId, updatedAt: now,
+    lastCheck: null, advertisers: token.approval_advertisers ?? [], scope: token.scope ?? null, updatedBy: userId, updatedAt: now,
   };
   await getDb().insert(xiaohongshuJuguangConnection).values(values).onConflictDoUpdate({
     target: [xiaohongshuJuguangConnection.appId, xiaohongshuJuguangConnection.authorizationUserId], set: values,
@@ -161,8 +161,10 @@ export async function completeJuguangAuthorization(params: URLSearchParams, user
   const { authCode, state } = parseJuguangCallback(params);
   const { appId } = juguangConfig();
   await consumeJuguangState(state, userId, sessionId, appId);
-  const token = await exchangeJuguangCode(authCode);
-  await saveJuguangConnection(token, appId, userId);
+  await withJuguangLock(appId, false, async () => {
+    const token = await exchangeJuguangCode(authCode);
+    await saveJuguangConnection(token, appId, userId);
+  });
 }
 
 export async function juguangConnectionStatus() {
@@ -173,14 +175,31 @@ export async function juguangConnectionStatus() {
   }
   const connections = await getDb().select({
     authorizationUserId: xiaohongshuJuguangConnection.authorizationUserId,
+    lastCheck: xiaohongshuJuguangConnection.lastCheck,
     advertisers: xiaohongshuJuguangConnection.advertisers, scope: xiaohongshuJuguangConnection.scope,
     accessTokenExpiresAt: xiaohongshuJuguangConnection.accessTokenExpiresAt,
     refreshTokenExpiresAt: xiaohongshuJuguangConnection.refreshTokenExpiresAt,
   }).from(xiaohongshuJuguangConnection).where(eq(xiaohongshuJuguangConnection.appId, appId));
-  return { configured: true, connections };
+  return { configured: true, appId, connections: connections.map(record => ({ ...record, needsReauthorization: record.refreshTokenExpiresAt.getTime() <= Date.now() || !record.advertisers.length || !hasJuguangReportScope(record.scope) || !!record.lastCheck?.accounts.some(account=>account.status === 'reauthorize') })) };
 }
 
 export function juguangErrorResponse(error: unknown) {
   if (error instanceof JuguangError) return Response.json({ code: error.code, message: error.message }, { status: error.status });
   return Response.json({ code: 'JUGUANG_SAVE_FAILED', message: '授权结果暂时无法保存，请稍后重新发起授权。' }, { status: 503 });
+}
+
+/** OAuth 回调与刷新共享应用锁，避免新授权被旧刷新结果覆盖。 */
+export async function withJuguangLock<T>(appId: string, tryOnly: boolean, action: () => Promise<T>): Promise<T> {
+  return getDb().transaction(async tx => withDatabase(tx, async () => {
+    if (tryOnly) {
+      const result = await tx.execute(sql`select pg_try_advisory_xact_lock(hashtextextended(${'qiuyun:juguang:' + appId}, 0)) as acquired`);
+      if (!(result as unknown as { acquired: boolean }[])[0]?.acquired) throw new JuguangError('JUGUANG_BUSY', '已有连接检查或授权正在处理，请稍后重试。', 409);
+    } else await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${'qiuyun:juguang:' + appId}, 0))`);
+    return action();
+  }));
+}
+
+export function hasJuguangReportScope(value: string | null) {
+  try { const scopes: unknown = JSON.parse(value ?? 'null'); return Array.isArray(scopes) && scopes.length === 1 && scopes[0] === 'report_service'; }
+  catch { return false; }
 }

@@ -372,6 +372,13 @@
       "when": 1794323259926,
       "tag": "0052_xiaohongshu_juguang",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1794337883922,
+      "tag": "0053_juguang_connection_check",
+      "breakpoints": true
     }
   ]
 }

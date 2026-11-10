@@ -1,4 +1,5 @@
 ---
+import BusinessJuguangIntegration from '../../components/BusinessJuguangIntegration.astro';
 import {isAdmin} from '../../auth/permissions';
 import BusinessUsageGuide from '../../components/BusinessUsageGuide.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
@@ -17,7 +18,7 @@ import {readContentConfigurations} from '../../db/content-config';
 import {authUser} from '../../db/schema';
 export const prerender = false;
 const administrator=isAdmin(Astro.locals.user);
-const view=Astro.url.searchParams.get('view')==='business'?'business':Astro.url.searchParams.get('view')==='guide'?'guide':Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
+const view=Astro.url.searchParams.get('view')==='integrations'?'integrations':Astro.url.searchParams.get('view')==='business'?'business':Astro.url.searchParams.get('view')==='guide'?'guide':Astro.url.searchParams.get('view')==='approvals'?'approvals':Astro.url.searchParams.get('view')==='permissions'?'permissions':'accounts';
 const contentCatalog=administrator&&view==='business'?await readContentConfigurations(getDb()):null;
 const accounts=!administrator||!['accounts','permissions'].includes(view)?[]:await getDb().select({id:authUser.id,username:authUser.username,name:authUser.name,role:authUser.role,enabled:authUser.enabled,updatedAt:authUser.updatedAt}).from(authUser).orderBy(authUser.username);
 const grants=await Promise.all(accounts.map(async user=>({...user,permissions:await effectiveBusinessPermissions(getDb(),user)})));
@@ -27,10 +28,11 @@ const grants=await Promise.all(accounts.map(async user=>({...user,permissions:aw
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex,nofollow"/><title>系统设置 · 内容发布控制台</title><SiteIcons /><BusinessConsoleFonts /></head>
 <body>
 <BusinessConsoleFrame active="settings">
-  <BusinessConsoleToolbar title="系统设置" subtitle={administrator?'账号权限、操作授权与使用说明':'业务规则与操作说明'} />
+  <BusinessConsoleToolbar title="系统设置" subtitle={administrator?'账号权限、平台接入与使用说明':'业务规则与操作说明'} />
   <main class="business-console-content">
-    {administrator&&<nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a><a href="?view=business" aria-current={view==='business'?'page':undefined}>业务配置</a><a href="?view=guide" aria-current={view==='guide'?'page':undefined}>使用说明</a></nav>}
-    {view!=='guide'&&<BusinessPageHeader title={view==='approvals'?'待审核变更':view==='accounts'?'账号管理':view==='business'?'业务配置':'操作授权'} />}
+    {administrator&&<nav class="settings-views" aria-label="设置视图"><a href="?view=accounts" aria-current={view==='accounts'?'page':undefined}>账号管理</a><a href="?view=permissions" aria-current={view==='permissions'?'page':undefined}>操作授权</a><a href="?view=business" aria-current={view==='business'?'page':undefined}>业务配置</a><a href="?view=integrations" aria-current={view==='integrations'?'page':undefined}>接入管理</a><a href="?view=guide" aria-current={view==='guide'?'page':undefined}>使用说明</a></nav>}
+    {view!=='guide'&&<BusinessPageHeader title={view==='integrations'?'接入管理':view==='approvals'?'待审核变更':view==='accounts'?'账号管理':view==='business'?'业务配置':'操作授权'} />}
+    {view==='integrations'&&administrator&&<BusinessJuguangIntegration/>}
     {view==='guide'&&<BusinessUsageGuide/>}
     {contentCatalog&&<><BusinessContentConfiguration initial={contentCatalog} client:load/><BusinessFormDialog id="content-config-dialog" labelledby="content-config-title" width={520}/></>}
     {view==='accounts'&&<BusinessAccountManagement accounts={accounts}/>}
@@ -81,4 +83,4 @@ initializeSettings();document.addEventListener('astro:page-load',initializeSetti
 .account-permissions{margin-top:20px}.account-permissions>label{display:grid;gap:6px;max-width:360px}.account-permissions>form{margin-top:16px}.account-permissions [hidden]{display:none!important}.account-permissions section{margin:12px 0}.account-permissions header{display:flex;align-items:center;justify-content:space-between;gap:12px}.account-permissions h2{font-size:14px;margin:0}.permissions-table{overflow:auto}.permissions-table table{width:100%;border-collapse:collapse;text-align:left}.permissions-table th,.permissions-table td{padding:8px;border-bottom:1px solid var(--console-line)}.permissions-table table{min-width:576px;table-layout:fixed}.permissions-table col.permission-operation{width:320px}.permissions-table thead th{text-align:center;font:500 13px/20px var(--console-font)}.permissions-table tbody th{text-align:left;font:400 14px/22px var(--console-font)}.permissions-table td,.permissions-table thead th:last-child{text-align:left}.permissions-table thead th:last-child>span{display:inline-flex;justify-content:center;width:224px}.permissions-table select{min-width:140px;max-width:224px;margin:0;font:400 14px/22px var(--console-font)}.permission-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px}.permission-actions output{flex:1}
 </style>
 
-<style>.settings-views{display:flex;gap:8px;margin-bottom:20px}.settings-views a{padding:8px 14px;border-radius:6px;color:var(--console-muted);font:500 14px/20px var(--console-font);text-decoration:none}.settings-views a[aria-current=page]{background:var(--console-ink);color:white}</style>
+<style>.settings-views{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}.settings-views a{padding:8px 14px;border-radius:6px;color:var(--console-muted);font:500 14px/20px var(--console-font);text-decoration:none}.settings-views a[aria-current=page]{background:var(--console-ink);color:white}</style>

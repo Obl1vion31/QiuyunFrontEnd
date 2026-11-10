@@ -35,6 +35,7 @@ export const onRequest = defineMiddleware(async ({ request, url, locals }, next)
   locals.session = locals.user ? identity?.session ?? null : null;
   locals.operationsUser = locals.user?.username;
   if (protectedPath && !locals.user) {
+    if (url.pathname === '/api/integrations/xiaohongshu/callback' && url.search && request.method === 'GET') return new Response(null, { status: 303, headers: { 'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer', Location: '/login?next=' + encodeURIComponent('/business/settings?view=integrations&juguang=expired') } });
     const headers = { 'Cache-Control': 'private, no-store' };
     if (url.pathname.startsWith('/api/')) return Response.json({ code: 'UNAUTHORIZED', message: '登录已过期，请在新标签页重新登录后重试。' }, { status: 401, headers });
     return new Response(null, { status: 302, headers: { ...headers, Location: `/login?next=${encodeURIComponent(url.pathname + url.search)}` } });

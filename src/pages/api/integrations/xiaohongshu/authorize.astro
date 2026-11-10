@@ -9,6 +9,7 @@ import { beginJuguangAuthorization, juguangErrorResponse } from '../../../../int
 export const prerender = false;
 if (Astro.request.method === 'HEAD') return new Response(null, { status: 204 });
 if (Astro.request.method === 'POST') {
+  if (Astro.request.headers.get('origin') !== Astro.url.origin) return Response.json({code:'INVALID_ORIGIN',message:'请从本站发起聚光授权。'},{status:403});
   try {
     const location = await beginJuguangAuthorization(Astro.locals.user!.id, Astro.locals.session!.id, Astro.url.origin);
     return new Response(null, { status: 303, headers: { Location: location, 'Referrer-Policy': 'no-referrer' } });

@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import {mkdir,mkdtemp,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';import {join} from 'node:path';
+import {withDatabase} from '../src/db/client';
+import {saveJuguangConnection} from '../src/integrations/xiaohongshu-juguang';
+import {xiaohongshuJuguangConnection as connections} from '../src/db/schema';
+import {startPostgresFixture} from './postgres.fixture';import {admin,employee} from './auth.fixture';
+process.env.NODE_ENV='test';process.env.XHS_JUGUANG_APP_ID='42';process.env.XHS_JUGUANG_APP_SECRET='fictional-app-secret';process.env.BETTER_AUTH_SECRET='fictional-browser-secret-at-least-32-characters';
+const scenario=join(await mkdtemp(join(tmpdir(),'juguang-ui-')),'scenario.json');process.env.JUGUANG_SCENARIO_FILE=scenario;await writeFile(scenario,'{}');
+const directory=process.env.JUGUANG_EVIDENCE_DIR||'.tools/test-artifacts/juguang-management-ui';await mkdir(directory,{recursive:true});
+const fixture=await startPostgresFixture({entry:'tests/juguang-server.fixture.mjs'});
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);const browser=await chromium.launch({headless:true});
+try{
+ const context=await browser.newContext({viewport:{width:1440,height:1000}});
+ assert.equal((await context.request.post(fixture.baseURL+'/api/auth/sign-in/username',{headers:{Origin:fixture.baseURL},data:admin})).status(),200);
+ const session=await(await context.request.get(fixture.baseURL+'/api/auth/get-session')).json();
+ const page=await context.newPage();const route=fixture.baseURL+'/business/settings?view=integrations';
+ await page.goto(route);await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:directory+'/management-empty-1440.png',fullPage:true});
+ await page.getByRole('button',{name:'连接聚光账户',exact:true}).waitFor();
+ const token={access_token:'fictional-access',refresh_token:'fictional-refresh',access_token_expires_in:86400,refresh_token_expires_in:2592000,user_id:'fictional-upstream',platform_type:1 as const,scope:'["report_service"]',approval_advertisers:[{advertiser_id:11,advertiser_name:'隔离验收 · 湫云推广账户'},{advertiser_id:22,advertiser_name:'隔离验收 · 另一授权账户'}]};
+ await withDatabase(fixture.db,()=>saveJuguangConnection(token,'42',session.user.id));
+ await page.reload();await page.evaluate(()=>document.fonts.ready);const root=page.locator('[data-juguang-management]');
+ assert.match(await root.innerText(),/尚未自动带入或保存推广复盘/);assert.equal(await page.getByRole('button',{name:'重新授权',exact:true}).count(),1);
+ const measure=()=>page.evaluate(()=>{const main=document.querySelector('main')!,root=document.querySelector('[data-juguang-management]')!,style=getComputedStyle(main);return{left:root.getBoundingClientRect().left,right:root.getBoundingClientRect().right,expectedLeft:main.getBoundingClientRect().left+parseFloat(style.paddingLeft),expectedRight:main.getBoundingClientRect().right-parseFloat(style.paddingRight),overflow:document.documentElement.scrollWidth>innerWidth};});
+ const geometry=await measure();assert.equal(geometry.left,geometry.expectedLeft);assert.equal(geometry.right,geometry.expectedRight);assert.equal(geometry.overflow,false);
+ await page.screenshot({path:directory+'/management-authorized-1440.png',fullPage:true});
+ const check=page.getByRole('button',{name:'检查连接',exact:true});
+ await writeFile(scenario,JSON.stringify({hold:true}));const firstClick=check.click({noWaitAfter:true});await page.locator('[data-juguang-connection][aria-busy="true"]').waitFor();assert.equal(await check.isDisabled(),true);assert.equal(await check.innerText(),'检查连接');await page.getByText('正在检查各账户的离线报表连接…',{exact:true}).waitFor();
+ await page.screenshot({path:directory+'/management-checking-1440.png',fullPage:true});await writeFile(scenario,'{}');await firstClick;
+ await page.getByText(/全部账户读取正常/).waitFor();await page.waitForFunction(()=>!document.querySelector('[data-juguang-connection]')?.hasAttribute('aria-busy'));await page.screenshot({path:directory+'/management-healthy-1440.png',fullPage:true});
+ await writeFile(scenario,JSON.stringify({accountErrors:{22:410027}}));await check.click();await page.getByText(/部分账户异常/).waitFor();await page.waitForFunction(()=>!document.querySelector('[data-juguang-connection]')?.hasAttribute('aria-busy'));await page.screenshot({path:directory+'/management-partial-1440.png',fullPage:true});
+ await page.reload();assert.match(await page.locator('[data-advertiser="22"]').innerText(),/账户状态异常/);
+ await fixture.db.update(connections).set({refreshTokenExpiresAt:new Date(0)});await page.getByRole('button',{name:'检查连接',exact:true}).click();await page.getByText('需要重新授权',{exact:true}).waitFor();await page.waitForFunction(()=>!document.querySelector('[data-juguang-connection]')?.hasAttribute('aria-busy'));await page.screenshot({path:directory+'/management-reauthorize-1440.png',fullPage:true});
+ await withDatabase(fixture.db,()=>saveJuguangConnection(token,'42',session.user.id));await writeFile(scenario,'{}');await page.reload();
+ for(const width of [1024,390]){await page.setViewportSize({width,height:1000});assert.equal((await measure()).overflow,false);await page.screenshot({path:directory+'/management-authorized-'+width+'.png',fullPage:true});}
+ await page.setViewportSize({width:1440,height:1000});
+ const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const {root:dom}=await cdp.send('DOM.getDocument');const {nodeId}=await cdp.send('DOM.querySelector',{nodeId:dom.nodeId,selector:'[data-juguang-check]'});const {fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});assert.ok(fonts.some((font:{familyName:string})=>/MiSans/.test(font.familyName)));
+ await page.goto(fixture.baseURL+'/business/settings?view=accounts');const neighbour=await page.evaluate(()=>{const r=document.querySelector('.account-management')!.getBoundingClientRect();return{left:r.left,right:r.right};});assert.equal(neighbour.left,geometry.left);assert.equal(neighbour.right,geometry.right);
+ await page.goto(route);await page.route('https://ad-market.xiaohongshu.com/**',(route:{abort:()=>Promise<void>})=>route.abort());const outgoing=page.waitForRequest((r:{url:()=>string})=>r.url().startsWith('https://ad-market.xiaohongshu.com/auth?'));await page.getByRole('button',{name:'重新授权',exact:true}).click();const navigation=await outgoing;assert.ok(navigation.isNavigationRequest());assert.deepEqual(JSON.parse(new URL(navigation.url()).searchParams.get('scope')!),['report_service']);
+ const staff=await browser.newContext();await staff.request.post(fixture.baseURL+'/api/auth/sign-in/username',{headers:{Origin:fixture.baseURL},data:employee});const staffPage=await staff.newPage();assert.equal((await staffPage.goto(route))!.status(),403);await staffPage.goto(fixture.baseURL+'/business/settings?view=guide');assert.equal(await staffPage.getByRole('link',{name:'接入管理',exact:true}).count(),0);
+ await writeFile(directory+'/checks.json',JSON.stringify({geometry,neighbour,fonts,states:['empty','authorized','checking','healthy','partial','reauthorize'],widths:[1440,1024,390],nativeAuthorization:true,employeeDenied:true},null,2));
+ console.log('通过：真实设置页各状态、慢请求、持久检查结果、刷新、相邻视图边界、MiSans字形、1440/1024桌面、390有限溢出、原生只读授权及员工权限。');
+ await staff.close();await context.close();
+}catch(error){console.error(fixture.logs().slice(-1800));throw error;}finally{await browser.close();await fixture.stop();}
