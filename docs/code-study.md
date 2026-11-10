@@ -64,6 +64,8 @@ flowchart LR
 
 ## 共享界面接入
 
+聚光授权确认页`pages/api/integrations/xiaohongshu/authorize.astro`复用Frame、Toolbar、PageHeader、BusinessConsoleFonts及business-form。GET／HEAD不创建state，按钮通过原生同源POST发起；表单使用`data-astro-reload`，避免客户端路由将授权303作为跨域读取。实际角色与原生导航验证见`tests/xiaohongshu-juguang.browser.ts`及对应隔离接口检查。
+
 历史月份兼容由`monthly-arrangement.isLegacyScheduleMonth`共用：2026-11为预排期起点，之前缺少已确认计划时`readArrangement`返回只读`legacyV0`状态，`MonthlyArrangementPanel`沿原V0外壳显示当前排期；`schedule-edit-policy`共用边界并保留原因要求。页面和实际写入同时兼容，不创建计划或确认记录；真实基准／冻结快照仍由原入口读取。
 
 先按[本轮检查选择](../tests/README.md#本轮如何选择检查)确定受影响的共享消费者和验收路径；下列实例及专项覆盖说明用于定位，不要求每次全部执行。首屏、角色、动效与PDF分别按实际变动触发，相关结果在输入未变时复用。

@@ -55,6 +55,17 @@ export const authVerification = pgTable('auth_verification', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [index('auth_verification_identifier_idx').on(table.identifier)]);
 
+export const xiaohongshuJuguangConnection = pgTable('xiaohongshu_juguang_connection', {
+  appId: text('app_id').notNull(), authorizationUserId: text('authorization_user_id').notNull(),
+  encryptedTokens: text('encrypted_tokens').notNull(),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }).notNull(),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }).notNull(),
+  advertisers: jsonb('advertisers').$type<{ advertiser_id: number; advertiser_name: string }[]>().notNull(),
+  scope: text('scope'), updatedBy: text('updated_by').notNull().references(() => authUser.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [primaryKey({ columns: [table.appId, table.authorizationUserId] })]);
+
 export const businessPresence = pgTable('business_presence', {
  id:text('id').primaryKey(),userId:text('user_id').notNull().references(()=>authUser.id,{onDelete:'cascade'}),
  sessionId:text('session_id').notNull().references(()=>authSession.id,{onDelete:'cascade'}),

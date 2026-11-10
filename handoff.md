@@ -1,5 +1,18 @@
 # 项目交接
 
+## 聚光应用上线与报表只读授权（已发布，2026-11-11）
+
+- 应用a4b4f98，沿用`codex/xiaohongshu-juguang-callback`与`.tools/releases/xiaohongshu-callback-20261110`。15278已上线；App ID配置为Vercel Production Config，Secret由用户直接保存为Production Secret。正式授权返回1条加密连接、3个授权广告账户，实际scope仅`["report_service"]`。已用保存令牌调用官方账户离线报表，HTTP200／业务码0；抽查账户与日期为空报表，未将其记为已有经营数据。
+- 授权入口改为共享工作台确认页：GET／HEAD无授权写入，原生同源POST创建state并完整导航至小红书，保留跨站写入拒绝、会话／应用绑定与防重放。1440×900桌面及390×900有限溢出检查、真实MiSans字形、原生303整页跳转、实际Vercel包上的5组PostgreSQL检查通过；构建及新增浏览器检查的补充类型检查0错误／0警告，61条hint。Impeccable机械检查无发现，最终图已查看：[验收索引](verified/2026-11-11_00-03_juguang-authorization/README.md)。
+- 正式部署`dpl_271Njj7tVY7pUFmCK1Xg7fdbHJSm`已READY并提升正式域名。实际授权、凭据变量及报表回执留在本工作树`.tools/test-artifacts/juguang-*`；含真实账号的现场截图保持私有。没有新增结构迁移或改写复盘事实。后续报表展示需核对字段／归因口径，并按已保存的access／refresh有效期接入令牌刷新。
+
+## 聚光 OAuth 回调与授权基础（已发布，2026-11-10）
+
+- 应用75851b9，独立工作树`.tools/releases/xiaohongshu-callback-20261110`、分支`codex/xiaohongshu-juguang-callback`。正式回调`/api/integrations/xiaohongshu/callback`支持无参数GET／HEAD就绪检查；带参回调、同源POST发起和状态读取限管理员，仅申请`report_service`，校验十分钟一次性state、会话及应用绑定。按官方2603／3195／4929正文实现，令牌AES-256-GCM加密并绑定应用／账号，成功后清除URL授权参数。
+- 实际Production配置的Vercel构建0错误／0警告，59条既有hint；15项协议／认证检查与实际Vercel包上的5组隔离PostgreSQL检查通过，覆盖真实迁移、角色／同源门禁、并发消费、过期、加密保存和重授权更新。正式Neon执行0052前后均私有备份，原有60张表摘要完全一致，新增连接表为空。API改动未触及页面或PDF。
+- 正式部署`dpl_Gf5hodW3uWsLccsYt55dVr86XAQs`为READY，候选2项、正式7项HTTP检查通过，正式域名与候选部署ID一致。原始结果在本工作树`.tools/test-artifacts/juguang-*`，备份在私有`.tools/backups/neon-juguang-*`。
+- 本机配置正在由另一工作树切换至独立开发库；本次正式备份、迁移与最终构建显式读取项目保存的Production参考配置，未采用根`.env`。根工作区及该环境工作树的未提交改动保持。应用上线与真实授权结果见上方最新交接，后续字段／统计口径按真实报表核对。接手入口见[src/integrations/README.md](src/integrations/README.md)。
+
 ## 周会折线标记与底纹（已发布，2026-11-09）
 
 - 折线修复fd0410a，最终运行源码5aba905，保留同期1b1314f改帖与说明更新。周会四项总览不再将8天区间重叠的两周同时强调：去掉竖向底纹，各指标仅最后一个非空点实心；0值有效、全未知无数据点。统计区间、数值、路径与布局不变，其他趋势组件保持。

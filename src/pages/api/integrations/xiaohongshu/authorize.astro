@@ -1,0 +1,51 @@
+---
+import BusinessConsoleFrame from '../../../../components/BusinessConsoleFrame.astro';
+import BusinessConsoleToolbar from '../../../../components/BusinessConsoleToolbar.astro';
+import BusinessConsoleFonts from '../../../../components/BusinessConsoleFonts.astro';
+import BusinessPageHeader from '../../../../components/BusinessPageHeader.astro';
+import SiteIcons from '../../../../components/SiteIcons.astro';
+import { beginJuguangAuthorization, juguangErrorResponse } from '../../../../integrations/xiaohongshu-juguang';
+
+export const prerender = false;
+if (Astro.request.method === 'HEAD') return new Response(null, { status: 204 });
+if (Astro.request.method === 'POST') {
+  try {
+    const location = await beginJuguangAuthorization(Astro.locals.user!.id, Astro.locals.session!.id, Astro.url.origin);
+    return new Response(null, { status: 303, headers: { Location: location, 'Referrer-Policy': 'no-referrer' } });
+  } catch (error) { return juguangErrorResponse(error); }
+}
+if (Astro.request.method !== 'GET') return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD, POST' } });
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>聚光报表授权 · 内容发布控制台</title>
+    <SiteIcons />
+    <BusinessConsoleFonts />
+  </head>
+  <body>
+    <BusinessConsoleFrame active="settings">
+      <BusinessConsoleToolbar title="聚光报表授权" subtitle="小红书开放平台" />
+      <main class="business-console-content">
+        <form class="business-form juguang-authorization" method="post" data-astro-reload aria-labelledby="juguang-authorization-title">
+          <BusinessPageHeader title="连接聚光账户" />
+          <div class="authorization-summary">
+            <p id="juguang-authorization-title">将聚光账户连接到湫云运营数据工作台。</p>
+            <p>仅申请投放报表读取权限，用于查看广告消耗、曝光和点击等数据。</p>
+          </div>
+          <button class="business-action-primary" type="submit">前往小红书授权</button>
+        </form>
+      </main>
+    </BusinessConsoleFrame>
+  </body>
+</html>
+
+<style>
+  .juguang-authorization { display:grid;justify-items:start;gap:20px;padding:24px;border:1px solid var(--console-line);border-radius:16px;background:var(--console-surface); }
+  .authorization-summary { display:grid;gap:8px;max-width:70ch; }
+  .authorization-summary p { margin:0;color:var(--console-ink);font-size:var(--console-text);line-height:var(--console-text-leading); }
+  .authorization-summary p+p { color:var(--console-muted); }
+</style>
