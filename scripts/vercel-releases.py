@@ -279,6 +279,11 @@ def intern_baseline(store, stage):
     return identifier
 
 
+def ready_deployment(detail, key):
+    if detail.get('projectId') != PROJECTS[key][0] or detail.get('readyState', detail.get('state')) != 'READY':
+        raise RuntimeError('只接受指定项目的 READY 部署。')
+
+
 def archive(api, root, store, key, identifier, cache=None):
     if not re.fullmatch(r'dpl_[A-Za-z0-9]+', identifier):
         raise RuntimeError('部署 ID 格式不正确。')
@@ -293,8 +298,7 @@ def archive(api, root, store, key, identifier, cache=None):
     if shutil.disk_usage(store).free < 1024 ** 3:
         raise RuntimeError('本机可用空间不足 1GB，停止归档与清理。')
     detail = api.api('/v13/deployments/' + identifier)
-    if detail.get('projectId') != PROJECTS[key][0] or detail.get('readyState', detail.get('state')) != 'READY':
-        raise RuntimeError('归档只接受指定项目的 READY 部署。')
+    ready_deployment(detail, key)
     tree = api.api('/v6/deployments/' + identifier + '/files')
     items = list(uploaded_files(tree))
     if not items:
@@ -355,6 +359,7 @@ def archive(api, root, store, key, identifier, cache=None):
         database_reference = '附带只读导出的结构与迁移记录；不含真实业务数据'
     baseline_id = intern_baseline(store, stage) if database_reference else None
     manifest = {'project': key, 'projectId': PROJECTS[key][0], 'teamId': TEAM, 'deploymentId': identifier,
+                'regions': detail.get('regions'), 'nodeVersion': detail.get('nodeVersion'),
                 'metadataSourceCommit': metadata_sha, 'embeddedSourceCommits': sorted(embedded),
                 'sourceSnapshotProvenance': 'Git 提交快照；实际部署文件为原始上传内容，二者不推定等价',
                 'runtimeConfigs': [json.loads(p.read_text()) for p in runtime.rglob('.vc-config.json')],
@@ -450,6 +455,18 @@ def activate(api, key, identifier, state):
             raise RuntimeError('正式版本切换失败；停止清理，请核对各域名指向。')
 
 
+def set_policy(api, key):
+    # 保留期使用专门接口的字符串周期，不属于通用项目 PATCH 的数字响应字段。
+    # https://github.com/vercel/terraform-provider-vercel/blob/main/client/project_deployment_retention.go
+    body = {'expiration': '1w', 'expirationProduction': '1w', 'expirationCanceled': '1w', 'expirationErrored': '1w'}
+    api.api('/v9/projects/' + PROJECTS[key][0] + '/deployment-expiration', 'PATCH', body)
+    actual = inventory(api, key)['policy']
+    days = ['expirationDays', 'expirationDaysProduction', 'expirationDaysCanceled', 'expirationDaysErrored']
+    if not actual or any(actual.get(name) != 7 for name in days):
+        raise RuntimeError('七天保留策略回读不一致。')
+    return actual
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=['inspect', 'archive', 'verify', 'cleanup', 'policy', 'publish'])
@@ -494,6 +511,10 @@ def main():
                 latest = inventory(api, args.project)
                 if latest['inFlight'] or signature(latest) != signature(state):
                     raise RuntimeError('归档期间发布目标变化，停止提升正式版本。')
+                detail = api.api('/v13/deployments/' + args.deployment)
+                ready_deployment(detail, args.project)
+                if args.project == 'formward' and detail.get('regions') != ['iad1']:
+                    raise RuntimeError('国际网关实际区域不是 iad1，停止切换。')
                 activate(api, args.project, args.deployment, latest)
                 live = inventory(api, args.project)
                 host = PROJECTS[args.project][1]
@@ -510,12 +531,7 @@ def main():
         elif args.command == 'cleanup':
             print(json.dumps(cleanup(api, root, store, args.project, args.limit)))
         elif args.command == 'policy':
-            policy = {'expirationDays': 7, 'expirationDaysProduction': 7, 'expirationDaysCanceled': 7, 'expirationDaysErrored': 7, 'deploymentsToKeep': 3}
-            api.api('/v9/projects/' + PROJECTS[args.project][0], 'PATCH', {'deploymentExpiration': policy})
-            actual = inventory(api, args.project)['policy']
-            if any(actual.get(k) != v for k, v in policy.items()):
-                raise RuntimeError('保留策略回读不一致。')
-            print(json.dumps({'project': args.project, 'policy': actual}))
+            print(json.dumps({'project': args.project, 'policy': set_policy(api, args.project)}))
 
 
 if __name__ == '__main__':

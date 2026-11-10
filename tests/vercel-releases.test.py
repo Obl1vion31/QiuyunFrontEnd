@@ -45,6 +45,13 @@ class ProtectionTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             r.file_payload(b'truncated', expected)
 
+    def test_ready_deployment_rejects_other_project_and_unfinished_build(self):
+        with self.assertRaises(RuntimeError):
+            r.ready_deployment({'projectId': r.PROJECTS['formward'][0], 'readyState': 'READY'}, 'qiuyun')
+        with self.assertRaises(RuntimeError):
+            r.ready_deployment({'projectId': r.PROJECTS['qiuyun'][0], 'readyState': 'BUILDING'}, 'qiuyun')
+        r.ready_deployment({'projectId': r.PROJECTS['qiuyun'][0], 'readyState': 'READY'}, 'qiuyun')
+
 
 class FakeAPI:
     def __init__(self, sha, payload):
@@ -188,6 +195,26 @@ class ActivationTests(unittest.TestCase):
         response.url = 'https://vercel.com/login?next=redacted'
         with patch.object(r.urllib.request, 'urlopen', return_value=response), self.assertRaises(RuntimeError):
             r.health('formward')
+
+
+class RetentionPolicyTests(unittest.TestCase):
+    def test_policy_uses_dedicated_endpoint_and_string_durations(self):
+        api = type('API', (), {})()
+        from unittest.mock import Mock
+        api.api = Mock()
+        policy = {'expirationDays': 7, 'expirationDaysProduction': 7, 'expirationDaysCanceled': 7, 'expirationDaysErrored': 7, 'deploymentsToKeep': 10}
+        with patch.object(r, 'inventory', return_value={'policy': policy}):
+            self.assertEqual(r.set_policy(api, 'qiuyun'), policy)
+        endpoint, method, body = api.api.call_args.args
+        self.assertEqual(endpoint, '/v9/projects/' + r.PROJECTS['qiuyun'][0] + '/deployment-expiration')
+        self.assertEqual(method, 'PATCH')
+        self.assertEqual(body, {'expiration': '1w', 'expirationProduction': '1w', 'expirationCanceled': '1w', 'expirationErrored': '1w'})
+
+    def test_policy_readback_must_match_all_four_durations(self):
+        from unittest.mock import Mock
+        api = type('API', (), {'api': Mock()})()
+        with patch.object(r, 'inventory', return_value={'policy': {'expirationDays': 7}}), self.assertRaises(RuntimeError):
+            r.set_policy(api, 'formward')
 
 
 if __name__ == '__main__':
