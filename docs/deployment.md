@@ -1,5 +1,30 @@
 # 预览、发布与回滚
 
+## 正式运行包归档与旧部署清理
+
+GitHub 保存源码历史，本机永久保存每次正式发布的运行包；Vercel 保留最近三个成功 Production 版本、最近三个部署，以及域名绑定、当前目标、回滚目标和本机最近观察到的两个正式版本。实际保留数量可能超过三个。旧预览地址随部署删除失效；应用包不等于真实数据或密钥备份。
+
+统一工具为 `scripts/vercel-releases.py`（Python 3，Linux／WSL，无新增 Python 依赖）。两个仓库的工具和专用测试保持相同实现。先激活既有 Node 环境；CLI 不在 PATH 时用 `VERCEL_CLI` 指向现有可执行文件，不另行全局安装。工具核对当前仓库和项目，只操作指定项目；所有动作默认预检，写入使用显式 `--apply`。
+
+```bash
+python3 scripts/vercel-releases.py inspect --project qiuyun
+python3 scripts/vercel-releases.py archive --project qiuyun --deployment dpl_ID --apply
+python3 scripts/vercel-releases.py verify --project qiuyun --deployment dpl_ID
+python3 scripts/vercel-releases.py publish --project qiuyun --deployment dpl_ID --apply
+python3 scripts/vercel-releases.py cleanup --project qiuyun --limit 20 --apply
+python3 scripts/vercel-releases.py policy --project qiuyun --apply
+```
+
+正式发布顺序为：沿用本项目现有构建生成不接正式域名的 READY 候选 → 完成对应功能验收 → 通过 `publish` 归档原始产物、切换版本、只读核对并清理。不能绕过归档直接切正式域名；本工具不替代候选功能验收、不重新构建，也不调整应用或数据库配置。
+
+归档按项目和部署 ID 区分，包含压缩的原始运行目录、源码快照、依赖锁、运行时、文件摘要和配置键的 ID／更新时间。部署元数据与包内 SOURCE_COMMIT 不同时保留两个源码快照，不声称 Git 提交等同于当时可能有未提交内容的构建。已有包校验通过后复用；损坏、下载失败、空间不足或配置缺失均停止发布与清理，不覆盖旧包。SHA256SUMS 支持独立校验；恢复时仍须核对数据库版本和另存的密钥。
+
+清理先核对所有正在使用的域名均有完整本机归档，再检查正式服务；每次最多二十个，每个删除前重新核对发布清单和域名。发布变化、构建进行中、接口错误或检查失败即停止，不自动修改域名或回滚。每批私有日志保留具体删除 ID 和前后检查结果。七天自动保留策略仅为补充，平台例外仍可能保留更多部署。
+
+本机运行包不自动删除。云盘由用户处理；电脑／WSL 损坏的风险仍存在，但不作为删除无用旧部署的前置条件。秘密单独私有保存，不进入 Git、公开日志或归档元数据；本次不追溯下载所有更早的运行包。
+
+归档位于 Git 公共目录所属工作区的 `.tools/backups/vercel-releases/qiuyun/`，不随临时 worktree 删除。正式发布需通过私有会话显式提供 `RELEASE_DATABASE_URL`，仅执行强制只读的结构／迁移记录导出；或设置 `RELEASE_DATABASE_BASELINE` 指向已核对的 schema.sql、migration-journal.csv 所在目录。不能使用开发库连接，不导出业务行。相同结构与迁移记录在本机共享基线，包内仍包含可独立使用的文件。Vercel 中不能读取原值的密钥继续单独管理，不把下载配置键当成完整密钥备份。
+
 ## 公网托管
 
 正式入口：[内容工作台](https://qiuyun-frontend.vercel.app)。Vercel 项目为 `qiuyun-frontend`，与 Formward 使用同一账号、独立配置；当前通过 CLI 发布，Git 推送不自动部署。用户已于 2026-10-23 持续授权：修改完成必要测试与视觉自检后直接发布并核对结果，无需每轮再次确认，直到用户通知变更；用户于2026-10-31进一步授权，通过必要测试与视觉自检后可直接同步并推送 main，推送前核对远端并保留无关修改。
@@ -17,7 +42,7 @@ Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` �
 仅修改未参与应用构建的说明文档／协作规范时，检查文档后提交、同步main即可，不构建或部署网站。需要发布应用时，安装并登录Vercel CLI，在已关联的仓库根目录运行：
 
 ```bash
-vercel deploy --prod
+vercel deploy --prod --skip-domain
 ```
 
 本机使用 `--prebuilt` 发布时，构建必须带 `VERCEL=1 VERCEL_ENV=production`。优先构建并验收实际发布目标，同一输入的产物不重复构建；Node与Vercel只有在adapter差异或现有夹具确需分别验证时才各构建一次。应用输入变化后仅重建最终受影响目标，说明文档／验收记录变化不触发重建。
@@ -28,7 +53,7 @@ vercel deploy --prod
 
 中文PDF验证只在PDF生成／导出／打印链路，PDF实际使用的共享组件、打印样式或字体，以及其Chromium／Puppeteer等依赖、运行环境或打包追踪发生变化时执行。用实际目标包和最小代表样本验证受影响内容；共享打印组件同时影响周／月会时才分别覆盖。普通业务页面、文档修改和仅重新打包不触发PDF生成，也不重复运行整套例会流程。
 
-需要先验证动态路由时，使用`deploy --prebuilt --prod --skip-domain`，核对候选后再`vercel promote`。同一部署ID提升到正式域名后，确认域名指向、受影响入口、登录边界及新增／修改资源；候选已经通过的同包完整套件不在正式域名再跑一遍。不可用静态资源成功替代受影响服务端功能验证。
+需要先验证动态路由时，使用`deploy --prebuilt --prod --skip-domain`，核对候选后再通过上述`publish`入口归档并切换正式版本。同一部署ID提升到正式域名后，确认域名指向、受影响入口、登录边界及新增／修改资源；候选已经通过的同包完整套件不在正式域名再跑一遍。不可用静态资源成功替代受影响服务端功能验证。
 
 新增迁移时先运行 `pnpm db:backup` 保存私有数据备份，核对待执行迁移，再运行 `pnpm db:migrate`；确认既有业务事实保持一致后发布。构建不执行迁移，后续结构变更需兼容仍运行的旧版本。
 

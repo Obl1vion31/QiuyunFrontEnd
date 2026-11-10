@@ -9,3 +9,6 @@
 `create-account.ts` 为开发库创建内部账号，TTY 密码不显示，重复创建不修改原密码或角色。`migrate.ts` 执行已版本化迁移；`backup-database.ts` 只读导出精确保留数值的行 JSON，并标记环境，保存到被忽略的 `.tools/backups/`。`development/` 提供初始化与通道入口，见该目录说明和数据库指南。正式维护须显式 `--production`、`APP_ENV=production` 及运行时连接，不自动加载旧正式配置。
 
 `restore-database.ts` 用于空库恢复预检。单独提供 `RESTORE_DATABASE_URL`，默认只检查，显式 `--apply` 才事务写入；任何业务表非空即拒绝。开发模式只允许开发维护目标及明确标记 development 的备份；显式正式模式仍拒绝源目标相同，并统一识别 Neon 连接池／直连别名。命令和恢复边界见数据库指南。
+
+
+`vercel-releases.py` 提供正式发布归档、完整性校验、域名保护、分批清理和七天保留策略；默认只读，显式 `--apply` 执行已批准流程。命令、私有目录和限制见[部署指南](../docs/deployment.md#正式运行包归档与旧部署清理)。
