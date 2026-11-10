@@ -6,7 +6,7 @@ import { privateDevelopmentDirectory } from './environment';
 
 interface TunnelConfiguration { host: string; user: string; identityFile: string; knownHostsFile: string; }
 export async function checkDevelopmentConnection(url: string) {
-  const client = postgres(url, { max: 1, connect_timeout: 8, idle_timeout: 2, prepare: false });
+  const client = postgres(url, { max: 1, connect_timeout: 15, idle_timeout: 2, prepare: false });
   try {
     const [row] = await client`select current_database() as database, current_user as role`;
     const target = new URL(url);

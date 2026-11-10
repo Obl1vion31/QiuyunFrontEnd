@@ -26,11 +26,34 @@ Neon 分支在创建后独立演进，网页录入、结构迁移和代码部署
 
 工作树共用 Git 公共目录旁的 `.tools/private/`，目录权限 0700、文件 0600；不提交、不部署。应用只加载 `development.env`，维护脚本只加载 `development-maintenance.env`，不把维护密码注入网站进程。`development-tunnel.json` 指定已有 SSH 密钥与已验证主机指纹，`development-accounts.json` 保存本机测试登录信息。
 
+| 私有文件 | 保存内容 | 使用位置 |
+| --- | --- | --- |
+| `development.env` | 开发应用连接、独立登录密钥、本机登录地址 | 本机网站 |
+| `development-maintenance.env` | 开发维护连接，不放网站认证密钥 | 迁移、初始化、备份／恢复工具 |
+| `development-tunnel.json` | 现有 SSH 主机、用户、密钥文件及已验证指纹文件的位置 | 启动通道 |
+| `development-accounts.json` | 两个测试账号的首次初始化资料与本机登录备忘 | 首次样例初始化 |
+
+修改账号备忘不会重置已经存在的账号；已有测试账号改密码仍使用系统设置，再同步本机备忘。迁移工具默认读取维护文件，不能把应用连接直接作为维护连接。启动检查与应用连接都最多等待15秒建立数据库连接，超时会停止。
+
 `development-baseline/schema.sql` 与 `snapshot.json` 保存纯结构、校验值、源码版本、原始迁移记录及基础配置白名单，可用于同版本空开发库重建。服务器另存一份于 `/var/backups/qiuyun-dev/baseline/`，仅服务器管理员可读；本机与服务器各自保管，不进入 Git。初始化拒绝结构不符或迁移记录不同的库；再次运行样例初始化保留已经编辑的开发内容。样例排期位于 `2026-10`，不绕过当前月份预排期流程，不生成运营指标或会议记录。
 
 通道断开时本机读写失败，不回退 Neon。停止当前开发进程后重新执行 `pnpm dev` 会检查并重建通道；本机 Linux 重启留下的失效控制文件会先清理，不动其他项目的通道。SSH 登录失效或 15432 被其他服务占用时停止，先核对目标，不改数据库公网监听。可用 `ssh -S .tools/qiuyun-dev-ssh.sock -O check ubuntu@43.142.148.58` 查看本仓库通道；该路径相对 Git 公共根目录。
 
 旧正式连接只保留在显式命名的私有参考／备份文件中，不被开发启动读取。正式维护须另外提供运行时配置，例如 `APP_ENV=production node --env-file=.tools/private/production-maintenance.env --import tsx scripts/migrate.ts --production`；该文件需按授权单独准备，本轮没有创建或执行正式维护入口。
+
+### 重建开发库
+
+需要清空并重建时，先停止所有本机开发网站，执行 `pnpm db:backup` 保存当前开发内容。确认这些开发内容可以清空后，由服务器管理员只重建同名 `qiuyun_dev` 空库，继续由 `qiuyun_dev_migrator` 所有；既有两个开发角色、连接限制和 Formward 配置保留。日常应用账号没有重建数据库的权限。
+
+空库准备好、两份本机基线仍完整时，依次执行：
+
+```bash
+pnpm dev:initialize
+pnpm db:migrate
+pnpm dev
+```
+
+第一条恢复基线结构和原始迁移记录、加入独立测试账号及开发样例；第二条只追加基线之后的新迁移。不能对已有开发内容直接重放历史 SQL，也不能拿正式备份作为开发样例恢复。库已经更新到更高迁移版本时直接正常开发，不用重复结构初始化。
 
 ## 账号是什么
 

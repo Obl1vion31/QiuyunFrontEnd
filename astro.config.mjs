@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { fileURLToPath } from 'node:url';
 import react from '@astrojs/react';
 import node from '@astrojs/node';
 import vercel from '@astrojs/vercel';
@@ -26,6 +27,10 @@ export default defineConfig({
     // PDF仅在服务端运行；开发预打包不应按旧浏览器目标处理其Node专用依赖。
     optimizeDeps: { exclude: ['puppeteer-core', '@sparticuz/chromium'] },
     // Quick Tunnel 每次生成不同子域名，只允许 Cloudflare 官方临时预览域。
-    server: { allowedHosts: ['.trycloudflare.com'] },
+    server: {
+      allowedHosts: ['.trycloudflare.com'],
+      // 只排除当前项目自己的工具与验收归档，不匹配工作树所在的父级.tools。
+      watch: { ignored: ['.tools', 'verified'].map(directory => fileURLToPath(new URL(`./${directory}/**`, import.meta.url))) },
+    },
   },
 });
