@@ -47,19 +47,29 @@ try {
   assert.equal((await request(path + '/callback', 'HEAD')).status, 200);
   for (const route of [path + '/callback?auth_code=fictional', path + '/status', '/api/promotion-daily']) assert.equal((await request(route)).status, 401);
   assert.equal((await request(path + '/authorize', 'POST')).status, 401);
+  assert.equal((await request(path + '/authorize')).status, 401);
   assert.equal((await request(path + '/callback/')).status, 401, '公开例外只覆盖精确登记路径');
   checks.push('公开就绪检查、HEAD、带参回调及其他接口的登录门禁');
 
   const boss = await login(admin), staff = await login(employee);
-  for (const [route, method] of [[path + '/status', 'GET'], [path + '/callback?auth_code=fictional', 'GET'], [path + '/authorize', 'POST']]) {
+  for (const [route, method] of [[path + '/status', 'GET'], [path + '/callback?auth_code=fictional', 'GET'], [path + '/authorize', 'POST'], [path + '/authorize', 'GET']]) {
     assert.equal((await request(route, method, staff.cookie)).status, 403);
   }
   assert.equal((await request(path + '/authorize', 'POST', boss.cookie, 'https://untrusted.example')).status, 403);
+  assert.equal((await request(path + '/authorize', 'GET', boss.cookie, 'https://untrusted.example')).status, 403);
+  const crossSite = await fetch(baseURL + path + '/authorize', { redirect: 'manual', headers: { Cookie: boss.cookie, 'Sec-Fetch-Site': 'cross-site' } });
+  assert.equal(crossSite.status, 403);
+  const statesBeforeHead = await db.select({ id: authVerification.id }).from(authVerification);
+  assert.equal((await request(path + '/authorize', 'HEAD', boss.cookie)).status, 204);
+  assert.deepEqual(await db.select({ id: authVerification.id }).from(authVerification), statesBeforeHead);
+  const navigated = await request(path + '/authorize', 'GET', boss.cookie);
+  assert.equal(navigated.status, 303);
+  assert.deepEqual(JSON.parse(new URL(navigated.headers.get('location')!).searchParams.get('scope')!), ['report_service']);
   const status = await request(path + '/status', 'GET', boss.cookie);
   assert.deepEqual(await status.json(), { service: 'xiaohongshu_juguang', requestedScopes: ['report_service'], configured: true, connections: [] });
   const incomplete = await request(path + '/callback?auth_code=fictional', 'GET', boss.cookie);
   assert.equal(incomplete.status, 400); assert.ok(!(await incomplete.text()).includes('auth_code=fictional'));
-  checks.push('管理员／员工权限、同源发起及状态不暴露令牌');
+  checks.push('管理员／员工权限、GET／POST发起、跨站拒绝、HEAD无副作用及状态不暴露令牌');
 
   const started = await request(path + '/authorize', 'POST', boss.cookie); assert.equal(started.status, 303);
   const upstream = new URL(started.headers.get('location')!);
