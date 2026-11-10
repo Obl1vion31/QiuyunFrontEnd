@@ -1,11 +1,13 @@
-import 'dotenv/config';
+import {loadMaintenanceEnvironment} from './development/environment';
+import {ensureDevelopmentTunnel} from './development/tunnel';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { createDatabase } from '../src/db/client';
 import { provisionAccount } from '../src/auth/provision';
 import type { Role } from '../src/auth/permissions';
 
-if (!process.env.DATABASE_URL) throw new Error('请配置目标数据库 DATABASE_URL。');
+const target=loadMaintenanceEnvironment();
+if(process.env.APP_ENV==='development')await ensureDevelopmentTunnel(target);
 const prompts = createInterface({ input: stdin, output: stdout });
 const username = process.argv[2] || await prompts.question('账号名称：');
 const role = (process.argv[3] || await prompts.question('角色（admin / employee）：')) as Role;
@@ -27,7 +29,7 @@ if (stdin.isTTY) {
     stdin.on('data', receive);
   });
 } else { password = await prompts.question('账号密码：'); prompts.close(); }
-const database = createDatabase(process.env.DATABASE_URL);
+const database = createDatabase(target);
 try {
   const result = await provisionAccount(database.db, { username, role, password });
   console.log(result.created ? '账号已创建。' : '账号已存在，密码和角色保持不变。');

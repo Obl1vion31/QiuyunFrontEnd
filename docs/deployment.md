@@ -4,7 +4,9 @@
 
 正式入口：[内容工作台](https://qiuyun-frontend.vercel.app)。Vercel 项目为 `qiuyun-frontend`，与 Formward 使用同一账号、独立配置；当前通过 CLI 发布，Git 推送不自动部署。用户已于 2026-10-23 持续授权：修改完成必要测试与视觉自检后直接发布并核对结果，无需每轮再次确认，直到用户通知变更；用户于2026-10-31进一步授权，通过必要测试与视觉自检后可直接同步并推送 main，推送前核对远端并保留无关修改。
 
-Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` 和 `ENABLE_EXPERIMENTAL_COREPACK=1`。数据库连接与认证密钥设为 Secret；认证 URL 使用正式 HTTPS 根地址。本机 `.env` 保留本机 URL，预览环境不连接共享业务库。
+Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` 和 `ENABLE_EXPERIMENTAL_COREPACK=1`，继续使用原 Neon。数据库连接与认证密钥设为 Secret；认证 URL 使用正式 HTTPS 根地址。本机 `.env` 为 `APP_ENV=development`，仅通过 SSH 连接上海 `qiuyun_dev`；预览环境不连接正式业务库。运行时数据库地址不从构建期变量回退，Vercel Production 兼容已有系统环境标识。
+
+开发库隔离工作只更新本机连接、工具及说明，不发布网站、不调整 Production 变量、不关闭 Neon。后续正常发布时按原流程显式取得 Production 构建配置，不能把开发 `.env` 当作正式运行配置。
 
 先按[检查选择](../tests/README.md#本轮如何选择检查)验证本次改动。`pnpm build`已包含类型检查；有本次有效构建结果时不再重复`pnpm check`。规则／接口／浏览器选受影响路径，schema或迁移变化才运行`pnpm db:check`；认证和权限变化保留相关角色及直调接口验证。
 

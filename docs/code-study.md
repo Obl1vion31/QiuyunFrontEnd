@@ -47,7 +47,7 @@ flowchart LR
 
 ## 运行与维护
 
-本地 Node adapter、公网 Vercel adapter 由 `astro.config.mjs` 选择。数据库连接来自私有环境变量；本地与公网共享选定分支，测试使用隔离库。
+本地 Node adapter、公网 Vercel adapter 由 `astro.config.mjs` 选择。`src/db/database-target.ts` 在连接前校验环境；本机通过 SSH 使用上海 `qiuyun_dev`，公网继续使用原 Neon，测试显式使用本机隔离库。`scripts/development/` 负责开发通道、维护配置、结构核对和样例初始化。
 
 - [源码目录](../src/README.md)
 - [维护工具](../scripts/README.md)

@@ -34,6 +34,8 @@
 
 ## 专项目录（按需选择）
 
+`pnpm test:development` 验证连接环境边界，并显式使用上海 `qiuyun_dev` 检查应用账号读写身份、跨库拒绝、建／删表拒绝、角色权限与连接上限、样例幂等及迁移空操作。只写标明的开发样例和临时权限探针，不向正式库写入。真实网页登录、保存和通道中断另按本轮实际状态核对；不因此触发全站或PDF专项。
+
 `node --import tsx tests/legacy-month-v0.browser.ts`在真实隔离PostgreSQL与目标运行包验证2026-10历史V0只读兼容、11月正常流程、12月未确认门禁、调整原因、未发／旧版本限制，以及两角色从历史月实际创建V1。`LEGACY_V0_ENTRY`指定实际包适配器，`LEGACY_V0_DIR`指定原始证据。桌面1440与相关1024、390仅明显溢出；不回填生产历史，不触发PDF专项。
 
 `tests/schedule-revision-gate.integration.ts`在实际包与隔离PostgreSQL覆盖发布、有效版本、取消后连续派生、历史编号保持、取消来源拒绝、真实并发及权限；`SCHEDULE_GATE_ENTRY`和`SCHEDULE_GATE_DIR`指定实际包入口与原始结果。`tests/revision-cancel-guide.browser.ts`共用一个隔离库，对照两角色同一来源的恢复入口与V2预览、真实创建、首次发布后的局部资格和关闭权限，并验证全站说明目录顺序、角色裁剪、键盘／锚点历史。`REVISION_CANCEL_ENTRY`和`REVISION_CANCEL_DIR`指定入口与证据，1440关键状态、1024及有限390按本次影响检查；仅说明变化时可用`REVISION_CANCEL_SCOPE=guide`复用未改变的改帖验证，不自动重跑旧说明五档或首屏专项。

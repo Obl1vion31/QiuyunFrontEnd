@@ -23,6 +23,8 @@ export default defineConfig({
   // 动态业务链接显式关闭HTML预取，实际导航由ClientRouter读取；静态资源沿用默认行为。
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   vite: {
+    // PDF仅在服务端运行；开发预打包不应按旧浏览器目标处理其Node专用依赖。
+    optimizeDeps: { exclude: ['puppeteer-core', '@sparticuz/chromium'] },
     // Quick Tunnel 每次生成不同子域名，只允许 Cloudflare 官方临时预览域。
     server: { allowedHosts: ['.trycloudflare.com'] },
   },
