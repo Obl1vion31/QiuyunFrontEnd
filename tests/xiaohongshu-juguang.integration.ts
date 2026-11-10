@@ -56,20 +56,24 @@ try {
     assert.equal((await request(route, method, staff.cookie)).status, 403);
   }
   assert.equal((await request(path + '/authorize', 'POST', boss.cookie, 'https://untrusted.example')).status, 403);
-  assert.equal((await request(path + '/authorize', 'GET', boss.cookie, 'https://untrusted.example')).status, 403);
+  const statesBeforeLanding = await db.select({ id: authVerification.id }).from(authVerification);
   const crossSite = await fetch(baseURL + path + '/authorize', { redirect: 'manual', headers: { Cookie: boss.cookie, 'Sec-Fetch-Site': 'cross-site' } });
-  assert.equal(crossSite.status, 403);
+  assert.equal(crossSite.status, 200);
+  assert.match(await crossSite.text(), /前往小红书授权/);
+  assert.deepEqual(await db.select({ id: authVerification.id }).from(authVerification), statesBeforeLanding);
   const statesBeforeHead = await db.select({ id: authVerification.id }).from(authVerification);
   assert.equal((await request(path + '/authorize', 'HEAD', boss.cookie)).status, 204);
   assert.deepEqual(await db.select({ id: authVerification.id }).from(authVerification), statesBeforeHead);
   const navigated = await request(path + '/authorize', 'GET', boss.cookie);
-  assert.equal(navigated.status, 303);
-  assert.deepEqual(JSON.parse(new URL(navigated.headers.get('location')!).searchParams.get('scope')!), ['report_service']);
+  assert.equal(navigated.status, 200);
+  const landing = await navigated.text();
+  assert.match(landing, /data-astro-reload/); assert.match(landing, /method="post"/);
+  assert.deepEqual(await db.select({ id: authVerification.id }).from(authVerification), statesBeforeLanding);
   const status = await request(path + '/status', 'GET', boss.cookie);
   assert.deepEqual(await status.json(), { service: 'xiaohongshu_juguang', requestedScopes: ['report_service'], configured: true, connections: [] });
   const incomplete = await request(path + '/callback?auth_code=fictional', 'GET', boss.cookie);
   assert.equal(incomplete.status, 400); assert.ok(!(await incomplete.text()).includes('auth_code=fictional'));
-  checks.push('管理员／员工权限、GET／POST发起、跨站拒绝、HEAD无副作用及状态不暴露令牌');
+  checks.push('管理员／员工权限、确认页GET无副作用、同源POST发起、跨站写入拒绝、HEAD无副作用及状态不暴露令牌');
 
   const started = await request(path + '/authorize', 'POST', boss.cookie); assert.equal(started.status, 303);
   const upstream = new URL(started.headers.get('location')!);
