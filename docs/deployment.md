@@ -45,6 +45,8 @@ Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` �
 vercel deploy --prod --skip-domain
 ```
 
+聚光定时任务的本机预构建使用 `vercel build --prod`，确认 `.vercel/output/config.json` 包含与 `vercel.json` 一致的三个 `crons`；仅运行 `astro build`／`pnpm build` 不会把定时配置合入预构建产物。
+
 本机使用 `--prebuilt` 发布时，构建必须带 `VERCEL=1 VERCEL_ENV=production`。优先构建并验收实际发布目标，同一输入的产物不重复构建；Node与Vercel只有在adapter差异或现有夹具确需分别验证时才各构建一次。应用输入变化后仅重建最终受影响目标，说明文档／验收记录变化不触发重建。
 
 `astro.config.mjs`显式信任正式HTTPS域名，不依赖本机`.env`中的认证URL；不得关闭`security.checkOrigin`或放开全部域名。发布前核对manifest包含正式域名。认证、来源校验、域名或adapter变化时，补测相关业务API的匿名同源`multipart/form-data`／URL编码表单401及外站403，不能只检查JSON；普通模块发布不重复遍历无关接口。

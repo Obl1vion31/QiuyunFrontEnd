@@ -15,6 +15,7 @@ async function mode(value:unknown){await writeFile(scenario,JSON.stringify(value
 async function calls(){return(await readFile(scenario+'.calls','utf8')).trim().split('\n').filter(Boolean).map(s=>JSON.parse(s));}
 const invoke=(secret=process.env.CRON_SECRET!,method='GET')=>fetch(base+path,{method,headers:{Authorization:'Bearer '+secret,Origin:base}});
 try{
+ const output=JSON.parse(await readFile('.vercel/output/config.json','utf8'));const configuration=JSON.parse(await readFile('vercel.json','utf8'));assert.deepEqual(output.crons,configuration.crons,'实际发布产物必须携带三个定时配置');
  const login=await fetch(base+'/api/auth/sign-in/username',{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(admin)});assert.equal(login.status,200);const cookie=login.headers.getSetCookie().map(s=>s.split(';')[0]).join('; ');
  const session=await(await fetch(base+'/api/auth/get-session',{headers:{Cookie:cookie}})).json();
  const token={access_token:'fictional-access',refresh_token:'fictional-refresh',access_token_expires_in:86400,refresh_token_expires_in:2592000,user_id:'fictional-upstream',platform_type:1 as const,scope:'["report_service"]',approval_advertisers:[{advertiser_id:11,advertiser_name:'隔离续期测试账户'}]};
