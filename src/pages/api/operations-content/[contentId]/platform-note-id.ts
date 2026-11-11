@@ -1,6 +1,6 @@
 import {readScheduleStructures} from '../../../../db/schedule-edit-policy';
 /**
- * 统一更正小红书笔记 ID。ID 属于帖子主体，因此一次更正会被全部版本、排期和复盘读取。
+ * 推广帖按版本与生效日期更正笔记 ID；普通非推广保留帖子共享字段。
  */
 import type { APIRoute } from 'astro';
 import { eq } from 'drizzle-orm';

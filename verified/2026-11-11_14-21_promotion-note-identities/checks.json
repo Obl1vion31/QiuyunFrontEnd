@@ -1,0 +1,296 @@
+{
+  "runtimeSource": "dfe704af684b381f07c776e0bcdd7bced560b2c1",
+  "deployment": {
+    "deploymentId": "dpl_FtkxvEhiro1ZZaDdTaehyJJhQSrg",
+    "state": "READY",
+    "source": "dfe704af684b381f07c776e0bcdd7bced560b2c1",
+    "crons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "cronEnabled": true
+  },
+  "build": {
+    "target": "vercel build --prod",
+    "errors": 0,
+    "warnings": 0,
+    "hints": 61
+  },
+  "relatedRules": {
+    "tests": 22,
+    "passed": 22
+  },
+  "migration": {
+    "passed": true,
+    "oldTables": 61,
+    "oldRowsDigestUnchanged": true,
+    "publishedVersionsBackfilled": 2,
+    "unpublishedRevisionRequiresChoice": true,
+    "frozenJsonAndPdfBytesUnchanged": true,
+    "productionWrites": false
+  },
+  "integration": {
+    "passed": true,
+    "checks": [
+      "员工按选中日更正；后一次C覆盖后续B，之前保留，不重写指标或推广状态",
+      "推广改帖首次发布必选；继承按实发日期取值，后续旧版全阶段更正不牵动新版",
+      "重复请求只留一条历史，同键不同内容拒绝；两人真实并发仅一方成功",
+      "跨帖ID占用在应用和旧字段数据库写入均拒绝，旧推广全帖接口、匿名与跨站拒绝",
+      "新填ID独立落版；缺失来源／空新ID保留未发布状态，未来实发登记沿用现行口径",
+      "审核预演不落ID或实发，批准重放原子写入继承ID和发布事实",
+      "审批期间来源ID变化拒绝静默继承；旧申请缺少选择时原内容和待审状态保留",
+      "普通非推广发布不要求新选择；旧版排期、日度事实、阶段和冻结会议保持",
+      "笔记ID查帖按真实版本映射命中，不再误命中同帖其他版本",
+      "同帖V0/V1不同ID可一键保存；错误整批回滚，原请求重试及事后更正后重试不重复写入",
+      "推广结束后持续复盘读取本版本ID，旧共享字段为空也能正常保存，无须再次补填",
+      "推广V0首次日度原子补ID，去空格及大小写规范化有效；非法ID明确拒绝"
+    ],
+    "productionWrites": false
+  },
+  "browser": {
+    "passed": true,
+    "checks": [
+      "admin：历史两种范围、取消与失败保留、原位保存；推广改帖必选和新填／继承发布，1440与1024；390仅关闭及溢出",
+      "employee：历史两种范围、取消与失败保留、原位保存；推广改帖必选和新填／继承发布，1440与1024；390仅关闭及溢出"
+    ],
+    "screenshots": [
+      "admin-history-failure-1440",
+      "admin-history-from-date-1440",
+      "admin-history-all-confirm-1440",
+      "admin-history-all-saved-1440",
+      "admin-publication-inherit-1440",
+      "admin-publication-new-1440",
+      "admin-publication-new-1024",
+      "admin-publication-failure-1440",
+      "admin-publication-saved-1440",
+      "employee-history-failure-1440",
+      "employee-history-from-date-1440",
+      "employee-history-all-confirm-1440",
+      "employee-history-all-saved-1440",
+      "employee-publication-inherit-1440",
+      "employee-publication-new-1440",
+      "employee-publication-new-1024",
+      "employee-publication-failure-1440",
+      "employee-publication-saved-1440"
+    ],
+    "errors": [],
+    "productionWrites": false
+  },
+  "candidate": {
+    "passed": true,
+    "host": "qiuyun-frontend-b65bd871i-opgobl1v-5358.vercel.app",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review?view=history",
+        "status": 302
+      },
+      {
+        "path": "/business/operations-schedule",
+        "status": 302
+      },
+      {
+        "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/platform-note-id?versionId=00000000-0000-4000-8000-000000000002&effectiveOn=2026-10-31",
+        "status": 401
+      },
+      {
+        "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      },
+      {
+        "path": "/_astro/publication-note-identity.8_CAnDhB.js",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      },
+      {
+        "path": "/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.D5EfH1YR.js",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      },
+      {
+        "path": "/_astro/operations-schedule.astro_astro_type_script_index_2_lang.zbYnIGgx.js",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      },
+      {
+        "path": "/_astro/operations-schedule.DXWDwEpQ.css",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      }
+    ],
+    "verifiedPackageCrons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "productionBusinessWrites": false
+  },
+  "production": {
+    "passed": true,
+    "host": "qiuyun-frontend.vercel.app",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review?view=history",
+        "status": 302
+      },
+      {
+        "path": "/business/operations-schedule",
+        "status": 302
+      },
+      {
+        "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/platform-note-id?versionId=00000000-0000-4000-8000-000000000002&effectiveOn=2026-10-31",
+        "status": 401
+      },
+      {
+        "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      },
+      {
+        "path": "/_astro/publication-note-identity.8_CAnDhB.js",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      },
+      {
+        "path": "/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.D5EfH1YR.js",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      },
+      {
+        "path": "/_astro/operations-schedule.astro_astro_type_script_index_2_lang.zbYnIGgx.js",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      },
+      {
+        "path": "/_astro/operations-schedule.DXWDwEpQ.css",
+        "status": 200,
+        "sameAsVerifiedPackage": true
+      }
+    ],
+    "verifiedPackageCrons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "productionBusinessWrites": false
+  },
+  "maintenance": [
+    {
+      "environment": "development",
+      "pendingApplied": [
+        "0053_juguang_connection_check",
+        "0054_juguang_automatic_renewal",
+        "0055_version_note_ids"
+      ],
+      "migrated": true,
+      "oldTables": 61,
+      "changedOldTables": [],
+      "newTables": [
+        "operations_note_id_owner",
+        "operations_version_note_id"
+      ]
+    },
+    {
+      "environment": "production",
+      "pendingApplied": [
+        "0055_version_note_ids"
+      ],
+      "migrated": true,
+      "oldTables": 61,
+      "changedOldTables": [],
+      "newTables": [
+        "operations_note_id_owner",
+        "operations_version_note_id"
+      ]
+    }
+  ],
+  "visual": {
+    "reviewed": true,
+    "desktop": [
+      {
+        "width": 1440,
+        "height": 1000,
+        "roles": [
+          "admin",
+          "employee"
+        ],
+        "states": [
+          "date correction",
+          "whole version confirmation",
+          "failure retained",
+          "saved",
+          "inherit publication",
+          "new id publication"
+        ]
+      },
+      {
+        "width": 1024,
+        "height": 1000,
+        "roles": [
+          "admin",
+          "employee"
+        ],
+        "states": [
+          "new id publication"
+        ]
+      }
+    ],
+    "limitedNarrowCheck": {
+      "width": 390,
+      "height": 844,
+      "scope": [
+        "form width",
+        "close entry"
+      ]
+    },
+    "video": {
+      "historySeconds": 8.12,
+      "publicationSeconds": 5.84,
+      "sampledFps": 2,
+      "reviewed": true
+    }
+  },
+  "productionBusinessTestWrites": false
+}
