@@ -311,3 +311,5 @@ content-config-drag.browser.ts使用本机隔离PostgreSQL验证按默认运营�
 ## Vercel 发布归档工具
 
 修改 `scripts/vercel-releases.py` 时运行 `python3 tests/vercel-releases.test.py`，覆盖真实压缩包校验、正式／域名／回滚保护以及故障停止。结合默认只读清单和实际小批次前后服务核对；维护工具不触发网站构建、UI 或 PDF 回归。两个仓库实现相同时复用同一测试结果。
+
+聚光后台续期使用 `tests/juguang-renewal.integration.ts`（实际目标包＋本机隔离PostgreSQL）：Bearer／方法门禁、提前续期与重复触发、凭据轮换、失败保留／恢复、只读scope、重授权清理和与手动检查的真实竞争。页面状态由 `tests/juguang-renewal.browser.ts` 检查。

@@ -379,6 +379,13 @@
       "when": 1794337883922,
       "tag": "0053_juguang_connection_check",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794373876529,
+      "tag": "0054_juguang_automatic_renewal",
+      "breakpoints": true
     }
   ]
 }

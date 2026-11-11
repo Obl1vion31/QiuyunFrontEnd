@@ -64,7 +64,7 @@ flowchart LR
 
 ## 共享界面接入
 
-接入管理由 `BusinessJuguangIntegration` 复用设置壳层和 SectionHeader，`juguang-management` 通过 `X-Business-Feedback: local` 在单条授权记录内显示慢请求、逐账户检查和有效期更新，保留已有表格节点。服务器 `juguang-check` 只保存安全摘要，`juguang-usage` 维护接口与业务用途。检查／刷新／锁的隔离覆盖见 `juguang-management.integration`，实际设置页各态与原生授权见 `juguang-management.browser`。
+接入管理由 `BusinessJuguangIntegration` 复用设置壳层和 SectionHeader，`juguang-management` 通过 `X-Business-Feedback: local` 在单条授权记录内显示慢请求、逐账户检查和有效期更新，保留已有表格节点。`juguang-renewal` 由独立Bearer校验的Vercel定时入口执行，与人工检查共用 `juguang-token` 及应用锁；`last_renewal`独立显示续期结果。服务器 `juguang-check` 只保存安全摘要，`juguang-usage` 维护接口与业务用途。检查／刷新／锁的隔离覆盖见 `juguang-management.integration`，实际设置页各态与原生授权见 `juguang-management.browser`。
 
 
 聚光授权确认页`pages/api/integrations/xiaohongshu/authorize.astro`复用Frame、Toolbar、PageHeader、BusinessConsoleFonts及business-form。GET／HEAD不创建state，按钮通过原生同源POST发起；表单使用`data-astro-reload`，避免客户端路由将授权303作为跨域读取。实际角色与原生导航验证见`tests/xiaohongshu-juguang.browser.ts`及对应隔离接口检查。

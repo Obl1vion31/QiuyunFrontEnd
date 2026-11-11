@@ -1,0 +1,1 @@
+ALTER TABLE "xiaohongshu_juguang_connection" ADD COLUMN "last_renewal" jsonb;

@@ -34,7 +34,9 @@ const outcome = result ? outcomes[result] : '';
         return <section class="authorization-record" data-juguang-connection={record.authorizationUserId}>
           <div class="connection-heading"><div><h3 data-account-title>已授权账户 ({record.advertisers.length})</h3><span class:list={['connection-state',{'connection-state--attention':reauthorize}]} data-grant-state>{reauthorize?'需要重新授权':'授权有效'}</span></div><button type="button" class="business-action-secondary" data-juguang-check disabled>检查连接</button></div>
           {connections.length>1&&<p class="integration-description">授权来源 <code>{record.authorizationUserId}</code></p>}
-          <div class="connection-dates"><span>授权续期截止：<time data-refresh-expiry>{businessDateTime(record.refreshTokenExpiresAt)}</time></span><span>访问令牌到期：<time data-access-expiry>{businessDateTime(record.accessTokenExpiresAt)}</time>，检查时按需刷新</span></div>
+          <div class="connection-dates"><span>刷新令牌到期：<time data-refresh-expiry>{businessDateTime(record.refreshTokenExpiresAt)}</time></span><span>访问令牌到期：<time data-access-expiry>{businessDateTime(record.accessTokenExpiresAt)}</time></span></div>
+          <p class="scope-description">{status?.configured&&'automaticRenewalConfigured' in status&&status.automaticRenewalConfigured?'后台自动续期已启用：每日三个时段检查，剩余 16 小时内续期，无需打开页面。':'后台自动续期尚未配置，请联系管理员；检查连接时仍可按需续期。'}</p>
+          <p class="scope-description" data-renewal-result data-check-state={record.lastRenewal?.status??'unknown'}>{record.lastRenewal?'最近续期：'+businessDateTime(record.lastRenewal.checkedAt)+' · '+record.lastRenewal.message:'最近续期：尚无续期记录'}</p>
           <p class="scope-description">实际授权：<code data-actual-scope>{record.scope??'平台未返回权限信息'}</code></p>
           <div class="integration-table"><table><thead><tr><th>广告账户</th><th>账户 ID</th><th>最近检查结果</th></tr></thead><tbody>{record.advertisers.map(account=>{
             const checked = record.lastCheck?.accounts.find(item=>item.advertiserId===account.advertiser_id);

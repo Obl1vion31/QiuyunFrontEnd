@@ -15,6 +15,8 @@ import {workflowErrorResponse} from './db/workflow-api';
 export const onRequest = defineMiddleware(async ({ request, url, locals }, next) => {
   // 开放平台登记回调前即可检查地址；真正的授权回调继续走下方身份及管理员校验。
   if (url.pathname === '/api/integrations/xiaohongshu/callback' && !url.search && ['GET', 'HEAD'].includes(request.method)) return next();
+  // 定时任务使用独立 Bearer 凭据，在路由内校验；不依赖网页会话。
+  if (url.pathname === '/api/cron/juguang-renewal') return next();
   // 旧标签页仍可能轮询；退役接口在身份查询前返回，不再消耗协作数据库读写。
   if(!realtimeEditingEnabled&&url.pathname.startsWith('/api/collaboration/'))return collaborationDisabledResponse();
   const protectedPath = url.pathname === '/business' || url.pathname.startsWith('/business/')
