@@ -8,3 +8,5 @@
 - 接口验证：Bearer门禁、方法限制、提前刷新、重复触发、凭据与有效期保存、无报表读取、失败保留／恢复、只读权限、重授权清理，以及真实PostgreSQL与手动检查的并发互斥。
 
 [等待续期](awaiting-1440.png) · [续期成功](renewed-1440.png) · [自动重试](retry-1440.png) · [需要重新授权](reauthorize-1440.png) · [手机有限核查](reauthorize-390.png)
+
+正式版本为 `dpl_5DGMd8gEyz9rWXsKGSyYC1hjuKXC`（运行源码27622c1），三个定时任务注册并启用；正式管理员页面实际查看自动续期提示、新有效期及成功记录。真实账户截图仅保存在私有 `.tools/test-artifacts/juguang-renewal-production.jpg`，不提交Git。正式凭据实际续期通过同一后台入口触发验证；尚未观察自然定时触发。
