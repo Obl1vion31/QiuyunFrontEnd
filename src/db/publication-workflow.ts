@@ -1,4 +1,5 @@
 import {StaleWriteError} from './schedule-workflow';
+import {confirmPublicationNote} from './note-identities';
 import {randomUUID} from 'node:crypto';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 import {promotionSnapshot} from './promotion-timeline';
@@ -65,6 +66,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     const previousConfirmation=workflow.publicationHistory[0]?.after.momentsConfirmation;
     const momentsConfirmation=requiresMomentsConfirmation?{momentsSent:true as const,requestSent:true as const}:previousConfirmation;
     const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl,...(previousConfirmation?{momentsConfirmation:previousConfirmation}:{})};
+    await confirmPublicationNote(tx,id,actual,input);
     const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{})};
     if(JSON.stringify(before)===JSON.stringify(after)){
       await switchContinuousReviewCycle(tx,version.contentId,id,actual,actor.username);

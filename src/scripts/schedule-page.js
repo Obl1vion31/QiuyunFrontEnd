@@ -1,4 +1,5 @@
 import {trackFormChanges} from './form-changes';
+import {resetPublicationNote,updatePublicationNote} from './publication-note-identity';
 import {canCreateRevision} from '../db/content-version-rules';
 import {initializePlacement} from './schedule-placement-ui';
 import {getInspector} from './business-inspector';
@@ -423,6 +424,7 @@ function initialize(){
         configureDateTime(publicationControl('actualPublishAt'),{value:record.actualPublishAt||''});
         publicationControl('projectDocUrl').value=record.projectDocUrl||'';publicationControl('publicationUrl').value=record.publicationUrl||'';
         publicationControl('expectedWriteVersion').value=record.writeVersion;publicationControl('expectedPlanRevision').value=record.planRevision;publicationControl('expectedPublicationRevision').value=record.publicationRevision;
+        resetPublicationNote(publicationForm,record.isPromoted&&record.workType==='revision'&&!record.actualPublishAt);
         updatePublicationFields();publicationChanges.capture();showView('publication');
         publicationControl(record.actualPublishAt?'publicationUrl':'actualPublishDate').focus({preventScroll:true});
         document.dispatchEvent(new CustomEvent('business:publication-opened',{detail:record}));
@@ -438,7 +440,7 @@ function initialize(){
       form.addEventListener('business:edit-reclaimed',refreshReclaimed);publicationForm.addEventListener('business:edit-reclaimed',refreshReclaimed);
       inspectorPublication?.addEventListener('click', () => openPublication(activeRecord));
       document.querySelectorAll('[data-close-publication]').forEach(button=>button.addEventListener('click',event=>{void (event.currentTarget.closest('header')?closePanel():returnToDetail());}));
-      publicationForm.addEventListener('input',()=>{updatePublicationFields();});
+      publicationForm.addEventListener('input',()=>{updatePublicationFields();updatePublicationNote(publicationForm);});
       publicationControl('correctTime').addEventListener('change',updatePublicationFields);
       publicationForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -460,6 +462,7 @@ function initialize(){
           }
           if (response.ok) {await finishSaved({id:activeRecord.id,month:publicationControl('plannedPublishAt').value.slice(0,7),pending:response.status===202});return;}
           publicationMessage.textContent = result.message ?? '保存失败，请重试。';
+          if(result.code==='NOTE_ID_CHANGED')document.dispatchEvent(new Event('business:publication-note-refresh'));
           for (const [name, errors] of Object.entries(result.fields ?? {})) {
             const error = publicationForm.querySelector(`[data-publication-error="${name}"]`);
             if (error) error.textContent = errors[0] ?? '';

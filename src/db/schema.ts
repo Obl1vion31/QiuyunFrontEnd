@@ -13,6 +13,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  unique,
   uuid,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
@@ -367,6 +368,7 @@ export const operationsContentVersion = pgTable(
   },
   (table) => [
     uniqueIndex('operations_content_version_number_idx').on(table.contentId, table.versionNumber),
+    unique('operations_content_version_identity_key').on(table.id, table.contentId),
     index('operations_content_version_source_idx').on(table.sourceVersionId),
     foreignKey({
       name: 'operations_content_version_subject_category_fk',
@@ -379,6 +381,34 @@ export const operationsContentVersion = pgTable(
     ),
   ],
 );
+
+// 笔记属于同一逻辑帖子的多个版本；生效日期只在版本内解释。
+export const operationsNoteIdOwner = pgTable('operations_note_id_owner', {
+  platformNoteId: text('platform_note_id').primaryKey(),
+  contentId: uuid('content_id').notNull().references(() => operationsContent.id, {onDelete:'restrict'}),
+}, table => [
+  unique('operations_note_id_owner_identity_key').on(table.platformNoteId, table.contentId),
+  check('operations_note_id_owner_format_check', sql`${table.platformNoteId} ~ '^[0-9a-f]{24}$'`),
+]);
+
+export const operationsVersionNoteId = pgTable('operations_version_note_id', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  versionId: uuid('version_id').notNull(),
+  contentId: uuid('content_id').notNull(),
+  // NULL 表示版本基线；日期记录替换从该日开始的有效值。
+  effectiveOn: date('effective_on'),
+  platformNoteId: text('platform_note_id'),
+  mode: text('mode').$type<'legacy'|'initial'|'inherit'|'new'|'correction'>().notNull(),
+  sourceVersionId: uuid('source_version_id').references(() => operationsContentVersion.id, {onDelete:'restrict'}),
+}, table => [
+  foreignKey({columns:[table.versionId,table.contentId],foreignColumns:[operationsContentVersion.id,operationsContentVersion.contentId]}).onDelete('restrict'),
+  foreignKey({columns:[table.platformNoteId,table.contentId],foreignColumns:[operationsNoteIdOwner.platformNoteId,operationsNoteIdOwner.contentId]}).onDelete('restrict'),
+  uniqueIndex('operations_version_note_id_baseline_idx').on(table.versionId).where(sql`${table.effectiveOn} IS NULL`),
+  uniqueIndex('operations_version_note_id_date_idx').on(table.versionId,table.effectiveOn).where(sql`${table.effectiveOn} IS NOT NULL`),
+  index('operations_version_note_id_lookup_idx').on(table.platformNoteId),
+  check('operations_version_note_id_mode_check',sql`${table.mode} IN ('legacy','initial','inherit','new','correction')`),
+  check('operations_version_note_id_value_check',sql`${table.effectiveOn} IS NULL OR ${table.platformNoteId} IS NOT NULL`),
+]);
 
 export const operationsContentSchedule = pgTable(
   'operations_content_schedule',

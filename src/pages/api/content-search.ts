@@ -1,5 +1,8 @@
 import {effectiveCategoryName} from '../../db/content-config';
 import type {APIRoute} from 'astro';
+import {readVersionNotes} from '../../db/note-identities';
+import {noteIdOn} from '../../db/note-identity-rules';
+import {shanghaiDateKey} from '../../db/promotion-rules.mjs';
 import {and,desc,eq,ilike,inArray,isNull,or,sql} from 'drizzle-orm';
 import {z} from 'zod';
 import {getDb} from '../../db/client';
@@ -9,18 +12,21 @@ import {promotionAuditView} from '../../db/promotion-audit-view';
 import {readScheduleWorkflow,WorkflowError} from '../../db/schedule-workflow';
 import {workflowErrorResponse} from '../../db/workflow-api';
 export const prerender=false;
-const selection={cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
+const selection={versionId:s.operationsContentVersion.id,cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
 function posts(){return getDb().select(selection).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId));}
 export const GET:APIRoute=async({url})=>{
  try{
   const id=url.searchParams.get('id');
   if(!id){const query=(url.searchParams.get('q')??'').trim().slice(0,120),offset=z.coerce.number().int().min(0).max(100000).parse(url.searchParams.get('offset')??0);if(!query)return Response.json({rows:[],next:null});
    const pattern='%'+query.replace(/[\\%_]/g,'\\$&')+'%';
-   const rows=await posts().where(or(ilike(s.operationsContentVersion.contentName,pattern),eq(s.operationsContent.platformNoteId,query.toLowerCase()))).orderBy(desc(s.operationsContentSchedule.plannedPublishAt),s.operationsContentSchedule.id).limit(21).offset(offset);
+   const rows=await posts().where(or(ilike(s.operationsContentVersion.contentName,pattern),sql`exists(select 1 from operations_version_note_id ni where ni.version_id=${s.operationsContentVersion.id} and ni.platform_note_id=${query.toLowerCase()}) OR (${s.operationsContent.platformNoteId}=${query.toLowerCase()} AND NOT EXISTS(select 1 from operations_version_note_id ni where ni.version_id=${s.operationsContentVersion.id}))`)).orderBy(desc(s.operationsContentSchedule.plannedPublishAt),s.operationsContentSchedule.id).limit(21).offset(offset);
+   const notes=await readVersionNotes(getDb(),rows.map(r=>r.versionId));for(const row of rows)row.noteId=noteIdOn(notes.get(row.versionId)!.periods,shanghaiDateKey(new Date()));
    return Response.json({rows:rows.slice(0,20),next:rows.length>20?offset+20:null});
   }
   z.uuid().parse(id);const [post]=await posts().where(eq(s.operationsContentSchedule.id,id));if(!post)throw new WorkflowError('没有找到这篇帖子。',404);
   const versions=await posts().where(eq(s.operationsContent.id,post.contentId)).orderBy(s.operationsContentVersion.versionNumber);
+  const notes=await readVersionNotes(getDb(),versions.map(r=>r.versionId));
+  for(const row of [post,...versions])row.noteId=noteIdOn(notes.get(row.versionId)!.periods,shanghaiDateKey(new Date()));
   const campaigns=await getDb().select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.scheduleId,id));const campaignIds=campaigns.map(row=>row.id);
   const [metrics,stages,non,checkpointEvents,audits,meetingVersions,workflow]=await Promise.all([
    campaignIds.length?getDb().select().from(s.operationsPromotionDailyMetric).where(inArray(s.operationsPromotionDailyMetric.campaignId,campaignIds)).orderBy(s.operationsPromotionDailyMetric.metricDate):[],

@@ -32,6 +32,7 @@ export async function checkScheduleRequestVersion(db:Database,request:Request){
     data=copy.headers.get('content-type')?.includes('application/json')?await copy.json():Object.fromEntries((await copy.formData()).entries());
   }catch{return;}
   if(parts[3]==='platform-note-id'){
+    if(data.versionId)return; // 版本／日期范围由身份事务核对完整映射指纹。
     const [row]=await db.select({noteId:contents.platformNoteId}).from(contents).where(eq(contents.id,parts[2]));
     if(!Object.hasOwn(data,'expectedPlatformNoteId')||!row||row.noteId!==data.expectedPlatformNoteId)throw new StaleWriteError();
     return;

@@ -39,7 +39,7 @@ flowchart LR
 
 ## 关键数据流
 
-1. 新做帖建立帖子身份、V0 和排期；改帖派生 V1+，共用逻辑帖子笔记 ID。
+1. 新做帖建立帖子身份、V0 和排期；改帖派生 V1+。推广改帖首次发布登记确认继承或新填笔记 ID，各版本按日期独立读取；普通非推广保持原帖身份。
 2. 发布登记原子保存项目文档、提取后的帖子链接、发布时间和已到期的逐日理由，允许未来时间并立即显示已发送。旧记录空链接遵循既定边界；改期和已有发布时间更正按账号的操作授权执行，更正必须填写原因。 首次且 `syncToMoments=true` 的登记将两项确认一并校验、存入发布事件JSON，后续更正保留，旧事件缺属性不回填。
 3. 推广按日度事实与明确等待区间回放。排期、历史和待办共用有效状态推导；旧团队暂停区间保留在历史回放中，单帖当前安排独立处理。
 4. 非推广复盘保存真实数据截止日、曝光／阅读原始量、服务端计算点击率与手填3秒阅读率及修订版本；跳过单独保存事件，不生成指标。
@@ -156,7 +156,9 @@ flowchart LR
 
 移动端 Inspector 的焦点范围包含原生 `summary`，排除折叠内容中的字段；Chrome 的关闭 `details` 仍可能保留布局盒，不能只用 `getClientRects()` 判断键盘可达性。
 
-每日表单由 `promotion-daily-form.ts` 管理原行草稿、校验、计算与保存锁；已保存复盘仍使用 `BusinessPromotionMetricForm` 原行，仅以 `data-saved-review` 替代待填标记，`promotion-saved-review.ts` 管理继续编辑、取消、原位PATCH及只读重试。已保存五项输入与次日下拉使用真实disabled，继续编辑才启用；收集值时直接读取命名控件，不依赖原生FormData包含禁用项。锁定外观复用 `business-forms.css` 和 `business-tokens.css` 的 `--console-control-disabled-*`，与首次推广、公共筛选及Sheet共色；不写白底例外，不改变行高或字段位置。两者共用 `openStateBubble`，次日更正原因沿用同一气泡样式及 editor 生命周期，不往表格增加字段。`BusinessPostReferences` 仅展示资料，复用 `business-popover.ts` 与例会相同的原生气泡行为。版本行复用 `promotion-pending.css` 的18px行框和4px间距，资料按钮用伪元素扩展至24px点击区域，避免组件外边距与行内gap叠加。表格不再克隆到 Inspector；查看资料不导航或触发草稿确认，缺失 ID 的确认仍只更新本地草稿并随复盘原子保存。
+每日表单由 `promotion-daily-form.ts` 管理原行草稿、校验、计算与保存锁；已保存复盘仍使用 `BusinessPromotionMetricForm` 原行，仅以 `data-saved-review` 替代待填标记，`promotion-saved-review.ts` 管理继续编辑、取消、原位PATCH及只读重试。已保存五项输入与次日下拉使用真实disabled，继续编辑才启用；收集值时直接读取命名控件，不依赖原生FormData包含禁用项。锁定外观复用 `business-forms.css` 和 `business-tokens.css` 的 `--console-control-disabled-*`，与首次推广、公共筛选及Sheet共色；不写白底例外，不改变行高或字段位置。两者共用 `openStateBubble`，次日更正原因沿用同一气泡样式及 editor 生命周期，不往表格增加字段。`note-identities.ts`批量读取版本基线与日期切换，`note-identity-rules.ts`供浏览器和事务共用日期解析。`BusinessPromotionDetails`只在选中日详情接入范围更正，`promotion-note-correction`用公共确认和Inspector已有refresh原位更新；失败保留输入，写入成功后重读失败只重试读取。发布单层Sheet通过原workflow读取传递身份预览，`publication-note-identity`保留用户选择，`registerPublication`同事务确认；审批预演及重放沿用同一服务。
+
+`BusinessPostReferences` 仅展示资料，复用 `business-popover.ts` 与例会相同的原生气泡行为。版本行复用 `promotion-pending.css` 的18px行框和4px间距，资料按钮用伪元素扩展至24px点击区域，避免组件外边距与行内gap叠加。表格不再克隆到 Inspector；查看资料不导航或触发草稿确认，缺失 ID 的确认仍只更新本地草稿并随复盘原子保存。
 
 推广精确状态和后继选择共用 `promotion-successors.mjs`；`promotionDayStatusEdit` 排除该日已有覆盖后回放原状态，SSR 和事务共用更正选项，误选终态可恢复该日原状态且不开放历史终态之后重启。状态气泡只传行日期、目标状态与原因，保存后仍显示“修改”，次日安排独立；终态与进行中互改时原位恢复相应选择控件，保留数字草稿。`promotion-residual.ts` 复用日度 API 的笔记搜索／残留保存，明确选择活动与日期后才读取该排期的保存指纹，随补录提交并拒绝旧版本；不批量加载全部候选的历史。服务端稳定归属由日度事实的 `sourceStageStartedOn` 及阶段聚合维护，不以临时阶段行 ID 关联。
 

@@ -1,4 +1,6 @@
 import {effectiveCategoryName} from './content-config';
+import {readVersionNotes} from './note-identities';
+import {noteIdOn} from './note-identity-rules';
 import {correctPromotionHistory,PromotionHistoryPreview} from './promotion-history-correction';
 import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
@@ -50,11 +52,14 @@ export const timelineFingerprint = (value: unknown) => createHash('sha256').upda
 
 export async function readPromotionTimeline(db: Reader, now = new Date(), onlySchedule?: string, existingContext?: Awaited<ReturnType<typeof readPromotionContext>>) {
   const [rows, plans, context, schedules, allMetrics, allStages] = await Promise.all([
-    db.select({scheduleId:s.operationsContentSchedule.id,contentId:s.operationsContentVersion.contentId,platformNoteId:s.operationsContent.platformNoteId,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),projectDocUrl:s.operationsContentVersion.projectDocUrl,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,publicationUrl:s.operationsContentSchedule.publicationUrl,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
+    db.select({scheduleId:s.operationsContentSchedule.id,versionId:s.operationsContentVersion.id,contentId:s.operationsContentVersion.contentId,platformNoteId:s.operationsContent.platformNoteId,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),projectDocUrl:s.operationsContentVersion.projectDocUrl,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,publicationUrl:s.operationsContentSchedule.publicationUrl,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
     db.select().from(s.operationsPromotionStartPlan), existingContext??readPromotionContext(db), db.select().from(s.operationsContentSchedule), db.select().from(s.operationsPromotionDailyMetric).orderBy(asc(s.operationsPromotionDailyMetric.metricDate)), db.select().from(s.operationsPromotionStage).orderBy(asc(s.operationsPromotionStage.startedOn)),
   ]);
   const today=shanghaiDateKey(now), yesterday=previousDateKey(today);
+  const noteStates=await readVersionNotes(db,rows.map(row=>row.versionId));
   return rows.filter(row=>row.actualPublishAt&&(row.isPromoted||context.campaigns.some(c=>c.scheduleId===row.scheduleId)||plans.some(p=>p.scheduleId===row.scheduleId))).map(row=>{
+    const noteIdPeriods=noteStates.get(row.versionId)!.periods;
+    row.platformNoteId=noteIdOn(noteIdPeriods,today);
     const publishedOn=shanghaiDateKey(row.actualPublishAt!), plan=plans.find(p=>p.scheduleId===row.scheduleId);
     const campaign=context.campaigns.filter(c=>c.scheduleId===row.scheduleId).sort((a,b)=>a.startedOn.localeCompare(b.startedOn)).at(-1);
     const waitingThrough=!campaign&&row.promotionDeferredThrough?row.promotionDeferredThrough:plan?.waitingThrough??(plan?null:row.promotionDeferredThrough);
@@ -64,7 +69,7 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
     const pausedRanges=context.waitRanges.filter(r=>r.campaignId===campaign?.id);
     const snapshot={schedule:withoutLegacyDelay(schedules.find(record=>record.id===row.scheduleId)!),plan:plan??null,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
     const canArrangeInitial=row.isPromoted&&row.promotionStatus==='awaiting_promotion'&&!campaign;
-    return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,initialWaiting,date,canArrangeInitial,
+    return {...row,noteIdPeriods,noteIdFingerprint:noteStates.get(row.versionId)!.fingerprint,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,initialWaiting,date,canArrangeInitial,
       pending:canArrangeInitial&&publishedOn<=yesterday&&!dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})),
       ranges:pausedRanges, hasMetrics:snapshot.metrics.length>0, fingerprint:timelineFingerprint(snapshot)};
   });

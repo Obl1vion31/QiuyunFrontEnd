@@ -1,6 +1,7 @@
 import {contentRoles,rolesForCategory} from './content-roles';
 import {operationTypes,isPromotionType} from './operation-types';
 import { z } from 'zod';
+import {platformNoteIdSchema} from './platform-note-id';
 import { extractPublicationLink } from './publication-link.mjs';
 import {reviewPlanSchema,reviewPlanFromForm} from './non-promotion-plan-input';
 import {
@@ -52,6 +53,9 @@ export function createPostSchemas(taxonomy:{subjects:ReadonlyArray<{id:string}>;
 export const {newPostSchema,editScheduleSchema,revisionSchema}=createPostSchemas({subjects,postCategories,subjectCategoryMappings});
 
 export const publicationSchema = z.object({
+  noteIdMode:z.enum(['inherit','new']).optional(),
+  platformNoteId:z.preprocess(value=>value===''||value===null?undefined:value,platformNoteIdSchema.optional()),
+  expectedNoteIdFingerprint:z.string().optional(),expectedSourceNoteIdFingerprint:z.string().optional(),
   reviewPlan:reviewPlanSchema.optional(),
   reviewDueOn:z.string().optional(),
   actualPublishAt: z.preprocess(emptyToNull,shanghaiDateTime.nullable().optional()),
@@ -92,6 +96,8 @@ export const revisionInputFromForm = (form: FormData) => ({
 });
 
 export const publicationInputFromForm = (form: FormData) => ({
+  noteIdMode:form.get('noteIdMode')||undefined,platformNoteId:form.get('platformNoteId')||undefined,
+  expectedNoteIdFingerprint:form.get('expectedNoteIdFingerprint')||undefined,expectedSourceNoteIdFingerprint:form.get('expectedSourceNoteIdFingerprint')||undefined,
   reviewPlan:reviewPlanFromForm(form),reviewDueOn:String(form.get('reviewDueOn')||''),
   actualPublishAt: form.get('actualPublishAt') ?? undefined,
   projectDocUrl: form.get('projectDocUrl') ?? undefined,

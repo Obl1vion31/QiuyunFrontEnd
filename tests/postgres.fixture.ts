@@ -22,6 +22,8 @@ export async function startPostgresFixture(options:{clockFile?:string;entry?:str
   for(const statement of identifiers.split('--> statement-breakpoint').filter(s=>/^\s*CREATE (?:OR REPLACE FUNCTION|TRIGGER)/.test(s)))await db.execute((await import('drizzle-orm')).sql.raw(statement));
   const privateGuard=await readFile(new URL('../drizzle/0049_monthly_private_source_guard.sql',import.meta.url),'utf8');
   for(const statement of privateGuard.split('--> statement-breakpoint'))await db.execute((await import('drizzle-orm')).sql.raw(statement));
+  const noteGuard=await readFile(new URL('../drizzle/0055_version_note_ids.sql',import.meta.url),'utf8');
+  for(const statement of noteGuard.split('--> statement-breakpoint').filter(s=>/^\s*CREATE (?:OR REPLACE FUNCTION|TRIGGER)/.test(s)))await db.execute((await import('drizzle-orm')).sql.raw(statement));
   await db.insert(schema.operationsSubject).values(subjects.map((row,index)=>({...row,sortOrder:index*10})));await db.insert(schema.operationsCategory).values(postCategories.map((row,index)=>({...row,sortOrder:index*10})));await db.insert(schema.operationsSubjectCategory).values([...subjectCategoryMappings]);
   for(const account of options.accounts??[admin,employee,{username:'test_other',password:'fictional-other-password',role:'employee' as const}])await provisionAccount(db,account);
  }catch(error){await database.close();await maintenance.unsafe(`drop database "${name}"`);await maintenance.end();throw error;}

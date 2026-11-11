@@ -1,4 +1,6 @@
 import {appendScheduleHistoryGroups,type ExecutionEntry} from './schedule-execution-history';
+import {setPublicationNote,updatePublicationNote} from './publication-note-identity';
+import type {PublicationNoteIdentity} from '../db/note-identity-rules';
 import type {ScheduleHistoryGroups} from '../db/schedule-history';
 import '../styles/schedule-history.css';
 import type {PublicationMomentsConfirmation} from '../db/schema';
@@ -17,7 +19,7 @@ type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved:
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
 type ChangeProposal={key:string;name:string;title:string;requestedBy:string;reason:string;endpoint:string;scheduleId:string|null;diff:Array<{label:string;before:string;after:string}>};
-type Workflow = {historyGroups:ScheduleHistoryGroups;delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};after:{actualPublishAt:string;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { executionHistory?:ExecutionEntry[]; id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
+type Workflow = {noteIdentity:PublicationNoteIdentity;historyGroups:ScheduleHistoryGroups;delayLabel:string;changeProposals?:ChangeProposal[];registrationState:'pending'|'missing'|'registered';requiresPlanApproval:boolean;allowEmptyPublicationLink:boolean;publicationState:keyof typeof publicationLabels;publicationReservations:Reservation[];publicationHistory:Array<{revision:number;before:{actualPublishAt:string|null;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};after:{actualPublishAt:string;publicationUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation};changedByLabel:string;reason:string|null;createdAt:string}>; schedule: { executionHistory?:ExecutionEntry[]; id: string; planRevision: number;publicationRevision:number;publicationUrl:string|null; delayThresholdHours:number; plannedPublishAt: string; actualPublishAt: string | null }; overdueDays: number; days: DelayDay[]; applications: Application[]; history: Array<{ revision: number; plannedPublishAt: string; newPlannedPublishAt: string; reason: string; changedByLabel: string }> };
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
   const node = document.createElement(tag); if (text !== undefined) node.textContent = text; return node;
 };
@@ -262,6 +264,7 @@ function initialize() {
     const actual=control.disabled?'':control.value;
     try {
       const workflow = await getWorkflow(publicationId, actual,read.signal); if (!read.isCurrent()) return;
+      setPublicationNote(publication!,workflow.noteIdentity);
       (publication!.elements.namedItem('expectedPlanRevision') as HTMLInputElement).value = String(workflow.schedule.planRevision);
       (publication!.elements.namedItem('plannedPublishAt') as HTMLInputElement).value = inputTime(workflow.schedule.plannedPublishAt);
       const statusOutput = publication!.querySelector<HTMLOutputElement>('[data-publication-status]')!;
@@ -299,10 +302,12 @@ function initialize() {
     publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden = false; showPublication();
   }, { signal });
   publication.addEventListener('input', event => {
+    if((event.target as HTMLInputElement).name==='noteIdMode')updatePublicationNote(publication!);
     if(!(event.target instanceof Element)||!event.target.closest('[data-datetime-name="actualPublishAt"]'))return;
     publicationToken++; stopPublicationRead(); host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
   }, { signal });
   publication.addEventListener('change',event=>{if((event.target as HTMLInputElement).name==='correctTime'){clearTimeout(pendingTimer);showPublication();}},{signal});
+  document.addEventListener('business:publication-note-refresh',()=>{void showPublication();},{signal});
   publication.addEventListener('submit', event => {
     validateLink();
     if (host.dataset.ready !== 'true') { event.preventDefault(); event.stopImmediatePropagation(); status.textContent = '正在核对理由，请稍后保存；读取失败时请重新选择实发时间。'; return; }

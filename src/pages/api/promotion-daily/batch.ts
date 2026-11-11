@@ -1,4 +1,6 @@
 import {StaleWriteError} from '../../../db/schedule-workflow';
+import {readVersionNotes} from '../../../db/note-identities';
+import {noteIdOn} from '../../../db/note-identity-rules';
 import type { APIRoute } from 'astro';
 import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
@@ -31,7 +33,8 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
     try {
         const saved = await getDb().transaction(async (tx) => {
             await lockPromotionWorkflow(tx);
-            const info = await tx.select({ campaignId: campaigns.id, scheduleId: campaigns.scheduleId, contentId: contents.id, noteId: contents.platformNoteId }).from(campaigns).innerJoin(schedules, eq(campaigns.scheduleId, schedules.id)).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents, eq(versions.contentId, contents.id)).where(inArray(campaigns.id, rows.map(r => r.campaignId))).orderBy(campaigns.id);
+            const info = await tx.select({ campaignId: campaigns.id, scheduleId: campaigns.scheduleId, contentId: contents.id, versionId:versions.id }).from(campaigns).innerJoin(schedules, eq(campaigns.scheduleId, schedules.id)).innerJoin(versions, eq(schedules.contentVersionId, versions.id)).innerJoin(contents, eq(versions.contentId, contents.id)).where(inArray(campaigns.id, rows.map(r => r.campaignId))).orderBy(campaigns.id);
+            const noteStates=await readVersionNotes(tx,info.map(c=>c.versionId));
             if (rows.some(r => !info.some(c => c.campaignId === r.campaignId)))
                 throw new WorkflowError('部分活动已不存在，请刷新后重试。', 404);
             const repeats = await tx.select().from(audits).where(inArray(audits.requestKey, rows.map(r => r.requestKey)));
@@ -44,27 +47,29 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
                         throw new StaleWriteError('推广记录已变化，请刷新后核对。');
                 }
             }
-            const byContent = new Map<string, string>();
+            const initialByVersion = new Map<string, string>(),chosenByRow=new Map<string,string>();
             for (const row of rows) {
                 const c = info.find(c => c.campaignId === row.campaignId)!;
                 currentKey = `${row.campaignId}:${row.metricDate}`;
-                const id = row.platformNoteId;
-                if (c.noteId && id && c.noteId !== id)
+                const repeated=repeats.find(a=>a.requestKey===row.requestKey);
+                const id = row.platformNoteId??(typeof repeated?.after.requestPlatformNoteId==='string'?repeated.after.requestPlatformNoteId:undefined);
+                const current=noteIdOn(noteStates.get(c.versionId)!.periods,row.metricDate);
+                if (!repeated&&current && id && current !== id)
                     throw new WorkflowError('已有笔记 ID 不能在每日复盘中覆盖，请使用资料更正入口。', 422);
-                const chosen = id || c.noteId;
+                const chosen = id || current;
                 if (!chosen)
                     continue;
-                if (byContent.has(c.contentId) && byContent.get(c.contentId) !== chosen)
-                    throw new WorkflowError('同一篇帖子的笔记 ID 不一致，请核对。', 422);
-                if ([...byContent].some(([contentId, noteId]) => contentId !== c.contentId && noteId === chosen))
+                if (!current&&initialByVersion.has(c.versionId) && initialByVersion.get(c.versionId) !== chosen)
+                    throw new WorkflowError('同一版本的笔记 ID 不一致，请核对。', 422);
+                if ([...chosenByRow].some(([campaignId, noteId]) => info.find(c=>c.campaignId===campaignId)?.contentId !== c.contentId && noteId === chosen))
                     throw new WorkflowError('不同帖子不能共用同一笔记 ID。', 422);
-                byContent.set(c.contentId, chosen);
+                if(!current)initialByVersion.set(c.versionId,chosen);chosenByRow.set(c.campaignId,chosen);
             }
             const result = [];
             for (const row of [...rows].sort((a, b) => a.campaignId.localeCompare(b.campaignId) || a.metricDate.localeCompare(b.metricDate))) {
                 currentKey = `${row.campaignId}:${row.metricDate}`;
                 const c = info.find(c => c.campaignId === row.campaignId)!;
-                const entry = requireDailySaved(await writePromotionDaily(tx, { ...row, platformNoteId: byContent.get(c.contentId) ?? row.platformNoteId }, locals.user!, true));
+                const entry = requireDailySaved(await writePromotionDaily(tx, { ...row, platformNoteId: chosenByRow.get(c.campaignId)??initialByVersion.get(c.versionId)??row.platformNoteId }, locals.user!, true));
                 result.push({ ...entry, key: currentKey, scheduleId: c.scheduleId });
             }
             return result;

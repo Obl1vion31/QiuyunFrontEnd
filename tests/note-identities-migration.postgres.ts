@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {randomUUID,createHash} from 'node:crypto';
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import postgres from 'postgres';
+import {generateDrizzleJson,generateMigration} from 'drizzle-kit/api';
+const raw=process.env.TEST_POSTGRES_URL!;const target=new URL(raw);assert(['127.0.0.1','localhost'].includes(target.hostname));
+const admin=postgres(raw,{max:1,onnotice:()=>{}}),name='qiuyun_test_'+randomUUID().replaceAll('-','');await admin.unsafe(`create database "${name}"`);target.pathname='/'+name;
+const db=postgres(target.href,{max:1,onnotice:()=>{}}),dir=process.env.NOTE_ID_DIR??'.tools/test-artifacts/note-identities';await mkdir(dir,{recursive:true});
+try{
+ const previous=JSON.parse(await readFile('drizzle/meta/0054_snapshot.json','utf8'));
+ for(const statement of await generateMigration(generateDrizzleJson({}),previous))await db.unsafe(statement);
+ const id=randomUUID(),v0=randomUUID(),v1=randomUUID(),v2=randomUUID(),s0=randomUUID(),s1=randomUUID(),s2=randomUUID(),a='a'.repeat(24);
+ await db`insert into operations_subject(id,name,sort_order) values('tmua','TMUA',0)`;
+ await db`insert into operations_category(id,name,sort_order) values('handout','讲义',0)`;
+ await db`insert into operations_subject_category(subject_id,category_id) values('tmua','handout')`;
+ await db`insert into operations_content(id,platform_note_id) values(${id},${a})`;
+ for(const[v,n,source]of[[v0,0,null],[v1,1,v0],[v2,2,v1]])await db`insert into operations_content_version(id,content_id,version_number,source_version_id,work_type,content_name,subject_id,category_id) values(${v},${id},${n},${source},${n?'revision':'new'},'隔离旧资料','tmua','handout')`;
+ for(const[s,v,published]of[[s0,v0,true],[s1,v1,true],[s2,v2,false]])await db`insert into operations_content_schedule(id,content_version_id,is_promoted,promotion_status,planned_publish_at,actual_publish_at,completion_status) values(${s},${v},true,${published?'testing':'pending'},'2026-10-29T10:00:00+08:00',${published?'2026-10-29T10:00:00+08:00':null},${published?'on_time':'pending'})`;
+ const meeting=randomUUID(),version=randomUUID();await db`insert into operations_review_meeting(id,name,period_start,period_end,meeting_at,created_by_label) values(${meeting},'隔离冻结会议','2026-10-01','2026-10-31','2026-11-05T10:00:00+08:00','fixture')`;
+ await db`insert into operations_review_meeting_version(id,meeting_id,version_number,snapshot,change_summary) values(${version},${meeting},1,'{"frozen":true,"note":"旧指标和材料保持"}','隔离基准')`;
+ const attachment=randomUUID(),pdf=Buffer.from('%PDF-1.4\n% frozen fixture\n%%EOF').toString('base64');
+ await db`insert into operations_meeting_attachment(id,meeting_id,meeting_version_id,source,name,mime_type,byte_length,base64,created_by_label) values(${attachment},${meeting},${version},'generated','frozen.pdf','application/pdf',${Buffer.from(pdf,'base64').length},${pdf},'fixture')`;
+ const tables=await db<{tablename:string}[]>`select tablename from pg_tables where schemaname='public' order by tablename`;
+ const hash=async()=>{const rows=[];for(const{tablename}of tables){const value=await db.unsafe(`select coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]'::jsonb)::text as data from "${tablename}" t`);rows.push([tablename,value[0].data]);}return createHash('sha256').update(JSON.stringify(rows)).digest('hex');};
+ const before=await hash(),migration=await readFile('drizzle/0055_version_note_ids.sql','utf8');
+ await db.begin(async tx=>{for(const statement of migration.split('--> statement-breakpoint').filter(s=>s.trim()))await tx.unsafe(statement);});
+ assert.equal(await hash(),before);
+ const bindings=await db`select version_id,platform_note_id from operations_version_note_id order by version_id`;assert.equal(bindings.length,2);assert(bindings.every(row=>row.platform_note_id===a));assert(!bindings.some(row=>row.version_id===v2));
+ await assert.rejects(db.begin(async tx=>{const other=randomUUID();await tx`insert into operations_content(id) values(${other})`;await tx`update operations_content set platform_note_id=${a} where id=${other}`;}));
+ await writeFile(dir+'/migration.json',JSON.stringify({passed:true,oldTables:tables.length,oldRowsDigestUnchanged:true,publishedVersionsBackfilled:2,unpublishedRevisionRequiresChoice:true,frozenJsonAndPdfBytesUnchanged:true,productionWrites:false},null,2));console.log('PASS 实际0055迁移：旧表摘要、冻结JSON和PDF字节保持；仅已发布版本回填，旧字段归属保护生效');
+}finally{await db.end();await admin.unsafe(`drop database "${name}" with (force)`);await admin.end();}

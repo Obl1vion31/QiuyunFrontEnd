@@ -347,22 +347,9 @@ const historyHref = (overrides: Record<string, string>) => {
       initializeHistoryEditors();
       document.addEventListener('astro:page-load', initializeHistoryEditors);
       document.addEventListener('business:inspector-render', initializeHistoryEditors);
-      const initializeCorrections = () => {
-      document.querySelectorAll<HTMLFormElement>('[data-note-id-correction]:not([data-correction-ready])').forEach((form) => { form.dataset.correctionReady='true'; form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const oldValue = form.querySelector<HTMLInputElement>('[data-old-note-id]')!.value;
-        const newValue = String(new FormData(form).get('platformNoteId') ?? '').trim().toLowerCase();
-        if (!await businessConfirm(`旧值：${oldValue}\n新值：${newValue}\n\n该帖子的全部版本与复盘都会同步。`,{title:'更正笔记 ID',confirmLabel:'确认更正',cancelLabel:'继续编辑'})) return;
-        const output = form.querySelector<HTMLOutputElement>('output')!; output.textContent = '正在更正…';
-        const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
-        const result = await response.json();
-        if (response.ok) { cleanInspector(form); window.location.reload(); } else output.textContent = result.message ?? '更正失败。';
-      }); });
-      };
-      initializeCorrections();
-      document.addEventListener('astro:page-load', initializeCorrections);
-      document.addEventListener('business:inspector-render', initializeCorrections);
+
     </script>
+    <script>import '../../scripts/promotion-note-correction';</script>
   </body>
 </html>
 

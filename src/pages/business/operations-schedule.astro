@@ -434,6 +434,14 @@ const clientCategories=subjectCategories;
           <div class="field field-wide publication-status-field"><label>完成情况</label><output class="status-preview" data-publication-status>待登记</output></div>
           <div class="field field-wide"><label for="publicationUrl">小红书帖子链接 <b data-publication-link-required>*</b></label><textarea id="publicationUrl" name="publicationUrl" rows="3" maxlength="4000" required placeholder="可直接粘贴小红书完整分享文案"></textarea><output data-publication-link-preview aria-live="polite"></output><small data-publication-error="publicationUrl"></small></div>
           <div class="field field-wide"><label for="publicationProjectDocUrl">项目文档链接 <b data-publication-doc-required>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required/></div>
+          <fieldset class="field field-wide publication-note-identity" data-publication-note-identity hidden disabled>
+            <legend>本版本笔记 ID <b>*</b></legend>
+            <div class="checks field-options"><label><input type="radio" name="noteIdMode" value="inherit" required/>继承上一版本</label><label><input type="radio" name="noteIdMode" value="new" required/>填写新 ID</label></div>
+            <p data-note-inherit-value></p>
+            <div class="field" data-note-new-field hidden><label for="publicationNoteId">新笔记 ID <b>*</b></label><input id="publicationNoteId" name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" autocomplete="off" placeholder="24 位十六进制 ID" disabled/></div>
+            <input type="hidden" name="expectedNoteIdFingerprint"/><input type="hidden" name="expectedSourceNoteIdFingerprint"/>
+            <small data-publication-error="platformNoteId"></small>
+          </fieldset>
           <div class="field field-wide" data-publication-review-plan><BusinessNonPromotionPlanFields prefix="publication-review"/></div>
           <div class="field field-wide" data-time-correction hidden><label for="publicationCorrectionReason">实发时间更正原因 <b>*</b></label><textarea id="publicationCorrectionReason" name="correctionReason" maxlength="500" disabled></textarea><small data-publication-error="correctionReason"></small></div>
           <section class="field field-wide delay-field" data-publication-delay><strong>逐日延期理由</strong><p data-publication-delay-status role="status"></p><div data-publication-delay-days></div><input type="hidden" name="dailyReasons" value="[]"/><input type="hidden" name="expectedPlanRevision"/></section>
@@ -662,3 +670,7 @@ import '../../scripts/operation-setup';</script>
 </style>
 
 <style>.promotion-field:has([data-promotion-preview][hidden]){display:none}</style>
+
+<style>
+.publication-note-identity{border:0;margin:0;padding:0;display:grid;gap:10px}.publication-note-identity legend{padding:0;margin-bottom:10px;font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}.publication-note-identity .checks{display:flex;flex-wrap:wrap;gap:8px 24px}.publication-note-identity .checks label{display:flex;align-items:center;gap:8px;min-height:32px;width:auto;white-space:nowrap}.publication-note-identity p{margin:0;color:var(--console-muted);font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font);overflow-wrap:anywhere}
+</style>

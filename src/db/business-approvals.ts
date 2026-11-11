@@ -1,4 +1,5 @@
 import {monthlyLinksSchema,releaseMonthlyReservation} from './monthly-link-state';
+import {publicationNoteContext} from './note-identities';
 import {guardedScheduleWrite} from './schedule-edit-policy';
 import {monthlyLinksSnapshot,saveMonthlyLinks,repeatedMonthlyLinks} from './monthly-plan-links';
 import {WorkflowError} from './schedule-workflow';
@@ -123,7 +124,8 @@ async function snapshot(db:Database,write:Write,ignoreProposalId?:string):Promis
   const [content]=await db.select().from(s.operationsContent).where(eq(s.operationsContent.id,version.contentId));
   const customNodes=await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,version.contentId));
   const legacyShape=(row:Record<string,unknown>)=>Object.fromEntries(Object.entries(row).filter(([key,value])=>!(value==null&&['customCheckpointId','exposureCountSnapshot','readCountSnapshot'].includes(key))));
-  return {schedule:withoutLegacyDelay(schedule),versions,campaigns,
+  const noteIdentity=write.operations.includes('schedule.publish')?await publicationNoteContext(db,id):undefined;
+  return {schedule:withoutLegacyDelay(schedule),versions,campaigns,...(noteIdentity?.required?{noteIdentity}:{}),
     ...(content.operationType?{operationType:content.operationType}:{}),...(content.contentRole?{contentRole:content.contentRole}:{}),...(reviewPlan?{reviewPlan:Object.fromEntries(Object.entries(reviewPlan).filter(([k,v])=>!(k==='draftDueOn'&&v==null)))}:{}),...(customNodes.length?{customReviewNodes:customNodes}:{}),
     ...(momentsConfirmation?{momentsConfirmation}:{}),
     ...(startPlans.length?{startPlans}:{}),...(dayDecisions.length?{dayDecisions}:{}),
@@ -214,6 +216,10 @@ export async function decideProposal(id:string,approve:boolean,reason:string,act
     const [owner]=await tx.select({id:s.authUser.id,username:s.authUser.username,role:s.authUser.role}).from(s.authUser).where(eq(s.authUser.id,proposal.requestedById));
     if(!owner||owner.role!=='employee')return finish('obsolete',null,'申请账号状态已变化。');
     const request=new Request(origin+proposal.path,{method:proposal.method,headers:{Origin:origin,Accept:'application/json','Content-Type':proposal.contentType},...(proposal.method==='DELETE'?{}:{body:proposal.body})});
+    if(proposal.path.endsWith('/publication')&&proposal.method==='PATCH'){
+      const id=proposal.target.slice(9),context=await publicationNoteContext(tx,id);
+      if(context.required&&!(await request.clone().formData()).get('noteIdMode'))return Response.json({code:'NOTE_ID_SELECTION_REQUIRED',message:'该推广改帖申请尚未选择笔记 ID。原申请已保留，请管理员退回后，由提交人补齐继承或新填选择再提交。'},{status:422});
+    }
     if(proposal.target.startsWith('schedule:')){
       const [target]=await tx.select({id:s.operationsContentSchedule.id}).from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,proposal.target.slice(9)));
       if(!target)return finish('obsolete',null,'原排期已不存在，请重新提交。');

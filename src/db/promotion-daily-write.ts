@@ -1,4 +1,6 @@
 import {StaleWriteError} from './schedule-workflow';
+import {requireVersionNote,fillInitialVersionNote} from './note-identities';
+import {noteIdOn} from './note-identity-rules';
 import {syncContinuousCheckpoints} from './continuous-schedule';
 import {testingCycleOn} from './promotion-cycles.mjs';
 /** 单条与批量复盘共用同一事务写入，调用方持有推广工作流锁。 */
@@ -33,6 +35,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         currentStage: operationsPromotionCampaign.currentStage,
         currentStatus: operationsPromotionCampaign.currentStatus,
         contentId: operationsContent.id,
+        versionId: operationsContentVersion.id,
         platformNoteId: operationsContent.platformNoteId,
     }).from(operationsPromotionCampaign)
         .innerJoin(operationsContentSchedule, eq(operationsPromotionCampaign.scheduleId, operationsContentSchedule.id))
@@ -42,11 +45,12 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         .limit(1);
     if (!campaign)
         return { kind: 'missing' as const };
+    campaign.platformNoteId=noteIdOn((await requireVersionNote(transaction,campaign.versionId)).periods,data.metricDate);
     if (data.requestKey) {
         const [repeat] = await transaction.select().from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.requestKey, data.requestKey));
         if (repeat) {
             const prior = (repeat.after.metrics as Array<Record<string, unknown>> | undefined)?.find(m => m.id === repeat.after.metricId);
-            if (repeat.scheduleId !== campaign.scheduleId || repeat.changedById !== actor.id || repeat.businessDate !== data.metricDate || !prior || prior.campaignId !== data.campaignId || ['spend', 'platformOpenCount', 'actualOpenCount', 'platformLeadCount', 'actualLeadCount'].some(key => Number(prior[key]) !== Number(data[key as 'spend'])) || prior.reviewDecision !== data.reviewDecision || prior.recordKind !== data.recordKind || prior.stageTypeSnapshot !== data.stageTypeSnapshot || prior.dailyStatus !== data.dailyStatus || (data.actualStatusSnapshot && prior.actualStatusSnapshot !== data.actualStatusSnapshot) || (data.platformNoteId && campaign.platformNoteId !== data.platformNoteId) || (prior.note ?? null) !== (data.note ?? null))
+            if (repeat.scheduleId !== campaign.scheduleId || repeat.changedById !== actor.id || repeat.businessDate !== data.metricDate || !prior || prior.campaignId !== data.campaignId || ['spend', 'platformOpenCount', 'actualOpenCount', 'platformLeadCount', 'actualLeadCount'].some(key => Number(prior[key]) !== Number(data[key as 'spend'])) || prior.reviewDecision !== data.reviewDecision || prior.recordKind !== data.recordKind || prior.stageTypeSnapshot !== data.stageTypeSnapshot || prior.dailyStatus !== data.dailyStatus || (data.actualStatusSnapshot && prior.actualStatusSnapshot !== data.actualStatusSnapshot) || (data.platformNoteId && repeat.after.requestPlatformNoteId && repeat.after.requestPlatformNoteId !== data.platformNoteId) || (prior.note ?? null) !== (data.note ?? null))
                 throw new WorkflowError('请求编号已被使用，请重新保存。');
             return { kind: 'saved' as const, id: String(repeat.after.metricId), nextStatus: String(repeat.after.nextStatus) };
         }
@@ -92,10 +96,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     if (!residual && !replayed)
         return { kind: 'invalid-decision' as const };
     if (!campaign.platformNoteId && data.platformNoteId) {
-        await transaction.update(operationsContent).set({
-            platformNoteId: data.platformNoteId,
-            updatedAt: new Date(),
-        }).where(eq(operationsContent.id, campaign.contentId));
+        await fillInitialVersionNote(transaction,campaign.versionId,data.metricDate,data.platformNoteId);
     }
     const [metric] = await transaction.insert(operationsPromotionDailyMetric).values({
         campaignId: campaign.id,
@@ -114,7 +115,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         reviewedAt:now,updatedAt:now,
     }).returning({ id: operationsPromotionDailyMetric.id });
     const audit = async (nextStatus: string) => { if (data.requestKey)
-        await transaction.insert(operationsPromotionTimelineAudit).values({ scheduleId: campaign.scheduleId, requestKey: data.requestKey, businessDate: data.metricDate, action: residual ? 'test_residual' : 'daily_review', reason: data.note || '完成每日复盘', before: before ?? {}, after: { ...await promotionSnapshot(transaction, campaign.scheduleId), metricId: metric.id, nextStatus }, changedById: actor.id, changedByLabel: actor.username }); };
+        await transaction.insert(operationsPromotionTimelineAudit).values({ scheduleId: campaign.scheduleId, requestKey: data.requestKey, businessDate: data.metricDate, action: residual ? 'test_residual' : 'daily_review', reason: data.note || '完成每日复盘', before: before ?? {}, after: { ...await promotionSnapshot(transaction, campaign.scheduleId), metricId: metric.id, nextStatus, requestPlatformNoteId:data.platformNoteId??campaign.platformNoteId }, changedById: actor.id, changedByLabel: actor.username }); };
     if (residual) {
         await audit(campaign.currentStatus);
         return { kind: 'saved' as const, id: metric.id, nextStatus: campaign.currentStatus };

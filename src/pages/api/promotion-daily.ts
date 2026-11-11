@@ -1,6 +1,8 @@
 import {effectiveCategoryName} from '../../db/content-config';
 import {writePromotionDaily} from '../../db/promotion-daily-write';
 import {platformNoteIdSchema} from '../../db/platform-note-id';
+import {readVersionNotes} from '../../db/note-identities';
+import {noteIdOn} from '../../db/note-identity-rules';
 import type { APIRoute } from 'astro';
 import { and, eq, inArray, or } from 'drizzle-orm';
 import { getDb } from '../../db/client';
@@ -42,11 +44,14 @@ export const GET: APIRoute = async ({ url }) => {
  if(url.searchParams.has('noteId')){
   const parsed=platformNoteIdSchema.safeParse(url.searchParams.get('noteId'));
   if(!parsed.success)return Response.json({message:'请输入有效的 24 位笔记 ID。'},{status:422});
-  try{const candidates=await getDb().select({campaignId:operationsPromotionCampaign.id,scheduleId:operationsContentSchedule.id,contentName:operationsContentVersion.contentName,versionNumber:operationsContentVersion.versionNumber,platformNoteId:operationsContent.platformNoteId,startedOn:operationsPromotionCampaign.startedOn,endedOn:operationsPromotionCampaign.endedOn,sourceStageStartedOn:operationsPromotionCampaign.startedOn}).from(operationsPromotionCampaign).innerJoin(operationsContentSchedule,eq(operationsPromotionCampaign.scheduleId,operationsContentSchedule.id)).innerJoin(operationsContentVersion,eq(operationsContentSchedule.contentVersionId,operationsContentVersion.id)).innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).where(and(eq(operationsContent.platformNoteId,parsed.data),eq(operationsPromotionCampaign.currentStatus,'test_discarded')));
-   const selected=url.searchParams.get('campaignId'),candidate=selected?candidates.find(c=>c.campaignId===selected):null;
+  try{const candidates=await getDb().select({versionId:operationsContentVersion.id,campaignId:operationsPromotionCampaign.id,scheduleId:operationsContentSchedule.id,contentName:operationsContentVersion.contentName,versionNumber:operationsContentVersion.versionNumber,platformNoteId:operationsContent.platformNoteId,startedOn:operationsPromotionCampaign.startedOn,endedOn:operationsPromotionCampaign.endedOn,sourceStageStartedOn:operationsPromotionCampaign.startedOn}).from(operationsPromotionCampaign).innerJoin(operationsContentSchedule,eq(operationsPromotionCampaign.scheduleId,operationsContentSchedule.id)).innerJoin(operationsContentVersion,eq(operationsContentSchedule.contentVersionId,operationsContentVersion.id)).innerJoin(operationsContent,eq(operationsContentVersion.contentId,operationsContent.id)).where(eq(operationsPromotionCampaign.currentStatus,'test_discarded'));
+   const states=await readVersionNotes(getDb(),candidates.map(c=>c.versionId));
+   const matched=candidates.filter(c=>states.get(c.versionId)!.periods.some(p=>p.platformNoteId===parsed.data));
+   const date=url.searchParams.get('metricDate');
+   const selected=url.searchParams.get('campaignId'),candidate=selected?matched.find(c=>c.campaignId===selected&&(!date||noteIdOn(states.get(c.versionId)!.periods,date)===parsed.data)):null;
    if(selected&&!candidate)return Response.json({message:'该活动已不适合补录，请重新查询并选择。'},{status:409});
    const fingerprint=candidate?timelineFingerprint(await promotionSnapshot(getDb(),candidate.scheduleId)):undefined;
-   return Response.json({residualCandidates:candidates.map(c=>({...c,earliestDate:c.endedOn?nextDateKey(c.endedOn):null,latestDate:previousDateKey(shanghaiDateKey(new Date()))})),...(fingerprint?{fingerprint}:{})},{headers:{'Cache-Control':'no-store'}});
+   return Response.json({residualCandidates:matched.map(c=>({...c,platformNoteId:parsed.data,earliestDate:c.endedOn?nextDateKey(c.endedOn):null,latestDate:previousDateKey(shanghaiDateKey(new Date()))})),...(fingerprint?{fingerprint}:{})},{headers:{'Cache-Control':'no-store'}});
   }catch{return Response.json({message:'笔记查询失败，请重试。'},{status:503});}
  }
   const metricDate = requestedDate(url);

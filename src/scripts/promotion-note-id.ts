@@ -54,7 +54,7 @@ export async function openNoteId(form: HTMLFormElement, errorMessage = '') {
         input.value = input.value.trim().toLowerCase();
         if (!el.reportValidity())
             return;
-        form.dispatchEvent(new CustomEvent('business:note-id-draft', { detail: { contentId: form.dataset.contentId, value: input.value.trim().toLowerCase() } }));
+        form.dispatchEvent(new CustomEvent('business:note-id-draft', { detail: { versionId: form.dataset.versionId, value: input.value.trim().toLowerCase() } }));
         el.dataset.dirty = 'false';
         await close();
     });

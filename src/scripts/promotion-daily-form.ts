@@ -119,7 +119,7 @@ function initialize(){
   }
   const state=draft;state.views.add(form);render(form,state);
   form.querySelector<HTMLButtonElement>('[data-note-id-trigger]')?.addEventListener('click',()=>openNoteId(form));
-  form.addEventListener('business:note-id-draft',event=>{const {contentId,value}=(event as CustomEvent).detail;for(const d of drafts.values())if([...d.views].some(v=>v.dataset.contentId===contentId)){d.values.platformNoteId=value;d.dirty=true;d.message='';sync(d);}setUnsaved();});
+  form.addEventListener('business:note-id-draft',event=>{const {versionId,value}=(event as CustomEvent).detail;for(const d of drafts.values())if([...d.views].some(v=>v.dataset.versionId===versionId&&!v.dataset.noteId)){d.values.platformNoteId=value;d.dirty=true;d.message='';sync(d);}setUnsaved();});
   form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')?.addEventListener('click',()=>openStateBubble(form));
   const changed=()=>{state.values=values(form);state.dirty=true;state.message='';document.documentElement.dataset.unsaved='true';sync(state);};
   form.addEventListener('input',changed);form.addEventListener('change',changed);

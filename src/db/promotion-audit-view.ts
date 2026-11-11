@@ -4,6 +4,7 @@ import {promotionDecisionLabels} from './promotion-overview';
 import {promotionLabels} from './promotion-state.mjs';
 import {nextDateKey} from './promotion-rules.mjs';
 import {businessDateTime} from '../scripts/business-date';
+import {noteIdPeriodsLabel,type NoteIdPeriod} from './note-identity-rules';
 import type {operationsPromotionTimelineAudit} from './schema';
 
 type Audit=typeof operationsPromotionTimelineAudit.$inferSelect;
@@ -18,10 +19,14 @@ type Snapshot={
  auditCategory?:string;
  meetingDecision?:{targetStatus:string;effectiveOn:string;versionNumber:number};
 };
-const actions:Record<string,string>={daily_review_correction:'每日复盘更正',day_status_correction:'当日安排更正',metric_values:'日度指标更正',meeting_decision_correction:'例会安排更正',status:'修改当日状态',test_residual:'补录淘汰后残留',wait:'首次推广安排',start_testing:'推广安排更正',start_scaling:'推广安排更正',plan:'安排下一步',pause:'当日暂停',next:'调整待定与下一步',metric_correction:'复盘决定更正',publication_reset:'发布时间更正',usage_change:'推广身份变更',legacy_defer:'首次推广安排'};
+const actions:Record<string,string>={note_id_correction:'笔记 ID 更正',daily_review_correction:'每日复盘更正',day_status_correction:'当日安排更正',metric_values:'日度指标更正',meeting_decision_correction:'例会安排更正',status:'修改当日状态',test_residual:'补录淘汰后残留',wait:'首次推广安排',start_testing:'推广安排更正',start_scaling:'推广安排更正',plan:'安排下一步',pause:'当日暂停',next:'调整待定与下一步',metric_correction:'复盘决定更正',publication_reset:'发布时间更正',usage_change:'推广身份变更',legacy_defer:'首次推广安排'};
 const stageLabel=(stage?:string)=>stage==='scaling'?'放量':'测试';
 
 export function promotionSnapshotLabel(value:Record<string,unknown>,date:string,action:string){
+ if(action==='note_id_correction'){
+  const identity=value.noteIdentity as {versionNumber:number;periods:NoteIdPeriod[]}|undefined;
+  return identity?`V${identity.versionNumber} · ${noteIdPeriodsLabel(identity.periods)}`:'未填写';
+ }
  const snapshot=value as Snapshot,{plan,schedule}=snapshot;
  if(action==='daily_review_correction'){
   const m=snapshot.metrics?.find(row=>row.metricDate===date);

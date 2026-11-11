@@ -1,5 +1,9 @@
 # 验证
 
+## 推广笔记 ID 专项
+
+`tests/note-identities-migration.postgres.ts`验证实际0055迁移、旧表摘要及冻结JSON／PDF字节保持；`tests/note-identities.integration.ts`在实际目标包与隔离PostgreSQL验证两种更正、版本独立、并发、占用、发布和审批、批量回滚及请求重试。`tests/note-identities.browser.ts`验证双角色历史详情与发布登记、取消、失败保留、1440主视口与1024新增字段，390仅明显遮挡／关闭入口。使用`TEST_POSTGRES_URL`指向本机隔离服务，`NOTE_ID_ENTRY`指定实际目标包入口、`NOTE_ID_DIR`指定证据；复用已有Playwright。
+
 ## 本轮如何选择检查
 
 先按本次改动及真实消费者选择最小必要覆盖。下方是按需专项目录，历史交接的命令、五档截图和PDF页数不是每轮要求。

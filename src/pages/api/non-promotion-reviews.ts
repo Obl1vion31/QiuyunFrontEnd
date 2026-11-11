@@ -4,6 +4,8 @@ import {lockPromotionWorkflow} from '../../db/promotion-pauses';
 import { readNonPromotionReview } from '../../db/non-promotion-read-model';
 import {readNonPromotionFingerprint} from '../../db/non-promotion-record';
 import type { APIRoute } from 'astro';
+import {requireVersionNote,fillInitialVersionNote} from '../../db/note-identities';
+import {noteIdOn} from '../../db/note-identity-rules';
 import { and, eq, isNull } from 'drizzle-orm';
 import { lockSchedule } from '../../db/schedule-workflow';
 import { readCheckpointEvents } from '../../db/non-promotion-workflow';
@@ -46,6 +48,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       const post=await reviewIdentity(transaction,result.data.scheduleId),node=post.nodes.find(n=>n.type===result.data.checkpointType);
       if(post.id!==result.data.scheduleId||!post.reviewActive||!node)return {kind:'invalid-schedule' as const};
       const [identity] = await transaction.select({
+        versionId:operationsContentVersion.id,
         contentId: operationsContent.id,
         platformNoteId: operationsContent.platformNoteId,
         contentRole:operationsContent.contentRole,
@@ -65,6 +68,8 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
       if (!identity?.actualPublishAt) {
         return { kind: 'invalid-schedule' as const };
       }
+      const noteState=await requireVersionNote(transaction,identity.versionId),managedNote=noteState.promoted||noteState.mode!==null;
+      if(managedNote)identity.platformNoteId=noteIdOn(noteState.periods,result.data.recordedThrough);
       const [previousMetric]=await transaction.select().from(operationsContentPerformanceMetric).where(and(eq(operationsContentPerformanceMetric.scheduleId,result.data.scheduleId),eq(operationsContentPerformanceMetric.checkpointType,result.data.checkpointType)));
       if(post.operationType==='promotion_then_continuous'&&(form.get('expectedStatisticsFrom')!==post.statisticsFrom||previousMetric&&previousMetric.statisticsFrom!==post.statisticsFrom))return {kind:'interval-changed' as const};
       if(post.statisticsFrom&&result.data.recordedThrough<post.statisticsFrom)return {kind:'interval-changed' as const};
@@ -82,10 +87,13 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 
       if (!identity.platformNoteId && !result.data.platformNoteId) return { kind: 'note-id-required' as const };
       if (!identity.platformNoteId && result.data.platformNoteId) {
+        if(managedNote)await fillInitialVersionNote(transaction,identity.versionId,result.data.recordedThrough,result.data.platformNoteId);
+        else {
         await transaction.update(operationsContent).set({
           platformNoteId: result.data.platformNoteId,
           updatedAt: new Date(),
         }).where(eq(operationsContent.id, identity.contentId));
+        }
       }
 
       const [metric] = await transaction.insert(operationsContentPerformanceMetric).values({
