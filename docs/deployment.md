@@ -33,7 +33,7 @@ Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` �
 
 开发库隔离工作只更新本机连接、工具及说明，不发布网站、不调整 Production 变量、不关闭 Neon。后续正常发布时按原流程显式取得 Production 构建配置，不能把开发 `.env` 当作正式运行配置。
 
-聚光应用创建后增加服务端变量 `XHS_JUGUANG_APP_ID`、`XHS_JUGUANG_APP_SECRET`（密钥设为 Secret）；未配置时公开回调就绪检查仍可访问，发起授权明确返回尚未配置。令牌保存依赖0052兼容追加迁移；认证根密钥轮换后，聚光连接需重新授权。正式回调固定使用 `https://qiuyun-frontend.vercel.app/api/integrations/xiaohongshu/callback`，协议及操作入口见 [第三方接入](../src/integrations/README.md)。
+聚光应用创建后增加服务端变量 `XHS_JUGUANG_APP_ID`、`XHS_JUGUANG_APP_SECRET`（密钥设为 Secret）；未配置时公开回调就绪检查仍可访问，发起授权明确返回尚未配置。令牌保存依赖0052兼容追加迁移；认证根密钥轮换后，聚光连接需重新授权。自动续期另需 Production Secret `CRON_SECRET`（随机至少32字符），`vercel.json` 中三个每日任务复用 `/api/cron/juguang-renewal`。当前Hobby每个任务每天一次，时刻有小时级偏差；剩余16小时内刷新，失败留待下一时段，手动检查保留到期刷新。发布后在 Vercel 项目 Cron Jobs 核对三个任务已启用，并查看执行日志；接入管理查看最近续期及有效期。定时凭据修改须重新部署生效，不向浏览器返回。正式回调固定使用 `https://qiuyun-frontend.vercel.app/api/integrations/xiaohongshu/callback`，协议及操作入口见 [第三方接入](../src/integrations/README.md)。
 
 本机开发配置已与正式Neon分离时，发布和正式维护须显式读取已核对的Production配置；根`.env`及其他工作树的默认应用账号不作为正式迁移凭据。保持既有工作树与开发配置，不能为发布覆盖它们。
 
@@ -44,6 +44,8 @@ Production 变量为 `DATABASE_URL`、`BETTER_AUTH_SECRET`、`BETTER_AUTH_URL` �
 ```bash
 vercel deploy --prod --skip-domain
 ```
+
+聚光定时任务的本机预构建使用 `vercel build --prod`，确认 `.vercel/output/config.json` 包含与 `vercel.json` 一致的三个 `crons`；仅运行 `astro build`／`pnpm build` 不会把定时配置合入预构建产物。
 
 本机使用 `--prebuilt` 发布时，构建必须带 `VERCEL=1 VERCEL_ENV=production`。优先构建并验收实际发布目标，同一输入的产物不重复构建；Node与Vercel只有在adapter差异或现有夹具确需分别验证时才各构建一次。应用输入变化后仅重建最终受影响目标，说明文档／验收记录变化不触发重建。
 

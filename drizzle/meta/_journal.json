@@ -381,9 +381,16 @@
       "breakpoints": true
     },
     {
+      "idx": 54,
+      "version": "7",
+      "when": 1794373876529,
+      "tag": "0054_juguang_automatic_renewal",
+      "breakpoints": true
+    },
+    {
       "idx": 55,
       "version": "7",
-      "when": 1794374073081,
+      "when": 1794376753587,
       "tag": "0055_version_note_ids",
       "breakpoints": true
     }

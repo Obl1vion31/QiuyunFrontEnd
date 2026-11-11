@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {mkdir,mkdtemp,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';import {join} from 'node:path';
+import {withDatabase} from '../src/db/client';
+import {saveJuguangConnection} from '../src/integrations/xiaohongshu-juguang';
+import {xiaohongshuJuguangConnection as connections} from '../src/db/schema';
+import {startPostgresFixture} from './postgres.fixture';import {admin} from './auth.fixture';
+process.env.NODE_ENV='test';process.env.XHS_JUGUANG_APP_ID='42';process.env.XHS_JUGUANG_APP_SECRET='fictional-app-secret';process.env.BETTER_AUTH_SECRET='fictional-browser-secret-at-least-32-characters';process.env.CRON_SECRET='fictional-cron-secret-at-least-32-characters';
+const scenario=join(await mkdtemp(join(tmpdir(),'juguang-renewal-ui-')),'scenario.json');process.env.JUGUANG_SCENARIO_FILE=scenario;await writeFile(scenario,'{}');
+const directory=process.env.JUGUANG_EVIDENCE_DIR||'.tools/test-artifacts/juguang-renewal-ui';await mkdir(directory,{recursive:true});
+const fixture=await startPostgresFixture({entry:'tests/juguang-server.fixture.mjs'});
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);const browser=await chromium.launch({headless:true});
+try{
+ const context=await browser.newContext({viewport:{width:1440,height:1000}});
+ await context.request.post(fixture.baseURL+'/api/auth/sign-in/username',{headers:{Origin:fixture.baseURL},data:admin});
+ const session=await(await context.request.get(fixture.baseURL+'/api/auth/get-session')).json();
+ const token={access_token:'fictional-access',refresh_token:'fictional-refresh',access_token_expires_in:86400,refresh_token_expires_in:2592000,user_id:'fictional-upstream',platform_type:1 as const,scope:'["report_service"]',approval_advertisers:[{advertiser_id:11,advertiser_name:'隔离验收 · 湫云推广账户'}]};
+ await withDatabase(fixture.db,()=>saveJuguangConnection(token,'42',session.user.id));
+ const page=await context.newPage();const url=fixture.baseURL+'/business/settings?view=integrations';
+ const capture=async(state:string)=>{await page.goto(url);await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:directory+'/'+state+'-1440.png',fullPage:true});};
+ await capture('awaiting');assert.match(await page.locator('[data-juguang-management]').innerText(),/后台自动续期已启用/);assert.match(await page.locator('[data-renewal-result]').innerText(),/尚无续期记录/);
+ await fixture.db.update(connections).set({accessTokenExpiresAt:new Date(Date.now()-60_000)});
+ const cron=()=>fetch(fixture.baseURL+'/api/cron/juguang-renewal',{headers:{Authorization:'Bearer '+process.env.CRON_SECRET}});
+ assert.equal((await cron()).status,200);await capture('renewed');assert.match(await page.locator('[data-renewal-result]').innerText(),/令牌已自动续期/);assert.match(await page.locator('[data-account-check]').innerText(),/尚未检查/);
+ await fixture.db.update(connections).set({accessTokenExpiresAt:new Date(Date.now()-60_000)});await writeFile(scenario,JSON.stringify({network:true}));assert.equal((await cron()).status,503);await capture('retry');assert.match(await page.locator('[data-renewal-result]').innerText(),/暂时无法连接聚光/);
+ await writeFile(scenario,JSON.stringify({refreshFailure:410017}));await cron();await capture('reauthorize');assert.match(await page.locator('[data-grant-state]').innerText(),/需要重新授权/);
+ await page.setViewportSize({width:390,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:directory+'/reauthorize-390.png',fullPage:true});
+ await writeFile(scenario,'{}');await withDatabase(fixture.db,()=>saveJuguangConnection(token,'42',session.user.id));await fixture.db.update(connections).set({accessTokenExpiresAt:new Date(Date.now()-60_000)});await page.setViewportSize({width:1440,height:1000});await page.reload();await page.getByRole('button',{name:'检查连接',exact:true}).click();await page.getByText(/全部账户读取正常/).waitFor();await page.waitForFunction(()=>document.querySelector('[data-renewal-result]')?.textContent?.includes('令牌已自动续期'));assert.match(await page.locator('[data-renewal-result]').innerText(),/令牌已自动续期/);
+ await writeFile(directory+'/checks.json',JSON.stringify({states:['awaiting','renewed','retry','reauthorize'],desktop:{width:1440,height:1000},limitedMobile:{width:390,height:1000},manualCheckUpdatesRenewal:true},null,2));
+ console.log('通过：后台续期等待／成功／重试／重授权四态、人工检查局部更新、1440桌面及390有限溢出。');
+}finally{await browser.close();await fixture.stop();}

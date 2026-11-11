@@ -1,7 +1,23 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "astro",
-  "regions": ["iad1"],
+  "regions": [
+    "iad1"
+  ],
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm build"
+  "buildCommand": "pnpm build",
+  "crons": [
+    {
+      "path": "/api/cron/juguang-renewal",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/juguang-renewal",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/juguang-renewal",
+      "schedule": "0 16 * * *"
+    }
+  ]
 }

@@ -28,6 +28,7 @@ function initializeJuguang() {
           const reauthorize=record.needsReauthorization;
           const grant=root.querySelector<HTMLElement>('[data-grant-state]')!;grant.textContent=reauthorize?'需要重新授权':'授权有效';grant.classList.toggle('connection-state--attention',reauthorize);
           root.querySelector('[data-access-expiry]')!.textContent=businessDateTime(record.accessTokenExpiresAt);root.querySelector('[data-refresh-expiry]')!.textContent=businessDateTime(record.refreshTokenExpiresAt);
+          const renewal=root.querySelector<HTMLElement>('[data-renewal-result]')!;renewal.textContent=record.lastRenewal?'最近续期：'+businessDateTime(record.lastRenewal.checkedAt)+' · '+record.lastRenewal.message:'最近续期：尚无续期记录';renewal.dataset.checkState=record.lastRenewal?.status??'unknown';
           root.querySelector('[data-actual-scope]')!.textContent=record.scope??'平台未返回权限信息';
           const table=root.querySelector('tbody')!;
           const allowed=new Set(record.advertisers.map((item:{advertiser_id:number})=>String(item.advertiser_id)));

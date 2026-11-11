@@ -7307,6 +7307,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "last_renewal": {
+          "name": "last_renewal",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "scope": {
           "name": "scope",
           "type": "text",
@@ -7377,5 +7383,5 @@
     "columns": {}
   },
   "id": "0f04a1ab-0f44-48bb-9355-23616c973cca",
-  "prevId": "e14b9282-705d-498a-a072-a5dd476f1222"
+  "prevId": "3ae53d75-6184-4863-8aac-bde4a0cbb46e"
 }

@@ -150,7 +150,7 @@ export async function saveJuguangConnection(token: JuguangTokenData, appId: stri
     encryptedTokens: encryptJuguangTokens({ accessToken: token.access_token, refreshToken: token.refresh_token }, `${appId}:${token.user_id}`),
     accessTokenExpiresAt: new Date(now.getTime() + token.access_token_expires_in * 1000),
     refreshTokenExpiresAt: new Date(now.getTime() + token.refresh_token_expires_in * 1000),
-    lastCheck: null, advertisers: token.approval_advertisers ?? [], scope: token.scope ?? null, updatedBy: userId, updatedAt: now,
+    lastCheck: null, lastRenewal: null, advertisers: token.approval_advertisers ?? [], scope: token.scope ?? null, updatedBy: userId, updatedAt: now,
   };
   await getDb().insert(xiaohongshuJuguangConnection).values(values).onConflictDoUpdate({
     target: [xiaohongshuJuguangConnection.appId, xiaohongshuJuguangConnection.authorizationUserId], set: values,
@@ -176,11 +176,12 @@ export async function juguangConnectionStatus() {
   const connections = await getDb().select({
     authorizationUserId: xiaohongshuJuguangConnection.authorizationUserId,
     lastCheck: xiaohongshuJuguangConnection.lastCheck,
+    lastRenewal: xiaohongshuJuguangConnection.lastRenewal,
     advertisers: xiaohongshuJuguangConnection.advertisers, scope: xiaohongshuJuguangConnection.scope,
     accessTokenExpiresAt: xiaohongshuJuguangConnection.accessTokenExpiresAt,
     refreshTokenExpiresAt: xiaohongshuJuguangConnection.refreshTokenExpiresAt,
   }).from(xiaohongshuJuguangConnection).where(eq(xiaohongshuJuguangConnection.appId, appId));
-  return { configured: true, appId, connections: connections.map(record => ({ ...record, needsReauthorization: record.refreshTokenExpiresAt.getTime() <= Date.now() || !record.advertisers.length || !hasJuguangReportScope(record.scope) || !!record.lastCheck?.accounts.some(account=>account.status === 'reauthorize') })) };
+  return { configured: true, automaticRenewalConfigured: (process.env.CRON_SECRET?.length ?? 0) >= 32, appId, connections: connections.map(record => ({ ...record, needsReauthorization: record.refreshTokenExpiresAt.getTime() <= Date.now() || !record.advertisers.length || !hasJuguangReportScope(record.scope) || record.lastRenewal?.status === 'reauthorize' || !!record.lastCheck?.accounts.some(account=>account.status === 'reauthorize') })) };
 }
 
 export function juguangErrorResponse(error: unknown) {
