@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "checks": [
+    "管理员：测试淘汰五项默认零，可直接保存，刷新保留真实零",
+    "员工：测试淘汰默认零，可改填非零，失败保留、重试保存及刷新正确",
+    "正常测试仍为空；未输入时改成淘汰原位补零，已有输入改成淘汰保持原值与节点"
+  ],
+  "errors": [],
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "roles": [
+    "admin",
+    "employee"
+  ],
+  "productionWrites": false,
+  "runtimeSource": "e360d9809251bfad00187a1906198c8391cc64da",
+  "relatedRules": {
+    "passed": 11,
+    "total": 11
+  },
+  "build": {
+    "target": "vercel build --prod",
+    "errors": 0,
+    "warnings": 0,
+    "hints": 61
+  },
+  "candidate": {
+    "passed": true,
+    "origin": "qiuyun-frontend-hhn9pud70-opgobl1v-5358.vercel.app",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      }
+    ],
+    "builtCrons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "productionBusinessWrites": false
+  },
+  "production": {
+    "passed": true,
+    "origin": "qiuyun-frontend.vercel.app",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      }
+    ],
+    "builtCrons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "live": {
+      "id": "dpl_Butxk7teNp7BvLwi1Zxo2AM3Jjfx",
+      "state": "READY",
+      "source": "e360d9809251bfad00187a1906198c8391cc64da",
+      "cronCount": 3
+    },
+    "productionBusinessWrites": false
+  }
+}
