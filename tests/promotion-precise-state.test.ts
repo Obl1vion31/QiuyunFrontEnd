@@ -33,6 +33,22 @@ test('暂停、待定的非零指标保留，状态次日生效，残留不重�
  const state=replayPromotionHistory('2026-10-17',terminal,{asOf:'2026-10-21'});assert.equal(state?.currentStatus,'test_discarded');assert.equal(state?.endedOn,'2026-10-17');
  assert.equal(promotionTotals(facts).spend,160);assert.equal(promotionTotals(facts).actualOpenCost,10);
 });
+
+test('前一天已安排结束，次日重复确认同一终态仍可登记指标且不改最后投放日',()=>{
+ for(const [stage,terminal] of [['testing','test_discarded'],['scaling','formal_discarded'],['scaling','ended']]){
+  const facts=[metric('2026-11-09',stage,stage==='testing'?'test_continue':'scaling_continue'),metric('2026-11-10',stage,terminal)];
+  const change={businessDate:'2026-11-11',stageType:stage,actualStatus:terminal};
+  const options={initialStage:stage,stateChanges:[change],asOf:'2026-11-14'};
+  const baseline=replayPromotionHistory('2026-11-09',facts,options);assert.equal(baseline?.endedOn,'2026-11-10');
+  for(const spend of [0,18.5]){
+   const fact=metric('2026-11-11',terminal,terminal,{stageTypeSnapshot:stage,spend});
+   assert.deepEqual(replayPromotionHistory('2026-11-09',[...facts,fact],options),baseline);
+   assert.equal(replayPromotionHistory('2026-11-09',[...facts,fact],{...options,stateChanges:[]}),null,'没有当天终态记录不能追加普通复盘');
+   assert.equal(replayPromotionHistory('2026-11-09',[...facts,{...fact,metricDate:'2026-11-12'}],options),null,'不开放终态记录之后的日期');
+   assert.equal(replayPromotionHistory('2026-11-09',[...facts,{...fact,actualStatusSnapshot:stage}],options),null,'不能借补指标恢复投放');
+  }
+ }
+});
 test('普通、暂停和待定可以保存真实零或非零；更正入口保留同一口径',()=>{
  for(const status of ['testing','test_paused','test_pending','scaling_paused'])for(const value of [0,25]){
   const m={...metric('2026-10-20',status,'wait_continue'),platformNoteId:'a'.repeat(24),spend:value};
