@@ -3,7 +3,7 @@ import {mkdir,writeFile,copyFile} from 'node:fs/promises';
 import {and,eq} from 'drizzle-orm';
 import {startPostgresFixture} from './postgres.fixture';
 import {admin,employee} from './auth.fixture';
-import {seedStateOverlap,overlapStates} from './promotion-state-overlap.fixture';
+import {seedStateOverlap,closingOverlapStates as overlapStates} from './promotion-state-overlap.fixture';
 import {settleBusinessUI} from './business-confirm.helper';
 import * as s from '../src/db/schema';
 const dir=process.env.OVERLAP_UI_DIR??'.tools/test-artifacts/promotion-overlap-ui';await mkdir(dir+'/video',{recursive:true});const clockFile=process.cwd()+'/'+dir+'/clock.txt';await writeFile(clockFile,'2026-11-12T12:00:00+08:00');

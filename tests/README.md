@@ -44,6 +44,8 @@
 
 ## 专项目录（按需选择）
 
+`promotion-ending-boundary.test.ts`检查三种结束、暂停期间收尾、重复状态不延长日期、原真实数据与周会完整性；`promotion-ending-boundary.browser.ts`使用实际目标包、隔离PostgreSQL与双角色，覆盖收尾单条／批量保存、结束后无待办、旧页面请求拒绝补零、整批回滚、重试及原指标更正。使用`ENDING_ENTRY`、`ENDING_DIR`、`TEST_POSTGRES_URL`和已有Playwright；`ENDING_BEFORE=1`仅复现旧包多余待办，结果标明旧行为，不作为修复通过。
+
 `promotion-state-overlap.integration.ts`使用实际目标包与隔离PostgreSQL，检查八种状态、四种前后安排来源及合法当日更正；保存零／非零、保留原阶段／指标／会议，真正冲突继续拒绝。`promotion-state-overlap.browser.ts`检查双角色八状态单条／批量保存、刷新后再编辑、失败保留及明确日期的冲突提示，桌面1920并留短录像。使用`TEST_POSTGRES_URL`、`OVERLAP_ENTRY`、`PLAYWRIGHT_MODULE`，分别以`OVERLAP_DIR`、`OVERLAP_UI_DIR`指定产物目录。`meetingReviewDecision`与严格创建门禁的区别由`meeting-decisions.test.ts`覆盖。
 
 `promotion-discarded-zero.browser.ts`验证测试淘汰当日五项默认零、两角色真实保存、非零及503失败保留、刷新和当日状态局部更正；普通测试仍为空。使用本机`TEST_POSTGRES_URL`、`DISCARDED_ZERO_ENTRY`指定实际运行包、`PLAYWRIGHT_MODULE`指定已有浏览器工具；1920桌面截图输出到`DISCARDED_ZERO_DIR`（默认`.tools/test-artifacts/discarded-zero`）。

@@ -14,6 +14,7 @@ import { operationsContent, operationsContentSchedule, operationsContentVersion,
 import { readPromotionContext } from './promotion-pauses';
 import { campaignPauseWindows, campaignWaitWindows, promotionStateOn, firstMissingPromotionDate, promotionReplayOptions } from './promotion-state.mjs';
 import { nextDateKey, replayPromotionHistory, shanghaiDateKey } from './promotion-rules.mjs';
+import {requiredPromotionStage} from './promotion-review-required';
 import { WorkflowError, type Transaction } from './schedule-workflow';
 export type DailyInput = z.infer<typeof promotionDailySchema>;
 export async function writePromotionDaily(transaction: Transaction, data: DailyInput, actor: {
@@ -73,6 +74,9 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     const expectedDate = firstMissingPromotionDate(allMetrics.filter(m => m.recordKind !== 'test_residual'), campaign.startedOn, windows);
     const dailyState = promotionStateOn(campaign, context, data.metricDate);
     const actualStatus = dailyState ? normalizePromotionActualStatus(dailyState.currentStatus, dailyState.currentStage) : null;
+    const requiredStage=residual?null:requiredPromotionStage(campaign,context,data.metricDate);
+    if(!residual&&!requiredStage&&dailyState?.endedOn&&data.metricDate>dailyState.endedOn)
+        return {kind:'not-required' as const};
     const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(data.metricDate));
     if(meetingDecision){
         const target=meetingDecision.action==='restart_testing'?'restart_testing':meetingDecision.targetStatus;
@@ -87,11 +91,11 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     else {
         if (data.metricDate !== expectedDate)
             return { kind: 'out-of-order' as const, expectedDate };
-        const terminalToday = context.stateChanges.find(c => !c.meetingDecision && c.campaignId === campaign.id && c.businessDate === data.metricDate && c.actualStatus === actualStatus && ['test_discarded', 'formal_discarded', 'ended'].includes(c.actualStatus ?? ''));
-        if (!dailyState?.currentStage && !terminalToday)
+        const terminalToday = ['test_discarded','formal_discarded','ended'].includes(actualStatus!);
+        if (!requiredStage)
             return { kind: 'closed' as const };
         const expectedDailyStatus = ['testing', 'scaling'].includes(actualStatus!) ? 'active' : 'waiting_action';
-        if (data.dailyStatus !== expectedDailyStatus || data.stageTypeSnapshot !== (dailyState?.currentStage ?? terminalToday?.stageType) || (!terminalToday && !promotionNextOptions(actualStatus!).some(o => o.value === data.reviewDecision)) || (terminalToday && data.reviewDecision !== actualStatus))
+        if (data.dailyStatus !== expectedDailyStatus || data.stageTypeSnapshot !== requiredStage || (!terminalToday && !promotionNextOptions(actualStatus!).some(o => o.value === data.reviewDecision)) || (terminalToday && data.reviewDecision !== actualStatus))
             return { kind: 'invalid-decision' as const };
     }
     const sourceStages = await transaction.select().from(operationsPromotionStage).where(eq(operationsPromotionStage.campaignId, campaign.id)).orderBy(asc(operationsPromotionStage.startedOn));
@@ -149,6 +153,6 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
 export function requireDailySaved(saved: Awaited<ReturnType<typeof writePromotionDaily>>) {
     if (saved.kind === 'saved')
         return saved;
-    const messages = { duplicate: '这一天已经完成复盘，请核对后更正原记录。', missing: '没有找到推广活动。', closed: '该推广活动已经结束。', 'note-id-required': '保存日度复盘前，请补填这篇帖子的小红书笔记 ID。', 'invalid-residual': '只允许为测试淘汰活动补录结束日之后的真实残留数据。', 'invalid-decision': '复盘选择与当前推广阶段不匹配。', 'out-of-order': saved.kind === 'out-of-order' ? `请先完成 ${saved.expectedDate} 的日度复盘。` : '' };
-    throw new WorkflowError(messages[saved.kind], saved.kind === 'missing' ? 404 : ['note-id-required', 'invalid-residual'].includes(saved.kind) ? 422 : 409);
+    const messages = { 'not-required': '这一天已在推广结束之后，无需补填零值。已有数据仍保留在历史中。', duplicate: '这一天已经完成复盘，请核对后更正原记录。', missing: '没有找到推广活动。', closed: '该推广活动已经结束。', 'note-id-required': '保存日度复盘前，请补填这篇帖子的小红书笔记 ID。', 'invalid-residual': '只允许为测试淘汰活动补录结束日之后的真实残留数据。', 'invalid-decision': '复盘选择与当前推广阶段不匹配。', 'out-of-order': saved.kind === 'out-of-order' ? `请先完成 ${saved.expectedDate} 的日度复盘。` : '' };
+    throw new WorkflowError(messages[saved.kind], saved.kind === 'missing' ? 404 : ['note-id-required', 'invalid-residual', 'not-required'].includes(saved.kind) ? 422 : 409);
 }

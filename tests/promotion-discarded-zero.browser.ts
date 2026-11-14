@@ -30,7 +30,9 @@ try{
   const row=await seed((alreadyPlanned?'前日决定与当日确认 · ':'')+(role==='admin'?'面试课讲义 · 淘汰当天默认零':'面试课讲义 · 淘汰后真实数据'),true,alreadyPlanned);
   const context=await browser.newContext({viewport:{width:1920,height:1080},locale:'zh-CN'});assert.equal((await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:actor})).status(),200);
   const page=await context.newPage();page.on('pageerror',(e:any)=>errors.push(e.message));await page.goto(baseURL+'/business/daily-promotion-review');await settleBusinessUI(page);
-  const form=page.locator(`[data-metric-form][data-schedule-id="${row.post.schedule.id}"]`);await form.waitFor();
+  const form=page.locator(`[data-metric-form][data-schedule-id="${row.post.schedule.id}"]`);
+  if(alreadyPlanned){assert.equal(await form.count(),0);checks.push(role+'：前日已安排淘汰，当日重复状态不再产生待填行');await context.close();continue;}
+  await form.waitFor();
   assert.equal(await form.getAttribute('data-actual-status'),'test_discarded');for(const name of names)assert.equal(await form.locator(`[name=${name}]`).inputValue(),'0');
   assert.equal(await form.locator('select[name=reviewDecision]').count(),0);assert.equal(await form.locator('[name=reviewDecision]').inputValue(),'test_discarded');
   if(role==='admin')await page.screenshot({path:dir+(alreadyPlanned?'/repeated-terminal-zero-1920.png':'/default-zero-1920.png')});
@@ -49,11 +51,11 @@ try{
   if(role==='employee')await page.screenshot({path:dir+(alreadyPlanned?'/repeated-terminal-saved-1920.png':'/nonzero-saved-1920.png')});
   checks.push((alreadyPlanned?'前日已安排淘汰、当日重复确认；':'')+(role==='admin'?'管理员：默认零直接保存，刷新保留真实零及原结束日期':'员工：非零、失败保留、重试保存及刷新正确，原结束日期保持'));await context.close();
  }
- const batchRows=[await seed('批量确认 · 面试课讲义一',true,true),await seed('批量确认 · 面试课讲义二',true,true)];
+ const batchRows=[await seed('批量收尾 · 面试课讲义一',true,false),await seed('批量收尾 · 面试课讲义二',true,false)];
  const batchContext=await browser.newContext({viewport:{width:1920,height:1080},locale:'zh-CN'});await batchContext.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:admin});const batchPage=await batchContext.newPage();await batchPage.goto(baseURL+'/business/daily-promotion-review');await settleBusinessUI(batchPage);
  const batchResponse=batchPage.waitForResponse((r:any)=>r.url().endsWith('/api/promotion-daily/batch')&&r.request().method()==='POST');await batchPage.locator('[data-save-all]').click();const batchResult=await batchResponse;assert.equal(batchResult.status(),201,await batchResult.text());
- for(const row of batchRows){await batchPage.locator(`[data-saved-review][data-schedule-id="${row.post.schedule.id}"]`).waitFor();const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,row.campaign.id));assert.equal(campaign.endedOn,'2026-11-10');const [fact]=await db.select().from(s.operationsPromotionDailyMetric).where(and(eq(s.operationsPromotionDailyMetric.campaignId,row.campaign.id),eq(s.operationsPromotionDailyMetric.metricDate,'2026-11-11')));assert.equal(fact.spend,'0.00');}
- await batchContext.close();checks.push('两条重复终态确认一键保存成功，均保留原最后投放日');
+ for(const row of batchRows){await batchPage.locator(`[data-saved-review][data-schedule-id="${row.post.schedule.id}"]`).waitFor();const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,row.campaign.id));assert.equal(campaign.endedOn,'2026-11-11');const [fact]=await db.select().from(s.operationsPromotionDailyMetric).where(and(eq(s.operationsPromotionDailyMetric.campaignId,row.campaign.id),eq(s.operationsPromotionDailyMetric.metricDate,'2026-11-11')));assert.equal(fact.spend,'0.00');}
+ await batchContext.close();checks.push('两条当天结束的真实收尾一键保存成功，结束日期保持');
  const clean=await seed('面试课推广讲义 · 当日改成淘汰',false),dirty=await seed('面试课推广讲义 · 已填数值保持',false);
  const context=await browser.newContext({viewport:{width:1920,height:1080},locale:'zh-CN'});await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:admin});const page=await context.newPage();await page.goto(baseURL+'/business/daily-promotion-review');await settleBusinessUI(page);
  for(const[item,filled]of[[clean,false],[dirty,true]] as const){

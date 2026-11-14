@@ -144,6 +144,7 @@ export const POST: APIRoute = async ({ request, url,locals }) => {
       return writePromotionDaily(transaction,result.data,locals.user!);
     });
 
+    if(saved.kind==='not-required')return Response.json({message:'这一天已在推广结束之后，无需补填零值。已有数据仍保留在历史中。'},{status:422});
     if(saved.kind==='duplicate')return Response.json({message:'这一天已经完成复盘，请核对后更正原记录。'},{status:409});
     if (saved.kind === 'missing') return Response.json({ message: '没有找到推广活动。' }, { status: 404 });
     if (saved.kind === 'closed') return Response.json({ message: '该推广活动已经结束。' }, { status: 409 });

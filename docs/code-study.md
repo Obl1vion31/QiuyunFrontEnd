@@ -194,7 +194,7 @@ flowchart LR
 
 推广轮次由 `promotion-cycles.mjs` 从已确认复测动作计算，日度以 `sourceStageStartedOn` 记录所属轮次；`promotion-replay.mjs` 分离复测动作与实际状态。例会决定保留可选action，不能把复测压成普通testing；`settings-taxonomy-retest.test.ts` 与浏览器专项覆盖100/30、暂停恢复、次日生效、同日去重及冻结版本。
 
-终态复盘由`promotion-replay`核对明确的当日状态记录。前日次日决定已结束投放时，当天再次确认同一终态的事实仍可保存，但回放保留原最后投放日；不能仅按`metricDate === endedOn`拒绝页面已开放的确认日。没有同日匹配记录、状态／阶段不符或更晚日期仍拒绝。`promotion-discarded-zero.browser`包含该历史组合的单条与批量真实保存，`promotion-precise-state`覆盖三种终态及边界。
+`requiredPromotionStage`统一日度待办、普通新建与会议／月度完整性：先读取数据日实际状态；已结束时仅有效`endedOn`当天保留原阶段收尾，重复状态不延长边界。`promotion-review-days`使用该结果，不再根据存在单独结束状态记录追加日期；`promotion-daily-write`拒绝旧页面为结束后日期新建普通零记录。`promotion-replay`保留已有同日结束事实的兼容读取；历史真实指标可继续更正，不删除或改写冻结材料。`promotion-ending-boundary`覆盖三种结束、暂停期间收尾、重复状态、原日期及真实数据保持。
 
 `meetingReviewDecision`仅用于日度展示和保存，兼容已经存在的同终态例会安排；创建、修改及定稿校验仍用严格的`meetingNextDecision`。`BusinessPromotionMetricForm`在没有合法后续动作时不渲染空的例会修改入口。`promotion-state-overlap`以八种状态、四种来源、合法当日更正、零／非零及双角色真实保存核对该边界；历史会议不随指标改写。
 
