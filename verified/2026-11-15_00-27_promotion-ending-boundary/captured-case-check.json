@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "cases": 1,
+  "source": "先前只读捕获的目标案例，仅本机验证待办判断",
+  "extraTasks": 0,
+  "originalFactsUnchanged": true,
+  "productionWrites": false
+}
