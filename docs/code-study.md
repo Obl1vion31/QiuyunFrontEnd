@@ -196,6 +196,8 @@ flowchart LR
 
 终态复盘由`promotion-replay`核对明确的当日状态记录。前日次日决定已结束投放时，当天再次确认同一终态的事实仍可保存，但回放保留原最后投放日；不能仅按`metricDate === endedOn`拒绝页面已开放的确认日。没有同日匹配记录、状态／阶段不符或更晚日期仍拒绝。`promotion-discarded-zero.browser`包含该历史组合的单条与批量真实保存，`promotion-precise-state`覆盖三种终态及边界。
 
+`meetingReviewDecision`仅用于日度展示和保存，兼容已经存在的同终态例会安排；创建、修改及定稿校验仍用严格的`meetingNextDecision`。`BusinessPromotionMetricForm`在没有合法后续动作时不渲染空的例会修改入口。`promotion-state-overlap`以八种状态、四种来源、合法当日更正、零／非零及双角色真实保存核对该边界；历史会议不随指标改写。
+
 `WeeklyMeetingPresentation` 共用会前／会后阅读、最新版本编辑与打印布局。`BusinessMeetingDiscussion` 监听公共 `BusinessViewSwitch`，默认只读，保存 `save_version_draft` 首次建立下一版草稿，重复保存更新同一行；`finalize_version_draft` 按 pre／post 在同一行定稿。`meeting-version-workflow` 事务锁定来源版本与更新时间，合并白名单、固定生效日、记录事项前后值；`rollback_version` 仅生效日前确认回溯，保留失效版本并创建待重新定稿的会前恢复版本。`meeting-decision-rules` 跳过失效版本与纯文字继承事件，防止重复执行或盖掉日度更正。
 
 `meeting-rate-comparison.withFrozenRateComparisons` 只从旧定稿自身材料补齐缺失比较信息，页面和PDF共用，不查询实时指标或写快照。主值旁常显同类pp；推广精确基准保留原始记录，非推广精确基准／区间／样本在原有详情分别读取，不在主值下堆辅助行。`metric-change.css`让文字提供真实基线，箭头只在同行盒内定位；网页与PDF共用。

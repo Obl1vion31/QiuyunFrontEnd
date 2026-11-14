@@ -1,5 +1,7 @@
 import {nextActualPromotionState,promotionNextOptions} from './promotion-successors.mjs';
 export const meetingNextDecision=(status,target)=>target==='restart_testing'?(['test_pending','test_paused'].includes(status)?'restart_testing':null):promotionNextOptions(status).find(o=>o.value!=='restart_testing'&&nextActualPromotionState(status,o.value)===target)?.value??null;
+/** 日度登记兼容已经存在的同终态安排；创建、修改例会决定仍用严格的 meetingNextDecision。 */
+export const meetingReviewDecision=(status,target)=>status===target&&['test_discarded','formal_discarded','ended'].includes(status)?status:meetingNextDecision(status,target);
 export function meetingDecisionOn(decisions,campaignId,date){
  return decisions.filter(d=>d.campaignId===campaignId&&d.effectiveOn===date).at(-1)??null;
 }

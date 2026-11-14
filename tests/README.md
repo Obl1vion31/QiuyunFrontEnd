@@ -44,6 +44,8 @@
 
 ## 专项目录（按需选择）
 
+`promotion-state-overlap.integration.ts`使用实际目标包与隔离PostgreSQL，检查八种状态、四种前后安排来源及合法当日更正；保存零／非零、保留原阶段／指标／会议，真正冲突继续拒绝。`promotion-state-overlap.browser.ts`检查双角色八状态单条／批量保存、刷新后再编辑、失败保留及明确日期的冲突提示，桌面1920并留短录像。使用`TEST_POSTGRES_URL`、`OVERLAP_ENTRY`、`PLAYWRIGHT_MODULE`，分别以`OVERLAP_DIR`、`OVERLAP_UI_DIR`指定产物目录。`meetingReviewDecision`与严格创建门禁的区别由`meeting-decisions.test.ts`覆盖。
+
 `promotion-discarded-zero.browser.ts`验证测试淘汰当日五项默认零、两角色真实保存、非零及503失败保留、刷新和当日状态局部更正；普通测试仍为空。使用本机`TEST_POSTGRES_URL`、`DISCARDED_ZERO_ENTRY`指定实际运行包、`PLAYWRIGHT_MODULE`指定已有浏览器工具；1920桌面截图输出到`DISCARDED_ZERO_DIR`（默认`.tools/test-artifacts/discarded-zero`）。
 
 `pnpm test:development` 验证连接环境边界，并显式使用上海 `qiuyun_dev` 检查应用账号读写身份、跨库拒绝、建／删表拒绝、角色权限与连接上限、样例幂等及迁移空操作。只写标明的开发样例和临时权限探针，不向正式库写入。真实网页登录、保存和通道中断另按本轮实际状态核对；不因此触发全站或PDF专项。

@@ -5,10 +5,10 @@ import {syncContinuousCheckpoints} from './continuous-schedule';
 import {testingCycleOn} from './promotion-cycles.mjs';
 /** 单条与批量复盘共用同一事务写入，调用方持有推广工作流锁。 */
 import { asc, eq, sql } from 'drizzle-orm';
-import {meetingDecisionOn,meetingNextDecision} from './meeting-decision-rules.mjs';
+import {meetingDecisionOn,meetingReviewDecision} from './meeting-decision-rules.mjs';
 import type { z } from 'zod';
 import { promotionDailySchema } from './promotion-validation';
-import { normalizePromotionActualStatus, promotionNextOptions } from './promotion-successors.mjs';
+import { normalizePromotionActualStatus, promotionNextOptions, promotionActualLabels } from './promotion-successors.mjs';
 import { promotionSnapshot, timelineFingerprint } from './promotion-timeline';
 import { operationsContent, operationsContentSchedule, operationsContentVersion, operationsPromotionCampaign, operationsPromotionDailyMetric, operationsPromotionStage, operationsPromotionTimelineAudit } from './schema';
 import { readPromotionContext } from './promotion-pauses';
@@ -74,7 +74,12 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     const dailyState = promotionStateOn(campaign, context, data.metricDate);
     const actualStatus = dailyState ? normalizePromotionActualStatus(dailyState.currentStatus, dailyState.currentStage) : null;
     const meetingDecision=meetingDecisionOn(context.meetingDecisions,campaign.id,nextDateKey(data.metricDate));
-    if(meetingDecision&&data.reviewDecision!==meetingNextDecision(actualStatus,meetingDecision.action==='restart_testing'?'restart_testing':meetingDecision.targetStatus))throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
+    if(meetingDecision){
+        const target=meetingDecision.action==='restart_testing'?'restart_testing':meetingDecision.targetStatus;
+        const expected=meetingReviewDecision(actualStatus,target);
+        if(!expected)throw new WorkflowError(`${data.metricDate} 是“${promotionActualLabels[actualStatus!]??actualStatus}”，但 ${nextDateKey(data.metricDate)} 的例会安排是“${target==='restart_testing'?'重新开始测试':promotionActualLabels[target]??target}”。请先核对这两天的安排，当前指标未保存。`,422);
+        if(data.reviewDecision!==expected)throw new WorkflowError('下一步由例会确定，修改必须填写理由。',422);
+    }
     if (residual) {
         if (campaign.currentStatus !== 'test_discarded' || !campaign.endedOn || data.metricDate <= campaign.endedOn || data.stageTypeSnapshot !== 'testing' || data.reviewDecision !== 'test_discarded')
             return { kind: 'invalid-residual' as const };

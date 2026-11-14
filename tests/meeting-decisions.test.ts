@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {meetingNextDecision,meetingDecisionOn,resolveMeetingDecisions} from '../src/db/meeting-decision-rules.mjs';
+import {meetingNextDecision,meetingReviewDecision,meetingDecisionOn,resolveMeetingDecisions} from '../src/db/meeting-decision-rules.mjs';
 import {replayPrecisePromotionHistory} from '../src/db/promotion-replay.mjs';
 const d=(date='2026-10-24',target='test_paused',version=1)=>({id:'meeting:campaign:'+date,meetingId:'meeting',campaignId:'campaign',scheduleId:'schedule',effectiveOn:date,targetStatus:target,versionNumber:version,stageType:'testing'});
 const version=(at:string,stage:string,decisions:any[],effectiveOn='2026-10-24')=>({meetingId:'meeting',createdAt:at,snapshot:{finalizationStage:stage,decisionEffectiveOn:effectiveOn,generated:{meetingDecisions:decisions}}});
@@ -25,4 +25,16 @@ test('次日暂停或淘汰保留会议当天正常跑量，待定不能回退�
   assert.equal(replayPrecisePromotionHistory('2026-10-23',facts,{...options,asOf:'2026-10-23'})?.currentStatus,'testing');
   const state=replayPrecisePromotionHistory('2026-10-23',facts,{...options,asOf:'2026-10-24'})!;assert.equal(state.currentStatus,target);assert.equal(state.stages[0].endedOn,'2026-10-23');
  }
+});
+
+test('已存在的重复淘汰／结束安排不阻止保存指标，新例会不能据此新增后续动作',()=>{
+ for(const status of ['test_discarded','formal_discarded','ended']){
+  assert.equal(meetingReviewDecision(status,status),status);
+  assert.equal(meetingNextDecision(status,status),null);
+  assert.equal(meetingReviewDecision(status,'testing'),null);
+ }
+ assert.equal(meetingReviewDecision('test_paused','test_paused'),'wait_continue');
+ assert.equal(meetingReviewDecision('test_pending','test_pending'),'wait_continue');
+ assert.equal(meetingReviewDecision('scaling_paused','scaling_paused'),'wait_continue');
+ assert.equal(meetingReviewDecision('test_pending','testing'),null);
 });

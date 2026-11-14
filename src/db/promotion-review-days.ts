@@ -4,7 +4,7 @@ import {pendingPromotionPeriod} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
 import {campaignPauseWindows,campaignWaitWindows,firstMissingPromotionDate,promotionStateOn,promotionDayStatusEdit,promotionMetricStatus} from './promotion-state.mjs';
 import {nextDateKey,previousDateKey,shanghaiDateKey} from './promotion-rules.mjs';
-import {meetingDecisionOn,meetingNextDecision} from './meeting-decision-rules.mjs';
+import {meetingDecisionOn,meetingNextDecision,meetingReviewDecision} from './meeting-decision-rules.mjs';
 import type {MeetingDecision} from './meeting-decisions';
 import {requiredPromotionStage} from './promotion-review-required';
 import type {operationsPromotionDailyMetric} from './schema';
@@ -49,7 +49,7 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
   const firstDue=days.find(day=>day.due)?.date;
   for(const day of days)if(day.kind==='metric'||day.kind==='saved'){
    const nextDate=nextDateKey(day.date),decision=meetingDecisionOn(context.meetingDecisions??[],day.campaignId,nextDate);
-   if(decision){day.meetingDecision=decision;day.meetingNext=meetingNextDecision(day.actualStatus??'testing',decision.action==='restart_testing'?'restart_testing':decision.targetStatus);}
+   if(decision){day.meetingDecision=decision;day.meetingNext=meetingReviewDecision(day.actualStatus??'testing',decision.action==='restart_testing'?'restart_testing':decision.targetStatus);}
    else if(day.savedMetric){
     const active=owned.find(c=>c.id===day.campaignId)??campaign!,nextState=promotionStateOn(active,context,nextDate),cycle=testingCycleOn(active,context,nextDate);
     const restarting=nextState?.currentStatus==='testing'&&!!cycle&&cycle.number>1&&cycle.startedOn===nextDate;
