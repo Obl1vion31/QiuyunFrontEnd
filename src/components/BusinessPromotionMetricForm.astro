@@ -10,7 +10,7 @@ const {row,day}=Astro.props;
 const saved=day.savedMetric;
 const noteId=noteIdOn(row.noteIdPeriods,day.date);
 const actualStatus=day.actualStatus??(day.stage==='scaling'?'scaling':'testing');
-const defaultZero=day.defaultZero??['test_paused','test_pending','scaling_paused'].includes(actualStatus);
+const defaultZero=day.defaultZero??['test_paused','test_pending','scaling_paused','test_discarded'].includes(actualStatus);
 const options=promotionNextOptions(actualStatus);
 const statusEditOptions=day.statusEditOptions??promotionSuccessorOptions(actualStatus);
 const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台开口（人）','1'],['actualOpenCount','实际开口（人）','1'],['platformLeadCount','平台留资（人）','1'],['actualLeadCount','实际留资（人）','1']];

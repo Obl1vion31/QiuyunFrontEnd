@@ -73,7 +73,7 @@ test('实际状态变更按固定日期保存原因与审计，幂等、指纹�
 test('终态当日保留未填指标行，实际数据不因暂停更正而删除',async()=>{
  const {schedule,campaign}=await seed();await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_continue'),campaignId:campaign.id});
  await change(schedule.id,'2026-10-17','test_paused');let snap=await promotionSnapshot(db,schedule.id);assert.equal(snap.metrics.length,1);assert.equal(snap.metrics[0].spend,'40.00');assert.equal(snap.metrics[0].actualStatusSnapshot,'test_paused');
- await change(schedule.id,'2026-10-18','test_discarded');const rows=await readPromotionTimeline(db,new Date('2026-10-21T12:00:00+08:00'),schedule.id),context=await readPromotionContext(db);const queue=promotionReviewQueue(promotionReviewDays(rows,context,new Date('2026-10-21T12:00:00+08:00')));assert.equal(queue.ready[0].day.date,'2026-10-18');assert.equal(queue.ready[0].day.actualStatus,'test_discarded');
+ await change(schedule.id,'2026-10-18','test_discarded');const rows=await readPromotionTimeline(db,new Date('2026-10-21T12:00:00+08:00'),schedule.id),context=await readPromotionContext(db);const queue=promotionReviewQueue(promotionReviewDays(rows,context,new Date('2026-10-21T12:00:00+08:00')));assert.equal(queue.ready[0].day.date,'2026-10-18');assert.equal(queue.ready[0].day.actualStatus,'test_discarded');assert.equal(queue.ready[0].day.defaultZero,true);
 });
 test('单日终态可更正回测试，但后一天既有终态保持不变',async()=>{
  const {schedule,campaign}=await seed();

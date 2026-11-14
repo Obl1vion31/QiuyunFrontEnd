@@ -44,6 +44,8 @@
 
 ## 专项目录（按需选择）
 
+`promotion-discarded-zero.browser.ts`验证测试淘汰当日五项默认零、两角色真实保存、非零及503失败保留、刷新和当日状态局部更正；普通测试仍为空。使用本机`TEST_POSTGRES_URL`、`DISCARDED_ZERO_ENTRY`指定实际运行包、`PLAYWRIGHT_MODULE`指定已有浏览器工具；1920桌面截图输出到`DISCARDED_ZERO_DIR`（默认`.tools/test-artifacts/discarded-zero`）。
+
 `pnpm test:development` 验证连接环境边界，并显式使用上海 `qiuyun_dev` 检查应用账号读写身份、跨库拒绝、建／删表拒绝、角色权限与连接上限、样例幂等及迁移空操作。只写标明的开发样例和临时权限探针，不向正式库写入。真实网页登录、保存和通道中断另按本轮实际状态核对；不因此触发全站或PDF专项。
 
 `node --import tsx tests/legacy-month-v0.browser.ts`在真实隔离PostgreSQL与目标运行包验证2026-10历史V0只读兼容、11月正常流程、12月未确认门禁、调整原因、未发／旧版本限制，以及两角色从历史月实际创建V1。`LEGACY_V0_ENTRY`指定实际包适配器，`LEGACY_V0_DIR`指定原始证据。桌面1440与相关1024、390仅明显溢出；不回填生产历史，不触发PDF专项。
