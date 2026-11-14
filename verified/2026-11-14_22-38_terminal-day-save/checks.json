@@ -1,0 +1,139 @@
+{
+  "source": "c6383bb2de469afe629ad723c4b358789453ce73",
+  "oldPackageReproduction": {
+    "status": 409,
+    "message": "复盘选择与当前推广阶段不匹配。",
+    "expectedFailureConfirmed": true
+  },
+  "build": {
+    "errors": 0,
+    "warnings": 0,
+    "hints": 61
+  },
+  "rules": {
+    "passed": 59,
+    "failed": 0
+  },
+  "productionBusinessWrites": false,
+  "browser": {
+    "passed": true,
+    "checks": [
+      "前日已安排淘汰、当日重复确认；管理员：默认零直接保存，刷新保留真实零及原结束日期",
+      "前日已安排淘汰、当日重复确认；员工：非零、失败保留、重试保存及刷新正确，原结束日期保持",
+      "管理员：默认零直接保存，刷新保留真实零及原结束日期",
+      "员工：非零、失败保留、重试保存及刷新正确，原结束日期保持",
+      "两条重复终态确认一键保存成功，均保留原最后投放日",
+      "正常测试仍为空；未输入时改成淘汰原位补零，已有输入改成淘汰保持原值与节点"
+    ],
+    "errors": [],
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "roles": [
+      "admin",
+      "employee"
+    ],
+    "productionWrites": false
+  },
+  "historyRegression": {
+    "passed": true,
+    "checks": [
+      "10/31单独改暂停：前后测试合法，三天确认；只改当天，另外5天事实原样、6条数据全保留、重试幂等",
+      "同一天再次更正回测试中，不依赖旧后继选项、不影响相邻日期",
+      "结束待定／淘汰／放量不能接次日旧轮测试：明确指出相邻日期，不删除后续、不写半条",
+      "连续暂停中只改11/1为测试中，10/31与11/2仍暂停；不自动扩散",
+      "放量中→单日放量暂停→放量中，同样只改一天",
+      "确认期间数据变化拒绝旧上下文，不覆盖协作者新指标；普通指标员工照常最后保存",
+      "旧历史“次日安排”写入拒绝；旧confirmImpact不能绕过新的三天确认",
+      "真实并发确认只有一方成功；员工与管理员同权，仍不能绕过历史确认",
+      "已有明确的新轮重测仍保留；单日待定恢复测试不删除、平移或合并后续轮次",
+      "存在冻结会后决定仍可合法单日暂停，原会议快照逐值不变"
+    ]
+  },
+  "candidate": {
+    "passed": true,
+    "origin": "qiuyun-frontend-id9cr5q7p-opgobl1v-5358.vercel.app",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      }
+    ],
+    "builtCrons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "productionBusinessWrites": false
+  },
+  "production": {
+    "passed": true,
+    "origin": "qiuyun-frontend.vercel.app",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      }
+    ],
+    "builtCrons": [
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 0 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 8 * * *"
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "schedule": "0 16 * * *"
+      }
+    ],
+    "live": {
+      "id": "dpl_8G2B91ZE85RArAfwC6Y4wKKyxd6a",
+      "state": "READY",
+      "source": "c6383bb2de469afe629ad723c4b358789453ce73",
+      "cronCount": 3
+    },
+    "productionBusinessWrites": false
+  },
+  "privateHistoryReplay": {
+    "passed": true,
+    "checked": 1,
+    "originalLifecyclePreserved": true
+  }
+}
