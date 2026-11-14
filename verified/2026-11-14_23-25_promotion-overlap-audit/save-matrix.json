@@ -1,0 +1,1198 @@
+{
+  "passed": true,
+  "total": 128,
+  "failures": [],
+  "results": [
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "测试中",
+      "priorDecision": "test_continue",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "测试暂停",
+      "priorDecision": "test_pause",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "测试结束待定",
+      "priorDecision": "test_pending",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "放量中",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "放量暂停",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_discarded",
+      "label": "测试淘汰",
+      "priorDecision": "test_discarded",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "formal_discarded",
+      "label": "放量淘汰",
+      "priorDecision": "formal_discarded",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "ended",
+      "label": "推广结束",
+      "priorDecision": "ended",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划待定，当日改暂停",
+      "priorDecision": "test_pending",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划暂停，当日改待定",
+      "priorDecision": "test_pause",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_paused",
+      "label": "原计划测试，当日改暂停",
+      "priorDecision": "test_continue",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "test_pending",
+      "label": "原计划测试，当日改待定",
+      "priorDecision": "test_continue",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling_paused",
+      "label": "原计划放量，当日改暂停",
+      "priorDecision": "scaling_continue",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划暂停，当日实际测试",
+      "priorDecision": "test_pause",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "testing",
+      "label": "原计划待定，当日实际测试",
+      "priorDecision": "test_pending",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "same_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "same_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_record",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_record",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_meeting",
+      "spend": 0,
+      "role": "admin",
+      "http": 201
+    },
+    {
+      "status": "scaling",
+      "label": "原计划暂停，当日实际放量",
+      "priorDecision": "scaling_pause",
+      "source": "next_day_meeting",
+      "spend": 12.5,
+      "role": "employee",
+      "http": 201
+    }
+  ],
+  "rejections": [
+    {
+      "status": "test_discarded",
+      "http": 422,
+      "datesExplained": true,
+      "unchanged": true
+    },
+    {
+      "status": "test_discarded",
+      "http": 422,
+      "datesExplained": true,
+      "unchanged": true
+    },
+    {
+      "status": "formal_discarded",
+      "http": 422,
+      "datesExplained": true,
+      "unchanged": true
+    },
+    {
+      "status": "formal_discarded",
+      "http": 422,
+      "datesExplained": true,
+      "unchanged": true
+    },
+    {
+      "status": "ended",
+      "http": 422,
+      "datesExplained": true,
+      "unchanged": true
+    },
+    {
+      "status": "ended",
+      "http": 422,
+      "datesExplained": true,
+      "unchanged": true
+    }
+  ],
+  "productionWrites": false
+}
