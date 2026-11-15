@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "host": "qiuyun-frontend-9d0tultjk-opgobl1v-5358.vercel.app",
+  "checks": [
+    {
+      "path": "/_astro/daily-promotion-review.DvvuGMY2.css",
+      "sha256": "8940d8d56853c007e751c928ff416df14d0d2852cf7d760abdf0ee7dd0d3f571",
+      "bytes": 42906
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "origin": "qiuyun-frontend-9d0tultjk-opgobl1v-5358.vercel.app",
+  "checks": [
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/business/daily-promotion-review",
+      "status": 302
+    },
+    {
+      "path": "/api/promotion-daily",
+      "status": 401
+    },
+    {
+      "path": "/api/cron/juguang-renewal",
+      "status": 401
+    }
+  ],
+  "builtCrons": [
+    {
+      "path": "/api/cron/juguang-renewal",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/juguang-renewal",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/juguang-renewal",
+      "schedule": "0 16 * * *"
+    }
+  ],
+  "productionBusinessWrites": false
+}
