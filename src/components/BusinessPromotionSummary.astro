@@ -1,28 +1,34 @@
 ---
 import BusinessPromotionData from './BusinessPromotionData.astro';
 import type {PromotionOverview} from '../db/promotion-overview';
-interface Props {entry:PromotionOverview;daily?:boolean;href:string}
+import type {PromotionContinuation} from '../db/promotion-continuation';
+interface Props {entry:PromotionOverview&{continuation?:PromotionContinuation};daily?:boolean;href:string}
 const {entry,daily=false,href}=Astro.props;
 type Event={key:string;campaignId:string;effectiveOn:string;kind:string;label:string;isCurrent:boolean};
-const events:Event[]=(entry as PromotionOverview & {events?:Event[]}).events??entry.nodes.map((node,index)=>({key:`${node.campaignId}:${node.startedOn}:${node.stageType}`,campaignId:node.campaignId,effectiveOn:node.startedOn,kind:node.stageType==='scaling'?'scaling':'testing',label:node.stageType==='scaling'?'开始放量':'开始测试',isCurrent:index===entry.nodes.length-1}));
+const continuation=entry.continuation;
+const promotionEvents:Event[]=(entry as PromotionOverview & {events?:Event[]}).events??entry.nodes.map((node,index)=>({key:`${node.campaignId}:${node.startedOn}:${node.stageType}`,campaignId:node.campaignId,effectiveOn:node.startedOn,kind:node.stageType==='scaling'?'scaling':'testing',label:node.stageType==='scaling'?'开始放量':'开始测试',isCurrent:index===entry.nodes.length-1}));
+const events:Event[]=continuation?[...promotionEvents.map(event=>({...event,isCurrent:false})),{key:`continuous:${entry.scheduleId}:${continuation.start}`,campaignId:entry.latest!.id,effectiveOn:continuation.start,kind:'continuous',label:'持续复盘',isCurrent:true}]:promotionEvents;
 const money=(value:number|null)=>value==null?'—':`¥${value.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const totals=[{label:'总消耗',value:entry.totals.spend,unit:''},{label:'实际开口成本',value:entry.totals.actualOpenCost,unit:'/人'},{label:'实际留资成本',value:entry.totals.actualLeadCost,unit:'/人'}];
 ---
-<article class:list={['promotion-summary',daily?'lifecycle-card':'history-record']} data-lifecycle-schedule={daily?entry.scheduleId:undefined} data-history-schedule={daily?undefined:entry.scheduleId} data-history-row={daily?undefined:true}>
+<article class:list={['promotion-summary',daily?'lifecycle-card':'history-record',{'has-continuation':!!continuation}]} data-lifecycle-schedule={daily?entry.scheduleId:undefined} data-history-schedule={daily?undefined:entry.scheduleId} data-history-row={daily?undefined:true}>
  <header><a href={href} data-inspector-key={entry.key}><strong title={entry.post.contentName}>{entry.post.contentName}</strong></a><span>V{entry.post.versionNumber} · {entry.post.subjectName}</span></header>
  <div class="promotion-stage-overview">
-  {events.length?<ol class="promotion-stage-nodes" aria-label="推广阶段历程" tabindex="0">{events.map((event,index)=><>
+  {events.length?<ol class="promotion-stage-nodes" aria-label={continuation?'推广及持续复盘阶段历程':'推广阶段历程'} tabindex="0">{events.map((event,index)=><>
    {index>0&&<li class="promotion-stage-connector" aria-hidden="true" data-stage-connector/>}
    <li class:list={['promotion-stage-node',event.kind,{'is-current':event.isCurrent}]} data-stage-node={event.key}><i aria-hidden="true"/><time datetime={event.effectiveOn}>{event.effectiveOn.slice(5).replace('-','/')}</time><span>{event.label}</span></li>
   </>)}</ol>:<span class="promotion-stage-empty">尚未开始推广</span>}
  </div>
  <div class="lifecycle-overview-totals">{totals.map(total=><div><span class="lifecycle-total-label">{total.label}</span><strong>{money(total.value)}</strong>{total.value!=null&&total.unit&&<small>{total.unit}</small>}</div>)}</div>
- <div class:list={['promotion-current-state',entry.currentStage??'paused']}><strong>{entry.statusLabel}</strong><small>{entry.currentLabel}</small>{!entry.metrics.length&&<span>尚无复盘</span>}</div>
+ <div class:list={['promotion-current-state',continuation?'continuous':entry.currentStage??'paused']}><strong>{continuation?.label??entry.statusLabel}</strong><small>{continuation?.detail??entry.currentLabel}</small>{!entry.metrics.length&&<span>尚无推广复盘</span>}</div>
 
  <details class="promotion-data-disclosure" data-promotion-data={entry.scheduleId}>
   <summary class="lifecycle-expand"><span class="lifecycle-data-action"><span class="when-closed">查看详情</span><span class="when-open">收起详情</span></span></summary>
  {entry.testCycles.length>1&&<div class="promotion-cycle-summary">{entry.testCycles.map(cycle=><div><strong>测试第{cycle.number}轮</strong><span>{cycle.startedOn}—{cycle.endedOn??'进行中'}</span><span>本轮消耗 {money(cycle.totals.spend)} · 开口 {cycle.totals.actualOpenCount??0} · 留资 {cycle.totals.actualLeadCount??0}</span><span>实际开口成本 {money(cycle.totals.actualOpenCost)} · 留资成本 {money(cycle.totals.actualLeadCost)} · 测试 {cycle.totals.recordedDays} 天</span></div>)}</div>}
-  <BusinessPromotionData entry={entry}/>
+  <BusinessPromotionData entry={entry}><Fragment slot="before">{continuation&&<section class="promotion-continuation" data-continuation-details>
+   <div class="promotion-data-heading"><h3>阶段性非推广复盘</h3><span>统计起点 {continuation.start}</span><a href={continuation.href}>查看持续复盘 ↗</a></div>
+   {continuation.checkpoints.length?<ol class="promotion-continuation-nodes">{continuation.checkpoints.map(node=><li><time datetime={node.dueOn}>{node.dueOn}</time><span>第 {node.index} 次复盘</span><span data-continuation-state={node.state}>{node.label}</span><a href={node.href}>{node.state==='recorded'||node.state==='historical'?'查看结果':node.state==='due'?'前往复盘':'查看安排'} ↗</a></li>)}</ol>:<p>待安排复盘日期</p>}
+  </section>}</Fragment></BusinessPromotionData>
   {!entry.metrics.length&&<a class="promotion-empty-detail-link" href={href} data-inspector-key={entry.key}>查看推广安排与业务详情 ↗</a>}
  </details>
 </article>

@@ -5,6 +5,7 @@ import BusinessPromotionDataTable from '../../components/BusinessPromotionDataTa
 import BusinessPromotionSummary from '../../components/BusinessPromotionSummary.astro';
 import BusinessPromotionDetails from '../../components/BusinessPromotionDetails.astro';
 import {promotionOverview,promotionTotals} from '../../db/promotion-overview';
+import {readPromotionContinuations,type PromotionContinuation} from '../../db/promotion-continuation';
 import '../../styles/promotion-overview.css';
 import BusinessPromotionStageView from '../../components/BusinessPromotionStageView.astro';
 import BusinessPromotionToolbar from '../../components/BusinessPromotionToolbar.astro';
@@ -114,6 +115,7 @@ let metrics: Array<{
 }> = [];
 
 const databaseStartedAt = performance.now();
+let continuations=new Map<string,PromotionContinuation>(),continuationError='';
 try {
   if (activeView !== 'stage') {
   const database = getDb();
@@ -180,6 +182,7 @@ try {
     stages = [...stages.filter(stage => stage.campaignId !== campaign.id), ...state.stages.map(stage => ({ ...stage, campaignId: campaign.id, id: `${campaign.id}:${stage.stageType}:${stage.startedOn}` }))];
     return { ...campaign, currentStage: state.currentStage, currentStatus: state.currentStatus, endedOn: state.endedOn };
   });
+  try{continuations=await readPromotionContinuations(database,timelineRows.map(row=>row.contentId),promotionContext,now);}catch(error){console.error('promotion continuation read failed',error);continuationError='持续复盘阶段暂时无法读取，请刷新重试。';}
 
 } } catch (error) {
   console.error('daily promotion review query failed', error);
@@ -190,8 +193,8 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
 const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now,metrics);
 const savedCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='saved').length,0);
 const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='metric'&&day.editable).length,0);
-const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId});
-const lifecycleRows=overview.filter(row=>!row.closed&&row.latest);
+const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId}).map(row=>({...row,continuation:continuations.get(row.scheduleId)}));
+const lifecycleRows=overview.filter(row=>row.latest&&(!row.closed||row.continuation));
 const historyRows=overview.filter(row=>(!historyTo||row.startedOn<=historyTo)&&(!row.endedOn||row.endedOn>=historyFrom)&&(!historyQuery||row.post.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&(!historyStatus||row.status===historyStatus));
 const activeHistoryRows=historyRows.filter(row=>!row.closed),endedHistoryRows=historyRows.filter(row=>row.closed);
 const templateRows=overview.filter(row=>(activeView==='daily'?lifecycleRows:historyRows).includes(row)||activeView==='daily'&&reviewPosts.some(pending=>pending.row.scheduleId===row.scheduleId)||row.key===selectedCampaignId||row.metrics.some(metric=>metric.id===selectedCampaignId));
@@ -234,7 +237,8 @@ const historyHref = (overrides: Record<string, string>) => {
           {activeView === 'daily' && <>
           <section class="calendar-section" aria-labelledby="calendar-title">
             <BusinessSectionHeader title="推广生命周期" headingId="calendar-title" contained/>
-            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有正在推广的帖子</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
+            {continuationError&&<p class="notice" role="status">{continuationError}</p>}
+            {lifecycleRows.length===0?<div class="empty-state"><strong>当前没有可展示的推广生命周期</strong></div>:<div class="lifecycle-list"><div class="lifecycle-column-head"><span>内容 / 版本</span><span>阶段轨迹</span><span class="lifecycle-total-head"><span>总消耗</span><span>实际开口成本</span><span>实际留资成本</span></span><span>当前状态</span><span>详情</span></div>{lifecycleRows.map(entry=><BusinessPromotionSummary entry={entry} daily href={`?campaign=${entry.key}`}/>)}</div>}
           </section>
           <section class="daily-section" id="daily-table" aria-labelledby="daily-title">
             <div class="pending-heading"><BusinessSectionHeader title="每日复盘" headingId="daily-title" contained wrap><Fragment slot="heading-end"><small data-promotion-pending-count>{pendingCount} 项待填写</small><small data-promotion-saved-count hidden={!savedCount}> · 已保存 {savedCount} 项</small></Fragment><BusinessToolbarActions slot="end" variant="section"><button type="button" class="primary-action" data-save-all disabled={!pendingCount}>一键保存 ({pendingCount})</button><button class="review-residual-trigger" type="button" data-residual-trigger>补录</button><a href="?view=history"><span>历史总览</span><span aria-hidden="true">↗</span></a></BusinessToolbarActions></BusinessSectionHeader></div>
