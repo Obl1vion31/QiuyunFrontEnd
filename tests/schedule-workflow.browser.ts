@@ -105,7 +105,7 @@ try {
   await page.locator('[data-schedule-workflow] .workflow-form').first().waitFor();
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1');
   const reasonForm=page.locator('[data-schedule-workflow] .workflow-reason form').first();await reasonForm.locator('input[type=radio][value=self]').check();await reasonForm.locator('textarea').fill('浏览器填写今日正在修改中');await reasonForm.locator('button[type=submit]').click();
-  await page.locator('[data-schedule-workflow-history]').getByText('运营原因：浏览器填写今日正在修改中').waitFor({state:'attached'});
+  await page.locator('[data-schedule-workflow-history]').getByText('浏览器填写今日正在修改中').waitFor({state:'attached'});
   assert.equal(await page.locator('[data-schedule-count=overdue]').textContent(),'1','填完理由仍保留延期提示');
   await page.locator('[data-schedule-workflow] summary').filter({hasText:'申请调整排期'}).click();
   const applicationForm=page.locator('[data-schedule-workflow] form').filter({has:page.locator('[name=plannedPublishAt]')});
@@ -145,7 +145,7 @@ try {
     await phone.goto(`${baseURL}/business/non-promotion-review?subject=tmua&category=innovation&row=${skipped.id}:day_7`);await phone.locator('[data-inspector]').waitFor();
     assert.ok(await phone.locator('[data-inspector]').evaluate((node:HTMLElement)=>node.getBoundingClientRect().width<=innerWidth));
     await phone.screenshot({path:`.tools/test-artifacts/non-promotion-workflow-${width}.png`,fullPage:true});
-    await phone.goto(`${baseURL}/business/operations-schedule?row=${pending.id}`);await phone.locator('[data-schedule-workflow-history] summary').filter({hasText:'已填延期原因'}).click();await phone.locator('[data-schedule-workflow-history] .workflow-reason').first().waitFor();
+    await phone.goto(`${baseURL}/business/operations-schedule?row=${pending.id}`);await phone.locator('[data-schedule-workflow-history] [data-business-history-timeline]>summary').click();await phone.locator('[data-schedule-workflow-history] [data-history-event]:visible').first().waitFor();
     await phone.screenshot({path:`.tools/test-artifacts/schedule-workflow-${width}.png`,fullPage:true});await mobile.close();
   }
   const {context:adminContext,page:adminPage}=await contextFor(adminCookie);await adminPage.goto(`${baseURL}/business/operations-schedule?status=approvals`);

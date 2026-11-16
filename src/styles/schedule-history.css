@@ -1,11 +1,44 @@
-:is(#schedule-panel,[data-post-lookup]) .schedule-history-group>summary{cursor:pointer;padding:10px 0;font:500 var(--console-text)/1.6 var(--console-font);color:var(--console-ink)}
-:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history{display:grid;gap:6px;padding:12px 0;border-bottom:1px solid var(--console-line)}
-:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history:last-child{border-bottom:0}
-:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history p{margin:0;font:400 var(--console-text)/1.65 var(--console-font);color:var(--console-ink);white-space:pre-wrap;overflow-wrap:anywhere}
-:is(#schedule-panel,[data-post-lookup]) .schedule-history-group .workflow-plan-history small{font:400 var(--console-caption)/1.6 var(--console-font);color:var(--console-muted)}
-:is(#schedule-panel,[data-post-lookup]) .schedule-history-group:not([data-schedule-history-group=content]) .workflow-plan-history{gap:4px;padding:8px 0}
-:is(#schedule-panel,[data-post-lookup]) [data-schedule-history-group=execution] .schedule-history-heading{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:12px;row-gap:2px}
-:is(#schedule-panel,[data-post-lookup]) [data-schedule-history-group=execution] .schedule-history-heading small{white-space:normal}
 #schedule-panel [data-schedule-workflow-history]>.business-read-feedback{position:static;justify-self:start;max-width:100%;padding:0;border:0;background:transparent;box-shadow:none}
 #schedule-panel [data-schedule-workflow-history]>.schedule-history-status{margin:0;font:400 var(--console-text)/var(--console-text-leading) var(--console-font);color:var(--console-muted)}
 #schedule-panel [data-schedule-workflow-history]>button{justify-self:start}
+
+/* 详情和查帖共用一条可筛选的业务时间线。 */
+.business-history-timeline{min-width:0}
+.business-history-timeline>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font:500 15px/24px var(--console-font);padding:10px 0;color:var(--console-ink)}
+.business-history-timeline>summary::-webkit-details-marker{display:none}
+.business-history-timeline>summary::before{content:"";flex:none;width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg)}
+.business-history-timeline[open]>summary::before{transform:rotate(135deg)}
+.business-history-toggle{margin-left:auto;color:var(--console-blue);font:400 13px/20px var(--console-font)}
+.business-history-toggle>span+span{display:none}
+.business-history-timeline[open]>summary .business-history-toggle>span:first-child{display:none}
+.business-history-timeline[open]>summary .business-history-toggle>span+span{display:inline}
+.business-history-timeline>summary:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px;border-radius:4px}
+.business-history-body{padding-top:6px;min-width:0}
+.business-history-filters.business-view-switch{height:34px;margin-bottom:12px;font-size:13px}
+.business-history-filters.business-view-switch label{font:inherit}
+.business-history-filters.business-view-switch span{padding-inline:10px}
+.business-history-events{margin:0;padding:0 0 0 18px;list-style:none}
+.business-history-events>li{position:relative;padding:12px 0 14px 16px;border-left:1px solid #c8d9e7;min-width:0}
+.business-history-events>li::before{content:"";position:absolute;top:19px;left:-5px;width:9px;height:9px;box-sizing:border-box;border:2px solid #f4f8fd;border-radius:50%;background:var(--console-blue)}
+.business-history-events>li+li{border-top:1px solid var(--console-line)}
+.business-history-events>li>header{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;margin-bottom:6px}
+.business-history-events>li>header>strong{font:500 14px/22px var(--console-font);overflow-wrap:anywhere}
+.business-history-tags{display:inline-flex;flex-wrap:wrap;gap:5px}
+.business-history-tags>span{padding:0 5px;border-radius:4px;background:#e7effb;color:#345b8b;font:400 12px/18px var(--console-font)}
+.business-history-changes{display:grid;gap:6px;margin:0}
+.business-history-changes>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px}
+.business-history-changes dt{color:var(--console-muted);font:400 13px/21px var(--console-font)}
+.business-history-changes dd{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 8px;min-width:0;margin:0;color:var(--console-ink);font:400 14px/22px var(--console-font);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.business-history-timeline .business-history-changes a{display:inline;margin:0;font:inherit;color:var(--console-blue);text-underline-offset:3px}
+.business-history-arrow{color:var(--console-muted)}
+.business-history-timeline .business-history-reason{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;font:400 13px/21px var(--console-font)}
+.business-history-timeline .business-history-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px;margin:6px 0 0;color:var(--console-muted);font:400 12px/20px var(--console-font)}
+.business-history-evidence{margin-top:6px;font:400 13px/21px var(--console-font)}
+.business-history-evidence>summary{cursor:pointer;color:var(--console-blue);font:400 13px/21px var(--console-font)}
+.business-history-evidence>div{padding-top:8px}
+.business-history-timeline .business-history-evidence p{margin:4px 0;color:var(--console-muted);font:400 12px/20px var(--console-font)}
+.business-history-more{display:block;margin:8px auto 0;border:0;background:transparent;padding:6px 12px;color:var(--console-blue);font:400 13px/20px var(--console-font);cursor:pointer}
+.business-history-more:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+.business-history-timeline [hidden]{display:none!important}
+.business-history-reason-edit{margin-top:8px}
+@media(max-width:600px){.business-history-filters.business-view-switch{height:auto;flex-wrap:wrap;width:auto}.business-history-events{padding-left:6px}}

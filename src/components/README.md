@@ -108,3 +108,6 @@ ContentTunnel.module.css
 `BusinessResourceLinks.astro` 是推广、非推广及排期共用的只读资料入口。静态模式接收documentUrl／postUrl／name，排期dynamic模式保留原data-inspector-doc／post绑定并消费既有摘要；资料和帖子保留原URL、真实域名与缺失状态，日期和待处理信息按任务保留。编辑、保存、权限和详情开关由原控制器负责。所有模块通过Frame共享材质，不复制公共壳层。
 
 - `BusinessFormSheet`的embedded模式仅将现有表单挂载到父Sheet，不建立第二个dialog；默认模式与其他页面不变。
+
+- `BusinessFieldHelp.astro`：字段旁信息图标，复用公共popover的悬停、聚焦、触屏和Escape行为。
+- `BusinessPromotionMetric.astro`：单日详情的投放事实、实际人数及成本；原历史编辑Dialog和提交字段保留。

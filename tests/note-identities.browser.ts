@@ -21,7 +21,7 @@ async function openHistory(page:any,metricId:string){
  const row=page.locator('[data-inspector-key="'+metricId+'"]').first();
  for(const ancestor of await row.locator('xpath=ancestor::details').all())if(await ancestor.getAttribute('open')===null)await ancestor.locator(':scope>summary').click();
  await row.click();await page.locator('[data-promotion-inspector].is-open').waitFor();
- await page.locator('[data-promotion-inspector] .note-id-correction>summary').click();
+ await page.locator('[data-promotion-inspector] .surface-resource-meta>summary').click();await page.locator('[data-promotion-inspector] .note-id-correction>summary').click();
  await page.locator('[data-note-identity-form] [name=platformNoteId]').waitFor();await settleBusinessUI(page);
 }
 async function submitCorrection(page:any,accept:boolean){await page.locator('[data-note-identity-form] [type=submit]').click();await respondToBusinessConfirm(page,accept);}

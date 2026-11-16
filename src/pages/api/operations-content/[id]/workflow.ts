@@ -5,6 +5,7 @@ import { shanghaiDateTime } from '../../../../db/validation';
 import { workflowErrorResponse } from '../../../../db/workflow-api';
 import {effectiveBusinessPermissions} from '../../../../auth/business-permissions';
 import {readScheduleApprovals} from '../../../../db/schedule-approvals';
+import {readScheduleBusinessHistory} from '../../../../db/schedule-business-history-read';
 import {publicationNoteContext} from '../../../../db/note-identities';
 export const prerender = false;
 export const GET: APIRoute = async ({ params, url,locals }) => {
@@ -15,8 +16,9 @@ export const GET: APIRoute = async ({ params, url,locals }) => {
       if (!parsed.success) throw new WorkflowError('请选择有效的发布时间。', 422);
       actual = parsed.data;
     }
-    const workflow=await readScheduleWorkflow(getDb(), params.id!, actual);
+    const read=await readScheduleWorkflow(getDb(), params.id!, actual);
+    const {historyContexts,historyReasons,...workflow}=read;
     const permissions=await effectiveBusinessPermissions(getDb(),locals.user!);
-    return Response.json({...workflow,noteIdentity:await publicationNoteContext(getDb(),params.id!),changeProposals:await readScheduleApprovals(getDb(),locals.user!,params.id!),permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
+    return Response.json({...workflow,historyEvents:await readScheduleBusinessHistory(getDb(),read),noteIdentity:await publicationNoteContext(getDb(),params.id!),changeProposals:await readScheduleApprovals(getDb(),locals.user!,params.id!),permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return workflowErrorResponse(error); }
 };

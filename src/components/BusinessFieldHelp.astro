@@ -1,0 +1,6 @@
+---
+interface Props {id:string;label:string;text:string}
+const {id,label,text}=Astro.props;
+---
+<span class="business-field-help" data-business-popover data-popover-kind="reference"><button type="button" class="business-reference-trigger" data-popover-trigger aria-label={label} aria-describedby={id} aria-expanded="false"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v7M12 6.5v1"/></svg></button><span id={id} popover="auto" data-popover-panel role="tooltip">{text}</span></span>
+<script>import '../scripts/business-popover';</script>

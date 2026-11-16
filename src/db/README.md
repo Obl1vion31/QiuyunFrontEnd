@@ -83,3 +83,6 @@ monthly-arrangement 维护整月首轮提交／核对／封存，schedule-edit-p
 - `schedule-history.ts`是排期业务历史的共享分组读模型，`schedule-history-context.ts`只投影关联与原预排期依据；历史分组不修改原快照或V0回放。旧定稿具体排期ID优先，不能按重复名额串联其他帖子。
 
 content-config／content-config-values是按学科帖子类型、默认运营类型和推广用途的统一读取及修改入口；meeting-sealed-revision只追加封存后两项文字的新版本，不改变原计划、事实、事项或旧文件。配置与快照职责分离，不能在历史展示时用当前目录重写旧JSON。
+
+- `schedule-business-history.ts`：排期、发布和内容／复盘的业务事件纯投影，保留真实前后值及来源依据。
+- `schedule-business-history-read.ts`：只在详情／查帖GET补读对应帖子的复盘与笔记ID历史，不加入写入校验查询。

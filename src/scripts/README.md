@@ -51,4 +51,4 @@ monthly-arrangement.ts 在原月历处理拖动及整月提交／核对／退回
 
 - `schedule-page.js`：排期单层面板的页面适配、原表单与现有月份SSR局部同步；Inspector选择、滚动锁、焦点与未保存确认仍复用公共控制器。
 
-- `schedule-execution-history.ts`共用三组排期历史的DOM呈现；排期Inspector和助手查帖读取同一`historyGroups`，不各自解释原始快照。
+- `schedule-business-history.ts`共用一条业务时间线的DOM呈现、类别筛选、10条分页和展开状态；排期Inspector和助手查帖读取同一`historyEvents`，不各自解释原始快照。阅读筛选不触发表单未保存保护。

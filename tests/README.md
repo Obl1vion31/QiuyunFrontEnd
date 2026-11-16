@@ -309,11 +309,11 @@ React 18流式编码使用pnpm的react-dom@18.3.1补丁回移官方PR26228，版
 
 ### 排期历史与旧定稿归属
 
-`tests/schedule-history.test.ts`核对语义分组、同Week微调、跨月及未知依据；`monthly-plan-summary.test.ts`核对旧重复名额的两帖独立展示。`tests/schedule-history.browser.ts`通过本机隔离PostgreSQL复现22篇、明确遗留名额被早期未关联帖子抢用的入口，覆盖真实保存、混合修改、封存唯一性、旧冻结投影不变、查帖一致、键盘与未保存保护；实际运行最终包，在1920／1440／1024分别检查双角色详情、三组历史、V0明细和查帖，390仅检查明显问题。历史PDF保留，新生成的冻结月会PDF仍读冻结事实。
+`tests/schedule-history.test.ts`核对语义分组、同Week微调、跨月及未知依据；`monthly-plan-summary.test.ts`核对旧重复名额的两帖独立展示。`tests/schedule-history.browser.ts`通过本机隔离PostgreSQL复现22篇、明确遗留名额被早期未关联帖子抢用的入口，覆盖真实保存、混合修改、封存唯一性、旧冻结投影不变、查帖一致、键盘与未保存保护；实际运行最终包，在1920／1440／1024分别检查双角色详情、共享业务历史、V0明细和查帖，390仅检查明显问题。历史PDF保留，新生成的冻结月会PDF仍读冻结事实。
 
 本次涉及首屏时序时，选1440px新上下文录制相关慢字体／慢历史、刷新或站内导航；检查标题、字形和读取过程，不以等待结束的静态图替代，也不作为无关改动的固定附加检查。
 
-`schedule-history-feedback.browser.ts`使用本机隔离PostgreSQL及真实首次建帖、跨Week与内容修改接口，核对非空分组、事件／时间／操作人紧凑排列、14px正文与真实原因保留、两角色1920／1440／1024px和查帖共用呈现。慢历史超过500ms才出现就地反馈，空、失败只读重试、关闭切帖旧响应、键盘与未保存输入分别验证；390px仅检查明显溢出和关闭入口。`HISTORY_FEEDBACK_ENTRY`可指定最终运行包入口，`HISTORY_FEEDBACK_DIR`指定原始证据目录。
+`business-history-inspector.browser.ts`（旧`schedule-history-feedback.browser.ts`入口转发）使用本机隔离PostgreSQL与正式Vercel运行包，核对真实新建／跨周及内容修改、同次事件合并、发布登记和查帖同源；覆盖默认折叠、类别筛选、10条分页、节点保留、键盘、原编辑草稿、慢读、失败重试及空态。管理员1920／1440／1024、员工1440；390仅关闭与明显溢出。`BUSINESS_HISTORY_DIR`指定原始证据目录。`schedule-business-history.test.ts`覆盖来源合并、未知时间、复盘作用域、说明修订和技术记录排除。
 
 `promotion-latest.browser.ts`使用11月4／5／6日今天均更新的隔离真实记录，复现旧日回流并验证主表仅保留6日。对比修改前后6日原行的几何和字体，锁定颜色按公共禁用规范验收；覆盖保存、刷新、历史更正后不回流、历史可读、双角色三档、390有限检查及跨午夜。`PROMOTION_LATEST_BASELINE=1`运行旧构建对照，`PROMOTION_LATEST_COMPARE`指定原行几何记录；最终图和录像仍须实际查看。
 
@@ -331,3 +331,5 @@ content-config-drag.browser.ts使用本机隔离PostgreSQL验证按默认运营�
 修改 `scripts/vercel-releases.py` 时运行 `python3 tests/vercel-releases.test.py`，覆盖真实压缩包校验、正式／域名／回滚保护以及故障停止。结合默认只读清单和实际小批次前后服务核对；维护工具不触发网站构建、UI 或 PDF 回归。两个仓库实现相同时复用同一测试结果。
 
 聚光后台续期使用 `tests/juguang-renewal.integration.ts`（实际目标包＋本机隔离PostgreSQL）：Bearer／方法门禁、提前续期与重复触发、凭据轮换、失败保留／恢复、只读scope、重授权清理和与手动检查的真实竞争。页面状态由 `tests/juguang-renewal.browser.ts` 检查。
+
+推广日详情由`juguang-daily.browser.ts`覆盖11/15已保存API来源、未保存来源与其他日期手填语义，检查三档桌面338／380窄宽、三列指标、人数与成本配对、字段公式popover及原编辑表单；`history-inspector-overlay.browser.ts`继续核对共享资源入口在推广／非推广详情的几何、焦点与未保存保护。

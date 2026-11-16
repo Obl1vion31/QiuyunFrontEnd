@@ -3,7 +3,6 @@ import {operationTypeLabels,type OperationType} from '../db/operation-types';
 import {readBusiness} from './business-read';
 import {getInspector} from './business-inspector';
 import {cumulativeDays,reviewModeLabels,type ReviewMode} from '../db/non-promotion-nodes';
-import {businessDateTime} from './business-date';
 type Change={at:string;actor:string;before?:{dueOn?:string};after?:{dueOn?:string;action?:string};reason?:string};
 type View={finalReviewOn:string|null;pendingCycle?:boolean;historicalCycle?:boolean;contentRole:ContentRole|null;statisticsFrom:string|null;operationType:OperationType|null;reviewActive:boolean;activatedOn:string|null;defaults?:{mode:ReviewMode;day7:boolean;day15:boolean};plan:{mode:ReviewMode;day7:boolean;day15:boolean;revision:number;draftDueOn:string|null;history:Array<{at:string;actor:string;before?:{operationType?:OperationType};after?:{operationType?:OperationType}}>}|null;anchorScheduleId:string;publishedOn:string|null;isPromoted:boolean;nodes:Array<{id:string;dueOn:string;revision:number;cancelledAt:string|null;completed:boolean;history:Change[]}>};
 type RecordView={id:string;actualPublishAt:string;isPromoted:boolean;contentName:string};
@@ -46,7 +45,6 @@ function initialize(){
   list.replaceChildren();
   for(const node of data.nodes.filter(n=>!n.cancelledAt)){
    const block=el('div');block.className='non-plan-node';block.append(el('p',`截至 ${node.dueOn} · ${node.completed?'已录入':'待录入'}`));
-   if(node.history.length>1){const history=el('details');history.append(el('summary','日期调整记录'));for(const change of node.history.slice(1))history.append(el('p',`${businessDateTime(change.at)} · ${change.actor} · ${change.before?.dueOn} → ${change.after?.dueOn} · ${change.reason??''}`));block.append(history);}
    if(node.completed||!data.reviewActive||!!data.finalReviewOn){if(node.completed||!data.finalReviewOn||node.dueOn===data.finalReviewOn)block.append(el('small',node.completed?'已有结果，截止日只读保留':data.finalReviewOn?'最终节点':'当前阶段暂缓复盘'));list.append(block);continue;}
    const details=el('details'),summary=el('summary','调整或取消');details.append(summary);
    const edit=el('form');edit.className='business-form';edit.dataset.reviewNodeForm='';edit.dataset.collaborationResource=`schedule:${owner}`;edit.dataset.collaborationLabel=current!.contentName;edit.dataset.businessOperation='schedule.edit';
@@ -57,10 +55,6 @@ function initialize(){
    const reasonLabel=el('label','原因'),reason=el('textarea');reason.name='reason';reason.rows=2;reason.maxLength=500;reason.required=true;reasonLabel.append(reason);edit.append(reasonLabel,el('output'));
    const save=el('button','保存调整');save.type='submit';save.className='business-action-secondary';edit.append(save);details.append(edit);block.append(details);list.append(block);
   }
-  const types=data.plan?.history.filter(c=>c.after?.operationType)??[];if(types.length){const history=el('details');history.append(el('summary','运营类型记录'));for(const change of types)history.append(el('p',businessDateTime(change.at)+' · '+change.actor+' · '+(change.before?.operationType?operationTypeLabels[change.before.operationType]+' → ':'设置为 ')+operationTypeLabels[change.after!.operationType!]));list.append(history);}
-  const roles=(data.plan?.history??[]).filter(c=>'contentRole' in (c.after??{})) as Array<{at:string;actor:string;before?:{contentRole?:ContentRole|null};after:{contentRole?:ContentRole|null}}> ;if(roles.length){const history=el('details');history.append(el('summary','内容职能记录'));for(const change of roles)history.append(el('p',businessDateTime(change.at)+' · '+change.actor+' · '+contentRoleLabel(change.before?.contentRole)+' → '+contentRoleLabel(change.after.contentRole)));list.append(history);}
-  const finalChanges=(data.plan?.history??[]) as Array<{at:string;actor:string;scheduleId?:string;before?:{finalReviewOn?:string|null};after?:{finalReviewOn?:string}}> ;const dateChanges=finalChanges.filter(c=>c.after?.finalReviewOn&&(!c.scheduleId||c.scheduleId===owner));if(dateChanges.length){const history=el('details');history.append(el('summary','最终日期调整记录'));for(const c of dateChanges)history.append(el('p',businessDateTime(c.at)+' · '+c.actor+' · '+(c.before?.finalReviewOn??'未设置')+' → '+c.after!.finalReviewOn));list.append(history);}
-  const cancelled=data.nodes.filter(n=>n.cancelledAt);if(cancelled.length){const history=el('details');history.append(el('summary',`已取消的复盘 (${cancelled.length})`));for(const node of cancelled){const change=node.history.at(-1);history.append(el('p',`截至 ${node.dueOn} · 已取消${change?' · '+businessDateTime(change.at)+' · '+change.actor+' · '+(change.reason??''):''}`));}list.append(history);}
  };
  listen('business:schedule-selected',async event=>{
   const record=(event as CustomEvent<RecordView>).detail;current=record;view=undefined;panel.hidden=true;(form.querySelector('[data-review-plan-fields]') as HTMLFieldSetElement).disabled=true;add.hidden=true;add.dataset.businessEligible='false';form.closest<HTMLDetailsElement>('details')!.dataset.businessEligible='false';list.replaceChildren();
@@ -68,7 +62,7 @@ function initialize(){
   try{const data=await read(record,panel);if(data&&current?.id===record.id)render(data);}catch(error){if(current?.id===record.id){panel.hidden=false;panel.querySelector('[data-review-plan-summary]')!.textContent=error instanceof Error?error.message:'读取失败，请重试';}}
  });
  listen('business:schedule-detail-resumed',async()=>{if(current&&!view&&current.actualPublishAt){const data=await read(current,panel);if(data)render(data);}});
- listen('business:review-date-saved',async event=>{if(current&&current.id===(event as CustomEvent).detail.scheduleId){const data=await read(current,panel);if(data)render(data);}});
+ listen('business:review-date-saved',async event=>{if(current&&current.id===(event as CustomEvent).detail.scheduleId){const data=await read(current,panel);if(data)render(data);document.dispatchEvent(new CustomEvent('business:review-plan-history-updated',{detail:{id:current.id}}));}});
  listen('business:publication-opened',async event=>{
   const record=(event as CustomEvent<RecordView>).detail,host=pubFields.parentElement!,token=++publicationReadToken;publicationRecordId=record.id;publicationView=undefined;host.hidden=!!record.actualPublishAt;pubFields.hidden=true;pubFields.dataset.loaded='false';(pubFields as HTMLFieldSetElement).disabled=true;
   if(host.hidden){pubFields.dataset.loaded='true';return;}
@@ -105,7 +99,7 @@ function initialize(){
   try{const response=await fetch(target===form?target.action:'/api/non-promotion-checkpoints',{method:target===form?'PATCH':'POST',body:new FormData(target)}),json=await response.json();if(!response.ok)throw new Error(json.message||'保存失败');target.dataset.dirty='false';
    if(!panel.querySelector('form[data-dirty=true]'))getInspector(inspector).setClean();
    output.textContent=response.status===202?'已提交管理员审核':'已保存';
-   if(response.status!==202&&current){const data=await read(current,panel);if(data)render(data);}
+   if(response.status!==202&&current){const data=await read(current,panel);if(data)render(data);document.dispatchEvent(new CustomEvent('business:review-plan-history-updated',{detail:{id:current.id}}));}
   }catch(error){output.setAttribute('role','alert');output.textContent=(error instanceof Error?error.message:'连接失败')+'；当前输入已保留。';}finally{button.disabled=false;}
  });
  const selected=inspector.dataset.selectedId,records=document.querySelector('[data-schedule-records]');if(selected&&records){const record=JSON.parse(records.textContent||'[]').find((r:RecordView)=>r.id===selected);if(record)document.dispatchEvent(new CustomEvent('business:schedule-selected',{detail:record}));}

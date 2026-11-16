@@ -22,7 +22,8 @@ function initialize(){
    const selected=pane.dataset.selectedId,top=pane.querySelector<HTMLElement>('[data-inspector-body]')?.scrollTop??0;
    await refreshPromotionSchedule(form.dataset.scheduleId!,undefined,true);
    if(pane.dataset.selectedId!==selected||pane.hidden)return;
-   const next=pane.querySelector<HTMLFormElement>('[data-note-identity-form]');if(next?.closest('details'))next.closest('details')!.open=true;
+   const next=pane.querySelector<HTMLFormElement>('[data-note-identity-form]');
+   for(let ancestor:HTMLElement|null=next;ancestor&&ancestor!==pane;ancestor=ancestor.parentElement)if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;
    const feedback=next?.querySelector<HTMLOutputElement>('[data-note-identity-message]');if(feedback)feedback.textContent='笔记 ID 已更正。';
    next?.querySelector<HTMLElement>('[type=submit]')?.focus({preventScroll:true});
    const body=pane.querySelector<HTMLElement>('[data-inspector-body]');if(body)body.scrollTop=top;

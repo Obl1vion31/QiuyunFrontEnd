@@ -3,14 +3,18 @@ import {promotionActualLabels,normalizePromotionActualStatus} from '../db/promot
 import BusinessJuguangTraffic from './BusinessJuguangTraffic.astro';
 import {JUGUANG_PILOT_DATE,promotionClickRate} from '../integrations/juguang-metric-types';
 import BusinessFormDialog from './BusinessFormDialog.astro';
-import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
+import BusinessFieldHelp from './BusinessFieldHelp.astro';
+import {businessDateTime} from '../scripts/business-date';
 import {promotionTotals,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
 interface Props {metric:PromotionFact;entry:PromotionOverview}
 const {metric,entry}=Astro.props;
 const pilot=metric.metricDate===JUGUANG_PILOT_DATE;
 const rate=promotionClickRate(metric.impressionCount,metric.clickCount);
 const overrideNames:Record<string,string>={spend:'消耗',platformOpenCount:'平台开口',platformLeadCount:'平台留资',impressionCount:'曝光量',clickCount:'点击量'};
-const sourceLabel=metric.juguangSource?'聚光数据'+(metric.juguangSource.overriddenFields.length?' · 人工覆盖：'+metric.juguangSource.overriddenFields.map(name=>overrideNames[name]).join('、'):'')+' · 实际人数手填':'打开编辑可读取聚光数据';
+const source=metric.juguangSource;
+const sourceLabel=source?`聚光读取 ${businessDateTime(source.fetchedAt)}${source.overriddenFields.length?'；人工覆盖：'+source.overriddenFields.map(name=>overrideNames[name]).join('、')+'；原因：'+source.overrideReason:''}`:pilot?'当前为手填记录；编辑这一天可读取11/15聚光报表，保存后保留官方来源。':'此日期沿用已保存的手填投放数据。';
+const totals=promotionTotals([metric]);
+const official=[{key:'spend',label:'消耗',value:'¥'+Number(metric.spend).toFixed(2)},...(pilot?[{key:'impressionCount',label:'曝光量',value:metric.impressionCount??'—'},{key:'clickCount',label:'点击量',value:metric.clickCount??'—'},{key:'ctr',label:'点击率',value:rate==null?'—':rate.toFixed(2)+'%'}]:[]),{key:'platformOpenCount',label:'平台开口',value:metric.platformOpenCount},{key:'platformLeadCount',label:'平台留资',value:metric.platformLeadCount}];
 const formatFullDate=(date:string)=>date;
 const actualStatus=metric.effectiveActualStatus??metric.actualStatusSnapshot??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot);
 const residual=metric.recordKind==='test_residual',stateLabel=residual?'淘汰后残留':promotionActualLabels[actualStatus]??actualStatus;
@@ -18,13 +22,20 @@ const canEditState=true;
 const allowedForRole=(_status:string)=>true;
 ---
 <article class="promotion-day" data-metric-card={metric.id}>
- <header><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{stateLabel}</span></header>
- <BusinessPromotionTotals totals={promotionTotals([metric])}/>
- {pilot&&<div class="juguang-history-traffic"><span>曝光量 <strong>{metric.impressionCount??'—'}</strong></span><span>点击量 <strong>{metric.clickCount??'—'}</strong></span><span>点击率 <strong>{rate==null?'—':rate.toFixed(2)+'%'}</strong></span><small>{sourceLabel}</small></div>}
-
+ <header class="promotion-day-heading"><time datetime={metric.metricDate}>{metric.metricDate}</time><span class="promotion-day-status" data-promotion-status={actualStatus}>{stateLabel}</span><button type="button" class="business-action-secondary" data-edit-trigger={metric.id} aria-label={`编辑 ${metric.metricDate} 的复盘`}>编辑</button></header>
+ <section class="promotion-day-platform" aria-label={source?'聚光投放数据':'投放数据'}>
+  <h3>{source?'聚光投放数据':'投放数据'}<span class:list={['promotion-source-mark',{'is-api':!!source}]}>{source?'API':'手填'}</span><BusinessFieldHelp id={`source-${metric.id}`} label="投放数据来源" text={sourceLabel}/></h3>
+  <dl class="promotion-platform-grid">{official.map(field=><div data-day-fact={field.key}><dt>{field.label}{field.key==='ctr'&&<BusinessFieldHelp id={`ctr-${metric.id}`} label="点击率计算方式" text="点击率 = 点击量 ÷ 曝光量 × 100%，曝光量为0或尚未记录时显示—。"/>}</dt><dd>{field.value}</dd></div>)}</dl>
+ </section>
+ <section class="promotion-day-actual" aria-label="业务实际">
+  <h3>业务实际<span class="promotion-source-mark">人数手填</span></h3>
+  <dl class="promotion-actual-grid">
+   <div><dt>实际开口</dt><dd data-total="actualOpenCount">{metric.actualOpenCount}</dd><dt class="promotion-cost-label">开口成本<BusinessFieldHelp id={`open-cost-${metric.id}`} label="实际开口成本计算方式" text="实际开口成本 = 消耗 ÷ 实际开口人数，实际开口为0时显示—。"/></dt><dd class="promotion-actual-cost" data-total="actualOpenCost">{totals.actualOpenCost==null?'—':'¥'+totals.actualOpenCost.toFixed(2)}</dd></div>
+   <div><dt>实际留资</dt><dd data-total="actualLeadCount">{metric.actualLeadCount}</dd><dt class="promotion-cost-label">留资成本<BusinessFieldHelp id={`lead-cost-${metric.id}`} label="实际留资成本计算方式" text="实际留资成本 = 消耗 ÷ 实际留资人数，实际留资为0时显示—。"/></dt><dd class="promotion-actual-cost" data-total="actualLeadCost">{totals.actualLeadCost==null?'—':'¥'+totals.actualLeadCost.toFixed(2)}</dd></div>
+  </dl>
+ </section>
  {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
- <button type="button" class="business-action-secondary" data-edit-trigger={metric.id}>编辑这一天</button>
-                          <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
+ <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
                             <form class="business-form" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName} data-history-edit-form data-juguang-pilot={pilot?metric.id:undefined} data-juguang-source={pilot?JSON.stringify(metric.juguangSource??null):undefined} data-original-day-status={actualStatus}>
                               <header class="dialog-head"><div><h3 id={`history-edit-${metric.id}`}>{formatFullDate(metric.metricDate)}</h3><p>{entry.post.contentName} · V{entry.post.versionNumber}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
                               <input type="hidden" name="metricId" value={metric.id} />

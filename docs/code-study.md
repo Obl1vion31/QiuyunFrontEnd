@@ -128,7 +128,7 @@ flowchart LR
 
 `BusinessInspector modal`以BusinessSheet作为原生dialog根节点，只复用模态与生命周期，CSS保留原Inspector的338px／380px断点、边距与圆角，不能继承编辑抽屉的680px规格。仍由同一getInspector控制选中、模板、草稿、URL与焦点，正文组织时绑定实际标题。公共Dialog负责220ms进出、遮罩和滚动锁，Esc／遮罩接回原关闭保护；背景表格不改宽或复制布局。纯Inspector模态仍算本地历史选择，快速前后退取消旧退出。未设置modal及排期contained接入保持原控制方式。
 
-排期 `showPanel` 读取时清空并隐藏待处理分组，收到真实待办才显现，空结果继续隐藏。历史区立即显示标题，以该区为 `beginBusinessRead` 目标，设置 `aria-busy`；超过500ms显示就地读取反馈，成功后再区分非空分组与“暂无历史记录”，失败与只读重试也留在此区。关闭、切帖或离开详情复用原取消与代次校验，不增加请求。`test:inspector-loading` 检查快慢读取期间的实际高度、资料起点与重试、切帖、关闭清理；`schedule-history-feedback.browser.ts`检查双角色紧凑记录和共享查帖呈现。
+排期 `showPanel` 读取时清空并隐藏待处理分组，收到真实待办才显现，空结果继续隐藏。历史区立即显示标题，以该区为 `beginBusinessRead` 目标，设置 `aria-busy`；超过500ms显示就地读取反馈，成功后再区分业务时间线与“暂无业务历史”，失败与只读重试也留在此区。关闭、切帖或离开详情复用原取消与代次校验，不增加请求。`test:inspector-loading` 检查快慢读取期间的实际高度、资料起点与重试、切帖、关闭清理；`business-history-inspector.browser.ts`检查双角色共享时间线、筛选分页和查帖呈现。
 
 新增或变更共享模式时同时修改此表及行为验收，避免示例与运行代码分离。服务端读模型只允许 SSR/API 使用；浏览器中的 `import type` 仅提供类型，不能导入连接或执行数据库查询。
 
@@ -347,3 +347,9 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 - ContentConfigurationTable供推广／非推广两组与用途目录复用，稳定ID预览顺序、松手调用原PATCH。Pointer capture由不移动的列表容器持有，行DOM换位与FLIP过渡相配合，拖动行显示等高空档和只读浮层；取消、Esc和窗口失焦清理。键盘使用同一提交路径。失败保留顺序并锁住其他配置写入，可重试、恢复或确认载入最新。非推广不渲染用途字段，旧实际推广使用的映射保留；新增非推广类型提交空用途，不改既有指标或冻结结果。
 - 月会PATCH动作revise_sealed_text只接收sourceVersionId、expectedUpdatedAt、coreConclusion、nextAction。meeting-sealed-revision校验最新有效版本与封存计划并复制快照，事务内生成新有效版本，不调用材料刷新、事项流转或计划发布。旧动作仍经assertMeetingMutable，不能通过普通修订绕过封存。
 - WeeklyMeetingPresentation.sealedTextOnly只开放两项文字；MonthlyCostResults标记最后有效月，点的透明热区和提示继续使用SparkTrend及business-popover。标记在像素坐标绘制，不受SVG缩放变成椭圆；公共样式不再提供节点放大。
+
+### 共享业务历史接入
+
+`readScheduleWorkflow`保留原始历史，GET详情／查帖另调用`schedule-business-history-read.ts`补读对应内容的复盘及笔记ID事件。`schedule-business-history.ts`只投影事实；同一执行快照的改期与内容变化合一，配置写入与执行快照只有在操作者、字段前后值及同次写入时间均匹配时才合并。旧日期轨迹无真实操作时间时不拿实发结束时刻补造。原historyGroups继续兼容读取，业务写入与冻结快照不改。
+
+浏览器共用`scripts/schedule-business-history.ts`的`appendBusinessHistory`，排期传入延期说明编辑回调，查帖只读；刷新可用`historyViewState`恢复展开、类别与页数。历史筛选的input事件就地消费，不干扰Inspector的表单未保存保护。`BusinessFieldHelp`复用公共popover完成字段解释；`BusinessPromotionMetric`保持原编辑表单和保存控制器，仅重新组织只读日详情。
