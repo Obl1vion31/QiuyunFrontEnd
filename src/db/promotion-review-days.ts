@@ -9,7 +9,7 @@ import type {MeetingDecision} from './meeting-decisions';
 import {requiredPromotionStage} from './promotion-review-required';
 import type {operationsPromotionDailyMetric} from './schema';
 import {testingCycleOn} from './promotion-cycles.mjs';
-export type SavedReviewMetric=Pick<typeof operationsPromotionDailyMetric.$inferSelect,'id'|'campaignId'|'metricDate'|'updatedAt'|'dailyStatus'|'actualStatusSnapshot'|'recordKind'|'stageTypeSnapshot'|'spend'|'platformOpenCount'|'actualOpenCount'|'platformLeadCount'|'actualLeadCount'|'reviewDecision'|'note'>;
+export type SavedReviewMetric=Pick<typeof operationsPromotionDailyMetric.$inferSelect,'id'|'campaignId'|'metricDate'|'updatedAt'|'dailyStatus'|'actualStatusSnapshot'|'recordKind'|'stageTypeSnapshot'|'spend'|'platformOpenCount'|'actualOpenCount'|'platformLeadCount'|'actualLeadCount'|'reviewDecision'|'note'>&Partial<Pick<typeof operationsPromotionDailyMetric.$inferSelect,'impressionCount'|'clickCount'|'juguangSource'>>;
 export function retainsDailyReview(metric:Pick<SavedReviewMetric,'metricDate'|'recordKind'>,now=new Date()){
  return metric.recordKind!=='test_residual'&&metric.metricDate===previousDateKey(shanghaiDateKey(now));
 }

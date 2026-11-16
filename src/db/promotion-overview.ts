@@ -4,10 +4,12 @@ import {promotionStateOn,promotionMetricStatus} from './promotion-state.mjs';
 /** 生命周期只从现有日度事实计算；缺失、暂停与归档记录不补成投放零值。 */
 import type {PromotionTimelineRow} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
+import type {JuguangMetricSource} from '../integrations/juguang-metric-types';
 import {campaignPauseWindows,campaignWaitWindows,countPromotionDays,dateInWindows,effectivePromotionStatus,promotionLabels} from './promotion-state.mjs';
 import {calculateActualPromotionCosts,nextDateKey,previousDateKey,promotionStageShares} from './promotion-rules.mjs';
 
 export interface PromotionFact {
+ impressionCount?:number|null;clickCount?:number|null;juguangSource?:JuguangMetricSource|null;
  updatedAt?:Date|string;
  id:string;campaignId:string;metricDate:string;dailyStatus:string;stageTypeSnapshot:string;
  spend:string|number;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;

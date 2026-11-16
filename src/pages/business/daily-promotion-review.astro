@@ -17,6 +17,7 @@ import BusinessToolbarActions from '../../components/BusinessToolbarActions.astr
 import BusinessSectionHeader from '../../components/BusinessSectionHeader.astro';
 import BusinessPageHeader from '../../components/BusinessPageHeader.astro';
 import '../../styles/promotion-pending.css';
+import '../../styles/juguang-daily.css';
 import {readPromotionTimeline} from '../../db/promotion-timeline';
 
 import BusinessPromotionDailyPosts from '../../components/BusinessPromotionDailyPosts.astro';
@@ -106,6 +107,7 @@ let metrics: Array<{
   sourceStageStartedOn: string | null;
   spend: string;
   clickRate: string | null;
+  impressionCount:number|null;clickCount:number|null;juguangSource:import('../../integrations/juguang-metric-types').JuguangMetricSource|null;
   platformOpenCount: number;
   actualOpenCount: number;
   platformLeadCount: number;
@@ -162,6 +164,7 @@ try {
     sourceStageStartedOn: operationsPromotionDailyMetric.sourceStageStartedOn,
     spend: operationsPromotionDailyMetric.spend,
     clickRate: operationsPromotionDailyMetric.clickRate,
+    impressionCount:operationsPromotionDailyMetric.impressionCount,clickCount:operationsPromotionDailyMetric.clickCount,juguangSource:operationsPromotionDailyMetric.juguangSource,
     platformOpenCount: operationsPromotionDailyMetric.platformOpenCount,
     actualOpenCount: operationsPromotionDailyMetric.actualOpenCount,
     platformLeadCount: operationsPromotionDailyMetric.platformLeadCount,
@@ -326,7 +329,7 @@ const historyHref = (overrides: Record<string, string>) => {
             if (decision?.disabled) data.set('reviewDecision', decision.value);
             const metricId = String(data.get('metricId'));
             const focusBeforeSave=document.activeElement as HTMLElement|null;let cancelled=false;
-            submit.disabled = true;
+            submit.disabled = true;form.dataset.juguangSaving='true';form.dispatchEvent(new CustomEvent('business:juguang-render'));
             message.textContent = '正在保存修改…';
             try {
               let response = await fetch(`/api/promotion-daily/${metricId}`, { method: 'PATCH', body: data, headers: { Accept: 'application/json' } });
@@ -342,7 +345,7 @@ const historyHref = (overrides: Record<string, string>) => {
             } catch {
               message.textContent = '无法连接服务，请稍后重试。';
             } finally {
-              submit.disabled = false;
+              submit.disabled = false;form.dataset.juguangSaving='false';form.dispatchEvent(new CustomEvent('business:juguang-render'));
               if(cancelled&&focusBeforeSave?.isConnected)focusBeforeSave.focus({preventScroll:true});
             }
           });
@@ -353,7 +356,7 @@ const historyHref = (overrides: Record<string, string>) => {
       document.addEventListener('business:inspector-render', initializeHistoryEditors);
 
     </script>
-    <script>import '../../scripts/promotion-note-correction';</script>
+    <script>import '../../scripts/promotion-note-correction';import '../../scripts/juguang-daily';</script>
   </body>
 </html>
 

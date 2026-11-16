@@ -13,7 +13,7 @@ const metrics=[['spend','消耗（元）','0.01'],['platformOpenCount','平台�
 <div class="promotion-pending-content" data-promotion-pending-body data-server-now={now.toISOString()} data-due-count={queue.ready.length} data-saved-count={queue.saved.length}>
  <p class="review-empty" data-review-empty hidden={queue.main.length>0}>今日暂无待填写复盘</p>
  <div class="review-entry-scroll" data-review-container="ready" hidden={!queue.main.length} tabindex="0" aria-label="每日复盘录入，可左右滚动">
-  <div class="review-entry-grid review-entry-head"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span>实际成本（元/人）</span><span><BusinessPromotionDecisionLabel/></span><span/></div>
+  <div class="review-entry-grid review-entry-head"><span>数据日期</span><span>内容 / 版本</span><span>当日状态</span><span>消耗（元）</span><span>平台开口（人）</span><span>实际开口（人）</span><span>平台留资（人）</span><span>实际留资（人）</span><span data-juguang-column>曝光量</span><span data-juguang-column>点击量</span><span data-juguang-column title="点击量 ÷ 曝光量 × 100%">点击率</span><span>实际成本（元/人）</span><span><BusinessPromotionDecisionLabel/></span><span/></div>
   {queue.main.map(({row,day})=><BusinessPromotionReviewRecord row={row} day={day} bucket="ready" now={now}/>)}
  </div>
  <details class="review-queue-section review-upcoming" data-review-section="upcoming" hidden={!queue.upcoming.length}>

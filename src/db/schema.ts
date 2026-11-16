@@ -1,3 +1,4 @@
+import type {JuguangMetricSource} from '../integrations/juguang-metric-types';
 import {
   boolean,
   bigint,
@@ -702,6 +703,9 @@ export const operationsPromotionDailyMetric = pgTable(
     stageTypeSnapshot: text('stage_type_snapshot').notNull(),
     spend: numeric('spend', { precision: 12, scale: 2 }).notNull(),
     clickRate: numeric('click_rate', { precision: 7, scale: 4 }),
+    impressionCount: integer('impression_count'),
+    clickCount: integer('click_count'),
+    juguangSource: jsonb('juguang_source').$type<JuguangMetricSource>(),
     platformOpenCount: integer('platform_open_count').notNull(),
     actualOpenCount: integer('actual_open_count').notNull(),
     platformLeadCount: integer('platform_lead_count').notNull(),
@@ -718,6 +722,7 @@ export const operationsPromotionDailyMetric = pgTable(
     check('operations_promotion_daily_stage_check', sql`${table.stageTypeSnapshot} IN ('testing', 'scaling')`),
     check('operations_promotion_daily_status_check', sql`${table.dailyStatus} IN ('active', 'waiting_action')`),
     check('operations_promotion_daily_spend_check', sql`${table.spend} >= 0`),
+    check('operations_promotion_daily_traffic_check', sql`(${table.impressionCount} IS NULL AND ${table.clickCount} IS NULL) OR (${table.impressionCount} IS NOT NULL AND ${table.clickCount} IS NOT NULL AND ${table.impressionCount} >= 0 AND ${table.clickCount} >= 0 AND ${table.clickCount} <= ${table.impressionCount})`),
     check(
       'operations_promotion_daily_click_rate_check',
       sql`${table.clickRate} IS NULL OR ${table.clickRate} BETWEEN 0 AND 100`,

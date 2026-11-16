@@ -37,6 +37,6 @@ try{
  await withDatabase(db,()=>saveJuguangConnection(token,'42',boss.id));await db.update(connections).set({accessTokenExpiresAt:new Date(0)});await mode({delay:700});
  const first=post(boss.cookie);await new Promise(r=>setTimeout(r,250));const second=await post(boss.cookie);assert.equal(second.status,409);assert.equal((await(await first).json()).check.status,'ok');assert.equal((await calls()).filter(c=>c.refresh).length,1,'竞争中只轮换一次令牌');
  await withDatabase(db,()=>saveJuguangConnection(token,'42',boss.id));[stored]=await db.select().from(connections);assert.equal(stored.lastCheck,null,'重授权清除旧摘要');
- const html=await(await fetch(base+'/business/settings?view=integrations',{headers:{Cookie:boss.cookie}})).text();assert.match(html,/推广复盘的数据边界/);assert.match(html,/尚未自动带入/);assert.ok(!html.includes('fictional-access')&&!html.includes('fictional-refresh'));
+ const html=await(await fetch(base+'/business/settings?view=integrations',{headers:{Cookie:boss.cookie}})).text();assert.match(html,/推广复盘的数据边界/);assert.match(html,/2026-11-15/);assert.ok(!html.includes('fictional-access')&&!html.includes('fictional-refresh'));
  console.log('通过：管理员／同源门禁、空报表、部分异常、断网、过期刷新、上游失效重试、刷新后失败保持、失效重授权、真实 PostgreSQL 并发锁、重授权清理与 SSR 用途边界。');
 }catch(error){console.error(fixture.logs().slice(-2000));throw error;}finally{await fixture.stop();}

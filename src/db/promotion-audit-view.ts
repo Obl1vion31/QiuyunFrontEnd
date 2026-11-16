@@ -13,7 +13,7 @@ type Snapshot={
  schedule?:{promotionStatus?:string;isPromoted?:boolean;actualPublishAt?:string;promotionDeferredThrough?:string};
  plan?:{waitingThrough?:string;plannedOn?:string;plannedStage?:string}|null;
  campaigns?:Array<{id:string;startedOn:string;initialStage:string;endedOn?:string;currentStatus?:string}>;
- metrics?:Array<{id:string;campaignId:string;metricDate:string;stageTypeSnapshot:string;dailyStatus:string;actualStatusSnapshot?:string|null;recordKind?:string;reviewDecision:string;spend:string;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;note?:string|null}>;
+ metrics?:Array<{id:string;campaignId:string;metricDate:string;stageTypeSnapshot:string;dailyStatus:string;actualStatusSnapshot?:string|null;recordKind?:string;reviewDecision:string;spend:string;impressionCount?:number|null;clickCount?:number|null;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;note?:string|null}>;
  ranges?:Array<{startedOn:string;endedOn:string;stageType:string;nextDecision?:string;nextEffectiveOn?:string}>;
  decisions?:Array<{businessDate:string;stageType:string;actualStatus?:string|null}>;
  auditCategory?:string;
@@ -37,7 +37,7 @@ export function promotionSnapshotLabel(value:Record<string,unknown>,date:string,
   }
  }
  if(action==='day_status_correction'&&typeof value.correctedDayStatus==='string')return date+' '+(promotionActualLabels[value.correctedDayStatus]??value.correctedDayStatus);
- if(action==='metric_values'){const m=snapshot.metrics?.find(row=>row.metricDate===date);if(m)return '消耗 ¥'+Number(m.spend).toFixed(2)+'；平台开口 '+m.platformOpenCount+' 人，实际开口 '+m.actualOpenCount+' 人；平台留资 '+m.platformLeadCount+' 人，实际留资 '+m.actualLeadCount+' 人；说明：'+(m.note||'未填写');}
+ if(action==='metric_values'){const m=snapshot.metrics?.find(row=>row.metricDate===date);if(m)return '消耗 ¥'+Number(m.spend).toFixed(2)+'；平台开口 '+m.platformOpenCount+' 人，实际开口 '+m.actualOpenCount+' 人；平台留资 '+m.platformLeadCount+' 人，实际留资 '+m.actualLeadCount+' 人'+(m.impressionCount!=null?'；曝光量 '+m.impressionCount+'，点击量 '+m.clickCount:'')+'；说明：'+(m.note||'未填写');}
 
  if(action==='meeting_decision_correction'&&snapshot.meetingDecision){const d=snapshot.meetingDecision;return `${d.effectiveOn} 的安排：${promotionActualLabels[d.targetStatus]??d.targetStatus}（例会决定 V${d.versionNumber}）`;}
  if(action==='metric_correction'){

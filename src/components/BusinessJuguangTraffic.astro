@@ -1,0 +1,14 @@
+---
+import {promotionClickRate,type JuguangMetricSource} from '../integrations/juguang-metric-types';
+interface Props {impressionCount?:number|null;clickCount?:number|null;source?:JuguangMetricSource|null;disabled?:boolean;inline?:boolean}
+const {impressionCount,clickCount,source,disabled=false,inline=false}=Astro.props;
+const rate=promotionClickRate(impressionCount,clickCount);
+---
+<div class:list={['juguang-traffic',{'juguang-inline':inline}]} data-juguang-traffic>
+  <label data-juguang-field="impressionCount"><span class="juguang-traffic-label">曝光量<span data-juguang-badge>待读取</span></span><input name="impressionCount" aria-label="曝光量" type="number" min="0" step="1" inputmode="numeric" value={impressionCount??''} disabled={disabled}/><button type="button" data-restore-juguang="impressionCount" hidden>恢复聚光值</button></label>
+  <label data-juguang-field="clickCount"><span class="juguang-traffic-label">点击量<span data-juguang-badge>待读取</span></span><input name="clickCount" aria-label="点击量" type="number" min="0" step="1" inputmode="numeric" value={clickCount??''} disabled={disabled}/><button type="button" data-restore-juguang="clickCount" hidden>恢复聚光值</button></label>
+  <div class="juguang-rate"><span class="juguang-traffic-label">点击率<span>自动计算</span></span><output data-juguang-ctr title="点击量 ÷ 曝光量 × 100%">{rate==null?'—':rate.toFixed(2)+'%'}</output>{!inline&&<small>点击量 ÷ 曝光量 × 100%</small>}</div>
+  {!inline&&<div class="juguang-read-state" data-juguang-feedback><p data-juguang-message role="status">{source?'已保存聚光来源':'待读取聚光数据'}</p><button type="button" data-retry-juguang>重新读取</button><small>实际人数与推广安排由人填写</small></div>}
+  <label class="juguang-override-reason" data-juguang-reason hidden={!source?.overriddenFields.length}>人工覆盖原因<input name="juguangOverrideReason" aria-label="人工覆盖原因" maxlength="500" value={source?.overrideReason??''} disabled={disabled}/></label>
+  <input type="hidden" name="juguangReceipt" value=""/>
+</div>

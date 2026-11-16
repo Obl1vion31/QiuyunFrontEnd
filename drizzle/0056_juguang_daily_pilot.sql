@@ -1,0 +1,4 @@
+ALTER TABLE "operations_promotion_daily_metric" ADD COLUMN "impression_count" integer;--> statement-breakpoint
+ALTER TABLE "operations_promotion_daily_metric" ADD COLUMN "click_count" integer;--> statement-breakpoint
+ALTER TABLE "operations_promotion_daily_metric" ADD COLUMN "juguang_source" jsonb;--> statement-breakpoint
+ALTER TABLE "operations_promotion_daily_metric" ADD CONSTRAINT "operations_promotion_daily_traffic_check" CHECK (("operations_promotion_daily_metric"."impression_count" IS NULL AND "operations_promotion_daily_metric"."click_count" IS NULL) OR ("operations_promotion_daily_metric"."impression_count" IS NOT NULL AND "operations_promotion_daily_metric"."click_count" IS NOT NULL AND "operations_promotion_daily_metric"."impression_count" >= 0 AND "operations_promotion_daily_metric"."click_count" >= 0 AND "operations_promotion_daily_metric"."click_count" <= "operations_promotion_daily_metric"."impression_count"));

@@ -393,6 +393,13 @@
       "when": 1794376753587,
       "tag": "0055_version_note_ids",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1794833337977,
+      "tag": "0056_juguang_daily_pilot",
+      "breakpoints": true
     }
   ]
 }

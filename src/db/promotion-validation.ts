@@ -4,6 +4,8 @@ import { optionalPlatformNoteIdSchema } from './platform-note-id';
 const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式无效').refine(value=>{const date=new Date(`${value}T00:00:00Z`);return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value;},'日期无效');
 const presentNumber=(value:unknown)=>value==null||typeof value==='string'&&!value.trim()?undefined:value;
 const nonNegativeInteger = z.preprocess(presentNumber,z.coerce.number().int('人数必须是整数').min(0, '人数不能小于 0').max(2147483647,'人数过大'));
+const optionalTrafficCount=z.preprocess(value=>value===''?null:value,z.coerce.number().int('流量必须是整数').min(0,'流量不能小于 0').max(2147483647,'流量过大').nullable().optional());
+const juguangFields={impressionCount:optionalTrafficCount,clickCount:optionalTrafficCount,juguangReceipt:z.string().max(12000).optional(),juguangOverrideReason:z.string().trim().max(500,'覆盖原因不能超过 500 字').optional()};
 
 const promotionDailyMetricFields = {
   dailyStatus: z.enum(['active', 'waiting_action']),
@@ -56,6 +58,7 @@ export const promotionDailyInputFromForm = (form: FormData) => ({
 
 export const promotionDailyUpdateSchema = z.object({
   ...promotionDailyMetricFields,
+  ...juguangFields,
   dayStatus:promotionDailyMetricFields.actualStatusSnapshot,
   changeDayStatus:z.boolean().default(false),
   dailyWorkspace:z.boolean().default(false),
@@ -68,6 +71,10 @@ export const promotionDailyUpdateSchema = z.object({
 });
 
 export const promotionDailyUpdateInputFromForm = (form: FormData) => ({
+  impressionCount:form.has('impressionCount')?form.get('impressionCount'):undefined,
+  clickCount:form.has('clickCount')?form.get('clickCount'):undefined,
+  juguangReceipt:form.get('juguangReceipt')||undefined,
+  juguangOverrideReason:form.get('juguangOverrideReason')||undefined,
   dayStatus:form.get('dayStatus')||undefined,changeDayStatus:form.get('changeDayStatus')==='true',
   dailyWorkspace:form.get('dailyWorkspace')==='true',
   reason:form.get('reason')||undefined,

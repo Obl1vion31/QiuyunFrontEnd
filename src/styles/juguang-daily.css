@@ -1,0 +1,58 @@
+/* 聚光来源只接入单日试样；禁用外观继续由公共表单控制。 */
+[data-juguang-pilot] [hidden]{display:none!important}
+[data-juguang-pilot] [data-juguang-field]{position:relative;min-width:0}
+[data-juguang-badge],.juguang-traffic-label>span{font:400 12px/18px var(--console-font);color:var(--console-muted);white-space:nowrap}
+[data-juguang-origin=api] [data-juguang-badge]{color:#245a8b}
+[data-juguang-origin=override] [data-juguang-badge]{color:#80580b}
+.review-metric-row[data-juguang-pilot]{padding-block:0;row-gap:0;grid-template-rows:88px;min-height:88px}
+.review-metric-row[data-juguang-pilot]>.review-number{position:relative}
+
+.review-metric-row .juguang-source-badge{position:absolute;right:0;top:-18px}
+.review-metric-row [data-restore-juguang]{position:absolute;right:0;top:42px;z-index:1}
+[data-juguang-pilot] [data-juguang-origin=api] input:not(:disabled){background:#f2f8fe;border-color:#a9c5df}
+[data-juguang-pilot] [data-juguang-origin=override] input:not(:disabled){border-color:#b9985a}
+.juguang-traffic{min-width:0;display:grid;grid-template-columns:repeat(3,minmax(100px,1fr)) minmax(220px,2.2fr);gap:10px 16px;padding-top:12px;border-top:1px solid var(--console-line);font:400 13px/20px var(--console-font)}
+.review-metric-row>.juguang-traffic{grid-column:4/-1}
+.juguang-traffic>label,.juguang-rate{display:grid;align-content:start;gap:6px;min-width:0}
+.juguang-traffic-label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0;color:var(--console-ink);font:400 13px/20px var(--console-font)}
+.juguang-traffic input,.juguang-traffic output{box-sizing:border-box;min-width:0;width:100%;height:40px;font:400 14px/22px var(--console-font);font-variant-numeric:tabular-nums}
+.juguang-traffic input{padding:8px;text-align:right}
+.juguang-traffic output{display:flex;align-items:center;justify-content:flex-end;padding:8px;background:#f5f7fa;border-radius:6px}
+.juguang-traffic small{color:var(--console-muted);font:400 12px/18px var(--console-font)}
+.juguang-read-state{display:grid;grid-template-columns:1fr auto;align-content:center;gap:4px 12px;min-width:0}
+.juguang-read-state p{margin:0;font:400 12px/18px var(--console-font);color:var(--console-muted);overflow-wrap:anywhere}
+.juguang-read-state p[data-error=true]{color:var(--console-red)}
+.juguang-read-state small{grid-column:1/-1}
+[data-juguang-pilot] :is([data-restore-juguang],[data-retry-juguang]){min-height:0;height:auto;padding:0;border:0;background:none;box-shadow:none;color:var(--console-blue);font:400 12px/18px var(--console-font);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+[data-juguang-pilot] :is([data-restore-juguang],[data-retry-juguang]):disabled{color:var(--console-muted);cursor:default;text-decoration:none}
+[data-juguang-pilot] :is([data-restore-juguang],[data-retry-juguang]):focus-visible{outline:2px solid var(--console-blue);outline-offset:3px}
+.juguang-traffic .juguang-override-reason{grid-column:1/-1;max-width:580px}
+.juguang-override-reason input{text-align:left}
+.history-edit-dialog .juguang-traffic{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.history-edit-dialog .juguang-read-state{grid-column:1/-1}
+.juguang-history-traffic{display:flex;flex-wrap:wrap;gap:6px 20px;font:400 13px/20px var(--console-font);padding:12px 0}
+.juguang-history-traffic strong{font-weight:500;font-variant-numeric:tabular-nums}
+.juguang-history-traffic small{width:100%;font:400 12px/18px var(--console-font);color:var(--console-muted)}
+@media(max-width:600px){.history-edit-dialog .juguang-traffic{grid-template-columns:1fr}.juguang-traffic input{font-size:16px}}
+
+/* 试样数值与原五项共用一行；窄桌面沿用表内横滚，帖子身份始终可见。 */
+.review-entry-scroll:not(:has([data-juguang-pilot]))>.review-entry-head>[data-juguang-column]{display:none}
+.review-entry-scroll[data-review-container=ready]:has([data-juguang-pilot]) .review-entry-grid{grid-template-columns:84px var(--review-name-width,112px) 80px minmax(88px,1.1fr) repeat(4,minmax(84px,1fr)) 88px 72px 76px minmax(120px,1.3fr) minmax(160px,1.6fr) 104px;column-gap:8px;min-width:calc(1436px + var(--review-name-width,112px))}
+.review-entry-scroll[data-review-container=ready]:has([data-juguang-pilot]) .review-metric-row:not([data-juguang-pilot])>.review-calculated{grid-column:12}
+.review-entry-scroll[data-review-container=ready]:has([data-juguang-pilot]) .review-entry-identity{position:sticky;left:92px;z-index:3;align-self:stretch;align-content:center;background:#fff}
+.review-entry-scroll[data-review-container=ready]:has([data-juguang-pilot]) .review-entry-head>span:nth-child(2){position:sticky;left:92px;z-index:3;background:#fafbfc}
+.review-entry-scroll[data-review-container=ready]:has([data-juguang-pilot]) .review-entry-head>span:first-child{position:sticky;left:0;z-index:4;background:#fafbfc}
+.review-entry-scroll[data-review-container=ready]:has([data-juguang-pilot]) :is(.review-entry-identity,.review-entry-head>span:nth-child(2))::before{content:"";position:absolute;inset:0 auto 0 -8px;width:8px;background:inherit}
+.review-metric-row .juguang-inline{display:contents}
+.review-metric-row .juguang-inline>[data-juguang-field],.review-metric-row .juguang-inline>.juguang-rate{position:relative;display:block;min-width:0}
+.review-metric-row .juguang-inline .juguang-traffic-label{position:absolute;right:0;top:-18px;display:block;font-size:0;line-height:18px}
+.review-metric-row .juguang-inline .juguang-traffic-label>span{font-size:12px}
+.review-metric-row .juguang-inline>[data-juguang-field]>input{border:1px solid #d2d9e4;border-radius:6px;background:#fff;color:var(--console-ink)}
+.review-metric-row .juguang-inline>[data-juguang-origin=api]>input:not(:disabled){background:#f2f8fe;border-color:#a9c5df}
+.review-metric-row .juguang-inline>.juguang-override-reason{position:sticky;left:100px;grid-column:2/-1;grid-row:2;margin-bottom:12px;padding-top:2px}
+.juguang-source-note{display:flex;align-items:center;gap:6px;min-height:18px;min-width:0;font:400 12px/18px var(--console-font);color:var(--console-muted)}
+.juguang-source-note [data-juguang-summary]{white-space:nowrap}
+.juguang-source-note [data-error=true]{color:var(--console-red)}
+.juguang-source-trigger{border:0;background:none;padding:0;color:var(--console-blue);font:400 12px/18px var(--console-font);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.juguang-source-trigger:focus-visible{outline:2px solid var(--console-blue);outline-offset:2px}
+.juguang-source-note [data-popover-panel]>.juguang-read-state{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}

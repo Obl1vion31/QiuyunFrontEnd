@@ -8,7 +8,7 @@ globalThis.fetch=async(input,init)=>{
  const scenario=JSON.parse(await readFile(process.env.JUGUANG_SCENARIO_FILE,'utf8'));
  const refresh=url.endsWith('/refresh_token');
  const body=JSON.parse(init.body);
- await appendFile(process.env.JUGUANG_SCENARIO_FILE+'.calls',JSON.stringify({refresh,advertiserId:body.advertiser_id})+'\n');
+ await appendFile(process.env.JUGUANG_SCENARIO_FILE+'.calls',JSON.stringify({refresh,advertiserId:body.advertiser_id,...(!refresh?{date:body.start_date,endDate:body.end_date,page:body.page_num,pageSize:body.page_size,timeUnit:body.time_unit,dataCaliber:body.data_caliber}:{})})+'\n');
  while(JSON.parse(await readFile(process.env.JUGUANG_SCENARIO_FILE,'utf8')).hold){if(init.signal?.aborted)throw new DOMException('Test timeout','TimeoutError');await new Promise(resolve=>setTimeout(resolve,50));}
  if(scenario.delay)await new Promise((resolve,reject)=>{const timer=setTimeout(resolve,scenario.delay);init.signal?.addEventListener('abort',()=>{clearTimeout(timer);reject(new DOMException('Test timeout','TimeoutError'));},{once:true});});
  if(scenario.network)throw new TypeError('Test network unavailable');
@@ -17,6 +17,9 @@ globalThis.fetch=async(input,init)=>{
   return Response.json({code:0,success:true,data:{access_token:'fictional-refreshed-access',refresh_token:'fictional-refreshed-refresh',access_token_expires_in:86400,refresh_token_expires_in:2592000,user_id:'fictional-upstream',platform_type:1,app_id:42,scope:'["report_service"]'}});
  }
  const code=scenario.expiredAccess && init.headers['Access-Token']!=='fictional-refreshed-access'?410020:scenario.accountErrors?.[body.advertiser_id];
- return Response.json(code?{code,success:false}:{code:0,success:true,data:{total_count:0,data_list:[]}});
+ if(scenario.badResponse)return Response.json({code:0,success:true,data:scenario.badResponse});
+ const rows=scenario.reports?.[body.advertiser_id]??[];
+ const start=((body.page_num??1)-1)*(body.page_size??500);
+ return Response.json(code?{code,success:false}:{code:0,success:true,data:{total_count:rows.length,data_list:rows.slice(start,start+(body.page_size??500))}});
 };
 await import(new URL('../'+(process.env.JUGUANG_APP_ENTRY||'.tools/serve-vercel.mjs'),import.meta.url));

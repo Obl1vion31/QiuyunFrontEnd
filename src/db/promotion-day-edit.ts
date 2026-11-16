@@ -14,11 +14,13 @@ import {historicalDayCanFollow,historicalDayBridge} from './promotion-day-rules.
 import {testingCycleOn} from './promotion-cycles.mjs';
 import {syncContinuousCheckpoints} from './continuous-schedule';
 import * as s from './schema';
+import {juguangDailyChanges,type JuguangDailyInput} from '../integrations/juguang-daily';
 
-export type DayValues={spend:number;platformOpenCount:number;actualOpenCount:number;platformLeadCount:number;actualLeadCount:number;note?:string|null};
+export type DayValues=JuguangDailyInput&{actualOpenCount:number;actualLeadCount:number;note?:string|null};
 export interface HistoricalDayInput {
  metricId:string;targetStatus:string;requestKey?:string;fingerprint?:string;
  confirmDayContext?:boolean;contextFingerprint?:string;values?:DayValues;reason?:string;nextDecision?:string;
+ sessionId?:string;
 }
 const label=(status:string|null)=>status?promotionActualLabels[status]??status:'尚未开始推广';
 export async function saveHistoricalPromotionDay(db:Database,input:HistoricalDayInput,actor:OperationsUser,now=new Date()){
@@ -72,7 +74,8 @@ export async function saveHistoricalPromotionDay(db:Database,input:HistoricalDay
   const targetStage=(promotionStatusStage(target)??(target==='test_discarded'?'testing':'scaling')) as 'testing'|'scaling';
   const bridge=workspace?input.nextDecision:statusChanged?historicalDayBridge(target,next.status,restarted(next.date)):metric.reviewDecision;
   if(!bridge)throw new WorkflowError('当天与后一天无法衔接，本次未保存。',422);
-  const values=input.values?{spend:input.values.spend.toFixed(2),platformOpenCount:input.values.platformOpenCount,actualOpenCount:input.values.actualOpenCount,platformLeadCount:input.values.platformLeadCount,actualLeadCount:input.values.actualLeadCount,note:input.values.note??null}:{};
+  const imported=input.values?await juguangDailyChanges(tx,metric,input.values,input.sessionId??''):{};
+  const values=input.values?{...imported,spend:input.values.spend.toFixed(2),platformOpenCount:input.values.platformOpenCount,actualOpenCount:input.values.actualOpenCount,platformLeadCount:input.values.platformLeadCount,actualLeadCount:input.values.actualLeadCount,note:input.values.note??null}:{};
   const reason=input.reason?.trim()||input.values?.note?.trim()||'核对前后状态后更正当日安排';
   if(statusChanged)await tx.insert(s.operationsPromotionDayDecision).values({campaignId:campaign.id,businessDate:date,stageType:targetStage,actualStatus:target,reason}).onConflictDoUpdate({target:[s.operationsPromotionDayDecision.campaignId,s.operationsPromotionDayDecision.businessDate],set:{stageType:targetStage,actualStatus:target,reason}});
   if(nextChanged){

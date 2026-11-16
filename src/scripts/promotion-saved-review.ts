@@ -44,15 +44,18 @@ function initialize(){
    const options=promotionNextOptions(day.value);select.replaceChildren();if(options.length){select.add(new Option('请选择',''));for(const o of options)select.add(new Option(o.label,o.value));}else select.add(new Option('无需后续动作',day.value));
    select.value=[...select.options].some(o=>o.value===wanted)?wanted:options.length?'':day.value;select.required=true;
   };
-  const changed=()=>{const current=values(form);form.dataset.dirty=String(form.dataset.editing==='true'&&(metricNames.some(name=>current[name]===''||Number(current[name])!==Number(baseline[name]))||current.dayStatus!==baseline.dayStatus||current.reviewDecision!==baseline.reviewDecision));cost();unsaved();};
+  const changed=()=>{const current=values(form);form.dataset.dirty=String(form.dataset.editing==='true'&&(metricNames.some(name=>current[name]===''||Number(current[name])!==Number(baseline[name]))||current.dayStatus!==baseline.dayStatus||current.reviewDecision!==baseline.reviewDecision||(form.hasAttribute('data-juguang-pilot')&&['impressionCount','clickCount','juguangOverrideReason'].some(name=>current[name]!==baseline[name]))));cost();unsaved();};
   const render=()=>{
    const editing=form.dataset.editing==='true';
    for(const field of controls(form)){if(field.type==='hidden')continue;field.disabled=!editing||busy;if(field instanceof HTMLInputElement)field.tabIndex=editing&&!busy?0:-1;}
    for(const button of form.querySelectorAll<HTMLButtonElement>('[data-meeting-change]'))button.disabled=!editing||busy;
    dayTrigger.disabled=!editing||busy||!JSON.parse(form.dataset.statusEditOptions??'[]').length;
    again.hidden=editing;again.disabled=busy;submit.hidden=!editing;submit.disabled=busy;cancel.hidden=!editing;cancel.disabled=busy;
+   for(const button of form.querySelectorAll<HTMLButtonElement>('[data-restore-juguang]'))button.disabled=!editing||busy;
+   form.dataset.juguangSaving=String(busy);form.dispatchEvent(new CustomEvent('business:juguang-render'));
    status.textContent=busy&&!awaitingReason?'正在保存…':editing?'编辑中':'已保存';changed();
   };
+  form.addEventListener('business:juguang-preview',event=>{for(const name of (event as CustomEvent).detail.fields)baseline[name]=(form.elements.namedItem(name) as HTMLInputElement).value;changed();});
   again.addEventListener('click',()=>{if(busy)return;saved=false;output.textContent='';form.dataset.editing='true';render();form.querySelector<HTMLInputElement>('[name=spend]')!.focus({preventScroll:true});});
   dayTrigger.addEventListener('click',()=>void openStateBubble(form));
   form.addEventListener('business:saved-context-updated',event=>{
@@ -65,13 +68,13 @@ function initialize(){
   });
   cancel.addEventListener('click',async()=>{
    if(busy||!await preparePromotionEditor('saved-next')||form.dataset.dirty==='true'&&!await businessConfirm('每日复盘修改尚未保存，是否放弃？'))return;
-   day.value=baseline.dayStatus;nextChoices(baseline.reviewDecision);for(const field of controls(form))if(field.name in baseline)field.value=baseline[field.name];form.dataset.editing='false';output.textContent='';render();
+   day.value=baseline.dayStatus;nextChoices(baseline.reviewDecision);for(const field of controls(form))if(field.name in baseline)field.value=baseline[field.name];form.dataset.editing='false';output.textContent='';form.dispatchEvent(new CustomEvent('business:juguang-reset'));render();
    if(stale)try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{output.textContent='重新读取失败，请刷新后重试。';}else again.focus({preventScroll:true});
   });
   form.addEventListener('change',()=>{requestKey=randomRequestKey();output.textContent='';render();});form.addEventListener('input',()=>{requestKey=randomRequestKey();output.textContent='';changed();});
   form.addEventListener('submit',async event=>{
    event.preventDefault();if(busy||saved||!form.reportValidity()||!await preparePromotionEditor('saved-next'))return;
-   if(form.dataset.dirty!=='true'){form.dataset.editing='false';render();again.focus();return;}
+   if(form.dataset.dirty!=='true'&&form.dataset.juguangPending!=='true'){form.dataset.editing='false';render();again.focus();return;}
    const current=values(form),nextChanged=current.reviewDecision!==baseline.reviewDecision;
    busy=true;awaitingReason=nextChanged;render();output.textContent='';
    try{

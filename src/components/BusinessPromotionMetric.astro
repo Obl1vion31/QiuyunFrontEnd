@@ -1,10 +1,16 @@
 ---
 import {promotionActualLabels,normalizePromotionActualStatus} from '../db/promotion-successors.mjs';
+import BusinessJuguangTraffic from './BusinessJuguangTraffic.astro';
+import {JUGUANG_PILOT_DATE,promotionClickRate} from '../integrations/juguang-metric-types';
 import BusinessFormDialog from './BusinessFormDialog.astro';
 import BusinessPromotionTotals from './BusinessPromotionTotals.astro';
 import {promotionTotals,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
 interface Props {metric:PromotionFact;entry:PromotionOverview}
 const {metric,entry}=Astro.props;
+const pilot=metric.metricDate===JUGUANG_PILOT_DATE;
+const rate=promotionClickRate(metric.impressionCount,metric.clickCount);
+const overrideNames:Record<string,string>={spend:'消耗',platformOpenCount:'平台开口',platformLeadCount:'平台留资',impressionCount:'曝光量',clickCount:'点击量'};
+const sourceLabel=metric.juguangSource?'聚光数据'+(metric.juguangSource.overriddenFields.length?' · 人工覆盖：'+metric.juguangSource.overriddenFields.map(name=>overrideNames[name]).join('、'):'')+' · 实际人数手填':'打开编辑可读取聚光数据';
 const formatFullDate=(date:string)=>date;
 const actualStatus=metric.effectiveActualStatus??metric.actualStatusSnapshot??normalizePromotionActualStatus(metric.dailyStatus==='waiting_action'?'waiting_action':metric.stageTypeSnapshot,metric.stageTypeSnapshot);
 const residual=metric.recordKind==='test_residual',stateLabel=residual?'淘汰后残留':promotionActualLabels[actualStatus]??actualStatus;
@@ -14,11 +20,12 @@ const allowedForRole=(_status:string)=>true;
 <article class="promotion-day" data-metric-card={metric.id}>
  <header><time datetime={metric.metricDate}>{metric.metricDate}</time><span>{stateLabel}</span></header>
  <BusinessPromotionTotals totals={promotionTotals([metric])}/>
+ {pilot&&<div class="juguang-history-traffic"><span>曝光量 <strong>{metric.impressionCount??'—'}</strong></span><span>点击量 <strong>{metric.clickCount??'—'}</strong></span><span>点击率 <strong>{rate==null?'—':rate.toFixed(2)+'%'}</strong></span><small>{sourceLabel}</small></div>}
 
  {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
  <button type="button" class="business-action-secondary" data-edit-trigger={metric.id}>编辑这一天</button>
                           <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
-                            <form class="business-form" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName} data-history-edit-form data-original-day-status={actualStatus}>
+                            <form class="business-form" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName} data-history-edit-form data-juguang-pilot={pilot?metric.id:undefined} data-juguang-source={pilot?JSON.stringify(metric.juguangSource??null):undefined} data-original-day-status={actualStatus}>
                               <header class="dialog-head"><div><h3 id={`history-edit-${metric.id}`}>{formatFullDate(metric.metricDate)}</h3><p>{entry.post.contentName} · V{entry.post.versionNumber}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
                               <input type="hidden" name="metricId" value={metric.id} />
                               <input type="hidden" name="fingerprint" value={entry.post.fingerprint} />
@@ -27,13 +34,14 @@ const allowedForRole=(_status:string)=>true;
                               <input type="hidden" name="stageTypeSnapshot" value={metric.stageTypeSnapshot} /><input type="hidden" name="recordKind" value={metric.recordKind??'regular'}/><input type="hidden" name="actualStatusSnapshot" value={metric.actualStatusSnapshot??''}/>
                               <div class="form-dialog-body"><div class="edit-fields">
                                 {residual?<p class="edit-system-state"><span>当日类型</span><strong>{stateLabel}</strong></p>:<label class="edit-day-status">当日安排<select name="dayStatus" required disabled={!canEditState}>{Object.entries(promotionActualLabels).map(([value,label])=><option value={value} selected={actualStatus===value} disabled={!allowedForRole(value)}>{label}</option>)}</select></label>}
-                                <label>消耗（元）<input name="spend" type="number" min="0" step="0.01" value={Number(metric.spend).toFixed(2)} required /></label>
-                                <label>平台开口（人）<input name="platformOpenCount" type="number" min="0" step="1" value={metric.platformOpenCount} required /></label>
-                                <label>实际开口（人）<input name="actualOpenCount" type="number" min="0" step="1" value={metric.actualOpenCount} required /></label>
-                                <label>平台留资（人）<input name="platformLeadCount" type="number" min="0" step="1" value={metric.platformLeadCount} required /></label>
-                                <label>实际留资（人）<input name="actualLeadCount" type="number" min="0" step="1" value={metric.actualLeadCount} required /></label>
+                                <label data-juguang-field={pilot?'spend':undefined}><span class="juguang-traffic-label">消耗（元）{pilot&&<span data-juguang-badge>待读取</span>}</span><input name="spend" type="number" min="0" step="0.01" value={Number(metric.spend).toFixed(2)} required />{pilot&&<button type="button" data-restore-juguang="spend" hidden>恢复聚光值</button>}</label>
+                                <label data-juguang-field={pilot?'platformOpenCount':undefined}><span class="juguang-traffic-label">平台开口（人）{pilot&&<span data-juguang-badge>待读取</span>}</span><input name="platformOpenCount" type="number" min="0" step="1" value={metric.platformOpenCount} required />{pilot&&<button type="button" data-restore-juguang="platformOpenCount" hidden>恢复聚光值</button>}</label>
+                                <label data-juguang-field={pilot?'actualOpenCount':undefined}><span class="juguang-traffic-label">实际开口（人）{pilot&&<span data-juguang-badge>手填</span>}</span><input name="actualOpenCount" type="number" min="0" step="1" value={metric.actualOpenCount} required /></label>
+                                <label data-juguang-field={pilot?'platformLeadCount':undefined}><span class="juguang-traffic-label">平台留资（人）{pilot&&<span data-juguang-badge>待读取</span>}</span><input name="platformLeadCount" type="number" min="0" step="1" value={metric.platformLeadCount} required />{pilot&&<button type="button" data-restore-juguang="platformLeadCount" hidden>恢复聚光值</button>}</label>
+                                <label data-juguang-field={pilot?'actualLeadCount':undefined}><span class="juguang-traffic-label">实际留资（人）{pilot&&<span data-juguang-badge>手填</span>}</span><input name="actualLeadCount" type="number" min="0" step="1" value={metric.actualLeadCount} required /></label>
                                 <input type="hidden" name="reviewDecision" value={metric.reviewDecision}/>
 
+                                {pilot&&<BusinessJuguangTraffic impressionCount={metric.impressionCount} clickCount={metric.clickCount} source={metric.juguangSource}/>}
                                 <label class="edit-note">备注<textarea name="note" maxlength="500" rows="3">{metric.note ?? ''}</textarea></label>
                               </div>
                               <p class="edit-impact" data-edit-message role="alert"></p></div>
