@@ -1,0 +1,1001 @@
+{
+  "source": "e1011265b279bb3b114672bb8fc96233dd726822",
+  "baseline": "6a010a3",
+  "database": "Local isolated PostgreSQL",
+  "fixedTime": "2026-11-11T12:00:00+08:00",
+  "build": {
+    "target": "Vercel Production",
+    "warnings": 0,
+    "errors": 0,
+    "existingHints": 61
+  },
+  "checks": {
+    "passed": true,
+    "before": false,
+    "checks": [
+      "admin 1920 promotion-post: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1920 promotion-day: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1920 nonpromotion-flat: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1440 promotion-post: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1440 promotion-day: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1440 nonpromotion-flat: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1440 nonpromotion-grouped: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1440 promotion-daily: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1024 promotion-post: original 380px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1024 promotion-day: original 380px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "admin 1024 nonpromotion-flat: original 380px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "employee 1440 promotion-post: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "employee 1440 promotion-day: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "employee 1440 nonpromotion-flat: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "employee 1440 nonpromotion-grouped: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "employee 1440 promotion-daily: original 338px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus",
+      "减少动态效果：直接切换并释放滚动锁",
+      "390px仅检查关闭入口和浮层宽度"
+    ],
+    "geometry": [
+      {
+        "role": "admin",
+        "width": 1920,
+        "scenario": "promotion-post",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": 346,
+            "width": 1591,
+            "height": 751
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1673,
+            "height": 1088
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1673,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": 346,
+            "width": 1591,
+            "height": 751
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1673,
+            "height": 1088
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1673,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1920,
+        "scenario": "promotion-day",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": -152,
+            "width": 1591,
+            "height": 1089
+          },
+          "main": {
+            "x": 232,
+            "y": -426,
+            "width": 1673,
+            "height": 1426
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1673,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 498
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": -152,
+            "width": 1591,
+            "height": 1089
+          },
+          "main": {
+            "x": 232,
+            "y": -426,
+            "width": 1673,
+            "height": 1426
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1673,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 498
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1920,
+        "scenario": "nonpromotion-flat",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": -283,
+            "width": 1623,
+            "height": 1236
+          },
+          "main": {
+            "x": 232,
+            "y": -386,
+            "width": 1673,
+            "height": 1386
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1673,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 458
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": -283,
+            "width": 1623,
+            "height": 1236
+          },
+          "main": {
+            "x": 232,
+            "y": -386,
+            "width": 1673,
+            "height": 1386
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1673,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 458
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1440,
+        "scenario": "promotion-post",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": 346,
+            "width": 1111,
+            "height": 751
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1088
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": 346,
+            "width": 1111,
+            "height": 751
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1088
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1440,
+        "scenario": "promotion-day",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": -372,
+            "width": 1111,
+            "height": 1309
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": -372,
+            "width": 1111,
+            "height": 1309
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1440,
+        "scenario": "nonpromotion-flat",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": -543,
+            "width": 1143,
+            "height": 1496
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": -543,
+            "width": 1143,
+            "height": 1496
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1440,
+        "scenario": "nonpromotion-grouped",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": -721,
+            "width": 1143,
+            "height": 1674
+          },
+          "main": {
+            "x": 232,
+            "y": -824,
+            "width": 1193,
+            "height": 1824
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 896
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": -721,
+            "width": 1143,
+            "height": 1674
+          },
+          "main": {
+            "x": 232,
+            "y": -824,
+            "width": 1193,
+            "height": 1824
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 896
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1440,
+        "scenario": "promotion-daily",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": 681,
+            "width": 1143,
+            "height": 64
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1706
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": 681,
+            "width": 1143,
+            "height": 64
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1706
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1024,
+        "scenario": "promotion-post",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": -967,
+            "width": 695,
+            "height": 1904
+          },
+          "main": {
+            "x": 232,
+            "y": -1241,
+            "width": 777,
+            "height": 2241
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 777,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 1313
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": -967,
+            "width": 695,
+            "height": 1904
+          },
+          "main": {
+            "x": 232,
+            "y": -1241,
+            "width": 777,
+            "height": 2241
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 777,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 1313
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1024,
+        "scenario": "promotion-day",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": -408,
+            "width": 695,
+            "height": 1345
+          },
+          "main": {
+            "x": 232,
+            "y": -682,
+            "width": 777,
+            "height": 1682
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 777,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 754
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": -408,
+            "width": 695,
+            "height": 1345
+          },
+          "main": {
+            "x": 232,
+            "y": -682,
+            "width": 777,
+            "height": 1682
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 777,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 754
+        },
+        "before": false
+      },
+      {
+        "role": "admin",
+        "width": 1024,
+        "scenario": "nonpromotion-flat",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": -2813,
+            "width": 727,
+            "height": 3766
+          },
+          "main": {
+            "x": 232,
+            "y": -2916,
+            "width": 777,
+            "height": 3916
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 777,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 2988
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": -2813,
+            "width": 727,
+            "height": 3766
+          },
+          "main": {
+            "x": 232,
+            "y": -2916,
+            "width": 777,
+            "height": 3916
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 777,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 2988
+        },
+        "before": false
+      },
+      {
+        "role": "employee",
+        "width": 1440,
+        "scenario": "promotion-post",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": 346,
+            "width": 1111,
+            "height": 751
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1088
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": 346,
+            "width": 1111,
+            "height": 751
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1088
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "before": false
+      },
+      {
+        "role": "employee",
+        "width": 1440,
+        "scenario": "promotion-day",
+        "initial": {
+          "list": {
+            "x": 273,
+            "y": -372,
+            "width": 1111,
+            "height": 1309
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "opened": {
+          "list": {
+            "x": 273,
+            "y": -372,
+            "width": 1111,
+            "height": 1309
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "before": false
+      },
+      {
+        "role": "employee",
+        "width": 1440,
+        "scenario": "nonpromotion-flat",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": -543,
+            "width": 1143,
+            "height": 1496
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": -543,
+            "width": 1143,
+            "height": 1496
+          },
+          "main": {
+            "x": 232,
+            "y": -646,
+            "width": 1193,
+            "height": 1646
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 718
+        },
+        "before": false
+      },
+      {
+        "role": "employee",
+        "width": 1440,
+        "scenario": "nonpromotion-grouped",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": -614,
+            "width": 1143,
+            "height": 1674
+          },
+          "main": {
+            "x": 232,
+            "y": -717,
+            "width": 1193,
+            "height": 1824
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 789
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": -614,
+            "width": 1143,
+            "height": 1674
+          },
+          "main": {
+            "x": 232,
+            "y": -717,
+            "width": 1193,
+            "height": 1824
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 789
+        },
+        "before": false
+      },
+      {
+        "role": "employee",
+        "width": 1440,
+        "scenario": "promotion-daily",
+        "initial": {
+          "list": {
+            "x": 257,
+            "y": 681,
+            "width": 1143,
+            "height": 64
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1706
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "opened": {
+          "list": {
+            "x": 257,
+            "y": 681,
+            "width": 1143,
+            "height": 64
+          },
+          "main": {
+            "x": 232,
+            "y": 72,
+            "width": 1193,
+            "height": 1706
+          },
+          "toolbar": {
+            "x": 232,
+            "y": 0,
+            "width": 1193,
+            "height": 72
+          },
+          "sidebar": {
+            "x": 0,
+            "y": 0,
+            "width": 232,
+            "height": 1000
+          },
+          "scrollY": 0
+        },
+        "before": false
+      }
+    ],
+    "errors": [],
+    "productionWrites": false
+  },
+  "productionBusinessWrites": false
+}

@@ -1,0 +1,74 @@
+{
+  "candidate": {
+    "passed": true,
+    "origin": "qiuyun-frontend-fplht0co0-opgobl1v-5358.vercel.app",
+    "deploymentId": "dpl_45GgJJCZSqntzEvpZ3pbt8mXzkr1",
+    "source": "e1011265b279bb3b114672bb8fc96233dd726822",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/non-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      }
+    ],
+    "assets": [
+      "/_astro/operations-schedule.Re7HuV-q.css",
+      "/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.0EHBLYR2.js"
+    ],
+    "productionBusinessWrites": false
+  },
+  "production": {
+    "passed": true,
+    "origin": "qiuyun-frontend.vercel.app",
+    "deploymentId": "dpl_45GgJJCZSqntzEvpZ3pbt8mXzkr1",
+    "source": "e1011265b279bb3b114672bb8fc96233dd726822",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/non-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      }
+    ],
+    "assets": [
+      "/_astro/operations-schedule.Re7HuV-q.css",
+      "/_astro/BusinessInspector.astro_astro_type_script_index_0_lang.0EHBLYR2.js"
+    ],
+    "live": {
+      "id": "dpl_45GgJJCZSqntzEvpZ3pbt8mXzkr1",
+      "state": "READY",
+      "source": "e1011265b279bb3b114672bb8fc96233dd726822",
+      "cronCount": 3
+    },
+    "productionBusinessWrites": false
+  }
+}

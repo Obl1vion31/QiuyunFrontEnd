@@ -288,10 +288,10 @@ const historyHref = (overrides: Record<string, string>) => {
                   <BusinessPromotionDataTable rows={group.rows} showPost/>
                 </details>)}
               </div>}
-              <BusinessInspector class="history-inspector" parameter="campaign" templates data-promotion-inspector />
+              <BusinessInspector class="history-inspector" parameter="campaign" templates modal data-promotion-inspector />
             </div>
           </section>}
-          {activeView==='daily'&&<BusinessInspector parameter="campaign" templates data-inspector-overlay data-promotion-inspector/>}
+          {activeView==='daily'&&<BusinessInspector parameter="campaign" templates modal data-promotion-inspector/>}
           {activeView!=='stage'&&templateRows.map(entry=><>
             <template data-history-schedule={entry.scheduleId} data-inspector-template={entry.key}><BusinessPromotionDetails entry={entry} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>
             {entry.metrics.map(metric=><template data-history-schedule={entry.scheduleId} data-inspector-template={metric.id}><BusinessPromotionDetails entry={entry} metric={metric} context={promotionContext} audits={timelineAudits.filter(a=>a.scheduleId===entry.scheduleId&&a.businessDate===metric.metricDate)} closeHref={activeView==='history'?historyHref({campaign:''}):'?view=daily'}/></template>)}

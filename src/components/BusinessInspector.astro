@@ -1,8 +1,11 @@
 ---
-interface Props { class?: string; label?: string; parameter?: string; templates?: boolean; [key: string]: unknown }
-const { class: className = '', label = '帖子详情', parameter, templates = false, ...attributes } = Astro.props;
+import BusinessSheet from './BusinessSheet.astro';
+interface Props { class?: string; label?: string; parameter?: string; templates?: boolean; modal?:boolean; [key: string]: unknown }
+const { class: className = '', label = '帖子详情', parameter, templates = false, modal=false, ...attributes } = Astro.props;
+const surfaceId=String(attributes.id??`${parameter??'record'}-inspector`);
+const inspectorAttributes={...attributes,class:['business-inspector',className].filter(Boolean).join(' '),'data-inspector':true,'data-panel-view':attributes['data-inspector-contained']?'detail':undefined,'data-inspector-parameter':parameter,'data-inspector-templates':templates||undefined,tabindex:-1,'aria-label':label,hidden:true};
 ---
-<aside {...attributes} class:list={['business-inspector', className]} data-inspector data-panel-view={attributes['data-inspector-contained'] ? 'detail' : undefined} data-inspector-parameter={parameter} data-inspector-templates={templates || undefined} tabindex="-1" aria-label={label} hidden><slot /></aside>
+{modal?<BusinessSheet {...inspectorAttributes} id={surfaceId} labelledby={`${surfaceId}-title`} data-inspector-modal data-inspector-overlay data-dialog-cancel-managed><slot/></BusinessSheet>:<aside {...inspectorAttributes}><slot /></aside>}
 <script>import '../scripts/business-inspector';</script>
 <style is:global>
 .business-inspector[data-inspector]{box-sizing:border-box;position:sticky;top:calc(var(--console-toolbar-height) + 20px);inset-inline-end:auto;align-self:start;flex:none;display:flex;flex-direction:column;width:0;height:var(--inspector-height,calc(100dvh - var(--console-toolbar-height) - 40px));max-height:calc(100dvh - var(--console-toolbar-height) - 40px);margin:0;overflow:hidden;border:0;border-radius:15px;background:#f9faf8;opacity:0;transform:translateX(18px);z-index:16;font-family:var(--console-font);line-height:1.4}
@@ -33,4 +36,7 @@ const { class: className = '', label = '帖子详情', parameter, templates = fa
 @media(max-width:1240px){.business-inspector[data-inspector].is-open,.business-inspector[data-inspector][data-inspector-overlay].is-open{position:fixed;inset:var(--console-toolbar-height) 0 0 auto;width:min(380px,100%);max-height:none;height:calc(100dvh - var(--console-toolbar-height));max-height:calc(100dvh - var(--console-toolbar-height));border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}}
 @media(max-width:900px){.business-inspector[data-inspector].is-open,.business-inspector[data-inspector][data-inspector-overlay].is-open{inset:var(--console-toolbar-height) 0 66px;width:100%;height:calc(100dvh - var(--console-toolbar-height) - 66px);max-height:calc(100dvh - var(--console-toolbar-height) - 66px);border:0;border-radius:0}}
 @media(prefers-reduced-motion:reduce){.business-inspector[data-inspector]{transition:none;transform:none}}
+dialog.business-sheet.business-inspector[data-inspector][data-inspector-modal]{position:fixed;inset:calc(var(--console-toolbar-height) + 20px) 24px 20px auto;width:338px;height:calc(100dvh - var(--console-toolbar-height) - 40px);max-height:calc(100dvh - var(--console-toolbar-height) - 40px);border-radius:18px;opacity:1;transform:none}
+@media(max-width:1240px){dialog.business-sheet.business-inspector[data-inspector][data-inspector-modal]{inset:var(--console-toolbar-height) 0 0 auto;width:min(380px,100%);height:calc(100dvh - var(--console-toolbar-height));max-height:calc(100dvh - var(--console-toolbar-height));border-radius:16px 0 0 0;box-shadow:-24px 0 70px #10243e2a}}
+@media(max-width:900px){dialog.business-sheet.business-inspector[data-inspector][data-inspector-modal]{inset:var(--console-toolbar-height) 0 66px;width:100%;height:calc(100dvh - var(--console-toolbar-height) - 66px);max-height:calc(100dvh - var(--console-toolbar-height) - 66px);border-radius:0}}
 </style>

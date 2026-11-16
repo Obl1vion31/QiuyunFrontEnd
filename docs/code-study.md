@@ -126,6 +126,8 @@ flowchart LR
 
 模板中的业务表单由页面适配器代理事件；`business:inspector-render` 只初始化新挂载内容，不导航、不重建列表。需要异步补充时立即显示本地内容，在请求后比较选择和请求代次，失败在面板内提供重试；排期的 [operations-workflow](../src/scripts/operations-workflow.ts) 是完整实例。
 
+`BusinessInspector modal`以BusinessSheet作为原生dialog根节点，只复用模态与生命周期，CSS保留原Inspector的338px／380px断点、边距与圆角，不能继承编辑抽屉的680px规格。仍由同一getInspector控制选中、模板、草稿、URL与焦点，正文组织时绑定实际标题。公共Dialog负责220ms进出、遮罩和滚动锁，Esc／遮罩接回原关闭保护；背景表格不改宽或复制布局。纯Inspector模态仍算本地历史选择，快速前后退取消旧退出。未设置modal及排期contained接入保持原控制方式。
+
 排期 `showPanel` 读取时清空并隐藏待处理分组，收到真实待办才显现，空结果继续隐藏。历史区立即显示标题，以该区为 `beginBusinessRead` 目标，设置 `aria-busy`；超过500ms显示就地读取反馈，成功后再区分非空分组与“暂无历史记录”，失败与只读重试也留在此区。关闭、切帖或离开详情复用原取消与代次校验，不增加请求。`test:inspector-loading` 检查快慢读取期间的实际高度、资料起点与重试、切帖、关闭清理；`schedule-history-feedback.browser.ts`检查双角色紧凑记录和共享查帖呈现。
 
 新增或变更共享模式时同时修改此表及行为验收，避免示例与运行代码分离。服务端读模型只允许 SSR/API 使用；浏览器中的 `import type` 仅提供类型，不能导入连接或执行数据库查询。
