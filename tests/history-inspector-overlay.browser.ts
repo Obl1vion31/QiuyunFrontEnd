@@ -53,6 +53,8 @@ try{
     await row.click();const pane=page.locator('[data-inspector].is-open');await pane.waitFor();await settleBusinessUI(page);const opened=await measure(page,scenario.layout);geometry.push({role,width,scenario:scenario.name,initial,opened,before});
     if(before){await shot(page,role+'-'+scenario.name+'-docked-'+width);assert(opened.list.width<initial.list.width-200);break;}
     assert.equal(await pane.evaluate((el:HTMLElement)=>el instanceof HTMLDialogElement&&el.matches(':modal')),true);sameWidth(initial,opened);
+    const panel=await pane.boundingBox();assert.equal(panel.width,width>1240?338:380,'保留原Inspector窄宽度');
+    if(width>1240){assert.equal(panel.y,92,'保留顶栏下方原有20px间距');assert.equal(panel.height,888);}
     assert(await node!.evaluate((el:Element,selector:string)=>el===document.querySelector(selector),scenario.layout));
     const frames=await page.evaluate(()=>{(window as any).inspectorSampling=false;return (window as any).inspectorFrames;});for(const frame of frames){assert(Math.abs(frame.width-initial.list.width)<1);assert(Math.abs(frame.x-initial.list.x)<1);assert(Math.abs(frame.scrollY-initial.scrollY)<1);}
     await shot(page,role+'-'+scenario.name+'-overlay-'+width);
@@ -67,7 +69,7 @@ try{
     if(width===1440&&scenario.name==='promotion-day'){
      await row.click();const modal=page.locator('dialog[data-inspector-modal][open]');await modal.locator('.note-id-correction>summary').click();await modal.locator('[name=platformNoteId]').fill('f'.repeat(24));const body=modal.locator('[data-inspector-body]'),scroll=await body.evaluate((el:HTMLElement)=>el.scrollTop);await page.keyboard.press('Escape');await respondToBusinessConfirm(page,false);assert.equal(await modal.locator('[name=platformNoteId]').inputValue(),'f'.repeat(24));assert.equal(await body.evaluate((el:HTMLElement)=>el.scrollTop),scroll);await page.keyboard.press('Escape');await respondToBusinessConfirm(page,true);await modal.waitFor({state:'hidden'});sameWidth(initial,await measure(page,scenario.layout));
     }
-    checks.push(`${role} ${width} ${scenario.name}: modal, stable list/main/toolbar, entry frames, scroll lock, Esc and focus`);
+    checks.push(`${role} ${width} ${scenario.name}: original ${panel.width}px inspector, stable list/main/toolbar, entry frames, scroll lock, Esc and focus`);
    }
   }
   await context.close();

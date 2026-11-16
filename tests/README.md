@@ -8,7 +8,7 @@
 
 ## 本轮如何选择检查
 
-`tests/history-inspector-overlay.browser.ts`在实际运行包和隔离PostgreSQL核对推广历史帖子／日视角、每日生命线及非推广历史平铺／分类视图：逐帧比较列表坐标及宽度，前后核对正文、顶栏和侧栏；检查模态、滚动锁、Esc／遮罩、焦点、前后退快速重开、未保存取消和减少动态效果。`HISTORY_OVERLAY_ENTRY`指定运行入口，`HISTORY_OVERLAY_DIR`指定产物；`HISTORY_OVERLAY_BEFORE=1`只记录旧包1440停靠挤压，用于真实前后对照。桌面1920／1440／1024，员工1440；共享保存回归复用笔记ID专项。
+`tests/history-inspector-overlay.browser.ts`在实际运行包和隔离PostgreSQL核对推广历史帖子／日视角、每日生命线及非推广历史平铺／分类视图：同时检查原Inspector的338px／380px宽度及桌面边距，并逐帧比较背景列表坐标及宽度，前后核对正文、顶栏和侧栏；检查滚动锁、Esc／遮罩、焦点、快速前后退、未保存取消和减少动态效果。不能只因左侧不伸缩就将面板擅自加宽认定通过。`HISTORY_OVERLAY_ENTRY`指定运行入口，`HISTORY_OVERLAY_DIR`指定产物；`HISTORY_OVERLAY_BEFORE=1`只记录旧停靠包的1440挤压。桌面1920／1440／1024，员工1440。
 
 先按本次改动及真实消费者选择最小必要覆盖。下方是按需专项目录，历史交接的命令、五档截图和PDF页数不是每轮要求。
 
