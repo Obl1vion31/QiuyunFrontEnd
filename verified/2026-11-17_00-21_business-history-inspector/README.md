@@ -1,6 +1,6 @@
 # 推广日详情与共享业务历史
 
-已自检，待正式站点核对与用户反馈。所有归档截图来自正式组件、Vercel运行包和本机隔离PostgreSQL；为隔离验收样本，不代替真实业务数据。
+已自检并发布，正式站点只读核对通过，待用户反馈。所有归档截图来自正式组件、Vercel运行包和本机隔离PostgreSQL；为隔离验收样本，不代替真实业务数据。
 
 推广单日详情沿用338／380px窄Inspector，资料并排、日期状态编辑同排、六项投放事实两行、实际人数与对应成本成对；解释放在字段旁信息图标。11/15仍是API试样日，未保存官方来源及其他日期保留手填语义。移除重复当日状态／首次开始日期更正，笔记ID维护收进元信息并保留保存后展开。
 
@@ -22,3 +22,5 @@
 验证：14项历史纯规则通过；共享时间线、聚光日度、笔记ID和18项Inspector覆盖层专项通过。目标构建0错误／0警告、61项既有hint；Impeccable布局检测无发现。完整原始日志留在工作树.tools/test-artifacts。
 
 主要入口：BusinessPromotionDetails／BusinessPromotionMetric／BusinessFieldHelp、schedule-business-history读取与呈现、operations-workflow／post-lookup。无schema迁移；原始审计、冻结材料与人工推广策略保留。
+
+正式部署：dpl_Cd8PXid8d1FJ5eXj2v1NSPLBT4bY，应用源码ef8d9a42104a212eab589abb7611739b0cb42734。候选与正式域名各6项HTTP、3项变更资源一致；3项聚光续期任务保持启用。正式1728×927已登录只读核对：排期5项真实事件的同源读取与单时间线，11/15面试课API六项及338px详情。正式截图保留在本工作树私有.tools/test-artifacts/business-history-inspector，不提交真实业务画面。
