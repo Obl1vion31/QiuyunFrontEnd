@@ -2,7 +2,7 @@ import {readBusiness} from './business-read';
 import {businessDateTime} from './business-date';
 import {juguangMetricFields,promotionClickRate,type JuguangMetricPreview,type JuguangMetricSource} from '../integrations/juguang-metric-types';
 
-type Batch={rows:Array<JuguangMetricPreview|{key:string;metricId:string|null;message:string}>;message?:string};
+type Batch={rows:Array<JuguangMetricPreview|{key:string;metricId:string|null;message:string;waiting?:boolean}>;message?:string};
 const inflight=new Map<string,Promise<Batch>>();
 // 各日期共用同一应用授权锁；页面内顺序读取，避免不同日期互相报“正在读取”。
 let readQueue:Promise<unknown>=Promise.resolve();
@@ -22,7 +22,7 @@ function initialize() {
     const persistedSource=JSON.parse(form.dataset.juguangSource??'null') as JuguangMetricSource|null;
     let source=persistedSource;
     const touched=new Set<string>(source?.overriddenFields??[]);
-    let busy=false,readError='';
+    let busy=false,readError='',waiting=false;
     const render=()=>{
       const overridden=juguangMetricFields.filter(name=>source && field(name).value!=='' && Number(field(name).value)!==source.original[name]);
       for(const name of juguangMetricFields) {
@@ -37,18 +37,18 @@ function initialize() {
       host.querySelector<HTMLOutputElement>('[data-juguang-ctr]')!.value=rate==null?'—':rate.toFixed(2)+'%';
       retry.disabled=busy || form.dataset.juguangSaving==='true';
       message.textContent=readError || (source?`聚光 ${businessDateTime(source.fetchedAt)} · ${form.dataset.juguangPending==='true'?'待保存':'已保存'}`:'尚未读取，保留手填值');
-      message.dataset.error=String(!!readError);
-      const summary=form.querySelector<HTMLElement>('[data-juguang-summary]');if(summary){summary.textContent=readError?'读取失败':source?(form.dataset.juguangPending==='true'?'待保存':'已保存'):'待读取';summary.hidden=summary.textContent==='已保存';summary.dataset.error=String(!!readError);summary.title=message.textContent;}
+      message.dataset.error=String(!!readError&&!waiting);
+      const summary=form.querySelector<HTMLElement>('[data-juguang-summary]');if(summary){summary.textContent=readError?(waiting?'暂无报表':'读取失败'):source?(form.dataset.juguangPending==='true'?'待保存':'已保存'):'待读取';summary.hidden=summary.textContent==='已保存';summary.dataset.error=String(!!readError&&!waiting);summary.title=message.textContent;}
     };
     const read=async()=>{
       if(busy || form.dataset.juguangSaving==='true')return;
       const noteAtStart=field('platformNoteId')?.value??'';
-      busy=true;readError='';render();
+      busy=true;readError='';waiting=false;render();
       try {
         const result=await readBusiness(feedback,()=>readBatch(form.dataset.juguangDate!),{label:form.classList.contains('review-pilot-grid')?'读取':'读取中…'});
         if(!result || !form.isConnected || form.dataset.juguangSaving==='true'||(field('platformNoteId')?.value??'')!==noteAtStart)return;
         const row=result.rows.find(row=>row.key===form.dataset.juguangPilot);
-        if(!row || !('source' in row)){readError=row?.message??'尚无对应报表，原数据已保留。';return;}
+        if(!row || !('source' in row)){readError=row?.message??'尚无对应报表，原数据已保留。';waiting=!!row?.waiting;return;}
         source=row.source;const filled:string[]=[];
         for(const name of juguangMetricFields)if(!touched.has(name)){field(name).value=name==='spend'?source.original[name].toFixed(2):String(source.original[name]);filled.push(name);}
         field('juguangReceipt').value=row.receipt;

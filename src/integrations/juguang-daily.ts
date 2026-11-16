@@ -93,7 +93,7 @@ export async function readJuguangDailyPreview(date:string,sessionId:string,campa
   if(!noteId)return {...base,message:'请先补齐当天笔记 ID。'};
   if(identities.some(i=>i.campaignId!==identity.campaignId&&i.noteId?.toLowerCase()===noteId.toLowerCase()))return {...base,message:'这一天有多条推广记录共用同一笔记 ID，请先核对归属。'};
   const matched=rows.filter(r=>r.values.note_id.toLowerCase()===noteId.toLowerCase());
-  if(!matched.length)return {...base,message:'聚光尚无这一天的笔记报表，保留原数据。'};
+  if(!matched.length)return {...base,waiting:true as const,message:'聚光尚无这一天的笔记报表，保留原数据。'};
   const sum=(key:'fee'|'impression'|'click'|'initiative_message'|'msg_leads_num')=>matched.reduce((total,row)=>total+(key==='fee'?Math.round(row.values.fee*100):row.values[key]),0);
   const original:JuguangMetricValues={spend:sum('fee')/100,impressionCount:sum('impression'),clickCount:sum('click'),platformOpenCount:sum('initiative_message'),platformLeadCount:sum('msg_leads_num')};
   if(original.clickCount>original.impressionCount||Object.entries(original).some(([key,value])=>value>(key==='spend'?9999999999.99:2147483647)))throw new WorkflowError('聚光指标超出可保存范围，原数据已保留。',503);

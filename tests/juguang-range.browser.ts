@@ -72,7 +72,9 @@ try{
  checks.push('10/2残留补录自动读取、实际人数手填，成功保存保留10/1淘汰结束日期，所有API读写不改策略');
  await page.locator('[data-residual-close]').click();await login(employee);await page.goto(baseURL+'/business/daily-promotion-review');await page.setViewportSize({width:1440,height:1000});for(const form of await page.locator('form[data-saved-review]').all())await waitRead(form);await settle();await page.screenshot({path:evidence+'/employee-1440.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});await settle();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:evidence+'/limited-390.png',fullPage:true});
+ await writeFile(scenario,JSON.stringify({reports:{11:[],22:[],33:[]}}));await page.setViewportSize({width:1440,height:1000});await page.reload();await page.getByText('暂无报表',{exact:true}).first().waitFor();
+ const missing=page.locator('form[data-saved-review]').first();assert.equal(await missing.locator('[data-juguang-message]').getAttribute('data-error'),'false');assert.notEqual(await missing.locator('[name=impressionCount]').inputValue(),'');await settle();await page.screenshot({path:evidence+'/missing-report-1440.png',fullPage:true});
+ checks.push('官方无匹配行显示中性的暂无报表，原值和实际人数保留，正常缺报表不误报为接口失败');
  await writeFile(evidence+'/result.json',JSON.stringify({passed:true,checks},null,2));console.log(checks.join('\n'));
 }catch(e){await page.screenshot({path:evidence+'/failure.png',fullPage:true}).catch(()=>{});await writeFile(evidence+'/failed-reads.json',JSON.stringify(reads,null,2));console.error(f.logs().slice(-1800));throw e;}
 finally{await context.close();await browser.close();await f.stop();}
-
