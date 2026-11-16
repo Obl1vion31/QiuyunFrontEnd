@@ -30,7 +30,7 @@
 
 聚光接入管理另外运行 `tests/juguang-management.integration.ts` 与 `tests/juguang-management.browser.ts`，使用 `NODE_ENV=test`、显式本机 `TEST_POSTGRES_URL` 和实际 Vercel 包。`tests/juguang-server.fixture.mjs` 仅在隔离测试库中注入上游官方协议响应／网络故障，本站页面、路由、权限、加密及数据库均为正式实现；不把协议夹具记为真实平台授权。`JUGUANG_APP_ENTRY` 指定实际运行入口（默认工作树 `.tools/serve-vercel.mjs`），浏览器另使用已有 `PLAYWRIGHT_MODULE` 和 `JUGUANG_EVIDENCE_DIR`。正式平台读取另行核验，不向平台发送虚构凭据。
 
-11/15数值试样运行`tests/juguang-daily.integration.ts`与`tests/juguang-daily.browser.ts`，复用上述真实PostgreSQL、Vercel包和协议夹具；覆盖来源验签、会话／记录／版本绑定、只读日期边界、覆盖与恢复、失败保留、点击率和人工策略不变。截图由`JUGUANG_EVIDENCE_DIR`控制，不向正式库写测试数据。
+11/15数值试样运行`tests/juguang-daily.integration.ts`与`tests/juguang-daily.browser.ts`，复用上述真实PostgreSQL、Vercel包和协议夹具；覆盖来源验签、会话／记录／版本绑定、只读日期边界、覆盖与恢复、失败保留、点击率和人工策略不变。分组样例还逐视口比较两层表头与字段边缘、同一行基线、组间距和只读无框读数；来源只在组头标识，并验证点击率旁信息图标的悬停、聚焦及关闭。截图由`JUGUANG_EVIDENCE_DIR`控制，不向正式库写测试数据。
 
 ### 组合命令去重
 

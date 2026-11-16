@@ -4,10 +4,10 @@ const {saved=false}=Astro.props;
 ---
 <div class="juguang-source-note" data-juguang-feedback>
   <div data-business-popover data-popover-kind="reference">
-    <button type="button" class="juguang-source-trigger" data-popover-trigger aria-expanded="false" aria-label="查看聚光数据来源">聚光</button>
+    <button type="button" class="juguang-source-trigger" data-popover-trigger aria-expanded="false" aria-label="查看聚光数据来源"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0v-7"/></svg></button>
     <div popover="auto" data-popover-panel role="region" aria-label="聚光数据来源">
       <p>聚光数据来源</p>
-      <div class="juguang-read-state"><p data-juguang-message role="status">{saved?'已保存来源':'待读取聚光'}</p><button type="button" data-retry-juguang>重新读取</button><small>实际人数与推广安排由人填写</small><small>点击率＝点击量 ÷ 曝光量 × 100%</small></div>
+      <div class="juguang-read-state"><p data-juguang-message role="status">{saved?'已保存来源':'待读取聚光'}</p><button type="button" data-retry-juguang>重新读取</button><small>实际人数与推广安排由人填写</small></div>
     </div>
   </div>
   <span data-juguang-summary role="status">{saved?'已保存':'待读取'}</span>

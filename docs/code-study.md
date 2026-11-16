@@ -64,7 +64,7 @@ flowchart LR
 
 ## 共享界面接入
 
-聚光单日数值由`BusinessJuguangTraffic`与`juguang-daily`接入每日已保存行和历史编辑，沿原表单／Inspector及`readBusiness`读取反馈；系统回填只更新实际回填字段的比较基线，隐藏的来源凭证随基线保留，取消不丢来源。`integrations/juguang-daily`集中解析官方字段、按日期ID汇总及签发一小时会话／记录绑定凭证；原PATCH与day-edit在写锁内复核来源、分类人工覆盖并派生点击率，策略仍走原人工流程。
+聚光单日数值由`BusinessJuguangTraffic`与`juguang-daily`接入每日已保存行和历史编辑，沿原表单／Inspector及`readBusiness`读取反馈；日度的`BusinessJuguangReviewHeader`与行共用分组列定义，`BusinessPromotionMetricInput`复用原数值输入，分组只在11/15样例启用，点击率公式复用`business-popover`悬停／聚焦提示；系统回填只更新实际回填字段的比较基线，隐藏的来源凭证随基线保留，取消不丢来源。`integrations/juguang-daily`集中解析官方字段、按日期ID汇总及签发一小时会话／记录绑定凭证；原PATCH与day-edit在写锁内复核来源、分类人工覆盖并派生点击率，策略仍走原人工流程。
 
 接入管理由 `BusinessJuguangIntegration` 复用设置壳层和 SectionHeader，`juguang-management` 通过 `X-Business-Feedback: local` 在单条授权记录内显示慢请求、逐账户检查和有效期更新，保留已有表格节点。`juguang-renewal` 由独立Bearer校验的Vercel定时入口执行，与人工检查共用 `juguang-token` 及应用锁；`last_renewal`独立显示续期结果。服务器 `juguang-check` 只保存安全摘要，`juguang-usage` 维护接口与业务用途。检查／刷新／锁的隔离覆盖见 `juguang-management.integration`，实际设置页各态与原生授权见 `juguang-management.browser`。
 

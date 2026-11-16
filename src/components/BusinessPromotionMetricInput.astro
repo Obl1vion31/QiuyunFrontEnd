@@ -1,0 +1,11 @@
+---
+interface Props {name:string;label:string;step:string;value?:string;disabled?:boolean;pilot?:boolean}
+const {name,label,step,value,disabled=false,pilot=false}=Astro.props;
+const official=pilot&&!name.startsWith('actual');
+---
+<label class="review-number" data-review-field={name} data-juguang-field={official?name:undefined}>
+  <span class="review-field-label">{label}</span>
+  {official&&<span class="juguang-source-badge" data-juguang-badge>待读取</span>}
+  <input aria-label={label} name={name} type="number" inputmode={name==='spend'?'decimal':'numeric'} min="0" step={step} value={value} disabled={disabled} required/>
+  {official&&<button type="button" data-restore-juguang={name} hidden>恢复原值</button>}
+</label>

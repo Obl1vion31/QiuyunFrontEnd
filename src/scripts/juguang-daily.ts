@@ -34,13 +34,13 @@ function initialize() {
       retry.disabled=busy || form.dataset.juguangSaving==='true';
       message.textContent=readError || (source?`聚光 ${businessDateTime(source.fetchedAt)} · ${form.dataset.juguangPending==='true'?'待保存':'已保存'}`:'尚未读取，保留手填值');
       message.dataset.error=String(!!readError);
-      const summary=form.querySelector<HTMLElement>('[data-juguang-summary]');if(summary){summary.textContent=readError?'读取失败':source?(form.dataset.juguangPending==='true'?'待保存':'已保存'):'待读取';summary.dataset.error=String(!!readError);summary.title=message.textContent;}
+      const summary=form.querySelector<HTMLElement>('[data-juguang-summary]');if(summary){summary.textContent=readError?'读取失败':source?(form.dataset.juguangPending==='true'?'待保存':'已保存'):'待读取';summary.hidden=summary.textContent==='已保存';summary.dataset.error=String(!!readError);summary.title=message.textContent;}
     };
     const read=async()=>{
       if(busy || form.dataset.juguangSaving==='true')return;
       busy=true;readError='';render();
       try {
-        const result=await readBusiness(feedback,()=>readBatch(),{label:'读取中…'});
+        const result=await readBusiness(feedback,()=>readBatch(),{label:form.classList.contains('review-pilot-grid')?'读取':'读取中…'});
         if(!result || !form.isConnected || form.dataset.juguangSaving==='true')return;
         const row=result.rows.find(row=>row.metricId===form.dataset.juguangPilot);
         if(!row || !('source' in row)){readError=row?.message??'尚无对应报表，原数据已保留。';return;}
