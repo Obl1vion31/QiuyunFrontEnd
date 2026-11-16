@@ -1,0 +1,96 @@
+{
+  "candidate": {
+    "passed": true,
+    "deploymentId": "dpl_2YcRYKdnX4Ns7dAf55xKKoMgq5Ut",
+    "origin": "qiuyun-frontend-qbwg8gopq-opgobl1v-5358.vercel.app",
+    "applicationSource": "c7ed23d413739ce108d5deebb6cf45da18528f86",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/promotion-daily/juguang-preview?date=2026-11-15",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      },
+      {
+        "path": "/api/integrations/xiaohongshu/callback",
+        "status": 200
+      }
+    ],
+    "assets": [
+      "/_astro/daily-promotion-review.DwRpdeq_.css",
+      "/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.Bi_6_Seo.js"
+    ],
+    "productionBusinessWrites": false
+  },
+  "production": {
+    "passed": true,
+    "deploymentId": "dpl_2YcRYKdnX4Ns7dAf55xKKoMgq5Ut",
+    "origin": "qiuyun-frontend.vercel.app",
+    "applicationSource": "c7ed23d413739ce108d5deebb6cf45da18528f86",
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/daily-promotion-review",
+        "status": 302
+      },
+      {
+        "path": "/api/promotion-daily",
+        "status": 401
+      },
+      {
+        "path": "/api/promotion-daily/juguang-preview?date=2026-11-15",
+        "status": 401
+      },
+      {
+        "path": "/api/cron/juguang-renewal",
+        "status": 401
+      },
+      {
+        "path": "/api/integrations/xiaohongshu/callback",
+        "status": 200
+      }
+    ],
+    "assets": [
+      "/_astro/daily-promotion-review.DwRpdeq_.css",
+      "/_astro/daily-promotion-review.astro_astro_type_script_index_0_lang.Bi_6_Seo.js"
+    ],
+    "live": {
+      "id": "dpl_2YcRYKdnX4Ns7dAf55xKKoMgq5Ut",
+      "state": "READY",
+      "embeddedApplicationSource": "c7ed23d413739ce108d5deebb6cf45da18528f86",
+      "cronEnabled": true,
+      "cronCount": 3
+    },
+    "productionBusinessWrites": false,
+    "browserReadonly": {
+      "viewport": {
+        "width": 1728,
+        "height": 927
+      },
+      "rows": 2,
+      "actualCountsPreserved": true,
+      "humanDecisionsPreserved": true,
+      "sourceSavedCount": 1,
+      "sourcePreviewCount": 1,
+      "formulaFooterCount": 0,
+      "fieldHelpOpenedAndClosed": true
+    }
+  }
+}
