@@ -1,5 +1,5 @@
 import { navigate } from 'astro:transitions/client';
-import { businessConfirm, setBusinessScrollLock } from './business-dialog';
+import { businessConfirm, closeBusinessDialog, setBusinessScrollLock } from './business-dialog';
 
 /** 静态详情与惰性模板都使用同一条正文滚动轨道。 */
 function organizeInspector(element: HTMLElement) {
@@ -8,6 +8,7 @@ function organizeInspector(element: HTMLElement) {
   body.dataset.inspectorBody = '';
   const title=element.querySelector<HTMLElement>(':scope>header h1,:scope>header h2');
   if(title)title.title=title.textContent??'';
+  if(title&&element.hasAttribute('data-inspector-modal'))title.id=element.getAttribute('aria-labelledby')!;
   for (const node of [...element.childNodes]) {
     if (node === body || node instanceof HTMLElement && (node.tagName === 'HEADER' || node.tagName === 'FOOTER')) continue;
     body.append(node);
@@ -36,6 +37,8 @@ export function getInspector(element: HTMLElement, options: InspectorOptions = {
   return controller;
 }
 function createInspector(element: HTMLElement, options: InspectorOptions) {
+  const modal=element instanceof HTMLDialogElement&&element.hasAttribute('data-inspector-modal')?element:null;
+  if(modal)options.surface={open:()=>modal.showModal(),close:()=>closeBusinessDialog(modal)};
   element.dataset.inspectorReady = 'true';
   const host = element.closest<HTMLElement>('[data-inspector-host]');
   const parameter = options.parameter ?? element.dataset.inspectorParameter;
@@ -105,6 +108,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     }
     const wasVisible=!element.hidden,wasClosing=element.dataset.closing==='true';
     const previous=options.surface?null:getComputedStyle(element),from={width:options.surface?0:element.getBoundingClientRect().width,opacity:wasVisible?previous?.opacity??'1':'0',transform:wasVisible?previous?.transform??'none':'translateX(18px)'},oldGap=host&&!options.surface?getComputedStyle(host).columnGap:'0px';
+    if(modal&&wasClosing)modal.showModal();
     stopMotion();generation++;delete element.dataset.closing;
     if (source) trigger = source;
     else if (!trigger?.isConnected) trigger = document.querySelector<HTMLElement>(`[data-inspector-key="${CSS.escape(id)}"],[data-inspect-id="${CSS.escape(id)}"]`);
@@ -114,8 +118,8 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     if (selected !== id) body.scrollTop = 0;
     select(id);
     element.hidden = false;
-    element.setAttribute('role', options.surface ? 'region' : matchMedia('(max-width:900px)').matches ? 'dialog' : 'complementary');
-    if(!options.surface)element.setAttribute('aria-modal', String(matchMedia('(max-width:900px)').matches));
+    element.setAttribute('role', modal?'dialog':options.surface ? 'region' : matchMedia('(max-width:900px)').matches ? 'dialog' : 'complementary');
+    if(modal||!options.surface)element.setAttribute('aria-modal', String(!!modal||matchMedia('(max-width:900px)').matches));
     const token = generation;
     element.classList.add('is-open');fitViewport();
     if(options.surface)options.surface.open();
@@ -160,6 +164,13 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     open(id, source);
   }, { signal });
   element.addEventListener('business:inspector-close', () => close(), { signal });
+  if(modal){
+    modal.addEventListener('cancel',event=>{event.preventDefault();close();},{signal});
+    const outside=(event:MouseEvent)=>{const rect=modal.getBoundingClientRect();return event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom;};
+    let backdropPress=false;
+    modal.addEventListener('pointerdown',event=>{backdropPress=event.target===modal&&outside(event);},{signal});
+    modal.addEventListener('click',event=>{if(backdropPress&&event.target===modal&&outside(event))close();backdropPress=false;},{signal});
+  }
   document.addEventListener('keydown', event => {
     if (element.hidden || document.querySelector('dialog[open]')) return;
     if (event.key === 'Escape') { event.preventDefault(); close(); }
@@ -189,7 +200,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
     // 本地选择的历史由本控制器处理，避免 Astro 把 query 变化当成整页导航。
     event.stopImmediatePropagation();
     const id = destination.searchParams.get(parameter);
-    const apply=()=>{currentUrl=destination;history.replaceState({...history.state},'',destination);options.onContextChange?.(destination);if(id!==selected){setClean();id?open(id,null,false):close(false);}};
+    const apply=()=>{currentUrl=destination;history.replaceState({...history.state},'',destination);options.onContextChange?.(destination);if(id!==selected||id&&element.dataset.closing==='true'){setClean();id?open(id,null,false):close(false);}};
     if(dirty()&&id!==selected){history.pushState({...history.state},'',currentUrl);void mayLeave().then(accepted=>{if(accepted)apply();});}
     else apply();
   }, { signal });
