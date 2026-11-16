@@ -42,6 +42,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
       if(!input.correctionReason?.trim())throw new WorkflowError('更正已有实发时间必须填写原因。',422);
     }
     const [version]=await tx.select().from(versions).where(eq(versions.id,schedule.contentVersionId));
+    const [content]=await tx.select().from(contents).where(eq(contents.id,version.contentId));
     const projectDocUrl=input.projectDocUrl||version.projectDocUrl;
     if(!schedule.actualPublishAt&&!projectDocUrl)throw new WorkflowError('首次实发登记请补充项目文档链接。',422);
     const campaignRows=await tx.select({id:campaigns.id}).from(campaigns).where(eq(campaigns.scheduleId,id));
@@ -70,7 +71,7 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{})};
     if(JSON.stringify(before)===JSON.stringify(after)){
       await switchContinuousReviewCycle(tx,version.contentId,id,actual,actor.username);
-      if(input.reviewPlan)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
+      if(input.reviewPlan&&!content.operationType&&!schedule.isPromoted)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
       return {kind:'saved' as const,unchanged:true};
     }
     await tx.update(versions).set({projectDocUrl,updatedAt:now}).where(eq(versions.id,version.id));
@@ -79,19 +80,18 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
       completionStatus:normalizeCompletionStatus({plannedPublishAt:schedule.plannedPublishAt,actualPublishAt:actual,delayThresholdHours:schedule.delayThresholdHours}),promotionStatus,
       promotionDeferredThrough:promotionStatus==='awaiting_promotion'&&actualChanged?null:undefined,updatedAt:now}).where(eq(schedules.id,id));
     await tx.insert(events).values({scheduleId:id,revision:schedule.publicationRevision+1,before,after,reason:input.correctionReason||null,changedById:actor.id,changedByLabel:actor.username,createdAt:now});
-    const [content]=await tx.select().from(contents).where(eq(contents.id,version.contentId));
     await switchContinuousReviewCycle(tx,version.contentId,id,actual,actor.username);
     const [configured]=await tx.select().from(reviewPlans).where(eq(reviewPlans.contentId,version.contentId));
     const priorPublished=await tx.select({id:schedules.id}).from(schedules).innerJoin(versions,eq(schedules.contentVersionId,versions.id)).where(and(eq(versions.contentId,version.contentId),ne(schedules.id,id),isNotNull(schedules.actualPublishAt)));
     if(!schedule.actualPublishAt&&content.operationType&&!schedule.isPromoted&&!priorPublished.length){
       const mode=content.operationType==='non_promotion_instant'?'instant':'standard';
-      const dueOn=input.reviewDueOn||input.reviewPlan?.dueOn||configured?.draftDueOn||'';
+      const dueOn=mode==='instant'?input.reviewDueOn||input.reviewPlan?.dueOn||configured?.draftDueOn||'':'';
       if(mode==='instant'&&!dueOn)throw new WorkflowError('请补齐即时复盘截止日期。',422);
       const root=await reviewIdentity(tx,id);
       if(configured&&configured.anchorScheduleId!==root.id)await tx.update(reviewPlans).set({anchorScheduleId:root.id}).where(eq(reviewPlans.contentId,version.contentId));
       await saveReviewPlan(tx,root.id,{mode,day7:configured?.day7??mode==='standard',day15:configured?.day15??mode==='standard',dueOn,expectedRevision:configured?.revision??-1},actor.username);
       await tx.update(reviewPlans).set({draftDueOn:null}).where(eq(reviewPlans.contentId,version.contentId));
-    }else if(input.reviewPlan&&!content.operationType)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
+    }else if(input.reviewPlan&&!content.operationType&&!schedule.isPromoted)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);
     else if(!schedule.actualPublishAt&&!schedule.isPromoted){
       const [previous]=await tx.select({isPromoted:schedules.isPromoted}).from(schedules).innerJoin(versions,eq(schedules.contentVersionId,versions.id)).where(and(eq(versions.contentId,version.contentId),ne(schedules.id,id),isNotNull(schedules.actualPublishAt))).orderBy(desc(versions.versionNumber)).limit(1);
       if(previous?.isPromoted){const post=await reviewIdentity(tx,id);await saveReviewPlan(tx,post.id,{mode:'continuous',day7:false,day15:false,expectedRevision:post.plan?.revision??-1},actor.username);}

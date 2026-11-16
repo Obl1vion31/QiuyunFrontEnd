@@ -15,15 +15,16 @@ function initialize(){
  const events=new AbortController();document.addEventListener('astro:before-swap',()=>events.abort(),{once:true});const listen=(name:string,handler:(event:Event)=>void)=>document.addEventListener(name,handler,{signal:events.signal});
  const inspector=panel.closest<HTMLElement>('[data-inspector]')!,form=panel.querySelector<HTMLFormElement>('[data-review-plan-form]')!,add=panel.querySelector<HTMLFormElement>('[data-review-node-add]')!,list=panel.querySelector<HTMLElement>('[data-review-node-list]')!;
  const pubFields=publication.querySelector<HTMLElement>('[data-review-plan-fields]')!;
- let current:RecordView|undefined,view:View|undefined,publicationRecordId='' ;
+ let current:RecordView|undefined,view:View|undefined,publicationView:View|undefined,publicationRecordId='',publicationReadToken=0;
  const updateFields=(fields:HTMLElement,published:string|null)=>{
-  const mode=input(fields,'reviewMode').value as ReviewMode,options=fields.querySelector<HTMLElement>('[data-review-plan-options]')!,date=input(fields,'reviewDueOn') as HTMLInputElement;
+  const instantPublication=fields===pubFields&&publicationView?.operationType==='non_promotion_instant';
+  const mode=instantPublication?'instant':input(fields,'reviewMode').value as ReviewMode,options=fields.querySelector<HTMLElement>('[data-review-plan-options]')!,date=input(fields,'reviewDueOn') as HTMLInputElement;
   const separateDates=fields.closest('[data-review-plan-form]')&&mode==='continuous';
   options.hidden=mode==='standard';fields.querySelector<HTMLElement>('[data-review-date-group]')!.hidden=!!separateDates;date.required=mode==='instant'&&!(fields as HTMLFieldSetElement).disabled;date.disabled=mode==='standard'||!!separateDates||(fields as HTMLFieldSetElement).disabled;
-  if(published)date.min=published;
+  date.min=published??'';
   const days=published&&date.value?cumulativeDays(published,date.value):null;
   fields.querySelector('[data-review-days]')!.textContent=days&&days>0?`含发布当天，共 ${days} 天`:'';
-  fields.querySelector('[data-review-plan-help]')!.textContent=fields.dataset.operationSummary??(mode==='standard'?'沿用原帖的7天、15天复盘。':mode==='instant'?'指定一次截止日期，次日起录入累计数据。':'可按需要追加复盘日期；未安排日期不产生待办。');
+  fields.querySelector('[data-review-plan-help]')!.textContent=instantPublication?'截止次日起录入累计数据。':mode==='standard'?'沿用原帖的7天、15天复盘。':mode==='instant'?'指定一次截止日期，次日起录入累计数据。':'可按需要追加复盘日期；未安排日期不产生待办。';
  };
  const fill=(fields:HTMLElement,data:View,disabled=false)=>{
   const plan=data.defaults??data.plan;input(fields,'reviewMode').value=plan?.mode??'standard';input(fields,'expectedReviewRevision').value=String(data.plan?.revision??-1);
@@ -31,7 +32,7 @@ function initialize(){
   input(fields,'reviewDueOn').value=data.plan?.draftDueOn||data.nodes.find(n=>!n.cancelledAt)?.dueOn||'';
   (fields as HTMLFieldSetElement).disabled=disabled;updateFields(fields,data.publishedOn);
  };
- const read=async(record:RecordView,target:HTMLElement)=>readBusiness(target,async context=>{const response=await fetch('/api/non-promotion-checkpoints?'+new URLSearchParams({scheduleId:record.id}),{signal:context.signal});const result=await response.json();if(!response.ok)throw new Error(result.message||'读取复盘计划失败');return result as View;});
+ const read=async(record:RecordView,target:HTMLElement,isCurrent?:()=>boolean)=>readBusiness(target,async context=>{const response=await fetch('/api/non-promotion-checkpoints?'+new URLSearchParams({scheduleId:record.id}),{signal:context.signal});const result=await response.json();if(!response.ok)throw new Error(result.message||'读取复盘计划失败');return result as View;},{signal:events.signal,isCurrent});
  const render=(data:View)=>{
   view=data;panel.hidden=!current?.actualPublishAt;if(panel.hidden)return;
   const mode=data.plan?.mode??data.defaults?.mode??'standard',owner=data.anchorScheduleId;
@@ -69,18 +70,33 @@ function initialize(){
  listen('business:schedule-detail-resumed',async()=>{if(current&&!view&&current.actualPublishAt){const data=await read(current,panel);if(data)render(data);}});
  listen('business:review-date-saved',async event=>{if(current&&current.id===(event as CustomEvent).detail.scheduleId){const data=await read(current,panel);if(data)render(data);}});
  listen('business:publication-opened',async event=>{
-  const record=(event as CustomEvent<RecordView>).detail,host=pubFields.parentElement!;publicationRecordId=record.id;delete pubFields.dataset.operationSummary;host.hidden=!!record.actualPublishAt;pubFields.dataset.loaded='false';(pubFields as HTMLFieldSetElement).disabled=true;
+  const record=(event as CustomEvent<RecordView>).detail,host=pubFields.parentElement!,token=++publicationReadToken;publicationRecordId=record.id;publicationView=undefined;host.hidden=!!record.actualPublishAt;pubFields.hidden=true;pubFields.dataset.loaded='false';(pubFields as HTMLFieldSetElement).disabled=true;
   if(host.hidden){pubFields.dataset.loaded='true';return;}
-  try{const data=await read(record,host);if(!data||publicationRecordId!==record.id||!publication.closest('dialog')?.open||!!publication.closest('[data-panel-view][hidden]'))return;fill(pubFields,data,data.anchorScheduleId!==record.id);pubFields.dataset.loaded='true';pubFields.dataset.publishedOn=data.publishedOn??'';if(data.operationType){(pubFields as HTMLFieldSetElement).disabled=false;pubFields.querySelector('legend')!.textContent='运营类型';pubFields.querySelector<HTMLLabelElement>('label:has([name=reviewMode])')!.hidden=true;input(pubFields,'reviewMode').disabled=true;const summary=pubFields.querySelector<HTMLElement>('[data-review-plan-help]')!;summary.textContent=pubFields.dataset.operationSummary=operationTypeLabels[data.operationType]+(data.plan?.day7?' · 含7天复盘':'')+(data.plan?.day15?' · 含15天复盘':'');pubFields.insertBefore(summary,pubFields.querySelector('[data-review-plan-options]'));pubFields.querySelector<HTMLElement>('.non-plan-checks')!.hidden=true;for(const name of ['reviewDay7','reviewDay15'])input(pubFields,name).disabled=true;pubFields.querySelector<HTMLElement>('[data-review-plan-options]')!.hidden=data.operationType!=='non_promotion_instant';(input(pubFields,'reviewDueOn') as HTMLInputElement).required=data.operationType==='non_promotion_instant';}else{delete pubFields.dataset.operationSummary;pubFields.querySelector('legend')!.textContent='复盘方式';pubFields.querySelector<HTMLLabelElement>('label:has([name=reviewMode])')!.hidden=false;pubFields.querySelector<HTMLElement>('.non-plan-checks')!.hidden=false;}if(data.anchorScheduleId!==record.id)pubFields.querySelector('[data-review-plan-help]')!.textContent='沿用原帖复盘计划；在帖子详情中管理。';publication.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:[...pubFields.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select')].map(field=>field.name)}}));}
-  catch(error){pubFields.querySelector('[data-review-plan-help]')!.textContent=error instanceof Error?error.message:'读取失败，请关闭后重试';}
+  try{
+   const data=await read(record,host,()=>token===publicationReadToken&&publicationRecordId===record.id);if(!data)return;
+   publicationView=data;
+   const instant=data.operationType==='non_promotion_instant',legacy=!data.operationType&&!record.isPromoted;
+   host.hidden=!(data.anchorScheduleId===record.id&&(instant||legacy));pubFields.hidden=host.hidden;
+   for(const name of ['reviewMode','reviewDay7','reviewDay15'])input(pubFields,name).disabled=host.hidden||instant;
+   pubFields.querySelector('legend')!.textContent=instant?'即时复盘截止日期':'复盘方式';
+   pubFields.querySelector<HTMLLabelElement>('label:has([name=reviewMode])')!.hidden=instant;
+   pubFields.querySelector<HTMLElement>('.non-plan-checks')!.hidden=instant;
+   pubFields.querySelector<HTMLElement>('[data-review-date-label]')!.hidden=instant;
+   (input(pubFields,'reviewDueOn') as HTMLInputElement).setAttribute('aria-label',instant?'即时复盘截止日期':'截止日期');
+   fill(pubFields,data,host.hidden);
+   updateFields(pubFields,(publication.elements.namedItem('actualPublishDate') as HTMLInputElement).value||null);
+   pubFields.dataset.loaded='true';
+   publication.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:[...pubFields.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select')].map(field=>field.name)}}));
+  }catch(error){if(token!==publicationReadToken)return;publication.querySelector('[data-publication-message]')!.textContent=error instanceof Error?error.message:'复盘计划读取失败，请关闭后重试；其他输入已保留。';}
  });
+ listen('business:schedule-panel-view',event=>{if((event as CustomEvent).detail.view!=='publication'){publicationReadToken++;publicationView=undefined;}});
  listen('input',event=>{
   const control=event.target as HTMLInputElement,fields=control.closest<HTMLElement>('[data-review-plan-fields]');if(!fields)return;
   if(control.name==='reviewMode'){(input(fields,'reviewDay7') as HTMLInputElement).checked=control.value==='standard';(input(fields,'reviewDay15') as HTMLInputElement).checked=control.value==='standard';}
-  const publicationDate=(publication.elements.namedItem('actualPublishDate') as HTMLInputElement)?.value;
-  updateFields(fields,fields===pubFields?(pubFields.dataset.publishedOn||publicationDate):view?.publishedOn??null);
+  if(fields===pubFields)return;
+  updateFields(fields,view?.publishedOn??null);
  });
- publication.addEventListener('input',()=>{if(!pubFields.parentElement!.hidden)updateFields(pubFields,pubFields.dataset.publishedOn||(publication.elements.namedItem('actualPublishDate') as HTMLInputElement).value);});
+ publication.addEventListener('input',()=>{if(publicationView&&pubFields.dataset.loaded==='true'&&!pubFields.parentElement!.hidden)updateFields(pubFields,(publication.elements.namedItem('actualPublishDate') as HTMLInputElement).value||null);});
  publication.addEventListener('submit',event=>{if(!pubFields.parentElement!.hidden&&pubFields.dataset.loaded!=='true'){event.preventDefault();event.stopImmediatePropagation();publication.querySelector('[data-publication-message]')!.textContent='复盘计划尚未读取完成，请稍后重试。';}},{capture:true});
  panel.addEventListener('input',event=>{const control=event.target as HTMLInputElement,target=control.closest<HTMLFormElement>('form');if(target)target.dataset.dirty='true';if(control.name==='dueOn'&&view?.publishedOn){const helper=control.parentElement?.querySelector('[data-review-node-days]');if(helper)helper.textContent=control.value?'含发布当天，共 '+cumulativeDays(view.publishedOn,control.value)+' 天':'';}});
  panel.addEventListener('submit',async event=>{

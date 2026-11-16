@@ -2,8 +2,8 @@ import {noteIdOn,type PublicationNoteIdentity} from '../db/note-identity-rules';
 const contexts=new WeakMap<HTMLFormElement,PublicationNoteIdentity>();
 export function resetPublicationNote(form:HTMLFormElement,required:boolean){
  contexts.delete(form);const host=form.querySelector<HTMLFieldSetElement>('[data-publication-note-identity]')!;host.hidden=!required;host.disabled=true;
- host.querySelector('[data-note-inherit-value]')!.textContent=required?'选择发布日期后，核对上一版本的笔记 ID。':'';
- host.querySelector<HTMLElement>('[data-note-new-field]')!.hidden=true;
+ const preview=host.querySelector<HTMLElement>('[data-note-inherit-value]')!;preview.hidden=false;preview.textContent=required?'选择发布日期后，核对上一版本的笔记 ID。':'';
+ host.querySelector<HTMLElement>('[data-note-new-help]')!.hidden=true;
 }
 export function updatePublicationNote(form:HTMLFormElement){
  const context=contexts.get(form);if(!context)return;
@@ -13,9 +13,10 @@ export function updatePublicationNote(form:HTMLFormElement){
  const source=context.source,value=actual&&source?noteIdOn(source.periods,actual):null;
  const inherit=form.querySelector<HTMLInputElement>('[name=noteIdMode][value=inherit]')!;inherit.disabled=!value;
  if(!value)inherit.checked=false;
- host.querySelector('[data-note-inherit-value]')!.textContent=!actual?'请先选择发布日期。':value?`V${source!.versionNumber} · ${value}`:'原版本在该发布日期没有笔记 ID；请先补齐原版，或选择填写新 ID。';
+ host.querySelector('[data-note-inherit-value]')!.textContent=!actual?'请先选择发布日期。':value?`V${source!.versionNumber} · ${value}`:'上一版本在该发布日期没有笔记 ID，无法继承；可选择使用新 ID。';
  const fresh=form.querySelector<HTMLInputElement>('[name=noteIdMode][value=new]')!.checked;
- const field=form.elements.namedItem('platformNoteId') as HTMLInputElement;field.disabled=!fresh;field.required=fresh;host.querySelector<HTMLElement>('[data-note-new-field]')!.hidden=!fresh;
+ host.querySelector<HTMLElement>('[data-note-inherit-value]')!.hidden=fresh;
+ host.querySelector<HTMLElement>('[data-note-new-help]')!.hidden=!fresh;
  (form.elements.namedItem('expectedNoteIdFingerprint') as HTMLInputElement).value=context.fingerprint;
  (form.elements.namedItem('expectedSourceNoteIdFingerprint') as HTMLInputElement).value=source?.fingerprint??'';
 }

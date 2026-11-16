@@ -38,9 +38,9 @@ try{
  const noteState=(await readVersionNotes(db,[versionId])).get(versionId)!;assert.equal(noteState.periods.length,2);
  checks.push('员工按选中日更正；后一次C覆盖后续B，之前保留，不重写指标或推广状态');
  const revision=await noteRevision(db,post);
- const publish=async(target:any,mode?:string,value?:string,cookie=staff,actual='2026-10-31T10:00')=>{
+ const publish=async(target:any,mode?:string,value?:string,cookie=staff,actual='2026-10-31T10:00',extra:Record<string,unknown>={})=>{
   const get=await api('/api/operations-content/'+target.schedule.id+'/workflow',cookie);assert.equal(get.status,200);const w=await get.json();
-  return api('/api/operations-content/'+target.schedule.id+'/publication',cookie,{actualPublishAt:actual,publicationUrl:'https://www.xiaohongshu.com/explore/'+ids.d,projectDocUrl:'https://example.test/new',expectedPlanRevision:w.schedule.planRevision,expectedPublicationRevision:w.schedule.publicationRevision,...(mode?{noteIdMode:mode}:{}),...(value?{platformNoteId:value}:{}),expectedNoteIdFingerprint:w.noteIdentity.fingerprint,expectedSourceNoteIdFingerprint:w.noteIdentity.source?.fingerprint??''},'PATCH');
+  return api('/api/operations-content/'+target.schedule.id+'/publication',cookie,{actualPublishAt:actual,publicationUrl:'https://www.xiaohongshu.com/explore/'+ids.d,projectDocUrl:'https://example.test/new',expectedPlanRevision:w.schedule.planRevision,expectedPublicationRevision:w.schedule.publicationRevision,...(mode?{noteIdMode:mode}:{}),...(value?{platformNoteId:value}:{}),expectedNoteIdFingerprint:w.noteIdentity.fingerprint,expectedSourceNoteIdFingerprint:w.noteIdentity.source?.fingerprint??'',...extra},'PATCH');
  };
  let publication=await publish(revision);assert.equal(publication.status,422);assert.equal((await publication.json()).code,'NOTE_ID_SELECTION_REQUIRED');assert.equal((await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,revision.schedule.id)))[0].actualPublishAt,null);
  publication=await publish(revision,'inherit');assert.equal(publication.status,200,await publication.clone().text());assert.equal(noteIdOn((await readVersionNotes(db,[revision.version.id])).get(revision.version.id)!.periods,'2026-11-03'),ids.c);
@@ -64,12 +64,21 @@ try{
  assert.equal((await fetch(baseURL+endpoint,{method:'POST',headers:{Cookie:staff,Origin:'https://outside.test'},body:new FormData()})).status,403);
  checks.push('跨帖ID占用在应用和旧字段数据库写入均拒绝，旧推广全帖接口、匿名与跨站拒绝');
  const newPost=await notePost(db,'新填ID发布'),freshRevision=await noteRevision(db,newPost);
- publication=await publish(freshRevision,'new','3'.repeat(24));assert.equal(publication.status,200,await publication.clone().text());assert.equal(noteIdOn((await readVersionNotes(db,[freshRevision.version.id])).get(freshRevision.version.id)!.periods,'2026-10-31'),'3'.repeat(24));
+ const newPostLegacy=(await readVersionNotes(db,[newPost.post.version.id])).get(newPost.post.version.id)!.legacyId;
+ const beforeOldPage=await promotionSnapshot(db,freshRevision.schedule.id);
+ publication=await publish(freshRevision,'new','3'.repeat(24));assert.equal(publication.status,422);assert.equal((await publication.json()).code,'NOTE_ID_ENTRY_MOVED');assert.deepEqual(await promotionSnapshot(db,freshRevision.schedule.id),beforeOldPage);
+ publication=await publish(freshRevision,'new');assert.equal(publication.status,200,await publication.clone().text());
+ const pending=(await readVersionNotes(db,[freshRevision.version.id])).get(freshRevision.version.id)!;assert.equal(pending.mode,'new');assert.equal(noteIdOn(pending.periods,'2026-10-31'),null);assert.equal((await db.select().from(s.operationsContent).where(eq(s.operationsContent.id,newPost.post.content.id)))[0].platformNoteId,newPostLegacy);
+ const [firstCampaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:freshRevision.schedule.id,startedOn:'2026-10-31',dailyReviewEnabledOn:'2026-10-31',initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();
+ const firstInput={campaignId:firstCampaign.id,metricDate:'2026-10-31',platformNoteId:'3'.repeat(24),dailyStatus:'active',actualStatusSnapshot:'testing',recordKind:'regular',stageTypeSnapshot:'testing',spend:10,platformOpenCount:1,actualOpenCount:1,platformLeadCount:0,actualLeadCount:0,reviewDecision:'test_continue',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,freshRevision.schedule.id))};
+ assert.equal((await api('/api/promotion-daily',staff,{...firstInput,spend:-1})).status,422);assert.equal(noteIdOn((await readVersionNotes(db,[freshRevision.version.id])).get(freshRevision.version.id)!.periods,'2026-11-01'),null);
+ const firstSaved=await api('/api/promotion-daily',staff,firstInput);assert.equal(firstSaved.status,201,await firstSaved.clone().text());assert.equal((await api('/api/promotion-daily',staff,firstInput)).status,201);assert.equal(noteIdOn((await readVersionNotes(db,[freshRevision.version.id])).get(freshRevision.version.id)!.periods,'2026-10-31'),'3'.repeat(24));
+ assert.equal((await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.campaignId,firstCampaign.id))).length,1);
  const emptySource=await notePost(db,'来源缺失ID');await db.update(s.operationsContent).set({platformNoteId:null}).where(eq(s.operationsContent.id,emptySource.post.content.id));const emptyRevision=await noteRevision(db,emptySource);
- assert.equal((await publish(emptyRevision,'inherit')).status,422);assert.equal((await publish(emptyRevision,'new')).status,422);
+ assert.equal((await publish(emptyRevision,'inherit')).status,422);assert.equal((await publish(emptyRevision,'new')).status,200);assert.equal(noteIdOn((await readVersionNotes(db,[emptyRevision.version.id])).get(emptyRevision.version.id)!.periods,'2026-10-31'),null);
  const futurePost=await notePost(db,'未来登记ID'),futureRevision=await noteRevision(db,futurePost,{date:'2026-11-12'});
- assert.equal((await publish(futureRevision,'new','4'.repeat(24),boss,'2026-11-12T10:00')).status,200);
- checks.push('新填ID独立落版；缺失来源／空新ID保留未发布状态，未来实发登记沿用现行口径');
+ assert.equal((await publish(futureRevision,'new',undefined,boss,'2026-11-12T10:00')).status,200);assert.equal(noteIdOn((await readVersionNotes(db,[futureRevision.version.id])).get(futureRevision.version.id)!.periods,'2026-11-12'),null);
+ checks.push('使用新ID无需发布时填写，显式空基线不回退旧版；首次复盘原子补齐、失败不写及请求重试；来源缺失仍可选新ID，未来实发保持');
  const [user]=await db.select().from(s.authUser).where(eq(s.authUser.username,employee.username));
  await db.insert(s.operationsAccountPermission).values({userId:user.id,operation:'schedule.publish',mode:'review'}).onConflictDoUpdate({target:[s.operationsAccountPermission.userId,s.operationsAccountPermission.operation],set:{mode:'review'}});
  const reviewPost=await notePost(db,'审核后发布'),reviewRevision=await noteRevision(db,reviewPost);
@@ -78,6 +87,12 @@ try{
  const approval=await withDatabase(db,()=>decideProposal(application.requestId,true,'核对继承ID',{id:actor.id,username:actor.username!,role:'admin'},baseURL));assert.equal(approval.status,200,await approval.clone().text());
  assert(noteIdOn((await readVersionNotes(db,[reviewRevision.version.id])).get(reviewRevision.version.id)!.periods,'2026-10-31'));
  checks.push('审核预演不落ID或实发，批准重放原子写入继承ID和发布事实');
+ const reviewedNewSource=await notePost(db,'审核新ID待填'),reviewedNew=await noteRevision(db,reviewedNewSource);
+ const newApplication=await publish(reviewedNew,'new');assert.equal(newApplication.status,202,await newApplication.clone().text());const newApplicationId=(await newApplication.json()).requestId;
+ assert.equal((await db.select().from(s.operationsVersionNoteId).where(eq(s.operationsVersionNoteId.versionId,reviewedNew.version.id))).length,0);
+ const approvedNew=await withDatabase(db,()=>decideProposal(newApplicationId,true,'使用新ID，首次复盘再填',{id:actor.id,username:actor.username!,role:'admin'},baseURL));assert.equal(approvedNew.status,200,await approvedNew.clone().text());
+ assert.equal(noteIdOn((await readVersionNotes(db,[reviewedNew.version.id])).get(reviewedNew.version.id)!.periods,'2026-10-31'),null);
+ checks.push('新ID待填可提交审批，预演不落库，批准同时保存实发与待填基线');
  const changedSource=await notePost(db,'审批期间来源ID变化'),changedRevision=await noteRevision(db,changedSource);
  const waiting=await publish(changedRevision,'inherit');assert.equal(waiting.status,202);const waitingBody=await waiting.json();
  const sourceState=(await readVersionNotes(db,[changedSource.post.version.id])).get(changedSource.post.version.id)!;
@@ -92,6 +107,19 @@ try{
  checks.push('审批期间来源ID变化拒绝静默继承；旧申请缺少选择时原内容和待审状态保留');
  const non=await seedLinkPost(db,'普通非推广不增加选项','2026-10-31T10:00'),nonTarget={version:non.version,schedule:non.schedule};await db.update(s.operationsAccountPermission).set({mode:'direct'}).where(and(eq(s.operationsAccountPermission.userId,user.id),eq(s.operationsAccountPermission.operation,'schedule.publish')));
  assert.equal((await publish(nonTarget)).status,200);
+ for(const type of ['promotion_only','promotion_then_continuous','non_promotion_standard','non_promotion_instant'] as const){
+  const typed=await seedLinkPost(db,'发布配置 · '+type,'2026-10-31T10:00');
+  await db.update(s.operationsContent).set({operationType:type}).where(eq(s.operationsContent.id,typed.content.id));
+  await db.update(s.operationsContentSchedule).set({isPromoted:type.startsWith('promotion'),promotionStatus:type.startsWith('promotion')?'pending':'none',finalReviewOn:type==='promotion_then_continuous'?'2026-11-30':null}).where(eq(s.operationsContentSchedule.id,typed.schedule.id));
+  const legacyFields={reviewMode:'instant',reviewDay7:'on',reviewDay15:'on',reviewDueOn:'2026-11-02',expectedReviewRevision:-1};
+  const response=await publish(typed,undefined,undefined,staff,'2026-10-31T10:00',legacyFields);assert.equal(response.status,200,type+': '+await response.clone().text());
+  const nodes=await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,typed.content.id));assert.equal(nodes.length,type==='non_promotion_instant'?1:0,type);
+  const beforePlan=await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,typed.content.id));
+  const again=await publish(typed,undefined,undefined,staff,'2026-10-31T10:00',{...legacyFields,reviewDueOn:'2026-11-03'});assert.equal(again.status,200,type+': '+await again.clone().text());
+  assert.deepEqual(await db.select().from(s.operationsNonPromotionReviewPlan).where(eq(s.operationsNonPromotionReviewPlan.contentId,typed.content.id)),beforePlan);
+  assert.deepEqual(await db.select().from(s.operationsNonPromotionCustomCheckpoint).where(eq(s.operationsNonPromotionCustomCheckpoint.contentId,typed.content.id)),nodes);
+ }
+ checks.push('四种运营类型按真实配置发布，旧页多余字段不生成错误节点；二次登记不改写已定复盘配置');
  assert.deepEqual((await db.select().from(s.operationsReviewMeetingVersion).where(eq(s.operationsReviewMeetingVersion.id,frozen.version.id)))[0],beforeFrozen);
  assert.deepEqual((await db.select().from(s.operationsPromotionDailyMetric)).filter(m=>m.campaignId===post.campaign.id),factsBefore.filter(m=>m.campaignId===post.campaign.id));
  assert.deepEqual((await db.select().from(s.operationsPromotionStage)).filter(m=>m.campaignId===post.campaign.id),stagesBefore.filter(m=>m.campaignId===post.campaign.id));
@@ -104,14 +132,15 @@ try{
  await db.update(s.operationsContentSchedule).set({promotionStatus:'test_discarded'}).where(eq(s.operationsContentSchedule.id,batchSource.post.schedule.id));
  await db.insert(s.operationsPromotionDayDecision).values({campaignId:batchSource.campaign.id,businessDate:'2026-10-31',stageType:'testing',actualStatus:'test_discarded',reason:'旧版明确结束测试'});
  const batchOld=noteIdOn((await readVersionNotes(db,[batchSource.post.version.id])).get(batchSource.post.version.id)!.periods,'2026-10-31')!;
- assert.equal((await publish(batchRevision,'new','5'.repeat(24),staff,'2026-11-01T10:00')).status,200);
+ assert.equal((await publish(batchRevision,'new',undefined,staff,'2026-11-01T10:00')).status,200);
  const [newCampaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:batchRevision.schedule.id,startedOn:'2026-11-01',dailyReviewEnabledOn:'2026-11-01',initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();
  const makeRow=async(campaignId:string,scheduleId:string,date:string,noteId:string,terminal=false)=>({campaignId,metricDate:date,platformNoteId:noteId,dailyStatus:terminal?'waiting_action':'active',actualStatusSnapshot:terminal?'test_discarded':'testing',recordKind:'regular',stageTypeSnapshot:'testing',spend:0,platformOpenCount:0,actualOpenCount:0,platformLeadCount:0,actualLeadCount:0,reviewDecision:terminal?'test_discarded':'test_continue',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,scheduleId))});
  const batchRows=[await makeRow(batchSource.campaign.id,batchSource.post.schedule.id,'2026-10-31',batchOld,true),await makeRow(newCampaign.id,batchRevision.schedule.id,'2026-11-01','5'.repeat(24))];
  const batch=async(rows:any[])=>fetch(baseURL+'/api/promotion-daily/batch',{method:'POST',headers:{Cookie:staff,Origin:baseURL,'Content-Type':'application/json'},body:JSON.stringify({rows})});
  const metricsBeforeBatch=await db.select().from(s.operationsPromotionDailyMetric);
- assert.equal((await batch([batchRows[0],{...batchRows[1],platformNoteId:batchOld}])).status,422);assert.deepEqual(await db.select().from(s.operationsPromotionDailyMetric),metricsBeforeBatch);
+ assert.equal((await batch([batchRows[0],{...batchRows[1],platformNoteId:claimed}])).status,409);assert.deepEqual(await db.select().from(s.operationsPromotionDailyMetric),metricsBeforeBatch);assert.equal(noteIdOn((await readVersionNotes(db,[batchRevision.version.id])).get(batchRevision.version.id)!.periods,'2026-11-01'),null);
  const batchResult=await batch(batchRows);assert.equal(batchResult.status,201,await batchResult.clone().text());assert.equal((await batch(batchRows)).status,201);
+ assert.equal(noteIdOn((await readVersionNotes(db,[batchRevision.version.id])).get(batchRevision.version.id)!.periods,'2026-11-01'),'5'.repeat(24));assert.equal(noteIdOn((await readVersionNotes(db,[batchSource.post.version.id])).get(batchSource.post.version.id)!.periods,'2026-10-31'),batchOld);
  const oldBinding=(await readVersionNotes(db,[batchSource.post.version.id])).get(batchSource.post.version.id)!;
  await db.transaction(tx=>correctVersionNote(tx,batchSource.post.content.id,{versionId:oldBinding.id,effectiveOn:'2026-10-30',scope:'from_date',platformNoteId:'6'.repeat(24),expectedFingerprint:oldBinding.fingerprint,requestKey:randomUUID()},{id:actor.id,username:actor.username!,role:'admin'}));
  assert.equal((await batch(batchRows)).status,201,'写入成功后身份更正，不重复写入或误报旧重试');

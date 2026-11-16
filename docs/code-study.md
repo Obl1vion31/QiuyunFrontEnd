@@ -39,7 +39,7 @@ flowchart LR
 
 ## 关键数据流
 
-1. 新做帖建立帖子身份、V0 和排期；改帖派生 V1+。推广改帖首次发布登记确认继承或新填笔记 ID，各版本按日期独立读取；普通非推广保持原帖身份。
+1. 新做帖建立帖子身份、V0 和排期；改帖派生 V1+。推广改帖首次发布登记确认继承或使用新 ID；新 ID 只存空基线，首次复盘再原子补齐，各版本按日期独立读取。普通非推广保持原帖身份。
 2. 发布登记原子保存项目文档、提取后的帖子链接、发布时间和已到期的逐日理由，允许未来时间并立即显示已发送。旧记录空链接遵循既定边界；改期和已有发布时间更正按账号的操作授权执行，更正必须填写原因。 首次且 `syncToMoments=true` 的登记将两项确认一并校验、存入发布事件JSON，后续更正保留，旧事件缺属性不回填。
 3. 推广按日度事实与明确等待区间回放。排期、历史和待办共用有效状态推导；旧团队暂停区间保留在历史回放中，单帖当前安排独立处理。
 4. 非推广复盘保存真实数据截止日、曝光／阅读原始量、服务端计算点击率与手填3秒阅读率及修订版本；跳过单独保存事件，不生成指标。
@@ -264,6 +264,8 @@ flowchart LR
 侧栏新增同组模块应加入 `BusinessConsoleSidebar` 的 `groups.modules`，复用同一渲染和4px组内间距，不能在分组外追加独立链接。月度运营属于“复盘与沉淀”，手机继续在账号菜单进入；移动底栏的既有项目数保持。
 
 非推广计划集中在non-promotion-plan.ts，浏览器安全的节点、窗口及类型键在non-promotion-nodes.ts；读模型统一原帖锚点，旧版本仅历史。BusinessNonPromotionPlanFields供发布登记及排期Inspector共用，non-promotion-plan控制计划／节点维护；不复制指标表单。标准键day_7/day_15保留，自定义使用custom:<UUID>并关联独立节点。保存、租约、跳过恢复、查帖与例会都使用根排期＋节点键。API非推广录入使用nonPromotionItemSchema计算点击率，SSR／GET共用readNonPromotionReview。
+
+发布登记以读取到的operationType和anchorScheduleId决定字段资格：只有非推广即时的首次发布启用截止日，旧未分类非推广保留原配置兼容；其他字段组隐藏并禁用。所有输入只重算合资格字段，累计天数取当前actualPublishDate，不采用原帖锚点日期。读取附带面板视图和本次打开序号，退出或重开后旧结果不可回填。registerPublication按实际运营类型接收日期，不因旧页多余reviewPlan写入错误节点；选择新ID保存mode=new的空基线，fillInitialVersionNote随首次复盘事务补齐。
 
 WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未来占位冻结到新快照；readWeeklyMaterial只把启用且已到开放时间的缺项列为pending。自定义不入普通基准，历史修订不参与新样本。非推广发布计划与节点变更接入schedule.edit及审批重放；旧审批空新增字段通过nonPromotionSource保持指纹。
 

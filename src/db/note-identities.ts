@@ -79,19 +79,20 @@ export async function publicationNoteContext(db:Reader,scheduleId:string) {
 export async function confirmPublicationNote(db:Reader,scheduleId:string,actual:Date,input:{noteIdMode?:'inherit'|'new';platformNoteId?:string;expectedNoteIdFingerprint?:string;expectedSourceNoteIdFingerprint?:string}) {
   let context=await publicationNoteContext(db,scheduleId);
   if(!context.required)return;
-  if(!input.noteIdMode)throw new NoteIdentityError('推广改帖首次发布登记，请选择继承原版笔记 ID 或填写新 ID。','NOTE_ID_SELECTION_REQUIRED',422);
+  if(!input.noteIdMode)throw new NoteIdentityError('请选择继承上一版本，或使用新 ID 并在首次复盘时填写。','NOTE_ID_SELECTION_REQUIRED',422);
+  if(input.platformNoteId)throw new NoteIdentityError('新笔记 ID 已改为在首次复盘填写。请刷新页面后重新登记；当前输入已保留。','NOTE_ID_ENTRY_MOVED',422);
   if(context.fingerprint!==input.expectedNoteIdFingerprint)throw new NoteIdentityError('本版本笔记 ID 已变化，请重新核对发布登记；输入已保留。');
   const target=await requireVersionNote(db,context.versionId);
   await initializeLegacyNotes(db,target.contentId);
   context=await publicationNoteContext(db,scheduleId);
-  let value=input.platformNoteId;
+  let value:string|null=null;
   if(input.noteIdMode==='inherit') {
     if(!context.source||context.source.fingerprint!==input.expectedSourceNoteIdFingerprint)throw new NoteIdentityError('原版本笔记 ID 已变化，请重新核对后确认继承；输入已保留。');
-    value=noteIdOn(context.source.periods,shanghaiDateKey(actual))??undefined;
-    if(!value)throw new NoteIdentityError('原版本在该实发日期没有笔记 ID，请补齐原版，或选择填写新 ID。','SOURCE_NOTE_ID_MISSING',422);
+    value=noteIdOn(context.source.periods,shanghaiDateKey(actual));
+    if(!value)throw new NoteIdentityError('上一版本在该发布日期没有笔记 ID，无法继承。可选择使用新 ID，在首次复盘时填写。','SOURCE_NOTE_ID_MISSING',422);
   }
-  if(!value)throw new NoteIdentityError('选择新 ID 后，请填写小红书笔记 ID。','NOTE_ID_REQUIRED',422);
-  await claimNoteId(db,target.contentId,value);
+  if(value)await claimNoteId(db,target.contentId,value);
+  // 显式保存空基线，发布后读取不能回退到原帖的共享 ID。
   await db.insert(s.operationsVersionNoteId).values({versionId:target.id,contentId:target.contentId,effectiveOn:null,platformNoteId:value,mode:input.noteIdMode,sourceVersionId:target.sourceVersionId});
 }
 

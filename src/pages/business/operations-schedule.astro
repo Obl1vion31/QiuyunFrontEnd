@@ -436,9 +436,9 @@ const clientCategories=subjectCategories;
           <div class="field field-wide"><label for="publicationProjectDocUrl">项目文档链接 <b data-publication-doc-required>*</b></label><input id="publicationProjectDocUrl" name="projectDocUrl" type="url" placeholder="https://" required/></div>
           <fieldset class="field field-wide publication-note-identity" data-publication-note-identity hidden disabled>
             <legend>本版本笔记 ID <b>*</b></legend>
-            <div class="checks field-options"><label><input type="radio" name="noteIdMode" value="inherit" required/>继承上一版本</label><label><input type="radio" name="noteIdMode" value="new" required/>填写新 ID</label></div>
+            <div class="checks field-options"><label><input type="radio" name="noteIdMode" value="inherit" required/>继承上一版本</label><label><input type="radio" name="noteIdMode" value="new" required/>使用新 ID</label></div>
             <p data-note-inherit-value></p>
-            <div class="field" data-note-new-field hidden><label for="publicationNoteId">新笔记 ID <b>*</b></label><input id="publicationNoteId" name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" autocomplete="off" placeholder="24 位十六进制 ID" disabled/></div>
+            <p data-note-new-help hidden>新笔记 ID 在首次复盘时填写。</p>
             <input type="hidden" name="expectedNoteIdFingerprint"/><input type="hidden" name="expectedSourceNoteIdFingerprint"/>
             <small data-publication-error="platformNoteId"></small>
           </fieldset>
