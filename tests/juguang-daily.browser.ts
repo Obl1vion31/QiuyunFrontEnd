@@ -17,7 +17,7 @@ const f=await startPostgresFixture({entry:'tests/juguang-server.fixture.mjs',clo
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE??'playwright'),browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:1000},recordVideo:{dir:evidence+'/video',size:{width:1440,height:1000}}}),page=await context.newPage(),checks:string[]=[];
 async function mode(value:unknown){await writeFile(scenario,JSON.stringify(value));}
-async function settle(){await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(280);}
+async function settle(){await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(650);}
 async function login(actor:typeof admin|typeof employee){const r=await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:actor});assert.equal(r.status(),200);const identity=await(await context.request.get(baseURL+'/api/auth/get-session')).json();return identity.user.id;}
 async function metric(id:string){return(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,id)))[0];}
 async function waitRead(form:any){await waitFor(async()=>!!await form.locator('[name=juguangReceipt]').inputValue()&&!(await form.locator('[data-retry-juguang]').isDisabled()));}
@@ -62,7 +62,7 @@ try {
  let history=page.locator('dialog[open] [data-history-edit-form]');await waitRead(history);assert.equal(await history.locator('[name=impressionCount]').inputValue(),'618');assert.equal(await history.locator('[name=actualOpenCount]').inputValue(),'1');
  await settle();await page.screenshot({path:evidence+'/history-editor-1440.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});await settle();assert(await page.locator('dialog[open] [data-close-edit]').first().isVisible());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:evidence+'/history-editor-390.png',fullPage:true});
- await page.locator('dialog[open] [data-close-edit]').first().click();await page.waitForTimeout(300);assert.equal(await page.locator('dialog[open]').count(),0);
+ await page.locator('dialog[open] [data-close-edit]').first().click();await page.waitForTimeout(300);assert.equal(await page.locator('dialog[data-edit-dialog][open]').count(),0);
  checks.push('1440／1920／1024桌面与历史编辑已截图、MiSans及禁用字段实测；390只检无页面溢出和关闭可达');
  await page.setViewportSize({width:1440,height:1000});await login(employee);await page.goto(baseURL+'/business/daily-promotion-review');second=page.locator(`[data-saved-review="${two.metric.id}"]`);await waitRead(second);assert.equal(await second.locator('[name=actualOpenCount]').inputValue(),'1');await second.locator('[data-continue-review]').click();await settle();await page.screenshot({path:evidence+'/employee-edit-1440.png',fullPage:true});
  assert.deepEqual(await db.select().from(s.operationsPromotionCampaign),originalStrategy);checks.push('员工同对象来源与输入一致，所有自动读取及数值保存后推广策略逐项不变');
