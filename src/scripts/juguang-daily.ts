@@ -1,14 +1,18 @@
 import {readBusiness} from './business-read';
 import {businessDateTime} from './business-date';
-import {JUGUANG_PILOT_DATE,juguangMetricFields,promotionClickRate,type JuguangMetricPreview,type JuguangMetricSource} from '../integrations/juguang-metric-types';
+import {juguangMetricFields,promotionClickRate,type JuguangMetricPreview,type JuguangMetricSource} from '../integrations/juguang-metric-types';
 
-type Batch={rows:Array<JuguangMetricPreview|{metricId:string;message:string}>;message?:string};
-let inflight:Promise<Batch>|undefined;
-function readBatch() {
-  if(!inflight)inflight=fetch('/api/promotion-daily/juguang-preview?date='+JUGUANG_PILOT_DATE,{cache:'no-store',headers:{Accept:'application/json','X-Business-Feedback':'local'}}).then(async response=>{
-    const value=await response.json();if(!response.ok)throw new Error(value.message??'聚光读取失败，原数据已保留。');return value as Batch;
-  }).finally(()=>{inflight=undefined;});
-  return inflight;
+type Batch={rows:Array<JuguangMetricPreview|{key:string;metricId:string|null;message:string}>;message?:string};
+const inflight=new Map<string,Promise<Batch>>();
+// 各日期共用同一应用授权锁；页面内顺序读取，避免不同日期互相报“正在读取”。
+let readQueue:Promise<unknown>=Promise.resolve();
+function readBatch(date:string){
+ const campaigns=[...new Set([...document.querySelectorAll<HTMLElement>('form[data-juguang-date]')].filter(f=>f.dataset.juguangDate===date).map(f=>f.dataset.juguangCampaign!))].sort();
+ const query=new URLSearchParams({date});for(const campaign of campaigns)query.append('campaignId',campaign);
+ for(const form of document.querySelectorAll<HTMLFormElement>('form[data-juguang-date]')){const draft=form.querySelector<HTMLInputElement>('[name=platformNoteId]')?.value;if(form.dataset.juguangDate===date&&!form.dataset.noteId&&draft&&form.dataset.juguangCampaign)query.set('noteId:'+form.dataset.juguangCampaign,draft);}
+ const key=query.toString();let pending=inflight.get(key);
+ if(!pending){pending=readQueue.catch(()=>{}).then(()=>fetch('/api/promotion-daily/juguang-preview?'+query,{cache:'no-store',headers:{Accept:'application/json','X-Business-Feedback':'local'}})).then(async response=>{const value=await response.json();if(!response.ok)throw new Error(value.message??'聚光读取失败，原数据已保留。');return value as Batch;}).finally(()=>inflight.delete(key));inflight.set(key,pending);readQueue=pending;}
+ return pending;
 }
 function initialize() {
   for(const form of document.querySelectorAll<HTMLFormElement>('form[data-juguang-pilot]:not([data-juguang-ready])')) {
@@ -38,11 +42,12 @@ function initialize() {
     };
     const read=async()=>{
       if(busy || form.dataset.juguangSaving==='true')return;
+      const noteAtStart=field('platformNoteId')?.value??'';
       busy=true;readError='';render();
       try {
-        const result=await readBusiness(feedback,()=>readBatch(),{label:form.classList.contains('review-pilot-grid')?'读取':'读取中…'});
-        if(!result || !form.isConnected || form.dataset.juguangSaving==='true')return;
-        const row=result.rows.find(row=>row.metricId===form.dataset.juguangPilot);
+        const result=await readBusiness(feedback,()=>readBatch(form.dataset.juguangDate!),{label:form.classList.contains('review-pilot-grid')?'读取':'读取中…'});
+        if(!result || !form.isConnected || form.dataset.juguangSaving==='true'||(field('platformNoteId')?.value??'')!==noteAtStart)return;
+        const row=result.rows.find(row=>row.key===form.dataset.juguangPilot);
         if(!row || !('source' in row)){readError=row?.message??'尚无对应报表，原数据已保留。';return;}
         source=row.source;const filled:string[]=[];
         for(const name of juguangMetricFields)if(!touched.has(name)){field(name).value=name==='spend'?source.original[name].toFixed(2):String(source.original[name]);filled.push(name);}
@@ -52,8 +57,10 @@ function initialize() {
         // 来源刷新只移动被实际回填字段的基线，不把人的其他输入清为干净。
         form.dispatchEvent(new CustomEvent('business:juguang-preview',{detail:{fields:[...filled,'juguangReceipt']}}));
       } catch(error) {readError=error instanceof Error?error.message:'聚光读取失败，原数据已保留。';}
-      finally{busy=false;if(form.isConnected)render();}
+      finally{busy=false;if(form.isConnected){render();if((field('platformNoteId')?.value??'')!==noteAtStart)void read();}}
     };
+    form.addEventListener('business:note-id-draft',()=>void read());
+    form.addEventListener('business:juguang-retry',()=>void read());
     form.addEventListener('input',event=>{const input=event.target as HTMLInputElement;if(juguangMetricFields.includes(input.name as typeof juguangMetricFields[number]))touched.add(input.name);render();});
     form.addEventListener('business:juguang-render',()=>render());
     form.addEventListener('business:juguang-reset',()=>{touched.clear();for(const name of source?.overriddenFields??[])touched.add(name);render();});
@@ -71,3 +78,5 @@ function initialize() {
 document.addEventListener('astro:page-load',initialize);
 document.addEventListener('business:promotion-fragment-updated',initialize);
 document.addEventListener('business:inspector-render',initialize);
+
+document.addEventListener('business:juguang-form-added',initialize);

@@ -27,7 +27,7 @@ const token={access_token:'fictional-access',refresh_token:'fictional-refresh',a
 try {
  const boss=await login(admin),staff=await login(employee),cases=await seedJuguangPilot(db);
  const [one,two,closed]=cases;
- await preview('','2026-11-15',401);await preview(boss.cookie,'2026-11-14',422);await preview(boss.cookie,'2026-11-15',503);
+ await preview('','2026-11-15',401);await preview(boss.cookie,'2026-09-30',422);await preview(boss.cookie,'2026-11-15',503);
  await withDatabase(db,()=>saveJuguangConnection(token,'42',boss.id));await mode({reports:pilotReports});
  await seedLinkPlan(db);
  const strategies=await Promise.all([db.select().from(s.operationsPromotionCampaign),db.select().from(s.operationsPromotionStage),db.select().from(s.operationsPromotionDayDecision),db.select().from(s.operationsContentSchedule),db.select().from(s.operationsReviewMeetingVersion)]);
@@ -35,7 +35,7 @@ try {
  let data=await preview(boss.cookie),row=data.rows.find((r:any)=>r.metricId===one.metric.id);
  assert.equal(data.rows.length,2,'已结束帖只有官方零消耗流量，不建立新记录');assert.equal(row.source.original.impressionCount,1320);assert.equal(row.source.original.clickCount,40);
  assert.deepEqual(await db.select().from(s.operationsPromotionDailyMetric),before,'GET不保存指标');assert.equal((await calls()).length,3);assert((await calls()).every(c=>c.date==='2026-11-15'&&c.endDate===c.date&&c.pageSize===500&&c.timeUnit==='DAY'&&c.dataCaliber===0));
- assert(!JSON.stringify(data).includes('fictional-access'));checks.push('双角色登录门禁、日期白名单、三个授权账户批量读取、按日期ID匹配、空账户正常、读取不写事实或新增任务');
+ assert(!JSON.stringify(data).includes('fictional-access'));checks.push('双角色登录门禁、10月起日期边界、三个授权账户批量读取、按日期ID匹配、空账户正常、读取不写事实或新增任务');
  const mismatch=body(one.metric,row);await patch(staff.cookie,one.metric.id,mismatch,409);await patch(boss.cookie,two.metric.id,body(two.metric,row),409);
  const forged=body(one.metric,row);forged.set('juguangReceipt',row.receipt.slice(0,-7)+'forged!');await patch(boss.cookie,one.metric.id,forged,409);
  await patch(boss.cookie,one.metric.id,body(one.metric,row),403,'https://untrusted.example');
@@ -77,7 +77,7 @@ try {
  await mode({reports:pilotReports});data=await preview(boss.cookie);row=data.rows.find((r:any)=>r.metricId===one.metric.id);await writeFile(clock,'2026-11-16T05:01:00Z');await patch(boss.cookie,one.metric.id,body(saved,row),409);await writeFile(clock,'2026-11-16T04:00:00Z');
  data=await preview(boss.cookie);row=data.rows.find((r:any)=>r.metricId===one.metric.id);await db.update(s.operationsContent).set({platformNoteId:'aaaaaaaaaaaaaaaaaaaaaaaa'}).where(eq(s.operationsContent.id,one.post.content.id));await patch(boss.cookie,one.metric.id,body(saved,row),409);
  await patch(boss.cookie,closed.metric.id,body(closed.metric,undefined,{impressionCount:3,clickCount:0}),422);
- checks.push('一小时读取凭证过期、日期ID变化和其他日期写入均拒绝，输入由浏览器保留供重读');
+ checks.push('一小时读取凭证过期、日期ID变化和无来源写入均拒绝，输入由浏览器保留供重读');
  const afterStrategies=await Promise.all([db.select().from(s.operationsPromotionCampaign),db.select().from(s.operationsPromotionStage),db.select().from(s.operationsPromotionDayDecision),db.select().from(s.operationsContentSchedule),db.select().from(s.operationsReviewMeetingVersion)]);
  assert.deepEqual(afterStrategies,strategies,'API不能决定策略、状态、日期、阶段或会议');assert.equal((await db.select().from(s.operationsPromotionDailyMetric)).length,3);checks.push('所有API读数与保存不改推广策略、次日安排、阶段、结束日期或冻结例会');
  await mkdir('.tools/test-artifacts/juguang-daily-pilot',{recursive:true});await writeFile('.tools/test-artifacts/juguang-daily-pilot/integration.json',JSON.stringify({passed:true,checks},null,2));console.log(checks.join('\n'));

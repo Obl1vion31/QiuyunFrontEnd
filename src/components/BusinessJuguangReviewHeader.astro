@@ -1,9 +1,11 @@
 ---
 import BusinessPromotionDecisionLabel from './BusinessPromotionDecisionLabel.astro';
+interface Props{idPrefix?:string}
+const helpId=(Astro.props.idPrefix??'juguang')+'-ctr-formula';
 ---
 <div class="review-pilot-head review-pilot-grid" data-juguang-review-header>
   <span class="review-pilot-date">数据日期</span><span class="review-pilot-identity">内容 / 版本</span><span class="review-pilot-state">当日状态</span>
-  <div class="review-pilot-api-heading"><div class="review-pilot-group-title">聚光投放数据 <span class="review-pilot-api-mark">API</span></div><span>消耗（元）</span><span>曝光量</span><span>点击量</span><span class="review-pilot-field-heading">点击率<span class="business-post-reference review-pilot-field-help" data-business-popover data-popover-kind="reference"><button type="button" class="business-reference-trigger" data-popover-trigger aria-label="点击率计算方式" aria-describedby="juguang-ctr-formula" aria-expanded="false"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v7M12 6.5v1"/></svg></button><span id="juguang-ctr-formula" popover="auto" data-popover-panel role="tooltip">点击率 = 点击量 ÷ 曝光量 × 100%</span></span></span><span>平台开口</span><span>平台留资</span></div>
+  <div class="review-pilot-api-heading"><div class="review-pilot-group-title">聚光投放数据 <span class="review-pilot-api-mark">API</span></div><span>消耗（元）</span><span>曝光量</span><span>点击量</span><span class="review-pilot-field-heading">点击率<span class="business-post-reference review-pilot-field-help" data-business-popover data-popover-kind="reference"><button type="button" class="business-reference-trigger" data-popover-trigger aria-label="点击率计算方式" aria-describedby={helpId} aria-expanded="false"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v7M12 6.5v1"/></svg></button><span id={helpId} popover="auto" data-popover-panel role="tooltip">点击率 = 点击量 ÷ 曝光量 × 100%</span></span></span><span>平台开口</span><span>平台留资</span></div>
   <div class="review-pilot-actual-heading"><div class="review-pilot-group-title">业务实际 <span class="review-pilot-manual-mark">手填</span></div><span>实际开口</span><span>实际留资</span></div>
   <span class="review-pilot-cost">实际成本</span><span class="review-pilot-next"><BusinessPromotionDecisionLabel/></span><span class="review-pilot-action"/>
 </div>

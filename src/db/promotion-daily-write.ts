@@ -1,3 +1,4 @@
+import {juguangDailyChanges} from '../integrations/juguang-daily';
 import {StaleWriteError} from './schedule-workflow';
 import {requireVersionNote,fillInitialVersionNote} from './note-identities';
 import {noteIdOn} from './note-identity-rules';
@@ -20,7 +21,7 @@ export type DailyInput = z.infer<typeof promotionDailySchema>;
 export async function writePromotionDaily(transaction: Transaction, data: DailyInput, actor: {
     id: string;
     username: string;
-}, fingerprintChecked = false) {
+}, fingerprintChecked = false, sessionId = '') {
     const now=new Date(),today = shanghaiDateKey(now);
     if (data.metricDate >= today)
         throw new WorkflowError('日度复盘按 T+1 填写，只能保存今天以前的数据。', 422);
@@ -51,7 +52,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         const [repeat] = await transaction.select().from(operationsPromotionTimelineAudit).where(eq(operationsPromotionTimelineAudit.requestKey, data.requestKey));
         if (repeat) {
             const prior = (repeat.after.metrics as Array<Record<string, unknown>> | undefined)?.find(m => m.id === repeat.after.metricId);
-            if (repeat.scheduleId !== campaign.scheduleId || repeat.changedById !== actor.id || repeat.businessDate !== data.metricDate || !prior || prior.campaignId !== data.campaignId || ['spend', 'platformOpenCount', 'actualOpenCount', 'platformLeadCount', 'actualLeadCount'].some(key => Number(prior[key]) !== Number(data[key as 'spend'])) || prior.reviewDecision !== data.reviewDecision || prior.recordKind !== data.recordKind || prior.stageTypeSnapshot !== data.stageTypeSnapshot || prior.dailyStatus !== data.dailyStatus || (data.actualStatusSnapshot && prior.actualStatusSnapshot !== data.actualStatusSnapshot) || (data.platformNoteId && repeat.after.requestPlatformNoteId && repeat.after.requestPlatformNoteId !== data.platformNoteId) || (prior.note ?? null) !== (data.note ?? null))
+            if (repeat.scheduleId !== campaign.scheduleId || repeat.changedById !== actor.id || repeat.businessDate !== data.metricDate || !prior || prior.campaignId !== data.campaignId || ['spend', 'platformOpenCount', 'actualOpenCount', 'platformLeadCount', 'actualLeadCount'].some(key => Number(prior[key]) !== Number(data[key as 'spend'])) || ['impressionCount','clickCount'].some(key=>data[key as 'impressionCount']!=null&&Number(prior[key])!==Number(data[key as 'impressionCount'])) || prior.reviewDecision !== data.reviewDecision || prior.recordKind !== data.recordKind || prior.stageTypeSnapshot !== data.stageTypeSnapshot || prior.dailyStatus !== data.dailyStatus || (data.actualStatusSnapshot && prior.actualStatusSnapshot !== data.actualStatusSnapshot) || (data.platformNoteId && repeat.after.requestPlatformNoteId && repeat.after.requestPlatformNoteId !== data.platformNoteId) || (prior.note ?? null) !== (data.note ?? null))
                 throw new WorkflowError('请求编号已被使用，请重新保存。');
             return { kind: 'saved' as const, id: String(repeat.after.metricId), nextStatus: String(repeat.after.nextStatus) };
         }
@@ -104,8 +105,10 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
     const replayed = residual ? null : replayPromotionHistory(campaign.startedOn, [...allMetrics, newFact].sort((a, b) => a.metricDate.localeCompare(b.metricDate)), { ...promotionReplayOptions(campaign, context), asOf: today });
     if (!residual && !replayed)
         return { kind: 'invalid-decision' as const };
+    const imported=await juguangDailyChanges(transaction,{id:null,updatedAt:null,campaignId:campaign.id,metricDate:data.metricDate,draftNoteId:data.platformNoteId},data,sessionId);
     if (!campaign.platformNoteId && data.platformNoteId) {
         await fillInitialVersionNote(transaction,campaign.versionId,data.metricDate,data.platformNoteId);
+        if(imported.juguangSource)imported.juguangSource={...imported.juguangSource,mappingFingerprint:(await requireVersionNote(transaction,campaign.versionId)).fingerprint};
     }
     const [metric] = await transaction.insert(operationsPromotionDailyMetric).values({
         campaignId: campaign.id,
@@ -115,6 +118,7 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         stageTypeSnapshot: data.stageTypeSnapshot,
         spend: data.spend.toFixed(2),
         clickRate: null,
+        ...imported,
         platformOpenCount: data.platformOpenCount,
         actualOpenCount: data.actualOpenCount,
         platformLeadCount: data.platformLeadCount,

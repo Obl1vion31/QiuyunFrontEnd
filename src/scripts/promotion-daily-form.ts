@@ -107,6 +107,7 @@ function initialize(){
   const copy=form.querySelector<HTMLButtonElement>('[data-copy-note-id]');if(copy)copy.hidden=!note;
   const edit=form.querySelector<HTMLButtonElement>('[data-note-id-trigger]');if(edit)edit.textContent=note?'修改':'补填 ID';
   const status=form.querySelector<HTMLElement>('[data-reference-note-status]');if(status)status.textContent=note&&!stored?'待保存':'';
+  form.dataset.juguangSaving=String(draft.busy);form.dispatchEvent(new CustomEvent('business:juguang-render'));
   form.dataset.dirty=String(draft.dirty);
  };
  const sync=(draft:Draft)=>{for(const form of draft.views){if(!form.isConnected){draft.views.delete(form);continue;}render(form,draft);}};
@@ -123,6 +124,7 @@ function initialize(){
   form.querySelector<HTMLButtonElement>('[data-toggle-day-state]')?.addEventListener('click',()=>openStateBubble(form));
   const changed=()=>{state.values=values(form);state.dirty=true;state.message='';document.documentElement.dataset.unsaved='true';sync(state);};
   form.addEventListener('input',changed);form.addEventListener('change',changed);
+  form.addEventListener('business:juguang-preview',event=>{for(const name of (event as CustomEvent).detail.fields)state.values[name]=(form.elements.namedItem(name) as HTMLInputElement).value;sync(state);});
   form.addEventListener('business:metric-context-updated',()=>{
    const previousStatus=state.values.actualStatusSnapshot,previousDecision=state.values.reviewDecision;
    if(!state.dirty&&metricNames.every(name=>state.values[name]===''))for(const name of metricNames)state.values[name]=(form.elements.namedItem(name) as HTMLInputElement).value;

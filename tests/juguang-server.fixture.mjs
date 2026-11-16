@@ -18,7 +18,7 @@ globalThis.fetch=async(input,init)=>{
  }
  const code=scenario.expiredAccess && init.headers['Access-Token']!=='fictional-refreshed-access'?410020:scenario.accountErrors?.[body.advertiser_id];
  if(scenario.badResponse)return Response.json({code:0,success:true,data:scenario.badResponse});
- const rows=scenario.reports?.[body.advertiser_id]??[];
+ const rows=(scenario.reports?.[body.advertiser_id]??[]).filter(row=>row.time>=body.start_date&&row.time<=body.end_date);
  const start=((body.page_num??1)-1)*(body.page_size??500);
  return Response.json(code?{code,success:false}:{code:0,success:true,data:{total_count:rows.length,data_list:rows.slice(start,start+(body.page_size??500))}});
 };

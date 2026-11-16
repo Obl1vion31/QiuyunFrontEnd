@@ -79,6 +79,7 @@
 .review-metric-row.review-pilot-grid [data-review-field=actualLeadCount]{grid-column:11;grid-row:1}
 .review-metric-row.review-pilot-grid>.review-calculated{grid-column:12;grid-row:1;background:none;padding:0 12px;gap:4px}
 .review-metric-row.review-pilot-grid>.review-decision{grid-column:13;grid-row:1}
+.review-metric-row.review-pilot-grid>.review-no-next{grid-column:13;grid-row:1;text-align:center}
 .review-metric-row.review-pilot-grid>.review-saved-actions{grid-column:14;grid-row:1;padding-inline:8px;box-sizing:border-box}
 .review-pilot-grid>.review-calculated output{font-size:14px;font-weight:400}
 .review-pilot-grid>.review-calculated>div{align-items:baseline}
@@ -106,3 +107,5 @@
 .review-pilot-grid [data-juguang-origin=override]>.juguang-source-badge,.review-pilot-grid [data-juguang-origin=override] .juguang-traffic-label>[data-juguang-badge]{font:400 12px/18px var(--console-font)}
 .review-pilot-grid .juguang-inline>.juguang-override-reason{position:sticky;left:72px;grid-column:2/12;grid-row:2;z-index:2;margin:0 12px 12px;padding-top:0}
 @media(max-width:600px){.history-edit-dialog .juguang-traffic{grid-template-columns:1fr}.juguang-traffic input{font-size:16px}}
+
+.review-metric-row.review-pilot-grid>.review-submit{grid-column:14;grid-row:1;box-sizing:border-box;width:calc(100% - 16px);margin-inline:8px}

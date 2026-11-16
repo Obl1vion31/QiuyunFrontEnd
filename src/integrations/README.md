@@ -4,7 +4,7 @@
 
 ## 聚光离线报表
 
-管理员从系统设置 `/business/settings?view=integrations` 查看配置、授权广告账户、有效期、最近检查及接口用途。申请权限固定为 `report_service`。在连接管理之外，`juguang-daily.ts`只为2026-11-15已有推广指标提供数值预览；不扩大到笔记素材列表、实时数据、创编、财务或自然数据。
+管理员从系统设置 `/business/settings?view=integrations` 查看配置、授权广告账户、有效期、最近检查及接口用途。申请权限固定为 `report_service`。在连接管理之外，`juguang-daily.ts`为2026-10-01起、今天以前的推广日度、历史更正和残留补录提供官方数值预览；不扩大到笔记素材列表、实时数据、创编、财务或自然数据。
 
 `xiaohongshu-juguang.ts` 负责 OAuth、十分钟一次性 state、会话／应用绑定、AES-256-GCM 加密持久化及安全状态。管理员原生同源 POST `/api/integrations/xiaohongshu/authorize` 发起授权；GET／HEAD 不创建 state。表单使用 `data-astro-reload`，保证 303 为整页授权导航。成功或管理员回调失败后回到管理页，登录失效回调返回固定登录入口，URL 清除授权码。无参数精确回调 GET／HEAD 仍为公开就绪检查。
 
@@ -20,4 +20,4 @@ Production 配置 `XHS_JUGUANG_APP_ID` 与 `XHS_JUGUANG_APP_SECRET`。Secret只�
 
 官方依据：[授权流程](https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=2603)、[权限范围](https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=3195)、[获取令牌](https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=4929)、[刷新令牌](https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=4808)、[笔记离线报表](https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=3803)。文档网页超时时可读取官方文章服务正文，不能混用电商或账号登录平台协议。
 
-`GET /api/promotion-daily/juguang-preview?date=2026-11-15`供登录业务账号读取。服务端解析当天版本笔记ID，只查存储的授权账户并完整分页，相同账户去重，任一账户失败不返回不完整汇总；无记录不补零。不建立任务、不写业务事实，凭据按既有应用锁按需刷新。返回聚光原值与一小时签名来源凭证，绑定会话、指标版本和日期ID；保存时在原事务中验签并复核映射，客户端不能自行声明API来源。0056兼容增加nullable曝光、点击、来源，CTR由两个原始计数派生。来源保留原值、账户、读取时间、覆盖字段与原因；失效保留草稿并要求重新读取。
+`GET /api/promotion-daily/juguang-preview?date=2026-10-01&campaignId=…`供登录业务账号读取。服务端解析当天版本笔记ID，只查存储的授权账户并完整分页，相同账户去重，任一账户失败不返回不完整汇总；无记录不补零。不建立任务、不写业务事实，凭据按既有应用锁按需刷新。返回聚光原值与一小时签名来源凭证，绑定会话、活动、指标版本（新建为null）和日期ID；保存时在原事务中验签并复核映射，客户端不能自行声明API来源。首次笔记ID通过`noteId:<campaignId>`草稿参数只读预览，保存时与事实原子写入；已有来源仍复核当天映射。0056兼容增加nullable曝光、点击、来源，CTR由两个原始计数派生。来源保留原值、账户、读取时间、覆盖字段与原因；失效保留草稿并要求重新读取。

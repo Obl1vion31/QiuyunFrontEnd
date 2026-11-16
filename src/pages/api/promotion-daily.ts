@@ -141,7 +141,7 @@ export const POST: APIRoute = async ({ request, url,locals }) => {
     const saved = await getDb().transaction(async (transaction) => {
       await lockPromotionWorkflow(transaction);
       if(!result.data.fingerprint)throw new StaleWriteError('缺少保存版本，请刷新页面后继续。');
-      return writePromotionDaily(transaction,result.data,locals.user!);
+      return writePromotionDaily(transaction,result.data,locals.user!,false,locals.session!.id);
     });
 
     if(saved.kind==='not-required')return Response.json({message:'这一天已在推广结束之后，无需补填零值。已有数据仍保留在历史中。'},{status:422});

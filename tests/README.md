@@ -30,7 +30,7 @@
 
 聚光接入管理另外运行 `tests/juguang-management.integration.ts` 与 `tests/juguang-management.browser.ts`，使用 `NODE_ENV=test`、显式本机 `TEST_POSTGRES_URL` 和实际 Vercel 包。`tests/juguang-server.fixture.mjs` 仅在隔离测试库中注入上游官方协议响应／网络故障，本站页面、路由、权限、加密及数据库均为正式实现；不把协议夹具记为真实平台授权。`JUGUANG_APP_ENTRY` 指定实际运行入口（默认工作树 `.tools/serve-vercel.mjs`），浏览器另使用已有 `PLAYWRIGHT_MODULE` 和 `JUGUANG_EVIDENCE_DIR`。正式平台读取另行核验，不向平台发送虚构凭据。
 
-11/15数值试样运行`tests/juguang-daily.integration.ts`与`tests/juguang-daily.browser.ts`，复用上述真实PostgreSQL、Vercel包和协议夹具；覆盖来源验签、会话／记录／版本绑定、只读日期边界、覆盖与恢复、失败保留、点击率和人工策略不变。分组样例还逐视口比较两层表头与字段边缘、同一行基线、组间距和只读无框读数；来源只在组头标识，并验证点击率旁信息图标的悬停、聚焦及关闭。截图由`JUGUANG_EVIDENCE_DIR`控制，不向正式库写测试数据。
+聚光日度读取运行`tests/juguang-daily.integration.ts`与`tests/juguang-daily.browser.ts`，复用上述真实PostgreSQL、Vercel包和协议夹具；覆盖来源验签、会话／记录／版本绑定、只读日期边界、覆盖与恢复、失败保留、点击率和人工策略不变。分组样例还逐视口比较两层表头与字段边缘、同一行基线、组间距和只读无框读数；来源只在组头标识，并验证点击率旁信息图标的悬停、聚焦及关闭。截图由`JUGUANG_EVIDENCE_DIR`控制，不向正式库写测试数据。 扩展范围另运行`tests/juguang-range.integration.ts`与`tests/juguang-range.browser.ts`：验证10月日期边界、新建／批量保存与事务回滚、首次ID草稿及身份原子保存、归属冲突、串日／重复行拒绝、残留补录和人工人数策略保持；浏览器覆盖三档桌面新建单行、单条／一键保存及残留补录过程，390px只检查明显溢出。
 
 ### 组合命令去重
 
@@ -332,4 +332,4 @@ content-config-drag.browser.ts使用本机隔离PostgreSQL验证按默认运营�
 
 聚光后台续期使用 `tests/juguang-renewal.integration.ts`（实际目标包＋本机隔离PostgreSQL）：Bearer／方法门禁、提前续期与重复触发、凭据轮换、失败保留／恢复、只读scope、重授权清理和与手动检查的真实竞争。页面状态由 `tests/juguang-renewal.browser.ts` 检查。
 
-推广日详情由`juguang-daily.browser.ts`覆盖11/15已保存API来源、未保存来源与其他日期手填语义，检查三档桌面338／380窄宽、三列指标、人数与成本配对、字段公式popover及原编辑表单；`history-inspector-overlay.browser.ts`继续核对共享资源入口在推广／非推广详情的几何、焦点与未保存保护。
+推广日详情由`juguang-daily.browser.ts`覆盖已保存API来源、未保存来源与缺报表手填语义，检查三档桌面338／380窄宽、三列指标、人数与成本配对、字段公式popover及原编辑表单；`history-inspector-overlay.browser.ts`继续核对共享资源入口在推广／非推广详情的几何、焦点与未保存保护。

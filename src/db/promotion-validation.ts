@@ -36,6 +36,7 @@ export const promotionDailySchema = z.object({
   metricDate: dateKey,
   platformNoteId: optionalPlatformNoteIdSchema,
   ...promotionDailyMetricFields,
+  ...juguangFields,
 });
 
 export const promotionDailyInputFromForm = (form: FormData) => ({
@@ -54,6 +55,10 @@ export const promotionDailyInputFromForm = (form: FormData) => ({
   reviewDecision: form.get('reviewDecision'),
   note: form.get('note') || null,
   platformNoteId: form.get('platformNoteId'),
+  impressionCount:form.has('impressionCount')?form.get('impressionCount'):undefined,
+  clickCount:form.has('clickCount')?form.get('clickCount'):undefined,
+  juguangReceipt:form.get('juguangReceipt')||undefined,
+  juguangOverrideReason:form.get('juguangOverrideReason')||undefined,
 });
 
 export const promotionDailyUpdateSchema = z.object({

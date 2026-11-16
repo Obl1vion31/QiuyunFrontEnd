@@ -69,7 +69,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
             for (const row of [...rows].sort((a, b) => a.campaignId.localeCompare(b.campaignId) || a.metricDate.localeCompare(b.metricDate))) {
                 currentKey = `${row.campaignId}:${row.metricDate}`;
                 const c = info.find(c => c.campaignId === row.campaignId)!;
-                const entry = requireDailySaved(await writePromotionDaily(tx, { ...row, platformNoteId: chosenByRow.get(c.campaignId)??initialByVersion.get(c.versionId)??row.platformNoteId }, locals.user!, true));
+                const entry = requireDailySaved(await writePromotionDaily(tx, { ...row, platformNoteId: chosenByRow.get(c.campaignId)??initialByVersion.get(c.versionId)??row.platformNoteId }, locals.user!, true, locals.session!.id));
                 result.push({ ...entry, key: currentKey, scheduleId: c.scheduleId });
             }
             return result;

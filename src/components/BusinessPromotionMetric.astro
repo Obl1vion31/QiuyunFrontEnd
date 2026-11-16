@@ -1,18 +1,18 @@
 ---
 import {promotionActualLabels,normalizePromotionActualStatus} from '../db/promotion-successors.mjs';
 import BusinessJuguangTraffic from './BusinessJuguangTraffic.astro';
-import {JUGUANG_PILOT_DATE,promotionClickRate} from '../integrations/juguang-metric-types';
+import {isJuguangMetricDate,juguangTargetKey,promotionClickRate} from '../integrations/juguang-metric-types';
 import BusinessFormDialog from './BusinessFormDialog.astro';
 import BusinessFieldHelp from './BusinessFieldHelp.astro';
 import {businessDateTime} from '../scripts/business-date';
 import {promotionTotals,type PromotionFact,type PromotionOverview} from '../db/promotion-overview';
 interface Props {metric:PromotionFact;entry:PromotionOverview}
 const {metric,entry}=Astro.props;
-const pilot=metric.metricDate===JUGUANG_PILOT_DATE;
+const pilot=isJuguangMetricDate(metric.metricDate);
 const rate=promotionClickRate(metric.impressionCount,metric.clickCount);
 const overrideNames:Record<string,string>={spend:'消耗',platformOpenCount:'平台开口',platformLeadCount:'平台留资',impressionCount:'曝光量',clickCount:'点击量'};
 const source=metric.juguangSource;
-const sourceLabel=source?`聚光读取 ${businessDateTime(source.fetchedAt)}${source.overriddenFields.length?'；人工覆盖：'+source.overriddenFields.map(name=>overrideNames[name]).join('、')+'；原因：'+source.overrideReason:''}`:pilot?'当前为手填记录；编辑这一天可读取11/15聚光报表，保存后保留官方来源。':'此日期沿用已保存的手填投放数据。';
+const sourceLabel=source?`聚光读取 ${businessDateTime(source.fetchedAt)}${source.overriddenFields.length?'；人工覆盖：'+source.overriddenFields.map(name=>overrideNames[name]).join('、')+'；原因：'+source.overrideReason:''}`:pilot?'当前为手填记录；编辑这一天可按当天笔记 ID 读取聚光报表，保存后保留官方来源。':'此日期沿用已保存的手填投放数据。';
 const totals=promotionTotals([metric]);
 const official=[{key:'spend',label:'消耗',value:'¥'+Number(metric.spend).toFixed(2)},...(pilot?[{key:'impressionCount',label:'曝光量',value:metric.impressionCount??'—'},{key:'clickCount',label:'点击量',value:metric.clickCount??'—'},{key:'ctr',label:'点击率',value:rate==null?'—':rate.toFixed(2)+'%'}]:[]),{key:'platformOpenCount',label:'平台开口',value:metric.platformOpenCount},{key:'platformLeadCount',label:'平台留资',value:metric.platformLeadCount}];
 const formatFullDate=(date:string)=>date;
@@ -36,7 +36,7 @@ const allowedForRole=(_status:string)=>true;
  </section>
  {metric.note&&<p class="promotion-day-note">{metric.note}</p>}
  <BusinessFormDialog class="history-edit-dialog" data-edit-dialog={metric.id} labelledby={`history-edit-${metric.id}`} darkHeader data-form-editor>
-                            <form class="business-form" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName} data-history-edit-form data-juguang-pilot={pilot?metric.id:undefined} data-juguang-source={pilot?JSON.stringify(metric.juguangSource??null):undefined} data-original-day-status={actualStatus}>
+                            <form class="business-form" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName} data-history-edit-form data-juguang-pilot={pilot?juguangTargetKey(metric.campaignId,metric.metricDate):undefined} data-juguang-date={pilot?metric.metricDate:undefined} data-juguang-campaign={pilot?metric.campaignId:undefined} data-juguang-source={pilot?JSON.stringify(metric.juguangSource??null):undefined} data-original-day-status={actualStatus}>
                               <header class="dialog-head"><div><h3 id={`history-edit-${metric.id}`}>{formatFullDate(metric.metricDate)}</h3><p>{entry.post.contentName} · V{entry.post.versionNumber}</p></div><button type="button" data-close-edit aria-label="关闭">×</button></header>
                               <input type="hidden" name="metricId" value={metric.id} />
                               <input type="hidden" name="fingerprint" value={entry.post.fingerprint} />
