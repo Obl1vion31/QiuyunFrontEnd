@@ -1,5 +1,11 @@
 # 项目交接
 
+## 历史总览详情覆盖层（已发布，2026-11-16）
+
+- 应用835525e，基线b3270ae，分支codex/history-inspector-overlay。BusinessInspector的modal接入公共Sheet并沿用原控制器，推广每日／历史帖子与日视角、非推广history均不占列表轨道；其他接入保持。标题绑定、遮罩／Esc回原保护，修复前后退快速重开被旧退出收掉；业务API及保存规则保持。
+- 实际Vercel包、隔离PostgreSQL18项检查通过：管理员1920／1440／1024及员工1440，逐帧列表几何、背景滚动、焦点、前后退、未保存取消、减少动态效果；390仅宽度与关闭。笔记ID双角色历史真实保存与排期发布回归通过。目标构建含类型0错误／0警告、61既有hint；最终图与3.92秒操作抽帧已查看。[验收索引](verified/2026-11-16_20-39_history-inspector-overlay/README.md)。
+- 部署dpl_62hBnWeBUc42638iujnZ3HGpoYTM已归档／READY，正式源码835525e一致；候选／正式各5项HTTP、2项资源核对，3定时任务保持启用。接手从BusinessInspector、business-inspector与history-inspector-overlay.browser；原始几何及调试图在工作树.tools，正式业务未代填。
+
 ## 发布登记新ID与复盘配置（已发布，2026-11-16）
 
 - 应用67409c1，基线d2e9ea8，分支codex/publication-note-deferral。改帖发布选择继承或使用新ID；后者存显式空基线，首次复盘原子补齐。旧页携带ID明确提示刷新。纯推广等类型不重复配置日期，仅非推广即时首次确认截止日；显隐、禁用与提交按实际类型统一，天数取当前表单日期，慢读退出重开不回填旧内容。
