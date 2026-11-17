@@ -1,5 +1,6 @@
 ---
 import BusinessSheet from './BusinessSheet.astro';
+import '../styles/inspector-organization.css';
 ---
 <BusinessSheet id="business-post-lookup" labelledby="post-lookup-title" data-post-lookup>
  <header class="dialog-head assistant-head"><div class="assistant-heading"><h2 id="post-lookup-title"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5ZM20 2v4m-2-2h4"/></svg>工作台助手</h2><p>查找内容，处理日常工作</p></div><div class="lookup-head-actions business-filter"><button type="button" class="business-action-secondary lookup-back" data-lookup-back hidden>← 返回结果</button><button type="button" class="sheet-close" data-lookup-close aria-label="关闭工作台助手">×</button></div></header>

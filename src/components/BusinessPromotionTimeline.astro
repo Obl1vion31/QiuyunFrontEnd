@@ -7,10 +7,11 @@ import {readPromotionTimeline} from '../db/promotion-timeline';
 import {operationsPromotionTimelineAudit} from '../db/schema';
 import {promotionAuditView} from '../db/promotion-audit-view';
 import {businessDateTime} from '../scripts/business-date';
+import {promotionInspectorHistory} from '../db/inspector-history';
 import {shanghaiDateKey,previousDateKey,nextDateKey} from '../db/promotion-rules.mjs';
 import {promotionLabels} from '../db/promotion-state.mjs';
-interface Props {rows?:Awaited<ReturnType<typeof readPromotionTimeline>>;history?:boolean;scheduleId?:string;embedded?:boolean;businessDate?:string;audits?:(typeof operationsPromotionTimelineAudit.$inferSelect)[]}
-const {rows:given,history=false,scheduleId,embedded=false,businessDate,audits:givenAudits}=Astro.props;
+interface Props {rows?:Awaited<ReturnType<typeof readPromotionTimeline>>;history?:boolean;scheduleId?:string;embedded?:boolean;businessDate?:string;audits?:(typeof operationsPromotionTimelineAudit.$inferSelect)[];unifiedHistory?:boolean}
+const {rows:given,history=false,scheduleId,embedded=false,businessDate,audits:givenAudits,unifiedHistory=false}=Astro.props;
 const all=given??await readPromotionTimeline(getDb(),new Date(),scheduleId);
 const today=shanghaiDateKey(new Date()),yesterday=previousDateKey(today);
 const visible=all.filter(row=>history||isPendingPromotionRow(row));
@@ -37,6 +38,7 @@ const renderedRows=embedded?displayRows.filter(({row,editable,nextDue,waiting})=
 if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
 
 ---
+{unifiedHistory&&<script is:inline type="application/json" data-promotion-history set:html={JSON.stringify(promotionInspectorHistory(audits)).replaceAll('<','\\u003c')}/>}
 {!history&&<BusinessPromotionPendingRows rows={visible}/>}
 {history&&renderedRows.length>0&&<section class:list={["promotion-timeline",{"promotion-timeline-embedded":embedded}]} aria-label={history?'推广状态历史':'首次安排与待定'}>
  {history&&!embedded&&<h2>推广安排与状态历史</h2>}
@@ -64,7 +66,7 @@ if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
     <input type="hidden" name="scheduleId" value={row.scheduleId}/><input type="hidden" name="reviewDate" value={range?end!:row.publishedOn}/><input type="hidden" name="action" value={range?'next':'wait'}/>{range&&<><input type="hidden" name="rangeId" value={range.id}/><input type="hidden" name="nextDecision" value="wait_continue"/></>}
     <label>{range?'待定至（含当天）':'待定至（可不选）'}<input type="date" name="waitingThrough" value={end??undefined} min={range?.startedOn??row.publishedOn} required={!!range}/></label><label>调整原因<input name="reason" maxlength="500" required/></label><button type="submit" class="business-action-primary">保存截止日</button><output role="alert"/>
    </form></details>}
-   {history&&auditGroups(row.scheduleId).filter(group=>group.rows.length>0).map(group=><details data-business-history open={group.related}>
+   {history&&!unifiedHistory&&auditGroups(row.scheduleId).filter(group=>group.rows.length>0).map(group=><details data-business-history open={group.related}>
     <summary>{group.label} ({group.rows.length})</summary>
     {group.rows.map(audit=><details class="promotion-business-event" data-business-event={audit.id} data-audit-category={audit.category}>
      <summary>{audit.action==='legacy_defer'?audit.title:`${audit.businessDate} · ${audit.title}`}</summary>

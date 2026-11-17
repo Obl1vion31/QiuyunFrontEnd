@@ -330,17 +330,12 @@ const hrefForYear = (year: number) => `/business/annual-plan?year=${year}`;
           <header><strong>时间块</strong></header>
           <div class="block-list" data-block-list></div>
         </section>
-        <section class="inspector-section">
-          <header><strong>SOP / 帖集链接</strong></header>
-          <div class="link-list" data-link-list></div>
-        </section>
-        <section class="inspector-section note-section">
-          <header><strong>规划备注</strong></header>
-          <p data-note></p>
-        </section>
-        <section class="inspector-section history-section annual-version-history">
-          <header><strong>版本历史</strong></header>
-          <button class="history-button" type="button" data-load-history>查看全部版本</button>
+        <details class="inspector-section annual-support" data-annual-support>
+          <summary data-annual-support-label>资料与备注</summary>
+          <div class="link-list" data-link-list></div><p data-note></p>
+        </details>
+        <section class="inspector-section annual-version-history">
+          <button class="history-button annual-history-trigger" type="button" data-load-history aria-expanded="false">版本历史 <span>查看全部版本 →</span></button>
           <div class="history-list" data-history-list></div>
         </section>
       </div>

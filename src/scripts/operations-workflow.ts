@@ -1,4 +1,4 @@
-import {appendBusinessHistory,historyViewState} from './schedule-business-history';
+import {appendBusinessHistory,historyViewState,mergeInspectorHistory} from './schedule-business-history';
 import type {ScheduleBusinessEvent} from '../db/schedule-business-history';
 import type {ScheduleExecutionEvent as ExecutionEntry} from '../db/schedule-history';
 import {setPublicationNote,updatePublicationNote} from './publication-note-identity';
@@ -135,7 +135,16 @@ function initialize() {
       const timelineHtml=timelineResponse.ok?await timelineResponse.text():'';
       if (!read.isCurrent()) return;
       historyHost.replaceChildren();
-      const timelineHost=document.querySelector<HTMLElement>('[data-promotion-state-history]');if(timelineHost){timelineHost.innerHTML=timelineHtml;timelineHost.hidden=!timelineHost.querySelector('.promotion-timeline');document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));}
+      const timelineHost=document.querySelector<HTMLElement>('[data-promotion-state-history]');
+      const timelineDocument=new DOMParser().parseFromString(timelineHtml,'text/html');
+      const promotionEvents=JSON.parse(timelineDocument.querySelector('[data-promotion-history]')?.textContent??'[]');
+      if(timelineHost){
+        timelineHost.replaceChildren();
+        const timeline=timelineDocument.querySelector('.promotion-timeline');
+        if(timeline?.querySelector('form')){timelineHost.append(element('h3','推广安排'),timeline);}
+        timelineHost.hidden=!timelineHost.childElementCount;
+        document.dispatchEvent(new CustomEvent('business:promotion-fragment-updated'));
+      }
       panel!.replaceChildren();
       const resultLabel = workflow.schedule.actualPublishAt
         ? isDelayed(new Date(workflow.schedule.plannedPublishAt),new Date(workflow.schedule.actualPublishAt),workflow.schedule.delayThresholdHours) ? '延期发布' : '按时发布'
@@ -188,7 +197,7 @@ function initialize() {
           panel!.append(row);
         }
       }
-      appendBusinessHistory(historyHost,workflow.historyEvents,{state:historyState,appendAction:(event,row)=>{
+      appendBusinessHistory(historyHost,mergeInspectorHistory(workflow.historyEvents,promotionEvents),{state:historyState,appendAction:(event,row)=>{
         if(!event.delayReasonId||!mayOperate('schedule.reason'))return;
         const day=workflow.days.find(day=>day.saved?.id===event.delayReasonId);if(!day||day.archived)return;
         const button=element('button','更正理由');button.type='button';button.className='business-history-reason-edit business-action-secondary';

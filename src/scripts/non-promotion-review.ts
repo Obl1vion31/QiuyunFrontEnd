@@ -5,6 +5,7 @@ import {readingTrend} from '../db/non-promotion-trend';
 import { navigate } from 'astro:transitions/client';
 import { getInspector } from './business-inspector';
 import { businessConfirm } from './business-dialog';
+import {trackFormChanges} from './form-changes';
 import { beginBusinessRead } from './business-read';
 import type { readNonPromotionReview } from '../db/non-promotion-read-model';
 type ReviewModel = Awaited<ReturnType<typeof readNonPromotionReview>>;
@@ -15,6 +16,48 @@ function initialize() {
   table.dataset.reviewReady = 'true';
   document.dispatchEvent(new Event('business:inspector-refresh'));
   const controller = getInspector(inspector);
+  const formChanges=new WeakMap<HTMLFormElement,ReturnType<typeof trackFormChanges>>();
+  const savedIdentities=new WeakSet<HTMLFormElement>();
+  const refreshIdentity=async(form:HTMLFormElement)=>{
+    const selected=controller.selected,read=beginBusinessRead(form,{isCurrent:()=>form.isConnected&&controller.selected===selected&&!inspector.hidden});
+    try{
+    const response=await fetch(location.href,{headers:{Accept:'text/html'},signal:read.signal});
+    if(!response.ok)throw new Error('保存已成功，详情读取失败，请重新读取。');
+    const html=new DOMParser().parseFromString(await response.text(),'text/html');
+    if(!read.isCurrent())return;
+    for(const incoming of html.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')){
+      const current=[...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node=>node.dataset.inspectorTemplate===incoming.dataset.inspectorTemplate);
+      if(current)current.content.replaceChildren(incoming.content.cloneNode(true));
+    }
+    controller.refresh();
+    const identity=inspector.querySelector<HTMLElement>('[data-note-identity]');identity?.closest('details')?.setAttribute('open','');
+    const feedback=document.createElement('output');feedback.setAttribute('role','status');feedback.textContent='笔记 ID 已更正。';identity?.append(feedback);
+    identity?.querySelector<HTMLElement>('[data-note-edit]')?.focus({preventScroll:true});
+    }finally{read.finish();}
+  };
+  const prepareForms=()=>{
+    for(const form of inspector.querySelectorAll<HTMLFormElement>('[data-review-form],[data-checkpoint-form]')){
+      if(formChanges.has(form))continue;
+      const changes=trackFormChanges(form,()=>{if(changes.dirty)inspector.dataset.dirty='true';else if(!inspector.querySelector('form[data-dirty=true]'))controller.setClean();});
+      formChanges.set(form,changes);
+    }
+  };
+  inspector.addEventListener('business:inspector-render',prepareForms);prepareForms();
+  inspector.addEventListener('click',async event=>{
+    const target=event.target as Element,form=inspector.querySelector<HTMLFormElement>('[data-review-form]'),summary=inspector.querySelector<HTMLElement>('[data-review-result]');
+    if(target.closest('[data-review-edit]')&&form&&summary){
+      const identity=inspector.querySelector<HTMLFormElement>('[data-id-correction]:not([hidden])');
+      if(identity){identity.querySelector<HTMLElement>('input[name=platformNoteId]')?.focus({preventScroll:true});return;}
+      summary.hidden=true;form.hidden=false;form.querySelector<HTMLElement>('input:not([type=hidden])')?.focus({preventScroll:true});
+    }
+    if(target.closest('[data-review-cancel]')&&form&&summary){
+      const changes=formChanges.get(form);
+      if(changes?.dirty&&!await businessConfirm('有尚未保存的复盘修改，是否放弃？'))return;
+      form.reset();changes?.capture();form.hidden=true;summary.hidden=false;
+      if(!inspector.querySelector('form[data-dirty=true]'))controller.setClean();
+      summary.querySelector<HTMLElement>('[data-review-edit]')?.focus({preventScroll:true});
+    }
+  });
   inspector.addEventListener('input',event=>{
     const input=event.target as HTMLInputElement,form=input.closest<HTMLFormElement>('[data-review-form]');
     if(form&&input.name==='recordedThrough'){const through=form.querySelector('[data-statistics-through]');if(through)through.textContent=input.value;}
@@ -114,6 +157,13 @@ function initialize() {
         const difference=cell.querySelector('small');if(difference){difference.hidden=value==null||delta==null;difference.textContent=delta==null?'':`${delta>0?'+':''}${delta.toFixed(2)}pp`;}
       }
       const template = [...document.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')].find(node => node.dataset.inspectorTemplate === item.key);
+      if(template&&item.metric){
+        for(const [name,value]of Object.entries({recordedThrough:item.metric.recordedThrough,exposureCount:item.metric.exposureCount,readCount:item.metric.readCount,clickRate:item.metric.clickRate,threeSecondReadRate:item.metric.threeSecondReadRate,conclusion:item.review?.conclusion})){
+          const node=template.content.querySelector<HTMLElement>(`[data-review-value="${name}"]`);if(!node)continue;
+          node.textContent=value==null?'—':name==='recordedThrough'||name==='conclusion'?String(value):name==='clickRate'||name==='threeSecondReadRate'?Number(value).toFixed(2)+'%':Number(value).toLocaleString('zh-CN');
+          if(name==='conclusion'){node.hidden=!value;if(!value)node.textContent='';}
+        }
+      }
       const fingerprint=template?.content.querySelector<HTMLInputElement>('[name=fingerprint]');if(fingerprint)fingerprint.value=item.fingerprint;
       const active=inspector.querySelector<HTMLInputElement>(`[data-review-form][data-collaboration-resource="schedule:${CSS.escape(item.row.id)}:non:${item.checkpoint.type}"] [name=fingerprint]`);if(active)active.value=item.fingerprint;
       if (template) for (const [field, value] of Object.entries({ recordedThrough:item.metric?.recordedThrough,exposureCount:item.metric?.exposureCount,readCount:item.metric?.readCount,clickRate:item.metric?.clickRate,threeSecondReadRate:item.metric?.threeSecondReadRate,conclusion:item.review?.conclusion })) {
@@ -169,18 +219,17 @@ function initialize() {
    }catch(error){if(!read.isCurrent())return;const output=document.querySelector<HTMLElement>('[data-shared-review-date-add] output');if(output)output.textContent=error instanceof Error?error.message:'日期已保存，列表刷新失败，请刷新页面查看。';}finally{read.finish();}
   };document.addEventListener('business:review-date-saved',dateSaved);document.addEventListener('astro:before-swap',()=>document.removeEventListener('business:review-date-saved',dateSaved),{once:true});
   inspector.addEventListener('business:edit-reclaimed' ,event=>{const target=event.target as HTMLFormElement;if(target.matches('[data-review-form]'))(event as CustomEvent).detail.waitUntil(refresh(target));});
-  inspector.addEventListener('click', async event => {
-    const copy = (event.target as Element).closest<HTMLButtonElement>('[data-copy-id]');
-    if (copy) { await navigator.clipboard.writeText(copy.dataset.copyId!); copy.textContent = '已复制'; }
-  });
   inspector.addEventListener('submit', async event => {
     const form = event.target as HTMLFormElement;
     if (!form.matches('[data-review-form],[data-checkpoint-form],[data-id-correction]')) return;
     event.preventDefault();
     const output = form.querySelector<HTMLOutputElement>('output')!;
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    if(savedIdentities.has(form)){
+      button.disabled=true;try{await refreshIdentity(form);}catch{output.textContent='已保存，详情读取失败。请重新读取。';}finally{button.disabled=false;}return;
+    }
     if (form.matches('[data-id-correction]')) {
-      const oldValue = form.querySelector<HTMLInputElement>('input[readonly]')!.value;
+      const oldValue = (form.elements.namedItem('expectedPlatformNoteId') as HTMLInputElement).value;
       const newValue = (form.elements.namedItem('platformNoteId') as HTMLInputElement).value.trim().toLowerCase();
       if (!await businessConfirm(`旧值：${oldValue}\n新值：${newValue}\n\n该帖子的全部版本与复盘都会同步。`,{title:'更正笔记 ID',confirmLabel:'确认更正',cancelLabel:'继续编辑'})) return;
     }
@@ -190,7 +239,8 @@ function initialize() {
       const response = await fetch(endpoint, { method:'POST',body:new FormData(form),headers:{Accept:'application/json'} });
       const result = await response.json();
       if (!response.ok) { output.setAttribute('role','alert');output.textContent = result.message || '保存失败。'; return; }
-      controller.setClean();
+      formChanges.get(form)?.capture();form.dataset.dirty='false';
+      if(!inspector.querySelector('form[data-dirty=true]'))controller.setClean();
       if(form.matches('[data-review-form]')&&result.fingerprint){
         (form.elements.namedItem('fingerprint') as HTMLInputElement).value=result.fingerprint;
         const key=(form.elements.namedItem('scheduleId') as HTMLInputElement).value+':'+(form.elements.namedItem('checkpointType') as HTMLInputElement).value;
@@ -201,7 +251,12 @@ function initialize() {
         }
       }
       if (new URL(location.href).searchParams.get('view') === 'history' && form.matches('[data-review-form]')) {
-        await refresh(); output.textContent = '已保存';
+        await refresh();controller.refresh();
+        const saved=document.createElement('output');saved.setAttribute('role','status');saved.className='review-saved-feedback';saved.textContent='复盘已保存。';inspector.querySelector('[data-review-result]')?.append(saved);
+      } else if(form.matches('[data-id-correction]')){
+        savedIdentities.add(form);button.textContent='重新读取';
+        for(const input of form.querySelectorAll<HTMLInputElement|HTMLButtonElement>('input:not([type=hidden]),[data-note-cancel]'))input.disabled=true;
+        await refreshIdentity(form);
       } else await navigate(form.dataset.successHref || location.href);
     } catch (error) { output.setAttribute('role','alert');output.textContent = error instanceof Error && error.message.startsWith('保存已成功') ? error.message : '连接失败，当前输入已保留，请重试。'; }
     finally { button.disabled = false; }

@@ -360,17 +360,17 @@ const clientCategories=subjectCategories;
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
                 <BusinessResourceLinks dynamic name="当前帖子"/>
                 <section class="non-plan-panel schedule-detail-section" data-review-plan-panel hidden aria-label="复盘计划">
-                  <h3>运营类型与复盘计划</h3><p data-review-plan-summary></p>
+                  <h3>复盘计划</h3><p data-review-plan-summary></p>
                   <details data-business-operation="schedule.edit"><summary>管理复盘方式</summary><form class="business-form" data-review-plan-form><input type="hidden" name="action" value="reviewPlan"/><BusinessNonPromotionPlanFields prefix="inspector-review"/><output role="status"></output><button type="submit" class="business-action-primary">保存复盘计划</button></form></details>
                   <BusinessReviewDateAdd hidden/>
                   <div class="non-plan-nodes" data-review-node-list></div>
                 </section>
                 <section class="schedule-detail-section inspector-version">
-                  <h3>版本与改帖</h3><div class="version-path" data-inspector-path aria-label="版本关系"></div>
-                  <div class="inspector-revision" data-inspector-revision-section><h4>具体改动说明</h4><p data-inspector-revision-summary></p></div>
+                  <div class="schedule-section-heading"><h3>版本与改帖</h3><div class="version-path" data-inspector-path aria-label="版本关系"></div></div>
+                  <div class="inspector-revision" data-inspector-revision-section><p data-inspector-revision-summary></p></div>
                 </section>
                 <section class="inspector-section schedule-workflow-history schedule-detail-section" data-schedule-workflow-history aria-label="历史记录" hidden></section>
-                <section class="inspector-section" data-promotion-state-history hidden></section>
+                <section class="schedule-detail-section" data-promotion-state-history hidden></section>
                 <details class="inspector-danger business-form" data-business-operation="schedule.delete" hidden={Astro.locals.user?.role!=='admin'}><summary>更多操作</summary><label>取消排期原因<textarea data-inspector-cancel-reason rows="2" maxlength="2000"></textarea></label><button type="button" data-inspector-delete>取消这条排期</button><small role="alert" data-inspector-delete-error></small></details>
               </div>
               <footer class="inspector-actions business-inspector-actions"><button type="button" class="business-action-primary" data-inspector-publication data-business-operation="schedule.publish schedule.correctPublication" data-business-any hidden={permissions['schedule.publish']==='disabled'&&permissions['schedule.correctPublication']==='disabled'}>发布登记</button><div><button type="button" class="business-action-secondary" data-inspector-edit data-business-operation="schedule.edit schedule.reschedule schedule.overdueReschedule schedule.endPromotion" data-business-any hidden={['schedule.edit','schedule.reschedule','schedule.overdueReschedule','schedule.endPromotion'].every(key=>permissions[key as keyof typeof permissions]==='disabled')}>编辑排期</button><button type="button" class="business-action-secondary" data-inspector-placement hidden>移动／对换</button><button type="button" class="business-action-secondary" data-inspector-revise data-business-operation="schedule.revise" hidden={permissions['schedule.revise']==='disabled'}>创建改帖</button></div><span data-inspector-derived hidden></span></footer>

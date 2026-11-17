@@ -135,21 +135,28 @@ function initializeAnnualPlan() {
     activeRow = row;
     inspector.dataset.tone = String(sections.find(section => section.key === row.sectionKey)?.tone ?? 4);
     const setText = (selector: string, value: string) => { q(selector, inspector).textContent = value; };
-    setText('[data-section-label]', row.sectionLabel); setText('[data-row-name]', row.rowName); setText('[data-relation]', [row.subjectName, row.categoryName].filter(Boolean).join(' / '));
+    setText('[data-section-label]', row.sectionLabel); setText('[data-row-name]', row.rowName);
+    const relation=[row.subjectName,row.categoryName].filter(value=>value&&!row.rowName.includes(value)).join(' / ');
+    setText('[data-relation]',relation);q('[data-relation]',inspector).hidden=!relation;
     setText('[data-version]', `V${row.currentVersionNumber}`); setText('[data-status]', row.isActive ? '启用' : '已停用');
-    setText('[data-promotion]', row.blocks.some(block => block.promotionRanges.length) ? '含付费推广区间' : '自然流／观察'); setText('[data-note]', row.note || '暂无行备注');
+    setText('[data-promotion]', row.blocks.some(block => block.promotionRanges.length) ? '含付费推广区间' : '自然流／观察'); setText('[data-note]', row.note || '');
+    q('[data-note]',inspector).hidden=!row.note;
+    const support=q<HTMLDetailsElement>('[data-annual-support]',inspector);support.open=!!(row.links.length||row.note);
+    setText('[data-annual-support-label]',row.links.length||row.note?'资料与备注':'资料与备注 · 未填写');
+    q('[data-load-history]',inspector).setAttribute('aria-expanded','false');
     const mini = q('[data-mini-timeline]', inspector); mini.replaceChildren();
     for (let month = 1; month <= 12; month++) { const cell = document.createElement('span'); cell.className = `mini-grid ${[1, 4, 7, 10].includes(month) ? 'quarter-start' : ''}`; cell.style.gridColumn = `${month * 2 - 1}/span 2`; mini.append(cell); }
     for (const block of row.blocks) { const node = document.createElement('span'); node.className = 'mini-block'; node.style.gridColumn = `${block.startSlot}/${block.endSlot + 1}`; node.style.background = blockBackground(block); node.title = `${formatSlotRange(block)} · ${block.note}`; mini.append(node); }
     const list = q('[data-block-list]', inspector); list.replaceChildren();
     for (const block of row.blocks) {
       const article = document.createElement('article'); article.className = 'block-detail';
-      article.innerHTML = `<div class="block-primary"><div class="block-name"><b>${escapeHtml(block.label || row.rowName)}</b></div><strong>${formatSlotRange(block)}</strong></div><p class="block-secondary">${escapeHtml(block.note || '暂无时间条备注')}</p><ul class="block-phases">${splitBlockSegments(block).map(segment => `<li class="${segment.paid ? 'paid' : ''}">${formatSlotRange(segment)} · ${segment.paid ? '付费推广' : '自然流／观察'}</li>`).join('')}</ul>`; list.append(article);
+      const segments=splitBlockSegments(block);
+      article.innerHTML = `<div class="block-primary"><strong>${formatSlotRange(block)}</strong>${segments.length===1?`<span class="block-promotion">${segments[0].paid?'付费推广':'自然流／观察'}</span>`:''}</div>${block.label&&block.label!==row.rowName?`<p class="block-label">${escapeHtml(block.label)}</p>`:''}${block.note?`<p class="block-secondary">${escapeHtml(block.note)}</p>`:''}${segments.length>1?`<ul class="block-phases">${segments.map(segment => `<li class="${segment.paid ? 'paid' : ''}">${formatSlotRange(segment)} · ${segment.paid ? '付费推广' : '自然流／观察'}</li>`).join('')}</ul>`:''}`; list.append(article);
     }
     if (!row.blocks.length) list.innerHTML = '<p class="inspector-empty">尚未设置时间块。</p>';
     const linkList = q('[data-link-list]', inspector); linkList.replaceChildren();
     for (const link of row.links) { const anchor = document.createElement('a'); anchor.href = link.url; anchor.target = '_blank'; anchor.rel = 'noreferrer'; anchor.textContent = `${link.label} ↗`; linkList.append(anchor); }
-    if (!row.links.length) linkList.innerHTML = '<p class="inspector-empty">尚未添加 SOP 或帖集链接。</p>';
+    linkList.hidden=!row.links.length;
     q('[data-history-list]', inspector).replaceChildren();
   }
   const inspectorController = getInspector(inspector, { parameter:'row', select:setSelected, render:id => { const row=rows.find(row=>row.id===id); if(row)fillInspector(row); } });
@@ -165,6 +172,7 @@ function initializeAnnualPlan() {
 
   q('[data-load-history]').addEventListener('click', async () => {
     if (!activeRow) return; const row = activeRow; const generation = inspectorController.generation; const target = q('[data-history-list]', inspector);
+    q('[data-load-history]',inspector).setAttribute('aria-expanded','true');
     const read=beginBusinessRead(target,{label:'正在读取历史…',isCurrent:()=>activeRow?.id===row.id&&generation===inspectorController.generation});
     try {
       const response = await fetch(`/api/operations-annual-plans/${row.id}/versions`,{signal:read.signal}); const result = await response.json();

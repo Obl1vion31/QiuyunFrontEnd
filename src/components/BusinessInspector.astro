@@ -1,5 +1,6 @@
 ---
 import BusinessSheet from './BusinessSheet.astro';
+import '../styles/inspector-organization.css';
 interface Props { class?: string; label?: string; parameter?: string; templates?: boolean; modal?:boolean; [key: string]: unknown }
 const { class: className = '', label = '帖子详情', parameter, templates = false, modal=false, ...attributes } = Astro.props;
 const surfaceId=String(attributes.id??`${parameter??'record'}-inspector`);

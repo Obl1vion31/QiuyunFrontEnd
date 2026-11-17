@@ -353,3 +353,7 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 `readScheduleWorkflow`保留原始历史，GET详情／查帖另调用`schedule-business-history-read.ts`补读对应内容的复盘及笔记ID事件。`schedule-business-history.ts`只投影事实；同一执行快照的改期与内容变化合一，配置写入与执行快照只有在操作者、字段前后值及同次写入时间均匹配时才合并。旧日期轨迹无真实操作时间时不拿实发结束时刻补造。原historyGroups继续兼容读取，业务写入与冻结快照不改。
 
 浏览器共用`scripts/schedule-business-history.ts`的`appendBusinessHistory`，排期传入延期说明编辑回调，查帖只读；刷新可用`historyViewState`恢复展开、类别与页数。历史筛选的input事件就地消费，不干扰Inspector的表单未保存保护。`BusinessFieldHelp`复用公共popover完成字段解释；`BusinessPromotionMetric`保持原编辑表单和保存控制器，仅重新组织只读日详情。
+
+`db/inspector-history.ts`将既有推广审计投影成阅读事件，保留原分类过滤与归档指标；`mergeInspectorHistory`仅按来源ID合并。排期复用原promotion-timeline读取，在HTML中携带展示JSON，原首次安排／待定／下一步表单仍独立保留；查帖使用原content-search读取，版本切换仍调用openPost，无新增轮询或业务查询。共享资源定义同时供Astro和助手动态DOM使用。
+
+`BusinessNoteIdentity`与`inline-note-identity.ts`负责同表面查看、复制、更正和取消，原推广／非推广适配器仍负责原接口、确认及保存范围。非推广已保存结果在原模板中只读展示，编辑时显示原表单；`trackFormChanges`按实际字段判断，保存后局部刷新模板和事实，ID写入成功但展示读取失败只读重试。年度时间块、资料支持区与版本入口沿用annual-plan原控制器及编辑容器。

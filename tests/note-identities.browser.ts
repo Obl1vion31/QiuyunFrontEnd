@@ -15,13 +15,13 @@ const clockFile=process.cwd()+'/'+dir+'/clock.txt';await writeFile(clockFile,'20
 const f=await startPostgresFixture({clockFile,entry:process.env.NOTE_ID_ENTRY}),{db,baseURL}=f;
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);const browser=await chromium.launch({headless:true});const errors:string[]=[],checks:string[]=[],screenshots:string[]=[];
 async function login(context:any,actor:any){const r=await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:actor});assert.equal(r.status(),200);}
-async function shot(page:any,name:string){await settleBusinessUI(page);if(name.includes('history')&&!name.includes('confirm'))await page.locator('[data-note-identity-form]').scrollIntoViewIfNeeded();await page.mouse.move(0,0);await page.screenshot({path:dir+'/screenshots/'+name+'.png'});screenshots.push(name);}
+async function shot(page:any,name:string){await settleBusinessUI(page);if(name.includes('history')&&!name.includes('confirm'))await page.locator('[data-note-identity]').scrollIntoViewIfNeeded();await page.mouse.move(0,0);await page.screenshot({path:dir+'/screenshots/'+name+'.png'});screenshots.push(name);}
 async function openHistory(page:any,metricId:string){
  await page.goto(baseURL+'/business/daily-promotion-review?view=history&mode=day&from=2026-10-29&to=2026-11-03');
  const row=page.locator('[data-inspector-key="'+metricId+'"]').first();
  for(const ancestor of await row.locator('xpath=ancestor::details').all())if(await ancestor.getAttribute('open')===null)await ancestor.locator(':scope>summary').click();
  await row.click();await page.locator('[data-promotion-inspector].is-open').waitFor();
- await page.locator('[data-promotion-inspector] .surface-resource-meta>summary').click();await page.locator('[data-promotion-inspector] .note-id-correction>summary').click();
+ await page.locator('[data-promotion-inspector] .surface-resource-meta>summary').click();await page.locator('[data-promotion-inspector] [data-note-edit]').click();
  await page.locator('[data-note-identity-form] [name=platformNoteId]').waitFor();await settleBusinessUI(page);
 }
 async function submitCorrection(page:any,accept:boolean){await page.locator('[data-note-identity-form] [type=submit]').click();await respondToBusinessConfirm(page,accept);}
@@ -41,7 +41,7 @@ try{
   const saved=page.waitForResponse((r:any)=>r.url().endsWith('/platform-note-id')&&r.request().method()==='POST'&&r.status()===200);await submitCorrection(page,true);await saved;
   await page.waitForFunction((value:string)=>document.querySelector('[data-current-note-id]')?.textContent===value,corrected);assert.equal(await page.evaluate(()=>scrollY),beforeY);await shot(page,role+'-history-from-date-1440');
   const periods=(await readVersionNotes(db,[source.post.version.id])).get(source.post.version.id)!.periods;assert.equal(noteIdOn(periods,'2026-10-30'),initial);assert.equal(noteIdOn(periods,'2026-11-03'),corrected);
-  await page.locator('[data-note-identity-form] [name=scope][value=version]').check();await page.locator('[data-note-identity-form] [name=platformNoteId]').fill(all);
+  await page.locator('[data-note-edit]').click();await page.locator('[data-note-identity-form] [name=scope][value=version]').check();await page.locator('[data-note-identity-form] [name=platformNoteId]').fill(all);
   await page.locator('[data-note-identity-form] [type=submit]').click();await page.locator('[data-business-confirm][open]').waitFor();await shot(page,role+'-history-all-confirm-1440');await respondToBusinessConfirm(page,true);
   await page.waitForFunction((value:string)=>document.querySelector('[data-current-note-id]')?.textContent===value,all);await shot(page,role+'-history-all-saved-1440');
   await page.locator('[data-close-inspector]').click();await page.locator('[data-promotion-inspector]').waitFor({state:'hidden'});assert.equal(await page.locator('[data-business-confirm][open]').count(),0);

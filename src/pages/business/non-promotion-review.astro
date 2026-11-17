@@ -1,6 +1,7 @@
 ---
 import {contentRoleLabels,contentRoleLabel,rolesForCategory} from '../../db/content-roles';
 import BusinessResourceLinks from '../../components/BusinessResourceLinks.astro';
+import BusinessNoteIdentity from '../../components/BusinessNoteIdentity.astro';
 import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
 import SiteIcons from '../../components/SiteIcons.astro';
 import BusinessConsoleFrame from '../../components/BusinessConsoleFrame.astro';
@@ -102,12 +103,33 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
             <div><dt>实际发布时间</dt><dd>{businessDateTime(selected.row.actualPublishAt)}</dd></div>
           </dl>
 
-          <label>小红书笔记 ID</label>{selected.row.platformNoteId?<div class="full-id"><code>{selected.row.platformNoteId}</code><button type="button" data-copy-id={selected.row.platformNoteId}>复制</button></div>:<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}
+          <BusinessNoteIdentity value={selected.row.platformNoteId} editable={!!selected.row.platformNoteId}>
+            {selected.row.platformNoteId&&<form hidden class="business-form" data-id-correction action={`/api/operations-content/${selected.row.contentId}/platform-note-id`}>
+              <input type="hidden" name="confirmSharedUpdate" value="true"/><input type="hidden" name="expectedPlatformNoteId" value={selected.row.platformNoteId}/>
+              <label>新笔记 ID<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" autocomplete="off" required placeholder="24 位十六进制 ID"/></label>
+              <p>该帖子的全部版本与复盘都会同步。</p><output role="status"></output>
+              <div class="business-note-form-actions"><button type="button" class="business-action-secondary" data-note-cancel>取消</button><button type="submit" class="business-action-primary">保存更正</button></div>
+            </form>}
+          </BusinessNoteIdentity>
+          {!selected.row.platformNoteId&&<p>{activeView==='skipped'?'跳过节点无需填写笔记 ID。':'首次保存复盘时必须补填。'}</p>}
           </details>
           <a class="review-schedule-link" href={'/business/operations-schedule?'+new URLSearchParams({month:businessDateTime(selected.row.plannedPublishAt).slice(0,7),row:selected.row.id})} target="_blank" rel="noopener noreferrer">查看排期详情 ↗</a>
         </section>
-        {selected.row.platformNoteId&&<details class="correction"><summary>更正笔记 ID</summary><form class="business-form" data-id-correction action={`/api/operations-content/${selected.row.contentId}/platform-note-id`}><input type="hidden" name="confirmSharedUpdate" value="true"/><label>旧值<input name="expectedPlatformNoteId" value={selected.row.platformNoteId} readonly/></label><label>新值<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" required/></label><p>确认后，该帖子的全部版本与复盘都会同步。</p><output></output><button type="submit">确认更正</button></form></details>}
-        {activeView!=='skipped'&&<form class="review-form business-form" data-review-form data-collaboration-resource={`schedule:${selected.row.id}:non:${selected.checkpoint.type}`} data-collaboration-label={`${selected.row.contentName} · ${names[selected.checkpoint.type]}`} data-success-href={viewHref('history')}>
+        {activeView!=='skipped'&&selected.metric&&<section class="review-result" data-review-result>
+          <header><h2>复盘结果</h2>{!selected.historical&&<button type="button" data-review-edit>编辑复盘</button>}</header>
+          {selected.historical&&<p class="hint">历史口径 · 原始数据只读保留</p>}
+          <dl>
+            {selected.row.operationType==='promotion_then_continuous'&&<div class="review-result-range"><dt>统计区间</dt><dd>{selected.metric.statisticsFrom??shanghaiDateKey(selected.row.actualPublishAt)} 至 <span data-review-value="recordedThrough">{selected.metric.recordedThrough}</span></dd></div>}
+            {selected.row.operationType!=='promotion_then_continuous'&&<div class="review-result-range"><dt>数据截至</dt><dd data-review-value="recordedThrough">{selected.metric.recordedThrough}</dd></div>}
+            <div><dt>曝光量</dt><dd data-review-value="exposureCount">{selected.metric.exposureCount?.toLocaleString('zh-CN')??'—'}</dd></div>
+            <div><dt>阅读量</dt><dd data-review-value="readCount">{selected.metric.readCount?.toLocaleString('zh-CN')??'—'}</dd></div>
+            <div><dt>点击率</dt><dd data-review-value="clickRate">{selected.metric.clickRate==null?'—':Number(selected.metric.clickRate).toFixed(2)+'%'}</dd></div>
+            <div><dt>3 秒阅读率</dt><dd data-review-value="threeSecondReadRate">{Number(selected.metric.threeSecondReadRate).toFixed(2)}%</dd></div>
+          </dl>
+          <p class="review-result-conclusion" data-review-value="conclusion" hidden={!selected.review?.conclusion}>{selected.review?.conclusion}</p>
+        </section>}
+        {activeView!=='skipped'&&<form hidden={!!selected.metric} class="review-form business-form" data-review-form data-collaboration-resource={`schedule:${selected.row.id}:non:${selected.checkpoint.type}`} data-collaboration-label={`${selected.row.contentName} · ${names[selected.checkpoint.type]}`} data-success-href={viewHref('history')}>
+          {selected.metric&&<h2>编辑复盘</h2>}
           {selected.historical&&<p class="hint">历史口径 · 原始数据只读保留</p>}
           <fieldset disabled={selected.historical} style="border:0;padding:0;margin:0;min-width:0;width:100%;box-sizing:border-box;display:grid;gap:14px">
           {selected.row.operationType==='promotion_then_continuous'&&<div class="review-statistics-interval"><span>{selected.metric&&!selected.metric.statisticsFrom?'旧累计口径':'统计区间'}</span><strong>{selected.metric?.statisticsFrom??(selected.metric?shanghaiDateKey(selected.row.actualPublishAt):selected.row.statisticsFrom)} 至 <time data-statistics-through>{selected.metric?.recordedThrough??(selected.window.defaultValue||selected.dueOn)}</time></strong></div>}
@@ -119,7 +141,7 @@ const postGroups=[...new Set(renderRows.map(item=>item.row.id))].map(id=>({id,it
           <div class="review-count-fields"><label>曝光量<input type="number" min="0" max="2147483647" step="1" name="exposureCount" value={selected.metric?.exposureCount??''} required/></label><label>阅读量<input type="number" min="0" max="2147483647" step="1" name="readCount" value={selected.metric?.readCount??''} required/></label></div>
           <label>点击率<div class="rate"><input name="clickRate" value={selected.metric?(selected.metric.clickRate==null?'—':Number(selected.metric.clickRate).toFixed(2)):''} readonly aria-label="自动计算点击率"/><b>%</b></div></label>
           <label>3 秒阅读率<div class="rate"><input type="number" min="0" max="100" step="0.0001" name="threeSecondReadRate" value={selected.metric?.threeSecondReadRate??''} required/><b>%</b></div></label>
-          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="status"></output><button type="submit" class="business-action-primary">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button></fieldset>
+          <label>复盘结论（选填）<textarea name="conclusion">{selected.review?.conclusion||''}</textarea></label><output role="status"></output><div class="business-note-form-actions">{selected.metric&&<button type="button" class="business-action-secondary" data-review-cancel>取消</button>}<button type="submit" class="business-action-primary">{selected.review?'保存修改':`完成${names[selected.checkpoint.type]}复盘`}</button></div></fieldset>
         </form>}
         {!selected.review&&<details class="checkpoint-action" open={activeView==='skipped'}>
           <summary>{activeView==='skipped'?'不复盘记录与恢复':'这次不复盘'}</summary>
