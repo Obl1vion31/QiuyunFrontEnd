@@ -51,7 +51,7 @@ try{
    const res=await context.request.post(baseURL+'/api/operations-annual-plans',{headers:{Origin:baseURL},data:{year:2026,sectionKey:'subject:tmua',sectionLabel:'TMUA 细致规划',subjectId:'tmua',rowName:'TMUA 小班课和一对一',categoryId:'small-class-or-tutoring',isActive:true,sortOrder:0,note:null,links:[],blocks:[{startSlot:5,endSlot:17,note:'针对 10 月 TMUA 考试（每月至多两篇）',promotionRanges:[{startSlot:5,endSlot:17}],sortOrder:0},{startSlot:20,endSlot:23,note:'针对次年 1 月 TMUA 考试（每月至多两篇）',promotionRanges:[{startSlot:20,endSlot:23}],sortOrder:10}]}});
    assert.equal(res.status(),201,await res.text());annualId=(await res.json()).id;
   }
-  const page=await context.newPage(),videoZero=Date.now();let clipFrom=(Date.now()-videoZero)/1000;
+  const page=await context.newPage(),videoZero=performance.now();let clipFrom=(performance.now()-videoZero)/1000;
   await page.clock.setFixedTime(new Date('2026-11-11T12:00:00+08:00'));page.on('pageerror',(error:Error)=>errors.push(error.message));
   let pane=await openPromotion(page,source.metrics[2].id);
   assert.equal((await pane.boundingBox()).width,338);assert.equal(await pane.locator('.note-id-correction').count(),0);assert.equal(await pane.locator('[data-current-note-id]').textContent(),role==='admin'?'a'.repeat(24):'c'.repeat(24));
@@ -69,7 +69,7 @@ try{
   const periods=(await readVersionNotes(db,[source.post.version.id])).get(source.post.version.id)!.periods;
   assert.equal(noteIdOn(periods,'2026-10-30'),'a'.repeat(24));assert.equal(noteIdOn(periods,'2026-11-03'),corrected);
   checks.push(role+'：推广就地更正、取消保留、503保留重试、原日期生效范围及保存后回到查看');
-  if(role==='admin')clips.push({name:'promotion-inline',from:clipFrom,to:(Date.now()-videoZero)/1000});
+  if(role==='admin')clips.push({name:'promotion-inline',from:clipFrom,to:(performance.now()-videoZero)/1000});
   await page.keyboard.press('Escape');await pane.waitFor({state:'hidden'});
   await page.goto(baseURL+'/business/non-promotion-review?view=history&mode=standard&group=0&row='+non.schedule.id+':day_7');
   pane=page.locator('[data-inspector].is-open');await pane.waitFor();await metadata(pane);
@@ -87,7 +87,7 @@ try{
   }else await saveCorrection(page,idForm);
   await page.waitForFunction((value:string)=>document.querySelector('[data-inspector] [data-current-note-id]')?.textContent===value,sharedId);
   assert.equal((await db.select().from(s.operationsContent).where(eq(s.operationsContent.id,non.content.id)))[0].platformNoteId,sharedId);
-  clipFrom=(Date.now()-videoZero)/1000;await pane.locator('[data-review-edit]').click();form=pane.locator('[data-review-form]');await form.locator('[name=readCount]').fill('1234');
+  clipFrom=(performance.now()-videoZero)/1000;await pane.locator('[data-review-edit]').click();form=pane.locator('[data-review-form]');await form.locator('[name=readCount]').fill('1234');
   await pane.locator('[data-close-inspector]').click();await respondToBusinessConfirm(page,false);assert.equal(await form.locator('[name=readCount]').inputValue(),'1234');
   await form.locator('[data-review-cancel]').click();await respondToBusinessConfirm(page,true);assert(await form.isHidden());
   await pane.locator('[data-review-edit]').click();form=pane.locator('[data-review-form]');assert.equal(await form.locator('[name=readCount]').inputValue(),'1200');
@@ -96,7 +96,7 @@ try{
   await form.locator('[type=submit]').click();assert.equal((await sent).status(),201);await pane.locator('[data-review-result] output').waitFor();
   assert((await pane.locator('[data-review-value=conclusion]').textContent())!.includes(role));assert(await pane.locator('[data-review-form]').isHidden());await shot(page,role+'-nonpromotion-saved-1440');
   checks.push(role+'：非推广原共享ID提示、已复盘查看／编辑、取消还原、关闭保护、真实保存与局部回显');
-  if(role==='admin')clips.push({name:'nonpromotion-edit',from:clipFrom,to:(Date.now()-videoZero)/1000});
+  if(role==='admin')clips.push({name:'nonpromotion-edit',from:clipFrom,to:(performance.now()-videoZero)/1000});
   await page.keyboard.press('Escape');await pane.waitFor({state:'hidden'});
   await page.goto(baseURL+'/business/non-promotion-review?view=pending&row='+non.schedule.id+':day_15');pane=page.locator('[data-inspector].is-open');await pane.waitFor();
   assert(await pane.locator('[data-review-form]').isVisible());assert.equal(await pane.locator('[data-review-result]').count(),0);await shot(page,role+'-nonpromotion-pending-1440');await page.keyboard.press('Escape');await pane.waitFor({state:'hidden'});
@@ -115,7 +115,7 @@ try{
   let lookupReads=0;const countLookup=(request:any)=>{if(request.url().includes('/api/content-search?id='))lookupReads++;};page.on('request',countLookup);
   const legacyLookup=await (await context.request.get(baseURL+'/api/content-search?id='+source.post.schedule.id)).json();
   assert(legacyLookup.history.every((event:any)=>typeof event.beforeLabel==='string'&&typeof event.afterLabel==='string'&&!!event.createdAt),'旧标签页查帖历史字段继续兼容');
-  clipFrom=(Date.now()-videoZero)/1000;await openPostLookup(page);await page.locator('[data-post-lookup] [name=q]').fill('面试课成功案例');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('[data-post-id="'+source.post.schedule.id+'"]').click();
+  clipFrom=(performance.now()-videoZero)/1000;await openPostLookup(page);await page.locator('[data-post-lookup] [name=q]').fill('面试课成功案例');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('[data-post-id="'+source.post.schedule.id+'"]').click();
   const lookup=page.locator('[data-lookup-detail]');await lookup.locator('.lookup-versions button').first().waitFor();assert.equal(await lookup.locator('.lookup-versions button').count(),2);assert.equal(await lookup.locator('h3').filter({hasText:'业务历史'}).count(),0);
   assert.equal(await lookup.locator('.lookup-versions [aria-current=true]').evaluate((el:HTMLElement)=>getComputedStyle(el).opacity),'1','当前版本保持清晰选中，不套用禁用淡化');
   await shot(page,role+'-lookup-view-1440');await lookup.locator('.lookup-versions button').filter({hasText:'V1'}).click();await lookup.locator('.lookup-identity h3').filter({hasText:'V1'}).waitFor();assert((await lookup.locator('.lookup-identity').textContent())!.includes('重新整理讲义'));
@@ -123,7 +123,7 @@ try{
   assert.equal(lookupReads,3,'每次进入或切换版本各读取一次，不新增轮询');page.off('request',countLookup);
   await lookup.locator('[data-business-history-timeline]').scrollIntoViewIfNeeded();await shot(page,role+'-lookup-history-1440');
   await page.locator('[data-lookup-back]').click();assert(await page.locator('[data-post-id="'+source.post.schedule.id+'"]').isVisible());await page.locator('[data-lookup-close]').click();
-  if(role==='admin')clips.push({name:'lookup-versions',from:clipFrom,to:(Date.now()-videoZero)/1000});
+  if(role==='admin')clips.push({name:'lookup-versions',from:clipFrom,to:(performance.now()-videoZero)/1000});
   checks.push(role+'：同源历史去重与推广筛选不置脏；年度时间块／空资料／版本内容；助手真实切版本及返回结果');
   if(role==='admin'){
    for(const width of [1920,1024]){

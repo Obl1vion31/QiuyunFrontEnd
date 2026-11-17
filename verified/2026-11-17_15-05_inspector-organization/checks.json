@@ -1,0 +1,71 @@
+{
+  "checks": [
+    "admin：推广就地更正、取消保留、503保留重试、原日期生效范围及保存后回到查看",
+    "admin：非推广原共享ID提示、已复盘查看／编辑、取消还原、关闭保护、真实保存与局部回显",
+    "admin：同源历史去重与推广筛选不置脏；年度时间块／空资料／版本内容；助手真实切版本及返回结果",
+    "employee：推广就地更正、取消保留、503保留重试、原日期生效范围及保存后回到查看",
+    "employee：非推广原共享ID提示、已复盘查看／编辑、取消还原、关闭保护、真实保存与局部回显",
+    "employee：同源历史去重与推广筛选不置脏；年度时间块／空资料／版本内容；助手真实切版本及返回结果",
+    "推广原指标及排期结构逐字段不变，原历史保留，非推广ID更正仅按原规则追加更正记录；桌面三档、原窄宽度、背景不伸缩、手机关闭入口与减少动态效果"
+  ],
+  "errors": [],
+  "shots": [
+    "admin-promotion-view-1440",
+    "admin-promotion-edit-1440",
+    "admin-promotion-saved-1440",
+    "admin-nonpromotion-view-1440",
+    "admin-nonpromotion-id-edit-1440",
+    "admin-nonpromotion-saved-1440",
+    "admin-nonpromotion-pending-1440",
+    "admin-schedule-history-1440",
+    "admin-schedule-promotion-filter-1440",
+    "admin-annual-view-1440",
+    "admin-annual-history-1440",
+    "admin-lookup-view-1440",
+    "admin-lookup-history-1440",
+    "promotion-edit-1920",
+    "nonpromotion-view-1920",
+    "annual-view-1920",
+    "schedule-history-1920",
+    "lookup-view-1920",
+    "promotion-edit-1024",
+    "nonpromotion-view-1024",
+    "annual-view-1024",
+    "schedule-history-1024",
+    "lookup-view-1024",
+    "employee-promotion-view-1440",
+    "employee-promotion-edit-1440",
+    "employee-promotion-saved-1440",
+    "employee-nonpromotion-view-1440",
+    "employee-nonpromotion-id-edit-1440",
+    "employee-nonpromotion-saved-1440",
+    "employee-nonpromotion-pending-1440",
+    "employee-schedule-history-1440",
+    "employee-schedule-promotion-filter-1440",
+    "employee-annual-view-1440",
+    "employee-annual-history-1440",
+    "employee-lookup-view-1440",
+    "employee-lookup-history-1440"
+  ],
+  "clips": [
+    {
+      "name": "promotion-inline",
+      "from": 9.769999996933621e-07,
+      "to": 8.213267078000001
+    },
+    {
+      "name": "nonpromotion-edit",
+      "from": 14.398431805,
+      "to": 17.407538372999998
+    },
+    {
+      "name": "lookup-versions",
+      "from": 0,
+      "to": 6.04,
+      "recording": "独立1440视口完整录制，无尺寸切换"
+    }
+  ],
+  "sourceCommit": "f095d80be434efb242c5c747a19d3b85569c2ce6",
+  "status": "已发布、已自检，待用户反馈",
+  "deployment": "dpl_2BJVEq8jxCYDftJwq8oWA1R2Tr6M"
+}

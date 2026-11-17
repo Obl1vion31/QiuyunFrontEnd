@@ -10,6 +10,8 @@
 
 `tests/inspector-organization.browser.ts`使用实际目标包与隔离PostgreSQL，覆盖五组已确认Inspector：推广日期范围更正、非推广共享ID与只读／编辑切换、排期历史合并、年度时间块及助手版本选择。双方真实保存、取消与失败输入保留、ID保存后读取失败只读重试、待复盘直接填写、历史节点及原字段保持；桌面1920／1440／1024，员工1440，手机仅窄详情关闭与明显问题。通过`INSPECTOR_ORG_ENTRY`指定包入口、`INSPECTOR_ORG_DIR`指定截图及过程录像。`business-history-inspector.browser.ts`补验共享历史筛选分页、延期理由更正及慢读竞争；ID专项和覆盖层用例沿用新的就地更正入口。
 
+`tests/inspector-promotion-actions.browser.ts`另以已发布、推广待开始的真实前置条件，核对排期中的首次安排表单仍可由双方保存，不将实际操作随只读历史合并而移除。
+
 `tests/history-inspector-overlay.browser.ts`在实际运行包和隔离PostgreSQL核对推广历史帖子／日视角、每日生命线及非推广历史平铺／分类视图：同时检查原Inspector的338px／380px宽度及桌面边距，并逐帧比较背景列表坐标及宽度，前后核对正文、顶栏和侧栏；检查滚动锁、Esc／遮罩、焦点、快速前后退、未保存取消和减少动态效果。不能只因左侧不伸缩就将面板擅自加宽认定通过。`HISTORY_OVERLAY_ENTRY`指定运行入口，`HISTORY_OVERLAY_DIR`指定产物；`HISTORY_OVERLAY_BEFORE=1`只记录旧停靠包的1440挤压。桌面1920／1440／1024，员工1440。
 
 先按本次改动及真实消费者选择最小必要覆盖。下方是按需专项目录，历史交接的命令、五档截图和PDF页数不是每轮要求。
