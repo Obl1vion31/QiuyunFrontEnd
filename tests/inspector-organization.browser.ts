@@ -115,6 +115,7 @@ try{
   let lookupReads=0;const countLookup=(request:any)=>{if(request.url().includes('/api/content-search?id='))lookupReads++;};page.on('request',countLookup);
   clipFrom=(Date.now()-videoZero)/1000;await openPostLookup(page);await page.locator('[data-post-lookup] [name=q]').fill('面试课成功案例');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('[data-post-id="'+source.post.schedule.id+'"]').click();
   const lookup=page.locator('[data-lookup-detail]');await lookup.locator('.lookup-versions button').first().waitFor();assert.equal(await lookup.locator('.lookup-versions button').count(),2);assert.equal(await lookup.locator('h3').filter({hasText:'业务历史'}).count(),0);
+  assert.equal(await lookup.locator('.lookup-versions [aria-current=true]').evaluate((el:HTMLElement)=>getComputedStyle(el).opacity),'1','当前版本保持清晰选中，不套用禁用淡化');
   await shot(page,role+'-lookup-view-1440');await lookup.locator('.lookup-versions button').filter({hasText:'V1'}).click();await lookup.locator('.lookup-identity h3').filter({hasText:'V1'}).waitFor();assert((await lookup.locator('.lookup-identity').textContent())!.includes('重新整理讲义'));
   await lookup.locator('.lookup-versions button').filter({hasText:'V0'}).click();await lookup.locator('.lookup-identity h3').filter({hasText:'V0'}).waitFor();
   assert.equal(lookupReads,3,'每次进入或切换版本各读取一次，不新增轮询');page.off('request',countLookup);
