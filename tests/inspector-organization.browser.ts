@@ -113,6 +113,8 @@ try{
   await shot(page,role+'-annual-view-1440');await pane.locator('[data-load-history]').click();await pane.locator('[data-history-list] article').first().waitFor();await pane.locator('[data-history-list] article button').first().click();await pane.locator('.snapshot-view').waitFor();await shot(page,role+'-annual-history-1440');
   await page.keyboard.press('Escape');await pane.waitFor({state:'hidden'});
   let lookupReads=0;const countLookup=(request:any)=>{if(request.url().includes('/api/content-search?id='))lookupReads++;};page.on('request',countLookup);
+  const legacyLookup=await (await context.request.get(baseURL+'/api/content-search?id='+source.post.schedule.id)).json();
+  assert(legacyLookup.history.every((event:any)=>typeof event.beforeLabel==='string'&&typeof event.afterLabel==='string'&&!!event.createdAt),'旧标签页查帖历史字段继续兼容');
   clipFrom=(Date.now()-videoZero)/1000;await openPostLookup(page);await page.locator('[data-post-lookup] [name=q]').fill('面试课成功案例');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('[data-post-id="'+source.post.schedule.id+'"]').click();
   const lookup=page.locator('[data-lookup-detail]');await lookup.locator('.lookup-versions button').first().waitFor();assert.equal(await lookup.locator('.lookup-versions button').count(),2);assert.equal(await lookup.locator('h3').filter({hasText:'业务历史'}).count(),0);
   assert.equal(await lookup.locator('.lookup-versions [aria-current=true]').evaluate((el:HTMLElement)=>getComputedStyle(el).opacity),'1','当前版本保持清晰选中，不套用禁用淡化');
