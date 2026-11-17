@@ -809,7 +809,7 @@ export interface WeeklyMeetingDraft {
   nonPromotionNotes?: Record<string,string>;
   coreConclusion: string;
   nextAction: string;
-  promotionInputs: Record<string, { confirmed?:boolean; rateRange?:{from:string;through:string}|null; rateNeedsReview?:boolean; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
+  promotionInputs: Record<string, { confirmed?:boolean; rateRange?:{from:string;through:string}|null; rateNeedsReview?:boolean; clickRateBasis?:{mode:'auto'|'manual'|'unavailable';impressionCount:number;clickCount:number;missingDates:string[]}; clickRate: number | null; recordedThrough: string; currentSituation: string; activeAction: string }>;
   issues: Array<{ id?: string; problem: string; conclusion: string; status: 'pending' | 'validating' | 'resolved' | 'paused' }>;
   nonPromotionSelections: Array<{ scheduleId: string; checkpointType: string }>;
 }

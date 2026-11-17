@@ -350,7 +350,7 @@
  .weekly-record-details>summary{padding:10px 0;min-height:44px}
  .weekly-record-grid .weekly-promotion-controls{width:100%}
 }
-@container (max-width:300px){.weekly-record-grid .weekly-metrics.weekly-promotion-metrics{grid-template-columns:1fr 1fr}.weekly-record-grid .weekly-promotion-metrics>label{grid-column:1/-1}.weekly-record-grid .weekly-promotion-metrics>label .weekly-rate-value{justify-content:flex-start}}
+@container (max-width:300px){.weekly-record-grid .weekly-metrics.weekly-promotion-metrics{grid-template-columns:1fr 1fr}.weekly-record-grid .weekly-promotion-metrics>:is(label,.weekly-promotion-click-rate){grid-column:1/-1}.weekly-record-grid .weekly-promotion-metrics>:is(label,.weekly-promotion-click-rate) .weekly-rate-value{justify-content:flex-start}}
 @media print{
  .meeting-contextbar,.weekly-meeting-settings{display:none!important}
  .weekly-results .weekly-final-stage{display:inline-flex}
@@ -361,3 +361,6 @@
  .weekly-node-results .weekly-node-result{font-size:17px;line-height:24px}
  .weekly-record-details{display:none}
 }
+
+.weekly-promotion-rate-label{display:flex;align-items:center;gap:4px}
+.weekly-promotion-rate-label>.weekly-card-reference{display:flex;align-items:center;height:18px}

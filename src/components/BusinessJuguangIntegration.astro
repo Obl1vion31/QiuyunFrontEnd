@@ -58,7 +58,7 @@ const outcome = result ? outcomes[result] : '';
     <div class="integration-body integration-boundary">
       <p>读取范围由已授权广告账户、笔记 ID、日期范围及归因口径共同决定。离线核心数据通常在次日 10 点后产出；连接检查使用北京时间前两天的数据，减少尚未产出的影响。查询成功但没有记录，不能解释为笔记自然数据为零。</p>
       <p>策略由人决定。实际开口、实际留资、当日状态、次日安排和例会决定均由业务人员维护；API 只带入消耗、平台开口、平台留资、曝光量与点击量。聚光字段标明来源，人工覆盖须填写原因；失败或无匹配保留原值。</p>
-      <p>权限保持 report_service。用于2026-10-01起的推广日度、补录和历史编辑；已保存的消耗与平台人数继续用于推广累计和例会统计。聚光归因数据不代表整篇笔记的自然数据。</p>
+      <p>权限保持 report_service。用于2026-10-01起的推广日度、补录和历史编辑；已保存的消耗与平台人数继续用于推广累计和例会统计；曝光与点击用于周例会点击率自动计算，缺数时例外手填。聚光归因数据不代表整篇笔记的自然数据。</p>
       <p>每次新增接口、使用字段或数据去向时，同步更新本页的接口、用途与接入程度，再开放相应功能。</p>
       <p class="official-links">官方依据：<a href="https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=3803" target="_blank" rel="noreferrer">笔记离线报表</a><a href="https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=4927" target="_blank" rel="noreferrer">指标字典</a><a href="https://ad-market.xiaohongshu.com/docs-center?bizType=943&articleId=3195" target="_blank" rel="noreferrer">授权范围</a></p>
     </div>
