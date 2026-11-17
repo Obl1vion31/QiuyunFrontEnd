@@ -335,3 +335,5 @@ content-config-drag.browser.ts使用本机隔离PostgreSQL验证按默认运营�
 聚光后台续期使用 `tests/juguang-renewal.integration.ts`（实际目标包＋本机隔离PostgreSQL）：Bearer／方法门禁、提前续期与重复触发、凭据轮换、失败保留／恢复、只读scope、重授权清理和与手动检查的真实竞争。页面状态由 `tests/juguang-renewal.browser.ts` 检查。
 
 推广日详情由`juguang-daily.browser.ts`覆盖已保存API来源、未保存来源与缺报表手填语义，检查三档桌面338／380窄宽、三列指标、人数与成本配对、字段公式popover及原编辑表单；`history-inspector-overlay.browser.ts`继续核对共享资源入口在推广／非推广详情的几何、焦点与未保存保护。
+
+例会CTR专项运行`node --import tsx --test tests/meeting-auto-rate.test.ts tests/meeting-card-rules.test.ts tests/meeting-rate-comparison.test.ts`与`node --import tsx tests/meeting-auto-rate.browser.ts`。后者使用真实隔离PostgreSQL及Vercel目标包，验证服务端复算、手填例外、补齐刷新、确认／定稿、冻结兼容和实际PDF。`MEETING_AUTO_RATE_DIR`指定证据目录；UI核对三档桌面，390只明显溢出，冻结旧值不从实时数据重算。

@@ -7,7 +7,7 @@ export const juguangInterfaces = [
 ];
 export const juguangFields = [
   {field:'fee',name:'推广消耗',use:'推广复盘的消耗；按授权账户与当天笔记 ID 汇总'},
-  {field:'impression / click',name:'推广曝光量 / 点击量',use:'保存曝光、点击两个原始计数；点击率按点击量 ÷ 曝光量 × 100% 自动计算，零曝光显示 —'},
+  {field:'impression / click',name:'推广曝光量 / 点击量',use:'保存曝光、点击两个原始计数；日度及周例会按计数自动算点击率，零曝光显示 —；例会读取本站已保存数值，不另调API'},
   {field:'initiative_message',name:'私信开口人数',use:'带入平台开口：广告点击后24小时内的归因人数'},
   {field:'msg_leads_num',name:'私信留资人数',use:'带入平台留资：广告点击后7天内、依赖客资标注的归因人数'},
   {field:'like / collect / comment',name:'归因点赞 / 收藏 / 评论',use:'广告归因互动，不能作为笔记全部自然互动'},

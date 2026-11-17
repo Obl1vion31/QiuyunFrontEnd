@@ -17,7 +17,7 @@ export function meetingFinalizationIssue(draft:WeeklyMeetingDraft,stage:'pre'|'p
  const fields=[...(!monthly?['situation' as const,'strategy' as const]:[]),'coreConclusion',...(stage==='post'?['nextAction' as const]:[])] as const;
  const labels={situation:'衡量情况',strategy:'本期具体动作',coreConclusion:'核心结论',nextAction:'下一步行动'};
  for(const field of fields)if(!String(draft[field]??'').trim())return {message:`请补充${labels[field]}。`,target:{kind:'conclusion',field}};
- for(const key of monthly?[]:draft.promotionSelections??[])if(draft.promotionInputs[key]?.clickRate==null)return {message:'请补齐已纳入推广卡片的点击率。',target:{kind:'promotion',key}};
+ for(const key of monthly?[]:draft.promotionSelections??[])if(draft.promotionInputs[key]?.clickRate==null&&draft.promotionInputs[key]?.clickRateBasis?.mode!=='unavailable')return {message:'请补齐缺少曝光或点击数据卡片的手填点击率。',target:{kind:'promotion',key}};
  for(const key of monthly?[]:draft.promotionSelections??[])if(draft.promotionInputs[key]?.rateNeedsReview)return {message:'数据区间已变化，请重新确认推广卡片的点击率。',target:{kind:'promotion',key}};
  for(const [key,input] of Object.entries(draft.nonPromotionInputs??{}))if(!monthly&&input.editing)return {message:'请先确认非推广卡片内的修改。',target:{kind:'nonPromotion',key}};
  const incompleteIssue=draft.issues.findIndex(issue=>hasMeetingIssueContent(issue)&&!issue.problem.trim());
