@@ -49,7 +49,7 @@
 .lookup-detail-section .surface-resource{margin:0;display:flex}
 .lookup-versions{display:flex;gap:8px;flex-wrap:wrap}
 .lookup-detail-section .lookup-versions button{flex:none;margin:0;min-width:48px;min-height:34px;padding:5px 12px!important;justify-content:center!important;text-align:center;font-variant-numeric:tabular-nums}
-.lookup-versions button[aria-current=true]{opacity:1;color:var(--console-blue);border-color:#adc2e0;background:#eaf1fc}
+[data-post-lookup] .lookup-versions button[aria-current=true]{opacity:1;color:var(--console-blue);border-color:#adc2e0;background:#eaf1fc}
 .lookup-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:12px 0;padding:12px 0;border-top:1px solid var(--console-line);border-bottom:1px solid var(--console-line)}
 .lookup-totals>div{padding:0 14px;border-left:1px solid var(--console-line)}
 .lookup-totals>div:first-child{padding-left:0;border-left:0}

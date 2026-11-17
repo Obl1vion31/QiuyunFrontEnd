@@ -16,7 +16,11 @@ const clockFile=process.cwd()+'/'+dir+'/clock.txt';await writeFile(clockFile,'20
 const f=await startPostgresFixture({clockFile,entry:process.env.INSPECTOR_ORG_ENTRY}),{db,baseURL}=f;
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);const browser=await chromium.launch({headless:true});
 const checks:string[]=[],errors:string[]=[],shots:string[]=[],clips:Array<{name:string;from:number;to:number}>=[];
-async function shot(page:any,name:string){await settleBusinessUI(page);await page.mouse.move(0,0);await page.screenshot({path:dir+'/screenshots/'+name+'.png'});shots.push(name);}
+async function shot(page:any,name:string){
+ await settleBusinessUI(page);await page.mouse.move(0,0);await page.screenshot({path:dir+'/screenshots/'+name+'.png'});
+ const pane=page.locator('[data-inspector].is-open,[data-post-lookup][open]').first();if(await pane.count())await pane.screenshot({path:dir+'/screenshots/'+name+'-panel.png'});
+ shots.push(name);
+}
 const bounds=(page:any)=>page.evaluate(()=>[...document.querySelectorAll('.business-toolbar,.business-sidebar,main.business-console-content')].map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width};}));
 async function metadata(pane:any){const fold=pane.locator('.surface-resource-meta');if(await fold.count()&&await fold.getAttribute('open')===null)await fold.locator(':scope>summary').click();}
 async function openPromotion(page:any,metric:string){
