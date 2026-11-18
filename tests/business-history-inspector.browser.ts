@@ -44,8 +44,8 @@ try{
  async function open(p=page,id=first.id){await p.goto(baseURL+'/business/operations-schedule?month=2026-11&row='+id);await p.locator(`[data-schedule-workflow][data-schedule-id="${id}"][data-ready=true]`).waitFor({state:'attached'});await settleBusinessUI(p);}
  async function close(p=page){await p.locator('[data-close-inspector]').click();await p.locator('#schedule-panel').waitFor({state:'hidden'});}
  for(const[role,p]of[['admin',page],['employee',worker]] as const)for(const width of role==='admin'?[1920,1440,1024]:[1440]){
-  await p.setViewportSize({width,height:1000});await open(p);assert.notEqual(await root(p).getAttribute('open'),null);assert.equal(await p.getByText('排期执行记录',{exact:true}).count(),0);
-  await shot(`${role}-schedule-open-${width}`,p);if(role==='admin'&&width===1440)clipStart=(Date.now()-videoStarted)/1000;await root(p).locator(':scope>summary').focus();await p.keyboard.press('Enter');await p.keyboard.press('Enter');await root(p).scrollIntoViewIfNeeded();
+  await p.setViewportSize({width,height:1000});await open(p);assert.equal(await root(p).getAttribute('open'),null);assert.equal(await p.getByText('排期执行记录',{exact:true}).count(),0);
+  await shot(`${role}-schedule-open-${width}`,p);if(role==='admin'&&width===1440)clipStart=(Date.now()-videoStarted)/1000;await root(p).locator(':scope>summary').focus();await p.keyboard.press('Enter');await p.keyboard.press('Enter');await p.keyboard.press('Enter');await root(p).scrollIntoViewIfNeeded();
   assert.equal(await root(p).locator('[data-history-event]:visible').count(),10);await root(p).getByRole('button',{name:'查看更多',exact:true}).click();assert.equal(await root(p).locator('[data-history-event]:visible').count(),12);
   const node=await root(p).locator('[data-history-event]').first().elementHandle();await root(p).locator('input[value=schedule]').check();assert.equal(await root(p).locator('[data-history-event]:visible').count(),2);assert(await node!.evaluate((n:HTMLElement)=>n.isConnected));
   const mixed=root(p).locator('[data-history-event]').filter({hasText:'需求未到'});assert.match(await mixed.innerText(),/2026-11-10 17:00.*→.*2026-11-25 18:00/s);
@@ -53,7 +53,7 @@ try{
   assert.match(await mixed.locator('strong').first().evaluate((n:HTMLElement)=>getComputedStyle(n).fontFamily),/MiSans/);
   if(role==='admin'&&width===1440)clipEnd=(Date.now()-videoStarted)/1000;await root(p).locator('input[value=all]').check();await close(p);
  }
- checks.push('1920/1440/1024桌面与员工1440：默认展开、键盘折叠／重开、10条分页、筛选不重建节点、前后值与依据、MiSans');
+ checks.push('1920/1440/1024桌面与员工1440：默认收起、键盘展开／折叠／重开、10条分页、筛选不重建节点、前后值与依据、MiSans');
  await page.setViewportSize({width:1440,height:1000});await open();await page.locator('[data-inspector-edit]').click();const title=page.locator('#schedule-form [name=contentName]');await title.fill('尚未保存的标题');await page.locator('#schedule-form [data-close]').filter({hasText:'取消'}).click();await respondToBusinessConfirm(page,false);assert.equal(await title.inputValue(),'尚未保存的标题');await page.locator('#schedule-form [data-close]').filter({hasText:'取消'}).click();await respondToBusinessConfirm(page,true);await page.locator('#schedule-panel[data-view=detail]').waitFor();
  await page.locator('[data-inspector-publication]').click();await fillBusinessDateTime(page.locator('#publication-form'),'actualPublishAt','2026-11-15T10:00');await page.locator('#publicationUrl').fill('https://www.xiaohongshu.com/explore/123456789012345678901234');await page.locator('[data-publication-delay-days][data-ready=true]').waitFor({state:'attached'});
  const published=page.waitForResponse((r:any)=>r.url().endsWith('/publication')&&r.request().method()==='PATCH');await page.locator('#publication-form button[type=submit]').click();assert.equal((await published).status(),200);await page.locator('#schedule-panel[data-view=detail]').waitFor();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});
@@ -75,6 +75,13 @@ try{
  const delayed=await seedLinkPost(db,'延期说明独立区验收','2026-11-15T18:00');
  const delay=()=>page.locator('[data-schedule-delay]');
  await open(page,delayed.schedule.id);
+ assert.equal(await delay().locator('[data-schedule-delay-fold]').getAttribute('open'),null);
+ assert.equal(await root().getAttribute('open'),null);
+ assert.equal(await delay().locator('[data-schedule-delay-fold]>summary').evaluate((el:HTMLElement)=>getComputedStyle(el).fontSize),'14px');
+ assert.equal(await root().locator(':scope>summary').evaluate((el:HTMLElement)=>getComputedStyle(el).fontSize),'14px');
+ assert(await delay().evaluate((node:HTMLElement)=>node.nextElementSibling?.hasAttribute('data-schedule-workflow-history')));
+ assert(Math.abs((await root().locator(':scope>summary').boundingBox()).y-((await delay().locator('[data-schedule-delay-fold]>summary').boundingBox()).y+(await delay().locator('[data-schedule-delay-fold]>summary').boundingBox()).height))<=1,'两条折叠标题连续排列');
+ await delay().locator('[data-schedule-delay-fold]>summary').click();
  const pendingReason=delay().locator('.delay-day form').first();
  await pendingReason.locator('[name=responsibility][value=self]').check();await pendingReason.locator('textarea').fill('讲义仍在核对');
  const savedReason=page.waitForResponse((r:any)=>r.url().endsWith('/delay-reasons')&&r.request().method()==='POST');await pendingReason.locator('button[type=submit]').click();assert.equal((await savedReason).status(),200);
@@ -82,7 +89,7 @@ try{
  assert.match(await delay().innerText(),/原因归属.*运营原因.*延期说明.*讲义仍在核对.*Obl1vion Shi/s);
  assert(!await delay().innerText().then((t:string)=>t.includes('test_admin')));
  for(const width of [1920,1440,1024]){
-  await page.setViewportSize({width,height:1000});await delay().scrollIntoViewIfNeeded();await shot('delay-read-'+width);
+  await page.setViewportSize({width,height:1000});await delay().scrollIntoViewIfNeeded();await delay().locator('[data-schedule-delay-fold]>summary').click();await shot('records-collapsed-'+width);await delay().locator('[data-schedule-delay-fold]>summary').click();await shot('delay-read-'+width);
  }
  await page.setViewportSize({width:1440,height:1000});clipStart=(Date.now()-videoStarted)/1000;
  await delay().getByRole('button',{name:'更正',exact:true}).click();
@@ -100,22 +107,22 @@ try{
  await page.route('**/delay-reasons',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'隔离保存失败'})}));
  await correction.locator('button[type=submit]').click();await correction.locator('output').getByText('隔离保存失败',{exact:true}).waitFor();assert.equal(await correction.locator('textarea').inputValue(),'讲义已进入二次校对');await shot('delay-save-failed-1024');await page.unroute('**/delay-reasons');
  const correctedReason=page.waitForResponse((r:any)=>r.url().endsWith('/delay-reasons')&&r.request().method()==='POST');await correction.locator('button[type=submit]').click();assert.equal((await correctedReason).status(),200);
- await delay().getByRole('button',{name:'更正',exact:true}).waitFor();await delay().locator('.delay-records>summary').click();assert.match(await delay().innerText(),/讲义仍在核对/);await shot('delay-records-1024');
+ await delay().getByRole('button',{name:'更正',exact:true}).waitFor();assert.equal(await delay().locator('.delay-records').count(),0);assert.equal(await delay().getByText('讲义仍在核对',{exact:true}).count(),0);assert.match(await delay().innerText(),/讲义已进入二次校对/);await shot('delay-latest-1024');
  const data=await api('/api/operations-content/'+delayed.schedule.id+'/workflow');assert.equal(data.historyEvents.filter((e:any)=>e.id.startsWith('reason:')).length,0);assert.equal(data.days[0].saved.changedByLabel,'test_admin');assert.equal(data.days[0].saved.changedByName,'Obl1vion Shi');
  const lookupData=await api('/api/content-search?id='+delayed.schedule.id);assert.deepEqual(lookupData.delayDays,data.days);
- await close();await page.setViewportSize({width:1440,height:1000});await openPostLookup(page);await page.locator('[data-post-lookup] [name=q]').fill('延期说明独立区验收');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('[data-post-id="'+delayed.schedule.id+'"]').click();await page.locator('[data-lookup-detail] .schedule-delay').waitFor();assert.equal(await page.locator('[data-lookup-detail] .delay-edit').count(),0);await shot('lookup-delay-1440');await page.locator('[data-lookup-close]').click();
- await open(worker,delayed.schedule.id);const staffDelay=worker.locator('[data-schedule-delay]');await staffDelay.getByRole('button',{name:'更正',exact:true}).click();await staffDelay.locator('form:visible textarea').fill('员工更正说明');
+ await close();await page.setViewportSize({width:1440,height:1000});await openPostLookup(page);await page.locator('[data-post-lookup] [name=q]').fill('延期说明独立区验收');await page.locator('[data-post-lookup] button[type=submit]').click();await page.locator('[data-post-id="'+delayed.schedule.id+'"]').click();await page.locator('[data-lookup-detail] .schedule-delay').waitFor();assert.equal(await page.locator('[data-lookup-detail] .delay-edit').count(),0);assert.equal(await page.locator('[data-lookup-detail] [data-schedule-delay-fold]').getAttribute('open'),null);await shot('lookup-records-collapsed-1440');await page.locator('[data-lookup-detail] [data-schedule-delay-fold]>summary').click();assert.equal(await page.locator('[data-lookup-detail] .delay-records').count(),0);await shot('lookup-delay-1440');await page.locator('[data-lookup-close]').click();
+ await open(worker,delayed.schedule.id);const staffDelay=worker.locator('[data-schedule-delay]');await staffDelay.locator('[data-schedule-delay-fold]>summary').click();await staffDelay.getByRole('button',{name:'更正',exact:true}).click();await staffDelay.locator('form:visible textarea').fill('员工更正说明');
  const staffSave=worker.waitForResponse((r:any)=>r.url().endsWith('/delay-reasons')&&r.request().method()==='POST');await staffDelay.locator('form:visible button[type=submit]').click();assert.equal((await staffSave).status(),200);await staffDelay.getByText('jennifer qiao',{exact:false}).first().waitFor();await shot('employee-delay-saved-1440',worker);
 
  await close(worker);await page.setViewportSize({width:390,height:844});await open(page,delayed.schedule.id);await delay().scrollIntoViewIfNeeded();await shot('delay-obvious-mobile-390');assert(await page.locator('[data-close-inspector]').isVisible());await close();await page.setViewportSize({width:1440,height:1000});
- const multi=await seedLinkPost(db,'多日延期草稿验收','2026-11-13T18:00');await open(page,multi.schedule.id);
+ const multi=await seedLinkPost(db,'多日延期草稿验收','2026-11-13T18:00');await open(page,multi.schedule.id);await delay().locator('[data-schedule-delay-fold]>summary').click();
  assert.equal(await delay().locator('.delay-day').count(),3);
  const second=delay().locator('.delay-day').nth(1);await second.locator('summary').click();await second.locator('[name=responsibility][value=external]').check();await second.locator('textarea').fill('第二日草稿必须保留');
  const firstPending=delay().locator('.delay-day').first();await firstPending.locator('[name=responsibility][value=self]').check();await firstPending.locator('textarea').fill('首日已完成说明');
  const oneSaved=page.waitForResponse((r:any)=>r.url().endsWith('/delay-reasons')&&r.request().method()==='POST');await firstPending.locator('button[type=submit]').click();assert.equal((await oneSaved).status(),200);
  await delay().getByRole('button',{name:'更正',exact:true}).waitFor();assert.equal(await delay().locator('[data-delay-key="0:2"] textarea').inputValue(),'第二日草稿必须保留');
  await delay().locator('[data-delay-key="0:2"]').getByRole('button',{name:'取消',exact:true}).click();await respondToBusinessConfirm(page,true);
- await close();await open();checks.push('延期独立日期区：三档只读、两档编辑、取消保护、503输入保留、双角色真实更正和姓名、助手同源只读，业务历史不重复延期；原审计账号保留');
+ await close();await open();checks.push('延期与业务历史相邻且默认收起，延期仅最新说明：三档只读、两档编辑、取消保护、503输入保留、双角色真实更正和姓名、助手同源只读，业务历史不重复延期；原审计账号保留');
  await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});await open();assert(await page.locator('[data-close-inspector]').isVisible());if(await root().getAttribute('open')===null)await root().locator(':scope>summary').click();await shot('schedule-obvious-mobile-390');await close();
  assert.deepEqual((await api(`/api/operations-content/${first.id}/workflow`)).schedule.executionHistory,originalRaw);checks.push('慢读、失败重试、空历史与减少动态效果；390仅检查遮挡/关闭/页面溢出；读取前后原始排期历史不变');
  assert.deepEqual(errors,[]);await writeFile(dir+'/video-timing.json',JSON.stringify({start:Math.max(0,clipStart-0.3),duration:clipEnd-clipStart+0.3}));await writeFile(dir+'/result.json',JSON.stringify({passed:true,checks,shots,errors,productionWrites:false},null,2));console.log(checks.join('\n'));

@@ -1,0 +1,11 @@
+.business-record-disclosure{min-width:0}
+.business-record-disclosure>summary,
+:is(.business-inspector[data-inspector],.business-sheet[data-post-lookup]) .business-record-disclosure>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font:500 var(--console-text)/var(--console-text-leading) var(--console-font);padding:10px 0;color:var(--console-ink)}
+.business-record-disclosure>summary::-webkit-details-marker{display:none}
+.business-record-disclosure>summary::before{content:"";flex:none;width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg)}
+.business-record-disclosure[open]>summary::before{transform:rotate(135deg)}
+.business-record-toggle{margin-left:auto;color:var(--console-blue);font:400 13px/20px var(--console-font)}
+.business-record-toggle>span+span{display:none}
+.business-record-disclosure[open]>summary .business-record-toggle>span:first-child{display:none}
+.business-record-disclosure[open]>summary .business-record-toggle>span+span{display:inline}
+.business-record-disclosure>summary:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px;border-radius:4px}

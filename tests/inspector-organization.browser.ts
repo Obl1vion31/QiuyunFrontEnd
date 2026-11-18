@@ -18,7 +18,11 @@ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);const browser=awai
 const checks:string[]=[],errors:string[]=[],shots:string[]=[],clips:Array<{name:string;from:number;to:number}>=[];
 async function shot(page:any,name:string){
  await settleBusinessUI(page);await page.mouse.move(0,0);await page.screenshot({path:dir+'/screenshots/'+name+'.png'});
- const pane=page.locator('[data-inspector].is-open,[data-post-lookup][open]').first();if(await pane.count())await pane.screenshot({path:dir+'/screenshots/'+name+'-panel.png'});
+ const pane=page.locator('[data-inspector].is-open,[data-post-lookup][open]').first();if(await pane.count()){
+  const dividers=await pane.locator('.surface-resource-meta,.review-result dl>div,.identity-panel,.annual-support,.annual-version-history,.block-detail,.inspector-identity,.lookup-detail-section,.lookup-totals,.snapshot-view,.promotion-detail-extra,.promotion-timeline-embedded,.promotion-day,.schedule-workflow-panel,.schedule-detail-section,.schedule-delay,.detail-list>div,.inspector-danger,.business-history-events>li').evaluateAll((nodes:HTMLElement[])=>nodes.filter(node=>node.getClientRects().length).filter(node=>{const style=getComputedStyle(node);return style.borderTopWidth!=='0px'||style.borderBottomWidth!=='0px';}).map(node=>node.className));
+  assert.deepEqual(dividers,[],name+'：详情分组及字段不重复画横线');
+  await pane.screenshot({path:dir+'/screenshots/'+name+'-panel.png'});
+ }
  shots.push(name);
 }
 const bounds=(page:any)=>page.evaluate(()=>[...document.querySelectorAll('.business-toolbar,.business-sidebar,main.business-console-content')].map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width};}));
@@ -103,6 +107,7 @@ try{
   await page.goto(baseURL+'/business/operations-schedule?month=2026-10&row='+source.post.schedule.id);
   const schedule=page.locator('#schedule-panel[open]');await schedule.waitFor();await page.locator('[data-schedule-workflow][data-ready=true]').waitFor({state:'attached'});await settleBusinessUI(page);
   const timeline=page.locator('[data-schedule-workflow-history] [data-business-history-timeline]');await timeline.waitFor();
+  assert.equal(await timeline.getAttribute('open'),null);await timeline.locator(':scope>summary').click();
   const ids=await timeline.locator('[data-history-event]').evaluateAll((nodes:HTMLElement[])=>nodes.map(node=>node.dataset.historyEvent));
   assert.equal(ids.length,new Set(ids).size);assert(await timeline.locator('input[value=promotion]').count());assert.equal(await page.locator('[data-promotion-state-history] [data-business-history]').count(),0);
   await page.locator('[data-inspector-path]').scrollIntoViewIfNeeded();await shot(page,role+'-schedule-history-1440');
@@ -121,7 +126,7 @@ try{
   await shot(page,role+'-lookup-view-1440');await lookup.locator('.lookup-versions button').filter({hasText:'V1'}).click();await lookup.locator('.lookup-identity h3').filter({hasText:'V1'}).waitFor();assert((await lookup.locator('.lookup-identity').textContent())!.includes('重新整理讲义'));
   await lookup.locator('.lookup-versions button').filter({hasText:'V0'}).click();await lookup.locator('.lookup-identity h3').filter({hasText:'V0'}).waitFor();
   assert.equal(lookupReads,3,'每次进入或切换版本各读取一次，不新增轮询');page.off('request',countLookup);
-  await lookup.locator('[data-business-history-timeline]').scrollIntoViewIfNeeded();await shot(page,role+'-lookup-history-1440');
+  await lookup.locator('[data-business-history-timeline]>summary').click();await lookup.locator('[data-business-history-timeline]').scrollIntoViewIfNeeded();await shot(page,role+'-lookup-history-1440');
   await page.locator('[data-lookup-back]').click();assert(await page.locator('[data-post-id="'+source.post.schedule.id+'"]').isVisible());await page.locator('[data-lookup-close]').click();
   if(role==='admin')clips.push({name:'lookup-versions',from:clipFrom,to:(performance.now()-videoZero)/1000});
   checks.push(role+'：同源历史去重与推广筛选不置脏；年度时间块／空资料／版本内容；助手真实切版本及返回结果');

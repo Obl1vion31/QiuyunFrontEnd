@@ -1,10 +1,10 @@
-.schedule-delay{min-width:0;padding-top:16px;border-top:1px solid var(--console-line);margin-top:20px}
+.schedule-delay{min-width:0;margin-top:16px}
 .schedule-delay[hidden],.schedule-delay [hidden]{display:none!important}
-.lookup-detail-section.schedule-delay{margin-top:0;border-top:0}
-.schedule-delay>h3{margin:0;font:600 15px/24px var(--console-font);color:var(--console-ink)}
+.lookup-detail-section.schedule-delay{margin-top:16px}
+.lookup-detail-section.schedule-delay:not([hidden])+.lookup-detail-section{margin-top:0}
+.delay-fold-body{padding-top:6px}
 .schedule-delay .delay-pending-count{margin:6px 0;color:var(--console-muted);font:400 13px/20px var(--console-font)}
 .delay-day{padding:16px 0;min-width:0}
-.delay-day+.delay-day{border-top:1px solid var(--console-line)}
 .delay-day-heading{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font:500 13px/22px var(--console-font);color:var(--console-ink)}
 summary.delay-day-heading{cursor:pointer}
 .delay-day-heading time{font-variant-numeric:tabular-nums}
@@ -17,14 +17,10 @@ summary.delay-day-heading{cursor:pointer}
 .delay-facts dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--console-ink);font:400 14px/22px var(--console-font)}
 .schedule-delay .delay-meta{margin:12px 0 0;color:var(--console-muted);font:400 12px/20px var(--console-font);overflow-wrap:anywhere}
 .schedule-delay .delay-meta:empty{display:none}
-.delay-records{margin-top:12px;font:400 13px/22px var(--console-font)}
-.delay-records>summary{cursor:pointer;color:var(--console-ink)}
-.delay-records>section{margin-top:12px;padding-top:12px;border-top:1px solid var(--console-line)}
-.delay-records strong{font:500 13px/22px var(--console-font)}
 .schedule-delay .workflow-form{gap:16px;margin-top:12px}
 .schedule-delay .business-reason-fields{grid-template-columns:1fr;gap:16px}
 .schedule-delay .business-form.business-form textarea{min-height:88px}
 .delay-form-actions{display:flex;justify-content:flex-end;gap:8px}
 .business-inspector[data-inspector] .delay-form-actions>button{width:auto;flex:none;min-width:80px}
 .schedule-delay .workflow-form output:empty{display:none}
-.schedule-delay button:focus-visible,.delay-records>summary:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px}
+.schedule-delay button:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px}

@@ -64,7 +64,11 @@ flowchart LR
 
 ## 共享界面接入
 
-延期说明由 schedule-delay.ts／schedule-delay.css 共用于排期与助手；排期适配器通过 prepare 接入原 reasonForm，助手仅展示。workflow 的 days 与查帖 delayDays 同源，history-people 仅追加姓名展示值，保存仍携带原更新时间及历史长度；通用业务历史不再生成延期事件。日期、当前字段与折叠记录共享布局，草稿按排期修订／天数保留，取消复用公共确认。
+排期单层 Sheet 与所有 modal Inspector 的遮罩点击统一接入 business-dialog.bindBusinessBackdrop，通过主指针起点、拖动及取消判断完整点击，再交回原关闭流程。不要只按 click 的最终坐标判断，浏览器会将内按外放的 click 归到整个 dialog。未保存保护及动画仍由原控制器负责，真实鼠标回归见 tests/inspector-pointer.browser.ts。
+
+延期说明由 schedule-delay.ts／schedule-delay.css 共用于排期与助手；排期适配器通过 prepare 接入原 reasonForm，助手仅展示。workflow 的 days 与查帖 delayDays 同源，history-people 仅追加姓名展示值，保存仍携带原更新时间及历史长度；通用业务历史不再生成延期事件。日期与最新字段共享布局，延期及业务历史由 business-record-disclosure 共用默认收起的标题，草稿按排期修订／天数保留，取消复用公共确认。
+
+详情正文依靠标题、对齐及组间留白，不给每个字段和分组增加横线。共享资料元信息在 workspace-glass，排期组间距在 schedule-panel，复盘／年度／助手的同类阅读规则在 inspector-organization；各业务源样式不再重复声明内部分隔线。头尾固定区域、表单控件及真实表格沿用原边界。inspector-organization.browser 同时核对这些消费者的实际分组样式和渲染图。
 
 根滚动由`BusinessConsoleFrame`的`body{overflow-x:clip}`和`business-dialog`共享锁配合；排期路由不再覆盖body横向overflow。ClientRouter切页会改变路由样式与公共样式的顺序，页面级hidden在根锁开启后会成为新的祖先滚动容器，导致sticky侧栏／顶栏按页面滚动量上移。回归通过真实“设置→排期”导航后深滚动打开面板，不能只硬刷新验证；入口见`tests/inspector-scroll-stability.browser.ts`。
 

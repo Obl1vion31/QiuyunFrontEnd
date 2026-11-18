@@ -119,7 +119,8 @@ function initialize() {
     const switched = panel!.dataset.loadedScheduleId !== id;
     const historyState=switched?undefined:historyViewState(historyHost);
     const delayHost=document.querySelector<HTMLElement>('[data-schedule-delay]')!;
-    const delayExpanded=new Set(switched?[]:[...delayHost.querySelectorAll<HTMLDetailsElement>('details[open]')].map(d=>d.dataset.delayRecords?d.dataset.delayRecords+'-history':d.dataset.delayKey!));
+    const delayOpen=switched?false:delayHost.querySelector<HTMLDetailsElement>('[data-schedule-delay-fold]')?.open??false;
+    const delayExpanded=new Set(switched?[]:[...delayHost.querySelectorAll<HTMLDetailsElement>('details[data-delay-key][open]')].map(d=>d.dataset.delayKey!));
     const retained = priorDrafts ?? new Map<string,ReasonDraft>();
     if (panel!.dataset.scheduleId === id) for (const form of [...panel!.querySelectorAll<HTMLFormElement>('form[data-dirty=true]'),...delayHost.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')]) {
       const data = new FormData(form);
@@ -162,7 +163,7 @@ function initialize() {
         const warning=element('p','尚未登记');warning.className='workflow-registration-warning';warning.setAttribute('role','status');panel!.append(warning);
       }
       const delayLabel=document.querySelector<HTMLElement>('[data-inspector-delay-label]');if(delayLabel){delayLabel.textContent=workflow.delayLabel;delayLabel.hidden=!workflow.delayLabel;}
-      appendScheduleDelay(delayHost,workflow.days,workflow.schedule.plannedPublishAt,{expanded:delayExpanded,prepare:(day,row,heading,readOnly)=>{
+      appendScheduleDelay(delayHost,workflow.days,workflow.schedule.plannedPublishAt,{expanded:delayExpanded,open:delayOpen,prepare:(day,row,heading,readOnly)=>{
         if(day.archived||!mayOperate('schedule.reason'))return;
         const form=reasonForm(day,id,()=>showPanel(id));form.hidden=!!day.saved;
         const prior=retained.get(row.dataset.delayKey!);

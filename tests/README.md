@@ -10,11 +10,13 @@
 
 `tests/workspace-pending.browser.ts` 使用实际运行包和隔离 PostgreSQL 核对三账号的新旧排期申请、三种非推广待办及录入／跳过／恢复、角色提醒和月度缺项明细。用 `WORKSPACE_PENDING_ENTRY` 指定入口，`WORKSPACE_PENDING_DIR` 指定截图目录。
 
+`tests/inspector-pointer.browser.ts` 使用实际目标包与本机隔离 PostgreSQL，覆盖排期详情／编辑／发布／移动、推广帖子／单日、非推广的内按外放、外按内放、遮罩拖动返回、pointercancel，正常遮罩点击、Esc、焦点及未保存确认；管理员1440／1024、员工1440和减少动态。`POINTER_BEFORE=1` 可对已有旧包复现排期误关闭，`POINTER_DIR` 指定原始证据目录。
+
 `tests/inspector-scroll-stability.browser.ts`使用实际目标包与隔离PostgreSQL，在直接进入及真实“设置→排期”导航后，深滚动打开详情、切换编辑／发布、取消与三种关闭，逐帧比较侧栏、品牌、顶栏、正文及页面位置；覆盖双角色、三档桌面、嵌套未保存确认和减少动态，390／320仅关闭及明显溢出。`INSPECTOR_SCROLL_ENTRY`指定包入口，`INSPECTOR_SCROLL_DIR`指定证据；`INSPECTOR_SCROLL_BEFORE=1`仅用于旧包复现并要求实际观测到上移，不作为修复通过结果。
 
 `tests/meeting-trend-popovers.browser.ts`使用实际目标包和隔离PostgreSQL冻结样本，验证周会四项总览与既有历史趋势的悬停、聚焦、单击保持、Esc及滚动关闭；检查零值／缺失点、日期单位、圆点热区与三档桌面避让，并确认零额外请求、员工可读、减少动态、有限窄屏与打印／冻结保持。通过`TREND_POPOVER_ENTRY`指定包入口、`TREND_POPOVER_DIR`指定截图和短录像。
 
-`tests/inspector-organization.browser.ts`使用实际目标包与隔离PostgreSQL，覆盖五组已确认Inspector：推广日期范围更正、非推广共享ID与只读／编辑切换、排期历史合并、年度时间块及助手版本选择。双方真实保存、取消与失败输入保留、ID保存后读取失败只读重试、待复盘直接填写、历史节点及原字段保持；桌面1920／1440／1024，员工1440，手机仅窄详情关闭与明显问题。通过`INSPECTOR_ORG_ENTRY`指定包入口、`INSPECTOR_ORG_DIR`指定截图及过程录像。`business-history-inspector.browser.ts`补验共享历史筛选分页、独立延期区、双角色姓名回显、逐日草稿保留、取消／保存失败及慢读竞争；ID专项和覆盖层用例沿用新的就地更正入口。
+`tests/inspector-organization.browser.ts`使用实际目标包与隔离PostgreSQL，覆盖五组已确认Inspector：推广日期范围更正、非推广共享ID与只读／编辑切换、排期历史合并、年度时间块及助手版本选择。同时核对各详情分组无重复横线及实际渲染；双方真实保存、取消与失败输入保留、ID保存后读取失败只读重试、待复盘直接填写、历史节点及原字段保持；桌面1920／1440／1024，员工1440，手机仅窄详情关闭与明显问题。通过`INSPECTOR_ORG_ENTRY`指定包入口、`INSPECTOR_ORG_DIR`指定截图及过程录像。`business-history-inspector.browser.ts`补验共享历史筛选分页、独立延期区、双角色姓名回显、逐日草稿保留、取消／保存失败及慢读竞争；ID专项和覆盖层用例沿用新的就地更正入口。
 
 `tests/inspector-promotion-actions.browser.ts`另以已发布、推广待开始的真实前置条件，核对排期中的首次安排表单仍可由双方保存，不将实际操作随只读历史合并而移除。
 
@@ -144,7 +146,7 @@ HTTP回归直接调用正式入口，使用本机隔离PostgreSQL。普通内容
 
 Inspector 验收检查左侧列表节点持续存在、无文档请求、滚动和筛选保留，以及快速选择、未保存取消、Esc、焦点返回、浏览器前进后退、移动端与减少动态效果。非推广检查同名排期独立分组、首轮／二轮基准隔离、分类明细与排序、保存刷新及网络失败保留输入。异步详情还需通过排期工作流和年度规划回归检查旧响应不会覆盖新选择。
 
-`pnpm test:inspector-loading` 使用隔离帖子与可控响应，在1920／1440／1280／1024／390／320px验证排期详情初读空分组高度为0、500ms后单处加载、空结果不移动资料起点；保留真实待办分隔、失败可见和重试、切帖/关闭后旧读清理及减少动态效果。截图及1440px录像保存在`.tools/test-artifacts/inspector-loading/`；`INSPECTOR_LOADING_DIR`可指定目录。`INSPECTOR_LOADING_BASELINE=1`仅用于修复前记录空分组边框的复现。
+`pnpm test:inspector-loading` 使用隔离帖子与可控响应，在1920／1440／1280／1024／390／320px验证排期详情初读空分组高度为0、500ms后单处加载、空结果不移动资料起点；保留真实待办分组、失败可见和重试、切帖/关闭后旧读清理及减少动态效果。截图及1440px录像保存在`.tools/test-artifacts/inspector-loading/`；`INSPECTOR_LOADING_DIR`可指定目录。`INSPECTOR_LOADING_BASELINE=1`仅用于修复前记录空分组边框的复现。
 
 非推广分类汇总七列单层表头、同类两轮上下排列，分类下方展开与平铺共用带阅读量和操作列的七列真实记录节点；无轮次筛选。比较两轮不同样本、缺失不补零、展开不导航、切换保留节点和分类展开，以及 Inspector 草稿。辅助信息实际字号不低于 12px。
 
@@ -323,7 +325,7 @@ React 18流式编码使用pnpm的react-dom@18.3.1补丁回移官方PR26228，版
 
 本次涉及首屏时序时，选1440px新上下文录制相关慢字体／慢历史、刷新或站内导航；检查标题、字形和读取过程，不以等待结束的静态图替代，也不作为无关改动的固定附加检查。
 
-`business-history-inspector.browser.ts`（旧`schedule-history-feedback.browser.ts`入口转发）使用本机隔离PostgreSQL与正式Vercel运行包，核对真实新建／跨周及内容修改、同次事件合并、发布登记和查帖同源；覆盖默认折叠、类别筛选、10条分页、节点保留、键盘、原编辑草稿、慢读、失败重试及空态。管理员1920／1440／1024、员工1440；390仅关闭与明显溢出。`BUSINESS_HISTORY_DIR`指定原始证据目录。`schedule-business-history.test.ts`覆盖来源合并、未知时间、复盘作用域、说明修订和技术记录排除。
+`business-history-inspector.browser.ts`（旧`schedule-history-feedback.browser.ts`入口转发）使用本机隔离PostgreSQL与正式Vercel运行包，核对真实新建／跨周及内容修改、同次事件合并、发布登记和查帖同源；覆盖相邻默认折叠的延期／业务历史、延期只展示最新内容、类别筛选、10条分页、节点保留、键盘、原编辑草稿、慢读、失败重试及空态。管理员1920／1440／1024、员工1440；390仅关闭与明显溢出。`BUSINESS_HISTORY_DIR`指定原始证据目录。`schedule-business-history.test.ts`覆盖来源合并、未知时间、复盘作用域、延期与历史分离及技术记录排除。
 
 `promotion-latest.browser.ts`使用11月4／5／6日今天均更新的隔离真实记录，复现旧日回流并验证主表仅保留6日。对比修改前后6日原行的几何和字体，锁定颜色按公共禁用规范验收；覆盖保存、刷新、历史更正后不回流、历史可读、双角色三档、390有限检查及跨午夜。`PROMOTION_LATEST_BASELINE=1`运行旧构建对照，`PROMOTION_LATEST_COMPARE`指定原行几何记录；最终图和录像仍须实际查看。
 

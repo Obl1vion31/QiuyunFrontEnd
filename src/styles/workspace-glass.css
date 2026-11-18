@@ -225,7 +225,7 @@ body:has(.business-console-frame[data-glass-surface]){background:#e2edf1}
 [data-glass-surface] :is(.business-action-primary,.business-action-secondary,.primary-action,.review-entry-button,.quiet-button):not([data-surface-press]):not(:disabled):active{transform:translateY(1px)}
 @media(prefers-reduced-motion:reduce){[data-glass-surface] :is(.business-action-primary,.business-action-secondary,.primary-action,.review-entry-button,.quiet-button):active{transform:none}}
 
-[data-glass-surface] .surface-resource-meta{margin:0 0 16px;border-top:1px solid var(--glass-line);border-bottom:1px solid var(--glass-line)}
+[data-glass-surface] .surface-resource-meta{margin:0 0 16px}
 [data-glass-surface] .surface-resource-meta>summary{display:flex;align-items:center;gap:9px;min-height:40px;list-style:none;cursor:pointer;color:#5e7484;font:400 12px/20px var(--console-font)}
 [data-glass-surface] .surface-resource-meta>summary::-webkit-details-marker{display:none}
 [data-glass-surface] .surface-resource-meta>summary::before{content:"";width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg);transition:transform 160ms}

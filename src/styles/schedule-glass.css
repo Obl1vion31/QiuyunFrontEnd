@@ -52,7 +52,7 @@
 .business-console-frame[data-glass-surface="schedule"] .inspector .surface-resources{margin-top:18px}
 .business-console-frame[data-glass-surface="schedule"] .inspector .surface-resource{min-height:66px}
 .business-console-frame[data-glass-surface="schedule"] .inspector :is(.non-plan-panel,.schedule-workflow-panel){background:#f1f7f9;border-color:#d9e5ea}
-.business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference{border-top:1px solid var(--glass-line);padding-top:16px}
+.business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference{margin-top:24px;padding-top:0}
 .business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference>summary{font:500 13px/20px var(--console-font);color:#536d7e;cursor:pointer}
 .business-console-frame[data-glass-surface="schedule"] .inspector .inspector-reference .inspector-section{margin-top:14px}
 .business-console-frame[data-glass-surface="schedule"] .delay-field{border-left-width:1px}

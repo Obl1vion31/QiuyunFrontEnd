@@ -358,7 +358,6 @@ const clientCategories=subjectCategories;
                 </dl>
                 <p class="inspector-delay-label" data-inspector-delay-label hidden></p>
                 <section class="inspector-section schedule-workflow-panel" data-schedule-workflow aria-label="当前待处理" hidden></section>
-                <section data-schedule-delay aria-label="延期说明" hidden></section>
                 <BusinessResourceLinks dynamic name="当前帖子"/>
                 <section class="non-plan-panel schedule-detail-section" data-review-plan-panel hidden aria-label="复盘计划">
                   <h3>复盘计划</h3><p data-review-plan-summary></p>
@@ -370,6 +369,7 @@ const clientCategories=subjectCategories;
                   <div class="schedule-section-heading"><h3>版本与改帖</h3><div class="version-path" data-inspector-path aria-label="版本关系"></div></div>
                   <div class="inspector-revision" data-inspector-revision-section><p data-inspector-revision-summary></p></div>
                 </section>
+                <section data-schedule-delay aria-label="延期说明" hidden></section>
                 <section class="inspector-section schedule-workflow-history schedule-detail-section" data-schedule-workflow-history aria-label="历史记录" hidden></section>
                 <section class="schedule-detail-section" data-promotion-state-history hidden></section>
                 <details class="inspector-danger business-form" data-business-operation="schedule.delete" hidden={Astro.locals.user?.role!=='admin'}><summary>更多操作</summary><label>取消排期原因<textarea data-inspector-cancel-reason rows="2" maxlength="2000"></textarea></label><button type="button" data-inspector-delete>取消这条排期</button><small role="alert" data-inspector-delete-error></small></details>
@@ -569,7 +569,7 @@ import '../../scripts/operation-setup';</script>
   .inspector-body{padding:18px}
   .inspector-title p{margin:0 0 4px;color:var(--muted);font-size:var(--console-caption)}
   .detail-list{display:grid;margin:18px 0 0}
-  .detail-list>div{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid #e0e4e1}
+  .detail-list>div{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:6px 0}
   .detail-list dt{color:var(--muted);font-size:var(--console-caption)}.detail-list dd{margin:0;text-align:right;font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
   .inspector-section{margin-top:20px}.inspector-section>span{display:block;margin-bottom:8px;color:var(--muted);font-size:var(--console-caption);font-weight:500;letter-spacing:.05em}
   .inspector-section p{margin:6px 0;color:#4e5954;font-size:var(--console-caption)}.inspector-section strong{font-size:var(--console-caption)}
@@ -577,7 +577,7 @@ import '../../scripts/operation-setup';</script>
   .inspector-section a[aria-disabled="true"]{color:#7b8581}
   .version-path{display:flex;align-items:center;gap:7px;color:#7c8882;font-size:var(--console-caption)}
   .version-path span{padding:4px 7px;border-radius:7px;background:#e4e9e6;font:500 var(--console-caption) var(--console-font);font-variant-numeric:tabular-nums}.version-path span:last-child{color:#fff;background:var(--blue)}
-  .inspector-danger{display:block;margin-top:26px;padding-top:14px;border-top:1px solid #e0e4e1}.inspector-danger>summary{cursor:pointer;color:var(--muted);font-size:var(--console-caption);font-weight:500}.inspector-danger button{justify-self:start;border:0;padding:3px 0;color:#8b625b;background:transparent;font-size:var(--console-caption);font-weight:500;cursor:pointer}.inspector-danger button:hover,.inspector-danger button:focus-visible{color:#9a3e32;text-decoration:underline;text-underline-offset:3px}.inspector-danger small{color:#9a3e32;font-size:var(--console-caption);line-height:1.4}
+  .inspector-danger{display:block;margin-top:24px;padding-top:0}.inspector-danger>summary{cursor:pointer;color:var(--muted);font-size:var(--console-caption);font-weight:500}.inspector-danger button{justify-self:start;border:0;padding:3px 0;color:#8b625b;background:transparent;font-size:var(--console-caption);font-weight:500;cursor:pointer}.inspector-danger button:hover,.inspector-danger button:focus-visible{color:#9a3e32;text-decoration:underline;text-underline-offset:3px}.inspector-danger small{color:#9a3e32;font-size:var(--console-caption);line-height:1.4}
 
   .calendar{overflow:hidden;border:1px solid #d0d6d2;border-radius:14px;background:#fafbf9}
   .weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr)}
@@ -639,7 +639,7 @@ import '../../scripts/operation-setup';</script>
 
 <style is:global>
 .workflow-queue-nav{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:12px 0}.workflow-queue-nav a{padding:7px 10px;border:1px solid #c9d1cc;border-radius:7px;background:#f7f8f5;color:#53615a;font-size:12px;text-decoration:none}.workflow-queue-nav a[aria-current=page]{color:var(--console-blue);border-color:#b4c5ee;background:#e8eefa}.workflow-queue-nav b{margin-left:5px;font-variant-numeric:tabular-nums}.workflow-queue-nav>span{color:var(--muted);font-size:12px}
-.schedule-workflow-panel{display:grid;gap:12px}.schedule-workflow-panel h3{margin:0;font-size:13px}.schedule-workflow-panel p{margin:0;font-size:12px;line-height:1.55;white-space:pre-wrap}.schedule-workflow-panel details>summary{cursor:pointer;font-size:12px;font-weight:500}.workflow-reason,.workflow-application,.workflow-plan-history{padding:10px 0;border-bottom:1px solid var(--line)}.workflow-reason h4{margin:0 0 6px;font-size:12px}.workflow-reason small,.workflow-application small{display:block;margin-top:5px;color:var(--muted);font-size:var(--console-caption)}.workflow-form{display:grid;gap:9px;margin-top:8px}.workflow-form label,.publication-reason-day label{display:grid;gap:4px;color:var(--muted);font-size:12px}.workflow-form input,.workflow-form select,.workflow-form textarea,.publication-reason-day select,.publication-reason-day textarea{width:100%;min-width:0;padding:8px;border:1px solid #abb5af;border-radius:7px;background:#fff;font:13px/1.5 var(--console-font)}.workflow-form textarea,.publication-reason-day textarea{resize:vertical}.workflow-form button,.workflow-reason>button{justify-self:start;padding:7px 10px;border:1px solid #aeb8b2;border-radius:7px;background:#fff;font-size:12px;cursor:pointer}.workflow-form button[type=submit]{color:#fff;border-color:var(--blue);background:var(--blue)}.workflow-form output{color:#963f29;font-size:12px;line-height:1.5}.workflow-form[hidden]{display:none}.publication-reason-day{display:grid;gap:9px;padding:12px 0;border-bottom:1px solid var(--line)}.publication-reason-day strong{font-size:13px}.publication-reason-day p{font-size:12px;white-space:pre-wrap}.publication-reason-day small{color:var(--muted);font-size:var(--console-caption)}.workflow-warning{color:#963f29}.schedule-workflow-panel details[open]>summary{margin-bottom:8px}
+.schedule-workflow-panel{display:grid;gap:12px}.schedule-workflow-panel h3{margin:0;font-size:13px}.schedule-workflow-panel p{margin:0;font-size:12px;line-height:1.55;white-space:pre-wrap}.schedule-workflow-panel details>summary{cursor:pointer;font-size:12px;font-weight:500}.workflow-reason,.workflow-application,.workflow-plan-history{padding:10px 0}.workflow-reason h4{margin:0 0 6px;font-size:12px}.workflow-reason small,.workflow-application small{display:block;margin-top:5px;color:var(--muted);font-size:var(--console-caption)}.workflow-form{display:grid;gap:9px;margin-top:8px}.workflow-form label,.publication-reason-day label{display:grid;gap:4px;color:var(--muted);font-size:12px}.workflow-form input,.workflow-form select,.workflow-form textarea,.publication-reason-day select,.publication-reason-day textarea{width:100%;min-width:0;padding:8px;border:1px solid #abb5af;border-radius:7px;background:#fff;font:13px/1.5 var(--console-font)}.workflow-form textarea,.publication-reason-day textarea{resize:vertical}.workflow-form button,.workflow-reason>button{justify-self:start;padding:7px 10px;border:1px solid #aeb8b2;border-radius:7px;background:#fff;font-size:12px;cursor:pointer}.workflow-form button[type=submit]{color:#fff;border-color:var(--blue);background:var(--blue)}.workflow-form output{color:#963f29;font-size:12px;line-height:1.5}.workflow-form[hidden]{display:none}.publication-reason-day{display:grid;gap:9px;padding:12px 0}.publication-reason-day strong{font-size:13px}.publication-reason-day p{font-size:12px;white-space:pre-wrap}.publication-reason-day small{color:var(--muted);font-size:var(--console-caption)}.workflow-warning{color:#963f29}.schedule-workflow-panel details[open]>summary{margin-bottom:8px}
 </style>
 
 <style>
@@ -648,14 +648,14 @@ import '../../scripts/operation-setup';</script>
 
 <style is:global>
 [data-schedule-workflow][hidden],[data-schedule-workflow-history][hidden]{display:none}
-.schedule-workflow-panel,.schedule-workflow-history{display:grid;gap:12px;padding-top:16px;border-top:1px solid var(--console-line)}
+.schedule-workflow-panel{display:grid;gap:12px;margin:24px 0;padding:0}.schedule-workflow-history{display:grid;gap:12px}
 .schedule-workflow-panel>h3,.schedule-workflow-history>h3{margin:0;color:var(--console-ink);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .workflow-registration-warning{padding:10px 12px;border-radius:8px;color:#73551d;background:#fff1bf;font-weight:500}
 .workflow-pending-reasons>h4{margin:0 0 8px;font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
-.workflow-pending-reasons>.workflow-reason{padding:10px 0;border-bottom:1px solid var(--console-line)}
+.workflow-pending-reasons>.workflow-reason{padding:10px 0}
 .workflow-pending-reasons>.workflow-reason>summary,.inspector-reference>summary{cursor:pointer;color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
 .inspector-reference>.inspector-section:first-of-type{margin-top:12px}
-.schedule-workflow-history details>summary{cursor:pointer;font:500 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
+.schedule-workflow-history details:not(.business-record-disclosure)>summary{cursor:pointer;font:500 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
 .schedule-workflow-history p{margin:6px 0;white-space:pre-wrap;font:400 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
 .schedule-workflow-history h4{margin:0 0 6px;font:600 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
 .schedule-workflow-history small{display:block;color:var(--console-muted)}

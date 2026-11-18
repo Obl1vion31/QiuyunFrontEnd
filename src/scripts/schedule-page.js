@@ -3,7 +3,7 @@ import {resetPublicationNote,updatePublicationNote} from './publication-note-ide
 import {canCreateRevision} from '../db/content-version-rules';
 import {initializePlacement} from './schedule-placement-ui';
 import {getInspector} from './business-inspector';
-import {businessConfirm,closeBusinessDialog} from './business-dialog';
+import {businessConfirm,closeBusinessDialog,bindBusinessBackdrop} from './business-dialog';
 import {applyBusinessPermissions,mayOperate} from './business-permissions';
 function initialize(){
 
@@ -87,7 +87,7 @@ function initialize(){
       }
       async function returnToDetail(){if(!await mayLeavePanel())return;if(!activeRecord){await closePanel();return;}showView('detail');inspector.querySelector('[data-inspector-edit]')?.focus({preventScroll:true});}
       sheet.addEventListener('cancel',event=>{event.preventDefault();void closePanel();});
-      sheet.addEventListener('click',event=>{if(event.target===sheet){const r=sheet.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)void closePanel();}});
+      bindBusinessBackdrop(sheet,()=>void closePanel(),pageLife.signal);
       sheet.addEventListener('close',()=>{delete document.documentElement.dataset.schedulePanelOpen;});
       const result=document.createElement('div');result.className='schedule-save-result';result.hidden=true;result.setAttribute('role','status');
       const resultText=document.createElement('span'),retry=document.createElement('button');retry.type='button';retry.className='business-action-secondary';retry.textContent='重试读取';result.append(resultText,retry);

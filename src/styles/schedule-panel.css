@@ -13,7 +13,8 @@
 #schedule-panel .detail-list>div{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:12px}
 #schedule-panel .surface-resources{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 #schedule-panel .business-inspector .inspector-section{padding-block:0}
-#schedule-panel .business-inspector .schedule-detail-section{display:grid;gap:10px;margin:20px 0 0;padding:16px 0 0;border-top:1px solid var(--console-line);background:transparent}
+#schedule-panel .business-inspector .schedule-detail-section{display:grid;gap:10px;margin:24px 0 0;padding:0;background:transparent}
+#schedule-panel .business-inspector [data-schedule-delay]:not([hidden])+[data-schedule-workflow-history]{margin-top:0}
 #schedule-panel .schedule-detail-section>h3{margin:0;color:var(--console-ink);font:600 var(--console-text)/var(--console-text-leading) var(--console-font)}
 #schedule-panel .schedule-detail-section>p,#schedule-panel .inspector-revision p{margin:0;color:var(--console-ink);font:400 var(--console-text)/var(--console-text-leading) var(--console-font)}
 #schedule-panel .inspector-version{grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:14px}
@@ -21,7 +22,7 @@
 #schedule-panel .inspector-revision{grid-column:1/-1;display:grid;gap:6px}
 #schedule-panel .inspector-revision h4{margin:0;color:var(--console-muted);font:500 var(--console-caption)/var(--console-caption-leading) var(--console-font)}
 #schedule-panel [data-review-node-list]:empty{display:none}
-#schedule-panel .schedule-detail-section>details>summary{color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
+#schedule-panel .schedule-detail-section>details:not(.business-record-disclosure)>summary{color:var(--console-ink);font:500 var(--console-text)/var(--console-text-leading) var(--console-font)}
 
 #schedule-panel .business-form-sheet{display:flex;flex-direction:column}
 #schedule-panel .business-form-sheet>form{width:100%;height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}

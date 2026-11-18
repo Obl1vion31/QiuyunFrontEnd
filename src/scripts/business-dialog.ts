@@ -106,6 +106,31 @@ export function closeBusinessDialog(dialog:HTMLDialogElement,value?:string):Prom
     setBusinessScrollLock(dialog,false);
   });closing.set(dialog,task);return task;
 }
+
+/** 仅完整的遮罩点击关闭；跨面板拖动、取消或失去窗口焦点都不视为点击。 */
+export function bindBusinessBackdrop(dialog:HTMLDialogElement,dismiss:()=>void,signal:AbortSignal){
+  let press:{id:number;x:number;y:number}|undefined;
+  const clear=()=>{press=undefined;};
+  const outside=(event:MouseEvent)=>{
+    const rect=dialog.getBoundingClientRect();
+    return event.target===dialog&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom);
+  };
+  dialog.addEventListener('pointerdown',event=>{
+    press=event.isPrimary&&event.button===0&&outside(event)?{id:event.pointerId,x:event.clientX,y:event.clientY}:undefined;
+  },{signal,capture:true});
+  dialog.addEventListener('pointermove',event=>{
+    if(press&&event.pointerId===press.id&&Math.hypot(event.clientX-press.x,event.clientY-press.y)>8)clear();
+  },{signal,capture:true});
+  dialog.addEventListener('pointercancel',clear,{signal,capture:true});
+  dialog.addEventListener('close',clear,{signal});
+  window.addEventListener('blur',clear,{signal});
+  dialog.addEventListener('click',event=>{
+    const start=press;clear();
+    if(!start||event.defaultPrevented||event.button!==0||!outside(event)||Math.hypot(event.clientX-start.x,event.clientY-start.y)>8)return;
+    if(event instanceof PointerEvent&&event.pointerId!==start.id)return;
+    event.preventDefault();dismiss();
+  },{signal});
+}
 function initialize(){
   document.querySelectorAll<HTMLDialogElement>('dialog.business-sheet,dialog.business-form-dialog').forEach(dialog=>{
     if(natives.has(dialog))return;
