@@ -1,0 +1,84 @@
+{
+  "baseline": "8e913d52",
+  "isolatedPostgres": true,
+  "clock": "2026-11-18T12:00:00+08:00",
+  "checks": [
+    "admin-calendar-1920：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "admin-ledger-1920：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "admin-calendar-1440：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "admin-ledger-1440：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "admin-calendar-1024：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "admin-ledger-1024：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "未保存继续编辑／放弃的嵌套锁、减少动态、390／320关闭及明显溢出",
+    "employee-calendar-1440：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持",
+    "employee-ledger-1440：直接进入／站内切换、打开／表单往返／三种关闭，逐帧背景与焦点保持"
+  ],
+  "geometry": [
+    {
+      "role": "admin",
+      "width": 1920,
+      "display": "calendar",
+      "frames": 68,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "admin",
+      "width": 1920,
+      "display": "ledger",
+      "frames": 74,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "display": "calendar",
+      "frames": 76,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "admin",
+      "width": 1440,
+      "display": "ledger",
+      "frames": 75,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "display": "calendar",
+      "frames": 74,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "admin",
+      "width": 1024,
+      "display": "ledger",
+      "frames": 71,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "display": "calendar",
+      "frames": 69,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    },
+    {
+      "role": "employee",
+      "width": 1440,
+      "display": "ledger",
+      "frames": 67,
+      "maxDriftPx": 0,
+      "bodyOverflow": "clip"
+    }
+  ],
+  "baselineSidebarShiftPx": -1316,
+  "errors": []
+}
