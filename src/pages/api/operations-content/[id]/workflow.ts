@@ -1,3 +1,4 @@
+import {readHistoryPeople,delayDaysWithNames} from '../../../../db/history-people';
 import type { APIRoute } from 'astro';
 import { getDb } from '../../../../db/client';
 import { readScheduleWorkflow, WorkflowError } from '../../../../db/schedule-workflow';
@@ -19,6 +20,7 @@ export const GET: APIRoute = async ({ params, url,locals }) => {
     const read=await readScheduleWorkflow(getDb(), params.id!, actual);
     const {historyContexts,historyReasons,...workflow}=read;
     const permissions=await effectiveBusinessPermissions(getDb(),locals.user!);
-    return Response.json({...workflow,historyEvents:await readScheduleBusinessHistory(getDb(),read),noteIdentity:await publicationNoteContext(getDb(),params.id!),changeProposals:await readScheduleApprovals(getDb(),locals.user!,params.id!),permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
+    const person=await readHistoryPeople(getDb());
+    return Response.json({...workflow,days:delayDaysWithNames(workflow.days,person),historyEvents:await readScheduleBusinessHistory(getDb(),read),noteIdentity:await publicationNoteContext(getDb(),params.id!),changeProposals:await readScheduleApprovals(getDb(),locals.user!,params.id!),permissions,requiresPlanApproval:workflow.requiresPlanApproval&&permissions['schedule.overdueReschedule']==='review'}, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return workflowErrorResponse(error); }
 };

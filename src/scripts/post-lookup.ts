@@ -1,3 +1,4 @@
+import {appendScheduleDelay} from './schedule-delay';
 import {appendBusinessHistory,mergeInspectorHistory} from './schedule-business-history';
 import {createResourceLinks} from './business-resource-links';
 import '../styles/schedule-history.css';
@@ -53,6 +54,7 @@ function initialize(){
    if(data.non.length||data.checkpointEvents.length){
     const non=section('非推广复盘');for(const row of data.non){p(non,`${checkpointLabel(row.checkpointType)} · 数据截至 ${row.recordedThrough}\n阅读量 ${row.readCount==null?'未记录':Number(row.readCount).toLocaleString('zh-CN')} · 点击率 ${row.clickRate==null?'—':Number(row.clickRate).toFixed(2)+'%'} · 3秒阅读率 ${Number(row.threeSecondReadRate).toFixed(2)}%`);link(non,'查看复盘 ↗',`/business/non-promotion-review?view=history&row=${row.scheduleId}:${row.checkpointType}`);}for(const row of data.checkpointEvents.filter((item:any)=>item.action==='skip'))p(non,`${checkpointLabel(row.checkpointType)}不复盘 · ${row.reason}`);
    }
+   const delay=el('section');delay.setAttribute('aria-label','延期说明');detail.append(delay);appendScheduleDelay(delay,data.delayDays,post.planned);
    const history=el('section');history.className='lookup-detail-section';history.setAttribute('aria-label','业务历史');detail.append(history);appendBusinessHistory(history,mergeInspectorHistory(data.historyEvents,data.history));
     if(data.meetings.length){const meetings=section('相关例会');for(const row of data.meetings)link(meetings,`${row.name} · V${row.version}${row.status==='draft'?' · 草稿':''} ↗`,`/business/meeting-review?meeting=${row.id}&version=${row.version}`);}
     showHome(false);form.hidden=true;results.hidden=true;more.hidden=true;detail.hidden=false;message.textContent='';body.scrollTop=0;back.focus({preventScroll:true});

@@ -64,6 +64,8 @@ flowchart LR
 
 ## 共享界面接入
 
+延期说明由 schedule-delay.ts／schedule-delay.css 共用于排期与助手；排期适配器通过 prepare 接入原 reasonForm，助手仅展示。workflow 的 days 与查帖 delayDays 同源，history-people 仅追加姓名展示值，保存仍携带原更新时间及历史长度；通用业务历史不再生成延期事件。日期、当前字段与折叠记录共享布局，草稿按排期修订／天数保留，取消复用公共确认。
+
 例会推广CTR由`meeting-card-rules`按卡片原区间集中汇总，并在前端初始化／刷新与原保存事务内共用归一化；`WeeklyReviewCards`沿用原指标格，自动值只读、缺数才保留输入，公式和缺失日期使用`WeeklyCardDetails`共享信息气泡。结果、来源与原始计数随现有JSON冻结，定稿网页／PDF读取冻结值，旧版本不重算。
 
 聚光单日数值由`BusinessJuguangTraffic`与`juguang-daily`接入每日已保存行和历史编辑，沿原表单／Inspector及`readBusiness`读取反馈；日度的`BusinessJuguangReviewHeader`与行共用分组列定义，`BusinessPromotionMetricInput`复用原数值输入，分组覆盖2026-10-01起推广记录，点击率公式复用`business-popover`悬停／聚焦提示；系统回填只更新实际回填字段的比较基线，隐藏的来源凭证随基线保留，取消不丢来源。`integrations/juguang-daily`集中解析官方字段、按日期ID汇总及签发一小时会话／记录绑定凭证；原PATCH与day-edit在写锁内复核来源、分类人工覆盖并派生点击率，策略仍走原人工流程。

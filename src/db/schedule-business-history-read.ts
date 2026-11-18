@@ -1,3 +1,4 @@
+import {readHistoryPeople} from './history-people';
 import {and,eq} from 'drizzle-orm';
 import type {Database} from './client';
 import type {readScheduleWorkflow} from './schedule-workflow';
@@ -14,5 +15,14 @@ export async function readScheduleBusinessHistory(db:Database,workflow:Awaited<R
   db.select().from(s.operationsNonPromotionCustomCheckpoint).where(and(eq(s.operationsNonPromotionCustomCheckpoint.contentId,version.contentId),...(version.operationType==='promotion_then_continuous'?[eq(s.operationsNonPromotionCustomCheckpoint.scheduleId,schedule.id)]:[]))),
   db.select().from(s.operationsPromotionTimelineAudit).where(and(eq(s.operationsPromotionTimelineAudit.scheduleId,schedule.id),eq(s.operationsPromotionTimelineAudit.action,'note_id_correction'))),
  ]);
- return buildScheduleHistoryEvents({scheduleId:schedule.id,execution:schedule.executionHistory,dateChanges:workflow.history,contexts:workflow.historyContexts,publications:workflow.publicationHistory,applications:workflow.applications,reservations:workflow.publicationReservations,reasons:workflow.historyReasons,reviewHistory:plan?.history??[],nodes,noteEvents:audits.map(promotionAuditView).filter(row=>row.visible)});
+ const events=buildScheduleHistoryEvents({scheduleId:schedule.id,execution:schedule.executionHistory,dateChanges:workflow.history,contexts:workflow.historyContexts,publications:workflow.publicationHistory,applications:workflow.applications,reservations:workflow.publicationReservations,reasons:workflow.historyReasons,reviewHistory:plan?.history??[],nodes,noteEvents:audits.map(promotionAuditView).filter(row=>row.visible)});
+
+ const name=await readHistoryPeople(db);
+ const ids=new Map<string,string|null>([
+  ...workflow.publicationHistory.map(row=>['publication:'+row.id,row.changedById] as const),
+  ...workflow.applications.map(row=>['application:'+row.id,row.decidedById] as const),
+  ...workflow.history.map(row=>['date:'+row.id,row.changedById] as const),
+  ...audits.map(row=>['note:'+row.id,row.changedById] as const),
+ ]);
+ return events.map(event=>({...event,actor:event.actor?name(event.actor,ids.get(event.id)):null}));
 }

@@ -7,6 +7,7 @@ import {readPromotionTimeline} from '../db/promotion-timeline';
 import {operationsPromotionTimelineAudit} from '../db/schema';
 import {promotionAuditView} from '../db/promotion-audit-view';
 import {businessDateTime} from '../scripts/business-date';
+import {readHistoryPeople} from '../db/history-people';
 import {promotionInspectorHistory} from '../db/inspector-history';
 import {shanghaiDateKey,previousDateKey,nextDateKey} from '../db/promotion-rules.mjs';
 import {promotionLabels} from '../db/promotion-state.mjs';
@@ -37,8 +38,9 @@ const displayRows=visible.map(row=>{
 const renderedRows=embedded?displayRows.filter(({row,editable,nextDue,waiting})=>(!businessDate&&(nextDue||waiting||editable&&!row.campaign))||auditRows.some(a=>a.scheduleId===row.scheduleId)):displayRows;
 if(!history)displayRows.sort((a,b)=>a.date.localeCompare(b.date));
 
+const historyName=unifiedHistory?await readHistoryPeople(getDb()):undefined;
 ---
-{unifiedHistory&&<script is:inline type="application/json" data-promotion-history set:html={JSON.stringify(promotionInspectorHistory(audits)).replaceAll('<','\\u003c')}/>}
+{unifiedHistory&&<script is:inline type="application/json" data-promotion-history set:html={JSON.stringify(promotionInspectorHistory(audits,historyName)).replaceAll('<','\\u003c')}/>}
 {!history&&<BusinessPromotionPendingRows rows={visible}/>}
 {history&&renderedRows.length>0&&<section class:list={["promotion-timeline",{"promotion-timeline-embedded":embedded}]} aria-label={history?'推广状态历史':'首次安排与待定'}>
  {history&&!embedded&&<h2>推广安排与状态历史</h2>}

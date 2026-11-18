@@ -30,7 +30,7 @@ function renderChange(list:HTMLElement,change:HistoryChange,initial:boolean){
  if((!initial||change.before!=null)&&change.before!==change.after){description.append(show(change.before,'原'));const arrow=el('span','→');arrow.className='business-history-arrow';arrow.setAttribute('aria-label','更正为');description.append(arrow);}
  description.append(show(change.after,initial?'查看':'现'));row.append(term,description);list.append(row);
 }
-export function appendBusinessHistory(host:HTMLElement,events:InspectorHistoryEvent[],options:{state?:HistoryViewState;appendAction?:(event:InspectorHistoryEvent,host:HTMLElement)=>void}={}){
+export function appendBusinessHistory(host:HTMLElement,events:InspectorHistoryEvent[],options:{state?:HistoryViewState;}={}){
  if(!events.length){const empty=el('p','暂无业务历史');empty.className='schedule-history-status';host.append(empty);return;}
  const root=el('details');root.className='business-history-timeline';root.dataset.businessHistoryTimeline='';root.open=options.state?.open??true;
  const heading=el('summary');heading.append(el('span',`业务历史 (${events.length})`));const toggle=el('span');toggle.className='business-history-toggle';toggle.setAttribute('aria-hidden','true');toggle.append(el('span','展开'),el('span','收起'));heading.append(toggle);root.append(heading);
@@ -50,11 +50,11 @@ export function appendBusinessHistory(host:HTMLElement,events:InspectorHistoryEv
   if(event.summary){const summary=el('p',event.summary);summary.className='business-history-summary';row.append(summary);}
   const primary=event.summary?[]:event.changes;
   for(const c of primary)renderChange(diff,c,event.initial??false);if(primary.length)row.append(diff);
-  if(event.reason&&!event.summary){const reason=el('p',event.reason);reason.className='business-history-reason';row.append(reason);}
-  const meta=el('p');meta.className='business-history-meta';if(event.at){const time=el('time',businessDateTime(event.at));time.dateTime=event.at;meta.append(time);}else meta.append(el('span','时间未记录'));if(event.actor)meta.append(el('span','· '+event.actor));row.append(meta);
+  if(event.reason&&!event.summary){const reason=el('p');reason.append(el('span','调整原因'),document.createTextNode(event.reason));reason.className='business-history-reason';row.append(reason);}
+  const meta=el('p');meta.className='business-history-meta';if(event.at){const time=el('time',businessDateTime(event.at));time.dateTime=event.at;meta.append(time);}else meta.append(el('span','时间未记录'));if(event.actor)meta.append(el('span','· '+event.actor));header.append(meta);
   const secondary=event.summary?event.changes:event.initial?event.changes.filter(c=>!primary.includes(c)):[];
   if(secondary.length||event.evidence.length){const evidence=el('details');evidence.dataset.historyEvidence=event.id;evidence.open=options.state?.expanded.includes(event.id)??false;evidence.className='business-history-evidence';evidence.append(el('summary',event.initial?'初始信息':'详细依据'));const details=el('div');if(secondary.length){const dl=el('dl');dl.className='business-history-changes';for(const c of secondary)renderChange(dl,c,true);details.append(dl);}if(event.summary&&event.reason)details.append(el('p','原因：'+event.reason));for(const text of event.evidence)details.append(el('p',text));evidence.append(details);row.append(evidence);}
-  options.appendAction?.(event,row);list.append(row);return {event,row};
+  list.append(row);return {event,row};
  });
  const more=el('button','查看更多');more.type='button';more.className='business-history-more';more.addEventListener('click',()=>{limit+=10;render();});
  const render=()=>{let visible=0;for(const {event,row}of rows){const match=category==='all'||event.categories.includes(category as InspectorHistoryCategory);row.hidden=!match||visible++>=limit;}more.hidden=visible<=limit;root.dataset.category=category;root.dataset.limit=String(limit);};

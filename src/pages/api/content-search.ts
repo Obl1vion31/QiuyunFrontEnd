@@ -1,3 +1,4 @@
+import {readHistoryPeople,delayDaysWithNames} from '../../db/history-people';
 import {readScheduleBusinessHistory} from '../../db/schedule-business-history-read';
 import {effectiveCategoryName} from '../../db/content-config';
 import type {APIRoute} from 'astro';
@@ -45,7 +46,8 @@ export const GET:APIRoute=async({url})=>{
   ]);
   // 旧标签页仍读取原前后值／时间字段；新详情增补同源的阅读事件。
   const auditViews=audits.map(promotionAuditView).filter(row=>row.visible);
-  const history=promotionInspectorHistory(audits).map((event,index)=>({...event,beforeLabel:auditViews[index].beforeLabel,afterLabel:auditViews[index].afterLabel,createdAt:auditViews[index].createdAt}));
-  return Response.json({historyEvents:await readScheduleBusinessHistory(getDb(),workflow),historyGroups:workflow.historyGroups,executionHistory:workflow.schedule.executionHistory,post,versions,stages,metrics,totals:promotionTotals(metrics),non,checkpointEvents:checkpointEvents.filter((row,index,all)=>all.findIndex(item=>item.checkpointType===row.checkpointType)===index),history,publicationHistory:workflow.publicationHistory,planHistory:workflow.history,meetings:meetingVersions},{headers:{'Cache-Control':'private, no-store'}});
+  const person=await readHistoryPeople(getDb());
+  const history=promotionInspectorHistory(audits,person).map((event,index)=>({...event,beforeLabel:auditViews[index].beforeLabel,afterLabel:auditViews[index].afterLabel,createdAt:auditViews[index].createdAt}));
+  return Response.json({delayDays:delayDaysWithNames(workflow.days,person),historyEvents:await readScheduleBusinessHistory(getDb(),workflow),historyGroups:workflow.historyGroups,executionHistory:workflow.schedule.executionHistory,post,versions,stages,metrics,totals:promotionTotals(metrics),non,checkpointEvents:checkpointEvents.filter((row,index,all)=>all.findIndex(item=>item.checkpointType===row.checkpointType)===index),history,publicationHistory:workflow.publicationHistory,planHistory:workflow.history,meetings:meetingVersions},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){if(error instanceof z.ZodError)return Response.json({message:'查询条件无效。'},{status:422});return workflowErrorResponse(error);}
 };

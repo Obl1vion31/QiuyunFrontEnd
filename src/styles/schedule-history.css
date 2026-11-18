@@ -21,7 +21,7 @@
 .business-history-events>li{position:relative;padding:12px 0 14px 16px;border-left:1px solid #c8d9e7;min-width:0}
 .business-history-events>li::before{content:"";position:absolute;top:19px;left:-5px;width:9px;height:9px;box-sizing:border-box;border:2px solid #f4f8fd;border-radius:50%;background:var(--console-blue)}
 .business-history-events>li+li{border-top:1px solid var(--console-line)}
-.business-history-events>li>header{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;margin-bottom:6px}
+.business-history-events>li>header{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-bottom:8px}
 .business-history-events>li>header>strong{font:500 14px/22px var(--console-font);overflow-wrap:anywhere}
 .business-history-tags{display:inline-flex;flex-wrap:wrap;gap:5px}
 .business-history-tags>span{padding:0 5px;border-radius:4px;background:#e7effb;color:#345b8b;font:400 12px/18px var(--console-font)}
@@ -32,7 +32,8 @@
 .business-history-timeline .business-history-changes a{display:inline;margin:0;font:inherit;color:var(--console-blue);text-underline-offset:3px}
 .business-history-arrow{color:var(--console-muted)}
 .business-history-timeline .business-history-reason{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;font:400 13px/21px var(--console-font)}
-.business-history-timeline .business-history-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px;margin:6px 0 0;color:var(--console-muted);font:400 12px/20px var(--console-font)}
+.business-history-timeline .business-history-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px;margin:0;color:var(--console-muted);font:400 12px/20px var(--console-font)}
+.business-history-reason>span{margin-right:10px;color:var(--console-muted)}
 .business-history-evidence{margin-top:6px;font:400 13px/21px var(--console-font)}
 .business-history-evidence>summary{cursor:pointer;color:var(--console-blue);font:400 13px/21px var(--console-font)}
 .business-history-evidence>div{padding-top:8px}

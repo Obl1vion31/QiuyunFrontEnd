@@ -1,12 +1,11 @@
 import {groupScheduleHistory,type ScheduleExecutionEvent,type SchedulePlanContext} from './schedule-history';
 import {operationTypeLabels,type OperationType} from './operation-types';
 import {contentRoleLabel} from './content-roles';
-import {delayResponsibilityLabels} from './schedule-rules.mjs';
 import type * as s from './schema';
 
 export type HistoryCategory='schedule'|'publication'|'settings';
 export type HistoryChange={label:string;before:string|null;after:string|null;format?:'datetime'|'date'|'url'};
-export type ScheduleBusinessEvent={id:string;categories:HistoryCategory[];title:string;at:string|null;actor:string|null;reason:string;changes:HistoryChange[];evidence:string[];initial?:boolean;delayReasonId?:string};
+export type ScheduleBusinessEvent={id:string;categories:HistoryCategory[];title:string;at:string|null;actor:string|null;reason:string;changes:HistoryChange[];evidence:string[];initial?:boolean;};
 type Row<K extends keyof typeof s>=(typeof s)[K] extends {$inferSelect:infer R}?R:never;
 type DateChange=Parameters<typeof groupScheduleHistory>[1][number]&{id?:string};
 type Input={scheduleId:string;execution:ScheduleExecutionEvent[];dateChanges:DateChange[];contexts?:SchedulePlanContext[];publications:Row<'operationsPublicationEvent'>[];applications:Row<'operationsScheduleChangeRequest'>[];reservations:Row<'operationsPublicationReservation'>[];reasons:Row<'operationsScheduleDelayReason'>[];reviewHistory:Record<string,unknown>[];nodes:Row<'operationsNonPromotionCustomCheckpoint'>[];noteEvents:Array<{id:string;createdAt:Date;changedByLabel:string;reason:string;beforeLabel:string;afterLabel:string}>};
@@ -62,17 +61,6 @@ export function buildScheduleHistoryEvents(input:Input):ScheduleBusinessEvent[]{
  for(const row of input.reservations){
   const labels:Record<string,string>={pending:'提交发布预约',approved:'审核发布预约',rejected:'驳回发布预约',cancelled:'取消发布预约',obsolete:'发布预约失效',fulfilled:'发布预约已完成'};
   for(const[i,entry]of row.history.entries())events.push(make(`reservation:${row.id}:${i}`,['publication'],labels[entry.status]??'发布预约记录',entry.at,entry.actorLabel,entry.reason,[change('预约时间',null,timestamp(row.scheduledPublishAt),'datetime')]));
- }
- for(const row of input.reasons){
-  const history=[...row.history.map(snapshot),{reason:row.reason,responsibility:row.responsibility,source:row.source,updatedAt:row.updatedAt,changedByLabel:row.changedByLabel}];
-  for(const[i,entry]of history.entries()){
-   if(entry.source==='historical')continue;
-   const before=i?history[i-1]:null,changes=[change('延期日期',timestamp(row.dueAt),timestamp(row.dueAt),'datetime')];
-   if(!before||before.responsibility!==entry.responsibility)changes.push(change('责任归属',before?.responsibility?delayResponsibilityLabels[String(before.responsibility) as keyof typeof delayResponsibilityLabels]:null,delayResponsibilityLabels[String(entry.responsibility) as keyof typeof delayResponsibilityLabels]??'未记录'));
-   if(!before||before.reason!==entry.reason)changes.push(change('说明',before?.reason,entry.reason));
-   const event=make(`reason:${row.id}:${i}`,['schedule'],i?'更正延期说明':'填写延期说明',entry.updatedAt,entry.changedByLabel,'',changes);
-   if(i===history.length-1)event.delayReasonId=row.id;events.push(event);
-  }
  }
  const reviewFields=[['operationType','运营类型'],['contentRole','内容职能'],['mode','复盘方式'],['day7','7天复盘'],['day15','15天复盘'],['dueOn','复盘截止日'],['draftDueOn','预设复盘截止日'],['finalReviewOn','最终复盘日期']] as const;
  const reviewValue=(key:string,v:unknown)=>key==='mode'?({standard:'常规复盘',instant:'即时复盘',continuous:'持续复盘'}[String(v)]??value(v)):key==='day7'||key==='day15'?v==null?null:v?'启用':'不启用':fieldValue(key,v);

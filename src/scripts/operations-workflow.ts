@@ -1,3 +1,5 @@
+import {appendScheduleDelay,type DelayDay} from './schedule-delay';
+import {businessConfirm} from './business-dialog';
 import {appendBusinessHistory,historyViewState,mergeInspectorHistory} from './schedule-business-history';
 import type {ScheduleBusinessEvent} from '../db/schedule-business-history';
 import type {ScheduleExecutionEvent as ExecutionEntry} from '../db/schedule-history';
@@ -16,8 +18,6 @@ import { beginBusinessRead } from './business-read';
 import { extractPublicationLink } from '../db/publication-link.mjs';
 import { publicationLabels } from '../db/publication-rules.mjs';
 import { isDelayed, delayResponsibilityLabels } from '../db/schedule-rules.mjs';
-type SavedReason = { id: string; reason: string; responsibility: 'self' | 'external' | 'requester' | 'unknown'; source: string; updatedAt: string; changedByLabel: string; history: Array<unknown> };
-type DelayDay = { planRevision: number; dayNumber: number; dueAt: string; saved: SavedReason | null; archived: boolean };
 type Application = { id: string; status: string; originalPlannedPublishAt: string; requestedPublishAt: string; reason: string; requestedByLabel: string; decisionReason: string | null; decidedByLabel: string | null };
 type Reservation={history:Array<{status:string;actorLabel:string;at:string;reason:string|null}>;id:string;scheduledPublishAt:string;status:string;planRevision:number;requestedByLabel:string;decidedByLabel:string|null;decisionReason:string|null};
 type ChangeProposal={key:string;name:string;title:string;requestedBy:string;reason:string;endpoint:string;scheduleId:string|null;diff:Array<{label:string;before:string;after:string}>};
@@ -95,8 +95,10 @@ function reasonForm(day: DelayDay, scheduleId: string, onSaved: () => void) {
   if (day.saved) hidden(form, 'expectedHistoryLength', String(day.saved.history.length));
   const fields=element('div');fields.className='business-reason-fields';form.append(fields);
   responsibilityField(fields, day.saved?.responsibility === 'unknown' ? '' : day.saved?.responsibility);
-  const text = textField(fields, 'reason', '文字原因'); text.value = day.saved?.reason || ''; text.setAttribute('placeholder', '例如：今日请假／今日确实未完成／今日正在修改中');
-  submitButton(form, day.saved ? '保存更正' : '保存这一天的原因'); bindForm(form, `/api/operations-content/${scheduleId}/delay-reasons`, onSaved); return form;
+  const text = textField(fields, 'reason', '延期说明'); text.value = day.saved?.reason || '';text.defaultValue=text.value;
+  for(const input of fields.querySelectorAll<HTMLInputElement>('input[type=radio]'))input.defaultChecked=input.checked;
+  text.setAttribute('placeholder', '例如：今日请假／今日确实未完成／今日正在修改中');
+  const actions=element('div');actions.className='delay-form-actions';const cancel=element('button','取消');cancel.type='button';cancel.className='business-action-secondary';actions.append(cancel);submitButton(actions, day.saved ? '保存更正' : '保存说明');form.append(actions); bindForm(form, `/api/operations-content/${scheduleId}/delay-reasons`, onSaved); return form;
 }
 let lifecycle: AbortController | undefined;
 function initialize() {
@@ -116,15 +118,17 @@ function initialize() {
     const historyHost = document.querySelector<HTMLElement>('[data-schedule-workflow-history]')!;
     const switched = panel!.dataset.loadedScheduleId !== id;
     const historyState=switched?undefined:historyViewState(historyHost);
+    const delayHost=document.querySelector<HTMLElement>('[data-schedule-delay]')!;
+    const delayExpanded=new Set(switched?[]:[...delayHost.querySelectorAll<HTMLDetailsElement>('details[open]')].map(d=>d.dataset.delayRecords?d.dataset.delayRecords+'-history':d.dataset.delayKey!));
     const retained = priorDrafts ?? new Map<string,ReasonDraft>();
-    if (panel!.dataset.scheduleId === id) for (const form of [...panel!.querySelectorAll<HTMLFormElement>('form[data-dirty=true]'),...historyHost.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')]) {
+    if (panel!.dataset.scheduleId === id) for (const form of [...panel!.querySelectorAll<HTMLFormElement>('form[data-dirty=true]'),...delayHost.querySelectorAll<HTMLFormElement>('form[data-dirty=true]')]) {
       const data = new FormData(form);
       if (data.has('dayNumber')) retained.set(`${data.get('planRevision')}:${data.get('dayNumber')}`, {responsibility:String(data.get('responsibility')),reason:String(data.get('reason')),open:form.closest('details')?.open ?? true});
     }
     panel!.dataset.scheduleId = id; panel!.dataset.ready = 'false'; panel!.hidden = true;
     stopLoading();
     historyHost.replaceChildren(element('h3','业务历史'));historyHost.hidden=false;
-    panel!.replaceChildren();
+    panel!.replaceChildren();delayHost.replaceChildren();delayHost.hidden=true;
     const pane=panel!.closest<HTMLElement>('[data-inspector]')!;
     const read=beginBusinessRead(historyHost,{signal,label:'正在读取历史记录…',isCurrent:()=>token===panelToken&&pane.dataset.selectedId===id});
     historyHost.setAttribute('aria-busy','true');
@@ -158,18 +162,22 @@ function initialize() {
         const warning=element('p','尚未登记');warning.className='workflow-registration-warning';warning.setAttribute('role','status');panel!.append(warning);
       }
       const delayLabel=document.querySelector<HTMLElement>('[data-inspector-delay-label]');if(delayLabel){delayLabel.textContent=workflow.delayLabel;delayLabel.hidden=!workflow.delayLabel;}
-      if (pending.length) {
-        const section=element('section');section.className='workflow-pending-reasons';
-        section.append(element('h4',workflow.schedule.actualPublishAt?`延期原因 · 待填 ${pending.length} 条`:`尚未发布时填写原因 · ${pending.length} 条`));
-        for (const [index,day] of pending.entries()) {
-          const row=element('details');row.className='workflow-reason';row.dataset.delayKey=`${day.planRevision}:${day.dayNumber}`;row.open=index===0;
-          row.append(element('summary',reasonLabel(workflow,day)));
-          const form=reasonForm(day,id,()=>showPanel(id));const prior=retained.get(row.dataset.delayKey);
-          if(prior){restoreResponsibility(form,prior.responsibility);form.querySelector('textarea')!.value=prior.reason;form.dataset.dirty='true';row.open=prior.open;}
-          if(mayOperate('schedule.reason'))row.append(form);section.append(row);
-        }
-        panel!.append(section);
-      }
+      appendScheduleDelay(delayHost,workflow.days,workflow.schedule.plannedPublishAt,{expanded:delayExpanded,prepare:(day,row,heading,readOnly)=>{
+        if(day.archived||!mayOperate('schedule.reason'))return;
+        const form=reasonForm(day,id,()=>showPanel(id));form.hidden=!!day.saved;
+        const prior=retained.get(row.dataset.delayKey!);
+        const edit=element('button','更正');edit.type='button';edit.className='delay-edit';
+        const setEditing=(active:boolean)=>{form.hidden=!active;readOnly.hidden=active;edit.textContent=active?'编辑中':'更正';edit.disabled=active;};
+        if(day.saved){heading.append(edit);edit.addEventListener('click',()=>{setEditing(true);form.querySelector<HTMLInputElement>('input[type=radio]')?.focus({preventScroll:true});});}
+        row.append(form);
+        if(prior){restoreResponsibility(form,prior.responsibility);form.querySelector('textarea')!.value=prior.reason;form.dataset.dirty='true';if(day.saved)setEditing(true);else if(row instanceof HTMLDetailsElement)row.open=prior.open;}
+        form.querySelector<HTMLButtonElement>('button[type=button]')!.addEventListener('click',async()=>{
+          if(form.dataset.dirty==='true'&&!await businessConfirm('放弃本次延期说明修改？',{title:'放弃修改',confirmLabel:'放弃修改',cancelLabel:'继续编辑'}))return;
+          form.reset();form.dataset.dirty='false';form.querySelector('output')!.textContent='';
+          if(day.saved){setEditing(false);edit.focus({preventScroll:true});}else if(row instanceof HTMLDetailsElement)row.open=false;
+          const pane=panel!.closest<HTMLElement>('[data-inspector]')!;if(!pane.querySelector('form[data-dirty=true]'))getInspector(pane).setClean();
+        });
+      }});
       for(const request of workflow.changeProposals??[]){
         if(!request.key.startsWith('proposal:'))continue;
         const section=element('section');section.className='workflow-application';section.append(element('h4','待审核修改'),element('p',`${request.title} · ${request.requestedBy}`));
@@ -197,18 +205,10 @@ function initialize() {
           panel!.append(row);
         }
       }
-      appendBusinessHistory(historyHost,mergeInspectorHistory(workflow.historyEvents,promotionEvents),{state:historyState,appendAction:(event,row)=>{
-        if(!event.delayReasonId||!mayOperate('schedule.reason'))return;
-        const day=workflow.days.find(day=>day.saved?.id===event.delayReasonId);if(!day||day.archived)return;
-        const button=element('button','更正理由');button.type='button';button.className='business-history-reason-edit business-action-secondary';
-        const form=reasonForm(day,id,()=>showPanel(id));form.hidden=true;
-        const draft=retained.get(`${day.planRevision}:${day.dayNumber}`);if(draft){form.hidden=false;restoreResponsibility(form,draft.responsibility);form.querySelector('textarea')!.value=draft.reason;form.dataset.dirty='true';}
-        button.addEventListener('click',()=>{form.hidden=!form.hidden;if(!form.hidden)form.querySelector<HTMLInputElement>('input[type=radio]')?.focus();});row.append(button,form);
-      }});
-      if(retained.size){const fold=historyHost.querySelector<HTMLDetailsElement>('[data-business-history-timeline]');if(fold)fold.open=true;}
+      appendBusinessHistory(historyHost,mergeInspectorHistory(workflow.historyEvents,promotionEvents),{state:historyState});
       if(panel!.childElementCount){panel!.prepend(element('h3','待处理'));panel!.hidden=false;}
       panel!.dataset.loadedScheduleId=id;panel!.dataset.ready='true';
-      if(retained.size)(panel!.querySelector('form[data-dirty=true]')??historyHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
+      if(retained.size)(panel!.querySelector('form[data-dirty=true]')??delayHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
     } catch(error){
       if(!read.isCurrent())return;
       const message=element('p',`业务历史读取失败。${error instanceof Error?error.message:'请重试。'}`);message.className='schedule-history-status';message.setAttribute('role','alert');
@@ -259,13 +259,13 @@ function initialize() {
         row.append(element('strong', reasonLabel(workflow,day)));
         const prior = retained.get(`${day.planRevision}:${day.dayNumber}`);
         const fields=element('div');fields.className='business-reason-fields';row.append(fields);responsibilityField(fields, prior?.responsibility,`responsibility-${++responsibilityGroup}`);
-        const text = textField(fields, '', '文字原因'); text.value = prior?.reason || ''; text.setAttribute('placeholder', '例如：今日正在修改中');
+        const text = textField(fields, '', '延期说明'); text.value = prior?.reason || ''; text.setAttribute('placeholder', '例如：今日正在修改中');
         host.append(row);
       }
       const saved = publicationDays.filter(day => day.saved);
       if (saved.length) {
         const details = element('details'); details.append(element('summary', `已填写／历史理由 ${saved.length} 条`));
-        for (const day of saved) { const row = element('section'); row.className='publication-reason-day'; row.append(element('strong', reasonLabel(workflow,day)),element('p', day.saved!.reason),element('small', day.saved!.source==='historical'?'':day.saved!.changedByLabel)); details.append(row); }
+        for (const day of saved) { const row = element('section'); row.className='publication-reason-day'; row.append(element('strong', reasonLabel(workflow,day)),element('p', day.saved!.reason),element('small', day.saved!.source==='historical'?'':day.saved!.changedByName)); details.append(row); }
         host.append(details);
       }
       const section = publication!.querySelector<HTMLElement>('[data-publication-delay]')!; section.hidden = publicationDays.length === 0;

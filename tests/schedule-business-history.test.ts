@@ -50,13 +50,11 @@ test('复盘历史按排期作用域读取，取消保留原日期，技术自�
  assert.equal(events.length,2);assert.equal(events[0].title,'取消复盘节点');assert.deepEqual(events[0].changes[0],{label:'复盘截止日',before:'2026-11-20',after:'已取消'});
 });
 
-test('已完成申请进入历史，待审批保留待办；延期说明保留历次前后文且仅当前项可编辑',()=>{
- const application={id:'request',status:'pending',requestedByLabel:'同事',originalPlannedPublishAt:new Date(from),requestedPublishAt:new Date(to),reason:'改期',decidedAt:null,decidedByLabel:null,decisionReason:null} as Input['applications'][number];
- const reason={id:'reason',changedById:null,planRevision:0,scheduleId:'schedule',dayNumber:1,dueAt:new Date(from),reason:'已联系需求方',responsibility:'external',source:'manual',updatedAt:new Date(to),changedByLabel:'运营同事',history:[{reason:'等待需求',responsibility:'requester',source:'manual',updatedAt:at,changedByLabel:'运营同事'}]} as Input['reasons'][number];
- const events=build(input({applications:[application],reasons:[reason]}));
- assert.equal(events.length,2);assert.equal(events.filter(e=>e.delayReasonId).length,1);assert.equal(events[0].delayReasonId,'reason');
- const text=events[0].changes.find(c=>c.label==='说明')!;assert.equal(text.before,'等待需求');assert.equal(text.after,'已联系需求方');
- const approved=build(input({applications:[{...application,status:'approved',decidedAt:new Date(at),decidedByLabel:'管理员'}]}));assert.equal(approved[0].title,'同意改期申请');
+test('延期说明不进入业务历史，已完成改期申请仍保留',()=>{
+ const application={id:'request',status:'approved',requestedByLabel:'同事',originalPlannedPublishAt:new Date(from),requestedPublishAt:new Date(to),reason:'改期',decidedAt:new Date(at),decidedByLabel:'管理员',decisionReason:null} as Input['applications'][number];
+ const reason={id:'reason',planRevision:0,dayNumber:1,dueAt:new Date(from),reason:'已联系需求方',responsibility:'external',source:'manual',updatedAt:new Date(to),changedByLabel:'同事',history:[]} as unknown as Input['reasons'][number];
+ const [event]=build(input({applications:[application],reasons:[reason]}));assert.equal(event.title,'同意改期申请');assert.deepEqual(event.categories,['schedule']);
+ assert.equal(build(input({reasons:[reason]})).length,0);
 });
 
 test('技术修复不混入业务历史，笔记ID更正保留真实来源',()=>{
