@@ -5,7 +5,7 @@
 .review-result>header button{border:0;padding:4px 0;background:transparent;color:var(--console-blue);font:400 13px/22px var(--console-font);cursor:pointer}
 .review-result>header button:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px}
 .review-result dl{display:grid;gap:0;margin:0}
-.review-result dl>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--console-line)}
+.review-result dl>div{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 0}
 .review-result dt{color:var(--console-muted);font:400 13px/22px var(--console-font)}
 .review-result dd{margin:0;text-align:right;color:var(--console-ink);font:500 14px/22px var(--console-font);font-variant-numeric:tabular-nums}
 .review-result-range dd{font-size:13px}
@@ -18,13 +18,12 @@
 .business-inspector [data-annual-support]>summary::-webkit-details-marker{display:none}
 .business-inspector [data-annual-support]>summary::after{content:"";width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg);margin-right:4px}
 .business-inspector [data-annual-support][open]>summary::after{transform:rotate(135deg)}
-.business-inspector .annual-support{border-top:1px solid var(--console-line);border-bottom:1px solid var(--console-line);padding:14px 0}
+.business-inspector .annual-support{padding:14px 0}
 .business-inspector .annual-support :is(.link-list,p){margin:10px 0 0}
 .business-inspector .annual-version-history .annual-history-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:36px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--console-ink);font:500 14px/24px var(--console-font);text-align:left}
 .business-inspector .annual-history-trigger>span{color:var(--console-blue);font:400 12px/20px var(--console-font)}
-.business-inspector .annual-version-history{margin-top:0;padding:14px 0;border-bottom:1px solid var(--console-line)}
-.business-inspector .block-detail{padding:12px 0;border:0;border-bottom:1px solid var(--console-line);border-radius:0;background:transparent}
-.business-inspector .block-detail:last-child{border-bottom:0}
+.business-inspector .annual-version-history{margin-top:0;padding:14px 0}
+.business-inspector .block-detail{padding:12px 0;border:0;border-radius:0;background:transparent}
 .business-inspector .block-primary{align-items:center;justify-content:space-between;gap:10px}
 .business-inspector .block-primary>strong{max-width:none;font:500 14px/22px var(--console-font);white-space:normal}
 .business-inspector .block-promotion{flex:none;padding:2px 6px;border-radius:5px;background:var(--inspector-soft);color:var(--inspector-tone);font:500 12px/20px var(--console-font)}
@@ -50,13 +49,12 @@
 .lookup-versions{display:flex;gap:8px;flex-wrap:wrap}
 .lookup-detail-section .lookup-versions button{flex:none;margin:0;min-width:48px;min-height:34px;padding:5px 12px!important;justify-content:center!important;text-align:center;font-variant-numeric:tabular-nums}
 .lookup-body .lookup-detail-section .lookup-versions button[aria-current=true]{opacity:1;color:var(--console-blue);border-color:#adc2e0;background:#eaf1fc}
-.lookup-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:12px 0;padding:12px 0;border-top:1px solid var(--console-line);border-bottom:1px solid var(--console-line)}
+.lookup-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:12px 0;padding:12px 0}
 .lookup-totals>div{padding:0 14px;border-left:1px solid var(--console-line)}
 .lookup-totals>div:first-child{padding-left:0;border-left:0}
 .lookup-totals dt{font:400 13px/22px var(--console-font);color:var(--console-muted)}
 .lookup-totals dd{margin:4px 0 0;color:var(--console-ink);font:600 18px/27px var(--console-font);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .lookup-detail-section details>summary{cursor:pointer;font:400 14px/24px var(--console-font)}
-.lookup-detail-section .business-history-timeline>summary{font:500 15px/24px var(--console-font)}
 .business-history-filters.business-view-switch{height:auto;max-width:100%;flex-wrap:wrap}
 .business-history-filters.business-view-switch span{white-space:nowrap}
 .business-history-timeline .business-history-summary{margin:4px 0;color:var(--console-ink);font:400 14px/22px var(--console-font);overflow-wrap:anywhere}

@@ -1,5 +1,5 @@
 import { navigate } from 'astro:transitions/client';
-import { businessConfirm, closeBusinessDialog, setBusinessScrollLock } from './business-dialog';
+import { businessConfirm, closeBusinessDialog, setBusinessScrollLock, bindBusinessBackdrop } from './business-dialog';
 
 /** 静态详情与惰性模板都使用同一条正文滚动轨道。 */
 function organizeInspector(element: HTMLElement) {
@@ -166,10 +166,7 @@ function createInspector(element: HTMLElement, options: InspectorOptions) {
   element.addEventListener('business:inspector-close', () => close(), { signal });
   if(modal){
     modal.addEventListener('cancel',event=>{event.preventDefault();close();},{signal});
-    const outside=(event:MouseEvent)=>{const rect=modal.getBoundingClientRect();return event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom;};
-    let backdropPress=false;
-    modal.addEventListener('pointerdown',event=>{backdropPress=event.target===modal&&outside(event);},{signal});
-    modal.addEventListener('click',event=>{if(backdropPress&&event.target===modal&&outside(event))close();backdropPress=false;},{signal});
+    bindBusinessBackdrop(modal,()=>void close(),signal);
   }
   document.addEventListener('keydown', event => {
     if (element.hidden || document.querySelector('dialog[open]')) return;

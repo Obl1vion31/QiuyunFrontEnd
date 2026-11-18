@@ -3,16 +3,6 @@
 #schedule-panel [data-schedule-workflow-history]>button{justify-self:start}
 
 /* 详情和查帖共用一条可筛选的业务时间线。 */
-.business-history-timeline{min-width:0}
-.business-history-timeline>summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font:500 15px/24px var(--console-font);padding:10px 0;color:var(--console-ink)}
-.business-history-timeline>summary::-webkit-details-marker{display:none}
-.business-history-timeline>summary::before{content:"";flex:none;width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg)}
-.business-history-timeline[open]>summary::before{transform:rotate(135deg)}
-.business-history-toggle{margin-left:auto;color:var(--console-blue);font:400 13px/20px var(--console-font)}
-.business-history-toggle>span+span{display:none}
-.business-history-timeline[open]>summary .business-history-toggle>span:first-child{display:none}
-.business-history-timeline[open]>summary .business-history-toggle>span+span{display:inline}
-.business-history-timeline>summary:focus-visible{outline:2px solid var(--console-blue);outline-offset:3px;border-radius:4px}
 .business-history-body{padding-top:6px;min-width:0}
 .business-history-filters.business-view-switch{height:34px;margin-bottom:12px;font-size:13px}
 .business-history-filters.business-view-switch label{font:inherit}
@@ -20,7 +10,6 @@
 .business-history-events{margin:0;padding:0 0 0 18px;list-style:none}
 .business-history-events>li{position:relative;padding:12px 0 14px 16px;border-left:1px solid #c8d9e7;min-width:0}
 .business-history-events>li::before{content:"";position:absolute;top:19px;left:-5px;width:9px;height:9px;box-sizing:border-box;border:2px solid #f4f8fd;border-radius:50%;background:var(--console-blue)}
-.business-history-events>li+li{border-top:1px solid var(--console-line)}
 .business-history-events>li>header{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-bottom:8px}
 .business-history-events>li>header>strong{font:500 14px/22px var(--console-font);overflow-wrap:anywhere}
 .business-history-tags{display:inline-flex;flex-wrap:wrap;gap:5px}

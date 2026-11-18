@@ -1,3 +1,4 @@
+import {createRecordDisclosure} from './business-record-disclosure';
 import type {HistoryChange} from '../db/schedule-business-history';
 import type {InspectorHistoryCategory,InspectorHistoryEvent} from '../db/inspector-history';
 import {businessDateTime} from './business-date';
@@ -31,10 +32,10 @@ function renderChange(list:HTMLElement,change:HistoryChange,initial:boolean){
  description.append(show(change.after,initial?'查看':'现'));row.append(term,description);list.append(row);
 }
 export function appendBusinessHistory(host:HTMLElement,events:InspectorHistoryEvent[],options:{state?:HistoryViewState;}={}){
- if(!events.length){const empty=el('p','暂无业务历史');empty.className='schedule-history-status';host.append(empty);return;}
- const root=el('details');root.className='business-history-timeline';root.dataset.businessHistoryTimeline='';root.open=options.state?.open??true;
- const heading=el('summary');heading.append(el('span',`业务历史 (${events.length})`));const toggle=el('span');toggle.className='business-history-toggle';toggle.setAttribute('aria-hidden','true');toggle.append(el('span','展开'),el('span','收起'));heading.append(toggle);root.append(heading);
- const body=el('div');body.className='business-history-body';
+ const root=createRecordDisclosure('业务历史',events.length,options.state?.open);
+ root.classList.add('business-history-timeline');root.dataset.businessHistoryTimeline='';
+ const body=el('div');body.className='business-history-body';root.append(body);host.append(root);
+ if(!events.length){const empty=el('p','暂无业务历史');empty.className='schedule-history-status';body.append(empty);return;}
  const filter=el('fieldset');filter.className='business-view-switch business-history-filters';filter.append(el('legend','历史类别'));
  // 阅读筛选不属于表单修改，不触发详情的未保存保护；事件内的理由表单照常冒泡。
  filter.addEventListener('input',event=>event.stopPropagation());
@@ -58,5 +59,5 @@ export function appendBusinessHistory(host:HTMLElement,events:InspectorHistoryEv
  });
  const more=el('button','查看更多');more.type='button';more.className='business-history-more';more.addEventListener('click',()=>{limit+=10;render();});
  const render=()=>{let visible=0;for(const {event,row}of rows){const match=category==='all'||event.categories.includes(category as InspectorHistoryCategory);row.hidden=!match||visible++>=limit;}more.hidden=visible<=limit;root.dataset.category=category;root.dataset.limit=String(limit);};
- body.append(filter,list,more);root.append(body);host.append(root);render();
+ body.append(filter,list,more);render();
 }

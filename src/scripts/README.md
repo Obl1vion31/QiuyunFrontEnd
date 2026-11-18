@@ -10,6 +10,8 @@
 
 `business-inspector.ts` 统一详情开关、焦点、深链接与未保存保护；模板行内标题和显式动作使用 `data-inspector-trigger` 接入同一行键，关闭回到实际触发按钮，不重复声明 `data-inspector-key`；`non-promotion-review.ts` 只处理筛选、排序、业务保存和 GET 刷新。接入方式见[共享界面实例](../../docs/code-study.md#共享界面接入)。
 
+排期 Sheet 与模态 Inspector 共用 `business-dialog.bindBusinessBackdrop` 判断完整遮罩点击；内按外放、拖动或取消不关闭，实际关闭继续交回原控制器。`business-record-disclosure.ts` 共用延期／业务历史的原生折叠标题，首次进入默认收起；`schedule-delay.ts` 仅呈现各日最新说明和姓名，排期编辑与助手只读共用。
+
 排期的 `operations-workflow.ts` 处理统一发布的到期理由、分享文案预览及更正历史，旧预约只读展示。新建、编辑、改帖共用日期与时分控件，日历点击只提供预填日期。提醒由 `schedule-notifications.ts` 刷新，不再提供预约审核或到点确认。
 
 `business-datetime.ts` 管理共享日期／时间拆分控件，捕获输入与提交时拼合原字段；SSR 与动态表单共用相同配置方法，同步只读／禁用，不转换业务时区。
