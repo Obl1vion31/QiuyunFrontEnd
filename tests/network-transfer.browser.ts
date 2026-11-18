@@ -50,7 +50,13 @@ try{
  const page=await context.newPage();if(!baseline)await page.clock.install({time:now});page.on('pageerror',(error:Error)=>errors.push(error.message));
  const requests:Array<{path:string;method:string}>=[];page.on('request',(r:any)=>{const u=new URL(r.url());if(u.origin===baseURL&&(u.pathname.startsWith('/business/')||u.pathname.startsWith('/api/')))requests.push({path:u.pathname,method:r.method()});});
  await page.goto(baseURL+'/business/operations-schedule?month=2026-11');await page.waitForLoadState('networkidle');
- assert.equal(await page.locator('[data-schedule-count=overdue]').innerText(),'6');assert.equal(await page.locator('[data-schedule-count=missingReasons]').innerText(),'6');
+ if(baseline){
+  assert.equal(await page.locator('[data-schedule-count=overdue]').innerText(),'6');
+  assert.equal(await page.locator('[data-schedule-count=missingReasons]').innerText(),'6');
+ }else{
+  assert.equal(await page.locator('[data-schedule-count=pendingApprovals]').innerText(),'3');
+  assert.equal(await page.locator('[data-schedule-count]').count(),1);
+ }
  const initialRequests=[...requests];const beforeHover=requests.length;
  for(const id of ['monthly-operations','meeting-review','settings']){await page.locator(`[data-module-id="${id}"]`).hover();await page.waitForTimeout(650);}
  await page.waitForLoadState('networkidle');const hoverRequests=requests.slice(beforeHover).filter(r=>r.path.startsWith('/business/'));
@@ -65,18 +71,18 @@ try{
   at=requests.length;await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));});await page.waitForLoadState('networkidle');assert.ok(requests.slice(at).filter(r=>r.path==='/api/business-notifications').length<=1,'恢复事件合并');
   // 保存完成事件发生在慢读取期间，仍须随后再取一次最新结果。
   let started!:()=>void;const firstStarted=new Promise<void>(r=>started=r);let release!:()=>void;const gate=new Promise<void>(r=>release=r);let hits=0;
-  await page.route('**/api/business-notifications',async(route:any)=>{hits++;if(hits===1){started();await gate;}await route.continue();});
+  await page.route('**/api/business-notifications?view=sidebar',async(route:any)=>{hits++;if(hits===1){started();await gate;}await route.continue();});
   await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));await firstStarted;
-  await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));release();await page.waitForFunction(()=>document.querySelector('[data-schedule-notifications]')?.getAttribute('aria-busy')==='false');await page.waitForLoadState('networkidle');assert.equal(hits,2,'保存后的提醒不会被并发读取丢弃');await page.unroute('**/api/business-notifications');
+  await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));release();await page.waitForFunction(()=>document.querySelector('[data-schedule-notifications]')?.getAttribute('aria-busy')==='false');await page.waitForLoadState('networkidle');assert.equal(hits,2,'保存后的提醒不会被并发读取丢弃');await page.unroute('**/api/business-notifications?view=sidebar');
   await page.clock.resume();
-  await page.route('**/api/business-notifications',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'隔离故障'})}));await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));await page.locator('[data-schedule-notification-error]:visible').waitFor();assert.equal(await page.locator('[data-schedule-count=overdue]').innerText(),'6');await settleBusinessUI(page);await page.screenshot({path:dir+'/notification-error-1440.png'});await page.unroute('**/api/business-notifications');
+  await page.route('**/api/business-notifications?view=sidebar',async(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'隔离故障'})}));await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));await page.locator('[data-schedule-notification-error]:visible').waitFor();assert.equal(await page.locator('[data-schedule-count=pendingApprovals]').innerText(),'3');await settleBusinessUI(page);await page.screenshot({path:dir+'/notification-error-1440.png'});await page.unroute('**/api/business-notifications?view=sidebar');
   await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-schedule-notification-error]')?.hidden===true);
   // 已进入新排期页时，旧页面迟到的提醒响应不能覆盖新SSR数字。
   await page.locator('[data-module-id=non-promotion-review]').click();await page.waitForURL('**/business/non-promotion-review');await page.waitForLoadState('networkidle');
   let oldStarted!:()=>void;const oldReady=new Promise<void>(r=>oldStarted=r);let releaseOld!:()=>void;const oldGate=new Promise<void>(r=>releaseOld=r);
-  await page.route('**/api/business-notifications',async(route:any)=>{oldStarted();await oldGate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...result,overdue:999})});});
+  await page.route('**/api/business-notifications?view=sidebar',async(route:any)=>{oldStarted();await oldGate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({pendingApprovals:999})});});
   await page.evaluate(()=>document.dispatchEvent(new Event('business:workflow-updated')));await oldReady;
-  await page.locator('[data-module-id=schedule]').click();await page.waitForURL('**/business/operations-schedule**');await page.waitForFunction(()=>document.querySelector('[data-schedule-count=overdue]')?.textContent==='6');releaseOld();await page.waitForLoadState('networkidle');assert.equal(await page.locator('[data-schedule-count=overdue]').innerText(),'6');await page.unroute('**/api/business-notifications');
+  await page.locator('[data-module-id=schedule]').click();await page.waitForURL('**/business/operations-schedule**');await page.waitForFunction(()=>document.querySelector('[data-schedule-count=pendingApprovals]')?.textContent==='3');releaseOld();await page.waitForLoadState('networkidle');assert.equal(await page.locator('[data-schedule-count=pendingApprovals]').innerText(),'3');await page.unroute('**/api/business-notifications?view=sidebar');
   await page.waitForFunction(()=>document.querySelector<HTMLElement>('[data-navigation-loading]')?.hidden===true);
   for(const width of [1920,1440,1024,390,320]){await page.setViewportSize({width,height:width<500?780:1000});await settleBusinessUI(page);await page.screenshot({path:`${dir}/schedule-${width}.png`});}
  }

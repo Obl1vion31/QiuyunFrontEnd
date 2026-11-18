@@ -1,13 +1,22 @@
 ---
-import type {teamScheduleNotifications} from '../db/schedule-workflow';
-interface Props {initial?:Awaited<ReturnType<typeof teamScheduleNotifications>>}
+import type {SidebarCounts} from '../db/business-notifications';
+interface Props {initial?:SidebarCounts}
 const {initial}=Astro.props;
+const reminders=Astro.locals.user?.role==='admin'
+ ? [{key:'pendingApprovals',label:'排期待审',unit:'项',href:'/business/operations-schedule?status=approvals&display=ledger'}] as const
+ : [
+  {key:'promotionPending',label:'推广待复盘',unit:'项',href:'/business/daily-promotion-review?view=daily#daily-table'},
+  {key:'overdue',label:'尚未登记',unit:'篇',href:'/business/operations-schedule?status=overdue&display=ledger'},
+  {key:'nonPromotionDue',label:'非推广到期',unit:'篇',href:'/business/non-promotion-review?view=pending'},
+ ] as const;
+const ready=reminders.every(({key})=>initial?.[key]!==undefined);
 ---
-<div class="schedule-notifications" aria-label="排期待办提醒" data-schedule-notifications aria-busy={initial?'false':'true'}>
-  <a href="/business/operations-schedule?status=overdue&amp;display=ledger"><span>尚未登记<span data-schedule-notification-error hidden> · 暂不可用</span></span><b data-schedule-count="overdue">{initial?.overdue??'—'}</b></a>
-  <a href="/business/operations-schedule?status=reasons&amp;display=ledger"><span>待补理由</span><b data-schedule-count="missingReasons">{initial?.missingReasons??'—'}</b></a>
-  <a href="/business/operations-schedule?status=approvals&amp;display=ledger" data-admin-only><span>排期待审</span><b data-schedule-count="pendingApprovals">{initial?.pendingApprovals??'—'}</b></a>
-  <small data-schedule-notification-status role="status" aria-live="polite">{initial?'':'正在读取提醒…'}</small>
+<div class="schedule-notifications" aria-label="工作台待办提醒" data-schedule-notifications aria-busy={ready?'false':'true'}>
+  {reminders.map(({key,label,unit,href},index)=><a href={href} aria-label={`${label} ${initial?.[key]===undefined?'数量待读取':initial[key]+' '+unit}`}>
+    <span>{label}{index===0&&<small data-schedule-notification-error hidden> · 暂不可用</small>}</span>
+    <b data-schedule-count={key} data-notice-label={label} data-notice-unit={unit}>{initial?.[key]??'—'}</b>
+  </a>)}
+  <small data-schedule-notification-status role="status" aria-live="polite">{ready?'':'正在读取提醒…'}</small>
 </div>
 <script>
   import '../scripts/schedule-notifications';
@@ -20,6 +29,6 @@ const {initial}=Astro.props;
   .schedule-notifications b{min-width:22px;padding:2px 5px;border-radius:5px;color:#8d4c31;background:#f5e4dc;text-align:center;font:500 12px/16px var(--console-font);font-variant-numeric:tabular-nums}
   .schedule-notifications [data-schedule-count=overdue]{color:#73551d;background:#fff1bf}
   .schedule-notifications [data-schedule-notification-status]{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-  .schedule-notifications [data-schedule-notification-error]{color:#8d4c31}
+  .schedule-notifications [data-schedule-notification-error]{color:#8d4c31;font-size:inherit}
   @media(max-width:900px){.schedule-notifications{display:none}}
 </style>

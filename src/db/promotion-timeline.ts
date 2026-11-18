@@ -7,7 +7,7 @@ import {syncContinuousCheckpoints} from './continuous-schedule';
 import {withoutLegacyDelay} from './schedule-delay-cleanup';
 import {promotionStatusStage,promotionNextOptions} from './promotion-successors.mjs';
 import { createHash, randomUUID } from 'node:crypto';
-import { and,asc,desc,eq,inArray } from 'drizzle-orm';
+import { and,asc,desc,eq,inArray,isNotNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
 import { type OperationsUser } from '../auth/permissions';
@@ -50,28 +50,58 @@ export async function promotionSnapshot(db: Reader, scheduleId: string) {
 }
 export const timelineFingerprint = (value: unknown) => createHash('sha256').update(JSON.stringify(value,(_key,item)=>Array.isArray(item)&&item.every(row=>row&&typeof row==='object'&&'id' in row)?[...item].sort((a,b)=>String(a.id).localeCompare(String(b.id))):item&&typeof item==='object'&&!Array.isArray(item)&&!(item instanceof Date)?Object.fromEntries(Object.entries(item).sort(([a],[b])=>a.localeCompare(b))):item)).digest('hex');
 
-export async function readPromotionTimeline(db: Reader, now = new Date(), onlySchedule?: string, existingContext?: Awaited<ReturnType<typeof readPromotionContext>>) {
-  const [rows, plans, context, schedules, allMetrics, allStages] = await Promise.all([
-    db.select({scheduleId:s.operationsContentSchedule.id,versionId:s.operationsContentVersion.id,contentId:s.operationsContentVersion.contentId,platformNoteId:s.operationsContent.platformNoteId,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),projectDocUrl:s.operationsContentVersion.projectDocUrl,contentName:s.operationsContentVersion.contentName,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,actualPublishAt:s.operationsContentSchedule.actualPublishAt,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,publicationUrl:s.operationsContentSchedule.publicationUrl,isPromoted:s.operationsContentSchedule.isPromoted,promotionStatus:s.operationsContentSchedule.promotionStatus,promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
-    db.select().from(s.operationsPromotionStartPlan), existingContext??readPromotionContext(db), db.select().from(s.operationsContentSchedule), db.select().from(s.operationsPromotionDailyMetric).orderBy(asc(s.operationsPromotionDailyMetric.metricDate)), db.select().from(s.operationsPromotionStage).orderBy(asc(s.operationsPromotionStage.startedOn)),
-  ]);
-  const today=shanghaiDateKey(now), yesterday=previousDateKey(today);
-  const noteStates=await readVersionNotes(db,rows.map(row=>row.versionId));
-  return rows.filter(row=>row.actualPublishAt&&(row.isPromoted||context.campaigns.some(c=>c.scheduleId===row.scheduleId)||plans.some(p=>p.scheduleId===row.scheduleId))).map(row=>{
-    const noteIdPeriods=noteStates.get(row.versionId)!.periods;
-    row.platformNoteId=noteIdOn(noteIdPeriods,today);
+const promotionQueueColumns={
+ scheduleId:s.operationsContentSchedule.id,
+ contentName:s.operationsContentVersion.contentName,
+ actualPublishAt:s.operationsContentSchedule.actualPublishAt,
+ isPromoted:s.operationsContentSchedule.isPromoted,
+ promotionStatus:s.operationsContentSchedule.promotionStatus,
+ promotionDeferredThrough:s.operationsContentSchedule.promotionDeferredThrough
+};
+type QueueSource={scheduleId:string;actualPublishAt:Date|null;isPromoted:boolean;promotionStatus:string;promotionDeferredThrough:string|null};
+type QueueContext=Awaited<ReturnType<typeof readPromotionContext>>;
+
+function promotionQueueRows<T extends QueueSource>(rows:T[],plans:(typeof s.operationsPromotionStartPlan.$inferSelect)[],context:QueueContext,now:Date) {
+ const today=shanghaiDateKey(now),yesterday=previousDateKey(today);
+ const pauses=context.pauses.flatMap(pause=>{const window=fullPauseRange(pause);return window?[window]:[];});
+ return rows.filter(row=>row.actualPublishAt&&(row.isPromoted||context.campaigns.some(c=>c.scheduleId===row.scheduleId)||plans.some(p=>p.scheduleId===row.scheduleId))).map(row=>{
     const publishedOn=shanghaiDateKey(row.actualPublishAt!), plan=plans.find(p=>p.scheduleId===row.scheduleId);
     const campaign=context.campaigns.filter(c=>c.scheduleId===row.scheduleId).sort((a,b)=>a.startedOn.localeCompare(b.startedOn)).at(-1);
     const waitingThrough=!campaign&&row.promotionDeferredThrough?row.promotionDeferredThrough:plan?.waitingThrough??(plan?null:row.promotionDeferredThrough);
     const initialWaiting=!campaign&&!!plan&&!plan.plannedOn;
     const date=campaign?campaign.startedOn:plan?.plannedOn??(waitingThrough?waitingThrough<yesterday?waitingThrough:yesterday:initialWaiting?yesterday:publishedOn);
-    const owned=context.campaigns.filter(c=>c.scheduleId===row.scheduleId),ids=new Set(owned.map(c=>c.id));
-    const pausedRanges=context.waitRanges.filter(r=>r.campaignId===campaign?.id);
-    const snapshot={schedule:withoutLegacyDelay(schedules.find(record=>record.id===row.scheduleId)!),plan:plan??null,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
     const canArrangeInitial=row.isPromoted&&row.promotionStatus==='awaiting_promotion'&&!campaign;
-    return {...row,noteIdPeriods,noteIdFingerprint:noteStates.get(row.versionId)!.fingerprint,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,initialWaiting,date,canArrangeInitial,
-      pending:canArrangeInitial&&publishedOn<=yesterday&&!dateInWindows(date,context.pauses.flatMap(p=>{const r=fullPauseRange(p);return r?[r]:[];})),
-      ranges:pausedRanges, hasMetrics:snapshot.metrics.length>0, fingerprint:timelineFingerprint(snapshot)};
+    return {...row,publishedOn,plan:plan??null,campaign:campaign??null,waitingThrough,initialWaiting,date,canArrangeInitial,
+      pending:canArrangeInitial&&publishedOn<=yesterday&&!dateInWindows(date,pauses),
+      ranges:context.waitRanges.filter(r=>r.campaignId===campaign?.id)};
+ });
+}
+
+export async function readPromotionQueueRows(db:Reader,now:Date,context:Promise<QueueContext>) {
+ const [rows,plans,state]=await Promise.all([
+  db.select(promotionQueueColumns).from(s.operationsContentSchedule)
+   .innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id))
+   .where(and(eq(s.operationsContentSchedule.isPromoted,true),isNotNull(s.operationsContentSchedule.actualPublishAt))),
+  db.select().from(s.operationsPromotionStartPlan),
+  context,
+ ]);
+ return promotionQueueRows(rows,plans,state,now);
+}
+
+export async function readPromotionTimeline(db: Reader, now = new Date(), onlySchedule?: string, existingContext?: Awaited<ReturnType<typeof readPromotionContext>>) {
+  const [rows, plans, context, schedules, allMetrics, allStages] = await Promise.all([
+    db.select({...promotionQueueColumns,versionId:s.operationsContentVersion.id,contentId:s.operationsContentVersion.contentId,platformNoteId:s.operationsContent.platformNoteId,categoryName:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),projectDocUrl:s.operationsContentVersion.projectDocUrl,versionNumber:s.operationsContentVersion.versionNumber,subjectName:s.operationsSubject.name,plannedPublishAt:s.operationsContentSchedule.plannedPublishAt,publicationUrl:s.operationsContentSchedule.publicationUrl}).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentSchedule.contentVersionId,s.operationsContentVersion.id)).innerJoin(s.operationsSubject,eq(s.operationsContentVersion.subjectId,s.operationsSubject.id)).innerJoin(s.operationsContent,eq(s.operationsContentVersion.contentId,s.operationsContent.id)).leftJoin(s.operationsCategory,eq(s.operationsContentVersion.categoryId,s.operationsCategory.id)).where(onlySchedule?eq(s.operationsContentSchedule.id,onlySchedule):undefined).orderBy(asc(s.operationsContentSchedule.actualPublishAt)),
+    db.select().from(s.operationsPromotionStartPlan), existingContext??readPromotionContext(db), db.select().from(s.operationsContentSchedule), db.select().from(s.operationsPromotionDailyMetric).orderBy(asc(s.operationsPromotionDailyMetric.metricDate)), db.select().from(s.operationsPromotionStage).orderBy(asc(s.operationsPromotionStage.startedOn)),
+  ]);
+  const today=shanghaiDateKey(now);
+  const noteStates=await readVersionNotes(db,rows.map(row=>row.versionId));
+  return promotionQueueRows(rows,plans,context,now).map(row=>{
+    const noteIdPeriods=noteStates.get(row.versionId)!.periods;
+    const platformNoteId=noteIdOn(noteIdPeriods,today);
+    const owned=context.campaigns.filter(c=>c.scheduleId===row.scheduleId),ids=new Set(owned.map(c=>c.id));
+    const snapshot={schedule:withoutLegacyDelay(schedules.find(record=>record.id===row.scheduleId)!),plan:row.plan,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
+    return {...row,platformNoteId,noteIdPeriods,noteIdFingerprint:noteStates.get(row.versionId)!.fingerprint,
+      hasMetrics:snapshot.metrics.length>0,fingerprint:timelineFingerprint(snapshot)};
   });
 }
 

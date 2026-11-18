@@ -17,7 +17,11 @@ document.addEventListener('submit',async event=>{
   const template=document.querySelector<HTMLTemplateElement>(`template[data-inspector-template="${CSS.escape(form.dataset.approvalKey??'')}"]`);
   if(template){template.content.querySelector('form')?.replaceWith(form.cloneNode(true));const status=template.content.querySelector('header p');if(status)status.textContent=output.textContent;}
   const item=document.querySelector<HTMLElement>(`[data-approval-item="${CSS.escape(form.dataset.approvalKey??'')}"]`);if(item){item.dataset.processed='true';const status=item.querySelector('[data-approval-item-status]');if(status)status.textContent=output.textContent;}
-  const count=document.querySelector('[data-approval-queue-count]');if(count)count.textContent=String(document.querySelectorAll('[data-approval-item]:not([data-processed])').length);
+  const queue=document.querySelector('[data-schedule-approval-queue]');
+  if(queue){
+   const remaining=String(queue.querySelectorAll('[data-approval-item]:not([data-processed])').length);
+   document.querySelectorAll('[data-approval-queue-count],[data-approval-nav-count]').forEach(count=>{count.textContent=remaining;});
+  }
   document.dispatchEvent(new CustomEvent('business:workflow-updated'));document.dispatchEvent(new CustomEvent('business:schedule-approval-decided',{detail:{id:form.dataset.scheduleId}}));
  }catch{output.textContent='连接失败，输入已保留。';}finally{buttons.forEach(button=>button.disabled=false);}
 },true);

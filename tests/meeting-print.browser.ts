@@ -36,6 +36,7 @@ try{
    const [file]=await f.db.select().from(s.operationsMeetingAttachment).where(eq(s.operationsMeetingAttachment.id,result.id));assert.equal(file.byteLength,bytes.length);
    await page.goto(f.baseURL+'/business/meeting-review?meeting='+sample.meeting.id+'&version='+sample.version.versionNumber);await settleBusinessUI(page);
    assert.equal(await page.locator('[data-weekly-snapshot]').count(),1);
+   if(sample.kind==='monthly-current')assert.match(await page.locator('[data-cost-metric=成交成本]').innerText(),/推广来源成交人次，可含往月获客/);
    const cdp=await context.newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');
    const documentNode=await cdp.send('DOM.getDocument'),heading=await cdp.send('DOM.querySelector',{nodeId:documentNode.root.nodeId,selector:'[data-weekly-snapshot] h2'}),font=await cdp.send('CSS.getPlatformFontsForNode',{nodeId:heading.nodeId});
    assert(font.fonts.some((item:any)=>item.isCustomFont&&/MiSans/i.test(item.familyName)&&item.glyphCount>0),'实际标题字形应使用MiSans');fontEvidence.push({role:actor.role,sample:sample.kind,fonts:font.fonts});await cdp.detach();

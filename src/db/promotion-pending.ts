@@ -1,9 +1,10 @@
 /** 待办展示模型：区间中的日期由已保存区间覆盖，不创建日度指标或推算操作时间。 */
-import type {readPromotionTimeline} from './promotion-timeline';
+import type {readPromotionQueueRows,readPromotionTimeline} from './promotion-timeline';
 import {nextDateKey,previousDateKey,shanghaiDateKey} from './promotion-rules.mjs';
 export type PromotionTimelineRow=Awaited<ReturnType<typeof readPromotionTimeline>>[number];
 export const inclusiveDays=(from:string,to:string)=>Math.round((Date.parse(to)-Date.parse(from))/86400000)+1;
-export function pendingPromotionPeriod(row:PromotionTimelineRow,now=new Date(),includeToday=false){
+export type PromotionQueueRow=Awaited<ReturnType<typeof readPromotionQueueRows>>[number];
+export function pendingPromotionPeriod(row:PromotionQueueRow,now=new Date(),includeToday=false){
  const yesterday=previousDateKey(shanghaiDateKey(now)),cutoff=includeToday?shanghaiDateKey(now):yesterday;
  if(!row.isPromoted||['ended','test_discarded','formal_discarded'].includes(row.campaign?.currentStatus??row.promotionStatus))return null;
  const range=row.ranges.filter(item=>item.startedOn<=cutoff&&!item.nextDecision).at(-1);

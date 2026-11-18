@@ -22,7 +22,7 @@ const day=(row:typeof rows[number])=>row.isMonthly?'月计划关联':row.planned
       <td><span class="version-chip">{row.isMonthly?'月计划':`V${row.version}`}</span><small>{row.isMonthly?'关联':row.workType==='revision'?'改帖':'新做帖'}</small></td>
       <td class="content-cell"><strong>{row.name}</strong><small>{row.subjectName} · {row.title}</small>{row.diff.filter(change=>change.label==='应发时间').map(change=><small class="approval-date-change">{change.before} → {change.after}</small>)}</td>
       <td>{row.isMonthly?<span class="missing">—</span>:<span class:list={['promotion-identity',{promoted:row.isPromoted}]}>{row.isPromoted?'推广':'非推广'}</span>}{!row.isMonthly&&row.isPromoted&&<small>{promotionLabels[row.promotionStatus]??row.promotionStatus}</small>}</td>
-      <td><span class="completion approval-pending" data-approval-item-status>待审核</span><small>{row.requestedBy} · {businessDateTime(row.createdAt)}</small></td>
+      <td><span class="completion approval-pending" data-approval-item-status>待审核</span><small class="approval-request-meta"><span>{row.requestedBy}</span><time datetime={row.createdAt.toISOString()}>{businessDateTime(row.createdAt)}</time></small></td>
       <td>{row.projectDocUrl?<a class="doc-link" href={row.projectDocUrl} target="_blank" rel="noreferrer" aria-label="打开项目文档">↗</a>:<span class="missing">{row.isMonthly?'—':'待登记'}</span>}</td>
      </tr>
     </>)}</tbody>
@@ -45,4 +45,6 @@ const day=(row:typeof rows[number])=>row.isMonthly?'月计划关联':row.planned
 <style is:global>
 .schedule-approval-layout .approval-date-change{white-space:normal;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.approval-pending{color:#73551d;background:#fff1bf}.schedule-approval-detail{min-width:0}.schedule-approval-detail h3{margin:0 0 8px;font-size:var(--console-text)}.schedule-approval-detail .approval-reason{white-space:pre-wrap;overflow-wrap:anywhere}.schedule-approval-detail .approval-diff{margin-top:16px;min-width:0}.schedule-approval-layout .business-inspector-actions form{display:grid;gap:12px;margin:0;min-width:0}.schedule-approval-detail .detail-list dd{min-width:0;overflow-wrap:anywhere}.schedule-approval-item td:last-child a{position:relative;z-index:1}
 .schedule-approval-layout .business-inspector-actions .business-action-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.schedule-approval-list .approval-request-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:0 6px;white-space:normal;overflow-wrap:anywhere}.approval-request-meta time{white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(min-width:901px){.table-wrap.schedule-approval-list table{min-width:690px}}
 </style>

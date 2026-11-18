@@ -234,7 +234,7 @@ flowchart LR
 
 ### 协作与来源准备接入
 
-动态业务导航不预取HTML，实际点击、筛选和前后退仍走ClientRouter。排期页把已计算的提醒通过共享Frame／Sidebar接入，首屏直接显示计数，并在持久化侧栏接收新页面快照；没有该快照的页面仍请求提醒API。提醒查询只投影当前判断必需字段，不读取改期历史、理由正文或更正历史；具体内容仍在原详情入口读取。每分钟、返回及保存后的提醒更新与权限校验保留。
+动态业务导航不预取HTML，实际点击、筛选和前后退仍走ClientRouter。各页面将已有的提醒数字通过共享 Frame／Sidebar 用于首屏。缺项或到原刷新时机时请求 `/api/business-notifications?view=sidebar`，按会话返回该角色所需读数。推广由同一日度队列判定，非推广与合并待办共用节点资格。提醒查询只投影当前判断必需字段，不读取改期历史、理由正文或更正历史；具体内容仍在原详情入口读取。每分钟、返回及保存后的提醒更新与权限校验保留。
 
 暂停实时共享时也不加载协作样式，避免旧占用容器的定位规则干扰业务气泡；原脚本、样式和表保留，恢复时须整体重新验收。
 
@@ -281,7 +281,7 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 
 运营类型贯穿接入：`operation-types`维护四种类型与标签；`operation-setup`保存原帖策略和未发布的日期草案；`non-promotion-plan`从统一推广回放推导持续资格。新建、编辑、发布、节点和指标接口共用这些入口，不在按钮事件里自动改用途。`BusinessOperationFields`接入新建／编辑，`BusinessReviewDateAdd`供排期详情及非推广待安排气泡复用。节点写入先取得推广工作流锁，再锁排期／原帖并复核资格。首次实发才将即时草案变为真实节点；普通非推广改帖沿用原锚点；推广后持续由`switchContinuousReviewCycle`在实发事务记录当前版本，`anchorReviewPosts`按实际生效时间解析资格。
 
-非推广结果接入：`NonPromotionReviewRow`在分类明细、平铺和按帖视图复用真实行与Inspector键；`NonPromotionCategoryMetric`接收读模型的阅读量均值及各指标有效样本，客户端不另算入样条件。`mode`控制方式，`group`控制常规历史展示；服务端返回`sampleRows/categoryGroups`，分类共享标准样本与平铺方式过滤分别执行，切换只移动原节点。`NonPromotionCategoryMetric`在缺值时隐藏重复的有效零样本，有值而样本不完整时仍显示依据。`NonPromotionReadingTrend`与保存刷新共用纯函数`non-promotion-trend`，按真实截至日定位并在缺失处断线；`business-data-motion`仅在首次可见时绘制细轨／趋势。
+非推广结果接入：`NonPromotionReviewRow`在分类明细、平铺和按帖视图复用真实行与Inspector键；`NonPromotionCategoryMetric`接收读模型的阅读量均值及各指标有效样本，客户端不另算入样条件。待复盘平铺全部方式并按应复盘日排序；历史视角中 `mode` 控制方式，`group` 控制常规展示；服务端返回`sampleRows/categoryGroups`，分类共享标准样本与平铺方式过滤分别执行，切换只移动原节点。`NonPromotionCategoryMetric`在缺值时隐藏重复的有效零样本，有值而样本不完整时仍显示依据。`NonPromotionReadingTrend`与保存刷新共用纯函数`non-promotion-trend`，按真实截至日定位并在缺失处断线；`business-data-motion`仅在首次可见时绘制细轨／趋势。
 
 
 月度贯通的共享入口：

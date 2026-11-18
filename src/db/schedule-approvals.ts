@@ -1,4 +1,5 @@
-import {and,desc,eq} from 'drizzle-orm';
+import {desc,eq} from 'drizzle-orm';
+import {pendingScheduleRequestScope} from './schedule-pending-requests';
 import type {Database} from './client';
 import type {OperationsUser} from '../auth/permissions';
 import {operationsChangeProposal,operationsScheduleChangeRequest,operationsContentSchedule,operationsContentVersion,operationsSubject} from './schema';
@@ -9,9 +10,10 @@ import {effectivePromotionStatus} from './promotion-state.mjs';
 import {readTaxonomy} from './taxonomy-store';
 export async function readScheduleApprovals(db:Database,user:OperationsUser,scheduleId?:string){
  const taxonomy=await readTaxonomy(db),{subjects}=taxonomy;
+ const scope=pendingScheduleRequestScope(user,scheduleId);
  const [proposals,legacy,current,context]=await Promise.all([
-  db.select().from(operationsChangeProposal).where(and(eq(operationsChangeProposal.module,'schedule'),eq(operationsChangeProposal.status,'pending'),user.role==='admin'?undefined:eq(operationsChangeProposal.requestedById,user.id),scheduleId?eq(operationsChangeProposal.target,`schedule:${scheduleId}`):undefined)).orderBy(desc(operationsChangeProposal.createdAt)),
-  db.select().from(operationsScheduleChangeRequest).where(and(eq(operationsScheduleChangeRequest.status,'pending'),user.role==='admin'?undefined:eq(operationsScheduleChangeRequest.requestedById,user.id),scheduleId?eq(operationsScheduleChangeRequest.scheduleId,scheduleId):undefined)),
+  db.select().from(operationsChangeProposal).where(scope.proposals).orderBy(desc(operationsChangeProposal.createdAt)),
+  db.select().from(operationsScheduleChangeRequest).where(scope.legacy),
   db.select({id:operationsContentSchedule.id,name:operationsContentVersion.contentName,version:operationsContentVersion.versionNumber,workType:operationsContentVersion.workType,subjectName:operationsSubject.name,projectDocUrl:operationsContentVersion.projectDocUrl,planned:operationsContentSchedule.plannedPublishAt,actual:operationsContentSchedule.actualPublishAt,status:operationsContentSchedule.promotionStatus,isPromoted:operationsContentSchedule.isPromoted}).from(operationsContentSchedule).innerJoin(operationsContentVersion,eq(operationsContentVersion.id,operationsContentSchedule.contentVersionId)).innerJoin(operationsSubject,eq(operationsSubject.id,operationsContentVersion.subjectId)),
   readPromotionContext(db),
  ]);

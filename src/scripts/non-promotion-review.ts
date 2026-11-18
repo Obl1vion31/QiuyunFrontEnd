@@ -67,7 +67,8 @@ function initialize() {
     reads.setCustomValidity(reads.value!==''&&Number(reads.value)>Number(exposure.value)?'阅读量不能大于曝光量，请核对':'');
   });
   const body = table.querySelector<HTMLElement>('[data-review-body]')!;
-  const records = [...body.querySelectorAll<HTMLElement>('[data-row-href]')];
+  const pendingView=table.dataset.view==='pending';
+  let records = [...body.querySelectorAll<HTMLElement>('[data-row-href]')];
   const filters = document.querySelector<HTMLFormElement>('[data-review-filters]');
   const displaySwitch = document.querySelector<HTMLElement>('[data-review-display]');
   const overview=table.querySelector<HTMLElement>('[data-category-overview]')!;
@@ -83,15 +84,10 @@ function initialize() {
     };
     const sorted=[...records].sort(compare);
     if(grouped){for(const group of table.querySelectorAll<HTMLElement>('[data-category-records]'))group.replaceChildren(...sorted.filter(row=>row.dataset.categoryKey===group.dataset.categoryRecords&&row.dataset.cohortEligible==='true'));}
-    else if(table.dataset.mode==='standard')body.replaceChildren(...sorted);
-    else if(table.dataset.view==='pending'){
-      const groups=[...body.querySelectorAll<HTMLElement>('[data-review-group]')];
-      for(const group of groups)group.append(...sorted.filter(row=>row.dataset.scheduleId===group.dataset.reviewGroup));
-      groups.sort((a,b)=>(a.querySelector<HTMLElement>('[data-due]')?.dataset.due??'').localeCompare(b.querySelector<HTMLElement>('[data-due]')?.dataset.due??''));body.append(...groups);
-    }
-    for(const row of records){row.hidden=grouped?row.dataset.cohortEligible!=='true':row.dataset.rowMode!==table.dataset.mode;row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');});}
+    else if(pendingView||table.dataset.mode==='standard')body.replaceChildren(...sorted);
+    for(const row of records){row.hidden=grouped?row.dataset.cohortEligible!=='true':!pendingView&&row.dataset.rowMode!==table.dataset.mode;row.querySelectorAll<HTMLElement>('[data-review-common]').forEach(cell=>{cell.classList.remove('review-common-repeat');cell.removeAttribute('aria-hidden');});}
     const empty=table.closest('.table-pane')?.querySelector<HTMLElement>('.review-empty');if(empty)empty.hidden=grouped?!!overview.querySelector('[data-category-details]'):records.some(row=>!row.hidden);
-    body.hidden=grouped;overview.hidden=!grouped;table.querySelector<HTMLElement>('[data-flat-head]')!.hidden=grouped||table.dataset.mode!=='standard';
+    body.hidden=grouped;overview.hidden=!grouped;table.querySelector<HTMLElement>('[data-flat-head]')!.hidden=grouped||!pendingView&&table.dataset.mode!=='standard';
     for(const button of table.querySelectorAll<HTMLButtonElement>('[data-sort]')){button.disabled=false;const active=button.dataset.sort===sortState.key;button.closest('[role=columnheader]')?.setAttribute('aria-sort',active?sortState.direction:'none');button.querySelector('i')!.textContent=active?(sortState.direction==='ascending'?'↑':'↓'):'↕';}
     if(focus?.isConnected&&focus.closest('[data-row-href]'))focus.focus({preventScroll:true});
   };
@@ -115,7 +111,9 @@ function initialize() {
   const refresh = async (reclaimed?:HTMLFormElement) => {
     const read=beginBusinessRead(table.closest<HTMLElement>('.table-pane')!);
     try {
-    const response = await fetch(`/api/non-promotion-reviews${location.search}`, { headers: { Accept: 'application/json' },signal:read.signal });
+    const params=new URLSearchParams(location.search);
+    if(pendingView)params.delete('mode');
+    const response = await fetch(`/api/non-promotion-reviews?${params}`, { headers: { Accept: 'application/json' },signal:read.signal });
     if (!response.ok) throw new Error('保存已成功，列表刷新失败，请刷新页面查看最新基准。');
     let data = await response.json() as Pick<ReviewModel,'tableRows'|'categoryGroups'|'sampleRows'>;
     if(reclaimed&&!data.tableRows.some(item=>reclaimed.dataset.collaborationResource===`schedule:${item.row.id}:non:${item.checkpoint.type}`)){const history=await fetch('/api/non-promotion-reviews?view=history&group=0',{cache:'no-store'});if(!history.ok)throw new Error('读取最新记录失败，请重试。');data=await history.json();}
@@ -201,12 +199,17 @@ function initialize() {
    try{
    const response=await fetch(location.href,{signal:read.signal});if(!response.ok)throw new Error('日期已保存，列表刷新失败，请刷新页面查看。');
    const html=new DOMParser().parseFromString(await response.text(),'text/html');if(!read.isCurrent())return;
-   for(const incoming of html.querySelectorAll<HTMLElement>('[data-review-group]')){
-    let group=body.querySelector<HTMLElement>(`[data-review-group="${CSS.escape(incoming.dataset.reviewGroup!)}"]`);
-    if(!group&&table.dataset.mode!=='standard'){body.append(incoming);records.push(...incoming.querySelectorAll<HTMLElement>('[data-row-href]'));continue;}
-    for(const row of incoming.querySelectorAll<HTMLElement>('[data-row-href]'))if(!records.some(existing=>existing.dataset.inspectorKey===row.dataset.inspectorKey)){records.push(row);(group??body).append(row);}
+   if(html.querySelector('.error-banner'))throw new Error('日期已保存，列表刷新失败，请刷新页面查看。');
+   const existing=new Map(records.map(row=>[row.dataset.inspectorKey,row]));
+   records=[...html.querySelectorAll<HTMLElement>('[data-review-body] [data-row-href]')].map(row=>{
+    const current=existing.get(row.dataset.inspectorKey);
+    return current&&current.dataset.due===row.dataset.due?current:row;
+   });
+   for(const template of html.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]')){
+    const current=document.querySelector(`template[data-inspector-template="${CSS.escape(template.dataset.inspectorTemplate!)}"]`);
+    if(current)current.replaceWith(template);
+    else inspector.after(template);
    }
-   for(const template of html.querySelectorAll<HTMLTemplateElement>('template[data-inspector-template]'))if(!document.querySelector(`template[data-inspector-template="${CSS.escape(template.dataset.inspectorTemplate!)}"]`))inspector.after(template);
    if(body.querySelector('[data-inspector-key]'))document.querySelector<HTMLElement>('.review-empty')?.setAttribute('hidden','');
    const counts=html.querySelectorAll('.review-summary strong');document.querySelectorAll('.review-summary strong').forEach((node,index)=>{if(counts[index])node.textContent=counts[index].textContent;});
    const savedId=(event as CustomEvent).detail.scheduleId,waiting=document.querySelector<HTMLElement>(`[data-awaiting-review="${CSS.escape(savedId)}"]`);
@@ -239,6 +242,7 @@ function initialize() {
       const response = await fetch(endpoint, { method:'POST',body:new FormData(form),headers:{Accept:'application/json'} });
       const result = await response.json();
       if (!response.ok) { output.setAttribute('role','alert');output.textContent = result.message || '保存失败。'; return; }
+      if(form.matches('[data-review-form],[data-checkpoint-form]'))document.dispatchEvent(new Event('business:workflow-updated'));
       formChanges.get(form)?.capture();form.dataset.dirty='false';
       if(!inspector.querySelector('form[data-dirty=true]'))controller.setClean();
       if(form.matches('[data-review-form]')&&result.fingerprint){

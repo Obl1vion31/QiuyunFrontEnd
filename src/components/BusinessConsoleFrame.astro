@@ -14,9 +14,9 @@ import {realtimeEditingEnabled} from '../db/editing-policy';
 import {getDb} from '../db/client';
 import {effectiveBusinessPermissions} from '../auth/business-permissions';
 import {defaultBusinessPermissions} from '../auth/business-capabilities';
-import type {teamScheduleNotifications} from '../db/schedule-workflow';
+import type {SidebarCounts} from '../db/business-notifications';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings' | 'organization';
-interface Props { active: ModuleId;notifications?:Awaited<ReturnType<typeof teamScheduleNotifications>> }
+interface Props { active: ModuleId;notifications?:SidebarCounts }
 const { active,notifications } = Astro.props;
 let permissions=defaultBusinessPermissions();
 try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await effectiveBusinessPermissions(getDb(),Astro.locals.user);}catch{for(const key of Object.keys(permissions))permissions[key as keyof typeof permissions]='disabled';}

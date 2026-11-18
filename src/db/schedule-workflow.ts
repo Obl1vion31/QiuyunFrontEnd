@@ -10,7 +10,7 @@ import { publicationState, mayKeepEmptyPublicationLink } from './publication-rul
 import { operationsPublicationReservation as reservations,operationsPublicationEvent as publicationEvents } from './schema';
 import { operationsContentSchedule as schedules, operationsSchedulePlanHistory as plans,
   operationsScheduleChangeRequest as requests, operationsScheduleDelayReason as reasons } from './schema';
-import {operationsChangeProposal as proposals} from './schema';
+import {readPendingScheduleRequestKeys} from './schedule-pending-requests';
 import {requireSchedulePlanReason} from './schedule-plan-reason';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 import {readSchedulePlanContexts} from './schedule-history-context';
@@ -62,13 +62,13 @@ export function scheduleDelayItems<R extends Pick<Reason,'planRevision'|'dayNumb
   }));
 }
 
-export async function readScheduleWorkflow(database: Reader, id: string, actualOverride?: Date, now = new Date()) {
+export async function readScheduleWorkflow(database: Reader, id: string, actualOverride?: Date, now = new Date(),viewer?:OperationsUser) {
   const [schedule] = await database.select().from(schedules).where(eq(schedules.id, id)).limit(1);
   if (!schedule) throw new WorkflowError('没有找到这条排期。', 404);
   const [history, saved, applications, publicationReservations, publicationHistory] = await Promise.all([
     database.select().from(plans).where(eq(plans.scheduleId, id)).orderBy(asc(plans.revision)),
     database.select().from(reasons).where(eq(reasons.scheduleId, id)),
-    database.select().from(requests).where(eq(requests.scheduleId, id)).orderBy(asc(requests.createdAt)),
+    database.select().from(requests).where(and(eq(requests.scheduleId,id),viewer?.role==='employee'?eq(requests.requestedById,viewer.id):undefined)).orderBy(asc(requests.createdAt)),
     database.select().from(reservations).where(eq(reservations.scheduleId,id)).orderBy(desc(reservations.createdAt)),
     database.select().from(publicationEvents).where(eq(publicationEvents.scheduleId,id)).orderBy(desc(publicationEvents.revision)),
   ]);
@@ -182,18 +182,25 @@ export async function decideChangeRequest(database: Database, scheduleId: string
   });
 }
 
-export async function teamScheduleNotifications(database: Database, now = new Date()) {
+function registrationNoticeRows(database:Database,now:Date) {
+ return database.select({id:schedules.id,plannedPublishAt:schedules.plannedPublishAt,actualPublishAt:schedules.actualPublishAt,planRevision:schedules.planRevision})
+  .from(schedules).where(and(isNull(schedules.cancelledAt),lte(schedules.plannedPublishAt,new Date(now.getTime()-delayThresholdMs))));
+}
+export async function readMissingRegistrationCount(database:Database,now:Date) {
+ return (await registrationNoticeRows(database,now)).filter(row=>needsRegistration(row,now)).length;
+}
+
+export async function teamScheduleNotifications(database: Database, now = new Date(),viewer?:OperationsUser) {
   const cutoff=new Date(now.getTime()-delayThresholdMs);
-  const [rows, saved, applications, pendingProposals] = await Promise.all([
-    database.select({id:schedules.id,plannedPublishAt:schedules.plannedPublishAt,actualPublishAt:schedules.actualPublishAt,planRevision:schedules.planRevision}).from(schedules).where(and(isNull(schedules.cancelledAt),lte(schedules.plannedPublishAt,cutoff))),
+  const [rows, saved, pending] = await Promise.all([
+    registrationNoticeRows(database,now),
     // 提醒只判断本轮哪些日期已填写；正文、更正历史及旧改期轮次留在详情读取。
     database.select({scheduleId:reasons.scheduleId,planRevision:reasons.planRevision,dayNumber:reasons.dayNumber}).from(reasons).innerJoin(schedules,and(eq(reasons.scheduleId,schedules.id),eq(reasons.planRevision,schedules.planRevision))).where(and(isNotNull(schedules.actualPublishAt),lte(schedules.plannedPublishAt,cutoff))),
-    database.select({scheduleId:requests.scheduleId}).from(requests).where(eq(requests.status, 'pending')),
-    database.select({target:proposals.target}).from(proposals).where(and(eq(proposals.status,'pending'),eq(proposals.module,'schedule'))),
+    readPendingScheduleRequestKeys(database,viewer),
   ]);
   const overdueIds = rows.filter(row => needsRegistration(row, now)).map(row => row.id);
   const missingReasonIds = rows.filter(row => row.actualPublishAt && scheduleDelayItems(row, [],
     saved.filter(item => item.scheduleId === row.id), new Date(Math.min(row.actualPublishAt?.getTime() ?? now.getTime(), now.getTime())), now).some(day => !day.saved && !day.archived)).map(row => row.id);
-  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, missingRegistration: overdueIds.length, missingRegistrationIds: overdueIds, pendingApprovals: applications.length+pendingProposals.length, missingReasons: missingReasonIds.length,
-    overdueIds, missingReasonIds, approvalScheduleIds: [...new Set([...applications.map(item => item.scheduleId),...pendingProposals.filter(item=>item.target.startsWith('schedule:')).map(item=>item.target.slice(9))])], serverTime: now.toISOString() };
+  return { reservationApprovals:0,publicationDue:0,reservationApprovalIds:[],publicationDueIds:[],overdue: overdueIds.length, missingRegistration: overdueIds.length, missingRegistrationIds: overdueIds, pendingApprovals:pending.count, missingReasons: missingReasonIds.length,
+    overdueIds, missingReasonIds, approvalScheduleIds:pending.scheduleIds, serverTime: now.toISOString() };
 }

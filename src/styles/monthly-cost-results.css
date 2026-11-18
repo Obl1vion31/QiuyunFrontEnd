@@ -30,3 +30,5 @@
  .mc-metrics>div{break-inside:avoid}
  .mc-trend .report-trend circle{display:initial;vector-effect:non-scaling-stroke}
 }
+
+.mc-definition{margin:0;color:var(--console-muted);font:500 12px/18px var(--console-font);grid-column:1/-1}

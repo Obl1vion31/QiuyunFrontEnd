@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ params, url,locals }) => {
       if (!parsed.success) throw new WorkflowError('请选择有效的发布时间。', 422);
       actual = parsed.data;
     }
-    const read=await readScheduleWorkflow(getDb(), params.id!, actual);
+    const read=await readScheduleWorkflow(getDb(),params.id!,actual,new Date(),locals.user!);
     const {historyContexts,historyReasons,...workflow}=read;
     const permissions=await effectiveBusinessPermissions(getDb(),locals.user!);
     const person=await readHistoryPeople(getDb());

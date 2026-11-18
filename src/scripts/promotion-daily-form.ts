@@ -150,7 +150,7 @@ function initialize(){
     state.dirty=false;state.success=true;state.message='复盘已完成';sync(state);
     // 成功态短暂留在操作位置，随后只合并相关活动的队列。
     await new Promise(resolve=>setTimeout(resolve,matchMedia('(prefers-reduced-motion:reduce)').matches?0:320));
-    try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{state.message='保存已成功，列表更新失败，请刷新页面查看。';return;}
+    try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{document.dispatchEvent(new Event('business:workflow-updated'));state.message='保存已成功，列表更新失败，请刷新页面查看。';return;}
     drafts.delete(key);pending?.form.remove();stateDrafts.delete(key);
     setUnsaved();
    }catch{state.message='无法连接服务，请稍后重试。';}finally{state.busy=false;sync(state);refreshBatch();}
@@ -184,7 +184,7 @@ function initialize(){
    if(fresh)for(const id of new Set(forms.map(form=>form.dataset.scheduleId!)))await refreshPromotionSchedule(id,fresh);
    for(const form of forms){const key=formKey(form);drafts.delete(key);stateDrafts.get(key)?.form.remove();stateDrafts.delete(key);}
    setUnsaved();
-  }catch{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
+  }catch{if(saved)document.dispatchEvent(new Event('business:workflow-updated'));for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
   finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}refreshBatch();}
  });}
  refreshBatch();

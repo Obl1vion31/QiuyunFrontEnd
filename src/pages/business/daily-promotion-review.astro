@@ -21,7 +21,7 @@ import '../../styles/juguang-daily.css';
 import {readPromotionTimeline} from '../../db/promotion-timeline';
 
 import BusinessPromotionDailyPosts from '../../components/BusinessPromotionDailyPosts.astro';
-import {promotionReviewDays} from '../../db/promotion-review-days';
+import {promotionReviewDays,promotionReviewQueue} from '../../db/promotion-review-days';
 import { readPromotionContext } from '../../db/promotion-pauses';
 import {promotionStateOn,promotionLabels} from '../../db/promotion-state.mjs';
 import { asc, desc, eq } from 'drizzle-orm';
@@ -195,7 +195,7 @@ Astro.response.headers.set('Server-Timing', `db;dur=${(performance.now() - datab
 
 const reviewPosts=promotionReviewDays(timelineRows,promotionContext,now,metrics);
 const savedCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='saved').length,0);
-const pendingCount=reviewPosts.reduce((n,post)=>n+post.days.filter(day=>day.kind==='metric'&&day.editable).length,0);
+const pendingCount=promotionReviewQueue(reviewPosts).ready.length;
 const overview=promotionOverview({posts:timelineRows,campaigns,stages,metrics,context:promotionContext,today,now,selected:selectedCampaignId}).map(row=>({...row,continuation:continuations.get(row.scheduleId)}));
 const lifecycleRows=overview.filter(row=>row.latest&&(!row.closed||row.continuation));
 const historyRows=overview.filter(row=>(!historyTo||row.startedOn<=historyTo)&&(!row.endedOn||row.endedOn>=historyFrom)&&(!historyQuery||row.post.contentName.toLocaleLowerCase().includes(historyQuery.toLocaleLowerCase()))&&(!historyStatus||row.status===historyStatus));
@@ -229,7 +229,7 @@ const historyHref = (overrides: Record<string, string>) => {
     <title>Daily Promotion Review · 内容发布控制台</title>
   <SiteIcons /><BusinessConsoleFonts /></head>
   <body>
-    <BusinessConsoleFrame active="daily-promotion">
+    <BusinessConsoleFrame active="daily-promotion" notifications={Astro.locals.user?.role==='employee'&&!databaseError&&activeView==='daily'?{promotionPending:pendingCount}:undefined}>
         <BusinessPromotionToolbar history={activeView==='history'} />
 
         <main class="business-console-content">
@@ -367,3 +367,5 @@ const historyHref = (overrides: Record<string, string>) => {
 .calendar-section,.daily-section,.history-workspace{min-width:0;border:1px solid var(--console-line);border-radius:10px;background:var(--console-surface);overflow:clip;container-type:inline-size}.daily-section{margin-top:24px}.calendar-section{margin-top:0}.empty-state{padding:24px;color:var(--console-muted);font-size:14px}.empty-state p{margin:6px 0 0}.pending-heading small{color:var(--console-muted);font:500 13px var(--console-font)}.pending-heading a,.history-back{color:var(--console-blue);font-size:13px;text-decoration:none}.history-head{padding:20px}.history-back{display:inline-block;margin-bottom:12px}.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin-top:16px}.history-search{flex:1;min-width:180px}.history-mode-switch{display:flex;padding:0 20px 14px;margin:0;border-bottom:1px solid var(--console-line)}.history-layout{padding:16px}.history-list,.day-history{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:20px}.day-history{gap:16px}.notice{padding:16px;color:var(--console-red)}
 @media(max-width:600px){.history-head{padding:14px}.history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.history-filters label,.history-filters input,.history-filters select{min-width:0;width:100%}.history-search{grid-column:1/-1}.history-layout{padding:12px}.history-mode-switch{padding-inline:14px}}
 </style>
+
+<style>#daily-table{scroll-margin-top:88px}</style>

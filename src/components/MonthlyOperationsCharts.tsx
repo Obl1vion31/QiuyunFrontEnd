@@ -24,7 +24,7 @@ export function InvestmentChart({data,onSelect}:{data:Pick<ChartData,'subjects'|
  const spend=data.spend;
  return <div className={styles.panel} data-monthly-chart="spend" data-chart-pending=""><header><h2>投入去向</h2>{onSelect&&<button className={styles.textButton} onClick={()=>onSelect('promotion','wasted')}>查看空跑明细 →</button>}</header><p className={styles.caption}>按消耗日期归月 · 淡粉为已确认测试空跑</p>
       {data.subjects.length?<div className={styles.bars}>{data.subjects.map(subject=><ChartAction interactive={!!onSelect} key={subject.id} className={styles.barRow} onClick={()=>onSelect?.('promotion',`subject:${subject.id}`)}><span className={styles.barLabel}>{subject.name}</span><span className={styles.barTrack}><i data-chart-fill style={{width:`${subject.spend/Math.max(1,...data.subjects.map(s=>s.spend))*100}%`}}><i style={{width:subject.spend?`${subject.wasted/subject.spend*100}%`:'0%'}}/></i></span><b>{money(subject.spend)}</b></ChartAction>)}</div>:<div className={styles.empty}>本月尚无已登记推广消耗</div>}
-      <div className={styles.spendFoot}><span>实际开口 <b>{count(spend.actualOpenCount)}</b> 人</span><span>实际留资 <b>{count(spend.actualLeadCount)}</b> 人</span>{onSelect?<button className={styles.textButton} onClick={()=>onSelect('promotion','gaps')}>待补 {data.missingRows.reduce((n,r)=>n+r.dates.length,0)} 条日度数据</button>:<span>待补 {data.missingRows.reduce((n,r)=>n+r.dates.length,0)} 条日度数据</span>}</div>
+      <div className={styles.spendFoot}><span>实际开口 <b>{count(spend.actualOpenCount)}</b> 人</span><span>实际留资 <b>{count(spend.actualLeadCount)}</b> 人</span>{!onSelect&&<span>待补 {data.missingRows.reduce((n,r)=>n+r.dates.length,0)} 条日度数据</span>}</div>
      </div>;
 }
 export default function MonthlyOperationsCharts({data,onSelect}:{data:ChartData;onSelect?:ChartSelect}){

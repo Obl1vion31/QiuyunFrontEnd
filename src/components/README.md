@@ -63,7 +63,7 @@ ContentTunnel.module.css
 
 `BusinessAccountMenu.astro` 在桌面侧栏和手机工具栏显示账号与退出，原生 popover 避免层级裁切。Frame 统一维护并发请求、延迟反馈及登录失效提示；管理员动作使用 `data-admin-only`，服务端权限另由 middleware 和业务事务检查。
 
-`BusinessScheduleNotifications.astro` 在共享侧栏提供团队排期待办，手机通过排期导航角标显示延期数量；刷新逻辑位于 `src/scripts/schedule-notifications.ts`。
+`BusinessScheduleNotifications.astro` 按账号角色提供审批或业务待办，手机排期角标提示员工尚未登记篇数；刷新逻辑位于 `src/scripts/schedule-notifications.ts`。
 
 - `BusinessPromotionWaitRanges.astro`：每日与历史共用的待定区间和下一步编辑器。
 - `BusinessPromotionToolbar.astro`：每日／阶段／历史共同持久化的工具栏；阶段正文由 `BusinessPromotionStageView.astro` 提供。

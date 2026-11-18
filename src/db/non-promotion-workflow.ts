@@ -19,8 +19,8 @@ export const checkpointActionSchema = z.object({
   expectedEventId: z.preprocess(value => value === '' ? null : value, z.uuid().nullable().optional()),
 });
 
-export function latestCheckpointEvents(rows: Array<typeof events.$inferSelect>) {
-  const latest = new Map<string, typeof events.$inferSelect>();
+export function latestCheckpointEvents<T extends Pick<typeof events.$inferSelect,'scheduleId'|'checkpointType'|'sequence'>>(rows: T[]) {
+  const latest = new Map<string, T>();
   for (const row of [...rows].sort((a, b) => b.sequence - a.sequence)) {
     const key = `${row.scheduleId}:${row.checkpointType}`;
     if (!latest.has(key)) latest.set(key, row);

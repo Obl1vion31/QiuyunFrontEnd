@@ -18,7 +18,7 @@ export function MonthlyCostResults({core,summaryOnly=false}:{core:Core;summaryOn
    const platform=key==='actualOpenCost'||key==='actualLeadCost';
    return {key,label,value:platform?core.spend[key]:p.sourceData?p.totalCosts[key]:null,
     previous:platform?c?.spend[key]??null:c?.privateData.sourceData?c.privateData.totalCosts[key]:null,
-    basis:platform?`${key==='actualOpenCost'?'实际开口':'实际留资'} ${count(key==='actualOpenCost'?core.spend.actualOpenCount:core.spend.actualLeadCount)} 人`:p.sourceData&&p.data.total[key]!==null?`${count(p.data.total[key])} 人`:''};
+    basis:platform?`${key==='actualOpenCost'?'实际开口':'实际留资'} ${count(key==='actualOpenCost'?core.spend.actualOpenCount:core.spend.actualLeadCount)} 人`:p.sourceData&&p.data.total[key]!==null?`${count(p.data.total[key])} ${key==='converted'?'人次':'人'}`:''};
   }),
  ];
  return <div className="monthly-cost-results" data-monthly-cost-results data-cost-summary={summaryOnly||undefined}>
@@ -26,6 +26,7 @@ export function MonthlyCostResults({core,summaryOnly=false}:{core:Core;summaryOn
   <dl className="mc-metrics" aria-label="月度成本结果">{fields.map(field=><div key={field.label} data-cost-metric={field.label}>
    <dt>{field.label}</dt><dd className="mc-value">{privateMoney(field.value)}</dd>
    {(field.basis||field.value!==null&&field.previous!==null)&&<dd className="mc-evidence">{field.basis&&<span>{field.basis}</span>}<PrivateCostChange value={field.value} previous={field.previous} sense={field.key==='spend'?'neutral':'lower'}/></dd>}
+   {field.key==='converted'&&p.sourceData&&<dd className="mc-definition">当月已登记推广消耗 ÷ 当月登记的推广来源成交人次，可含往月获客</dd>}
    {!summaryOnly&&<MonthlyCostTrend month={core.month} metric={field.key} label={field.label} points={core.costHistory}/>}
   </div>)}</dl>
  </div>;

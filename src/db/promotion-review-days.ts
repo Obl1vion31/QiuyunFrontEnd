@@ -1,5 +1,5 @@
 import {normalizePromotionActualStatus,promotionActualLabels} from './promotion-successors.mjs';
-import type {PromotionTimelineRow} from './promotion-pending';
+import type {PromotionQueueRow} from './promotion-pending';
 import {pendingPromotionPeriod} from './promotion-pending';
 import type {PromotionContext} from './promotion-state.mjs';
 import {campaignPauseWindows,campaignWaitWindows,firstMissingPromotionDate,promotionStateOn,promotionDayStatusEdit,promotionMetricStatus} from './promotion-state.mjs';
@@ -21,7 +21,7 @@ export interface ReviewDay {
  actualStatus?:string;statusEditOptions?:Array<{value:string;label:string}>;defaultZero?:boolean;initialWaiting?:boolean;waitingThrough?:string;editable:boolean;blockedBy:string|null;opensAt:string;due:boolean;
 }
 /** 展示到今天，填写止于昨天；连续区间只保留当前状态及到期安排，不伪造指标。 */
-export function promotionReviewDays(rows:PromotionTimelineRow[],context:PromotionContext,now=new Date(),savedMetrics:SavedReviewMetric[]=[]){
+export function promotionReviewDays<T extends PromotionQueueRow>(rows:T[],context:PromotionContext,now=new Date(),savedMetrics:SavedReviewMetric[]=[]){
  const today=shanghaiDateKey(now),yesterday=previousDateKey(today);
  return rows.flatMap(row=>{
   if(!row.isPromoted||row.publishedOn>today)return [];
@@ -73,7 +73,7 @@ export function promotionReviewDays(rows:PromotionTimelineRow[],context:Promotio
 }
 
 /** 统计可录入的数据，不把推广安排、待开放和被前日阻挡的记录混入待填写数。 */
-export function promotionReviewQueue(posts:ReturnType<typeof promotionReviewDays>){
+export function promotionReviewQueue<T extends PromotionQueueRow>(posts:ReturnType<typeof promotionReviewDays<T>>){
  const records=posts.flatMap(({row,days})=>days.map(day=>({row,day})))
   .sort((a,b)=>a.day.date.localeCompare(b.day.date)||a.row.contentName.localeCompare(b.row.contentName,'zh-CN'));
  const ready=records.filter(({day})=>day.kind==='metric'&&day.editable);

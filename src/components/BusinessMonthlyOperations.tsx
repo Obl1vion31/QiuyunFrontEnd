@@ -61,6 +61,7 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
  const scheduleRows=data?.scheduleRows.filter(row=>detail==='published'?row.publishedThisMonth:detail==='moved'?row.movedOut:detail==='changed'?row.changedPending:row.currentMonth&&(detail==='onTime'?row.status==='on_time':detail==='pending'?!row.actualAt&&!row.missing:detail==='delayed'?row.status==='delayed':detail==='operationalDelayed'?row.delayAttribution==='operational':detail==='missing'?row.missing:detail==='severe'?row.severe:detail==='operational'?row.operational:true))??[];
  const spendRows=data?.spendRows.filter(row=>detail==='wasted'?row.wasted>0:detail.startsWith('subject:')?row.subjectId===detail.slice(8):detail.startsWith('group:')?data.categories.find(g=>g.key===detail.slice(6))?.scheduleIds.includes(row.scheduleId):true)??[];
  const pub=data?.publication,spend=data?.spend;
+ const gaps=data?.missingRows.reduce((count,row)=>count+row.dates.length,0)??0;
  const delayRate=pub&&(delayScope==='all'?pub.delayRate:pub.operationalDelayRate),delayCount=pub&&(delayScope==='all'?pub.delayed:pub.operationalDelayed);
  return <div ref={root} className={styles.root} data-monthly-operations>
   <form className={`business-filter ${styles.filters}`} onSubmit={e=>{e.preventDefault();void load(query);}} aria-label="月度运营筛选">
@@ -80,7 +81,13 @@ export default function BusinessMonthlyOperations({initial,query:initialQuery,er
       <button type="button" className={styles.delayValue} aria-label={`${delayRate==null?'暂无已发布记录':delayRate.toFixed(1)+'%'}，${delayScope==='all'?'查看全部延期已发布明细':'查看运营延期已发布明细'}`} onClick={()=>show('publication',delayScope==='all'?'delayed':'operationalDelayed')}><strong data-value="delay-rate">{delayRate==null?'—':delayRate.toFixed(1)+'%'}</strong></button>
       <em>{pub.registered?`${delayScope==='all'?'延期':'运营延期'}/已发 ${delayCount}/${pub.registered}`:'暂无已发布记录'}</em>
      </div>
-     <button className={`${styles.metric} ${styles.spendMetric}`} onClick={()=>show('promotion','all')}><span>{query.subject||query.category?'筛选范围消耗':'已登记推广消耗'}</span><strong data-value="spend">{money(spend.spend)}</strong><em>其中已确认空跑 {money(spend.wasted)}</em></button>
+     <div className={`${styles.metric} ${styles.spendMetric}`}>
+      <span>{data.query.subject||data.query.category?'筛选范围消耗':'已登记推广消耗'}</span>
+      <button type="button" className={styles.delayValue} onClick={()=>show('promotion','all')} aria-label={`查看推广消耗明细 ${money(spend.spend)}`}><strong data-value="spend">{money(spend.spend)}</strong></button>
+      <em className={styles.spendEvidence}><span>其中已确认空跑 {money(spend.wasted)}</span>
+       {gaps>0&&<button type="button" className={styles.textButton} onClick={()=>show('promotion','gaps')}>待补 {gaps} 条日度数据</button>}
+      </em>
+     </div>
     </section>
     <section className={styles.attention} aria-label="执行关注项">
      <button className={pub.severe?styles.warning:''} onClick={()=>show('publication','severe')}><span>未登记 &gt;48小时</span><b>{pub.severe}<small>篇</small></b></button>

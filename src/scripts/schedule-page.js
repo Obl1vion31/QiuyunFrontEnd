@@ -25,7 +25,7 @@ function initialize(){
       const categoryRequired = document.querySelector('[data-category-required]');
       const message = document.querySelector('.form-message');
       const submitButton = form.querySelector('button[type="submit"]');
-      const inspector = document.querySelector('[data-inspector]');
+      const inspector = root.closest('[data-inspector]');
       inspector.addEventListener('business:promotion-state-updated',event=>{
         const {id,label,status}=event.detail;const record=rows.find(row=>row.id===id);if(record){record.promotionLabel=label;record.promotionStatus=status;}
         if(inspector.dataset.selectedId===id)inspector.querySelector('[data-inspector-promotion]').textContent=label;

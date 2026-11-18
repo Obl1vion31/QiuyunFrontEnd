@@ -4,9 +4,9 @@ import BusinessAccountMenu from './BusinessAccountMenu.astro';
 import BusinessScheduleNotifications from './BusinessScheduleNotifications.astro';
 import BusinessAssistantEntry from './BusinessAssistantEntry.astro';
 import QiuyunMark from './QiuyunMark';
-import type {teamScheduleNotifications} from '../db/schedule-workflow';
+import type {SidebarCounts} from '../db/business-notifications';
 type ModuleId = 'annual-plan' | 'schedule' | 'daily-promotion' | 'non-promotion-review' | 'meeting-review' | 'monthly-operations' | 'settings' | 'organization';
-interface Props { active: ModuleId;notifications?:Awaited<ReturnType<typeof teamScheduleNotifications>> }
+interface Props { active: ModuleId;notifications?:SidebarCounts }
 const { active,notifications } = Astro.props;
 const settingsHref=Astro.locals.user?.role==='employee'?'/business/settings?view=guide':'/business/settings';
 const groups = [

@@ -8,6 +8,8 @@
 
 ## 本轮如何选择检查
 
+`tests/workspace-pending.browser.ts` 使用实际运行包和隔离 PostgreSQL 核对三账号的新旧排期申请、三种非推广待办及录入／跳过／恢复、角色提醒和月度缺项明细。用 `WORKSPACE_PENDING_ENTRY` 指定入口，`WORKSPACE_PENDING_DIR` 指定截图目录。
+
 `tests/inspector-scroll-stability.browser.ts`使用实际目标包与隔离PostgreSQL，在直接进入及真实“设置→排期”导航后，深滚动打开详情、切换编辑／发布、取消与三种关闭，逐帧比较侧栏、品牌、顶栏、正文及页面位置；覆盖双角色、三档桌面、嵌套未保存确认和减少动态，390／320仅关闭及明显溢出。`INSPECTOR_SCROLL_ENTRY`指定包入口，`INSPECTOR_SCROLL_DIR`指定证据；`INSPECTOR_SCROLL_BEFORE=1`仅用于旧包复现并要求实际观测到上移，不作为修复通过结果。
 
 `tests/meeting-trend-popovers.browser.ts`使用实际目标包和隔离PostgreSQL冻结样本，验证周会四项总览与既有历史趋势的悬停、聚焦、单击保持、Esc及滚动关闭；检查零值／缺失点、日期单位、圆点热区与三档桌面避让，并确认零额外请求、员工可读、减少动态、有限窄屏与打印／冻结保持。通过`TREND_POPOVER_ENTRY`指定包入口、`TREND_POPOVER_DIR`指定截图和短录像。

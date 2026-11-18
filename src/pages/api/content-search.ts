@@ -17,7 +17,7 @@ import {workflowErrorResponse} from '../../db/workflow-api';
 export const prerender=false;
 const selection={versionId:s.operationsContentVersion.id,cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
 function posts(){return getDb().select(selection).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId));}
-export const GET:APIRoute=async({url})=>{
+export const GET:APIRoute=async({url,locals})=>{
  try{
   const id=url.searchParams.get('id');
   if(!id){const query=(url.searchParams.get('q')??'').trim().slice(0,120),offset=z.coerce.number().int().min(0).max(100000).parse(url.searchParams.get('offset')??0);if(!query)return Response.json({rows:[],next:null});
@@ -42,7 +42,7 @@ export const GET:APIRoute=async({url})=>{
     // strict 保留原来的字符串相等语义，不把 scheduleId 数组自动解包为命中。
     .where(and(isNull(s.operationsReviewMeetingVersion.invalidatedAt),sql`jsonb_path_exists(${s.operationsReviewMeetingVersion.snapshot}, 'strict $.** ? (@.scheduleId.type() == "string" && @.scheduleId == $scheduleId)', jsonb_build_object('scheduleId', ${id}::text), true)`))
     .orderBy(desc(s.operationsReviewMeetingVersion.createdAt)),
-   readScheduleWorkflow(getDb(),id),
+   readScheduleWorkflow(getDb(),id,undefined,new Date(),locals.user!),
   ]);
   // 旧标签页仍读取原前后值／时间字段；新详情增补同源的阅读事件。
   const auditViews=audits.map(promotionAuditView).filter(row=>row.visible);

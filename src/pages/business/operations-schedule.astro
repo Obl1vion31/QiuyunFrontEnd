@@ -159,7 +159,7 @@ try {
     .leftJoin(operationsCategory, eq(operationsContentVersion.categoryId, operationsCategory.id))
     .where(isNull(operationsContentSchedule.cancelledAt))
     .orderBy(asc(operationsContentSchedule.plannedPublishAt), desc(operationsContentSchedule.createdAt)),
-  teamScheduleNotifications(database),
+  teamScheduleNotifications(database,now,Astro.locals.user!),
   database.select().from(operationsPromotionCampaign).orderBy(desc(operationsPromotionCampaign.startedOn)),
   readPromotionContext(database),
   database.select({id:operationsContentVersion.id,contentId:operationsContentVersion.contentId,versionNumber:operationsContentVersion.versionNumber}).from(operationsContentVersion),
@@ -243,7 +243,7 @@ const clientCategories=subjectCategories;
     <title>内容发布控制台 · 排期管理</title>
   <SiteIcons /><BusinessConsoleFonts /></head>
   <body>
-    <BusinessConsoleFrame active="schedule" notifications={notifications}>
+    <BusinessConsoleFrame active="schedule" notifications={notifications&&(actorRole==='admin'?{pendingApprovals:notifications.pendingApprovals}:{overdue:notifications.overdue})}>
         <BusinessConsoleToolbar title="排期管理" subtitle={selectedView === 'promotion' ? '推广中视角' : queueView ? queueLabel : `${selectedMonth} 当月排期`}>
           {selectedView === 'schedule' && !queueView && <BusinessToolbarPeriodNav slot="center" previousHref={hrefFor({ month: previousMonth })} nextHref={hrefFor({ month: nextMonth })} label={`${selectedMonth.replace('-', ' 年 ')} 月`} todayHref={hrefFor({ month: currentMonth })} todayLabel="本月" monthPicker={monthPicker} />}
           <BusinessToolbarActions slot="end">
@@ -289,7 +289,7 @@ const clientCategories=subjectCategories;
           </nav>
           <nav class="workflow-queue-nav" aria-label="排期待办队列">
             <a aria-current={selectedStatus==='reasons'?'page':undefined} href={hrefFor({view:'schedule',status:'reasons',display:'ledger'})}>待补延期理由 <b>{notifications?.missingReasons ?? '—'}</b></a>
-            <a aria-current={selectedStatus==='approvals'?'page':undefined} href={hrefFor({view:'schedule',status:'approvals',display:'ledger'})}>{actorRole==='admin'?'排期待审':'我的申请'} <b>{notifications?.pendingApprovals ?? '—'}</b></a>
+            <a aria-current={selectedStatus==='approvals'?'page':undefined} href={hrefFor({view:'schedule',status:'approvals',display:'ledger'})}>{actorRole==='admin'?'排期待审':'我的申请'} <b data-approval-nav-count>{notifications?.pendingApprovals ?? '—'}</b></a>
             {queueView&&<span>{queueLabel} · 跨月份显示</span>}
           </nav>
 

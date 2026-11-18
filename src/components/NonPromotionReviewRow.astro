@@ -21,7 +21,7 @@ const click=value('clickRate'),read=value('threeSecondReadRate');
  </span>
  <span role="cell" aria-colindex="2" data-review-common data-label="帖子" class="post-cell" title={`${item.row.contentName}${item.row.platformNoteId?`\n笔记 ID：${item.row.platformNoteId}`:''}`}>
   <span class="review-post-title"><button type="button" class="review-title-button" data-inspector-trigger aria-label={`查看详情：${item.row.contentName} V${item.row.versionNumber} ${name}复盘`}><strong>{item.row.contentName}</strong></button><small>V{item.row.versionNumber}</small></span>
-  <small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}{rolesForCategory(item.row.categoryId).length?' · '+contentRoleLabel(item.row.contentRole):''}{item.row.mode!=='standard'?' · '+reviewModeLabels[item.row.mode]:''}{item.row.legacy?' · 历史版本':''}</small>
+  <small class="review-post-category">{nonPromotionGroupLabel(item.row.subjectName,item.row.categoryName)}{rolesForCategory(item.row.categoryId).length?' · '+contentRoleLabel(item.row.contentRole):''}{(activeView==='pending'||item.row.mode!=='standard')?' · '+reviewModeLabels[item.row.mode]:''}{item.row.legacy?' · 历史版本':''}</small>
  </span>
  <span role="cell" aria-colindex="3" data-label="节点"><mark class:list={{overdue:activeView==='pending'&&item.dueOn<today}}>{name}</mark></span>
  {activeView==='skipped'?<span role="cell" aria-colindex="4" class="review-reason" data-label="不复盘原因">{item.event?.reason||'—'}</span>:activeView==='history'&&<>

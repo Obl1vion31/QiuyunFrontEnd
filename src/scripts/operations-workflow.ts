@@ -299,7 +299,7 @@ function initialize() {
     if (!publication!.reportValidity()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     (publication!.elements.namedItem('dailyReasons') as HTMLInputElement).value = JSON.stringify(collectInput());
   }, { capture: true, signal });
-  const initialId = document.querySelector<HTMLElement>('[data-inspector]')?.dataset.selectedId;
+  const initialId = document.querySelector<HTMLElement>('#schedule-panel [data-inspector]')?.dataset.selectedId;
   if (initialId) showPanel(initialId);
 }
 document.addEventListener('astro:page-load', initialize);
