@@ -1,0 +1,155 @@
+{
+  "sourceCommit": "e0a6eafbe05b37082517d71585eb47db87f446be",
+  "data": "真实PostgreSQL隔离样例；不写生产业务数据",
+  "browser": {
+    "passed": true,
+    "checks": [
+      "真实新建、跨周改期及10次内容保存；一次改期只显示一个事件，详情与查帖JSON逐值一致",
+      "1920/1440/1024桌面与员工1440：默认展开、键盘折叠／重开、10条分页、筛选不重建节点、前后值与依据、MiSans",
+      "原复盘节点表单真实保存后自动刷新同一时间线，保留筛选；即时截止日前后值以节点为准",
+      "原编辑草稿取消保留；原发布登记真实保存；新增发布事件及查帖同源显示",
+      "延期独立日期区：三档只读、两档编辑、取消保护、503输入保留、双角色真实更正和姓名、助手同源只读，业务历史不重复延期；原审计账号保留",
+      "慢读、失败重试、空历史与减少动态效果；390仅检查遮挡/关闭/页面溢出；读取前后原始排期历史不变"
+    ],
+    "shots": [
+      "admin-schedule-open-1920",
+      "admin-schedule-timeline-1920",
+      "admin-schedule-open-1440",
+      "admin-schedule-timeline-1440",
+      "admin-schedule-open-1024",
+      "admin-schedule-timeline-1024",
+      "employee-schedule-open-1440",
+      "employee-schedule-timeline-1440",
+      "publication-timeline-1440",
+      "review-settings-timeline-1440",
+      "lookup-timeline-1440",
+      "history-loading-1440",
+      "history-failure-1440",
+      "history-empty-1440",
+      "delay-read-1920",
+      "delay-read-1440",
+      "delay-read-1024",
+      "delay-edit-1440",
+      "delay-edit-1024",
+      "delay-save-failed-1024",
+      "delay-records-1024",
+      "lookup-delay-1440",
+      "employee-delay-saved-1440",
+      "delay-obvious-mobile-390",
+      "schedule-obvious-mobile-390"
+    ],
+    "errors": [],
+    "productionWrites": false
+  },
+  "unitTests": 28,
+  "build": "实际Vercel目标，类型0错误／0警告",
+  "mechanicalScan": "无发现",
+  "selfReview": "已实际查看最终关键状态与过程帧；待用户反馈",
+  "production": {
+    "deployment": "dpl_2yN4dTog3FSkWwMEmVpuoB4sJmYr",
+    "state": "READY",
+    "candidate": {
+      "origin": "https://qiuyun-frontend-n0h4ra5bi-opgobl1v-5358.vercel.app",
+      "results": [
+        {
+          "path": "/login",
+          "status": 200
+        },
+        {
+          "path": "/business/operations-schedule",
+          "status": 302
+        },
+        {
+          "path": "/api/auth/get-session",
+          "status": 200
+        },
+        {
+          "path": "/api/content-search?id=00000000-0000-4000-8000-000000000001",
+          "status": 401
+        },
+        {
+          "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+          "status": 401
+        }
+      ],
+      "assets": [
+        {
+          "file": "schedule-business-history.sJLnuSmm.css",
+          "sha256": "bb6c4d49246a08b4e2ee1c2a11f78916fe33f300613b3a541a0a8d5f19cd13bc"
+        },
+        {
+          "file": "schedule-business-history.4ziMwX3l.js",
+          "sha256": "df7d09dc10ee3ce1b1d2a7d0fa09903fa76e63b16f38a2d81b078e005c727028"
+        },
+        {
+          "file": "BusinessPostLookup.astro_astro_type_script_index_0_lang.gcLlrxDg.js",
+          "sha256": "7a7e2a26fe12693ab378ac3d3e85d6df52af4c3c2ecb59b6adbad8538303940b"
+        }
+      ],
+      "cronCount": 3
+    },
+    "formal": {
+      "origin": "https://qiuyun-frontend.vercel.app",
+      "results": [
+        {
+          "path": "/login",
+          "status": 200
+        },
+        {
+          "path": "/business/operations-schedule",
+          "status": 302
+        },
+        {
+          "path": "/api/auth/get-session",
+          "status": 200
+        },
+        {
+          "path": "/api/content-search?id=00000000-0000-4000-8000-000000000001",
+          "status": 401
+        },
+        {
+          "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+          "status": 401
+        }
+      ],
+      "assets": [
+        {
+          "file": "schedule-business-history.sJLnuSmm.css",
+          "sha256": "bb6c4d49246a08b4e2ee1c2a11f78916fe33f300613b3a541a0a8d5f19cd13bc"
+        },
+        {
+          "file": "schedule-business-history.4ziMwX3l.js",
+          "sha256": "df7d09dc10ee3ce1b1d2a7d0fa09903fa76e63b16f38a2d81b078e005c727028"
+        },
+        {
+          "file": "BusinessPostLookup.astro_astro_type_script_index_0_lang.gcLlrxDg.js",
+          "sha256": "7a7e2a26fe12693ab378ac3d3e85d6df52af4c3c2ecb59b6adbad8538303940b"
+        }
+      ],
+      "cronCount": 3
+    },
+    "cronDefinitions": {
+      "enabledAt": 1791966397291,
+      "disabledAt": null,
+      "updatedAt": 1794978784365,
+      "deploymentId": "dpl_2yN4dTog3FSkWwMEmVpuoB4sJmYr",
+      "definitions": [
+        {
+          "host": "qiuyun-frontend-n0h4ra5bi-opgobl1v-5358.vercel.app",
+          "path": "/api/cron/juguang-renewal",
+          "schedule": "0 0 * * *"
+        },
+        {
+          "host": "qiuyun-frontend-n0h4ra5bi-opgobl1v-5358.vercel.app",
+          "path": "/api/cron/juguang-renewal",
+          "schedule": "0 8 * * *"
+        },
+        {
+          "host": "qiuyun-frontend-n0h4ra5bi-opgobl1v-5358.vercel.app",
+          "path": "/api/cron/juguang-renewal",
+          "schedule": "0 16 * * *"
+        }
+      ]
+    }
+  }
+}
