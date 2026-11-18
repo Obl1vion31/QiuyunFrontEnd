@@ -68,6 +68,21 @@ test('阶段区间按原阶段归属追加残留，不重复历史整段累计',
 });
 const pg=new PGlite(),db=drizzle(pg,{schema:s});before(()=>migrateFixture(pg));after(()=>pg.close());
 const actor={id:'isolated-precise-admin',username:'隔离管理员',role:'admin' as const};
+// 直接调用路由时，补齐正式中间件交给写入接口的已登录上下文。
+function signedInLocals(user: NonNullable<App.Locals['user']>): App.Locals {
+ const now = new Date();
+ return {
+  user,
+  session: {
+   id: `session-${user.id}`,
+   userId: user.id,
+   token: 'isolated-test-session',
+   createdAt: now,
+   updatedAt: now,
+   expiresAt: new Date(now.getTime() + 60_000),
+  },
+ };
+}
 async function seed(){const [c]=await db.insert(s.operationsContent).values({platformNoteId:randomUUID().replaceAll('-','').slice(0,24)}).returning();const [v]=await db.insert(s.operationsContentVersion).values({contentId:c.id,versionNumber:0,workType:'new',contentName:'隔离状态测试',subjectId:'tmua',categoryId:'temporary'}).returning();const [schedule]=await db.insert(s.operationsContentSchedule).values({contentVersionId:v.id,isPromoted:true,promotionStatus:'testing',completionStatus:'on_time',plannedPublishAt:new Date('2026-10-17T12:00:00+08:00'),actualPublishAt:new Date('2026-10-17T12:00:00+08:00')}).returning();const [campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:schedule.id,startedOn:'2026-10-17',dailyReviewEnabledOn:'2026-10-17',currentStage:'testing',currentStatus:'testing'}).returning();return {schedule,campaign};}
 async function change(id:string,date:string,targetStatus:string,extra:Record<string,unknown>={}){
  const body=timelineSchema.parse({scheduleId:id,reviewDate:date,action:'status',targetStatus,reason:'隔离测试原因',requestKey:randomUUID(),fingerprint:timelineFingerprint(await promotionSnapshot(db,id)),...extra});
@@ -147,7 +162,7 @@ test('追加兼容迁移保留旧事实与冻结快照，解除等待零值限�
 
 test('真实日度 API 原子保存 ID 与指标、幂等返回、T+1、非零等待与残留边界',async()=>{
  const {withDatabase}=await import('../src/db/client');const daily=await import('../src/pages/api/promotion-daily');
- const post=async(values:Record<string,unknown>)=>{if(!values.fingerprint){const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,String(values.campaignId)));values={...values,fingerprint:timelineFingerprint(await promotionSnapshot(db,campaign.scheduleId))};}const form=new FormData();for(const [key,value] of Object.entries(values))if(value!=null)form.set(key,String(value));const url=new URL('http://isolated.test/api/promotion-daily');return withDatabase(db,async()=>daily.POST({request:new Request(url,{method:'POST',headers:{origin:url.origin},body:form}),url,locals:{user:actor}} as never));};
+ const post=async(values:Record<string,unknown>)=>{if(!values.fingerprint){const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,String(values.campaignId)));values={...values,fingerprint:timelineFingerprint(await promotionSnapshot(db,campaign.scheduleId))};}const form=new FormData();for(const [key,value] of Object.entries(values))if(value!=null)form.set(key,String(value));const url=new URL('http://isolated.test/api/promotion-daily');return withDatabase(db,async()=>daily.POST({request:new Request(url,{method:'POST',headers:{origin:url.origin},body:form}),url,locals:signedInLocals(actor)} as never));};
  const {schedule,campaign}=await seed();await change(schedule.id,'2026-10-17','test_pending');const requestKey=randomUUID(),fingerprint=timelineFingerprint(await promotionSnapshot(db,schedule.id));
  const values={...metric('2026-10-17','test_pending','wait_continue'),campaignId:campaign.id,platformNoteId:null,requestKey,fingerprint};
  let response=await post(values);assert.equal(response.status,201,JSON.stringify(await response.clone().json()));const saved=await response.json();
@@ -167,7 +182,7 @@ test('真实日度 API 原子保存 ID 与指标、幂等返回、T+1、非零�
 
 test('历史 PATCH 保留暂停非零与残留原阶段，权限和兼容后续事实受保护',async()=>{
  const {withDatabase}=await import('../src/db/client');const api=await import('../src/pages/api/promotion-daily/[id]');
- const patch=async(id:string,values:Record<string,unknown>,user:{id:string;username:string;role:'admin'|'employee'}=actor)=>{const [current]=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,id));const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,current.campaignId));values={fingerprint:timelineFingerprint(await promotionSnapshot(db,campaign.scheduleId)),expectedUpdatedAt:current.updatedAt.toISOString(),...values};const form=new FormData();for(const [key,value] of Object.entries(values))if(value!=null)form.set(key,String(value));const url=new URL(`http://isolated.test/api/promotion-daily/${id}`);return withDatabase(db,async()=>api.PATCH({request:new Request(url,{method:'PATCH',headers:{origin:url.origin},body:form}),url,params:{id},locals:{user}} as never));};
+ const patch=async(id:string,values:Record<string,unknown>,user:{id:string;username:string;role:'admin'|'employee'}=actor)=>{const [current]=await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,id));const [campaign]=await db.select().from(s.operationsPromotionCampaign).where(eq(s.operationsPromotionCampaign.id,current.campaignId));values={fingerprint:timelineFingerprint(await promotionSnapshot(db,campaign.scheduleId)),expectedUpdatedAt:current.updatedAt.toISOString(),...values};const form=new FormData();for(const [key,value] of Object.entries(values))if(value!=null)form.set(key,String(value));const url=new URL(`http://isolated.test/api/promotion-daily/${id}`);return withDatabase(db,async()=>api.PATCH({request:new Request(url,{method:'PATCH',headers:{origin:url.origin},body:form}),url,params:{id},locals:signedInLocals(user)} as never));};
  const {campaign,schedule}=await seed();const [paused]=await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-17','testing','test_pause'),campaignId:campaign.id}).returning();const [next]=await db.insert(s.operationsPromotionDailyMetric).values({...metric('2026-10-18','test_paused','wait_continue'),campaignId:campaign.id}).returning();
  const staff={...actor,role:'employee' as const};let response=await patch(next.id,{...next,spend:90,actualOpenCount:3},staff);assert.equal(response.status,200);let saved=(await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,next.id)))[0];assert.equal(saved.spend,'90.00');assert.equal(saved.actualStatusSnapshot,'test_paused');assert.equal(saved.sourceStageStartedOn,'2026-10-17');
  response=await patch(paused.id,{...paused,reviewDecision:'test_pending'},staff);assert.equal(response.status,422,'旧表单不能再编辑历史次日安排');
