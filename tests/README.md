@@ -8,6 +8,8 @@
 
 ## 本轮如何选择检查
 
+`tests/inspector-scroll-stability.browser.ts`使用实际目标包与隔离PostgreSQL，在直接进入及真实“设置→排期”导航后，深滚动打开详情、切换编辑／发布、取消与三种关闭，逐帧比较侧栏、品牌、顶栏、正文及页面位置；覆盖双角色、三档桌面、嵌套未保存确认和减少动态，390／320仅关闭及明显溢出。`INSPECTOR_SCROLL_ENTRY`指定包入口，`INSPECTOR_SCROLL_DIR`指定证据；`INSPECTOR_SCROLL_BEFORE=1`仅用于旧包复现并要求实际观测到上移，不作为修复通过结果。
+
 `tests/meeting-trend-popovers.browser.ts`使用实际目标包和隔离PostgreSQL冻结样本，验证周会四项总览与既有历史趋势的悬停、聚焦、单击保持、Esc及滚动关闭；检查零值／缺失点、日期单位、圆点热区与三档桌面避让，并确认零额外请求、员工可读、减少动态、有限窄屏与打印／冻结保持。通过`TREND_POPOVER_ENTRY`指定包入口、`TREND_POPOVER_DIR`指定截图和短录像。
 
 `tests/inspector-organization.browser.ts`使用实际目标包与隔离PostgreSQL，覆盖五组已确认Inspector：推广日期范围更正、非推广共享ID与只读／编辑切换、排期历史合并、年度时间块及助手版本选择。双方真实保存、取消与失败输入保留、ID保存后读取失败只读重试、待复盘直接填写、历史节点及原字段保持；桌面1920／1440／1024，员工1440，手机仅窄详情关闭与明显问题。通过`INSPECTOR_ORG_ENTRY`指定包入口、`INSPECTOR_ORG_DIR`指定截图及过程录像。`business-history-inspector.browser.ts`补验共享历史筛选分页、独立延期区、双角色姓名回显、逐日草稿保留、取消／保存失败及慢读竞争；ID专项和覆盖层用例沿用新的就地更正入口。
