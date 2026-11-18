@@ -100,6 +100,7 @@ try {
  assert.deepEqual(await manager.locator('[data-schedule-count]').count(),1);
  await capture(manager,'admin-approvals-1440');
  assert(await manager.locator('.schedule-approval-list').evaluate((node:HTMLElement)=>node.scrollWidth<=node.clientWidth+1));
+ await b.p.goto(baseURL+schedule);
  await capture(b.p,'employee-own-empty-1440');
  await manager.locator(`[data-approval-item="proposal:${modern.id}"]`).click();
  const approval=manager.locator('[data-schedule-approval-inspector] [data-schedule-approval]');
@@ -195,9 +196,12 @@ try {
  const metric=p.locator('[data-metric-form]').first();
  for(const [name,value]of [['spend','75'],['platformOpenCount','2'],['actualOpenCount','1'],['platformLeadCount','1'],['actualLeadCount','1']])
   await metric.locator(`[name="${name}"]`).fill(value);
+ await metric.locator('[name=reviewDecision]').selectOption('scaling_continue');
+ assert(await metric.evaluate((form:HTMLFormElement)=>form.checkValidity()));
  const saved=p.waitForResponse((res:any)=>res.url().endsWith('/api/promotion-daily')&&res.request().method()==='POST');
  await metric.getByRole('button',{name:'完成复盘',exact:true}).click();
- assert.equal((await saved).status(),201);
+ const response=await saved;
+ assert.equal(response.status(),201,await response.text());
  await awaitCount(p,'promotionPending','0');
  await p.goto(baseURL+'/business/monthly-operations?month=2026-11');
  assert.equal(await gap.count(),0);
