@@ -1,0 +1,273 @@
+{
+  "sourceCommit": "2279a0ed4d7835e28ade5cff43ec55a2cd952c9c",
+  "state": "已自检，待用户反馈",
+  "dataSource": "实际Vercel目标运行包，本机隔离PostgreSQL业务样例及账号",
+  "productionWrites": false,
+  "build": {
+    "errors": 0,
+    "warnings": 0,
+    "existingHints": 62
+  },
+  "suites": {
+    "inspector-pointer": {
+      "checks": [
+        "管理员排期详情1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "管理员编辑排期: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "管理员发布登记: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "管理员移动对换: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "未保存编辑: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "真实遮罩点击仍确认草稿，取消保留，确认后关闭",
+        "admin 推广帖子 1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "admin 推广单日 1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "admin 非推广 1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "admin 推广帖子 1024: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "admin 推广单日 1024: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "admin 非推广 1024: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "员工排期: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "employee 推广帖子 1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "employee 推广单日 1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "employee 非推广 1440: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "减少动态排期: 内按外放、外按内放、遮罩拖动与pointercancel保留；URL／背景滚动保持",
+        "两种共享外壳的真实遮罩点击、Esc、关闭后焦点及减少动态保持"
+      ],
+      "errors": []
+    },
+    "business-history-inspector": {
+      "checks": [
+        "真实新建、跨周改期及10次内容保存；一次改期只显示一个事件，详情与查帖JSON逐值一致",
+        "1920/1440/1024桌面与员工1440：默认收起、键盘展开／折叠／重开、10条分页、筛选不重建节点、前后值与依据、MiSans",
+        "原复盘节点表单真实保存后自动刷新同一时间线，保留筛选；即时截止日前后值以节点为准",
+        "原编辑草稿取消保留；原发布登记真实保存；新增发布事件及查帖同源显示",
+        "延期与业务历史相邻且默认收起，延期仅最新说明：三档只读、两档编辑、取消保护、503输入保留、双角色真实更正和姓名、助手同源只读，业务历史不重复延期；原审计账号保留",
+        "慢读、失败重试、空历史与减少动态效果；390仅检查遮挡/关闭/页面溢出；读取前后原始排期历史不变"
+      ],
+      "errors": []
+    },
+    "inspector-organization": {
+      "checks": [
+        "admin：推广就地更正、取消保留、503保留重试、原日期生效范围及保存后回到查看",
+        "admin：非推广原共享ID提示、已复盘查看／编辑、取消还原、关闭保护、真实保存与局部回显",
+        "admin：同源历史去重与推广筛选不置脏；年度时间块／空资料／版本内容；助手真实切版本及返回结果",
+        "employee：推广就地更正、取消保留、503保留重试、原日期生效范围及保存后回到查看",
+        "employee：非推广原共享ID提示、已复盘查看／编辑、取消还原、关闭保护、真实保存与局部回显",
+        "employee：同源历史去重与推广筛选不置脏；年度时间块／空资料／版本内容；助手真实切版本及返回结果",
+        "推广原指标及排期结构逐字段不变，原历史保留，非推广ID更正仅按原规则追加更正记录；桌面三档、原窄宽度、背景不伸缩、手机关闭入口与减少动态效果"
+      ],
+      "errors": []
+    }
+  },
+  "mechanicalReview": "10项既有未改状态／日历侧边标记提示；本次详情及折叠变更未新增发现",
+  "visuals": [
+    {
+      "file": "records-collapsed-1440.png",
+      "caption": "排期：默认收起，连续折叠标题",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "delay-read-1440.png",
+      "caption": "排期：展开最新延期说明",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "records-collapsed-1920.png",
+      "caption": "排期：1920默认收起",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "records-collapsed-1024.png",
+      "caption": "排期：1024默认收起",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "delay-edit-1440.png",
+      "caption": "排期：更正延期说明",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "delay-edit-1024.png",
+      "caption": "排期：1024更正",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "delay-latest-1024.png",
+      "caption": "排期：保存后只显示最新内容",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "delay-save-failed-1024.png",
+      "caption": "排期：失败保留输入",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "employee-delay-saved-1440.png",
+      "caption": "员工：保存与姓名回显",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "lookup-records-collapsed-1440.png",
+      "caption": "助手：延期与业务历史默认收起",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "lookup-delay-1440.png",
+      "caption": "助手：同源只读延期说明",
+      "suite": "business-history-inspector"
+    },
+    {
+      "file": "admin-promotion-view-1440.png",
+      "caption": "推广单日：资料、来源及结果分组",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-promotion-edit-1440.png",
+      "caption": "推广单日：就地更正",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-nonpromotion-view-1440.png",
+      "caption": "非推广：去掉逐字段横线",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-annual-view-1440.png",
+      "caption": "年度详情：时间块、资料与版本",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-annual-history-1440.png",
+      "caption": "年度详情：展开版本内容",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-schedule-history-1440.png",
+      "caption": "排期：复盘计划与展开的业务历史",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-lookup-view-1440.png",
+      "caption": "助手：版本与累计结果",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "admin-lookup-history-1440.png",
+      "caption": "助手：展开业务历史",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "annual-view-1024.png",
+      "caption": "年度详情：1024",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "nonpromotion-view-1024.png",
+      "caption": "非推广：1024",
+      "suite": "inspector-organization"
+    },
+    {
+      "file": "delay-obvious-mobile-390.png",
+      "caption": "390有限检查：关闭、遮挡及页面溢出",
+      "suite": "business-history-inspector"
+    }
+  ],
+  "release": {
+    "deployment": "dpl_HyCSbUipfR2B77TLe1aP22mLwjwN",
+    "state": "已归档校验并发布",
+    "candidate": {
+      "origin": "https://qiuyun-frontend-hmdethwy3-opgobl1v-5358.vercel.app",
+      "results": [
+        {
+          "path": "/login",
+          "status": 200
+        },
+        {
+          "path": "/business/operations-schedule",
+          "status": 302
+        },
+        {
+          "path": "/api/auth/get-session",
+          "status": 200
+        },
+        {
+          "path": "/api/content-search?id=00000000-0000-4000-8000-000000000001",
+          "status": 401
+        },
+        {
+          "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+          "status": 401
+        }
+      ],
+      "assets": [
+        {
+          "file": "schedule-business-history.Bs5uVaEk.css",
+          "sha256": "c5424580f0541df47403b982303c7ff20bf594fefeae79d8b51ac6e9e0fafa3f"
+        },
+        {
+          "file": "operations-schedule.astro_astro_type_script_index_1_lang.CxNDRxAW.js",
+          "sha256": "c5d7c12e0b8726d7ebe7ee9c0a83a0b79cb2dec8659dd16537632b9f8dc84932"
+        },
+        {
+          "file": "ContentTunnel.BXIUxhcu.js",
+          "sha256": "e72d823df6115c6b944028013ee432201dd51c1b34188b0554ccc6ea22ec510b"
+        },
+        {
+          "file": "operations-schedule.D0EMPDOU.css",
+          "sha256": "43c74b766f37430ac06bb086d38131902cc07eb24988e1ab046166b4c03a13a3"
+        },
+        {
+          "file": "BusinessPostLookup.astro_astro_type_script_index_0_lang.VV4Y7bWv.js",
+          "sha256": "862581d1291041597a10c29e988e664da25d7600e0cd13a1cd3e2d0a078d0e78"
+        }
+      ],
+      "cronCount": 3
+    },
+    "formal": {
+      "origin": "https://qiuyun-frontend.vercel.app",
+      "results": [
+        {
+          "path": "/login",
+          "status": 200
+        },
+        {
+          "path": "/business/operations-schedule",
+          "status": 302
+        },
+        {
+          "path": "/api/auth/get-session",
+          "status": 200
+        },
+        {
+          "path": "/api/content-search?id=00000000-0000-4000-8000-000000000001",
+          "status": 401
+        },
+        {
+          "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+          "status": 401
+        }
+      ],
+      "assets": [
+        {
+          "file": "schedule-business-history.Bs5uVaEk.css",
+          "sha256": "c5424580f0541df47403b982303c7ff20bf594fefeae79d8b51ac6e9e0fafa3f"
+        },
+        {
+          "file": "operations-schedule.astro_astro_type_script_index_1_lang.CxNDRxAW.js",
+          "sha256": "c5d7c12e0b8726d7ebe7ee9c0a83a0b79cb2dec8659dd16537632b9f8dc84932"
+        },
+        {
+          "file": "ContentTunnel.BXIUxhcu.js",
+          "sha256": "e72d823df6115c6b944028013ee432201dd51c1b34188b0554ccc6ea22ec510b"
+        },
+        {
+          "file": "operations-schedule.D0EMPDOU.css",
+          "sha256": "43c74b766f37430ac06bb086d38131902cc07eb24988e1ab046166b4c03a13a3"
+        },
+        {
+          "file": "BusinessPostLookup.astro_astro_type_script_index_0_lang.VV4Y7bWv.js",
+          "sha256": "862581d1291041597a10c29e988e664da25d7600e0cd13a1cd3e2d0a078d0e78"
+        }
+      ],
+      "cronCount": 3
+    },
+    "enabledCronCount": 3
+  }
+}
