@@ -84,20 +84,19 @@ try{
  for(const width of [1920,1440,1024]){
   await page.setViewportSize({width,height:1000});await delay().scrollIntoViewIfNeeded();await shot('delay-read-'+width);
  }
- clipStart=(Date.now()-videoStarted)/1000;
+ await page.setViewportSize({width:1440,height:1000});clipStart=(Date.now()-videoStarted)/1000;
  await delay().getByRole('button',{name:'更正',exact:true}).click();
  const correction=delay().locator('form:visible');await correction.locator('textarea').fill('讲义已进入二次校对');
  await page.locator('[data-close-inspector]').click();await respondToBusinessConfirm(page,false);assert.equal(await correction.locator('textarea').inputValue(),'讲义已进入二次校对');
  await correction.getByRole('button',{name:'取消',exact:true}).click();await respondToBusinessConfirm(page,false);assert.equal(await correction.locator('textarea').inputValue(),'讲义已进入二次校对');
  for(const width of [1440,1024]){
-  await page.setViewportSize({width,height:1000});await delay().scrollIntoViewIfNeeded();await shot('delay-edit-'+width);
+  await page.setViewportSize({width,height:1000});await delay().scrollIntoViewIfNeeded();await shot('delay-edit-'+width);if(width===1440)clipEnd=(Date.now()-videoStarted)/1000;
   const fields=correction.locator('fieldset'),text=correction.locator('textarea');assert((await fields.boundingBox()).y<(await text.boundingBox()).y);
   assert((await correction.getByRole('button',{name:'保存更正'}).boundingBox()).width<180);
  }
  await correction.getByRole('button',{name:'取消',exact:true}).click();await respondToBusinessConfirm(page,true);
  await delay().getByRole('button',{name:'更正',exact:true}).click();
  assert.equal(await correction.locator('textarea').inputValue(),'讲义仍在核对');assert(await correction.locator('[name=responsibility][value=self]').isChecked());await correction.locator('textarea').fill('讲义已进入二次校对');
- clipEnd=(Date.now()-videoStarted)/1000;
  await page.route('**/delay-reasons',(route:any)=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({message:'隔离保存失败'})}));
  await correction.locator('button[type=submit]').click();await correction.locator('output').getByText('隔离保存失败',{exact:true}).waitFor();assert.equal(await correction.locator('textarea').inputValue(),'讲义已进入二次校对');await shot('delay-save-failed-1024');await page.unroute('**/delay-reasons');
  const correctedReason=page.waitForResponse((r:any)=>r.url().endsWith('/delay-reasons')&&r.request().method()==='POST');await correction.locator('button[type=submit]').click();assert.equal((await correctedReason).status(),200);
@@ -108,7 +107,7 @@ try{
  await open(worker,delayed.schedule.id);const staffDelay=worker.locator('[data-schedule-delay]');await staffDelay.getByRole('button',{name:'更正',exact:true}).click();await staffDelay.locator('form:visible textarea').fill('员工更正说明');
  const staffSave=worker.waitForResponse((r:any)=>r.url().endsWith('/delay-reasons')&&r.request().method()==='POST');await staffDelay.locator('form:visible button[type=submit]').click();assert.equal((await staffSave).status(),200);await staffDelay.getByText('jennifer qiao',{exact:false}).first().waitFor();await shot('employee-delay-saved-1440',worker);
 
- await close(worker);
+ await close(worker);await page.setViewportSize({width:390,height:844});await open(page,delayed.schedule.id);await delay().scrollIntoViewIfNeeded();await shot('delay-obvious-mobile-390');assert(await page.locator('[data-close-inspector]').isVisible());await close();await page.setViewportSize({width:1440,height:1000});
  const multi=await seedLinkPost(db,'多日延期草稿验收','2026-11-13T18:00');await open(page,multi.schedule.id);
  assert.equal(await delay().locator('.delay-day').count(),3);
  const second=delay().locator('.delay-day').nth(1);await second.locator('summary').click();await second.locator('[name=responsibility][value=external]').check();await second.locator('textarea').fill('第二日草稿必须保留');

@@ -1,5 +1,6 @@
 .schedule-delay{min-width:0;padding-top:16px;border-top:1px solid var(--console-line);margin-top:20px}
 .schedule-delay[hidden],.schedule-delay [hidden]{display:none!important}
+.lookup-detail-section.schedule-delay{margin-top:0;border-top:0}
 .schedule-delay>h3{margin:0;font:600 15px/24px var(--console-font);color:var(--console-ink)}
 .schedule-delay .delay-pending-count{margin:6px 0;color:var(--console-muted);font:400 13px/20px var(--console-font)}
 .delay-day{padding:16px 0;min-width:0}
