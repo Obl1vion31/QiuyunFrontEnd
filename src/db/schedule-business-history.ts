@@ -50,8 +50,9 @@ export function buildScheduleHistoryEvents(input:Input):ScheduleBusinessEvent[]{
   const changes:HistoryChange[]=[];
   if(row.before.actualPublishAt!==row.after.actualPublishAt)changes.push(change('实发时间',row.before.actualPublishAt,row.after.actualPublishAt,'datetime'));
   for(const[key,label]of [['publicationUrl','帖子链接'],['projectDocUrl','项目资料']] as const)if(row.before[key]!==row.after[key])changes.push(change(label,row.before[key],row.after[key],'url'));
+  if(row.after.noteLink)changes.push(change('链接生效范围',null,row.after.noteLink.scope==='from_date'?`从 ${row.after.noteLink.effectiveOn} 起`:'本版本全部日期'));
   if(row.after.momentsConfirmation&&!row.before.momentsConfirmation)changes.push(change('运营确认',null,'已发送朋友圈 · 已发送对应需求'));
-  if(changes.length)events.push(make('publication:'+row.id,['publication'],row.before.actualPublishAt?'更正发布登记':'已登记发布',row.createdAt,row.changedByLabel,row.reason,changes,[`发布修订 R${row.revision}`]));
+  if(changes.length)events.push(make('publication:'+row.id,['publication'],row.after.noteLink?'变更发布链接':row.before.actualPublishAt?'更正发布登记':'已登记发布',row.createdAt,row.changedByLabel,row.reason,changes,[`发布修订 R${row.revision}`]));
  }
  for(const row of input.applications){
   if(row.status==='pending')continue;

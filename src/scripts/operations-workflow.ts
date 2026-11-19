@@ -223,8 +223,9 @@ function initialize() {
     const value=linkControl.value.trim();
     const result=extractPublicationLink(value);
     linkControl.setCustomValidity(value?result.error:'');
-    preview.textContent=value?(result.error||`已识别：${result.url}`):'';
+    preview.textContent=value?(result.error||'已识别小红书帖子链接'):'';
     preview.dataset.invalid=String(Boolean(value&&result.error));
+    updatePublicationNote(publication!);
   };
   linkControl.addEventListener('input',validateLink,{signal});
   document.addEventListener('business:publication-opened',validateLink,{signal});
@@ -271,6 +272,8 @@ function initialize() {
       }
       const section = publication!.querySelector<HTMLElement>('[data-publication-delay]')!; section.hidden = publicationDays.length === 0;
       host.dataset.ready = 'true';
+      const pendingMessage=publication!.querySelector<HTMLElement>('[data-publication-message]')!;
+      if(pendingMessage.textContent==='正在核对发布记录，请稍后保存。')pendingMessage.textContent='';
       publication!.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:[...host.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('input,textarea')].filter(field=>!field.value||field instanceof HTMLInputElement&&field.type==='radio'&&!field.checked).map(field=>field.name)}}));
     } catch (error) { if (read.isCurrent()) status.textContent = error instanceof Error ? error.message : '读取失败，请重新选择实发时间。'; } finally {read.finish();}
   }
@@ -285,7 +288,7 @@ function initialize() {
     publication!.querySelector<HTMLElement>('[data-publication-delay]')!.hidden = false; showPublication();
   }, { signal });
   publication.addEventListener('input', event => {
-    if((event.target as HTMLInputElement).name==='noteIdMode')updatePublicationNote(publication!);
+    if(['linkScope','linkEffectiveOn'].includes((event.target as HTMLInputElement).name))updatePublicationNote(publication!);
     if(!(event.target instanceof Element)||!event.target.closest('[data-datetime-name="actualPublishAt"]'))return;
     publicationToken++; stopPublicationRead(); host.dataset.ready = 'false'; clearTimeout(pendingTimer); pendingTimer = setTimeout(showPublication, 200);
   }, { signal });
@@ -293,7 +296,7 @@ function initialize() {
   document.addEventListener('business:publication-note-refresh',()=>{void showPublication();},{signal});
   publication.addEventListener('submit', event => {
     validateLink();
-    if (host.dataset.ready !== 'true') { event.preventDefault(); event.stopImmediatePropagation(); status.textContent = '正在核对理由，请稍后保存；读取失败时请重新选择实发时间。'; return; }
+    if (host.dataset.ready !== 'true') { event.preventDefault(); event.stopImmediatePropagation(); publication!.querySelector<HTMLElement>('[data-publication-message]')!.textContent = '正在核对发布记录，请稍后保存。'; return; }
     const moments=publication!.querySelector<HTMLElement>('[data-publication-moments]')!;
     const missing=[...moments.querySelectorAll<HTMLInputElement>('input')].find(control=>control.required&&!control.checked);
     if(missing){moments.querySelector<HTMLElement>('[data-publication-moments-error]')!.textContent='请确认朋友圈及对应需求均已发送。';missing.focus();event.preventDefault();event.stopImmediatePropagation();return;}

@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {eq} from 'drizzle-orm';
+import {startPostgresFixture} from './postgres.fixture';
+import {seedLinkPost} from './monthly-plan-links.fixture';
+import {admin} from './auth.fixture';
+import {readVersionNotes} from '../src/db/note-identities';
+import {noteIdOn} from '../src/db/note-identity-rules';
+import {settleBusinessUI} from './business-confirm.helper';
+import * as s from '../src/db/schema';
+const dir='.tools/test-artifacts/publication-note-links/browser';await mkdir(dir+'/screenshots',{recursive:true});
+const f=await startPostgresFixture({entry:'.tools/serve-vercel.mjs'}),{db,baseURL}=f;let browser:any,page:any;
+try{
+ const post=await seedLinkPost(db,'历史身份未知 · 补登记链接','2026-10-01T10:00');
+ await db.update(s.operationsContent).set({operationType:'promotion_only'}).where(eq(s.operationsContent.id,post.content.id));
+ await db.update(s.operationsContentVersion).set({projectDocUrl:'https://example.test/doc'}).where(eq(s.operationsContentVersion.id,post.version.id));
+ await db.update(s.operationsContentSchedule).set({isPromoted:true,promotionStatus:'testing',actualPublishAt:new Date('2026-10-01T02:00Z')}).where(eq(s.operationsContentSchedule.id,post.schedule.id));
+ const [campaign]=await db.insert(s.operationsPromotionCampaign).values({scheduleId:post.schedule.id,startedOn:'2026-10-01',initialStage:'testing',currentStage:'testing',currentStatus:'testing'}).returning();
+ const [fact]=await db.insert(s.operationsPromotionDailyMetric).values({campaignId:campaign.id,metricDate:'2026-10-01',stageTypeSnapshot:'testing',spend:'11',platformOpenCount:0,actualOpenCount:2,platformLeadCount:0,actualLeadCount:1,reviewDecision:'test_continue'}).returning();
+ const {chromium}=await import(process.env.PLAYWRIGHT_MODULE!);browser=await chromium.launch({headless:true});
+ const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});await context.addInitScript({content:'window.__name=value=>value;'});
+ const login=await context.request.post(baseURL+'/api/auth/sign-in/username',{headers:{Origin:baseURL},data:admin});assert.equal(login.status(),200);page=await context.newPage();
+ await page.goto(baseURL+'/business/operations-schedule?month=2026-10&row='+post.schedule.id);await page.locator('#schedule-panel[open][data-view=detail]').waitFor();await page.locator('[data-inspector-publication]').click();await page.locator('[data-publication-delay-days][data-ready=true]').waitFor({state:'attached'});
+ const form=page.locator('#publication-form'),scope=form.locator('[data-publication-link-scope]');await form.locator('[name=publicationUrl]').fill('https://www.xiaohongshu.com/explore/'+'0'.repeat(24));assert(await scope.isVisible());
+ await scope.locator('[name=linkScope][value=version]').check();assert((await scope.locator('[data-publication-link-impact]').textContent()).includes('1 条'));
+ await scope.locator('[name=linkScope][value=from_date]').check();await scope.locator('[name=linkEffectiveOn]').fill('2026-10-04');assert((await scope.locator('[data-publication-link-impact]').textContent()).includes('0 条'));
+ await settleBusinessUI(page);await page.locator('#publication-title').click();await page.screenshot({path:dir+'/screenshots/admin-history-unknown-link-1440.png'});
+ const response=page.waitForResponse((r:any)=>r.url().endsWith('/publication')&&r.request().method()==='PATCH');await form.locator('[type=submit]').click();const result=await response;assert.equal(result.status(),200,await result.text());
+ const state=(await readVersionNotes(db,[post.version.id])).get(post.version.id)!;assert.equal(noteIdOn(state.periods,'2026-10-03'),null);assert.equal(noteIdOn(state.periods,'2026-10-04'),'0'.repeat(24));assert.deepEqual((await db.select().from(s.operationsPromotionDailyMetric).where(eq(s.operationsPromotionDailyMetric.id,fact.id)))[0],fact);
+ await writeFile(dir+'/unknown-browser.json',JSON.stringify({passed:true,viewport:'1440x1000',checks:['未知身份补链接显示范围','全版本与指定日期显示真实影响条数','真实保存保留前段未知值与原指标']},null,2));console.log('历史未知身份补登记：范围、真实数量及保存保持通过');
+}catch(error){if(page&&!page.isClosed())await page.screenshot({path:dir+'/unknown-failure.png'});console.error(f.logs().slice(-1800));throw error;}finally{await browser?.close();await f.stop();}

@@ -4,7 +4,7 @@ import type {PromotionTimelineRow} from '../db/promotion-pending';
 import type {ReviewDay} from '../db/promotion-review-days';
 import {promotionActualLabels,promotionNextOptions,promotionSuccessorOptions,nextActualPromotionState} from '../db/promotion-successors.mjs';
 import {nextDateKey} from '../db/promotion-rules.mjs';
-import {noteIdOn} from '../db/note-identity-rules';
+import {noteIdOn,noteLinkOn} from '../db/note-identity-rules';
 import BusinessJuguangSource from './BusinessJuguangSource.astro';
 import BusinessJuguangTraffic from './BusinessJuguangTraffic.astro';
 import {isJuguangMetricDate,juguangTargetKey} from '../integrations/juguang-metric-types';
@@ -14,6 +14,7 @@ const {row,day}=Astro.props;
 const saved=day.savedMetric;
 const pilot=isJuguangMetricDate(day.date);
 const noteId=noteIdOn(row.noteIdPeriods,day.date);
+const publicationUrl=noteLinkOn(row.noteIdPeriods,day.date,row.publicationUrl);
 const actualStatus=day.actualStatus??(day.stage==='scaling'?'scaling':'testing');
 const defaultZero=day.defaultZero??['test_paused','test_pending','scaling_paused','test_discarded'].includes(actualStatus);
 const options=promotionNextOptions(actualStatus);
@@ -29,7 +30,7 @@ const nextDate=nextDateKey(day.date),decision=day.meetingNext??saved?.reviewDeci
 <form class:list={['business-form','metric-form','review-metric-row','review-entry-grid',tone,{'review-pilot-grid':pilot}]} data-collaboration-resource={`schedule:${row.scheduleId}:campaign:${day.campaignId??row.campaign!.id}:day:${day.date}`} data-collaboration-label={`${row.contentName} · ${day.date}`} data-metric-form={!saved||undefined} data-juguang-pilot={pilot?juguangTargetKey(day.campaignId??row.campaign!.id,day.date):undefined} data-juguang-date={pilot?day.date:undefined} data-juguang-campaign={pilot?day.campaignId??row.campaign!.id:undefined} data-juguang-source={pilot?JSON.stringify(saved?.juguangSource??null):undefined} data-saved-review={saved?.id} data-editing={saved?'false':undefined} data-pending-record={`${day.campaignId??row.campaign!.id}:${day.date}`} data-current-stage={day.stage} data-actual-status={actualStatus} data-status-edit-options={JSON.stringify(statusEditOptions)} data-content-id={row.contentId} data-version-id={row.versionId} data-note-id={noteId??''} data-schedule-id={row.scheduleId} data-fingerprint={row.fingerprint} data-default-zero={String(defaultZero)}>
  <input type="hidden" name="campaignId" value={day.campaignId??row.campaign!.id}/><input type="hidden" name="metricDate" value={day.date}/><input type="hidden" name="dailyStatus" value={['testing','scaling'].includes(actualStatus)?'active':'waiting_action'}/><input type="hidden" name="stageTypeSnapshot" value={day.stage}/><input type="hidden" name="actualStatusSnapshot" value={actualStatus}/><input type="hidden" name="recordKind" value="regular"/>
  <time class="review-date-block" datetime={day.date} title={day.date}>{pilot?`${Number(day.date.slice(5,7))}/${Number(day.date.slice(8,10))}`:`${Number(day.date.slice(5,7))}月${Number(day.date.slice(8,10))}日`}</time>
- <div class="review-entry-identity"><strong class="review-post-name" title={row.contentName}>{row.contentName}</strong><div class="review-version-line"><small>V{row.versionNumber} · {row.subjectName}</small><BusinessPostReferences name={row.contentName} projectDocUrl={row.projectDocUrl} publicationUrl={row.publicationUrl} noteId={noteId} editableNoteId/>{pilot&&<BusinessJuguangSource saved={!!saved?.juguangSource}/>}</div></div>
+ <div class="review-entry-identity"><strong class="review-post-name" title={row.contentName}>{row.contentName}</strong><div class="review-version-line"><small>V{row.versionNumber} · {row.subjectName}</small><BusinessPostReferences name={row.contentName} projectDocUrl={row.projectDocUrl} publicationUrl={publicationUrl} noteId={noteId} editableNoteId={!publicationUrl}/>{pilot&&<BusinessJuguangSource saved={!!saved?.juguangSource}/>}</div></div>
  <button type="button" class="review-day-state" data-toggle-day-state aria-expanded="false" disabled={!!saved||!statusEditOptions.length} aria-label={`修改 ${day.date} 当日状态`}><strong data-day-status data-promotion-status={actualStatus} data-default-label={promotionActualLabels[actualStatus]??day.status}>{promotionActualLabels[actualStatus]??day.status}</strong>{statusEditOptions.length>0&&<span data-state-caption>修改</span>}</button>
  {leadingMetrics.map(([name,label,step])=><BusinessPromotionMetricInput name={name} label={label} step={step} value={fieldValue(name)} disabled={!!saved} pilot={pilot}/>)}
  {pilot&&<BusinessJuguangTraffic impressionCount={saved?.impressionCount} clickCount={saved?.clickCount} source={saved?.juguangSource} disabled={!!saved} inline/>}

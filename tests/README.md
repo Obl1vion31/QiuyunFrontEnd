@@ -2,9 +2,9 @@
 
 ## 推广笔记 ID 专项
 
-`tests/note-identities-migration.postgres.ts`验证实际0055迁移、旧表摘要及冻结JSON／PDF字节保持；`tests/note-identities.integration.ts`在实际目标包与隔离PostgreSQL验证两种更正、版本独立、并发、占用、发布和审批、批量回滚及请求重试。`tests/note-identities.browser.ts`验证双角色历史详情与发布登记、取消、失败保留、1440主视口与1024新增字段，390仅明显遮挡／关闭入口。使用`TEST_POSTGRES_URL`指向本机隔离服务，`NOTE_ID_ENTRY`指定实际目标包入口、`NOTE_ID_DIR`指定证据；复用已有Playwright。
+`tests/note-identities-migration.postgres.ts`保留0055迁移入口；新增链接来源迁移由`publication-note-links.integration.ts`在本机隔离PostgreSQL验证。`publication-note-links.test.ts`覆盖长短链接、允许域名及故障；接口专项覆盖日期分段、历史手填补链、归属、并发、审批与聚光空报表／超时。`note-identities.integration.ts`验证历史缺链接的手填、范围、幂等与并发。
 
-发布登记专项同时验证“使用新 ID”无需当场填写、显式空基线不回退旧版、首次日度与批量补齐和审批重放；旧页提交ID明确拒绝且事务不落库。四种运营类型仅非推广即时首次确认截止日；复现任意输入后显隐、同页切帖、慢读退出重开、11月17—19日含当天共3天、真实保存及再次登记不改写配置。
+`note-identities.browser.ts`使用实际Vercel包核对双方自动发布、链接日期范围、短链失败保留与重试、API只填事实、历史日期链接及手填入口；主视口1440，管理员范围表单补1024，390仅关闭／明显溢出。`LINK_ID_DIR`指定证据目录，运行包由`.tools/serve-vercel.mjs`接入，隔离数据库通过`TEST_POSTGRES_URL`显式指定。非推广即时首次截止日期等已有发布规则仍由原专项维护。
 
 ## 本轮如何选择检查
 

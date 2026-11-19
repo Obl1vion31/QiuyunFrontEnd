@@ -2,7 +2,8 @@
 import BusinessResourceLinks from './BusinessResourceLinks.astro';
 import BusinessNoteIdentity from './BusinessNoteIdentity.astro';
 import {businessDateTime} from '../scripts/business-date';
-import {noteIdOn} from '../db/note-identity-rules';
+import {noteIdOn,noteLinkOn} from '../db/note-identity-rules';
+import {shanghaiDateKey} from '../db/promotion-rules.mjs';
 import BusinessPromotionMetric from './BusinessPromotionMetric.astro';
 import BusinessPromotionTimeline from './BusinessPromotionTimeline.astro';
 import BusinessPromotionWaitRanges from './BusinessPromotionWaitRanges.astro';
@@ -12,15 +13,17 @@ import type {operationsPromotionTimelineAudit} from '../db/schema';
 interface Props {entry:PromotionOverview;context:Awaited<ReturnType<typeof readPromotionContext>>;audits:(typeof operationsPromotionTimelineAudit.$inferSelect)[];closeHref:string;metric?:PromotionFact}
 const {entry,context,audits,closeHref,metric}=Astro.props;
 const selectedNoteId=metric?noteIdOn(entry.post.noteIdPeriods,metric.metricDate):entry.post.platformNoteId;
+const selectedLink=noteLinkOn(entry.post.noteIdPeriods,metric?.metricDate??shanghaiDateKey(new Date()),entry.post.publicationUrl);
+const manualIdentity=!entry.post.noteIdPeriods.some(p=>p.publicationUrl);
 const ranges=context.waitRanges.filter(r=>entry.campaigns.some(c=>c.id===r.campaignId)&&(!metric||r.startedOn<=metric.metricDate&&r.endedOn>=metric.metricDate));
 const holds=context.holds.filter(r=>entry.campaigns.some(c=>c.id===r.campaignId));
 ---
 <header><div class="promotion-inspector-heading"><h2 data-inspector-title>{entry.post.contentName}</h2><div class="promotion-inspector-subline"><p>V{entry.post.versionNumber} · {entry.post.subjectName}</p><span class="promotion-inspector-status" data-stage={entry.status}>当前 · {entry.statusLabel}</span></div></div><a href={closeHref} data-close-inspector aria-label="关闭生命周期详情">×</a></header>
 <div class="promotion-detail" data-collaboration-resource={`schedule:${entry.scheduleId}`} data-collaboration-label={entry.post.contentName}>
- <BusinessResourceLinks documentUrl={entry.post.projectDocUrl} postUrl={entry.post.publicationUrl} name={entry.post.contentName}/>
+ <BusinessResourceLinks documentUrl={entry.post.projectDocUrl} postUrl={selectedLink} name={entry.post.contentName}/>
  <details class="surface-resource-meta"><summary>发布时间与笔记 ID</summary><dl class="promotion-detail-meta promotion-references"><div><dt>应发时间</dt><dd>{entry.post.plannedPublishAt?businessDateTime(entry.post.plannedPublishAt):'—'}</dd></div><div><dt>实发时间</dt><dd>{entry.post.actualPublishAt?businessDateTime(entry.post.actualPublishAt):'—'}</dd></div></dl>
- <BusinessNoteIdentity value={selectedNoteId??null} editable={!!metric}>
- {metric&&<form hidden class="business-form" data-note-identity-form data-schedule-id={entry.scheduleId} data-version-number={entry.post.versionNumber} action={`/api/operations-content/${entry.post.contentId}/platform-note-id`}>
+ <BusinessNoteIdentity value={selectedNoteId??null} editable={!!metric&&manualIdentity}>
+ {metric&&manualIdentity&&<form hidden class="business-form" data-note-identity-form data-schedule-id={entry.scheduleId} data-version-number={entry.post.versionNumber} action={`/api/operations-content/${entry.post.contentId}/platform-note-id`}>
    <input type="hidden" name="versionId" value={entry.post.versionId}/><input type="hidden" name="effectiveOn" value={metric.metricDate}/><input type="hidden" name="expectedFingerprint" value={entry.post.noteIdFingerprint}/>
    <label>新笔记 ID<input name="platformNoteId" pattern="[0-9A-Fa-f]{24}" maxlength="24" required autocomplete="off" placeholder="24 位十六进制 ID"/></label>
    <fieldset class="note-id-scope"><legend>生效范围</legend><label><input type="radio" name="scope" value="from_date" checked/>从 {metric.metricDate} 起（包含当天）</label><label><input type="radio" name="scope" value="version"/>本版本的全部阶段</label></fieldset>

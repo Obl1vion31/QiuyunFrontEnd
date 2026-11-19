@@ -6,6 +6,8 @@ import type {OperationsUser} from '../auth/permissions';
 import {shanghaiDateKey} from './promotion-rules.mjs';
 import {noteIdOn,replaceNoteIdPeriods,type NoteIdPeriod} from './note-identity-rules';
 import * as s from './schema';
+import type {ResolvedPublicationNote} from './publication-note-link';
+import {publicationNoteId} from './publication-link.mjs';
 
 type Reader=Database|Transaction;
 export class NoteIdentityError extends WorkflowError {
@@ -26,9 +28,9 @@ export async function readVersionNotes(db:Reader,versionIds:string[]) {
   const saved=ids.length?await db.select().from(s.operationsVersionNoteId).where(inArray(s.operationsVersionNoteId.versionId,ids)).orderBy(asc(s.operationsVersionNoteId.effectiveOn)):[];
   return new Map(rows.map(row=>{
     const stored=saved.filter(p=>p.versionId===row.id),pendingRevision=row.promoted&&row.workType==='revision'&&!row.published;
-    const periods:NoteIdPeriod[]=stored.length?stored.map(p=>({effectiveOn:p.effectiveOn,platformNoteId:p.platformNoteId})).sort((a,b)=>(a.effectiveOn??'').localeCompare(b.effectiveOn??'')):
+    const periods:NoteIdPeriod[]=stored.length?stored.map(p=>({effectiveOn:p.effectiveOn,platformNoteId:p.platformNoteId,...(p.publicationUrl?{publicationUrl:p.publicationUrl}:{})})).sort((a,b)=>(a.effectiveOn??'').localeCompare(b.effectiveOn??'')):
       [{effectiveOn:null,platformNoteId:pendingRevision?null:row.legacyId}];
-    return [row.id,{...row,periods,fingerprint:digest(periods),mode:stored.find(p=>p.effectiveOn===null)?.mode??null}];
+    return [row.id,{...row,periods,fingerprint:digest(periods.map(({effectiveOn,platformNoteId})=>({effectiveOn,platformNoteId}))),mode:stored.find(p=>p.effectiveOn===null)?.mode??null}];
   }));
 }
 export type VersionNote=Awaited<ReturnType<typeof readVersionNotes>> extends Map<string,infer T>?T:never;
@@ -70,30 +72,38 @@ export async function publicationNoteContext(db:Reader,scheduleId:string) {
   const [schedule]=await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,scheduleId));
   if(!schedule)throw new NoteIdentityError('没有找到排期。','NOTE_VERSION_NOT_FOUND',404);
   const target=await requireVersionNote(db,schedule.contentVersionId);
-  const required=schedule.isPromoted&&target.workType==='revision'&&!schedule.actualPublishAt;
+  const required=schedule.isPromoted||target.promoted;
   const source=target.sourceVersionId?await requireVersionNote(db,target.sourceVersionId):null;
-  return {required,versionId:target.id,versionNumber:target.versionNumber,periods:target.periods,fingerprint:target.fingerprint,
+  const metrics=required?await db.select({date:s.operationsPromotionDailyMetric.metricDate}).from(s.operationsPromotionDailyMetric).innerJoin(s.operationsPromotionCampaign,eq(s.operationsPromotionCampaign.id,s.operationsPromotionDailyMetric.campaignId)).innerJoin(s.operationsContentSchedule,eq(s.operationsContentSchedule.id,s.operationsPromotionCampaign.scheduleId)).where(eq(s.operationsContentSchedule.contentVersionId,target.id)):[];
+  return {required,published:!!schedule.actualPublishAt,publicationUrl:schedule.publicationUrl,metricDates:[...new Set(metrics.map(m=>m.date))],versionId:target.id,versionNumber:target.versionNumber,periods:target.periods,fingerprint:target.fingerprint,
     source:source?{versionId:source.id,versionNumber:source.versionNumber,periods:source.periods,fingerprint:source.fingerprint}:null};
 }
 
-export async function confirmPublicationNote(db:Reader,scheduleId:string,actual:Date,input:{noteIdMode?:'inherit'|'new';platformNoteId?:string;expectedNoteIdFingerprint?:string;expectedSourceNoteIdFingerprint?:string}) {
-  let context=await publicationNoteContext(db,scheduleId);
-  if(!context.required)return;
-  if(!input.noteIdMode)throw new NoteIdentityError('请选择继承上一版本，或使用新 ID 并在首次复盘时填写。','NOTE_ID_SELECTION_REQUIRED',422);
-  if(input.platformNoteId)throw new NoteIdentityError('新笔记 ID 已改为在首次复盘填写。请刷新页面后重新登记；当前输入已保留。','NOTE_ID_ENTRY_MOVED',422);
-  if(context.fingerprint!==input.expectedNoteIdFingerprint)throw new NoteIdentityError('本版本笔记 ID 已变化，请重新核对发布登记；输入已保留。');
-  const target=await requireVersionNote(db,context.versionId);
-  await initializeLegacyNotes(db,target.contentId);
-  context=await publicationNoteContext(db,scheduleId);
-  let value:string|null=null;
-  if(input.noteIdMode==='inherit') {
-    if(!context.source||context.source.fingerprint!==input.expectedSourceNoteIdFingerprint)throw new NoteIdentityError('原版本笔记 ID 已变化，请重新核对后确认继承；输入已保留。');
-    value=noteIdOn(context.source.periods,shanghaiDateKey(actual));
-    if(!value)throw new NoteIdentityError('上一版本在该发布日期没有笔记 ID，无法继承。可选择使用新 ID，在首次复盘时填写。','SOURCE_NOTE_ID_MISSING',422);
-  }
-  if(value)await claimNoteId(db,target.contentId,value);
-  // 显式保存空基线，发布后读取不能回退到原帖的共享 ID。
-  await db.insert(s.operationsVersionNoteId).values({versionId:target.id,contentId:target.contentId,effectiveOn:null,platformNoteId:value,mode:input.noteIdMode,sourceVersionId:target.sourceVersionId});
+export async function confirmPublicationNote(db:Reader,scheduleId:string,actual:Date,input:{publicationUrl?:string|null;platformNoteId?:string;expectedNoteIdFingerprint?:string;linkScope?:'version'|'from_date';linkEffectiveOn?:string},resolved:ResolvedPublicationNote|null) {
+ const [schedule]=await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,scheduleId));
+ const original=await requireVersionNote(db,schedule.contentVersionId);
+ if((!original.promoted&&!schedule.isPromoted)||!resolved)return;
+ if(input.platformNoteId)throw new NoteIdentityError('笔记 ID 现已从发布链接自动提取，请刷新页面；当前输入已保留。','NOTE_ID_ENTRY_MOVED',422);
+ const latest=noteIdOn(original.periods,'9999-12-31');
+ const known=latest??publicationNoteId(schedule.publicationUrl);
+ const changesIdentity=original.published&&(known?known!==resolved.noteId:input.publicationUrl!==schedule.publicationUrl);
+ if(changesIdentity&&!input.linkScope)throw new NoteIdentityError('链接指向了另一篇笔记，请选择更正本版本或从指定日期起使用新链接。','NOTE_LINK_SCOPE_REQUIRED',422);
+ if(input.linkScope==='from_date'&&(!input.linkEffectiveOn||input.linkEffectiveOn<shanghaiDateKey(actual)))throw new NoteIdentityError('请选择不早于首次发布日期的链接生效日期。','NOTE_LINK_DATE_REQUIRED',422);
+ if((changesIdentity||input.expectedNoteIdFingerprint)&&original.fingerprint!==input.expectedNoteIdFingerprint)throw new NoteIdentityError('发布链接的笔记归属已变化，请重新核对；当前输入已保留。');
+ await initializeLegacyNotes(db,original.contentId);
+ await claimNoteId(db,original.contentId,resolved.noteId);
+ const state=await requireVersionNote(db,original.id);
+ const existing=await db.select().from(s.operationsVersionNoteId).where(eq(s.operationsVersionNoteId.versionId,state.id));
+ // 同一笔记补来源不改日期段，也不改变已有报表的身份指纹。
+ if(latest===resolved.noteId&&existing.some(p=>p.platformNoteId===resolved.noteId)){
+  await db.update(s.operationsVersionNoteId).set({publicationUrl:resolved.url}).where(and(eq(s.operationsVersionNoteId.versionId,state.id),eq(s.operationsVersionNoteId.platformNoteId,resolved.noteId)));
+  const last=state.periods.at(-1)!;
+  return input.linkScope?{scope:last.effectiveOn?'from_date' as const:'version' as const,effectiveOn:last.effectiveOn??shanghaiDateKey(actual)}:undefined;
+ }
+ const from=input.linkScope==='from_date'?input.linkEffectiveOn!:null;
+ await db.delete(s.operationsVersionNoteId).where(and(eq(s.operationsVersionNoteId.versionId,state.id),...(from?[gte(s.operationsVersionNoteId.effectiveOn,from)]:[])));
+ await db.insert(s.operationsVersionNoteId).values({versionId:state.id,contentId:state.contentId,effectiveOn:from,platformNoteId:resolved.noteId,publicationUrl:resolved.url,mode:original.published?'correction':'initial',sourceVersionId:state.sourceVersionId});
+ return input.linkScope?{scope:input.linkScope,effectiveOn:from??shanghaiDateKey(actual)}:undefined;
 }
 
 export type NoteCorrection={versionId:string;effectiveOn:string;scope:'version'|'from_date';platformNoteId:string;expectedFingerprint:string;requestKey:string};
@@ -105,6 +115,7 @@ export async function correctVersionNote(db:Reader,contentId:string,input:NoteCo
   await initializeLegacyNotes(db,contentId);
   const before=await requireVersionNote(db,input.versionId);
   if(before.fingerprint!==input.expectedFingerprint)throw new NoteIdentityError('该版本笔记 ID 已更正，请重新核对影响范围；当前输入已保留。');
+  if(before.periods.some(p=>p.publicationUrl))throw new NoteIdentityError('笔记 ID 已由发布链接维护，请到发布登记更正链接。','NOTE_ID_FROM_LINK',422);
   const [day]=await db.select({scheduleId:s.operationsContentSchedule.id}).from(s.operationsPromotionDailyMetric)
     .innerJoin(s.operationsPromotionCampaign,eq(s.operationsPromotionCampaign.id,s.operationsPromotionDailyMetric.campaignId))
     .innerJoin(s.operationsContentSchedule,eq(s.operationsContentSchedule.id,s.operationsPromotionCampaign.scheduleId))

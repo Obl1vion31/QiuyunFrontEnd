@@ -1,6 +1,6 @@
 import {effectiveCategoryName} from './content-config';
 import {readVersionNotes} from './note-identities';
-import {noteIdOn} from './note-identity-rules';
+import {noteIdOn,noteLinkOn} from './note-identity-rules';
 import {correctPromotionHistory,PromotionHistoryPreview} from './promotion-history-correction';
 import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
@@ -100,7 +100,7 @@ export async function readPromotionTimeline(db: Reader, now = new Date(), onlySc
     const platformNoteId=noteIdOn(noteIdPeriods,today);
     const owned=context.campaigns.filter(c=>c.scheduleId===row.scheduleId),ids=new Set(owned.map(c=>c.id));
     const snapshot={schedule:withoutLegacyDelay(schedules.find(record=>record.id===row.scheduleId)!),plan:row.plan,campaigns:owned,metrics:allMetrics.filter(m=>ids.has(m.campaignId)),ranges:context.waitRanges.filter(r=>ids.has(r.campaignId)),stages:allStages.filter(r=>ids.has(r.campaignId)),decisions:context.stateChanges.filter(r=>ids.has(r.campaignId)),holds:context.holds.filter(r=>ids.has(r.campaignId))};
-    return {...row,platformNoteId,noteIdPeriods,noteIdFingerprint:noteStates.get(row.versionId)!.fingerprint,
+    return {...row,publicationUrl:noteLinkOn(noteIdPeriods,today,row.publicationUrl),platformNoteId,noteIdPeriods,noteIdFingerprint:noteStates.get(row.versionId)!.fingerprint,
       hasMetrics:snapshot.metrics.length>0,fingerprint:timelineFingerprint(snapshot)};
   });
 }

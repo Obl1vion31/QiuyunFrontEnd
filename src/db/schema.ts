@@ -400,6 +400,7 @@ export const operationsVersionNoteId = pgTable('operations_version_note_id', {
   // NULL 表示版本基线；日期记录替换从该日开始的有效值。
   effectiveOn: date('effective_on'),
   platformNoteId: text('platform_note_id'),
+  publicationUrl: text('publication_url'),
   mode: text('mode').$type<'legacy'|'initial'|'inherit'|'new'|'correction'>().notNull(),
   sourceVersionId: uuid('source_version_id').references(() => operationsContentVersion.id, {onDelete:'restrict'}),
 }, table => [
@@ -410,6 +411,7 @@ export const operationsVersionNoteId = pgTable('operations_version_note_id', {
   index('operations_version_note_id_lookup_idx').on(table.platformNoteId),
   check('operations_version_note_id_mode_check',sql`${table.mode} IN ('legacy','initial','inherit','new','correction')`),
   check('operations_version_note_id_value_check',sql`${table.effectiveOn} IS NULL OR ${table.platformNoteId} IS NOT NULL`),
+  check('operations_version_note_link_value_check',sql`${table.publicationUrl} IS NULL OR ${table.platformNoteId} IS NOT NULL`),
 ]);
 
 export const operationsContentSchedule = pgTable(
@@ -487,7 +489,7 @@ export const operationsPublicationEvent = pgTable('operations_publication_event'
   scheduleId: uuid('schedule_id').notNull().references(() => operationsContentSchedule.id, { onDelete: 'restrict' }),
   revision: integer('revision').notNull(),
   before: jsonb('before').$type<{actualPublishAt:string|null;publicationUrl:string|null;projectDocUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation}>().notNull(),
-  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string|null;projectDocUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation}>().notNull(),
+  after: jsonb('after').$type<{actualPublishAt:string;publicationUrl:string|null;projectDocUrl:string|null;momentsConfirmation?:PublicationMomentsConfirmation;noteLink?:{scope:'version'|'from_date';effectiveOn:string}}>().notNull(),
   reason: text('reason'),
   changedById: text('changed_by_id').notNull(),
   changedByLabel: text('changed_by_label').notNull(),

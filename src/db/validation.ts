@@ -53,6 +53,8 @@ export function createPostSchemas(taxonomy:{subjects:ReadonlyArray<{id:string}>;
 export const {newPostSchema,editScheduleSchema,revisionSchema}=createPostSchemas({subjects,postCategories,subjectCategoryMappings});
 
 export const publicationSchema = z.object({
+  linkScope:z.enum(['version','from_date']).optional(),
+  linkEffectiveOn:z.preprocess(value=>value===''||value===null?undefined:value,z.iso.date().optional()),
   noteIdMode:z.enum(['inherit','new']).optional(),
   platformNoteId:z.preprocess(value=>value===''||value===null?undefined:value,platformNoteIdSchema.optional()),
   expectedNoteIdFingerprint:z.string().optional(),expectedSourceNoteIdFingerprint:z.string().optional(),
@@ -96,6 +98,7 @@ export const revisionInputFromForm = (form: FormData) => ({
 });
 
 export const publicationInputFromForm = (form: FormData) => ({
+  linkScope:form.get('linkScope')||undefined,linkEffectiveOn:form.get('linkEffectiveOn')||undefined,
   noteIdMode:form.get('noteIdMode')||undefined,platformNoteId:form.get('platformNoteId')||undefined,
   expectedNoteIdFingerprint:form.get('expectedNoteIdFingerprint')||undefined,expectedSourceNoteIdFingerprint:form.get('expectedSourceNoteIdFingerprint')||undefined,
   reviewPlan:reviewPlanFromForm(form),reviewDueOn:String(form.get('reviewDueOn')||''),

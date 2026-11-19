@@ -1,5 +1,6 @@
 import {StaleWriteError} from './schedule-workflow';
 import {confirmPublicationNote} from './note-identities';
+import {resolvePublicationNote} from './publication-note-link';
 import {randomUUID} from 'node:crypto';
 import {pruneScheduleDelayReasons} from './schedule-delay-cleanup';
 import {promotionSnapshot} from './promotion-timeline';
@@ -26,6 +27,8 @@ function checkRevision(schedule:{planRevision:number;publicationRevision:number}
 }
 /** 统一发布登记；允许定时发布的未来时间，保存后直接已发送。 */
 export async function registerPublication(db:Database,id:string,input:z.infer<typeof publicationSchema>,dailyReasons:z.infer<typeof reasonSchema>[],confirmReset:boolean,actor:OperationsUser,now=new Date()) {
+  const [target]=await db.select({promoted:schedules.isPromoted,hasCampaign:sql<boolean>`exists(select 1 from operations_promotion_campaign c where c.schedule_id=${schedules.id})`}).from(schedules).where(eq(schedules.id,id));
+  const resolved=input.publicationUrl&&(target?.promoted||target?.hasCampaign)?await resolvePublicationNote(input.publicationUrl):null;
   return db.transaction(async tx=>{
     await lockPromotionWorkflow(tx);
     const schedule=await lockSchedule(tx,id);checkRevision(schedule,input);
@@ -67,8 +70,8 @@ export async function registerPublication(db:Database,id:string,input:z.infer<ty
     const previousConfirmation=workflow.publicationHistory[0]?.after.momentsConfirmation;
     const momentsConfirmation=requiresMomentsConfirmation?{momentsSent:true as const,requestSent:true as const}:previousConfirmation;
     const before={actualPublishAt:schedule.actualPublishAt?.toISOString()??null,publicationUrl:schedule.publicationUrl,projectDocUrl:version.projectDocUrl,...(previousConfirmation?{momentsConfirmation:previousConfirmation}:{})};
-    await confirmPublicationNote(tx,id,actual,input);
-    const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{})};
+    const noteLink=await confirmPublicationNote(tx,id,actual,input,resolved);
+    const after={actualPublishAt:actual.toISOString(),publicationUrl,projectDocUrl,...(momentsConfirmation?{momentsConfirmation}:{}),...(noteLink?{noteLink}:{})};
     if(JSON.stringify(before)===JSON.stringify(after)){
       await switchContinuousReviewCycle(tx,version.contentId,id,actual,actor.username);
       if(input.reviewPlan&&!content.operationType&&!schedule.isPromoted)await saveReviewPlan(tx,id,input.reviewPlan,actor.username);

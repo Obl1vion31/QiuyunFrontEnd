@@ -16,3 +16,10 @@ export function extractPublicationLink(text) {
   if (!links.size) return { url: '', error: '请粘贴有效的小红书帖子链接或完整分享文案。' };
   return { url: [...links][0], error: '' };
 }
+
+/** 完整笔记链接中的身份；分享参数不参与身份匹配。 */
+export function publicationNoteId(text) {
+  const {url,error}=extractPublicationLink(text);
+  if(error)return null;
+  return new URL(url).pathname.match(/^\/(?:explore|discovery\/item)\/([0-9a-fA-F]{24})\/?$/)?.[1].toLowerCase()??null;
+}

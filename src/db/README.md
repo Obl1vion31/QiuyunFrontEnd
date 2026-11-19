@@ -34,7 +34,7 @@
 
 - `publication-workflow.ts`：统一发布登记、帖子链接和按操作授权的时间更正事务；`publication-rules.mjs` 维护发布状态及历史空链接边界，旧预约只保留历史。
 
-`publication-link.mjs` 在前后端共用分享文案识别，不请求小红书；旧预约表保留只读历史，写入接口已停用。
+`publication-link.mjs` 在前后端共用分享文案及完整ID识别；`publication-note-link.ts`只在推广保存前受限解析短链，身份区间保留来源链接，历史空来源兼容手填；旧预约表保留只读历史，写入接口已停用。
 
 - `business-approvals.ts`：逐操作授权、待审变更、原入口事务预检与原子审核；`proposal-diff.ts` 输出业务字段差异，不公开账号凭据。
 

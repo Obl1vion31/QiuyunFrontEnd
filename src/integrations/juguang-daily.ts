@@ -55,6 +55,7 @@ async function readNoteReport(date:string){
   if(!connections.length)return {error:'请联系管理员完成聚光报表授权。',rows:[]};
   const seen=new Set<number>(),tuples=new Set<string>(),rows:Array<{advertiserId:number;values:z.infer<typeof reportRow>}>=[];
   const deadline=Date.now()+25_000;
+  const started=Date.now();let advertiserId:number|null=null,pageNumber:number|null=null;
   try{
    for(const connection of connections){
     if(!hasJuguangReportScope(connection.scope))throw new UpstreamFailure('SCOPE');
@@ -64,8 +65,10 @@ async function readNoteReport(date:string){
     let refreshed=false;const refresh=async()=>{tokens=await refreshJuguangConnection(connection,config,deadline);refreshed=true;};
     if(connection.accessTokenExpiresAt.getTime()<=Date.now()+60_000)await refresh();
     for(const account of connection.advertisers){
+     advertiserId=account.advertiser_id;
      if(seen.has(account.advertiser_id))continue;seen.add(account.advertiser_id);
      for(let page=1;page<=20;page++){
+      pageNumber=page;
       const read=()=>upstream(JUGUANG_NOTE_REPORT,{advertiser_id:account.advertiser_id,start_date:date,end_date:date,time_unit:'DAY',data_caliber:0,page_num:page,page_size:500},deadline,tokens.accessToken);
       let raw:unknown;try{raw=await read();}catch(error){if(error instanceof UpstreamFailure&&['410019','410020'].includes(error.code)&&!refreshed){await refresh();raw=await read();}else throw error;}
       const parsed=report.safeParse(raw);if(!parsed.success)throw new UpstreamFailure('RESPONSE');const data=parsed.data.data;
@@ -76,9 +79,9 @@ async function readNoteReport(date:string){
     }
    }
    if(!seen.size)throw new UpstreamFailure('SCOPE');return {rows,error:null};
-  }catch(error){if(!(error instanceof UpstreamFailure))throw error;return {rows:[],error:failure(error.code).message};}
+  }catch(error){if(!(error instanceof UpstreamFailure))throw error;console.warn('Juguang offline note read failed',{date,advertiserId,page:pageNumber,elapsedMs:Date.now()-started,code:error.code});return {rows:[],error:failure(error.code).message,code:error.code};}
  });
- if(result.error)throw new WorkflowError(result.error+' 原数据已保留。',503);
+ if(result.error)throw new JuguangError('JUGUANG_'+('code' in result?result.code:'UNAVAILABLE'),result.error+' 原数据已保留。',503);
  return result.rows;
 }
 /** 按授权账户＋日期＋版本当天有效笔记ID读取；缺报表、缺ID和多重归属均不补零。 */
@@ -86,7 +89,7 @@ export async function readJuguangDailyPreview(date:string,sessionId:string,campa
  requireDate(date);
  const identities=await dailyIdentities(getDb(),date,campaignIds);
  const selected=campaignIds.length?identities.filter(i=>campaignIds.includes(i.campaignId)):identities.filter(i=>!!i.metric);
- const rows=selected.length?await readNoteReport(date):[],fetchedAt=new Date().toISOString();
+ const rows=selected.some(i=>i.noteId||!i.metric&&draftNoteIds[i.campaignId])?await readNoteReport(date):[],fetchedAt=new Date().toISOString();
  return {date,rows:selected.map(identity=>{
   const base={key:juguangTargetKey(identity.campaignId,date),campaignId:identity.campaignId,metricId:identity.metric?.id??null};
   const noteId=identity.noteId??(!identity.metric?draftNoteIds[identity.campaignId]:null);

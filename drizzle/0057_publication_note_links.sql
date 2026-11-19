@@ -1,0 +1,2 @@
+ALTER TABLE "operations_version_note_id" ADD COLUMN "publication_url" text;--> statement-breakpoint
+ALTER TABLE "operations_version_note_id" ADD CONSTRAINT "operations_version_note_link_value_check" CHECK ("operations_version_note_id"."publication_url" IS NULL OR "operations_version_note_id"."platform_note_id" IS NOT NULL);
