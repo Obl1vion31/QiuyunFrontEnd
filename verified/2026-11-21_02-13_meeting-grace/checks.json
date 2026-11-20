@@ -1,0 +1,142 @@
+{
+  "applicationCommit": "10c3a45fa18a023923ebe8129186daf9e9d14490",
+  "status": "已自检、已发布，待用户反馈",
+  "target": "Vercel prebuilt",
+  "build": {
+    "errors": 0,
+    "warnings": 0,
+    "existingHints": 62
+  },
+  "rules": {
+    "passed": 24,
+    "failed": 0,
+    "files": [
+      "meeting-version-workflow.test.ts",
+      "meeting-card-rules.test.ts",
+      "meeting-auto-rate.test.ts",
+      "meeting-finalization-permissions.test.ts"
+    ]
+  },
+  "browser": {
+    "passed": true,
+    "checks": [
+      "实际V2会前草稿在01:30、04:59:59开放，页面计时跨05:00锁定；服务端直调拒绝且保留同一草稿",
+      "两项旧文字为空可同号会后定稿，取消保留，旧版及冻结指标不变；真实推广安排仍在原生效日，PDF自动归档，管理员／员工查看同步精简"
+    ],
+    "errors": [],
+    "database": "PGlite",
+    "video": {
+      "start": 2.4361662700000006,
+      "duration": 5.832393388000002
+    },
+    "pdf": "pdf/weekly-v2.pdf",
+    "productionWrites": false
+  },
+  "pdf": {
+    "renderedPages": 2,
+    "allPagesVisuallyReviewed": true,
+    "removedFieldsAbsent": true
+  },
+  "visual": {
+    "adminDesktop": [
+      "1440x1000",
+      "1024x1000"
+    ],
+    "employeeDesktop": [
+      "1440x1000"
+    ],
+    "mobile": "390x844仅明显溢出检查",
+    "allArchivedImagesViewed": true,
+    "operationVideoReviewed": "6.23秒完整逐帧"
+  },
+  "publication": {
+    "id": "dpl_FLH1TctjeormpyQRYnGTAEgQfCjT",
+    "url": "qiuyun-frontend-1oz6m24cz-opgobl1v-5358.vercel.app",
+    "readyState": "READY",
+    "sourceCommit": "10c3a45fa18a023923ebe8129186daf9e9d14490"
+  },
+  "candidate": {
+    "origin": "https://qiuyun-frontend-1oz6m24cz-opgobl1v-5358.vercel.app",
+    "results": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/operations-schedule",
+        "status": 302
+      },
+      {
+        "path": "/api/auth/get-session",
+        "status": 200
+      },
+      {
+        "path": "/api/content-search?id=00000000-0000-4000-8000-000000000001",
+        "status": 401
+      },
+      {
+        "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+        "status": 401
+      }
+    ],
+    "assets": [
+      {
+        "file": "BusinessMeetingDiscussion.DOztm7qp.js",
+        "sha256": "9eb8e8e5583d2c44506eecc37491cdb100590f5f2360ad34080c2c2ac5f273f4"
+      },
+      {
+        "file": "meeting-finalization.DnqD5tq4.js",
+        "sha256": "8517cea142a915120c06ea8501a5968c0130d34f31e059f3413f2947bffd5db5"
+      },
+      {
+        "file": "meeting-review.I62TG7hX.css",
+        "sha256": "bbb2e0360f8296c317f5f5de3cf33161c543a52c3616c4cd2bfc081db263aa84"
+      }
+    ],
+    "cronCount": 3
+  },
+  "formal": {
+    "origin": "https://qiuyun-frontend.vercel.app",
+    "results": [
+      {
+        "path": "/login",
+        "status": 200
+      },
+      {
+        "path": "/business/operations-schedule",
+        "status": 302
+      },
+      {
+        "path": "/api/auth/get-session",
+        "status": 200
+      },
+      {
+        "path": "/api/content-search?id=00000000-0000-4000-8000-000000000001",
+        "status": 401
+      },
+      {
+        "path": "/api/operations-content/00000000-0000-4000-8000-000000000001/workflow",
+        "status": 401
+      }
+    ],
+    "assets": [
+      {
+        "file": "BusinessMeetingDiscussion.DOztm7qp.js",
+        "sha256": "9eb8e8e5583d2c44506eecc37491cdb100590f5f2360ad34080c2c2ac5f273f4"
+      },
+      {
+        "file": "meeting-finalization.DnqD5tq4.js",
+        "sha256": "8517cea142a915120c06ea8501a5968c0130d34f31e059f3413f2947bffd5db5"
+      },
+      {
+        "file": "meeting-review.I62TG7hX.css",
+        "sha256": "bbb2e0360f8296c317f5f5de3cf33161c543a52c3616c4cd2bfc081db263aa84"
+      }
+    ],
+    "cronCount": 3
+  },
+  "archiveFiles": 2008,
+  "enabledCrons": 3,
+  "mechanicalScan": "1项原有side-tab提示，未新增",
+  "environmentLimit": "原生PostgreSQL运行遭WSL中断；浏览器与接口使用仓库隔离PGlite夹具完成，正式业务操作另在已登录浏览器核对。"
+}
