@@ -7,7 +7,8 @@ export function meetingEffectiveOn(meeting:{meetingAt:Date|string},versions:Arra
  const ordered=[...versions].filter(v=>(v as any).lifecycleStatus!=='draft').sort((a,b)=>a.versionNumber-b.versionNumber);
  return ordered.find(v=>v.snapshot.finalizationStage==='post'&&v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??ordered.find(v=>v.snapshot.decisionEffectiveOn)?.snapshot.decisionEffectiveOn??nextDateKey(shanghaiDateKey(new Date(meeting.meetingAt)));
 }
-export const meetingArrangementsExpired=(effectiveOn:string,now=new Date())=>shanghaiDateKey(now)>=effectiveOn;
+/** 会后讨论可延续至原生效日上海时间05:00，生效日期本身不顺延。 */
+export const meetingArrangementsExpired=(effectiveOn:string,now=new Date())=>now.getTime()>=Date.parse(effectiveOn+'T05:00:00+08:00');
 export function latestValidMeetingVersion<T extends {versionNumber:number;invalidatedAt?:Date|null;lifecycleStatus?:string}>(versions:T[]){return [...versions].filter(v=>!v.invalidatedAt&&v.lifecycleStatus!=='draft').sort((a,b)=>b.versionNumber-a.versionNumber)[0];}
 export function activeMeetingDraft<T extends {versionNumber:number;invalidatedAt?:Date|null;lifecycleStatus?:string}>(versions:T[]){return [...versions].filter(v=>!v.invalidatedAt&&v.lifecycleStatus==='draft').sort((a,b)=>b.versionNumber-a.versionNumber)[0];}
 

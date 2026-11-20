@@ -30,7 +30,7 @@ try{
  const pre=()=>page.getByRole('button',{name:'会前定稿 V0',exact:true});const alert=page.locator('.weekly-report-actions [role=alert]');
  await pre().click();await alert.filter({hasText:'确认纳入'}).waitFor();assert.equal(await page.locator('[data-business-confirm][open]').count(),0);
  await page.getByRole('button',{name:'全选推广帖',exact:true}).click();await page.getByRole('button',{name:'确认纳入',exact:true}).click();
- await page.getByRole('textbox',{name:'衡量情况',exact:true}).fill('本期实际开口和留资已核对。');await page.getByRole('textbox',{name:'本期具体动作',exact:true}).fill('补充关键条件并持续核对。');
+ assert.equal(await page.getByRole('textbox',{name:'衡量情况',exact:true}).count(),0);assert.equal(await page.getByRole('textbox',{name:'本期具体动作',exact:true}).count(),0);
  await pre().click();await alert.filter({hasText:'请补充核心结论'}).waitFor();assert.equal(await page.locator('[data-meeting-field=coreConclusion]').evaluate((n:Element)=>n===document.activeElement),true);assert.equal(writes,0);
  await page.screenshot({path:folder+'/missing-conclusion-1440.png'});
  await page.getByRole('textbox',{name:'核心结论',exact:true}).fill('先稳定有效开口，再核对留资质量。');await pre().click();await alert.filter({hasText:'点击率'}).waitFor();

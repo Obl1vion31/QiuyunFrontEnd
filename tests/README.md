@@ -8,6 +8,8 @@
 
 ## 本轮如何选择检查
 
+`tests/meeting-grace.browser.ts` 在实际Vercel包与隔离数据库验证01:30／04:59:59可定稿、页面跨05:00锁定及服务端拒绝；复现V2会前草稿同号会后定稿、取消、两项旧文字为空、冻结指标／旧版不变、原生效日推广安排及自动PDF。桌面1440／1024及员工查看，`MEETING_GRACE_DIR`指定产物；默认连接本机PostgreSQL，资源受限时`MEETING_GRACE_PGLITE=1`使用仓库已有PGlite协议夹具。边界与原修订／回溯规则由`meeting-version-workflow.test.ts`覆盖。
+
 `tests/workspace-pending.browser.ts` 使用实际运行包和隔离 PostgreSQL 核对三账号的新旧排期申请、三种非推广待办及录入／跳过／恢复、角色提醒和月度缺项明细。用 `WORKSPACE_PENDING_ENTRY` 指定入口，`WORKSPACE_PENDING_DIR` 指定截图目录。
 
 `tests/inspector-pointer.browser.ts` 使用实际目标包与本机隔离 PostgreSQL，覆盖排期详情／编辑／发布／移动、推广帖子／单日、非推广的内按外放、外按内放、遮罩拖动返回、pointercancel，正常遮罩点击、Esc、焦点及未保存确认；管理员1440／1024、员工1440和减少动态。`POINTER_BEFORE=1` 可对已有旧包复现排期误关闭，`POINTER_DIR` 指定原始证据目录。

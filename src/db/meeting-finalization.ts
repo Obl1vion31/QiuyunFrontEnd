@@ -3,7 +3,7 @@ import {hasMeetingIssueContent} from './meeting-card-rules';
 
 export type MeetingFinalizationTarget =
  | {kind:'candidates'}
- | {kind:'conclusion';field:'situation'|'strategy'|'coreConclusion'|'nextAction'}
+ | {kind:'conclusion';field:'coreConclusion'|'nextAction'}
  | {kind:'promotion';key:string}
  | {kind:'nonPromotion';key?:string}
  | {kind:'material'}
@@ -14,8 +14,8 @@ export interface MeetingFinalizationIssue {message:string;target:MeetingFinaliza
 export function meetingFinalizationIssue(draft:WeeklyMeetingDraft,stage:'pre'|'post',pendingKeys:string[],monthlyResults=false):MeetingFinalizationIssue|undefined {
  const monthly=!!draft.monthlySchemaVersion||monthlyResults;
  if(!monthly&&!draft.candidatesConfirmed)return {message:'请先确认纳入本期候选。',target:{kind:'candidates'}};
- const fields=[...(!monthly?['situation' as const,'strategy' as const]:[]),'coreConclusion',...(stage==='post'?['nextAction' as const]:[])] as const;
- const labels={situation:'衡量情况',strategy:'本期具体动作',coreConclusion:'核心结论',nextAction:'下一步行动'};
+ const fields=['coreConclusion',...(stage==='post'?['nextAction' as const]:[])] as const;
+ const labels={coreConclusion:'核心结论',nextAction:'下一步行动'};
  for(const field of fields)if(!String(draft[field]??'').trim())return {message:`请补充${labels[field]}。`,target:{kind:'conclusion',field}};
  for(const key of monthly?[]:draft.promotionSelections??[])if(draft.promotionInputs[key]?.clickRate==null&&draft.promotionInputs[key]?.clickRateBasis?.mode!=='unavailable')return {message:'请补齐缺少曝光或点击数据卡片的手填点击率。',target:{kind:'promotion',key}};
  for(const key of monthly?[]:draft.promotionSelections??[])if(draft.promotionInputs[key]?.rateNeedsReview)return {message:'数据区间已变化，请重新确认推广卡片的点击率。',target:{kind:'promotion',key}};

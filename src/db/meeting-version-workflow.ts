@@ -95,7 +95,7 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const firstPost=stage==='post'&&(originalSnapshot.finalizationStage!=='post'||active?.versionKind==='rollback');
   // 草稿可直接同号定稿，会前转会后也可维持原方案；其余新修订必须真正改过内容。
   if(!active&&!firstPost&&meetingDiscussionKey({...originalSnapshot.draft,promotionDecisions:original})===meetingDiscussionKey(draft))throw new WorkflowError('尚无实际修改，无需生成新版本。',422);
-  if(finalizing&&firstPost&&expired&&!(draft.monthlySchemaVersion&&(baseline.generated.monthly?.layoutVersion===2||draft.monthlyRefreshFingerprint)))throw new WorkflowError('已过安排生效时间，不能重新发布旧安排。',422);
+  if(finalizing&&firstPost&&expired&&!(draft.monthlySchemaVersion&&(baseline.generated.monthly?.layoutVersion===2||draft.monthlyRefreshFingerprint)))throw new WorkflowError(`已过定稿截止时间（${effectiveOn} 05:00），不能重新发布旧安排。`,422);
   if(finalizing&&draft.issues.some(i=>!i.problem.trim()))throw new WorkflowError('请补充事项的问题，或删除新增空行。',422);
   if(finalizing){const issue=meetingFinalizationIssue(draft,stage,[],baseline.generated.monthly?.layoutVersion===2||!!draft.monthlyRefreshFingerprint);if(issue)throw new WorkflowError(issue.message,422);}
   const targetNumber=active?.versionNumber??versionNumber;

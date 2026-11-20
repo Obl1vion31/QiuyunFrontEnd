@@ -216,7 +216,7 @@ flowchart LR
 
 `promotion-continuation`复用`anchorReviewPosts`判定当前已生效版本与持续复盘资格，只补读对应版本的节点、指标身份、复盘身份及跳过／恢复摘要；不读完整快照、不写计划或任务。每日／历史生命周期共用`BusinessPromotionSummary`接续蓝色持续阶段，原状态及推广累计保持；节点链接使用非推广现有`row`深链。`promotion-continuation`规则与实际包浏览器覆盖跳转真实保存、只读展示、版本切换及下方无新增日度记录。
 
-`WeeklyMeetingPresentation` 共用会前／会后阅读、最新版本编辑与打印布局。`BusinessMeetingDiscussion` 监听公共 `BusinessViewSwitch`，默认只读，保存 `save_version_draft` 首次建立下一版草稿，重复保存更新同一行；`finalize_version_draft` 按 pre／post 在同一行定稿。`meeting-version-workflow` 事务锁定来源版本与更新时间，合并白名单、固定生效日、记录事项前后值；`rollback_version` 仅生效日前确认回溯，保留失效版本并创建待重新定稿的会前恢复版本。`meeting-decision-rules` 跳过失效版本与纯文字继承事件，防止重复执行或盖掉日度更正。
+`WeeklyMeetingPresentation` 共用会前／会后阅读、最新版本编辑与打印布局。`BusinessMeetingDiscussion` 监听公共 `BusinessViewSwitch`，默认只读，保存 `save_version_draft` 首次建立下一版草稿，重复保存更新同一行；`finalize_version_draft` 按 pre／post 在同一行定稿。`meeting-version-workflow` 事务锁定来源版本与更新时间，合并白名单、固定生效日、记录事项前后值；`rollback_version` 仅原生效日05:00之前确认回溯，保留失效版本并创建待重新定稿的会前恢复版本。`meeting-decision-rules` 跳过失效版本与纯文字继承事件，防止重复执行或盖掉日度更正。
 
 `meeting-rate-comparison.withFrozenRateComparisons` 只从旧定稿自身材料补齐缺失比较信息，页面和PDF共用，不查询实时指标或写快照。主值旁常显同类pp；推广精确基准保留原始记录，非推广精确基准／区间／样本在原有详情分别读取，不在主值下堆辅助行。`metric-change.css`让文字提供真实基线，箭头只在同行盒内定位；网页与PDF共用。
 
@@ -369,3 +369,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 `db/inspector-history.ts`将既有推广审计投影成阅读事件，保留原分类过滤与归档指标；`mergeInspectorHistory`仅按来源ID合并。排期复用原promotion-timeline读取，在HTML中携带展示JSON，原首次安排／待定／下一步表单仍独立保留；查帖使用原content-search读取，版本切换仍调用openPost，无新增轮询或业务查询。共享资源定义同时供Astro和助手动态DOM使用。
 
 `BusinessNoteIdentity`与`inline-note-identity.ts`负责同表面查看、复制、更正和取消，原推广／非推广适配器仍负责原接口、确认及保存范围。非推广已保存结果在原模板中只读展示，编辑时显示原表单；`trackFormChanges`按实际字段判断，保存后局部刷新模板和事实，ID写入成功但展示读取失败只读重试。年度时间块、资料支持区与版本入口沿用annual-plan原控制器及编辑容器。
+
+周会跨午夜继续讨论使用 `meeting-version-rules.meetingArrangementsExpired` 共用上海时间05:00截止判断，页面SSR、浏览器定时更新和定稿／回溯事务统一调用，原生效日不顺延。`WeeklyMeetingPresentation` 直接保留事项跟进；`meetingFinalizationIssue` 只要求核心结论及会后的下一步行动，不再要求衡量情况／本期具体动作。旧JSON字段保留兼容，不改写既有冻结内容。`meeting-grace.browser.ts` 使用实际目标包验证凌晨V2草稿同号定稿、实时跨05:00、原生效日安排及PDF。
