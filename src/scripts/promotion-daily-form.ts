@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage} from '../db/business-messages';
 import {promotionHistoryImpactMessage} from './promotion-history-impact';
 import {guardInitialArrangementSubmission} from './promotion-initial-arrangement';
 import {openNoteId} from './promotion-note-id';
@@ -78,7 +79,7 @@ export async function openStateBubble(owner:HTMLFormElement){
    const owner=current.owner;
    await refreshPromotionSchedule(String(payload.scheduleId));current.owner=(owner.isConnected?owner:document.querySelector<HTMLFormElement>(`#daily-table [data-metric-form][data-pending-record="${CSS.escape(key)}"]`))??owner;
    current.trigger=current.owner.querySelector<HTMLButtonElement>('[data-toggle-day-state]')??trigger;current.trigger.setAttribute('aria-expanded','true');positionBubble(current);
-  }catch{message.textContent=current.saved?'状态已保存，列表更新失败，可关闭后重试刷新。':'连接失败，输入已保留。';}finally{current.busy=false;updateBubble(current);}
+  }catch{message.textContent=current.saved?'状态已保存，列表更新失败，可关闭后重试刷新。':saveResultUnknownMessage;}finally{current.busy=false;updateBubble(current);}
  });updateBubble(current);trigger.setAttribute('aria-expanded','true');positionBubble(current);select.focus({preventScroll:true});
 }
 async function dismissStateBubble(state:StateDraft){
@@ -153,7 +154,7 @@ function initialize(){
     try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{document.dispatchEvent(new Event('business:workflow-updated'));state.message='保存已成功，列表更新失败，请刷新页面查看。';return;}
     drafts.delete(key);pending?.form.remove();stateDrafts.delete(key);
     setUnsaved();
-   }catch{state.message='无法连接服务，请稍后重试。';}finally{state.busy=false;sync(state);refreshBatch();}
+   }catch{state.message=saveResultUnknownMessage;}finally{state.busy=false;sync(state);refreshBatch();}
   });
  };
  document.querySelectorAll<HTMLFormElement>('[data-metric-form]').forEach(bind);
@@ -184,7 +185,7 @@ function initialize(){
    if(fresh)for(const id of new Set(forms.map(form=>form.dataset.scheduleId!)))await refreshPromotionSchedule(id,fresh);
    for(const form of forms){const key=formKey(form);drafts.delete(key);stateDrafts.get(key)?.form.remove();stateDrafts.delete(key);}
    setUnsaved();
-  }catch{if(saved)document.dispatchEvent(new Event('business:workflow-updated'));for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':'连接失败，整批输入已保留，可重试。';sync(draft);}}}
+  }catch{if(saved)document.dispatchEvent(new Event('business:workflow-updated'));for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.message=saved?'保存已成功，列表更新失败，请刷新查看。':saveResultUnknownMessage;sync(draft);}}}
   finally{for(const form of forms){const draft=drafts.get(formKey(form));if(draft){draft.busy=false;sync(draft);}}refreshBatch();}
  });}
  refreshBatch();

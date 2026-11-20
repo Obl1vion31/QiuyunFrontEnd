@@ -1,3 +1,4 @@
+import {staleRecordMessage} from './business-messages';
 import {effectiveCategoryName} from './content-config';
 /** 例会事实只由服务端读取；客户端只能传引用编号和人工文字。 */
 import { and, asc, desc, eq, ne, inArray, isNull } from 'drizzle-orm';
@@ -80,7 +81,7 @@ export async function assembleMeetingSnapshot(db: Database, meeting: typeof meet
   if (media.length !== ids.length || media.some(a => a.meetingId !== meeting.id)) throw new WorkflowError('图片与当前会议不匹配。', 422);
   if (draft.issues.some(i => i.id)) {
     const known = await db.select({ id: issues.id }).from(issues).where(inArray(issues.id, draft.issues.flatMap(i => i.id ? [i.id] : [])));
-    if (known.length !== draft.issues.filter(i => i.id).length) throw new WorkflowError('历史事项已更新，请刷新后重试。');
+    if (known.length !== draft.issues.filter(i => i.id).length) throw new WorkflowError(staleRecordMessage("这条跟进事项"));
   }
   return { schemaVersion: 3, meeting: { id: meeting.id, name: meeting.name, meetingType:meeting.meetingType, periodStart: meeting.periodStart, periodEnd: meeting.periodEnd, meetingAt: meeting.meetingAt.toISOString() }, generated: { activity: material.activity, promotionSnapshots, nonPromotions: selectedNonPromotions, attachments: media }, draft };
 }

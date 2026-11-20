@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage,staleRecordMessage} from './business-messages';
 import {monthlyLinksSchema,releaseMonthlyReservation} from './monthly-link-state';
 import {publicationNoteContext} from './note-identities';
 import {guardedScheduleWrite} from './schedule-edit-policy';
@@ -142,7 +143,7 @@ const accepted=(response:Response)=>response.status>=200&&response.status<400;
 const pendingResponse=(id:string)=>Response.json({status:'pending_approval',requestId:id,message:'已提交管理员审核。'},{status:202});
 export async function runBusinessWrite(context:Context,next:()=>Promise<Response>):Promise<Response>{
   try{
-    if(context.request.headers.get('origin')!==context.url.origin)throw new AccessDenied('拒绝跨站写入。');
+    if(context.request.headers.get('origin')!==context.url.origin)throw new AccessDenied(unsafeSubmissionMessage);
     const reservationRequest=context.request.clone();
     const body=await context.request.clone().text();if(body.length>524288)return Response.json({message:'提交内容过长。'},{status:413});
     return await getDb().transaction(async tx=>withDatabase(tx,async()=>{
@@ -221,7 +222,7 @@ export async function decideProposal(id:string,approve:boolean,reason:string,act
       if(!target)return finish('obsolete',null,'原排期已不存在，请重新提交。');
     }
     const write=await describe(tx,request),permissions=await effectiveBusinessPermissions(tx,owner);
-    if(write.operations.some(operation=>permissions[operation]==='disabled')||stable(write.operations)!==stable(proposal.operations)||digest(await snapshot(tx,write,proposal.id))!==proposal.fingerprint)return finish('obsolete',null,'原内容或权限已变化，请重新提交。');
+    if(write.operations.some(operation=>permissions[operation]==='disabled')||stable(write.operations)!==stable(proposal.operations)||digest(await snapshot(tx,write,proposal.id))!==proposal.fingerprint)return finish('obsolete',null,staleRecordMessage("申请涉及的内容或权限"));
     try{
       const result=await tx.transaction(async apply=>withDatabase(apply,async()=>{
         const response=await withBusinessExecution(owner,write.operations,()=>withMonthlyProposal(proposal.id,()=>replay(proposal.path,proposal.method,request,owner)));

@@ -1,3 +1,4 @@
+import {staleRecordMessage} from './business-messages';
 import { and, asc, desc, eq, inArray,isNotNull,isNull,lte,sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './client';
@@ -31,7 +32,7 @@ export class ScheduleReasonError extends WorkflowError {
 }
 export class StaleWriteError extends WorkflowError {
   override readonly code = 'STALE_WRITE' as const;
-  constructor(message = '保存依据已变化，本次未保存。输入已保留，请重新核对当前记录。') { super(message,409); }
+  constructor(message = staleRecordMessage("这条记录")) { super(message,409); }
 }
 export const reasonSchema = z.object({
   planRevision: z.coerce.number().int().min(0), dayNumber: z.coerce.number().int().min(1),
@@ -89,7 +90,7 @@ export async function saveDelayReason(transaction: Transaction, schedule: Schedu
   const current = day.saved;
   if ((current?.updatedAt.toISOString() ?? null) !== (input.expectedUpdatedAt ?? null)
     || (current && current.history.length !== input.expectedHistoryLength)) {
-    throw new StaleWriteError('这一天的理由已被更新，请刷新后重试。');
+    throw new StaleWriteError(staleRecordMessage("这一天的延期说明"));
   }
   const values = { responsibility: input.responsibility, reason: input.reason, source: 'manual' as const,
     changedById: actor.id, changedByLabel: actor.username, updatedAt: now };
@@ -140,12 +141,12 @@ export async function createChangeRequest(database: Database, scheduleId: string
     const schedule = await lockSchedule(transaction, scheduleId);
     const operation=requiresPlanApproval(schedule,now)?'schedule.overdueReschedule':'schedule.reschedule';
     if(hasBusinessExecution(actor,operation)){
-      if(schedule.planRevision!==input.expectedPlanRevision)throw new StaleWriteError('排期已更新，请刷新后重新申请。');
+      if(schedule.planRevision!==input.expectedPlanRevision)throw new StaleWriteError(staleRecordMessage("这篇帖子的排期"));
       await changeSchedulePlan(transaction,schedule,input.plannedPublishAt,input.reason,actor,now);
       return {id:schedule.id,applied:true};
     }
     if (!requiresPlanApproval(schedule, now)) throw new WorkflowError('当前改期无需审批，请直接编辑排期。');
-    if (schedule.planRevision !== input.expectedPlanRevision) throw new StaleWriteError('排期已更新，请刷新后重新申请。');
+    if (schedule.planRevision !== input.expectedPlanRevision) throw new StaleWriteError(staleRecordMessage("这篇帖子的排期"));
     if (input.plannedPublishAt <= now) throw new WorkflowError('请选择未来的发送时间。', 422);
     if (input.plannedPublishAt.getTime() === schedule.plannedPublishAt.getTime()) throw new WorkflowError('新的应发时间与当前时间相同。', 422);
     const [pending] = await transaction.select({ id: requests.id }).from(requests)

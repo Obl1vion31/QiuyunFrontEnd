@@ -1,3 +1,5 @@
+import {unsafeSubmissionMessage,staleRecordMessage} from '../../../db/business-messages';
+import {validationMessage} from '../../../db/validation-messages';
 import {StaleWriteError} from '../../../db/schedule-workflow';
 import {readVersionNotes} from '../../../db/note-identities';
 import {noteIdOn} from '../../../db/note-identity-rules';
@@ -15,7 +17,7 @@ export const prerender = false;
 const schema = z.object({ rows: z.array(promotionDailySchema.extend({ requestKey: z.uuid(), fingerprint: z.string().min(1), recordKind: z.literal('regular') })).min(1).max(200) });
 export const POST: APIRoute = async ({ request, url, locals }) => {
     if (request.headers.get('origin') !== url.origin)
-        return Response.json({ message: '拒绝跨站写入。' }, { status: 403 });
+        return Response.json({ message: unsafeSubmissionMessage }, { status: 403 });
     let input: unknown;
     try {
         input = await request.json();
@@ -25,7 +27,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
     }
     const parsed = schema.safeParse(input);
     if (!parsed.success)
-        return Response.json({ message: '请检查待填写数据。', fields: parsed.error.issues }, { status: 422 });
+        return Response.json({ message: '请检查待填写数据。', fields: parsed.error.issues.map(issue=>({...issue,message:validationMessage(issue)})) }, { status: 422 });
     const rows = parsed.data.rows, keys = rows.map(r => `${r.campaignId}:${r.metricDate}`);
     if (new Set(rows.map(r => r.campaignId)).size !== rows.length || new Set(keys).size !== keys.length || new Set(rows.map(r => r.requestKey)).size !== rows.length)
         return Response.json({ message: '批量记录或请求编号重复。' }, { status: 422 });
@@ -44,7 +46,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
                 for (const row of rows.filter(r => info.find(c => c.campaignId === r.campaignId)!.scheduleId === scheduleId)) {
                     currentKey = `${row.campaignId}:${row.metricDate}`;
                     if (!repeats.some(a => a.requestKey === row.requestKey) && row.fingerprint !== baseline)
-                        throw new StaleWriteError('推广记录已变化，请刷新后核对。');
+                        throw new StaleWriteError(staleRecordMessage("这篇帖子的推广记录"));
                 }
             }
             const initialByVersion = new Map<string, string>(),chosenByRow=new Map<string,string>();

@@ -1,3 +1,4 @@
+import {readableOperationError} from '../db/business-messages';
 import { businessDateTime } from './business-date';
 import type { JuguangCheck } from '../integrations/juguang-check-types';
 function initializeJuguang() {
@@ -42,7 +43,7 @@ function initializeJuguang() {
           root.querySelector('[data-account-title]')!.textContent=`已授权账户 (${record.advertisers.length})`;
 
         }} } catch (error) { if(current.signal.aborted) throw error; feedback.textContent += ' · 有效期读取失败，可刷新页面查看'; }
-      }catch(error){if(!current.signal.aborted)feedback.textContent=error instanceof Error?error.message:'连接失败，请稍后重试。';}
+      }catch(error){if(!current.signal.aborted)feedback.textContent=readableOperationError(error,'暂未完成聚光连接检查，请稍后重试。');}
       finally{clearTimeout(pending);request=undefined;button.disabled=false;root.removeAttribute('aria-busy');}
     });
   });

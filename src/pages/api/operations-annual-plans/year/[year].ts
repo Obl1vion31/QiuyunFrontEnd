@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../../../db/business-messages';
 import type { APIRoute } from 'astro';
 import { sql } from 'drizzle-orm';
 import { annualPlanYearSchema } from '../../../../db/annual-plan';
@@ -10,7 +11,7 @@ import {workflowErrorResponse} from '../../../../db/workflow-api';
 export const prerender = false;
 
 export const PATCH: APIRoute = async ({ params, request, url }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   let payload: unknown;
   try {
     payload = await request.json();

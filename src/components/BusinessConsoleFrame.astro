@@ -61,7 +61,7 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
     <footer class="dialog-actions"><button type="button" data-confirm-cancel autofocus>继续编辑</button><button type="button" class="primary" data-confirm-accept>放弃修改</button></footer>
   </dialog>
 </div>
-<script>import '../scripts/workspace-glass';import '../scripts/business-collaboration';import '../scripts/business-save-conflict';import '../scripts/business-dialog';import '../scripts/business-permissions';import '../scripts/business-read';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
+<script>import '../scripts/business-validation';import '../scripts/workspace-glass';import '../scripts/business-collaboration';import '../scripts/business-save-conflict';import '../scripts/business-dialog';import '../scripts/business-permissions';import '../scripts/business-read';import {businessDateTime} from '../scripts/business-date';window.businessDateTime=businessDateTime;</script>
 
 <script is:inline>
   (() => {
@@ -136,11 +136,11 @@ try{if(Astro.locals.user)permissions=Astro.locals.businessPermissions??await eff
         const response = await nativeFetch(...args);
         if (response.status === 401 || response.status === 403) {
           const result = await response.clone().json().catch(() => ({}));
-          showError(result.message || (response.status === 401 ? '登录已过期，请重新登录后重试。' : '提交被拒绝，请刷新页面后重试。'), response.status === 401);
+          showError(result.message || (response.status === 401 ? '登录已过期，请重新登录后重试。' : '这次操作未获允许，请从工作台重新打开该功能并核对操作权限。'), response.status === 401);
         }
         return response;
       } catch (error) {
-        if(write&&!localFeedback)showError('连接失败，请检查网络后重试。当前输入已保留。');
+        if(write&&!localFeedback)showError("暂未收到保存结果。请保留当前输入，先核对最新记录，再决定是否重新提交。");
         throw error;
       } finally {
         tasks.delete(id);

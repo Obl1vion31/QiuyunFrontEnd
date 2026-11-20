@@ -1,3 +1,4 @@
+import {requestUsedMessage} from './business-messages';
 import {createHash} from 'node:crypto';
 import {and,asc,eq,gte,inArray,isNull,lt} from 'drizzle-orm';
 import {z} from 'zod';
@@ -31,9 +32,9 @@ export function placedTime(day:string,original:Date,clock?:string){
  return new Date(new Date(day+'T00:00:00+08:00').getTime()+original.getTime()-originalMidnight.getTime());
 }
 const operation=(row:Row,now:Date)=>requiresPlanApproval(row,now)?'schedule.overdueReschedule':'schedule.reschedule';
-async function monthGate(db:Database,row:Row,next:Date,reason:string){
+async function monthGate(db:Database,row:Row,next:Date,reason:string,actor:OperationsUser){
  const from=shanghaiDateKey(row.plannedPublishAt).slice(0,7),to=shanghaiDateKey(next).slice(0,7);
- await assertScheduleMonthRules(db,{months:[...new Set([from,to])],current:row,newMonth:to,creating:false,moving:from!==to,reason});
+ await assertScheduleMonthRules(db,{months:[...new Set([from,to])],current:row,newMonth:to,creating:false,moving:from!==to,reason,role:actor.role});
 }
 async function rowById(db:Database,id:string){
  return (await db.select(selected).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(eq(s.operationsContentSchedule.id,id)))[0];
@@ -47,12 +48,12 @@ export async function previewPlacement(db:Database,id:string,day:string,actor:Op
  const start=new Date(day+'T00:00:00+08:00'),end=new Date(start.getTime()+86400000);
  const candidates=await db.select(selected).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).where(and(isNull(s.operationsContentSchedule.cancelledAt),gte(s.operationsContentSchedule.plannedPublishAt,start),lt(s.operationsContentSchedule.plannedPublishAt,end))).orderBy(asc(s.operationsContentSchedule.plannedPublishAt),asc(s.operationsContentSchedule.id));
  const next=placedTime(day,source.plannedPublishAt);
- await monthGate(db,source,next,'预览');
+ await monthGate(db,source,next,'预览',actor);
  const permissions=await effectiveBusinessPermissions(db,actor);
  const reasons=await schedulePlanReasons(db,[{schedule:source,next},...candidates.filter(row=>row.id!==id).map(row=>({schedule:row,next:source.plannedPublishAt}))]);
  const items=await Promise.all(candidates.filter(r=>r.id!==id).map(async row=>{
   let unavailableReason=row.actualPublishAt?'已登记发布，不能对换。':permissions[operation(row,now)]==='disabled'?'当前账号没有这篇帖子的改期权限。':'';
-  if(!unavailableReason)try{await monthGate(db,row,source.plannedPublishAt,'预览');}catch(error){unavailableReason=error instanceof Error?error.message:'当前月份不能对换。';}
+  if(!unavailableReason)try{await monthGate(db,row,source.plannedPublishAt,'预览',actor);}catch(error){unavailableReason=error instanceof Error?error.message:'当前月份不能对换。';}
   return {...publicRow(row),unavailableReason,reasonMessage:unavailableReason?null:reasons.get(row.id)??null};
  }));
  return {source:publicRow(source),day,items,reasonMessage:reasons.get(id)??null,fingerprint:digest([publicRow(source),candidates.filter(r=>r.id!==id).map(publicRow)]),serverNow:now.toISOString()};
@@ -69,7 +70,7 @@ export async function savePlacement(db:Database,id:string,input:Input,actor:Oper
   const source=locked.find(r=>r.id===id);
   if(!source)throw new WorkflowError('没有找到这篇排期。',404);
   const inputHash=digest(input),receipt=source.executionHistory.find(e=>e.placement?.requestKey===input.requestKey)?.placement;
-  if(receipt){if(receipt.actorId!==actor.id||receipt.inputHash!==inputHash)throw new WorkflowError('本次请求编号已用于其他调整，请重新操作。',422);return {ok:true,ids:receipt.ids,repeated:true};}
+  if(receipt){if(receipt.actorId!==actor.id||receipt.inputHash!==inputHash)throw new WorkflowError(requestUsedMessage,422);return {ok:true,ids:receipt.ids,repeated:true};}
   if(source.planRevision!==input.expectedPlanRevision)throw new StaleWriteError('这篇帖子的应发时间已更新，本次未保存。请重新核对。');
   const preview=await previewPlacement(tx,id,input.day,actor,now);
   if(preview.fingerprint!==input.fingerprint)throw new PlacementChanged();
@@ -81,9 +82,9 @@ export async function savePlacement(db:Database,id:string,input:Input,actor:Oper
   const back=target?placedTime(shanghaiDateKey(source.plannedPublishAt),source.plannedPublishAt,input.returnTime):undefined;
   if(next<=now||back&&back<=now)throw new WorkflowError('调整后的应发时间已经过去，请为对应帖子选择未来的时刻。',422);
   const sourceRow=await rowById(tx,id);
-  await monthGate(tx,sourceRow,next,input.reason);
+  await monthGate(tx,sourceRow,next,input.reason,actor);
   await requireSchedulePlanReason(tx,source,next,input.reason);
-  if(target){const targetRow=await rowById(tx,target.id);await requireBusinessOperation(tx,actor,operation(targetRow,now));await monthGate(tx,targetRow,back!,input.reason);await requireSchedulePlanReason(tx,target,back!,input.reason);}
+  if(target){const targetRow=await rowById(tx,target.id);await requireBusinessOperation(tx,actor,operation(targetRow,now));await monthGate(tx,targetRow,back!,input.reason,actor);await requireSchedulePlanReason(tx,target,back!,input.reason);}
   const captured=await captureScheduleExecution(tx,ids);
   const targetName=target?preview.items.find(item=>item.id===target.id)?.name:'';
   const reason=(target?'对换「'+preview.source.name+'」与「'+targetName+'」的排期':'移动排期')+(input.reason?'：'+input.reason:'');

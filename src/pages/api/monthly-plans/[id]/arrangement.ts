@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../../../db/business-messages';
 import type {APIRoute} from 'astro';
 import {z} from 'zod';
 import {getDb} from '../../../../db/client';
@@ -13,7 +14,7 @@ export const GET:APIRoute=async({params})=>{
 };
 export const POST:APIRoute=async({params,request,url,locals})=>{
  try{
-  if(request.headers.get('origin')!==url.origin)return Response.json({message:'拒绝跨站写入。'},{status:403});
+  if(request.headers.get('origin')!==url.origin)return Response.json({message:unsafeSubmissionMessage},{status:403});
   const input=schema.safeParse(await request.json());if(!params.id||!input.success)return Response.json({message:'请填写核对说明并重新核对排期清单。'},{status:422});
   if(input.data.action==='submit'||input.data.action==='draft')await requireBusinessOperation(getDb(),locals.user!,'schedule.edit');
   const result=await changeArrangement(getDb(),params.id,input.data,locals.user!);

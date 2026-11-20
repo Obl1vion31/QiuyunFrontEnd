@@ -1,3 +1,4 @@
+import {unchangedContentMessage,weeklyDeadlineMessage,staleRecordMessage} from './business-messages';
 import {StaleWriteError} from './schedule-workflow';
 /** 定稿修订只合并文字；回溯在原生效日前原子撤销，并保留失效版本。 */
 import {checkMonthlyPlan,publishMonthlyPlan,lockReferencedMonthlyPlan,readReferencedMonthlyPlan} from './monthly-plans';
@@ -41,11 +42,11 @@ async function undoEffects(tx:Transaction,meetingId:string,effects:any[]){
   const [live]=await tx.select().from(items).where(eq(items.id,effect.afterItem.id)).for('update');
   const [liveProgress]=await tx.select().from(progress).where(and(eq(progress.itemId,effect.afterItem.id),eq(progress.meetingId,meetingId)));
   const other=await tx.select().from(progress).where(eq(progress.itemId,effect.afterItem.id));
-  if(!same(live,effect.afterItem)||!same(liveProgress,effect.afterProgress)||other.some(p=>p.meetingId!==meetingId&&new Date(p.createdAt)>new Date(effect.afterProgress.createdAt)))throw new WorkflowError('事项已被其他工作更新，不能回溯覆盖，请先核对。');
+  if(!same(live,effect.afterItem)||!same(liveProgress,effect.afterProgress)||other.some(p=>p.meetingId!==meetingId&&new Date(p.createdAt)>new Date(effect.afterProgress.createdAt)))throw new WorkflowError('这条事项已有后续更新，当前不能恢复旧版本。请在最新版本中核对并修订事项。');
   if(effect.beforeProgress){const {id,createdAt,...values}=effect.beforeProgress;await tx.update(progress).set(values).where(eq(progress.id,liveProgress.id));}
   else await tx.delete(progress).where(eq(progress.id,liveProgress.id));
   if(effect.beforeItem){const {id,createdAt,updatedAt,...values}=effect.beforeItem;await tx.update(items).set({...values,updatedAt:new Date(updatedAt)}).where(eq(items.id,id));}
-  else {if(other.some(p=>p.meetingId!==meetingId))throw new WorkflowError('事项已被其他会议引用，不能回溯。');await tx.delete(items).where(eq(items.id,effect.afterItem.id));}
+  else {if(other.some(p=>p.meetingId!==meetingId))throw new WorkflowError('后续会议已引用这条事项，当前不能恢复旧版本。请到最新会议核对该事项。');await tx.delete(items).where(eq(items.id,effect.afterItem.id));}
  }
 }
 export async function reviseMeetingVersion(db:Database,meetingId:string,payload:any,actor:string,at?:Date){
@@ -56,16 +57,16 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   const [meeting]=await tx.select().from(meetings).where(eq(meetings.id,meetingId)).for('update');
   if(!meeting)throw new WorkflowError('会议不存在。',404);
   // 普通文字草稿按最后保存生效；最终封存另按首轮排期结构核对。
-  if(payload.action==='finalize_version_draft'&&meeting.meetingType!=='monthly'&&payload.expectedUpdatedAt!==meeting.updatedAt.toISOString())throw new StaleWriteError('会议已更新，请重新核对本版定稿内容。');
+  if(payload.action==='finalize_version_draft'&&meeting.meetingType!=='monthly'&&payload.expectedUpdatedAt!==meeting.updatedAt.toISOString())throw new StaleWriteError(staleRecordMessage("这场会议"));
   const all=await tx.select().from(versions).where(eq(versions.meetingId,meetingId)).orderBy(desc(versions.versionNumber));
-  if(!['save_version_draft','finalize_version_draft','rollback_version'].includes(payload.action))throw new WorkflowError('例会流程已更新，请刷新页面后继续，输入已保留。',409);
+  if(!['save_version_draft','finalize_version_draft','rollback_version'].includes(payload.action))throw new WorkflowError('例会流程已更新。请先保留需要的输入，再刷新页面继续。',409);
   const current=latestValidMeetingVersion(all),active=activeMeetingDraft(all),source=all.find(v=>v.id===payload.sourceVersionId);
-  if(!current||!source||source.lifecycleStatus==='draft'||source.invalidatedAt||(source.snapshot as any).schemaVersion!==4)throw new WorkflowError('该版本不能用于编辑或回溯。');
+  if(!current||!source||source.lifecycleStatus==='draft'||source.invalidatedAt||(source.snapshot as any).schemaVersion!==4)throw new WorkflowError('这份会议版本不能直接修改或恢复，请打开最新版本继续编辑。');
   const effectiveOn=meetingEffectiveOn(meeting,all),expired=meetingArrangementsExpired(effectiveOn,now),versionNumber=Math.max(...all.map(v=>v.versionNumber))+1;
   const updatedAt=new Date(Math.max(now.getTime(),meeting.updatedAt.getTime()+1));
   if(payload.action==='rollback_version'){
-   if(expired)throw new WorkflowError('已过可编辑时间，不能回溯。',422);
-   if(active)throw new WorkflowError('请先完成当前版本草稿，再进行回溯。');
+   if(expired)throw new WorkflowError(weeklyDeadlineMessage(effectiveOn,'restore'),422);
+   if(active)throw new WorkflowError('这场会议还有未完成的草稿。请先完成该草稿，再恢复历史版本。');
    if(!payload.confirmed||source.id===current.id)throw new WorkflowError('请先确认要回溯的历史版本。',422);
    const affected=all.filter(v=>!v.invalidatedAt&&v.versionNumber>source.versionNumber);
    for(const v of affected){if(!v.businessEffects&&(v.snapshot as any).finalizationStage==='post'&&(v.snapshot as any).draft?.issues?.length)throw new WorkflowError('该历史版本缺少事项回溯记录，无法安全撤销。');await undoEffects(tx,meetingId,v.businessEffects??[]);}
@@ -75,8 +76,8 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
    await tx.update(meetings).set({currentVersionNumber:source.versionNumber,draftSnapshot:snapshot.draft,updatedAt,status:'completed'}).where(eq(meetings.id,meetingId));
    return {versionNumber,versionId:created.id,stage:'pre',lifecycleStatus:'draft',updatedAt:updatedAt.toISOString(),edit:true};
   }
-  if(source.id!==current.id)throw new WorkflowError('只有最新有效版本可以编辑。');
-  if(active&&(active.sourceVersionId!==source.id||payload.draftVersionId!==active.id))throw new WorkflowError('已有版本草稿，请重新打开该草稿继续。');
+  if(source.id!==current.id)throw new WorkflowError('你正在查看历史版本。需要修改时，请打开这场会议的最新版本。');
+  if(active&&(active.sourceVersionId!==source.id||payload.draftVersionId!==active.id))throw new WorkflowError(`已有 V${active.versionNumber} 草稿。请从例会总览打开该草稿继续编辑。`);
   const parsed=discussionSchema.safeParse(payload.discussion);
   if(!parsed.success||payload.draft)throw new WorkflowError('修订内容格式不正确，输入已保留。',422);
   const originalSnapshot:any=clone(source.snapshot);originalSnapshot.draft=meetingVersionDraft(originalSnapshot,meeting.draftSnapshot);
@@ -87,15 +88,15 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   baseline.draft.promotionDecisions=active?canonicalDecisions(baseline):original;
   const draft=mergeDiscussion(baseline,parsed.data,source.id);
   preserveMonthlyMeetingIdentity(meeting,draft);
-  if(expired&&!same(original,draft.promotionDecisions))throw new WorkflowError('已过可编辑时间，下一步安排不可修改。',422);
+  if(expired&&!same(original,draft.promotionDecisions))throw new WorkflowError(weeklyDeadlineMessage(effectiveOn,'arrangements'),422);
   const finalizing=payload.action==='finalize_version_draft';
   if(draft.monthlyPlan){const plan=await checkMonthlyPlan(tx,draft.monthlyPlan,finalizing&&payload.stage==='post');if(plan.meetingId!==meeting.id)throw new WorkflowError('月计划与会议不匹配。',422);}
   const stage=finalizing?payload.stage:baseline.finalizationStage;
   if(!['pre','post'].includes(stage)||originalSnapshot.finalizationStage==='post'&&stage!=='post'&&active?.versionKind!=='rollback')throw new WorkflowError('请使用当前版本对应的定稿阶段。',422);
   const firstPost=stage==='post'&&(originalSnapshot.finalizationStage!=='post'||active?.versionKind==='rollback');
   // 草稿可直接同号定稿，会前转会后也可维持原方案；其余新修订必须真正改过内容。
-  if(!active&&!firstPost&&meetingDiscussionKey({...originalSnapshot.draft,promotionDecisions:original})===meetingDiscussionKey(draft))throw new WorkflowError('尚无实际修改，无需生成新版本。',422);
-  if(finalizing&&firstPost&&expired&&!(draft.monthlySchemaVersion&&(baseline.generated.monthly?.layoutVersion===2||draft.monthlyRefreshFingerprint)))throw new WorkflowError(`已过定稿截止时间（${effectiveOn} 05:00），不能重新发布旧安排。`,422);
+  if(!active&&!firstPost&&meetingDiscussionKey({...originalSnapshot.draft,promotionDecisions:original})===meetingDiscussionKey(draft))throw new WorkflowError(unchangedContentMessage,422);
+  if(finalizing&&firstPost&&expired&&!(draft.monthlySchemaVersion&&(baseline.generated.monthly?.layoutVersion===2||draft.monthlyRefreshFingerprint)))throw new WorkflowError(weeklyDeadlineMessage(effectiveOn,'post'),422);
   if(finalizing&&draft.issues.some(i=>!i.problem.trim()))throw new WorkflowError('请补充事项的问题，或删除新增空行。',422);
   if(finalizing){const issue=meetingFinalizationIssue(draft,stage,[],baseline.generated.monthly?.layoutVersion===2||!!draft.monthlyRefreshFingerprint);if(issue)throw new WorkflowError(issue.message,422);}
   const targetNumber=active?.versionNumber??versionNumber;
@@ -109,7 +110,7 @@ export async function reviseMeetingVersion(db:Database,meetingId:string,payload:
   if(draft.monthlyPlanReference&&!same(draft.monthlyPlanReference,originalSnapshot.draft.monthlyPlanReference))snapshot.generated.monthlyPlanExecution=await readReferencedMonthlyPlan(tx,draft.monthlyPlanReference,now);
   const arrangementChanged=!same(original,draft.promotionDecisions);
   if(finalizing&&stage==='post'&&snapshot.generated.monthly?.layoutVersion!==2&&(firstPost||arrangementChanged)){
-   if(expired)throw new WorkflowError('已过可编辑时间。',422);
+   if(expired)throw new WorkflowError(weeklyDeadlineMessage(effectiveOn,'arrangements'),422);
    const context=await readPromotionContext(tx),today=shanghaiDateKey(now),decisions:any[]=[];
    for(const card of snapshot.generated.promotions??[]){
     if(card.testCycleEndedOn||decisions.some(d=>d.campaignId===card.campaignId))continue;

@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {refreshPromotionSchedule} from './promotion-timeline';
 import {businessConfirm} from './business-dialog';
 import {preparePromotionEditor,registerPromotionEditor} from './promotion-editor-lifecycle';
@@ -82,11 +83,11 @@ async function open(trigger:HTMLButtonElement){
    draft.busy=true;sync(draft);out.textContent='正在保存…';
    try{
     const response=await fetch('/api/meeting-decisions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:draft.id,expectedTargetStatus:draft.expected,expectedVersionNumber:draft.version,targetStatus:draft.target,reason:draft.reason.trim(),requestKey:draft.requestKey})});
-    let result:{message?:string};try{result=await response.json();}catch{throw new Error('服务暂时不可用，输入已保留，请重试。');}
+    let result:{message?:string};try{result=await response.json();}catch{throw new Error(saveResultUnknownMessage);}
     if(!response.ok)throw new Error(result.message??'保存失败，输入已保留。');
     draft.saved=true;sync(draft);out.textContent='安排已修改';form.querySelector('footer [data-meeting-close]')!.textContent='关闭';
     try{await refresh(draft);}catch{retry.hidden=false;out.textContent='已保存，列表更新失败，请重试读取。';}
-   }catch(error){out.textContent=error instanceof TypeError?'连接失败，输入已保留。':error instanceof Error?error.message:'保存失败，输入已保留。';}
+   }catch(error){out.textContent=readableOperationError(error,saveResultUnknownMessage);}
    finally{draft.busy=false;sync(draft);position(draft);}
   });
   form.addEventListener('keydown',event=>{if(event.key!=='Tab')return;event.stopPropagation();const nodes=[...form.querySelectorAll<HTMLElement>('button:not(:disabled),select:not(:disabled),textarea:not(:disabled)')].filter(node=>node.getClientRects().length);if(event.shiftKey&&document.activeElement===nodes[0]){event.preventDefault();nodes.at(-1)?.focus();}else if(!event.shiftKey&&document.activeElement===nodes.at(-1)){event.preventDefault();nodes[0]?.focus();}});

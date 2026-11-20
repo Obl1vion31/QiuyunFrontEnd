@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {writeResources} from '../db/collaboration-resources';
 import {realtimeEditingEnabled} from '../db/editing-policy';
 import {businessConfirm} from './business-dialog';
@@ -105,7 +106,7 @@ if(realtimeEditingEnabled&&!state.__collaborationReady){
    if(!await businessConfirm(message,{title:'重新取得编辑权',confirmLabel:'确认取得',cancelLabel:'取消'}))return;
    await ensure(scope,Object.fromEntries(rows.map(row=>[row.resource,row.revision])));
    const first=controls(scope).find(node=>isField(node)&&!node.matches(':disabled'));first?.focus({preventScroll:true});
-  }catch(error){await businessConfirm(error instanceof Error?error.message:'取得失败，请重试。',{title:'未取得编辑权',confirmLabel:'知道了',cancelLabel:'返回'});await poll();}
+  }catch(error){await businessConfirm(readableOperationError(error,'暂时无法取得编辑权，请保留当前输入，稍后重试。'),{title:'未取得编辑权',confirmLabel:'知道了',cancelLabel:'返回'});await poll();}
   finally{confirming=false;}
  }
  function discover(){
@@ -155,7 +156,7 @@ if(realtimeEditingEnabled&&!state.__collaborationReady){
  }
  async function start(scope:Scope,node?:Element){
   active=scope;field=node&&isField(node)?fieldName(node):null;
-  try{await ensure(scope);await position(true);}catch(error){if(error instanceof DOMException&&error.name==='AbortError')return;await poll().catch(()=>{});render(scope);if(!remote(scope).length&&!(error instanceof Error&&'status' in error&&error.status===409))document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:error instanceof Error?error.message:'取得编辑权失败，请重试。'}}));}
+  try{await ensure(scope);await position(true);}catch(error){if(error instanceof DOMException&&error.name==='AbortError')return;await poll().catch(()=>{});render(scope);if(!remote(scope).length&&!(error instanceof Error&&'status' in error&&error.status===409))document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:readableOperationError(error,'暂时无法取得编辑权，请保留当前输入，稍后重试。')}}));}
  }
  document.addEventListener('focusin',event=>{const node=event.target as Element;if(!isField(node)||node.matches(':disabled'))return;discover();const scope=scopeFor(node);if(scope)void start(scope,node);});
  document.addEventListener('beforeinput',event=>{const node=event.target as Element,scope=scopeFor(node);if(!scope||!isField(node))return;if(remote(scope).length||isLost(scope.resource)){event.preventDefault();return;}if(!owned(scope))void start(scope,node);},true);
@@ -176,7 +177,7 @@ if(realtimeEditingEnabled&&!state.__collaborationReady){
   let data:Record<string,unknown>={};const body=init?.body;
   if(body instanceof FormData)data=Object.fromEntries(body.entries());else if(typeof body==='string'){try{data=JSON.parse(body);}catch{return baseFetch(input,init);}}else if(input instanceof Request){try{data=input.headers.get('content-type')?.includes('application/json')?await input.clone().json():Object.fromEntries((await input.clone().formData()).entries());}catch{return baseFetch(input,init);}}
   const resources=writeResources(target.pathname,method,data);if(!resources.length)return baseFetch(input,init);
-  let acquired:string[]=[];
+ let acquired:string[]=[],submitted=false;
   try{
    if(resuming)await resuming;
    if([...leases.values()].some(lease=>Date.parse(lease.expiresAt)<=Date.now()))await renew();
@@ -190,12 +191,12 @@ if(realtimeEditingEnabled&&!state.__collaborationReady){
    if(missing.length){leaseVersion++;const result=await json('/api/collaboration/locks','POST',{tabId,resources:missing});for(const lease of result.leases as Lease[]){leases.set(lease.resource,lease);acquired.push(lease.resource);}}
    const used=[...leases.keys()].filter(key=>resources.some(resource=>overlaps(key,resource))),sent=new Map(leases),enteredPage=pageVersion;
    const headers=new Headers(init?.headers??(input instanceof Request?input.headers:undefined));headers.set('X-Edit-Tab',tabId);headers.set('X-Edit-Leases',JSON.stringify(Object.fromEntries([...leases].map(([key,value])=>[key,value.token]))));
-   const response=await baseFetch(input,{...init,headers});
+   submitted=true;const response=await baseFetch(input,{...init,headers});
    const current=enteredPage===pageVersion?used.filter(key=>leases.get(key)?.token===sent.get(key)?.token):[];
    if(response.ok)await release(current);else if(response.status===409){const result=await response.clone().json().catch(()=>null);if(result?.message?.includes('编辑权限已失效'))for(const key of current)markLost(key);}
    for(const scope of scopes())render(scope);
    return response;
-  }catch(error){await release(acquired.filter(key=>!sources.has(key)));return Response.json({code:'EDIT_CONFLICT',message:error instanceof Error?error.message:'编辑服务暂不可用，输入已保留。'},{status:409});}
+  }catch(error){await release(acquired.filter(key=>!sources.has(key)));return Response.json({code:'EDIT_CONFLICT',message:readableOperationError(error,submitted?saveResultUnknownMessage:'暂时无法取得编辑权，本次修改尚未提交。请保留当前输入，稍后再试。')},{status:409});}
  };
  setInterval(()=>void poll().catch(()=>{}),3000);
  async function renew(){

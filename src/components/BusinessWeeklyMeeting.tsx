@@ -1,3 +1,5 @@
+import {nativeValidationMessage} from '../db/validation-messages';
+import {saveResultUnknownMessage,operationUnavailableMessage,readableOperationError} from '../db/business-messages';
 import {checkpointLabel} from '../db/non-promotion-nodes';
 import {meetingReadiness} from '../db/meeting-readiness';
 import {useEffect,useRef,useState} from 'react';
@@ -39,7 +41,7 @@ export default function BusinessWeeklyMeeting({meeting,draftVersionId,draft:init
    if(meetingReadiness(m).length)setEntered(false);setMaterial(m);setNoteIds(result.noteIds);setPostReferences(result.postReferences);
    changed({...live.current,materialFingerprint:m.fingerprint,promotionInputs:reconcileClickRateRanges(live.current.promotionInputs,material.promotions,m.promotions),promotionSelections:(live.current.promotionSelections??[]).filter(k=>m.promotions.some(p=>p.key===k)),nonPromotionSelections:meetingNonPromotionSelections(m,live.current.nonPromotionSelections)});
    setFailure(false);setProblem(undefined);setMessage('数据已刷新，已保留填写内容。');
-  }catch(e){setFailure(true);setMessage(e instanceof Error?e.message:'刷新失败，输入已保留。');}finally{setBusy(false)}
+  }catch(e){setFailure(true);setMessage(readableOperationError(e,'刷新失败，输入已保留。'));}finally{setBusy(false)}
  };
 
  function focusProblem(target:MeetingFinalizationTarget){
@@ -60,11 +62,11 @@ export default function BusinessWeeklyMeeting({meeting,draftVersionId,draft:init
   setFailure(false);setProblem(undefined);
   if(range.from!==material.periodStart||range.to!==material.periodEnd){fail('区间已调整，请先刷新数据。',{kind:'material'});return false;}
   if(action!=='save'){
-   if(meetingReadiness(material).length){fail('本次例会仍有待补数据，请先完成底表登记。',{kind:'material'});return false;}
+   if(meetingReadiness(material).length){fail('例会所需数据尚未补齐。请先完成缺项清单中的记录，再继续定稿。',{kind:'material'});return false;}
    const issue=meetingFinalizationIssue(live.current,action==='finalize_pre'?'pre':'post',material.pending.map(p=>p.key));
    if(issue){fail(issue.message,issue.target);return false;}
    const invalid=host.current?.querySelector<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>('input:invalid,textarea:invalid,select:invalid');
-   if(invalid&&!invalid.disabled){fail(`请检查${invalid.getAttribute('aria-label')||invalid.closest('label')?.firstChild?.textContent?.trim()||'输入字段'}：${invalid.validationMessage}`);setQuery('');requestAnimationFrame(()=>{invalid.scrollIntoView({block:'center'});invalid.focus({preventScroll:true});invalid.reportValidity();});return false;}
+   if(invalid&&!invalid.disabled){fail(`请检查${invalid.getAttribute('aria-label')||invalid.closest('label')?.firstChild?.textContent?.trim()||'输入字段'}：${nativeValidationMessage(invalid)}`);setQuery('');requestAnimationFrame(()=>{invalid.scrollIntoView({block:'center'});invalid.focus({preventScroll:true});invalid.reportValidity();});return false;}
   }
   writing.current=true;
   try{
@@ -73,12 +75,12 @@ export default function BusinessWeeklyMeeting({meeting,draftVersionId,draft:init
    const savingDraft=live.current,savingKey=contentKey(savingDraft);if(background)setBackgroundSaving(true);else setBusy(true);setMessage(action==='save'?'正在保存草稿…':'正在定稿…');
    const res=await fetch(`/api/meeting-reviews/${meeting.id}`,{method:'PATCH',headers:{'Content-Type':'application/json','X-Business-Feedback':'local'},body:JSON.stringify({action:action==='save'?'save_version_draft':'finalize_version_draft',stage:action==='save'?undefined:action==='finalize_pre'?'pre':'post',draftVersionId,draft:{...savingDraft,workflowVersion:7,materialSnapshot:undefined,materialFingerprint:material.fingerprint,issues:savingDraft.issues.filter(hasMeetingIssueContent)},expectedUpdatedAt:stamp.current,periodStart:material.periodStart,periodEnd:material.periodEnd})});
    const body=await res.text();let json:{message?:string;updatedAt?:string;versionNumber?:number}|undefined;try{json=JSON.parse(body)}catch{}
-   if(!res.ok)throw new Error(json?.message||(res.status===401?'登录已失效，请重新登录后再保存。':`保存失败（${res.status}），输入已保留，请稍后重试。`));
+   if(!res.ok)throw new Error(json?.message||(res.status===401?'登录已失效，请重新登录后再保存。':operationUnavailableMessage('保存会议内容')));
    if(!json?.updatedAt||action!=='save'&&!Number.isInteger(json.versionNumber))throw new Error('保存结果未能确认，输入已保留；请先返回例会总览核对。');
    stamp.current=json.updatedAt;savedKey.current=savingKey;savedDraft.current=savingDraft;document.documentElement.dataset.unsaved=String(contentKey(live.current)!==savingKey);if(contentKey(live.current)!==savingKey)setSaveTick(v=>v+1);setMessage(action==='save'?'V0 草稿已保存':`已定稿 V${json.versionNumber}，正在打开…`);
    if(action!=='save')location.assign(`?meeting=${meeting.id}&version=${json.versionNumber}`);else if(back)location.assign('/business/meeting-review');return true;
   }catch(e){
-   const message=e instanceof TypeError?'连接失败，输入已保留；重试前请先核对例会总览。':e instanceof Error?e.message:'保存失败，输入已保留。';
+   const message=readableOperationError(e,saveResultUnknownMessage);
    fail(message,message.startsWith('来源数据已变化')?{kind:'material'}:undefined);return false;
   }finally{writing.current=false;setBusy(false);setBackgroundSaving(false)}
  };

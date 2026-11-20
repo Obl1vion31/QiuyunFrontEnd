@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../../db/business-messages';
 import {StaleWriteError} from '../../../db/schedule-workflow';
 import {saveContentRole} from '../../../db/content-role-workflow';
 import {monthlyScheduleInput,claimMonthlySchedule} from '../../../db/monthly-plans';
@@ -40,7 +41,7 @@ import {
 export const prerender = false;
 
 export const DELETE: APIRoute = async ({params,request,url,locals})=>{
- if(request.headers.get('origin')!==url.origin)return new Response('拒绝跨站写入。',{status:403});
+ if(request.headers.get('origin')!==url.origin)return new Response(unsafeSubmissionMessage,{status:403});
  try{
   const {requireAdmin}=await import('../../../auth/permissions');requireAdmin(locals.user);
   const body=await request.json().catch(()=>({}));if(!String(body.reason??'').trim())throw new WorkflowError('请填写取消排期的原因。',422);
@@ -62,7 +63,7 @@ export const DELETE: APIRoute = async ({params,request,url,locals})=>{
 
 export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
   const origin = request.headers.get('origin');
-  if (!origin || origin !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (!origin || origin !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   if (!params.id) return Response.json({ message: '缺少排期编号。' }, { status: 400 });
 
   let form: FormData;

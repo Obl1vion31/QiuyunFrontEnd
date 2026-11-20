@@ -371,3 +371,10 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 `BusinessNoteIdentity`与`inline-note-identity.ts`负责同表面查看、复制、更正和取消，原推广／非推广适配器仍负责原接口、确认及保存范围。非推广已保存结果在原模板中只读展示，编辑时显示原表单；`trackFormChanges`按实际字段判断，保存后局部刷新模板和事实，ID写入成功但展示读取失败只读重试。年度时间块、资料支持区与版本入口沿用annual-plan原控制器及编辑容器。
 
 周会跨午夜继续讨论使用 `meeting-version-rules.meetingArrangementsExpired` 共用上海时间05:00截止判断，页面SSR、浏览器定时更新和定稿／回溯事务统一调用，原生效日不顺延。`WeeklyMeetingPresentation` 直接保留事项跟进；`meetingFinalizationIssue` 只要求核心结论及会后的下一步行动，不再要求衡量情况／本期具体动作。旧JSON字段保留兼容，不改写既有冻结内容。`meeting-grace.browser.ts` 使用实际目标包验证凌晨V2草稿同号定稿、实时跨05:00、原生效日安排及PDF。
+### 操作说明与校验反馈接入
+
+前后端共享 business-messages 的截止、封存、预排期角色指引与保存结果说明；周会分别使用 arrangements／post／restore，传入该场真实生效日，不自行拼出另一套截止文案。预排期传入当前登录角色，仅影响指引，原门禁判断保持。
+
+validation-messages 在字段错误和首条校验错误输出处补齐中文与业务字段名，保留原校验、字段键和响应状态。浏览器未知网络／解析异常使用 readableOperationError 与当前操作的兜底说明；明确成功后的读取失败继续保留已保存的事实。站内确认仍调用 businessConfirm，按钮写明实际动作。
+
+浏览器默认约束由 `business-validation.ts` 接入登录及公共 Frame，复用 `validation-messages.ts` 的字段名和中文说明；只替换提示文字，输入／更改／重置时清除该入口设置的提示，不清除业务自定义校验。周会主动校验使用同一说明函数。

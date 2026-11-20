@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {prepareJuguangResidual} from './juguang-residual';
 import {readBusiness} from './business-read';
 import {randomRequestKey,refreshPromotionSchedule} from './promotion-timeline';
@@ -13,7 +14,7 @@ function initialize(){
   event.preventDefault();if(!search.reportValidity())return;const button=search.querySelector<HTMLButtonElement>('[type=submit]')!;button.disabled=true;message.textContent='';choices.hidden=true;
   try{const result=await readBusiness(editor,async read=>{const response=await fetch(`/api/promotion-daily?noteId=${encodeURIComponent(String(new FormData(search).get('noteId')))}`,{signal:read.signal,cache:'no-store'}),result=await response.json();if(!response.ok)throw new Error(result.message??'查询失败');return result;});
    if(!result)return;candidates=result.residualCandidates;select.replaceChildren(new Option('请选择活动及版本',''));for(const item of candidates)select.add(new Option(`${item.contentName} · V${item.versionNumber} · ${item.startedOn} — ${item.endedOn}`,item.campaignId));choices.hidden=!candidates.length;message.textContent=candidates.length?'':'未找到已测试淘汰的活动，请核对笔记 ID。';
-  }catch(error){message.textContent=error instanceof Error?error.message:'查询失败，请重试。';}finally{button.disabled=false;}
+  }catch(error){message.textContent=readableOperationError(error,'查询失败，请重试。');}finally{button.disabled=false;}
  });
  select.addEventListener('change',()=>{const candidate=candidates.find(item=>item.campaignId===select.value);date.min=candidate?.earliestDate??'';date.max=candidate?.latestDate??'';date.value='';});
  choices.addEventListener('submit',async event=>{
@@ -24,7 +25,7 @@ function initialize(){
   try{
    const result=await readBusiness(choices,async read=>{const query=new URLSearchParams({noteId:selectedNoteId,campaignId:candidate.campaignId,metricDate}),response=await fetch('/api/promotion-daily?'+query,{signal:read.signal,cache:'no-store'}),result=await response.json();if(!response.ok)throw new Error(result.message??'读取失败，请重试。');return result;},{isCurrent:()=>!editor.hidden&&!choices.hidden&&select.value===candidate.campaignId&&date.value===metricDate});
    if(!result)return;fingerprint=result.fingerprint;
-  }catch(error){message.textContent=error instanceof Error?error.message:'读取失败，请重试。';return;}finally{choose.disabled=false;}
+  }catch(error){message.textContent=readableOperationError(error,'读取失败，请重试。');return;}finally{choose.disabled=false;}
   const template=editor.querySelector<HTMLTemplateElement>('[data-residual-template]')!,form=template.content.firstElementChild!.cloneNode(true) as HTMLFormElement;
   form.dataset.residualKey=key;for(const [name,value]of Object.entries({campaignId:candidate.campaignId,metricDate,sourceStageStartedOn:candidate.sourceStageStartedOn}))(form.elements.namedItem(name) as HTMLInputElement).value=value;
   form.querySelector('[data-residual-name]')!.textContent=candidate.contentName;form.querySelector('[data-residual-version]')!.textContent=`V${candidate.versionNumber}`;const time=form.querySelector('time')!;time.dateTime=date.value;time.textContent=`${Number(date.value.slice(5,7))}月${Number(date.value.slice(8))}日`;
@@ -36,7 +37,7 @@ function initialize(){
    event.preventDefault();if(busy||!form.reportValidity())return;busy=true;form.dataset.juguangSaving='true';form.dispatchEvent(new Event('business:juguang-render'));submit.disabled=true;submit.textContent='正在保存…';feedback.textContent='';
    try{const data=new FormData(form);data.set('requestKey',requestKey);data.set('fingerprint',fingerprint);data.set('platformNoteId',selectedNoteId);const response=await fetch('/api/promotion-daily',{method:'POST',body:data,headers:{Accept:'application/json'}}),result=await response.json();if(!response.ok){feedback.textContent=result.message??'补录失败，输入已保留。';return;}
     form.dataset.dirty='false';submit.textContent='已补录';submit.dataset.success='';feedback.textContent='补录已完成';await refreshPromotionSchedule(candidate.scheduleId);document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));for(const field of form.querySelectorAll<HTMLInputElement>('input'))field.disabled=true;submit.disabled=true;return;
-   }catch{feedback.textContent='连接失败，输入已保留。';}finally{busy=false;form.dataset.juguangSaving='false';form.dispatchEvent(new Event('business:juguang-render'));if(form.dataset.dirty!=='false'){submit.disabled=false;submit.textContent='完成补录';}}
+   }catch{feedback.textContent=saveResultUnknownMessage;}finally{busy=false;form.dataset.juguangSaving='false';form.dispatchEvent(new Event('business:juguang-render'));if(form.dataset.dirty!=='false'){submit.disabled=false;submit.textContent='完成补录';}}
   });rows.hidden=false;rows.append(form);document.dispatchEvent(new Event('business:juguang-form-added'));form.querySelector<HTMLInputElement>('[name=spend]')?.focus({preventScroll:true});message.textContent='';
  });
 }

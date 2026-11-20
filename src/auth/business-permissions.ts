@@ -4,7 +4,7 @@ import {and,eq,inArray,sql} from 'drizzle-orm';
 import type {Database} from '../db/client';
 import {operationsAccountPermission as permissions,operationsPermissionAudit as audit,operationsChangeProposal as proposals,operationsScheduleChangeRequest as legacy,authUser} from '../db/schema';
 import {AccessDenied,requireAdmin,type OperationsUser} from './permissions';
-import {businessOperations,defaultBusinessPermissions,type BusinessOperation,type BusinessPermissions} from './business-capabilities';
+import {businessOperations,defaultBusinessPermissions,operationLabels,type BusinessOperation,type BusinessPermissions} from './business-capabilities';
 type Reader=Pick<Database,'select'|'insert'|'update'|'delete'|'execute'>;
 const execution=new AsyncLocalStorage<{userId:string;operations:BusinessOperation[]}>();
 export const withBusinessExecution=<T>(user:OperationsUser,operations:BusinessOperation[],action:()=>Promise<T>)=>execution.run({userId:user.id,operations},action);
@@ -19,7 +19,7 @@ export async function effectiveBusinessPermissions(db:Reader,user:OperationsUser
 }
 export async function requireBusinessOperation(db:Reader,user:OperationsUser,operation:BusinessOperation){
   const mode=(await effectiveBusinessPermissions(db,user))[operation];
-  if(mode==='disabled'||mode==='review'&&!hasBusinessExecution(user,operation))throw new AccessDenied(mode==='review'?'这项修改需要提交管理员审核。':'当前账号未开放这项操作。');
+  if(mode==='disabled'||mode==='review'&&!hasBusinessExecution(user,operation))throw new AccessDenied(mode==='review'?`“${operationLabels[operation]}”需要管理员审核，提交申请后才会生效。`:`你的账号暂不能执行“${operationLabels[operation]}”，请联系管理员确认权限。`);
 }
 export const lockBusinessWrites=(db:Reader)=>db.execute(sql`select pg_advisory_xact_lock(69742,0)`);
 export async function updateAccountPermissions(db:Database,actor:OperationsUser,userId:string,next:BusinessPermissions,expected:BusinessPermissions){

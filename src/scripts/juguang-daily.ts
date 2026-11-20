@@ -1,3 +1,4 @@
+import {readableOperationError} from '../db/business-messages';
 import {readBusiness} from './business-read';
 import {businessDateTime} from './business-date';
 import {juguangMetricFields,promotionClickRate,type JuguangMetricPreview,type JuguangMetricSource} from '../integrations/juguang-metric-types';
@@ -56,7 +57,7 @@ function initialize() {
         form.dataset.juguangPending=String(!persistedSource || persistedSource.noteId!==source.noteId || persistedSource.mappingFingerprint!==source.mappingFingerprint || juguangMetricFields.some(name=>persistedSource.original[name]!==original[name]));
         // 来源刷新只移动被实际回填字段的基线，不把人的其他输入清为干净。
         form.dispatchEvent(new CustomEvent('business:juguang-preview',{detail:{fields:[...filled,'juguangReceipt']}}));
-      } catch(error) {readError=error instanceof Error?error.message:'聚光读取失败，原数据已保留。';}
+      } catch(error) {readError=readableOperationError(error,'聚光读取失败，原数据已保留。');}
       finally{busy=false;if(form.isConnected){render();if((field('platformNoteId')?.value??'')!==noteAtStart)void read();}}
     };
     form.addEventListener('business:note-id-draft',()=>void read());

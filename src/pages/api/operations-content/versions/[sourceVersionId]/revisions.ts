@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../../../../db/business-messages';
 import {WorkflowError} from '../../../../../db/schedule-workflow';
 import {canCreateRevision,contentRevisionStates} from '../../../../../db/content-version-rules';
 import {workflowErrorResponse} from '../../../../../db/workflow-api';
@@ -27,7 +28,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ params, request, url }) => {
   const origin = request.headers.get('origin');
-  if (!origin || origin !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (!origin || origin !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   if (!params.sourceVersionId) return Response.json({ message: '缺少来源版本。' }, { status: 400 });
 
   let form: FormData;

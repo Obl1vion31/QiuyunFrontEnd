@@ -1,3 +1,4 @@
+import {validationMessage} from './validation-messages';
 import {eq,desc} from 'drizzle-orm';
 import {z} from 'zod';
 import type {Database} from './client';
@@ -11,7 +12,7 @@ export const sealedTextInput=z.object({action:z.literal('revise_sealed_text'),so
 /** 只复制冻结材料并更正文案；不走计划发布、统计刷新或事项流转。 */
 export async function reviseSealedMeetingText(db:Database,meetingId:string,payload:unknown,actor:string) {
  const parsed=sealedTextInput.safeParse(payload);
- if(!parsed.success)throw new WorkflowError(parsed.error.issues[0].message,422);
+ if(!parsed.success)throw new WorkflowError(validationMessage(parsed.error.issues[0]),422);
  const input=parsed.data;
  return db.transaction(async tx=>{
   await lockPromotionWorkflow(tx);

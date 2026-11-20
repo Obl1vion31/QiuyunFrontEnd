@@ -1,3 +1,5 @@
+import {unsafeSubmissionMessage} from '../../../db/business-messages';
+import {validationMessage} from '../../../db/validation-messages';
 import {reviseSealedMeetingText} from '../../../db/meeting-sealed-revision';
 import {StaleWriteError} from '../../../db/schedule-workflow';
 import {preserveMonthlyMeetingIdentity} from '../../../db/monthly-meeting';
@@ -36,17 +38,17 @@ export const GET:APIRoute=async({params})=>{
 };
 
 export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   if (!params.id) return Response.json({ message: '缺少会议编号。' }, { status: 400 });
   let payload: { action?: string; draft?: WeeklyMeetingDraft; expectedUpdatedAt?: string; changeSummary?: string;periodStart?:string;periodEnd?:string;sourceVersionId?:string;draftVersionId?:string;stage?:string;discussion?:unknown };
   try { payload = await request.json(); } catch { return Response.json({ message: '请求格式无效。' }, { status: 400 }); }
   if(payload.action==='revise_sealed_text'){try{const result=await reviseSealedMeetingText(getDb(),params.id,payload,locals.operationsUser||'unknown');let pdfStatus:string;try{pdfStatus=(await ensureMeetingPdf(getDb(),result.versionId,locals.operationsUser||'unknown')).status;}catch{pdfStatus='failed';}return Response.json({ok:true,...result,pdfStatus});}catch(error){return workflowErrorResponse(error);}}
-  if(['save_discussion','finalize_discussion','save_version_revision','finalize_version'].includes(payload.action??''))return Response.json({message:'例会流程已更新，请刷新页面后继续，输入已保留。'},{status:409});
+  if(['save_discussion','finalize_discussion','save_version_revision','finalize_version'].includes(payload.action??''))return Response.json({message:'例会流程已更新。请先保留需要的输入，再刷新页面继续。'},{status:409});
   if(['save_version_draft','finalize_version_draft','rollback_version'].includes(payload.action??'')&&!payload.draft){
     try{const result=await reviseMeetingVersion(getDb(),params.id,payload,locals.operationsUser||'unknown');let pdfStatus:string|undefined;if(result.stage==='post'&&result.lifecycleStatus==='finalized'){try{pdfStatus=(await ensureMeetingPdf(getDb(),result.versionId,locals.operationsUser||'unknown')).status;}catch{pdfStatus='failed';}}return Response.json({ok:true,...result,pdfStatus});}catch(error){return workflowErrorResponse(error);}
   }
   const parsed = meetingDraftSchema.safeParse(payload.draft ?? emptyDraft);
-  if (!parsed.success) return Response.json({ message: parsed.error.issues[0].message }, { status: 422 });
+  if (!parsed.success) return Response.json({ message: validationMessage(parsed.error.issues[0]) }, { status: 422 });
   let draft:WeeklyMeetingDraft = parsed.data;
   const discussionMode=payload.action==='save_discussion'||payload.action==='finalize_discussion';
   const discussion=discussionMode?discussionSchema.safeParse(payload.discussion):null;
@@ -64,7 +66,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
       let targetDraft:typeof operationsReviewMeetingVersion.$inferSelect|undefined;
       if(draft.schemaVersion===4){
         [targetDraft]=await transaction.select().from(operationsReviewMeetingVersion).where(and(eq(operationsReviewMeetingVersion.meetingId,meeting.id),eq(operationsReviewMeetingVersion.lifecycleStatus,'draft'))).for('update');
-        if(![6,7].includes(draft.workflowVersion??0)||!['save_version_draft','finalize_version_draft'].includes(payload.action??'')||!targetDraft||targetDraft.id!==payload.draftVersionId||meeting.status!=='draft')throw new WorkflowError('例会流程已更新，请刷新页面后继续，输入已保留。',409);
+        if(![6,7].includes(draft.workflowVersion??0)||!['save_version_draft','finalize_version_draft'].includes(payload.action??'')||!targetDraft||targetDraft.id!==payload.draftVersionId||meeting.status!=='draft')throw new WorkflowError('例会流程已更新。请先保留需要的输入，再刷新页面继续。',409);
         if(stage&&stage!=='pre')throw new WorkflowError('请先完成会前 V0 定稿。',422);
       }
       let baseline:any;
@@ -101,7 +103,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
        if(meeting.meetingType==='monthly')draft.materialFingerprint=fresh.fingerprint;
        if(finalizing&&draft.materialFingerprint!==fresh.fingerprint)throw new StaleWriteError('来源数据已变化，请刷新数据并核对后再定稿。');
        let material=draft.materialFingerprint===fresh.fingerprint?fresh:cached&&cached.fingerprint===draft.materialFingerprint&&cached.periodStart===range.periodStart&&cached.periodEnd===range.periodEnd?cached:null;
-       if(!material)throw new WorkflowError('请刷新当前区间的数据后再保存，输入已保留。');
+       if(!material)throw new WorkflowError('当前区间的例会数据尚未读取，请先点击“材料设置”中的“刷新数据”，再保存。当前填写内容会保留。');
        material=await readWeeklyDraftStates(transaction,material);
        draft.promotionInputs=reconcileClickRateRanges(draft.promotionInputs,cached?.promotions??material.promotions,material.promotions,meeting.draftSnapshot.promotionInputs);
        if(material.monthly?.layoutVersion!==2&&((draft.promotionSelections??[]).some(key=>!material.promotions.some(p=>p.key===key))||draft.nonPromotionSelections.some(s=>!material.nonPromotions.some(n=>n.scheduleId===s.scheduleId&&n.checkpointType===s.checkpointType))))throw new WorkflowError('部分勾选已不在当前候选中，请刷新后核对。');
@@ -171,7 +173,7 @@ export const PATCH: APIRoute = async ({ params, request, url, locals }) => {
 };
 
 export const DELETE: APIRoute = async ({ params, request, url }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   if (!params.id) return Response.json({ message: '缺少会议编号。' }, { status: 400 });
   try {
     const payload=await request.json().catch(()=>null);

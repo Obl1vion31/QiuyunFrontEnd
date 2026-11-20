@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../../db/business-messages';
 import type {APIRoute} from 'astro';
 import {z} from 'zod';
 import {getDb} from '../../../db/client';
@@ -8,7 +9,7 @@ const modes=z.object(Object.fromEntries(businessOperations.map(([key])=>[key,z.e
 const input=z.object({userId:z.string().min(1),permissions:modes,expected:modes}).strict();
 export const prerender=false;
 export const PATCH:APIRoute=async({request,url,locals})=>{
-  if(request.headers.get('origin')!==url.origin)return Response.json({message:'拒绝跨站写入。'},{status:403});
+  if(request.headers.get('origin')!==url.origin)return Response.json({message:unsafeSubmissionMessage},{status:403});
   try{
     const parsed=input.safeParse(await request.json());if(!parsed.success)return Response.json({message:'请选择完整且有效的账号权限。'},{status:422});
     const saved=await updateAccountPermissions(getDb(),locals.user!,parsed.data.userId,parsed.data.permissions as Parameters<typeof updateAccountPermissions>[3],parsed.data.expected as Parameters<typeof updateAccountPermissions>[4]);

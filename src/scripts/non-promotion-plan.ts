@@ -1,3 +1,4 @@
+import {readableOperationError,saveResultUnknownMessage} from '../db/business-messages';
 import {contentRoleLabel,type ContentRole} from '../db/content-roles';
 import {operationTypeLabels,type OperationType} from '../db/operation-types';
 import {readBusiness} from './business-read';
@@ -59,7 +60,7 @@ function initialize(){
  listen('business:schedule-selected',async event=>{
   const record=(event as CustomEvent<RecordView>).detail;current=record;view=undefined;panel.hidden=true;(form.querySelector('[data-review-plan-fields]') as HTMLFieldSetElement).disabled=true;add.hidden=true;add.dataset.businessEligible='false';form.closest<HTMLDetailsElement>('details')!.dataset.businessEligible='false';list.replaceChildren();
   if(!record.actualPublishAt)return;
-  try{const data=await read(record,panel);if(data&&current?.id===record.id)render(data);}catch(error){if(current?.id===record.id){panel.hidden=false;panel.querySelector('[data-review-plan-summary]')!.textContent=error instanceof Error?error.message:'读取失败，请重试';}}
+  try{const data=await read(record,panel);if(data&&current?.id===record.id)render(data);}catch(error){if(current?.id===record.id){panel.hidden=false;panel.querySelector('[data-review-plan-summary]')!.textContent=readableOperationError(error,'读取失败，请重试');}}
  });
  listen('business:schedule-detail-resumed',async()=>{if(current&&!view&&current.actualPublishAt){const data=await read(current,panel);if(data)render(data);}});
  listen('business:review-date-saved',async event=>{if(current&&current.id===(event as CustomEvent).detail.scheduleId){const data=await read(current,panel);if(data)render(data);document.dispatchEvent(new CustomEvent('business:review-plan-history-updated',{detail:{id:current.id}}));}});
@@ -81,7 +82,7 @@ function initialize(){
    updateFields(pubFields,(publication.elements.namedItem('actualPublishDate') as HTMLInputElement).value||null);
    pubFields.dataset.loaded='true';
    publication.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:[...pubFields.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select')].map(field=>field.name)}}));
-  }catch(error){if(token!==publicationReadToken)return;publication.querySelector('[data-publication-message]')!.textContent=error instanceof Error?error.message:'复盘计划读取失败，请关闭后重试；其他输入已保留。';}
+  }catch(error){if(token!==publicationReadToken)return;publication.querySelector('[data-publication-message]')!.textContent=readableOperationError(error,'复盘计划读取失败，请关闭后重试；其他输入已保留。');}
  });
  listen('business:schedule-panel-view',event=>{if((event as CustomEvent).detail.view!=='publication'){publicationReadToken++;publicationView=undefined;}});
  listen('input',event=>{
@@ -100,7 +101,7 @@ function initialize(){
    if(!panel.querySelector('form[data-dirty=true]'))getInspector(inspector).setClean();
    output.textContent=response.status===202?'已提交管理员审核':'已保存';
    if(response.status!==202&&current){const data=await read(current,panel);if(data)render(data);document.dispatchEvent(new CustomEvent('business:review-plan-history-updated',{detail:{id:current.id}}));}
-  }catch(error){output.setAttribute('role','alert');output.textContent=(error instanceof Error?error.message:'连接失败')+'；当前输入已保留。';}finally{button.disabled=false;}
+  }catch(error){output.setAttribute('role','alert');output.textContent=readableOperationError(error,saveResultUnknownMessage);}finally{button.disabled=false;}
  });
  const selected=inspector.dataset.selectedId,records=document.querySelector('[data-schedule-records]');if(selected&&records){const record=JSON.parse(records.textContent||'[]').find((r:RecordView)=>r.id===selected);if(record)document.dispatchEvent(new CustomEvent('business:schedule-selected',{detail:record}));}
 }

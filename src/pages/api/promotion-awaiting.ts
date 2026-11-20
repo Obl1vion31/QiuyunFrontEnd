@@ -1,10 +1,11 @@
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import type { APIRoute } from 'astro';
 import { getDb } from '../../db/client';
 import { changePromotionTimeline, timelineSchema } from '../../db/promotion-timeline';
 import { workflowErrorResponse } from '../../db/workflow-api';
 export const prerender=false;
 export const POST:APIRoute=async({request,url,locals})=>{
- if(request.headers.get('origin')!==url.origin)return Response.json({message:'拒绝跨站写入。'},{status:403});
+ if(request.headers.get('origin')!==url.origin)return Response.json({message:unsafeSubmissionMessage},{status:403});
  try{
   const form=await request.formData();const values=Object.fromEntries(form);
   const input=timelineSchema.safeParse({...values,action:values.action==='defer'?'wait':values.action,waitingThrough:values.waitingThrough||undefined});

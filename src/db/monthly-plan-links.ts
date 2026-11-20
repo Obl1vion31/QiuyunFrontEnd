@@ -1,3 +1,4 @@
+import {requestUsedMessage} from './business-messages';
 import {and,eq,inArray,or,gte,lt,sql} from 'drizzle-orm';
 import type {Database} from './client';
 import * as s from './schema';
@@ -57,7 +58,7 @@ export async function repeatedMonthlyLinks(db:Database,planId:string,input:Month
  const state=await monthlyLinkState(db,planId);if(!state)return null;
  const entry=state.assignments.flatMap(a=>a.history).find(h=>h.linkRequestId===input.requestId);
  if(!entry)return null;
- if(entry.linkRequestHash!==linkRequestHash(input))throw new WorkflowError('请求标识已使用，请重新操作。',422);
+ if(entry.linkRequestHash!==linkRequestHash(input))throw new WorkflowError(requestUsedMessage,422);
  if(entry.proposalId){const [p]=await db.select({status:s.operationsChangeProposal.status,result:s.operationsChangeProposal.result}).from(s.operationsChangeProposal).where(eq(s.operationsChangeProposal.id,entry.proposalId));if(p?.status==='pending')return Response.json({status:'pending_approval',requestId:entry.proposalId,message:'已提交管理员审核。'},{status:202});if(p?.status!=='approved')return Response.json({status:p?.status,message:'这次关联申请已处理，请重新选择。'},{status:409});}
  return Response.json({ok:true,repeated:true,plan:await readMonthlyCalendar(db,state.plan.month)});
 }

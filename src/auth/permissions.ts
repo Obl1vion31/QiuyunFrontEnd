@@ -1,3 +1,4 @@
+import {administratorRequiredMessage} from '../db/business-messages';
 /** 服务端权限来源与业务危险操作边界；浏览器只使用可显示的角色。 */
 import {isConfigurableBusinessWrite} from './business-capabilities';
 export type Role = 'admin' | 'employee';
@@ -6,14 +7,14 @@ export interface OperationsUser { id: string; username: string; name?:string; ro
 export const isAdmin = (user: OperationsUser | null | undefined) => user?.role === 'admin';
 
 export class AccessDenied extends Error {
-  constructor(message='这项操作需要管理员权限。') { super(message); }
+  constructor(message=administratorRequiredMessage) { super(message); }
 }
 
 export function requireAdmin(user: OperationsUser | null | undefined) {
   if (!isAdmin(user)) throw new AccessDenied();
 }
 
-export const deniedResponse = () => Response.json({ code: 'FORBIDDEN', message: '这项操作需要管理员权限。' }, { status: 403 });
+export const deniedResponse = () => Response.json({ code: 'FORBIDDEN', message: administratorRequiredMessage }, { status: 403 });
 export const permissionErrorResponse = (error: unknown) => error instanceof AccessDenied ? Response.json({code:'FORBIDDEN',message:error.message},{status:403}) : null;
 
 export function requiresAdmin(path: string, method: string, settingsView?: string | null) {

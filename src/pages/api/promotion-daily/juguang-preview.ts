@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import type {APIRoute} from 'astro';
 import {readJuguangDailyPreview} from '../../../integrations/juguang-daily';
+import {failure} from '../../../integrations/juguang-token';
 import {JuguangError} from '../../../integrations/xiaohongshu-juguang';
 import {WorkflowError} from '../../../db/schedule-workflow';
 export const prerender=false;
@@ -12,7 +13,7 @@ export const GET:APIRoute=async({url,locals})=>{
   if(!drafts.success||Object.keys(drafts.data).some(id=>!campaigns.data.includes(id)))return Response.json({message:'待补笔记 ID 参数无效。'},{status:422});
   try{return Response.json(await readJuguangDailyPreview(url.searchParams.get('date')??'',locals.session.id,campaigns.data,drafts.data),{headers:{'Cache-Control':'private, no-store'}});}
   catch(error){
-    if(error instanceof WorkflowError || error instanceof JuguangError)return Response.json({message:error.message,...(error instanceof JuguangError?{code:error.code}:{})},{status:error.status});
+    if(error instanceof WorkflowError || error instanceof JuguangError){const authorization=error instanceof JuguangError?failure(error.code.replace(/^JUGUANG_/,''),locals.user.role):null;return Response.json({message:authorization?.status==='reauthorize'?authorization.message+'已有复盘数据保留。':error.message,...(error instanceof JuguangError?{code:error.code}:{})},{status:error.status});}
     console.error('Juguang daily preview unavailable');
     return Response.json({message:'聚光报表暂时不可用，原数据已保留，请稍后重试。'},{status:503});
   }

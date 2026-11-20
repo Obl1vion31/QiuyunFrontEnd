@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import { closeBusinessDialog } from './business-dialog';
 import { positionKeys, positionNames, type OrganizationWorkspace, type PositionKey, type OrganizationReference } from '../data/organization';
 
@@ -130,7 +131,7 @@ function initializeOrganization() {
       workspace = result.workspace; update();
       busy = false; await close(true);
       document.dispatchEvent(new CustomEvent('business:operation-receipt', { detail: { message: target?.kind === 'member' ? '人员任职已保存' : '岗位职责已保存' } }));
-    } catch (error) { message!.textContent = error instanceof Error && !(error instanceof SyntaxError) ? error.message : '保存结果未能确认，当前输入已保留，请重试。'; }
+    } catch (error) { message!.textContent = readableOperationError(error,saveResultUnknownMessage); }
     finally {
       busy = false; roleFields!.disabled = target?.kind !== 'position'; memberFields!.disabled = target?.kind !== 'member';
       form.querySelectorAll<HTMLButtonElement>('[data-org-close]').forEach(button => button.disabled = false);

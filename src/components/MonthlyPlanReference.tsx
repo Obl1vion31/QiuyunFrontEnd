@@ -1,3 +1,4 @@
+import {readableOperationError} from '../db/business-messages';
 import {useEffect,useRef,useState} from 'react';
 import type {MonthlyPlanView} from '../db/monthly-plans';
 import {PlanExecutionSummary} from './MonthlyMeetingSections';
@@ -5,7 +6,7 @@ type Reference={id:string;expectedRevision:number};
 /** 会前核对最新执行，确认版本后再由会后定稿冻结并锁定原计划。 */
 export default function MonthlyPlanReference({reference,frozen,onChange}:{reference:Reference;frozen?:MonthlyPlanView;onChange:(next:Reference)=>void}){
  const host=useRef<HTMLDivElement>(null),[plan,setPlan]=useState<MonthlyPlanView|undefined>(frozen),[error,setError]=useState('');
- async function refresh(){const target=host.current;if(!target)return;setError('');try{const {readBusiness}=await import('../scripts/business-read');const value=await readBusiness(target,async read=>{const r=await fetch('/api/monthly-plans?id='+reference.id,{signal:read.signal}),body=await r.json();if(!r.ok||!body.plan)throw new Error(body.message||'月计划不存在。');return body.plan as MonthlyPlanView;});if(value)setPlan(value);}catch(e){setError((e as Error).message);}}
+ async function refresh(){const target=host.current;if(!target)return;setError('');try{const {readBusiness}=await import('../scripts/business-read');const value=await readBusiness(target,async read=>{const r=await fetch('/api/monthly-plans?id='+reference.id,{signal:read.signal}),body=await r.json();if(!r.ok||!body.plan)throw new Error(body.message||'月计划不存在。');return body.plan as MonthlyPlanView;});if(value)setPlan(value);}catch(e){setError(readableOperationError(e));}}
  useEffect(()=>{void refresh();},[reference.id]);
  const changed=!!plan&&plan.revision!==reference.expectedRevision;
  return <div ref={host} data-monthly-reference>

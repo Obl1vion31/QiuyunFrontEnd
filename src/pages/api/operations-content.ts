@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import {saveContentRole} from '../../db/content-role-workflow';
 import {monthlyScheduleInput,claimMonthlySchedule} from '../../db/monthly-plans';
 import {workflowErrorResponse} from '../../db/workflow-api';
@@ -21,7 +22,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request, redirect, url, locals }) => {
   const origin = request.headers.get('origin');
-  if (!origin || origin !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (!origin || origin !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
 
   let form: FormData;
   try {

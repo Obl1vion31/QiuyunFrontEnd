@@ -1,3 +1,4 @@
+import {readableOperationError,saveResultUnknownMessage} from '../db/business-messages';
 import {businessConfirm,closeBusinessDialog} from './business-dialog';
 type Account={id:string;username:string;name:string;role:string;enabled:boolean;updatedAt:string};
 function initialize(){
@@ -21,7 +22,7 @@ function initialize(){
    if(payload.action==='updateUsername'){target.dataset.accountUsername=data.username;target.querySelector('[data-account-login]')!.textContent=data.username;}
    if(payload.action==='status'){const enabled=!!payload.enabled;target.querySelector('[data-account-status]')!.textContent=enabled?'已启用':'已停用';const button=target.querySelector<HTMLElement>('[data-account-action=status]')!;button.dataset.enabled=String(enabled);button.textContent=enabled?'停用':'恢复';}
    out.textContent=payload.action==='rename'||payload.action==='updateUsername'?'已保存，可使用账号或用户名登录。':'已保存';if(dialog.open)await finish(dialog);
-  }catch(error){const message=error instanceof Error?error.message:'保存失败，输入已保留';out.textContent=message;if(dialog.open)form.querySelector('output')!.textContent=message;}finally{pending(form,false);}
+  }catch(error){const message=readableOperationError(error,saveResultUnknownMessage);out.textContent=message;if(dialog.open)form.querySelector('output')!.textContent=message;}finally{pending(form,false);}
  };
  root.addEventListener('click',async event=>{
   const el=event.target as Element;
@@ -37,7 +38,7 @@ function initialize(){
    dialog.querySelector<HTMLElement>('[data-account-editor-note]')!.textContent=password?'重置后，该账号已登录的浏览器将退出。':username?'3–30 位英文字母、数字或下划线。修改后使用新账号或用户名登录，现有登录和历史记录保留。':'可使用完整用户名或登录账号登录。用户名不能与他人的用户名或账号重复。';
    dialog.dataset.collaborationResource=`account:${row.dataset.accountId}`;form.dataset.collaborationResource=dialog.dataset.collaborationResource;form.dataset.dirty='false';dialog.showModal();input.focus();return;
   }
-  const enabled=button.dataset.enabled!=='true';if(await businessConfirm(action==='status'?`${enabled?'恢复':'停用'} ${name}？${enabled?'恢复后需要重新登录。':'该账号现有登录将立即退出。'}`:`撤销 ${name} 的全部登录？`,{title:'账号管理',confirmLabel:'确认操作',cancelLabel:'取消'}))await send(row,{action,...(action==='status'?{enabled}:{})});
+  const enabled=button.dataset.enabled!=='true';if(await businessConfirm(action==='status'?`${enabled?'恢复':'停用'} ${name}？${enabled?'恢复后需要重新登录。':'该账号现有登录将立即退出。'}`:`撤销 ${name} 的全部登录？`,{title:'账号管理',confirmLabel:action==='status'?(enabled?'恢复账号':'停用账号'):'撤销全部登录',cancelLabel:'取消'}))await send(row,{action,...(action==='status'?{enabled}:{})});
  });
  for(const target of [dialog,createDialog]){
   const f=target.querySelector<HTMLFormElement>('form')!;
@@ -52,7 +53,7 @@ function initialize(){
   try{
    const response=await fetch('/api/admin/accounts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(createForm)))}),data=await response.json();if(!response.ok)throw new Error(data.message);
    const template=root.querySelector<HTMLTemplateElement>('[data-account-row-template]')!,target=template.content.firstElementChild!.cloneNode(true) as HTMLElement;renderAccount(target,data.account);root.querySelector('tbody')!.append(target);target.querySelector('output')!.textContent='账号已创建';await finish(createDialog);target.querySelector<HTMLButtonElement>('button')!.focus();
-  }catch(error){createForm.querySelector('output')!.textContent=error instanceof Error?error.message:'创建失败，输入已保留。';}finally{pending(createForm,false);}
+  }catch(error){createForm.querySelector('output')!.textContent=readableOperationError(error,saveResultUnknownMessage);}finally{pending(createForm,false);}
  });
 }
 document.addEventListener('astro:page-load',initialize);initialize();

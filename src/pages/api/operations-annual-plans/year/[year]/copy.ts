@@ -1,10 +1,11 @@
+import {unsafeSubmissionMessage} from '../../../../../db/business-messages';
 import type { APIRoute } from 'astro';
 import { copyAnnualPlanSchema } from '../../../../../db/annual-plan';
 import { copyAnnualYear } from '../../../../../db/annual-plan-storage';
 import { getDb } from '../../../../../db/client';
 export const prerender = false;
 export const POST: APIRoute = async ({ params, request, url, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return Response.json({ message: '拒绝跨站写入。' }, { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return Response.json({ message: unsafeSubmissionMessage }, { status: 403 });
   let payload: unknown;
   try { payload = await request.json(); } catch { return Response.json({ message: '请求必须使用有效 JSON。' }, { status: 400 }); }
   const sourceYear = Number(params.year);

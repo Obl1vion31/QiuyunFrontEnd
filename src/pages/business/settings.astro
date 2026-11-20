@@ -64,13 +64,13 @@ document.querySelectorAll<HTMLFormElement>('[data-account-permissions]').forEach
  form.addEventListener('submit',async event=>{event.preventDefault();const output=form.querySelector('output')!;output.textContent='正在保存…';
  try{const permissions={...JSON.parse(form.dataset.permissions!),...Object.fromEntries(new FormData(form))};const response=await fetch('/api/business-settings/account-permissions',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:form.dataset.accountPermissions,permissions,expected:JSON.parse(form.dataset.permissions!)})});const result=await response.json();output.textContent=response.ok?'已保存':result.message;
  if(response.ok){form.dataset.permissions=JSON.stringify(permissions);delete form.dataset.dirty;document.documentElement.dataset.unsaved='false';}}
- catch{output.textContent='连接失败，当前选择已保留。';}});
+ catch{output.textContent="暂未收到保存结果。请保留当前输入，先核对最新记录，再决定是否重新提交。";}});
 });
 document.querySelectorAll<HTMLFormElement>('[data-decide-proposal],[data-legacy-request]').forEach(form=>form.addEventListener('submit',async event=>{
  event.preventDefault();const action=(event.submitter as HTMLButtonElement).value;const reason=String(new FormData(form).get('reason')??'').trim();const output=form.querySelector('output')!;
  if(action==='reject'&&!reason){output.textContent='请填写驳回说明。';return;}
  const endpoint=form.dataset.legacyRequest??`/api/business-change-proposals/${form.dataset.decideProposal}`;
- try{const response=await fetch(endpoint,{method:'PATCH',headers:form.dataset.legacyRequest?{}:{'Content-Type':'application/json'},body:form.dataset.legacyRequest?new URLSearchParams({action,reason}):JSON.stringify({action,reason})});const result=await response.json();if(response.ok){location.reload();return;}output.textContent=result.message??'审核失败。';}catch{output.textContent='连接失败，请重试。';}
+ try{const response=await fetch(endpoint,{method:'PATCH',headers:form.dataset.legacyRequest?{}:{'Content-Type':'application/json'},body:form.dataset.legacyRequest?new URLSearchParams({action,reason}):JSON.stringify({action,reason})});const result=await response.json();if(response.ok){location.reload();return;}output.textContent=result.message??'审核失败。';}catch{output.textContent="暂未收到保存结果。请保留当前输入，先核对最新记录，再决定是否重新提交。";}
 }));
 }
 initializeSettings();document.addEventListener('astro:page-load',initializeSettings);

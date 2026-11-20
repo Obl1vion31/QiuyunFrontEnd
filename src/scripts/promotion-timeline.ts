@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage} from '../db/business-messages';
 import {promotionNextOptions} from '../db/promotion-successors.mjs';
 import {promotionHistoryImpactMessage} from './promotion-history-impact';
 import {businessConfirm} from './business-dialog';
@@ -197,7 +198,7 @@ function initialize(){
   try{let response=await send(),result=await response.json();if(result.contextRequired){if(!await businessConfirm(result.message,{title:'确认当日安排',confirmLabel:'确认修改当天'})){out.textContent='';return;}payload.confirmDayContext=true;payload.contextFingerprint=result.contextFingerprint;response=await send();result=await response.json();}if(result.confirmationRequired){if(!await businessConfirm(promotionHistoryImpactMessage(result.impact),{title:'确认历史影响',confirmLabel:'确认更正'})){out.textContent='已取消更正，输入已保留。';return;}payload.confirmImpact=true;response=await send();result=await response.json();}
    if(!response.ok){out.textContent=result.message??result.impact?.message??'保存失败，输入已保留。';return;}
    saved=true;const scheduleId=String(new FormData(form).get('scheduleId'));const pane=form.closest<HTMLElement>('[data-inspector]');if(pane)getInspector(pane).setClean();delete form.dataset.dirty;document.dispatchEvent(new CustomEvent('business:promotion-arrangement-saving',{detail:{scheduleId}}));await refreshPromotionSchedule(scheduleId);form.dispatchEvent(new Event('business:timeline-saved'));const record=document.querySelector<HTMLElement>(`[data-review-record][data-review-post="${CSS.escape(scheduleId)}"]`);if(form.closest('[data-initial-row]')){document.dispatchEvent(new CustomEvent('business:operation-receipt',{detail:{message:'安排已保存'}}));(record?.querySelector<HTMLElement>('[data-initial-toggle],[data-toggle-day-state]')??record?.closest('details')?.querySelector<HTMLElement>('summary'))?.focus({preventScroll:true});}document.dispatchEvent(new CustomEvent('business:promotion-arrangement-saved',{detail:{scheduleId}}));document.documentElement.dataset.unsaved=String(!!document.querySelector('form[data-dirty=true]'));
-  }catch{out.textContent=saved?'已保存，列表刷新失败，请刷新页面核对。':'连接失败，输入已保留。';}finally{for(const {node,disabled} of locked)node.disabled=disabled;delete form.dataset.saving;button.disabled=saved;}
+  }catch{out.textContent=saved?'已保存，列表刷新失败，请刷新页面核对。':saveResultUnknownMessage;}finally{for(const {node,disabled} of locked)node.disabled=disabled;delete form.dataset.saving;button.disabled=saved;}
  });
 });}
 initialize();document.addEventListener('astro:page-load',initialize);document.addEventListener('business:inspector-render',initialize);document.addEventListener('business:promotion-fragment-updated',initialize);

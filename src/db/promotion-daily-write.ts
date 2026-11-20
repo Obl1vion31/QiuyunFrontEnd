@@ -1,3 +1,4 @@
+import {requestUsedMessage,staleRecordMessage} from './business-messages';
 import {juguangDailyChanges} from '../integrations/juguang-daily';
 import {StaleWriteError} from './schedule-workflow';
 import {requireVersionNote,fillInitialVersionNote} from './note-identities';
@@ -53,13 +54,13 @@ export async function writePromotionDaily(transaction: Transaction, data: DailyI
         if (repeat) {
             const prior = (repeat.after.metrics as Array<Record<string, unknown>> | undefined)?.find(m => m.id === repeat.after.metricId);
             if (repeat.scheduleId !== campaign.scheduleId || repeat.changedById !== actor.id || repeat.businessDate !== data.metricDate || !prior || prior.campaignId !== data.campaignId || ['spend', 'platformOpenCount', 'actualOpenCount', 'platformLeadCount', 'actualLeadCount'].some(key => Number(prior[key]) !== Number(data[key as 'spend'])) || ['impressionCount','clickCount'].some(key=>data[key as 'impressionCount']!=null&&Number(prior[key])!==Number(data[key as 'impressionCount'])) || prior.reviewDecision !== data.reviewDecision || prior.recordKind !== data.recordKind || prior.stageTypeSnapshot !== data.stageTypeSnapshot || prior.dailyStatus !== data.dailyStatus || (data.actualStatusSnapshot && prior.actualStatusSnapshot !== data.actualStatusSnapshot) || (data.platformNoteId && repeat.after.requestPlatformNoteId && repeat.after.requestPlatformNoteId !== data.platformNoteId) || (prior.note ?? null) !== (data.note ?? null))
-                throw new WorkflowError('请求编号已被使用，请重新保存。');
+                throw new WorkflowError(requestUsedMessage);
             return { kind: 'saved' as const, id: String(repeat.after.metricId), nextStatus: String(repeat.after.nextStatus) };
         }
     }
     const before = data.requestKey || data.fingerprint ? await promotionSnapshot(transaction, campaign.scheduleId) : null;
     if (!fingerprintChecked && data.fingerprint && timelineFingerprint(before) !== data.fingerprint)
-        throw new StaleWriteError('推广记录已变化，请刷新后核对。');
+        throw new StaleWriteError(staleRecordMessage("这篇帖子的推广记录"));
     if (campaign.platformNoteId && data.platformNoteId && campaign.platformNoteId !== data.platformNoteId)
         throw new WorkflowError('已有笔记 ID 不能在每日复盘中覆盖，请使用资料更正入口。', 422);
     if (!campaign.platformNoteId && !data.platformNoteId)

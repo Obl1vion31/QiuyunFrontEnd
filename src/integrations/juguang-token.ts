@@ -6,17 +6,20 @@ import { decryptJuguangTokens, encryptJuguangTokens, hasJuguangReportScope, pars
 
 const envelope = z.object({ code: z.number(), success: z.boolean(), data: z.unknown().optional() });
 export class UpstreamFailure extends Error { constructor(public code: string) { super(code); } }
-export function failure(code: string) {
+export function juguangAuthorizationMessage(role:'admin'|'employee',reason='聚光报表授权已失效'){
+ return reason+'，'+(role==='admin'?'请到“系统设置 → 接入管理”重新授权。':'请联系管理员在“系统设置 → 接入管理”重新授权。');
+}
+export function failure(code: string,role:'admin'|'employee'='admin') {
   const authorization = ['410010','410016','410017','410019','410020','410022','410023','SCOPE','IDENTITY'].includes(code);
   const messages: Record<string,string> = {
     '410010':'应用不可用，请核对开放平台应用状态后重新授权。',
-    '410016':'刷新令牌失效，请重新授权。', '410017':'授权已过期，请重新授权。',
-    '410019':'访问令牌失效，请重新授权。', '410020':'访问令牌已过期，请重新授权。',
-    '410022':'平台资质异常，请核对资质后重新授权。', '410023':'缺少报表权限，请重新授权。',
+    '410016':juguangAuthorizationMessage(role), '410017':juguangAuthorizationMessage(role),
+    '410019':juguangAuthorizationMessage(role), '410020':juguangAuthorizationMessage(role),
+    '410022':'平台资质异常，请核对资质后重新授权。', '410023':juguangAuthorizationMessage(role,'聚光授权缺少报表读取权限'),
     '410025':'广告账户 ID 无效，请核对授权账户。', '410026':'该账户不在当前授权范围，请重新核对账户授权。',
     '410027':'广告账户状态异常，请到聚光核对。', '410028':'账户暂不满足接口调用条件，请到聚光核对资质与投放条件。',
-    '410029':'聚光调用频率受限，请稍后重试。', SCOPE:'当前授权范围与报表只读设置不符，请重新授权。',
-    IDENTITY:'刷新结果与当前授权账户不符，请重新授权。', TIMEOUT:'聚光请求超时，请稍后重试。',
+    '410029':'聚光调用频率受限，请稍后重试。', SCOPE:juguangAuthorizationMessage(role,'聚光授权与当前报表读取范围不一致'),
+    IDENTITY:juguangAuthorizationMessage(role,'聚光授权账户与当前连接不一致'), TIMEOUT:'聚光请求超时，请稍后重试。',
     RESPONSE:'聚光返回异常，请稍后重试。', NETWORK:'暂时无法连接聚光，请稍后重试。',
   };
   return { status: authorization ? 'reauthorize' as const : 'error' as const, code, message: messages[code] ?? '聚光接口暂时不可用，请稍后重试。' };

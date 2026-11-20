@@ -1,3 +1,4 @@
+import {readableOperationError} from '../db/business-messages';
 import {rolesForCategory,type ContentRole} from '../db/content-roles';
 import {defaultOperationType,isPromotionType,operationTypeLabels,type OperationType} from '../db/operation-types';
 import {cumulativeDays} from '../db/non-promotion-nodes';
@@ -18,7 +19,7 @@ function initialize(){
  if(mode==='new'){field('finalReviewOn').value='';type.value=configuredDefault();field('expectedReviewRevision').value='-1';sync();return;}
  type.value=record.operationType|| (record.isPromoted?'promotion_only':'non_promotion_standard');sync();rebased=['operationType','contentRole','isPromoted'];rebase();form.dataset.operationLoaded='false';
  try{const response=await fetch('/api/non-promotion-checkpoints?scheduleId='+record.id),data=await response.json();if(token!==request)return;if(!response.ok)throw new Error(data.message);apply('contentRole',data.contentRole??'');for(const preserved of form.querySelectorAll<HTMLInputElement>('[data-permission-preserved][name=contentRole]'))preserved.value=data.contentRole??'';field('expectedContentRole').value=data.contentRole??'';syncRole();apply('operationType',data.operationType|| (data.plan?.mode==='continuous'?'':data.plan?.mode==='instant'?'non_promotion_instant':record.isPromoted?'promotion_only':'non_promotion_standard'));apply('finalReviewOn',data.finalReviewOn??'');apply('reviewDueOn',data.plan?.draftDueOn||data.nodes.find((n:{cancelledAt:string|null})=>!n.cancelledAt)?.dueOn||'');apply('reviewDay7',data.plan?.day7??false);apply('reviewDay15',data.plan?.day15??false);field('expectedReviewRevision').value=String(data.plan?.revision??-1);sync();if(!touched.has('operationType'))rebased.push('isPromoted');rebase();form.dataset.operationLoaded='true';if(mode==='revision')summary.textContent='沿用原帖：'+(operationTypeLabels[type.value as OperationType]||'既有复盘计划');}
- catch(error){summary.textContent=error instanceof Error?error.message:'配置读取失败，请关闭后重试。';}
+ catch(error){summary.textContent=readableOperationError(error,'配置读取失败，请关闭后重试。');}
  },{signal:events.signal});
  form.addEventListener('submit',event=>{if(form.dataset.operationLoaded==='false'){event.preventDefault();event.stopImmediatePropagation();form.querySelector('.form-message')!.textContent='运营配置尚未读取完成，请稍后重试。';}},{capture:true});
 }

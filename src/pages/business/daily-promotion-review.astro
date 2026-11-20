@@ -300,6 +300,7 @@ const historyHref = (overrides: Record<string, string>) => {
     </BusinessConsoleFrame>
 
     <script>
+      import {saveResultUnknownMessage} from '../../db/business-messages';
       import { getInspector } from '../../scripts/business-inspector';
       import {businessConfirm} from '../../scripts/business-dialog';
       import {promotionHistoryImpactMessage} from '../../scripts/promotion-history-impact';
@@ -343,7 +344,7 @@ const historyHref = (overrides: Record<string, string>) => {
               if (response.ok) { cleanInspector(form); return window.location.reload(); }
               message.textContent = result.message ?? '保存失败，请重试。';
             } catch {
-              message.textContent = '无法连接服务，请稍后重试。';
+              message.textContent = saveResultUnknownMessage;
             } finally {
               submit.disabled = false;form.dataset.juguangSaving='false';form.dispatchEvent(new CustomEvent('business:juguang-render'));
               if(cancelled&&focusBeforeSave?.isConnected)focusBeforeSave.focus({preventScroll:true});

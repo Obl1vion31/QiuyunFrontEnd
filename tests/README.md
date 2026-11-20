@@ -349,3 +349,8 @@ content-config-drag.browser.ts使用本机隔离PostgreSQL验证按默认运营�
 推广日详情由`juguang-daily.browser.ts`覆盖已保存API来源、未保存来源与缺报表手填语义，检查三档桌面338／380窄宽、三列指标、人数与成本配对、字段公式popover及原编辑表单；`history-inspector-overlay.browser.ts`继续核对共享资源入口在推广／非推广详情的几何、焦点与未保存保护。
 
 例会CTR专项运行`node --import tsx --test tests/meeting-auto-rate.test.ts tests/meeting-card-rules.test.ts tests/meeting-rate-comparison.test.ts`与`node --import tsx tests/meeting-auto-rate.browser.ts`。后者使用真实隔离PostgreSQL及Vercel目标包，验证服务端复算、手填例外、补齐刷新、确认／定稿、冻结兼容和实际PDF。`MEETING_AUTO_RATE_DIR`指定证据目录；UI核对三档桌面，390只明显溢出，冻结旧值不从实时数据重算。
+
+
+## 全站提示文案
+
+business-messages.test.ts 验证正式表单校验与公共错误响应，覆盖中文字段、重复／更新冲突、角色指引、期限说明及保存结果未知。workspace-messages.browser.ts 使用实际 Vercel 包和隔离夹具核对关键提示、双角色、断网与部分成功、PDF 状态及桌面可读性；产物进入 .tools/test-artifacts/workspace-messages。

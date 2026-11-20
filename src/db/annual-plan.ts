@@ -1,3 +1,4 @@
+import {validationMessage} from './validation-messages';
 import { z } from 'zod';
 import { isDeepStrictEqual } from 'node:util';
 import { overlappingBlockPairs } from './annual-plan-rules.mjs';
@@ -161,7 +162,7 @@ export function annualPlanIssues(issues: z.core.$ZodIssue[]) {
   const fields: Record<string, string[]> = {};
   for (const issue of issues) {
     const field = String(issue.path?.[0] ?? 'form');
-    (fields[field] ??= []).push(issue.message);
+    (fields[field] ??= []).push(validationMessage(issue));
   }
   return fields;
 }

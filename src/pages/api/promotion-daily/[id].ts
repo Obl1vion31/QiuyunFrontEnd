@@ -1,3 +1,5 @@
+import {unsafeSubmissionMessage,requestUsedMessage} from '../../../db/business-messages';
+import {validationMessage} from '../../../db/validation-messages';
 import type {APIRoute} from 'astro';
 import {randomUUID} from 'node:crypto';
 import {eq} from 'drizzle-orm';
@@ -11,10 +13,10 @@ import * as s from '../../../db/schema';
 import {juguangDailyChanges} from '../../../integrations/juguang-daily';
 export const prerender=false;
 export const PATCH:APIRoute=async({request,url,params,locals})=>{
- if(request.headers.get('origin')!==url.origin)return new Response('拒绝跨站写入。',{status:403});
+ if(request.headers.get('origin')!==url.origin)return new Response(unsafeSubmissionMessage,{status:403});
  let form:FormData;try{form=await request.formData();}catch{return Response.json({message:'请求必须使用有效的表单格式。'},{status:400});}
  const parsed=promotionDailyUpdateSchema.safeParse(promotionDailyUpdateInputFromForm(form));
- if(!parsed.success)return Response.json({message:'请检查日度数据。',fields:Object.fromEntries(parsed.error.issues.map(i=>[String(i.path[0]??'form'),[i.message]]))},{status:422});
+ if(!parsed.success)return Response.json({message:'请检查日度数据。',fields:Object.fromEntries(parsed.error.issues.map(i=>[String(i.path[0]??'form'),[validationMessage(i)]]))},{status:422});
  try{
   const data=parsed.data;
   if(data.changeDayStatus){
@@ -32,13 +34,13 @@ export const PATCH:APIRoute=async({request,url,params,locals})=>{
    const signature=JSON.stringify({metricId:existing.id,...requested});
    if(data.requestKey){
     const [repeat]=await tx.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,data.requestKey));
-    if(repeat){if(repeat.changedById!==locals.user!.id||repeat.after.metricValuesSignature!==signature)throw new WorkflowError('请求编号已被使用，请重新保存。',422);return {ok:true,repeated:true};}
+    if(repeat){if(repeat.changedById!==locals.user!.id||repeat.after.metricValuesSignature!==signature)throw new WorkflowError(requestUsedMessage,422);return {ok:true,repeated:true};}
    }
    const imported=await juguangDailyChanges(tx,existing,data,locals.session!.id);
    if(existing.juguangSource && data.expectedUpdatedAt && data.expectedUpdatedAt!==existing.updatedAt.toISOString())throw new WorkflowError('当天数据已被更新，请重新打开详情核对；输入已保留。',409);
    const values={...imported,spend:requested.spend,platformOpenCount:requested.platformOpenCount,actualOpenCount:requested.actualOpenCount,platformLeadCount:requested.platformLeadCount,actualLeadCount:requested.actualLeadCount,note:requested.note};
    // 旧历史表单不能继续用“次日安排”改变其他日期；新表单的隐藏旧值不覆盖当前状态。
-   if(data.dayStatus===undefined&&data.reviewDecision!==existing.reviewDecision)throw new WorkflowError('历史编辑已改为“当日安排”。请刷新后编辑当天状态，当前输入已保留。',422);
+   if(data.dayStatus===undefined&&data.reviewDecision!==existing.reviewDecision)throw new WorkflowError('历史编辑已改为“当日安排”。请先保留需要的输入，再刷新页面编辑当天状态。',422);
    const [saved]=await tx.update(s.operationsPromotionDailyMetric).set({...values,updatedAt:new Date(Math.max(Date.now(),existing.updatedAt.getTime()+1))}).where(eq(s.operationsPromotionDailyMetric.id,existing.id)).returning();
    await tx.insert(s.operationsPromotionTimelineAudit).values({scheduleId:campaign.scheduleId,requestKey:data.requestKey??randomUUID(),businessDate:existing.metricDate,action:'metric_values',reason:data.note?.trim()||'更正日度指标',before:{metrics:[existing]},after:{metrics:[saved],metricId:existing.id,metricValuesSignature:signature},changedById:locals.user!.id,changedByLabel:locals.user!.username});
    return {ok:true,deleted:0};

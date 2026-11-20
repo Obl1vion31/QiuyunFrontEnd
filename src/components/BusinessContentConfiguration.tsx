@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import type {readContentConfigurations} from '../db/content-config';
@@ -38,7 +39,7 @@ export default function BusinessContentConfiguration({initial}:{initial:Catalog}
    const response=await fetch('/api/business-settings/content-config',{method:'PATCH',headers:{'Content-Type':'application/json','X-Business-Feedback':'local'},body:JSON.stringify({subjectId,expectedRevision:current.revision,config})});
    const result=await response.json();if(!response.ok)throw new Error(result.message);
    setCatalog(old=>({...old,configurations:old.configurations.map(c=>c.subjectId===subjectId?result:c)}));setMessage('已保存');return true;
-  }catch(e){setError(e instanceof TypeError?'连接失败，当前更改已保留，请重试。':(e as Error).message);return false;}finally{saving.current=false;setBusy(false);}
+  }catch(e){setError(e instanceof TypeError?saveResultUnknownMessage:readableOperationError(e));return false;}finally{saving.current=false;setBusy(false);}
  }
  async function save(e:React.FormEvent) {
   e.preventDefault();if(!editing)return;
@@ -60,7 +61,7 @@ export default function BusinessContentConfiguration({initial}:{initial:Catalog}
  }
  async function reload() {
   if((editing||sortOwner)&&!await window.businessConfirm('重新载入会放弃当前配置输入，是否继续？',{title:'载入最新配置',confirmLabel:'重新载入',cancelLabel:'继续编辑'}))return;
-  setBusy(true);try{const response=await fetch('/api/business-settings/content-config',{cache:'no-store'}),result=await response.json();if(!response.ok)throw new Error(result.message);setCatalog(result);setSortOwner(null);setError('');dirty.current=false;document.documentElement.dataset.unsaved='false';if(editing)await close();setMessage('已载入最新配置');}catch(e){setError((e as Error).message);}finally{setBusy(false);}
+  setBusy(true);try{const response=await fetch('/api/business-settings/content-config',{cache:'no-store'}),result=await response.json();if(!response.ok)throw new Error(result.message);setCatalog(result);setSortOwner(null);setError('');dirty.current=false;document.documentElement.dataset.unsaved='false';if(editing)await close();setMessage('已载入最新配置');}catch(e){setError(readableOperationError(e));}finally{setBusy(false);}
  }
  const type=editing?.value as ContentTypeConfig;
  return <section className="content-configuration business-form" aria-label="业务配置">

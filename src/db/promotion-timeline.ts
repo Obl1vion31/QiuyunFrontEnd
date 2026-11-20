@@ -1,3 +1,4 @@
+import {requestUsedMessage,staleRecordMessage} from './business-messages';
 import {effectiveCategoryName} from './content-config';
 import {readVersionNotes} from './note-identities';
 import {noteIdOn,noteLinkOn} from './note-identity-rules';
@@ -115,11 +116,11 @@ export async function changePromotionTimeline(db: Database, input: TimelineInput
     await lockPromotionWorkflow(tx);
     const schedule=await lockSchedule(tx,input.scheduleId);
     const [repeat]=await tx.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,input.requestKey));
-    if(repeat){if(repeat.scheduleId!==schedule.id||repeat.changedById!==actor.id||input.action==='status'&&(repeat.action!=='status'||repeat.businessDate!==input.reviewDate||repeat.reason!==input.reason||!(repeat.after.decisions as Array<{businessDate:string;actualStatus?:string}>|undefined)?.some(c=>c.businessDate===input.reviewDate&&c.actualStatus===input.targetStatus)))throw new WorkflowError('请求已被使用。');return {ok:true,businessDate:repeat.businessDate,repeated:true};}
+    if(repeat){if(repeat.scheduleId!==schedule.id||repeat.changedById!==actor.id||input.action==='status'&&(repeat.action!=='status'||repeat.businessDate!==input.reviewDate||repeat.reason!==input.reason||!(repeat.after.decisions as Array<{businessDate:string;actualStatus?:string}>|undefined)?.some(c=>c.businessDate===input.reviewDate&&c.actualStatus===input.targetStatus)))throw new WorkflowError(requestUsedMessage);return {ok:true,businessDate:repeat.businessDate,repeated:true};}
     if(!schedule.isPromoted||!schedule.actualPublishAt)throw new WorkflowError('只能处理已发布的推广帖。',422);
     const before=await promotionSnapshot(tx,schedule.id),fingerprint=timelineFingerprint(before);
     if(!before.campaigns.length&&schedule.promotionStatus!=='awaiting_promotion')throw new WorkflowError('该帖已有历史推广状态，不能作为首次安排重新开始。');
-    if(input.fingerprint&&input.fingerprint!==fingerprint)throw new StaleWriteError('推广记录已变化，请刷新后核对。');
+    if(input.fingerprint&&input.fingerprint!==fingerprint)throw new StaleWriteError(staleRecordMessage("这篇帖子的推广记录"));
     if(input.confirmImpact&&!input.fingerprint)throw new WorkflowError('请重新预览本次修改的影响。');
     const publishedOn=shanghaiDateKey(schedule.actualPublishAt),today=shanghaiDateKey(now),date=input.reviewDate;
     if(date<publishedOn)throw new WorkflowError('业务日期不能早于实际发布日期。',422);

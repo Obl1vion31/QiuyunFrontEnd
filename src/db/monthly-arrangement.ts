@@ -1,3 +1,4 @@
+import {requestUsedMessage,sealedMeetingMessage,preplanRequiredMessage} from './business-messages';
 import {effectiveCategoryName} from './content-config';
 import {readScheduleComparison} from './schedule-baseline';
 import type {ScheduleBaseline} from './schedule-baseline';
@@ -48,7 +49,7 @@ export async function readArrangement(db:Database,month:string){
 }
 export async function assertMeetingMutable(db:Database,meetingId:string){
  const [plan]=await db.select({sealed:s.operationsMonthlyPlan.sealedVersionId}).from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.meetingId,meetingId));
- if(plan?.sealed)throw new ArrangementError('MONTHLY_MEETING_SEALED','月例会已封存，会议和计划不能再编辑。后续调整请在排期页填写原因。',403);
+ if(plan?.sealed)throw new ArrangementError('MONTHLY_MEETING_SEALED',sealedMeetingMessage,403);
 }
 /** 原预排期保留在既有版本；最终基准由管理员看到的首轮实际安排形成。 */
 export async function arrangedContent(db:Database,plan:Plan,rows:Awaited<ReturnType<typeof arrangementRows>>):Promise<PlanContent>{
@@ -74,12 +75,12 @@ export async function changeArrangement(db:Database,id:string,input:{action:'dra
  return db.transaction(async tx=>{
   await lockPromotionWorkflow(tx);
   const [plan]=await tx.select().from(s.operationsMonthlyPlan).where(eq(s.operationsMonthlyPlan.id,id)).for('update');
-  if(!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','本月尚未确认预排期，不能提交首轮排期。',422);
+  if(!plan?.firstFinalizedAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',preplanRequiredMessage(plan?.month??'本月',actor.role),422);
   if(input.action==='confirm'||input.action==='return')requireAdmin(actor);
   if(input.action==='submit'&&actor.role==='admin')input={...input,action:'confirm'};
   const repeat=plan.arrangementHistory.find(h=>h.requestId===input.requestId);
-  if(repeat){if(repeat.action!==input.action||repeat.actor!==actor.username||repeat.fingerprint!==input.fingerprint)throw new WorkflowError('请求标识已使用，请重新核对。',422);return readArrangement(tx,plan.month);}
-  if(plan.arrangementStatus==='confirmed')throw new ArrangementError('MONTHLY_MEETING_SEALED','月例会已封存。',403);
+  if(repeat){if(repeat.action!==input.action||repeat.actor!==actor.username||repeat.fingerprint!==input.fingerprint)throw new WorkflowError(requestUsedMessage,422);return readArrangement(tx,plan.month);}
+  if(plan.arrangementStatus==='confirmed')throw new ArrangementError('MONTHLY_MEETING_SEALED',sealedMeetingMessage,403);
   if(input.action==='draft'){
    const history:Plan['arrangementHistory']=[...plan.arrangementHistory,{at:new Date().toISOString(),actor:actor.username,action:'draft',reason:input.reason.trim(),requestId:input.requestId,fingerprint:input.fingerprint}];
    await tx.update(s.operationsMonthlyPlan).set({arrangementHistory:history,updatedAt:new Date()}).where(eq(s.operationsMonthlyPlan.id,id));

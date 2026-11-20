@@ -1,3 +1,4 @@
+import {validationMessage} from '../../db/validation-messages';
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { getDb } from '../../db/client';
@@ -14,7 +15,7 @@ export const PATCH: APIRoute = async ({ request, url, locals }) => {
     if (request.headers.get('origin') !== url.origin) throw new WorkflowError('拒绝跨站操作。', 403);
     return Response.json({ ok: true, workspace: await saveOrganization(getDb(), locals.user!, await request.json()) });
   } catch (error) {
-    if (error instanceof z.ZodError) return Response.json({ message: error.issues[0].message }, { status: 422 });
+    if (error instanceof z.ZodError) return Response.json({ message: validationMessage(error.issues[0]) }, { status: 422 });
     return workflowErrorResponse(error);
   }
 };

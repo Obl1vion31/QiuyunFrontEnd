@@ -1,3 +1,4 @@
+import {preplanRequiredMessage} from './business-messages';
 import {effectiveCategoryName} from './content-config';
 import {and,eq,inArray,isNull} from 'drizzle-orm';
 import type {Database} from './client';
@@ -20,13 +21,13 @@ async function bodyOf(request:Request):Promise<Record<string,any>>{
 }
 export async function readScheduleStructures(db:Database,contentIds:string[]){return (await records(db,contentIds)).map(structure);}
 /** 单帖和成对改期共用月份门禁；事务调用者负责短期锁和原子写入。 */
-export async function assertScheduleMonthRules(db:Database,input:{months:string[];current?:Pick<typeof s.operationsContentSchedule.$inferSelect,'actualPublishAt'|'cancelledAt'>;newMonth:string;creating:boolean;moving:boolean;reason:string}){
+export async function assertScheduleMonthRules(db:Database,input:{months:string[];current?:Pick<typeof s.operationsContentSchedule.$inferSelect,'actualPublishAt'|'cancelledAt'>;newMonth:string;creating:boolean;moving:boolean;reason:string;role?:OperationsUser['role']}){
  const {current,newMonth,creating,moving,reason}=input;
  const plans=input.months.length?await db.select({month:s.operationsMonthlyPlan.month,firstFinalizedAt:s.operationsMonthlyPlan.firstFinalizedAt,arrangementStatus:s.operationsMonthlyPlan.arrangementStatus}).from(s.operationsMonthlyPlan).where(inArray(s.operationsMonthlyPlan.month,input.months)):[];
  for(const month of input.months){
   const plan=plans.find(p=>p.month===month);
   const preplanned=isLegacyScheduleMonth(month)||!!plan?.firstFinalizedAt;
-  if((creating||moving)&&month===newMonth&&!preplanned)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',month+' 尚未确认预排期，不能新增或移入排期。当前输入已保留。',422);
+  if((creating||moving)&&month===newMonth&&!preplanned)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED',preplanRequiredMessage(month,input.role),422);
   if(current&&!moving&&!preplanned&&!current.actualPublishAt&&!current.cancelledAt)throw new ArrangementError('MONTHLY_PREPLAN_REQUIRED','遗留内容在月例会确认预排期前保持原安排，不能提前改动。',422);
  }
  if((input.months.some(isLegacyScheduleMonth)||plans.some(p=>p.arrangementStatus==='confirmed'))&&!reason)throw new ScheduleReasonError('月排期V0已定稿，请填写本次调整原因。当前输入已保留。');
@@ -83,7 +84,7 @@ export async function guardedScheduleWrite(db:Database,request:Request,actor:Ope
  const creating=schedulePath&&(!parts[2]||parts[2]==='versions'||!!current?.schedule.cancelledAt);
  const moving=!!current&&!!newMonth&&newMonth!==dateMonth(current.schedule.plannedPublishAt);
  const reason=String(values.changeReason||values.monthlyPlanReason||values.planChangeReason||values.reason||'').trim();
- await assertScheduleMonthRules(db,{months:[...months],current:current?.schedule,newMonth,creating,moving,reason});
+ await assertScheduleMonthRules(db,{months:[...months],current:current?.schedule,newMonth,creating,moving,reason,role:actor.role});
  if(request.method==='DELETE'){requireAdmin(actor);if(!reason)throw new WorkflowError('请填写取消排期的原因。',422);}
  const beforeContexts=await readSchedulePlanContexts(db,before.map(r=>r.id));
  const response=await next();

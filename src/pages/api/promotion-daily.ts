@@ -1,3 +1,5 @@
+import {validationMessage} from '../../db/validation-messages';
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import {effectiveCategoryName} from '../../db/content-config';
 import {writePromotionDaily} from '../../db/promotion-daily-write';
 import {platformNoteIdSchema} from '../../db/platform-note-id';
@@ -113,7 +115,7 @@ export const GET: APIRoute = async ({ url }) => {
 
 export const POST: APIRoute = async ({ request, url,locals }) => {
   const origin = request.headers.get('origin');
-  if (!origin || origin !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (!origin || origin !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
 
   let form: FormData;
   try {
@@ -127,7 +129,7 @@ export const POST: APIRoute = async ({ request, url,locals }) => {
     const fields: Record<string, string[]> = {};
     for (const issue of result.error.issues) {
       const field = String(issue.path[0] ?? 'form');
-      (fields[field] ??= []).push(issue.message);
+      (fields[field] ??= []).push(validationMessage(issue));
     }
     return Response.json({ message: '请检查日度数据。', fields }, { status: 422 });
   }

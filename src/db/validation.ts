@@ -1,3 +1,4 @@
+import {validationMessage} from './validation-messages';
 import {contentRoles,rolesForCategory} from './content-roles';
 import {operationTypes,isPromotionType} from './operation-types';
 import { z } from 'zod';
@@ -116,7 +117,7 @@ export const issuesByField = (issues: z.core.$ZodIssue[]) => {
   const fields: Record<string, string[]> = {};
   for (const issue of issues) {
     const field = String(issue.path?.[0] ?? 'form');
-    (fields[field] ??= []).push(issue.message);
+    (fields[field] ??= []).push(validationMessage(issue));
   }
   return fields;
 };

@@ -1,3 +1,5 @@
+import {unsafeSubmissionMessage} from '../../../../db/business-messages';
+import {validationMessage} from '../../../../db/validation-messages';
 import {readScheduleStructures} from '../../../../db/schedule-edit-policy';
 /**
  * 推广帖按版本与生效日期更正笔记 ID；普通非推广保留帖子共享字段。
@@ -34,12 +36,12 @@ const schema = z.object({
 });
 
 export const POST: APIRoute = async ({ request, url, params, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   let form: FormData;
   try { form = await request.formData(); } catch { return Response.json({ message: '请求必须使用有效表单。' }, { status: 400 }); }
   if(form.has('versionId')) {
     const input=correctionSchema.safeParse(Object.fromEntries(form));
-    if(!input.success)return Response.json({message:input.error.issues[0]?.message??'请核对更正范围。'},{status:422});
+    if(!input.success)return Response.json({message:validationMessage(input.error.issues[0])??'请核对更正范围。'},{status:422});
     try{return Response.json(await getDb().transaction(tx=>correctVersionNote(tx,params.contentId!,input.data,locals.user!)));}
     catch(error){return workflowErrorResponse(error);}
   }
@@ -48,7 +50,7 @@ export const POST: APIRoute = async ({ request, url, params, locals }) => {
     expectedPlatformNoteId:form.get('expectedPlatformNoteId'),
     confirmSharedUpdate: form.get('confirmSharedUpdate'),
   });
-  if (!parsed.success) return Response.json({ message: parsed.error.issues[0]?.message ?? '请检查笔记 ID。' }, { status: 422 });
+  if (!parsed.success) return Response.json({ message: validationMessage(parsed.error.issues[0]) ?? '请检查笔记 ID。' }, { status: 422 });
 
   try {
     const result=await getDb().transaction(async tx=>{

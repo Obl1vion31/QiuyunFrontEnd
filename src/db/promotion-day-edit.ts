@@ -1,3 +1,4 @@
+import {requestUsedMessage} from './business-messages';
 import {randomUUID} from 'node:crypto';
 import {asc,eq,sql} from 'drizzle-orm';
 import {type OperationsUser} from '../auth/permissions';
@@ -36,7 +37,7 @@ export async function saveHistoricalPromotionDay(db:Database,input:HistoricalDay
   const requestKey=input.requestKey??randomUUID();
   const [repeat]=await tx.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,requestKey));
   if(repeat){
-   if(repeat.changedById!==actor.id||repeat.after.dayEditSignature!==signature)throw new WorkflowError('请求编号已被使用，请重新保存。',422);
+   if(repeat.changedById!==actor.id||repeat.after.dayEditSignature!==signature)throw new WorkflowError(requestUsedMessage,422);
    return {ok:true,repeated:true,metricId:metric.id};
   }
   const before=await promotionSnapshot(tx,campaign.scheduleId),context=await readPromotionContext(tx),date=metric.metricDate;

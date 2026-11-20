@@ -86,3 +86,7 @@ content-config／content-config-values是按学科帖子类型、默认运营类
 
 - `schedule-business-history.ts`：排期、发布和内容／复盘的业务事件纯投影，保留真实前后值及来源依据。
 - `schedule-business-history-read.ts`：只在详情／查帖GET补读对应帖子的复盘与笔记ID历史，不加入写入校验查询。
+
+
+- business-messages.ts：浏览器安全的操作文案，统一周会截止、月会封存、预排期角色指引及保存结果未知说明，不参与权限或业务判断。
+- validation-messages.ts：Zod 错误输出边界的中文与业务字段名，保留原校验规则、字段键及接口结构。

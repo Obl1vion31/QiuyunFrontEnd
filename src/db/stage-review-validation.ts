@@ -1,3 +1,4 @@
+import {validationMessage} from './validation-messages';
 import { z } from 'zod';
 import { optionalPlatformNoteIdSchema } from './platform-note-id';
 import { shanghaiDateTime } from './validation';
@@ -40,6 +41,6 @@ export const formObject = (form: FormData) => Object.fromEntries(form.entries())
 
 export const issuesByField = (issues: z.core.$ZodIssue[]) => {
   const fields: Record<string, string[]> = {};
-  for (const issue of issues) (fields[String(issue.path[0] ?? 'form')] ??= []).push(issue.message);
+  for (const issue of issues) (fields[String(issue.path[0] ?? 'form')] ??= []).push(validationMessage(issue));
   return fields;
 };

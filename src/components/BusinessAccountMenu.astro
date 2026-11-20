@@ -49,7 +49,7 @@ const panelId = `business-account-${placement}`;
       for (const key of Object.keys(sessionStorage)) if (key.startsWith('business-console:')) sessionStorage.removeItem(key);
       window.location.replace('/login');
     } catch {
-      if (message) { message.textContent = '退出失败，请重试。'; message.hidden = false; }
+      if (message) { message.textContent = '暂未确认退出结果。请保留尚未保存的内容，再重新打开工作台核对登录状态。'; message.hidden = false; }
       delete target.dataset.signingOut; target.disabled = false; target.textContent = '退出登录';
     }
   });

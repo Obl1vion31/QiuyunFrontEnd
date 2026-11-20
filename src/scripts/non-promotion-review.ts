@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {checkpointLabel} from '../db/non-promotion-nodes';
 import './business-data-motion';
 import './promotion-disclosure';
@@ -219,7 +220,7 @@ function initialize() {
    const incomingUpcoming=html.querySelector<HTMLElement>('[data-upcoming-reviews]'),currentUpcoming=document.querySelector<HTMLElement>('[data-upcoming-reviews]');
    if(incomingUpcoming){if(currentUpcoming)currentUpcoming.replaceChildren(...incomingUpcoming.childNodes);else table.closest('.table-pane')!.append(incomingUpcoming);}else currentUpcoming?.remove();
    document.dispatchEvent(new Event('business:inspector-refresh'));document.dispatchEvent(new Event('business:promotion-fragment-updated'));arrange();
-   }catch(error){if(!read.isCurrent())return;const output=document.querySelector<HTMLElement>('[data-shared-review-date-add] output');if(output)output.textContent=error instanceof Error?error.message:'日期已保存，列表刷新失败，请刷新页面查看。';}finally{read.finish();}
+   }catch(error){if(!read.isCurrent())return;const output=document.querySelector<HTMLElement>('[data-shared-review-date-add] output');if(output)output.textContent=readableOperationError(error,'日期已保存，列表刷新失败，请刷新页面查看。');}finally{read.finish();}
   };document.addEventListener('business:review-date-saved',dateSaved);document.addEventListener('astro:before-swap',()=>document.removeEventListener('business:review-date-saved',dateSaved),{once:true});
   inspector.addEventListener('business:edit-reclaimed' ,event=>{const target=event.target as HTMLFormElement;if(target.matches('[data-review-form]'))(event as CustomEvent).detail.waitUntil(refresh(target));});
   inspector.addEventListener('submit', async event => {
@@ -262,7 +263,7 @@ function initialize() {
         for(const input of form.querySelectorAll<HTMLInputElement|HTMLButtonElement>('input:not([type=hidden]),[data-note-cancel]'))input.disabled=true;
         await refreshIdentity(form);
       } else await navigate(form.dataset.successHref || location.href);
-    } catch (error) { output.setAttribute('role','alert');output.textContent = error instanceof Error && error.message.startsWith('保存已成功') ? error.message : '连接失败，当前输入已保留，请重试。'; }
+    } catch (error) { output.setAttribute('role','alert');output.textContent = error instanceof Error && error.message.startsWith('保存已成功') ? error.message : saveResultUnknownMessage; }
     finally { button.disabled = false; }
   });
 }

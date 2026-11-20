@@ -1,3 +1,4 @@
+import {readableOperationError} from '../db/business-messages';
 import ScheduleExecutionSummary from './ScheduleExecutionSummary';
 import WeeklyResultOverview from './WeeklyResultOverview';
 import {useReportMotion} from './ReportCharts';
@@ -20,7 +21,7 @@ export default function WeeklyMeetingPresentation({snapshot,postReferences={},di
  const [monthlyPreview,setMonthlyPreview]=useState(generated.monthly);
  const [monthlyError,setMonthlyError]=useState(''),[monthlyBusy,setMonthlyBusy]=useState(false);
  useEffect(()=>setMonthlyPreview(generated.monthly),[generated.monthly?.fingerprint]);
- async function loadLegacyMonthly(){setMonthlyBusy(true);setMonthlyError('');try{const response=await fetch(`/api/meeting-reviews/${meeting.id}/monthly-material`),result=await response.json();if(!response.ok)throw new Error(result.message);setMonthlyPreview(result.monthly);onChange?.({...draft,monthlyRefreshFingerprint:result.monthly.fingerprint});}catch(e){setMonthlyError((e as Error).message);}finally{setMonthlyBusy(false);}}
+ async function loadLegacyMonthly(){setMonthlyBusy(true);setMonthlyError('');try{const response=await fetch(`/api/meeting-reviews/${meeting.id}/monthly-material`),result=await response.json();if(!response.ok)throw new Error(result.message);setMonthlyPreview(result.monthly);onChange?.({...draft,monthlyRefreshFingerprint:result.monthly.fingerprint});}catch(e){setMonthlyError(readableOperationError(e));}finally{setMonthlyBusy(false);}}
  const keys=useRef<string[]>((draft.issues??[]).map((i:any,index:number)=>i.id??`initial-${index}`));
  const issueTable=useRef<HTMLTableElement>(null);
  const update=(key:string,value:any)=>onChange?.({...draft,[key]:value});

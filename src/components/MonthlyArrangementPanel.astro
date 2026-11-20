@@ -1,4 +1,5 @@
 ---
+import {preplanRequiredMessage} from '../db/business-messages';
 import {ScheduleComparisonTable} from './ScheduleExecutionSummary';
 import {getDb} from '../db/client';
 import {readArrangement} from '../db/monthly-arrangement';
@@ -11,7 +12,7 @@ const labels={closed:'尚未确认预排期',editing:'首轮排期中',review_pe
 ---
 {active?<section class="arrangement-panel" data-arrangement-stage={state.stage} data-arrangement-role={admin?'admin':'employee'} aria-label="本月排期工作区">
  <header class:list={["arrangement-heading",{"is-sealed":state.stage==='confirmed'}]}><div class="arrangement-title"><h2>{state.legacyV0?'历史月排期 V0':labels[state.stage]}</h2>{state.stage!=='closed'&&<p class="arrangement-counts">{!state.legacyV0&&<>{state.stage==='confirmed'?'定稿计划':'预排期'} <b data-arrangement-planned>{state.preplanned}</b> 篇<span aria-hidden="true"> · </span></>}当前安排 <b data-arrangement-count>{state.rows.length}</b> 篇</p>}</div>
- {state.stage==='closed'?<p>本月确认预排期后才能新增或移入排期。已发布记录保留。</p>:state.legacyV0?<p>历史月份沿用既有排期，后续调整请填写原因。</p>:state.stage==='confirmed'?null:<p>{state.stage==='review_pending'?'已提交管理员核对，定稿前仍可继续排期。':'单帖保存用于暂存；整月排好后再提交核对。'}</p>}
+ {state.stage==='closed'?<p>{preplanRequiredMessage(month,admin?'admin':'employee')}已发布记录保留。</p>:state.legacyV0?<p>历史月份沿用既有排期，后续调整请填写原因。</p>:state.stage==='confirmed'?null:<p>{state.stage==='review_pending'?'已提交管理员核对，定稿前仍可继续排期。':'单帖保存用于暂存；整月排好后再提交核对。'}</p>}
  </header>
  <div class="arrangement-content"><slot/></div>
  {state.stage!=='closed'&&!state.legacyV0&&<section class="arrangement-review" aria-label="首轮排期核对">

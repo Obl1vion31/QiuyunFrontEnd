@@ -1,4 +1,5 @@
 ---
+import {validationMessage} from '../db/validation-messages';
 import { desc, eq } from 'drizzle-orm';
 import BusinessPromotionSnapshot from './BusinessPromotionSnapshot.astro';
 import { getDb } from '../db/client';
@@ -26,7 +27,7 @@ try {
     periodStart = selected.periodStart; periodEnd = selected.periodEnd;
   } else {
     const parsed = stageSnapshotSchema.safeParse({ periodStart, periodEnd, requestKey: crypto.randomUUID() });
-    if (!parsed.success) error = parsed.error.issues[0].message;
+    if (!parsed.success) error = validationMessage(parsed.error.issues[0]);
     else snapshot = await generateStageSnapshot(db, periodStart, periodEnd);
   }
 } catch (e) { console.error('stage review read failed', e); error = '阶段复盘暂时不可用，请稍后重试。'; }

@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage} from '../db/business-messages';
 import {businessConfirm} from './business-dialog';
 import {refreshPromotionSchedule,randomRequestKey} from './promotion-timeline';
 import {openStateBubble} from './promotion-daily-form';
@@ -87,7 +88,7 @@ function initialize(){
     saved=true;form.dataset.editing='false';form.dataset.dirty='false';busy=false;render();unsaved();
     try{await refreshPromotionSchedule(form.dataset.scheduleId!);document.querySelector<HTMLFormElement>(`[data-saved-review="${CSS.escape(form.dataset.savedReview!)}"]`)?.querySelector<HTMLButtonElement>('[data-continue-review]')?.focus({preventScroll:true});}
     catch{output.textContent='已保存，结果读取失败。';again.disabled=true;const retry=document.createElement('button');retry.type='button';retry.className='business-action-secondary';retry.textContent='重新读取';output.append(retry);retry.addEventListener('click',async()=>{retry.disabled=true;try{await refreshPromotionSchedule(form.dataset.scheduleId!);}catch{retry.disabled=false;}});}
-   }catch{output.textContent='连接失败，输入已保留，请重试。';}
+   }catch{output.textContent=saveResultUnknownMessage;}
    finally{busy=false;awaitingReason=false;if(form.isConnected){render();if(saved)again.disabled=true;}}
   });render();
  }

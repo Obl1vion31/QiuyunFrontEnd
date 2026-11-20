@@ -1,3 +1,4 @@
+import {readableOperationError,saveResultUnknownMessage} from '../db/business-messages';
 import {businessDateTime} from './business-date';
 import {mayOperate} from './business-permissions';
 import {trackFormChanges} from './form-changes';
@@ -62,7 +63,7 @@ export function initializePlacement(hooks:Hooks){
    },{signal:readAbort.signal,isCurrent:()=>seq===readGeneration,label:'正在核对目标日排期…'});
    if(!value)return;current=value;requestKey=crypto.randomUUID();render(initial?'move':previousChoice);
    form.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:['placementNextDate','placementNextTime','placementReturnDate','placementReturnTime',...(initial?['placementChoice']:[])]}}));
-  }catch(error){if(seq!==readGeneration||readAbort.signal.aborted)return;message.textContent=error instanceof Error?error.message:'读取失败，当前输入已保留。';recheck.hidden=false;}
+  }catch(error){if(seq!==readGeneration||readAbort.signal.aborted)return;message.textContent=readableOperationError(error,'读取失败，当前输入已保留。');recheck.hidden=false;}
  }
  async function open(row:RecordRow,day:string,detail:boolean,value?:Preview){
   if(busy)return;
@@ -109,7 +110,7 @@ export function initializePlacement(hooks:Hooks){
    }
    written=true;tracker.capture();announce(target?'两篇排期已对换。':'排期已移到 '+current.day+'。');
    pendingRead={id:record.id,month:current.day.slice(0,7)};await finishRead();
-  }catch{if(fast){const preservedKey=requestKey;busy=false;body.inert=false;await open(record,current.day,false,current);requestKey=preservedKey;busy=true;}message.textContent='无法连接服务，当前选择与输入已保留，可重试保存。';}
+  }catch{if(fast){const preservedKey=requestKey;busy=false;body.inert=false;await open(record,current.day,false,current);requestKey=preservedKey;busy=true;}message.textContent=saveResultUnknownMessage;}
   finally{busy=false;body.inert=written;if(recheck.hidden&&!written)submit.disabled=false;}
  }
  async function drop(row:RecordRow,day:string,node:HTMLElement){
@@ -122,7 +123,7 @@ export function initializePlacement(hooks:Hooks){
    if(!result.items.length&&!result.reasonMessage&&new Date(at+':00+08:00').getTime()>Date.now()){
     record=row;current=result;fromDetail=false;written=false;requestKey=crypto.randomUUID();control('reason').value='';render();tracker.capture();await save(true);
    }else await open(row,day,false,result);
-  }catch(error){announce(error instanceof Error?error.message:'读取失败，请重试。');}finally{node.removeAttribute('aria-busy');}
+  }catch(error){announce(readableOperationError(error,'读取失败，请重试。'));}finally{node.removeAttribute('aria-busy');}
  }
  const clearDrag=()=>{dragId='';document.querySelectorAll('[data-placement-over]').forEach(n=>n.removeAttribute('data-placement-over'));document.querySelectorAll('.placement-dragging').forEach(n=>n.classList.remove('placement-dragging'));};
  function bind(){

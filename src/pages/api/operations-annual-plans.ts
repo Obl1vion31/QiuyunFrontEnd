@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import {effectiveCategoryName} from '../../db/content-config';
 import type { APIRoute } from 'astro';
 import { lockAnnualPlanWrites } from '../../db/annual-plan-storage';
@@ -23,7 +24,7 @@ import {
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, url, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   let payload: unknown;
   try {
     payload = await request.json();

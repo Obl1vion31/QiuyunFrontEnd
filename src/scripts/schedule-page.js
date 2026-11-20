@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage} from '../db/business-messages';
 import {trackFormChanges} from './form-changes';
 import {resetPublicationNote,updatePublicationNote} from './publication-note-identity';
 import {canCreateRevision} from '../db/content-version-rules';
@@ -378,7 +379,7 @@ function initialize(){
           if (response.ok) {await finishSaved({id:null,month:record.plannedPublishAt.slice(0,7)});return;}
           if (error) error.textContent = result.message ?? '删除失败，请重试。';
         } catch {
-          if (error) error.textContent = '无法连接服务，请稍后重试。';
+          if (error) error.textContent = saveResultUnknownMessage;
         } finally {
           inspectorDelete.disabled=false;
         }
@@ -467,7 +468,7 @@ function initialize(){
             const error = publicationForm.querySelector(`[data-publication-error="${name}"]`);
             if (error) error.textContent = errors[0] ?? '';
           }
-        } catch { publicationMessage.textContent = '无法连接服务，请稍后重试。'; }
+        } catch { publicationMessage.textContent = saveResultUnknownMessage; }
         finally { submit.disabled = !!savedTarget; }
       });
       inspectorEdit?.addEventListener('click', () => openForm('edit', activeRecord));
@@ -544,7 +545,7 @@ function initialize(){
           }
           form.querySelector('[aria-invalid="true"]')?.focus();
         } catch {
-          message.textContent = '无法连接服务，请稍后重试。';
+          message.textContent = saveResultUnknownMessage;
         } finally {
           submitButton.disabled = !!savedTarget;
           submitButton.textContent = applyPlanChange ? '提交改期申请' : formSubmitLabel();

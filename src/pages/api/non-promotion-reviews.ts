@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import {effectiveCategoryName} from '../../db/content-config';
 import {sameNonPromotionCohort} from '../../db/content-roles';
 import {lockPromotionWorkflow} from '../../db/promotion-pauses';
@@ -29,7 +30,7 @@ import {nodeCanRecord,reviewNodeWindow} from '../../db/non-promotion-nodes';
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, url, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   let form: FormData;
   try { form = await request.formData(); } catch { return Response.json({ message: '请求必须使用有效表单。' }, { status: 400 }); }
   const result = nonPromotionItemSchema.safeParse(formObject(form));
@@ -190,7 +191,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
     });
     if (saved.kind === 'invalid-schedule') return Response.json({ message: '只能复盘已实发、当前分类允许复盘的非推广内容。' }, { status: 409 });
     if(saved.kind==='interval-changed')return Response.json({code:'STALE_WRITE',message:'统计区间已更新或属于旧口径，请刷新核对；原数据只读保留。'},{status:409});
-    if(saved.kind==='conflict')return Response.json({code:'STALE_WRITE',message:'这条复盘已发生变化，当前输入已保留。请刷新页面核对最新记录后再填写。'},{status:409});
+    if(saved.kind==='conflict')return Response.json({code:'STALE_WRITE',message:'这条复盘已更新，本次修改尚未保存。请先保留需要的输入，再打开最新记录核对。'},{status:409});
     if(saved.kind==='date-window')return Response.json({message:`数据截止日须在 ${saved.min} 至 ${saved.max}，且只能填写昨天及以前的数据。`,fields:{recordedThrough:['请选择窗口内的历史日期']}},{status:422});
     if (saved.kind === 'note-id-required') return Response.json({ message: '首次保存复盘前，请填写这篇帖子的小红书笔记 ID。', fields: { platformNoteId: ['请填写笔记 ID'] } }, { status: 422 });
     if (saved.kind === 'skipped') return Response.json({ message: '请先恢复这个节点，再补录复盘。' }, { status: 409 });

@@ -1,3 +1,4 @@
+import {readableOperationError,saveResultUnknownMessage} from '../db/business-messages';
 import MonthlyPlanSummary from './MonthlyPlanSummary';
 import WeeklyCardDetails from './WeeklyCardDetails';
 import {useEffect,useState,useRef,type CSSProperties} from 'react';
@@ -36,7 +37,7 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
     if(!response.ok)throw new Error(result.message);return result;
    },{signal:controller.signal});
    if(result?.plan){setExecution(result.plan.items);setLocked(!!result.plan.lockedAt);setFinalized(!!result.plan.firstFinalizedAt);setCanonicalAdditions(result.plan.additions);setEffectiveBatches(result.plan.additions.map((b:{id:string})=>b.id));}
-  })().catch(e=>setMessage('读取计划状态失败：'+e.message+'，输入已保留。'));
+  })().catch(e=>setMessage(readableOperationError(e,'暂时无法读取计划状态，当前输入仍在。请稍后重试。')));
   return()=>controller.abort();
  },[editable,draft.id]);
  const additions=editable?[...canonicalAdditions,...draft.additions.filter(b=>!canonicalAdditions.some(c=>c.id===b.id))]:draft.additions;
@@ -65,7 +66,7 @@ export default function MonthlyPlanEditor({draft,material,editable,onChange,onCo
    if(!onConfirm||!await onConfirm(value)){onChange({...value,editorSteps:{...value.editorSteps,...oldSteps}});setMessage('安排尚未确认，输入及分配已保留。请核对保存反馈后重试。');return;}
    setHolding({});
    requestAnimationFrame(()=>{if(next==='confirmed'){host.current?.querySelector<HTMLElement>('.monthly-plan-step-actions button')?.focus({preventScroll:true});return;}const scroll=host.current?.querySelector<HTMLElement>('.monthly-pool-scroll');if(scroll)scroll.scrollTop=0;host.current?.querySelector<HTMLElement>('.monthly-plan-pool [data-plan-source][draggable=true] [data-popover-trigger]')?.focus({preventScroll:true});});
-  }catch(e){onChange({...value,editorSteps:{...value.editorSteps,...oldSteps}});setMessage((e as Error).message||'保存失败，当前输入已保留。');}
+  }catch(e){onChange({...value,editorSteps:{...value.editorSteps,...oldSteps}});setMessage(readableOperationError(e,saveResultUnknownMessage));}
   finally{setBusy(false);}
  }
  function quantity(b:Batch,g:PlanGroup,value:string){

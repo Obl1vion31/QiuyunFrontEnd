@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import {readWeeklyMaterial,selectWeeklyMaterial} from '../../db/meeting-weekly-material';
 import {requireNewMonthlyPeriod} from '../../db/monthly-meeting';
 import {createMonthlyPlan,deleteUnpublishedMonthlyPlan} from '../../db/monthly-plans';
@@ -17,7 +18,7 @@ import { formObject, issuesByField, meetingReviewSchema } from '../../db/stage-r
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, url, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   let form: FormData;
   try { form = await request.formData(); } catch { return Response.json({ message: '请求必须使用有效表单。' }, { status: 400 }); }
   const result = meetingReviewSchema.safeParse(formObject(form));
@@ -44,7 +45,7 @@ export const POST: APIRoute = async ({ request, url, locals }) => {
 };
 
 export const DELETE: APIRoute = async ({ request, url }) => {
-  if (request.headers.get('origin') !== url.origin) return new Response('拒绝跨站写入。', { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return new Response(unsafeSubmissionMessage, { status: 403 });
   let payload: { ids?: unknown;expectedUpdatedAt?:Record<string,string> };
   try { payload = await request.json(); } catch { return Response.json({ message: '请求格式无效。' }, { status: 400 }); }
   const ids = Array.isArray(payload.ids) ? [...new Set(payload.ids.filter((id): id is string => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id)))].slice(0, 100) : [];

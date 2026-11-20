@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage} from '../db/business-messages';
 import {getInspector} from './business-inspector';
 function initialize(){
  const pane=document.querySelector<HTMLElement>('[data-schedule-approval-inspector]');
@@ -23,6 +24,6 @@ document.addEventListener('submit',async event=>{
    document.querySelectorAll('[data-approval-queue-count],[data-approval-nav-count]').forEach(count=>{count.textContent=remaining;});
   }
   document.dispatchEvent(new CustomEvent('business:workflow-updated'));document.dispatchEvent(new CustomEvent('business:schedule-approval-decided',{detail:{id:form.dataset.scheduleId}}));
- }catch{output.textContent='连接失败，输入已保留。';}finally{buttons.forEach(button=>button.disabled=false);}
+ }catch{output.textContent=saveResultUnknownMessage;}finally{buttons.forEach(button=>button.disabled=false);}
 },true);
 document.addEventListener('astro:page-load',initialize);

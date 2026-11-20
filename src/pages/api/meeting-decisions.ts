@@ -1,3 +1,5 @@
+import {unsafeSubmissionMessage,requestUsedMessage} from '../../db/business-messages';
+import {validationMessage} from '../../db/validation-messages';
 import {StaleWriteError} from '../../db/schedule-workflow';
 import type {APIRoute} from 'astro';
 import {z} from 'zod';
@@ -13,13 +15,13 @@ import {eq,and} from 'drizzle-orm';
 export const prerender=false;
 const schema=z.object({id:z.string().min(1).max(160),targetStatus:z.string(),expectedTargetStatus:z.string(),expectedVersionNumber:z.number().int().min(0),reason:z.string().trim().min(1,'请填写修改理由').max(500),requestKey:z.uuid()});
 export const POST:APIRoute=async({request,url,locals})=>{
- if(request.headers.get('origin')!==url.origin)return new Response('拒绝跨站写入。',{status:403});
+ if(request.headers.get('origin')!==url.origin)return new Response(unsafeSubmissionMessage,{status:403});
  let payload;try{payload=await request.json();}catch{return Response.json({message:'请求格式无效'},{status:400});}
- const parsed=schema.safeParse(payload);if(!parsed.success)return Response.json({message:parsed.error.issues[0].message},{status:422});
+ const parsed=schema.safeParse(payload);if(!parsed.success)return Response.json({message:validationMessage(parsed.error.issues[0])},{status:422});
  try{await getDb().transaction(async tx=>{
   await lockPromotionWorkflow(tx);
   const [repeat]=await tx.select().from(audits).where(eq(audits.requestKey,parsed.data.requestKey));
-  if(repeat){if(repeat.changedById!==locals.user!.id||repeat.reason!==parsed.data.reason||((repeat.after as any).meetingDecision?.action==='restart_testing'?'restart_testing':(repeat.after as any).meetingDecision?.targetStatus)!==parsed.data.targetStatus||(repeat.after as any).meetingDecision?.id!==parsed.data.id)throw new WorkflowError('请求已被使用。');return;}
+  if(repeat){if(repeat.changedById!==locals.user!.id||repeat.reason!==parsed.data.reason||((repeat.after as any).meetingDecision?.action==='restart_testing'?'restart_testing':(repeat.after as any).meetingDecision?.targetStatus)!==parsed.data.targetStatus||(repeat.after as any).meetingDecision?.id!==parsed.data.id)throw new WorkflowError(requestUsedMessage);return;}
   const context=await readPromotionContext(tx),decision=context.meetingDecisions.find(d=>d.id===parsed.data.id);
   if(!decision)throw new StaleWriteError('例会决定已变化，请刷新后核对。');
   if((decision.action==='restart_testing'?'restart_testing':decision.targetStatus)!==parsed.data.expectedTargetStatus||decision.versionNumber!==parsed.data.expectedVersionNumber)throw new StaleWriteError('例会安排已被更新，请刷新后核对。');

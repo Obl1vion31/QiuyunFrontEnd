@@ -39,3 +39,5 @@
 各工作台页的head共用 `BusinessConsoleFonts`；`styles/business-font-assets.ts` 为 `pages/fonts/business.css.ts` 与 `business.js.ts` 构建生成共享静态字体资源，常用原始切片在正文解析前同步准备，其余按需读取。Frame保留原字体栈，不以首帧速度切换字体。
 
 排期月度阶段由 MonthlyArrangementPanel、monthly-arrangement 与 schedule-edit-policy 共用；首轮在原月历落实、整月提交、管理员核对及永久封存。审批重放也经过同一事务守卫。取消排期标记撤下，schedule-execution-history 在排期与查帖共用前后变更展示。
+
+公共 Frame 与登录页共用 `scripts/business-validation.ts`，将浏览器默认字段提示转换为中文；服务端与浏览器的字段名称集中在 `db/validation-messages.ts`，校验约束继续由原表单和 schema 维护。

@@ -19,7 +19,7 @@
 .review-metric-row .review-decision select{box-sizing:border-box;width:100%;height:40px;min-width:0;padding:8px 4px 8px 8px;background:#fff;border:1px solid #d2d9e4;border-radius:6px;font:400 13px/22px var(--console-font);color:var(--console-ink)}
 :is(.review-metric-row,.review-state-bubble,.review-residual-editor) .business-action-primary{height:40px;border:1px solid #244fc8;border-radius:6px;background:linear-gradient(#4272e3,#315fd6);box-shadow:0 1px 2px #2449a328,inset 0 1px #ffffff30;color:#fff;font:500 13px/22px var(--console-font);padding:8px 10px;white-space:nowrap;cursor:pointer}
 .review-metric-row .review-submit{padding-inline:6px}.review-submit[data-success]{background:#348866;border-color:#2d775a}.review-submit:disabled{cursor:wait;opacity:.75}
-.review-metric-row [data-form-message]{grid-column:2/-1;margin:0;color:#913c35;font:400 13px/20px var(--console-font)}.review-metric-row [data-form-message]:not(:empty){padding-bottom:8px}.review-metric-row [data-form-message]:empty{display:none}
+.review-metric-row [data-form-message]{grid-column:2/-1;position:sticky;left:12px;justify-self:start;box-sizing:border-box;min-width:0;max-width:min(70ch,calc(100cqw - 108px));margin:0;color:#913c35;font:400 13px/20px var(--console-font);white-space:normal;overflow-wrap:anywhere}.review-metric-row [data-form-message]:not(:empty){padding-bottom:8px}.review-metric-row [data-form-message]:empty{display:none}
 #daily-table [data-saved-review] [data-toggle-day-state]:disabled{opacity:1;cursor:default}
 .review-day-state:disabled>span{color:var(--console-control-disabled-ink)}
 .review-saved-actions{position:relative;align-self:stretch;display:grid;align-content:center;min-width:0}

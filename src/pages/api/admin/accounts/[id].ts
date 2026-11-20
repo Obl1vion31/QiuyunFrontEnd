@@ -1,3 +1,4 @@
+import {validationMessage} from '../../../../db/validation-messages';
 import {StaleWriteError} from '../../../../db/schedule-workflow';
 import type {APIRoute} from 'astro';
 import {and,eq,sql} from 'drizzle-orm';
@@ -44,5 +45,5 @@ export const PATCH:APIRoute=async({request,url,params,locals})=>{
    await tx.insert(accountManagementAudit).values({actorId:locals.user!.id,targetId:target.id,action:input.action==='status'?(input.enabled?'enable':'disable'):input.action});
   });
   return Response.json({ok:true,updatedAt:updatedAt.toISOString(),...(input.action==='updateUsername'?{username:input.username}:{}),signedOut:locals.user!.id===params.id&&(input.action==='resetPassword'||input.action==='revokeSessions')});
- }catch(error){if(error instanceof z.ZodError)return Response.json({message:error.issues[0].message},{status:422});return workflowErrorResponse(accountConflict(error)??error);}
+ }catch(error){if(error instanceof z.ZodError)return Response.json({message:validationMessage(error.issues[0])},{status:422});return workflowErrorResponse(accountConflict(error)??error);}
 };

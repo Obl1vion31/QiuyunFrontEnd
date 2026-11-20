@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {appendScheduleDelay,type DelayDay} from './schedule-delay';
 import {businessConfirm} from './business-dialog';
 import {appendBusinessHistory,historyViewState,mergeInspectorHistory} from './schedule-business-history';
@@ -84,7 +85,7 @@ function bindForm(form: HTMLFormElement, endpoint: string, onSaved: () => void, 
       }
       document.dispatchEvent(new Event('business:workflow-updated')); onSaved();
       if(pane?.hasAttribute('data-inspector-contained')&&otherDrafts)document.dispatchEvent(new CustomEvent('business:schedule-execution-saved',{detail:{id:pane.dataset.selectedId,preserveInputs:true}}));
-    } catch { output.textContent = '连接失败，当前输入已保留，请重试。'; }
+    } catch { output.textContent = saveResultUnknownMessage; }
     finally { button.disabled = false; }
   });
 }
@@ -212,7 +213,7 @@ function initialize() {
       if(retained.size)(panel!.querySelector('form[data-dirty=true]')??delayHost.querySelector('form[data-dirty=true]'))?.dispatchEvent(new Event('input',{bubbles:true}));
     } catch(error){
       if(!read.isCurrent())return;
-      const message=element('p',`业务历史读取失败。${error instanceof Error?error.message:'请重试。'}`);message.className='schedule-history-status';message.setAttribute('role','alert');
+      const message=element('p',`业务历史读取失败。${readableOperationError(error,'请重试。')}`);message.className='schedule-history-status';message.setAttribute('role','alert');
       historyHost.replaceChildren(element('h3','业务历史'),message);
       const button=element('button','重新读取');button.type='button';button.className='business-action-secondary';button.addEventListener('click',()=>showPanel(id,retained));historyHost.append(button);
     } finally {if(token===panelToken)cleanup();}
@@ -275,7 +276,7 @@ function initialize() {
       const pendingMessage=publication!.querySelector<HTMLElement>('[data-publication-message]')!;
       if(pendingMessage.textContent==='正在核对发布记录，请稍后保存。')pendingMessage.textContent='';
       publication!.dispatchEvent(new CustomEvent('business:form-rebase',{detail:{fields:[...host.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('input,textarea')].filter(field=>!field.value||field instanceof HTMLInputElement&&field.type==='radio'&&!field.checked).map(field=>field.name)}}));
-    } catch (error) { if (read.isCurrent()) status.textContent = error instanceof Error ? error.message : '读取失败，请重新选择实发时间。'; } finally {read.finish();}
+    } catch (error) { if (read.isCurrent()) status.textContent = readableOperationError(error,'读取失败，请重新选择实发时间。'); } finally {read.finish();}
   }
   document.addEventListener('business:inspector-selection',event=>{if(!(event as CustomEvent).detail.id){++panelToken;stopLoading();}},{signal});
   signal.addEventListener('abort',()=>{stopLoading();stopPublicationRead();},{once:true});

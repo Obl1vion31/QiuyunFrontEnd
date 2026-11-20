@@ -61,7 +61,7 @@ const visibleRanges = ranges.filter(r => campaigns.some(c => c.id === r.campaign
         if (!response.ok) { out.textContent = result.message ?? '请确认影响后再保存。'; return; }
         const pane=form.closest<HTMLElement>('[data-inspector]'); if(pane)getInspector(pane).setClean();
         document.documentElement.dataset.unsaved = 'false'; location.reload();
-      } catch { out.textContent = '连接失败，输入已保留。'; }
+      } catch { out.textContent = "暂未收到保存结果。请保留当前输入，先核对最新记录，再决定是否重新提交。"; }
     });
   });
   setup(); document.addEventListener('astro:page-load', setup); document.addEventListener('business:inspector-render', setup);

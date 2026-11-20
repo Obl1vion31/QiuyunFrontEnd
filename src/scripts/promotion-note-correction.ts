@@ -1,3 +1,4 @@
+import {saveResultUnknownMessage,readableOperationError} from '../db/business-messages';
 import {businessConfirm} from './business-dialog';
 import {getInspector} from './business-inspector';
 import {trackFormChanges} from './form-changes';
@@ -17,7 +18,7 @@ function initialize(){
    const result=await readBusiness(form,async read=>{const res=await fetch(form.action+'?'+q,{cache:'no-store',signal:read.signal});const body=await res.json();if(!res.ok)throw new Error(body.message);return body;});
    if(!result||!form.isConnected)return;field('expectedFingerprint').value=result.fingerprint;form.closest('[data-note-identity]')!.querySelector('[data-current-note-id]')!.textContent=result.platformNoteId??'未填写';oldPeriods=noteIdPeriodsLabel(result.periods);
   };
-  form.addEventListener('business:note-edit',()=>{void preview().catch(error=>{if(form.isConnected)message.textContent=error.message??'读取失败，请重试。';});});
+  form.addEventListener('business:note-edit',()=>{void preview().catch(error=>{if(form.isConnected)message.textContent=readableOperationError(error,'暂时无法读取笔记归属，请稍后重试。');});});
   const refresh=async()=>{
    const selected=pane.dataset.selectedId,top=pane.querySelector<HTMLElement>('[data-inspector-body]')?.scrollTop??0;
    await refreshPromotionSchedule(form.dataset.scheduleId!,undefined,true);
@@ -34,7 +35,7 @@ function initialize(){
    if(saved){busy=true;try{await refresh();}catch{message.textContent='已保存，展示更新失败。请重新读取。';}finally{busy=false;}return;}
    if(!form.reportValidity())return;
    busy=true;button.disabled=true;
-   try{await preview();}catch(error){message.textContent=error instanceof Error?error.message:'读取更正范围失败，请重试。';busy=false;button.disabled=false;return;}
+   try{await preview();}catch(error){message.textContent=readableOperationError(error,'读取更正范围失败，请重试。');busy=false;button.disabled=false;return;}
    const data=new FormData(form),value=String(data.get('platformNoteId')).trim().toLowerCase(),from=String(data.get('effectiveOn'));
    const range=data.get('scope')==='version'?'本版本全部阶段':`${from} 起（包含当天）及之后`;
    if(!await businessConfirm(`V${form.dataset.versionNumber} · ${range}\n原记录：${oldPeriods||form.closest('[data-note-identity]')!.querySelector('[data-current-note-id]')!.textContent}\n新 ID：${value}\n\n此范围内原有的后续 ID 切换将被替换，其他版本保持。`,{title:'确认笔记 ID 更正',confirmLabel:'确认更正',cancelLabel:'继续编辑'})){busy=false;button.disabled=false;return;}
@@ -45,7 +46,7 @@ function initialize(){
     if(!response.ok){message.textContent=result.message??'更正失败，输入已保留。';if(result.code==='NOTE_ID_CHANGED'){await preview();requestKey=randomRequestKey();}return;}
     saved=true;changes.capture();if(!pane.querySelector('form[data-dirty=true]'))getInspector(pane).setClean();
     try{await refresh();}catch{message.textContent='已保存，展示更新失败。请重新读取。';button.textContent='重新读取';for(const control of form.querySelectorAll<HTMLInputElement|HTMLButtonElement>('input:not([type=hidden]),[data-note-cancel]'))control.disabled=true;}
-   }catch{message.textContent='连接失败，当前输入已保留，请重试。';}
+   }catch{message.textContent=saveResultUnknownMessage;}
    finally{busy=false;button.disabled=false;}
   });
  });

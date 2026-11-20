@@ -1,3 +1,4 @@
+import {unsafeSubmissionMessage} from '../../db/business-messages';
 import type { APIRoute } from 'astro';
 import { and,eq } from 'drizzle-orm';
 import { getDb } from '../../db/client';
@@ -6,7 +7,7 @@ import { workflowErrorResponse } from '../../db/workflow-api';
 import { z } from 'zod';
 export const prerender = false;
 export const POST: APIRoute = async ({ request, url, locals }) => {
-  if (request.headers.get('origin') !== url.origin) return Response.json({ message: '拒绝跨站写入。' }, { status: 403 });
+  if (request.headers.get('origin') !== url.origin) return Response.json({ message: unsafeSubmissionMessage }, { status: 403 });
   if (Number(request.headers.get('content-length')) > 3400000) return Response.json({ message: '每个文件最多 3 MB。' }, { status: 413 });
   try {
     const form = await request.formData(); const meetingId = z.uuid().safeParse(form.get('meetingId')); const file = form.get('file')??form.get('image');

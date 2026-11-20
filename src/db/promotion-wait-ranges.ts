@@ -1,3 +1,4 @@
+import {staleRecordMessage} from './business-messages';
 import {StaleWriteError} from './schedule-workflow';
 import {syncContinuousCheckpoints} from './continuous-schedule';
 import { asc, eq } from 'drizzle-orm';
@@ -38,7 +39,7 @@ export async function saveWaitRange(db: Database, input: z.infer<typeof waitRang
       return { id: existing.id, repeated: true };
     }
     if (id && (!existing || existing.campaignId !== input.campaignId)) throw new WorkflowError('没有找到该区间。', 404);
-    if (existing && existing.revision !== input.expectedRevision) throw new StaleWriteError('区间已被更新，请刷新后重试。');
+    if (existing && existing.revision !== input.expectedRevision) throw new StaleWriteError(staleRecordMessage("这段推广日期"));
     const context = await readPromotionContext(tx);
     context.waitRanges = context.waitRanges.filter(r => r.id !== existing?.id);
     const actual = await tx.select().from(metrics).where(eq(metrics.campaignId, campaign.id)).orderBy(asc(metrics.metricDate));

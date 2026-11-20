@@ -1,3 +1,4 @@
+import {readableOperationError} from '../db/business-messages';
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import type {MonthlyWorkspace} from '../db/monthly-workspace';
@@ -33,7 +34,7 @@ export default function PrivateSourceEditor({data,onSaved,summaryOnly=false}:{da
  async function save(event:React.FormEvent){
   event.preventDefault();if(saving.current||refreshPending&&!dirty.current)return;saving.current=true;setBusy(true);setMessage('');const sentEpoch=epoch.current;
   try{const response=await fetch('/api/monthly-private-data',{method:'PATCH',headers:{'Content-Type':'application/json','X-Business-Feedback':'local'},body:JSON.stringify({month:data.query.month,expectedRevision:data.privateData.revision,data:draft})});const result=await response.json();if(!response.ok)throw new Error(result.message);if(epoch.current===sentEpoch){dirty.current=false;document.documentElement.dataset.unsaved='false';}const refreshed=await onSaved();if(!refreshed){setRefreshPending(true);setMessage('已保存，页面结果暂未更新。请重试刷新结果。');}else if(epoch.current===sentEpoch){setRefreshPending(false);await finish();}else setMessage('本次数据已保存，还有新修改待保存。');}
-  catch(error){setMessage((error as Error).message+' 输入已保留。');}finally{saving.current=false;setBusy(false);}
+  catch(error){setMessage(readableOperationError(error)+' 输入已保留。');}finally{saving.current=false;setBusy(false);}
  }
  async function retryRefresh(){if(saving.current)return;saving.current=true;setBusy(true);try{if(await onSaved()){setRefreshPending(false);if(!dirty.current)await finish();else setMessage('结果已刷新，还有新修改待保存。');}else setMessage('已保存，页面结果暂未更新。请重试刷新结果。');}finally{saving.current=false;setBusy(false);}}
  const purposeName=(subjectId:string,id:string)=>(data.privateData.purposeCatalog?.[subjectId]??initialPurposes).find(p=>p.id===id)?.name??id;

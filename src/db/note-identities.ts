@@ -1,3 +1,4 @@
+import {requestUsedMessage} from './business-messages';
 import {createHash} from 'node:crypto';
 import {and,asc,eq,gte,inArray,isNull,ne,sql} from 'drizzle-orm';
 import type {Database} from './client';
@@ -83,7 +84,7 @@ export async function confirmPublicationNote(db:Reader,scheduleId:string,actual:
  const [schedule]=await db.select().from(s.operationsContentSchedule).where(eq(s.operationsContentSchedule.id,scheduleId));
  const original=await requireVersionNote(db,schedule.contentVersionId);
  if((!original.promoted&&!schedule.isPromoted)||!resolved)return;
- if(input.platformNoteId)throw new NoteIdentityError('笔记 ID 现已从发布链接自动提取，请刷新页面；当前输入已保留。','NOTE_ID_ENTRY_MOVED',422);
+ if(input.platformNoteId)throw new NoteIdentityError('笔记 ID 现已从发布链接自动提取。请先保留需要的输入，再刷新页面填写发布链接。','NOTE_ID_ENTRY_MOVED',422);
  const latest=noteIdOn(original.periods,'9999-12-31');
  const known=latest??publicationNoteId(schedule.publicationUrl);
  const changesIdentity=original.published&&(known?known!==resolved.noteId:input.publicationUrl!==schedule.publicationUrl);
@@ -111,7 +112,7 @@ export async function correctVersionNote(db:Reader,contentId:string,input:NoteCo
   const state=await requireVersionNote(db,input.versionId);
   if(state.contentId!==contentId||!state.promoted)throw new NoteIdentityError('请选择这篇推广帖的正确版本。','NOTE_VERSION_MISMATCH',422);
   const inputHash=digest({versionId:input.versionId,effectiveOn:input.effectiveOn,scope:input.scope,platformNoteId:input.platformNoteId}),[repeat]=await db.select().from(s.operationsPromotionTimelineAudit).where(eq(s.operationsPromotionTimelineAudit.requestKey,input.requestKey));
-  if(repeat){if(repeat.action!=='note_id_correction'||repeat.changedById!==actor.id||repeat.after.inputHash!==inputHash)throw new NoteIdentityError('请求编号已用于其他操作，请重新确认。','NOTE_REQUEST_REUSED');return {ok:true,repeated:true};}
+  if(repeat){if(repeat.action!=='note_id_correction'||repeat.changedById!==actor.id||repeat.after.inputHash!==inputHash)throw new NoteIdentityError(requestUsedMessage,'NOTE_REQUEST_REUSED');return {ok:true,repeated:true};}
   await initializeLegacyNotes(db,contentId);
   const before=await requireVersionNote(db,input.versionId);
   if(before.fingerprint!==input.expectedFingerprint)throw new NoteIdentityError('该版本笔记 ID 已更正，请重新核对影响范围；当前输入已保留。');
