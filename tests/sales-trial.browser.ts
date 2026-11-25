@@ -177,7 +177,13 @@ try {
   await shot(page, '10-registration-390');
   await button(phone, '关闭表单').click();
   await phone.waitFor({ state: 'hidden' });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  const phoneWidths = await page.evaluate(() => ({
+    viewport: innerWidth,
+    visible: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  assert.equal(phoneWidths.viewport, 390);
+  assert.ok(phoneWidths.content <= phoneWidths.visible, JSON.stringify(phoneWidths));
   assert.deepEqual(errors, []);
   assert.deepEqual(transmitted, []);
   console.log('正式运行包通过账号权限、流程、跨刷新和浏览器重开、同浏览器账号隔离、并行保存、月度运营隔离及三档截图检查。');
