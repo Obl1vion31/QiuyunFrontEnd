@@ -51,7 +51,9 @@ const { role } = Astro.props;
           <input id="source-query" name="postQuery" placeholder="粘贴分享链接、笔记 ID 或输入标题" maxlength="2000" autocomplete="off" />
           <button type="button" class="sales-control-button" data-find-post>查找</button>
         </div></div>
-        <p data-post-feedback class="sales-field-note" role="status"></p>
+        <div data-post-read class="sales-source-feedback">
+          <p data-post-feedback class="sales-field-note" role="status"></p>
+        </div>
         <fieldset data-post-results class="sales-post-results" hidden><legend>请选择来源帖子</legend><div data-post-choices></div>
           <button type="button" class="sales-text-action" data-more-posts hidden>查看更多</button>
         </fieldset>

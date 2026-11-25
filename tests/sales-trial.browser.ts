@@ -30,6 +30,7 @@ async function sourceFixture(title: string, promoted: boolean, publicationUrl: s
   }).returning();
   const [version] = await fixture.db.insert(schema.operationsContentVersion).values({
     contentId: content.id, contentName: title, versionNumber: 0, workType: 'new', subjectId: 'tmua',
+    categoryId: 'non-promotional-handout',
   }).returning();
   const [schedule] = await fixture.db.insert(schema.operationsContentSchedule).values({
     contentVersionId: version.id, plannedPublishAt: sourcePublishedAt, actualPublishAt: published ? sourcePublishedAt : null,
@@ -317,7 +318,12 @@ try {
     await route.continue();
   }, { times: 1 });
   await button(source, '查找').click();
-  await source.getByText('正在查找来源帖…', { exact: true }).waitFor();
+  const loading = source.getByText('正在查找来源帖…', { exact: true });
+  await loading.waitFor();
+  const progress = await loading.boundingBox();
+  const searchButton = await button(source, '查找').boundingBox();
+  assert.ok(progress && searchButton && progress.y >= searchButton.y + searchButton.height,
+    'loading feedback stays below the search controls');
   await shot(page, '30-source-search-loading-1440');
   await source.getByRole('radio', { name: new RegExp(organicTitle) }).waitFor();
   assert.equal(await source.getByRole('radio').count(), 2);
@@ -338,6 +344,11 @@ try {
   assert.match(await selectedSource.locator('[data-post-promotion]').innerText(), /放量/);
   assert.equal(await link(selectedSource, '查看原帖').getAttribute('href'), postUrl(oldNote));
   await shot(page, '06-source-selection-1440');
+  await page.setViewportSize({ width: 1024, height: 820 });
+  const bounds = await selectedSource.boundingBox();
+  assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 1024);
+  await shot(page, '35-source-promotion-1024');
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await button(source, '保存来源').click();
   await pending.getByText(promotedTitle, { exact: true }).waitFor();
   await button(pending, '更正来源').click();

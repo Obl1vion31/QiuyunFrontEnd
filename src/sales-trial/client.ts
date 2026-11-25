@@ -249,7 +249,7 @@ function start(config: Config) {
     if (form.dataset.saving) return;
     const input = field(form, 'postQuery');
     const feedback = form.querySelector<HTMLElement>('[data-post-feedback]')!;
-    const picker = form.querySelector<HTMLElement>('[data-post-picker]')!;
+    const readFeedback = form.querySelector<HTMLElement>('[data-post-read]')!;
     const results = form.querySelector<HTMLElement>('[data-post-results]')!;
     const choices = form.querySelector<HTMLElement>('[data-post-choices]')!;
     const more = form.querySelector<HTMLButtonElement>('[data-more-posts]')!;
@@ -267,7 +267,7 @@ function start(config: Config) {
     const search = new AbortController();
     postSearch = search;
     try {
-      const data = await readBusiness(picker, async read => {
+      const data = await readBusiness(readFeedback, async read => {
         const params = new URLSearchParams({ q: query, offset: String(offset) });
         const response = await fetch('/api/sales-source-posts?' + params, { signal: read.signal });
         const result = await response.json();
