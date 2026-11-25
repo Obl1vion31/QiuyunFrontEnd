@@ -386,6 +386,7 @@ try {
   assert.match(await confirm.locator('[data-confirm-message]').innerText(), /删除不可恢复/);
   assert.equal(await button(confirm, '确认删除').evaluate((node: HTMLElement) => getComputedStyle(node).backgroundColor), 'rgb(150, 56, 62)');
   await shot(page, '26-delete-confirmation-1440');
+  if (deleteVideo) await page.waitForTimeout(850);
   await page.keyboard.press('Escape');
   await confirm.waitFor({ state: 'hidden' });
   await deletedRow.waitFor();
@@ -409,6 +410,7 @@ try {
   assert.equal(await remove.isEnabled(), true);
   assert.ok(await remove.evaluate((node: HTMLElement) => document.activeElement === node));
   await shot(page, '27-delete-failed-1440');
+  if (deleteVideo) await page.waitForTimeout(850);
   const deleteRetry = (Date.now() - deletionOrigin) / 1000;
   await remove.click();
   await button(confirm, '确认删除').click();
@@ -417,6 +419,7 @@ try {
   await button(page, longName).waitFor();
   await button(page, oldName).waitFor();
   await shot(page, '28-delete-completed-1440');
+  if (deleteVideo) await page.waitForTimeout(850);
   const deleteEnd = (Date.now() - deletionOrigin) / 1000;
   await page.reload();
   await button(page, oldName).waitFor();
