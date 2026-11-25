@@ -1,0 +1,74 @@
+---
+import BusinessDateTimeFields from './BusinessDateTimeFields.astro';
+import SalesTrialFields from './SalesTrialFields.astro';
+import SalesTrialSheet from './SalesTrialSheet.astro';
+import { salesToday, sources, type Role } from '../sales-trial/model';
+interface Props { role: Role }
+const { role } = Astro.props;
+---
+{role === 'seller' && <>
+  <SalesTrialSheet kind="create" title="登记微信" save="保存登记" compact>
+    <div class="form-grid">
+      <div class="field field-wide"><label for="sales-name">微信名<b> *</b></label><input id="sales-name" name="name" placeholder="输入微信昵称" maxlength="40" required /></div>
+      <div class="field-wide"><BusinessDateTimeFields name="added" dateName="addedDay" timeName="addedTime" dateLabel="添加日期" timeLabel="添加时间" value={salesToday() + 'T'} required /></div>
+      <SalesTrialFields prefix="registration" />
+    </div>
+  </SalesTrialSheet>
+  <SalesTrialSheet kind="follow" title="更新跟进" save="保存跟进" compact>
+    <div class="form-grid">
+      <SalesTrialFields prefix="follow" defaultStage="following" />
+    </div>
+  </SalesTrialSheet>
+  <SalesTrialSheet kind="deal" title="是否成交" compact>
+    <div class="field">
+      <fieldset class="sales-deal-choice" aria-label="是否成交">
+        <label><input name="outcome" type="radio" value="no" checked /> 未成交</label>
+        <label><input name="outcome" type="radio" value="yes" /> 已成交</label>
+      </fieldset>
+    </div>
+    <div class="form-grid sales-deal-fields" data-sales-deal-fields hidden>
+      <div class="field"><label for="deal-day">付款日期</label><input id="deal-day" type="date" name="dealDay" max={salesToday()} required /></div>
+      <div class="field"><label for="deal-product">成交产品</label><input id="deal-product" name="product" maxlength="70" placeholder="选填" /></div>
+    </div>
+  </SalesTrialSheet>
+</>}
+{role === 'operator' && <>
+  <SalesTrialSheet kind="source" title="核对来源" save="保存来源">
+    <div class="form-grid">
+      <div class="field field-wide"><label for="source-status">核对结果</label><select id="source-status" name="sourceStatus">
+        {(['confirmed','pending','unknown','other'] as const).map(key => <option value={key}>{key === 'confirmed' ? '已确认来源帖子' : sources[key]}</option>)}
+      </select></div>
+      <section class="field-wide sales-source-picker" data-post-picker>
+        <div class="field"><label for="source-query">查找来源帖子（试用样例）</label><div class="sales-joined-control">
+          <input id="source-query" name="postQuery" placeholder="粘贴分享链接、笔记 ID 或输入标题" autocomplete="off" />
+          <button type="button" class="sales-control-button" data-find-post>查找</button>
+        </div></div>
+        <p data-post-feedback class="sales-field-note" role="status"></p>
+        <fieldset data-post-results class="sales-post-results" hidden><legend>请选择来源帖子</legend><div data-post-choices></div></fieldset>
+        <section data-selected-post class="sales-selected-post" aria-label="已选来源帖子" hidden>
+          <div class="sales-source-title"><strong></strong><span data-post-type class="sales-status"></span></div>
+          <dl class="sales-post-facts">
+            <div><dt>实发时间</dt><dd data-post-published></dd></div>
+            <div><dt>科目</dt><dd data-post-subject></dd></div>
+            <div><dt>发布版本</dt><dd data-post-versions></dd></div>
+            <div data-post-promotion-row hidden><dt>推广记录</dt><dd data-post-promotion></dd></div>
+          </dl>
+          <a class="sales-text-action" target="_blank" rel="noopener" data-open-original>查看样例发布资料</a>
+        </section>
+        <input type="hidden" name="postId" />
+      </section>
+      <details class="field-wide sales-source-extra" data-source-extra hidden>
+        <summary>补充入口、版本或核对说明</summary>
+        <div data-source-options class="form-grid" hidden>
+          <div class="field"><label for="source-entry">确认到哪一步</label><select id="source-entry" name="entry"><option>仅确认帖子</option><option>开口</option><option>留资</option></select></div>
+          <div class="field"><label for="source-version">确认版本</label><select id="source-version" name="version"><option value="">仅确认原帖</option></select></div>
+        </div>
+        <div class="field"><label for="source-evidence">核对说明</label><textarea id="source-evidence" name="evidence" maxlength="700" placeholder="确认到入口或版本时，请写明依据"></textarea></div>
+      </details>
+    </div>
+  </SalesTrialSheet>
+  <SalesTrialSheet kind="merge" title="核对同名登记" save="确认合并">
+    <div class="form-grid"><div class="field field-wide"><label for="merge-id">将下列登记合并到当前档案<b> *</b></label><select id="merge-id" name="duplicateId" required></select>
+      <em>合并后保留最早添加时间、已有跟进和付款。请先确认两条登记属于同一位客户。</em></div></div>
+  </SalesTrialSheet>
+</>}

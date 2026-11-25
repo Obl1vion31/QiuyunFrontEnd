@@ -126,9 +126,9 @@ export const homeContent = {
         eyebrow: '01 / WORK',
         title: '业务系统',
         summary: '计划、内容、任务、用户触点与复盘。',
-        cta: '进入工作台',
+        cta: '进入业务系统',
         status: 'external',
-        href: '/business/operations-schedule',
+        href: '/business/workspaces',
       },
       {
         id: 'people',

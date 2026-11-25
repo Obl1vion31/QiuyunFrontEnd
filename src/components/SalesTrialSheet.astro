@@ -1,0 +1,23 @@
+---
+import BusinessFormSheet from './BusinessFormSheet.astro';
+import BusinessFormDialog from './BusinessFormDialog.astro';
+interface Props { kind: string; title: string; save?: string; compact?: boolean }
+const { kind, title, save = '保存', compact = false } = Astro.props;
+const Container = compact ? BusinessFormDialog : BusinessFormSheet;
+---
+<Container id={`preview-${kind}`} labelledby={`preview-${kind}-title`} {...(compact ? { class: 'sales-quick-dialog', width: kind === 'create' ? 550 : 490 } : {})}>
+  <form class="business-form" data-preview-form={kind} method="dialog" novalidate>
+    <header class="dialog-head"><h2 id={`preview-${kind}-title`}>{title}</h2><button type="button" class="close-button" data-sales-cancel aria-label="关闭表单">×</button></header>
+    <div class={compact ? 'form-dialog-body' : 'sheet-body'} data-preview-form-body>
+      {kind !== 'create' && <div class="publication-context" data-sheet-customer><strong></strong><span></span></div>}
+      <input type="hidden" name="leadId" />
+      <input type="hidden" name="requestId" />
+      <slot />
+    </div>
+    <footer class="dialog-actions">
+      <p class="form-message sales-form-feedback" data-save-error role="alert"></p>
+      <button type="button" data-sales-cancel>取消</button>
+      <button class="save-button primary" type="submit">{save}</button>
+    </footer>
+  </form>
+</Container>

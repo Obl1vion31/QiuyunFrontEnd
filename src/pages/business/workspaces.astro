@@ -1,0 +1,40 @@
+---
+import BusinessConsoleFonts from '../../components/BusinessConsoleFonts.astro';
+import SiteIcons from '../../components/SiteIcons.astro';
+import QiuyunMark from '../../components/QiuyunMark';
+import { isAdmin } from '../../auth/permissions';
+import { salesHref } from '../../sales-trial/model';
+import '../../styles/business-tokens.css';
+import '../../styles/sales-trial.css';
+
+if (!isAdmin(Astro.locals.user)) return Astro.redirect('/business/operations-schedule');
+const workspaces = [
+  { href: '/business/operations-schedule', title: '内容工作台', description: '排期、内容复盘与月度运营' },
+  { href: salesHref(), title: '销售工作台', description: '登记微信、核对来源与成交记录', trial: true },
+];
+---
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>业务系统 · 湫云</title>
+  <SiteIcons /><BusinessConsoleFonts />
+</head>
+<body class="sales-trial">
+  <main class="sales-trial-login">
+    <header><a href="/" aria-label="湫云 · 返回总枢纽"><QiuyunMark size={36}/><strong>湫云工作台</strong></a><a href="/#systems-title">返回总枢纽</a></header>
+    <section class="sales-workspace-choice">
+      <h1>业务系统</h1>
+      <nav aria-label="工作台">
+        {workspaces.map(workspace => <a href={workspace.href}>
+          <span><strong>{workspace.title}{workspace.trial && <span class="sales-workspace-trial-label">试用</span>}</strong>
+            <small>{workspace.description}</small></span>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>)}
+      </nav>
+    </section>
+  </main>
+</body>
+</html>
