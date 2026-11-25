@@ -310,6 +310,8 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await button(page, '登记微信').click();
   const phone = page.locator('#preview-create[open]');
+  assert.equal(await input(phone, 'subject').inputValue(), '');
+  assert.equal(await input(phone, 'interest').inputValue(), '');
   await shot(page, '10-registration-390');
   await button(phone, '关闭表单').click();
   await phone.waitFor({ state: 'hidden' });

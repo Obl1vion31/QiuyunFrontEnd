@@ -1,6 +1,6 @@
 ---
 import BusinessAccountMenu from './BusinessAccountMenu.astro';
-interface Props { title: string; subtitle?: string; mobilePriority?: 'center' | 'end'; layout?: 'balanced' | 'title' }
+interface Props { title: string; subtitle?: string; mobilePriority?: 'center' | 'end' | 'both'; layout?: 'balanced' | 'title' }
 const { title, subtitle, mobilePriority = 'end', layout = 'balanced' } = Astro.props;
 ---
 
@@ -19,5 +19,14 @@ const { title, subtitle, mobilePriority = 'end', layout = 'balanced' } = Astro.p
   .business-toolbar--title{grid-template-columns:minmax(0,1fr) auto}.business-toolbar--title .business-toolbar__center{display:none}
   @media(max-width:900px){.business-toolbar{height:62px;min-height:62px;max-height:62px;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:0 12px}.business-toolbar__title strong{font-size:16px;line-height:22px}.business-toolbar__title small{display:none}.business-toolbar--mobile-end .business-toolbar__center,.business-toolbar--mobile-center .business-toolbar__end{display:none}.business-toolbar--mobile-center .business-toolbar__center{display:block;justify-self:end}}
   @media(max-width:360px){.business-toolbar--mobile-center{display:block}.business-toolbar--mobile-center .business-toolbar__identity{position:absolute;inset:2px 12px auto;align-items:flex-start;justify-content:space-between}.business-toolbar--mobile-center .business-toolbar__title{flex:none}.business-toolbar--mobile-center .business-toolbar__center{position:absolute;left:50%;bottom:3px;transform:translateX(-50%)}}
+  @media(max-width:900px){
+    .business-toolbar--mobile-both {
+      grid-template-areas:"identity end" "center center"; gap:8px;
+      height:auto; max-height:none; min-height:82px; padding-block:8px;
+    }
+    .business-toolbar--mobile-both .business-toolbar__identity { grid-area:identity }
+    .business-toolbar--mobile-both .business-toolbar__center { grid-area:center; justify-self:start }
+    .business-toolbar--mobile-both .business-toolbar__end { grid-area:end }
+  }
   @media(prefers-reduced-transparency:reduce){.business-toolbar{backdrop-filter:none;background:var(--console-paper)}}
 </style>

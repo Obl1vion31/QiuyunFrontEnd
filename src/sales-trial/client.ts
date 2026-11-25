@@ -245,7 +245,8 @@ function start(config: Config) {
     const directions = form.querySelector<HTMLElement>('[data-sales-directions]');
     if (directions) {
       directions.querySelector('[data-directions-list]')!.replaceChildren();
-      if (target?.directions.length) for (const direction of target.directions) addDirection(directions, direction);
+      const current = kind === 'follow' ? target?.directions : undefined;
+      if (current?.length) for (const direction of current) addDirection(directions, direction);
       else addDirection(directions);
     }
     if (kind === 'deal' && target) {

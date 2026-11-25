@@ -61,6 +61,7 @@ body.sales-trial {
 .sales-row-title { color: #1a2c35; font-weight: 600; text-align: start; }
 .sales-contact-line { display: flex; min-width: 0; align-items: baseline; gap: 8px; white-space: nowrap; }
 .sales-contact-line .sales-row-title,.sales-wechat-id,.sales-consultation-line,.sales-post-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sales-contact-line .sales-row-title { flex: 0 0 auto; max-width: 80%; }
 .sales-wechat-id { display: block; font-size: 12px; color: #4d6570; }
 .sales-consultation-line,.sales-post-name { display: block; }
 .sales-row-actions { display: inline-flex; align-items: center; gap: 8px; }
@@ -78,7 +79,7 @@ body.sales-trial {
 .sales-status--closed { color: #755049; background: #f1e8e4; }
 .sales-post-name { font-weight: 500; }
 .sales-ledger-table,.sales-queue-table { min-width: 660px; table-layout: fixed; }
-.sales-col-contact { width: 18%; }
+.sales-col-contact { width: max(148px,18%); }
 .sales-col-time { width: 148px; }
 .sales-col-progress { width: 154px; }
 .sales-col-source { width: 146px; }
@@ -193,13 +194,7 @@ body.sales-trial {
   .sales-filters { gap: 8px; }
   .sales-filters .sales-filter-search { width: 100%; }
   .sales-filters label { min-width: 104px; }
-  .sales-stat-view .business-toolbar {
-    display: grid; grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "identity period" "views views";
-    gap: 8px; height: auto; max-height: none; min-height: 82px; padding-block: 8px;
-  }
-  .sales-stat-view .business-toolbar__identity { grid-area: identity; position: static; }
-  .sales-stat-view .business-toolbar__center { grid-area: views; justify-self: start; position: static; transform: none; }
-  .sales-stat-view .business-toolbar__end { display: block; grid-area: period; }
+  .sales-stat-view .business-toolbar { grid-template-columns: minmax(0,1fr) auto; }
   .sales-trial .sales-stat-filters { gap: 6px; }
   .sales-stat-filters label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .sales-stat-band > div { padding: 10px 9px; min-height: 88px; }
