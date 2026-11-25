@@ -1,42 +1,50 @@
 ---
 import BusinessDateTimeFields from './BusinessDateTimeFields.astro';
-import SalesTrialFields from './SalesTrialFields.astro';
+import SalesTrialDirections from './SalesTrialDirections.astro';
+import SalesTrialContactFields from './SalesTrialContactFields.astro';
 import SalesTrialSheet from './SalesTrialSheet.astro';
-import { salesToday, sources, type Role } from '../sales-trial/model';
+import { salesToday, stages, type Role } from '../sales-trial/model';
 interface Props { role: Role }
 const { role } = Astro.props;
 ---
 {role === 'seller' && <>
   <SalesTrialSheet kind="create" title="登记微信" save="保存登记" compact>
     <div class="form-grid">
-      <div class="field field-wide"><label for="sales-name">微信名<b> *</b></label><input id="sales-name" name="name" placeholder="输入微信昵称" maxlength="40" required /></div>
+      <SalesTrialContactFields prefix="registration" />
       <div class="field-wide"><BusinessDateTimeFields name="added" dateName="addedDay" timeName="addedTime" dateLabel="添加日期" timeLabel="添加时间" value={salesToday() + 'T'} required /></div>
-      <SalesTrialFields prefix="registration" />
+      <SalesTrialDirections />
     </div>
+  </SalesTrialSheet>
+  <SalesTrialSheet kind="contact" title="编辑微信信息" compact>
+    <div class="form-grid"><SalesTrialContactFields prefix="contact" /></div>
   </SalesTrialSheet>
   <SalesTrialSheet kind="follow" title="更新跟进" save="保存跟进" compact>
     <div class="form-grid">
-      <SalesTrialFields prefix="follow" defaultStage="following" />
+      <div class="field"><label for="follow-stage">跟进进度</label><select id="follow-stage" name="stage">
+        {Object.entries(stages).map(([value, label]) => <option value={value}>{label}</option>)}
+      </select></div>
+      <SalesTrialDirections />
     </div>
   </SalesTrialSheet>
-  <SalesTrialSheet kind="deal" title="是否成交" compact>
-    <div class="field">
-      <fieldset class="sales-deal-choice" aria-label="是否成交">
-        <label><input name="outcome" type="radio" value="no" checked /> 未成交</label>
-        <label><input name="outcome" type="radio" value="yes" /> 已成交</label>
-      </fieldset>
-    </div>
-    <div class="form-grid sales-deal-fields" data-sales-deal-fields hidden>
-      <div class="field"><label for="deal-day">付款日期</label><input id="deal-day" type="date" name="dealDay" max={salesToday()} required /></div>
+  <SalesTrialSheet kind="deal" title="登记成交" compact>
+    <div class="form-grid sales-deal-fields">
+      <div class="field"><label for="deal-day">付款日期<b> *</b></label><input id="deal-day" type="date" name="dealDay" max={salesToday()} /></div>
       <div class="field"><label for="deal-product">成交产品</label><input id="deal-product" name="product" maxlength="70" placeholder="选填" /></div>
     </div>
+    <button class="sales-text-action sales-revoke-deal" type="submit" data-sales-revoke hidden>撤销成交</button>
+  </SalesTrialSheet>
+  <SalesTrialSheet kind="merge" title="核对重复登记" save="确认合并">
+    <div class="form-grid"><div class="field field-wide"><label for="merge-id">将下列登记合并到当前档案<b> *</b></label><select id="merge-id" name="duplicateId" required></select>
+      <em>合并后保留最早添加时间、已有跟进和付款。请先确认两条登记属于同一位客户。</em></div></div>
   </SalesTrialSheet>
 </>}
 {role === 'operator' && <>
   <SalesTrialSheet kind="source" title="核对来源" save="保存来源">
     <div class="form-grid">
       <div class="field field-wide"><label for="source-status">核对结果</label><select id="source-status" name="sourceStatus">
-        {(['confirmed','pending','unknown','other'] as const).map(key => <option value={key}>{key === 'confirmed' ? '已确认来源帖子' : sources[key]}</option>)}
+        <option value="confirmed">已确认来源帖</option>
+        <option value="unknown">无法确认来源帖</option>
+        <option value="other">其他来源</option>
       </select></div>
       <section class="field-wide sales-source-picker" data-post-picker>
         <div class="field"><label for="source-query">查找来源帖子（试用样例）</label><div class="sales-joined-control">
@@ -57,6 +65,16 @@ const { role } = Astro.props;
         </section>
         <input type="hidden" name="postId" />
       </section>
+      <div class="field field-wide" data-unknown-source hidden>
+        <label for="source-unknown-note">核对说明</label>
+        <textarea id="source-unknown-note" name="unknownNote" maxlength="700" placeholder="选填" disabled></textarea>
+      </div>
+      <div class="field-wide form-grid sales-other-source" data-other-source hidden>
+        <div class="field field-wide"><label for="source-other-entry">入口<b> *</b></label>
+          <input id="source-other-entry" name="otherEntry" maxlength="80" placeholder="例如微信转介绍" required disabled /></div>
+        <div class="field field-wide"><label for="source-other-fact">具体来源<b> *</b></label>
+          <textarea id="source-other-fact" name="otherSource" maxlength="700" placeholder="例如哪位客户转介绍，或具体的群、活动、链接" required disabled></textarea></div>
+      </div>
       <details class="field-wide sales-source-extra" data-source-extra hidden>
         <summary>补充入口、版本或核对说明</summary>
         <div data-source-options class="form-grid" hidden>
@@ -66,9 +84,5 @@ const { role } = Astro.props;
         <div class="field"><label for="source-evidence">核对说明</label><textarea id="source-evidence" name="evidence" maxlength="700" placeholder="确认到入口或版本时，请写明依据"></textarea></div>
       </details>
     </div>
-  </SalesTrialSheet>
-  <SalesTrialSheet kind="merge" title="核对同名登记" save="确认合并">
-    <div class="form-grid"><div class="field field-wide"><label for="merge-id">将下列登记合并到当前档案<b> *</b></label><select id="merge-id" name="duplicateId" required></select>
-      <em>合并后保留最早添加时间、已有跟进和付款。请先确认两条登记属于同一位客户。</em></div></div>
   </SalesTrialSheet>
 </>}

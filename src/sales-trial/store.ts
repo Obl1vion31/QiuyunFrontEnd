@@ -1,10 +1,10 @@
 import { extractPublicationLink, publicationNoteId } from '../db/publication-link.mjs';
 import { businessDateTime } from '../scripts/business-date';
 import { previewPosts } from './fixture';
-import { activePayments, needs, salesToday, sources, stages } from './model';
-import type { Filters, Lead, Need, Role, Source, Stage } from './model';
+import { activePayments, directionsOf, needs, salesToday, sources, stages, subjects } from './model';
+import type { Direction, Filters, Lead, Need, Role, Source, Stage } from './model';
 
-export type Action = 'create' | 'follow' | 'deal' | 'source' | 'merge';
+export type Action = 'create' | 'contact' | 'follow' | 'deal' | 'source' | 'merge';
 export interface Workspace { rows: Lead[]; receipts: Map<string, string> }
 
 const active = (rows: Lead[]) => rows.filter(row => !row.mergedTo);
@@ -13,11 +13,12 @@ const nameKey = (name: string) => name.trim().normalize('NFKC').toLowerCase();
 const sortDate = <T extends { date: string }>(items: T[]) =>
   [...items].sort((left, right) => right.date.localeCompare(left.date));
 
-function text(form: FormData, field: string, max = 700) {
-  const value = String(form.get(field) ?? '').trim();
-  if (value.length > max) throw new Error('填写内容过长，请缩短后保存。');
-  return value;
+function bounded(value: FormDataEntryValue | null, max: number) {
+  const trimmed = String(value ?? '').trim();
+  if (trimmed.length > max) throw new Error('填写内容过长，请缩短后保存。');
+  return trimmed;
 }
+const text = (form: FormData, field: string, max = 700) => bounded(form.get(field), max);
 function day(value: string, label: string, earliest = '') {
   const parsed = new Date(value);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(parsed.getTime()) ||
@@ -50,7 +51,7 @@ export function readList(workspace: Workspace, filters: Filters, queue: boolean)
   const visible = active(workspace.rows);
   const rows = visible.filter(row => {
     if (queue && filters.source !== 'all' && row.source.status !== (filters.source || 'pending')) return false;
-    if (filters.q && ![row.name, postFor(row.source.postId)?.title, row.source.evidence].some(value => value?.toLowerCase().includes(filters.q.toLowerCase()))) return false;
+    if (filters.q && ![row.name, row.wechatId, postFor(row.source.postId)?.title, row.source.entry, row.source.evidence].some(value => value?.toLowerCase().includes(filters.q.toLowerCase()))) return false;
     if (filters.month && !row.added.startsWith(filters.month)) return false;
     return !filters.stage || row.stage === filters.stage;
   }).sort((left, right) => right.added.localeCompare(left.added));
@@ -58,25 +59,24 @@ export function readList(workspace: Workspace, filters: Filters, queue: boolean)
     count: rows.length,
     waiting: visible.filter(row => row.source.status === 'pending').length,
     rows: rows.map(row => ({
-      id: row.id, name: row.name, added: row.added, source: row.source, post: postFor(row.source.postId),
-      need: row.need, subject: row.subject, interest: row.interest, stage: row.stage,
+      id: row.id, name: row.name, wechatId: row.wechatId, added: row.added, source: row.source, post: postFor(row.source.postId),
+      directions: directionsOf(row), stage: row.stage,
       latestPayment: queue ? undefined : sortDate(activePayments(row))[0],
     })),
   };
 }
-export function readLead(workspace: Workspace, id: string, queue: boolean) {
+function possibleDuplicate(a: Lead, b: Lead) {
+  if (a.id === b.id) return false;
+  if (a.wechatId && b.wechatId) return nameKey(a.wechatId) === nameKey(b.wechatId);
+  return nameKey(a.name) === nameKey(b.name);
+}
+export function readLead(workspace: Workspace, id: string) {
   const lead = getLead(workspace.rows, id);
-  const base = {
-    id: lead.id, name: lead.name, added: lead.added, source: lead.source, post: postFor(lead.source.postId),
-    need: lead.need, subject: lead.subject, interest: lead.interest,
-  };
-  if (queue) return {
-    ...base, history: lead.history.filter(event => event.actor === 'operator'),
-    duplicates: active(workspace.rows).filter(other => other.id !== lead.id && nameKey(other.name) === nameKey(lead.name))
-      .map(other => ({ id: other.id, name: other.name, added: other.added })),
-  };
   return {
-    ...base, stage: lead.stage, follows: sortDate(lead.follows), payments: sortDate(lead.payments), history: lead.history,
+    id: lead.id, name: lead.name, wechatId: lead.wechatId, added: lead.added, source: lead.source, post: postFor(lead.source.postId),
+    directions: directionsOf(lead), stage: lead.stage, follows: sortDate(lead.follows), payments: sortDate(lead.payments), history: lead.history,
+    duplicates: active(workspace.rows).filter(other => possibleDuplicate(lead, other))
+      .map(other => ({ id: other.id, name: other.name, wechatId: other.wechatId, added: other.added })),
   };
 }
 
@@ -98,47 +98,70 @@ export function searchPosts(value: string) {
 
 function changeSource(lead: Lead, form: FormData) {
   const status = text(form, 'sourceStatus');
-  if (!Object.hasOwn(sources, status)) throw new Error('请选择来源核对结果。');
+  if (status !== 'confirmed' && status !== 'unknown' && status !== 'other') throw new Error('请选择来源核对结果。');
   const post = postFor(text(form, 'postId'));
   const version = text(form, 'version', 15);
   const entry = text(form, 'entry', 15);
-  const evidence = text(form, 'evidence');
+  const otherEntry = status === 'other' ? text(form, 'otherEntry', 80) : '';
+  const evidence = text(form, status === 'other' ? 'otherSource' : status === 'unknown' ? 'unknownNote' : 'evidence');
   if (status === 'confirmed') {
     if (!post) throw new Error('请先选择要关联的帖子。');
     if (version && !post.versions.includes(version)) throw new Error('所选版本不属于这篇帖子。');
     if (!['仅确认帖子', '开口', '留资'].includes(entry)) throw new Error('请选择能确认的来源层级。');
     if ((entry !== '仅确认帖子' || version) && !evidence) throw new Error('请补充判断入口或版本的依据。');
   }
-  if (status === 'other' && !evidence) throw new Error('请补充其他来源的信息。');
+  if (status === 'other' && (!otherEntry || !evidence)) throw new Error('请填写入口和具体来源。');
   const previous = postFor(lead.source.postId)?.title ?? sources[lead.source.status];
-  const next: Source = { status: status as Source['status'], ...(evidence ? { evidence } : {}) };
+  const next: Source = { status, ...(otherEntry ? { entry: otherEntry } : {}), ...(evidence ? { evidence } : {}) };
   if (next.status === 'confirmed' && post) Object.assign(next, { postId: post.id, entry, ...(version ? { version } : {}) });
   lead.source = next;
   addHistory(lead, 'operator', `来源由「${previous}」更新为「${post && next.status === 'confirmed' ? post.title : sources[next.status]}」。`);
 }
 function mergeLead(workspace: Workspace, lead: Lead, duplicateId: string) {
   const duplicate = getLead(workspace.rows, duplicateId);
-  if (lead.id === duplicate.id || nameKey(lead.name) !== nameKey(duplicate.name)) {
-    throw new Error('请选择同名待核对记录。');
-  }
+  if (!possibleDuplicate(lead, duplicate)) throw new Error('请选择待核对的重复登记。');
   if (lead.added > duplicate.added) lead.added = duplicate.added;
   lead.follows.push(...duplicate.follows);
   lead.payments.push(...duplicate.payments);
-  lead.need ??= duplicate.need;
-  lead.subject ??= duplicate.subject;
-  lead.interest ||= duplicate.interest;
+  lead.wechatId ||= duplicate.wechatId;
+  const merged = new Map<string, Direction>();
+  for (const item of [...directionsOf(lead), ...directionsOf(duplicate)]) {
+    merged.set(JSON.stringify([item.need, item.subject, item.interest]), item);
+  }
+  Object.assign(lead, consultation([...merged.values()]));
   if (lead.source.status !== 'confirmed' && duplicate.source.status === 'confirmed') lead.source = duplicate.source;
   lead.stage = sortDate(lead.follows)[0]?.stage ?? lead.stage;
   duplicate.mergedTo = lead.id;
   lead.history.push(...duplicate.history);
   addHistory(lead, 'operator', '已合并同一客户的另一条登记。');
 }
-function followFields(form: FormData) {
-  const stage = text(form, 'stage') as Stage;
-  const need = text(form, 'need') as Need;
-  if (!Object.hasOwn(stages, stage)) throw new Error('请选择跟进进度。');
-  if (need && !needs.includes(need)) throw new Error('请选择正确的咨询类别。');
-  return { stage, need: need || undefined, subject: text(form, 'subject', 40) || undefined, interest: text(form, 'interest', 70) };
+function consultation(directions: Direction[]) {
+  const first = directions[0];
+  return { directions, need: first?.need, subject: first?.subject, interest: first?.interest ?? '' };
+}
+function consultationFields(form: FormData, previous: Direction[] = []) {
+  const kinds = form.getAll('need');
+  const topics = form.getAll('subject');
+  const products = form.getAll('interest');
+  if (kinds.length !== topics.length || topics.length !== products.length) throw new Error('请检查咨询方向。');
+  const options = new Set<string>(subjects);
+  for (const item of previous) if (item.subject) options.add(item.subject);
+  const directions = kinds.map((kind, index) => {
+    const need = bounded(kind, 20) as Need;
+    const subject = bounded(topics[index], 40);
+    const interest = bounded(products[index], 70);
+    if (need && !needs.includes(need)) throw new Error('请选择咨询类别。');
+    if (subject && !options.has(subject)) throw new Error('请选择科目。');
+    return { need: need || undefined, subject: subject || undefined, interest };
+  });
+  return consultation(directions.filter(item => item.need || item.subject || item.interest));
+}
+function contactFields(form: FormData) {
+  const name = text(form, 'name', 40);
+  const wechatId = text(form, 'wechatId', 64);
+  if (!name) throw new Error('请填写微信名。');
+  if (!wechatId) throw new Error('请填写微信号。');
+  return { name, wechatId };
 }
 function changeDeal(lead: Lead, form: FormData) {
   const current = sortDate(activePayments(lead))[0];
@@ -169,17 +192,14 @@ export function saveLead(workspace: Workspace, action: Action, form: FormData) {
   if (prior) return prior;
   let id: string;
   if (action === 'create') {
-    const name = text(form, 'name', 40);
-    if (!name) throw new Error('请填写微信名。');
+    const contact = contactFields(form);
     const date = day(text(form, 'addedDay'), '添加日期');
     const time = text(form, 'addedTime', 5);
     if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error('请填写添加时间。');
-    const follow = followFields(form);
     id = crypto.randomUUID();
     const lead: Lead = {
-      id, name, added: `${date}T${time}`, ...follow, source: { status: 'pending' },
-      follows: follow.stage === 'new' ? [] : [{ id: crypto.randomUUID(), date: salesToday(), ...follow }],
-      payments: [], history: [],
+      id, ...contact, added: `${date}T${time}`, stage: 'new', ...consultationFields(form),
+      source: { status: 'pending' }, follows: [], payments: [], history: [],
     };
     addHistory(lead, 'seller', '登记了客户。');
     workspace.rows.push(lead);
@@ -189,8 +209,19 @@ export function saveLead(workspace: Workspace, action: Action, form: FormData) {
     switch (action) {
       case 'source': changeSource(lead, form); break;
       case 'merge': mergeLead(workspace, lead, text(form, 'duplicateId', 50)); break;
+      case 'contact': {
+        const contact = contactFields(form);
+        if (contact.name !== lead.name) addHistory(lead, 'seller', `微信名由「${lead.name}」改为「${contact.name}」。`);
+        if (contact.wechatId !== lead.wechatId) {
+          addHistory(lead, 'seller', lead.wechatId ? `微信号由「${lead.wechatId}」改为「${contact.wechatId}」。` : '补填了微信号。');
+        }
+        Object.assign(lead, contact);
+        break;
+      }
       case 'follow': {
-        const follow = followFields(form);
+        const stage = text(form, 'stage') as Stage;
+        if (!Object.hasOwn(stages, stage)) throw new Error('请选择跟进进度。');
+        const follow = { stage, ...consultationFields(form, directionsOf(lead)) };
         Object.assign(lead, follow);
         lead.follows.unshift({ id: crypto.randomUUID(), date: salesToday(), ...follow });
         addHistory(lead, 'seller', '保存了一次跟进。');
@@ -210,7 +241,7 @@ export function readStats(workspace: Workspace, filters: Filters) {
   const cohort = rows.filter(row => row.added.startsWith(month) && row.added.slice(0, 10) <= today);
   const hasFollow = (lead: Lead) => lead.follows.some(follow => follow.date <= today);
   const paid = (lead: Lead) => activePayments(lead).some(payment => payment.date <= today);
-  const course = cohort.filter(row => row.need === '课程');
+  const course = cohort.filter(row => directionsOf(row).some(item => item.need === '课程'));
   const followed = cohort.filter(hasFollow);
   const summary = {
     added: cohort.length,
@@ -218,7 +249,7 @@ export function readStats(workspace: Workspace, filters: Filters) {
     monthlyPaid: rows.filter(row => activePayments(row).some(payment => payment.date.startsWith(month) && payment.date <= today)).length,
     followed: followed.length, paid: cohort.filter(paid).length, followedPaid: followed.filter(paid).length,
     course: course.length, courseFollowed: course.filter(hasFollow).length,
-    unknownNeed: cohort.filter(row => !row.need).length,
+    unknownNeed: cohort.filter(row => !directionsOf(row).some(item => item.need)).length,
     unknownSource: cohort.filter(row => ['pending', 'unknown'].includes(row.source.status)).length,
   };
   const mix = (values: string[][]) => {
@@ -232,7 +263,7 @@ export function readStats(workspace: Workspace, filters: Filters) {
     const attributed = cohort.filter(row => row.source.status === 'confirmed' && row.source.postId === post.id);
     return {
       post, added: attributed.length, followed: attributed.filter(hasFollow).length, paid: attributed.filter(paid).length,
-      interests: mix(attributed.map(row => [row.interest || row.need || ''])),
+      interests: mix(attributed.map(row => directionsOf(row).map(item => item.interest || item.need || ''))),
       products: mix(attributed.map(row => activePayments(row).filter(payment => payment.date <= today).map(payment => payment.product))),
     };
   });

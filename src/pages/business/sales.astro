@@ -28,39 +28,38 @@ const config = { view, account: Astro.locals.user!.id };
   <title>{title} · 湫云</title>
   <SiteIcons /><BusinessConsoleFonts />
 </head>
-<body class="sales-trial">
+<body class:list={['sales-trial', { 'sales-stat-view': statistics }]}>
 <BusinessConsoleFrame active="schedule" salesView={view}>
-  <BusinessConsoleToolbar title={title} subtitle="个人试用 · 记录保存在当前浏览器" layout="title">
+  <BusinessConsoleToolbar title={title} subtitle="个人试用 · 记录保存在当前浏览器" layout={statistics ? 'balanced' : 'title'} mobilePriority={statistics ? 'center' : 'end'}>
+    {statistics && <div slot="center" transition:persist="sales-stat-views">
+      <BusinessViewSwitch label="统计视角" name="statsView" value={view} data-preview-stat-switch items={[
+        { label: '本月发生', value: 'monthly' }, { label: '同批新增', value: 'cohort' }, { label: '按帖复盘', value: 'posts' },
+      ]} />
+    </div>}
     <div slot="end" class="sales-toolbar-actions">
       {ledger && <button class="sales-control-button sales-control-primary" type="button" data-sales-sheet="create" disabled>登记微信</button>}
+      {statistics && <form method="get" action={salesPath} class="business-filter sales-stat-filters" data-sales-stat-filter>
+        <input type="hidden" name="view" value={view} />
+        {filters.post && <input type="hidden" name="post" value={filters.post} />}
+        <label for="sales-stat-month">{view === 'monthly' ? '统计月' : '新增月份'}</label>
+        <select id="sales-stat-month" name="month" data-sales-month>
+          <option value={salesToday().slice(0, 7)}>本月</option>
+        </select>
+        <button type="submit" class="sales-control-button">查看</button>
+      </form>}
     </div>
   </BusinessConsoleToolbar>
   <main class="business-console-content sales-trial-content">
     <p data-sales-receipt class="sales-receipt" role="status" hidden></p>
     <p class="sales-storage-error" data-sales-storage-error role="alert" hidden></p>
     <noscript><p class="sales-storage-error">请启用浏览器脚本后打开销售工作台。</p></noscript>
-    {statistics ? <>
-      <div class="sales-stat-toolbar">
-        <BusinessViewSwitch label="统计视角" name="statsView" value={view} data-preview-stat-switch items={[
-          { label: '本月发生', value: 'monthly' }, { label: '同批新增', value: 'cohort' }, { label: '按帖复盘', value: 'posts' },
-        ]} />
-        <form method="get" action={salesPath} class="business-filter sales-stat-filters" data-astro-reload>
-          <input type="hidden" name="view" value={view} />
-          {filters.post && <input type="hidden" name="post" value={filters.post} />}
-          <label>{view === 'monthly' ? '统计月' : '新增微信月份'}<select name="month" data-sales-month>
-            <option value={salesToday().slice(0, 7)}>本月</option>
-          </select></label>
-          <div class="sales-filter-actions"><button type="submit" class="sales-control-button">查看</button></div>
-        </form>
-      </div>
-      <section class="sales-stat-section" data-sales-stats aria-live="polite"></section>
-    </> : <>
+    {statistics ? <section class="sales-stat-section" data-sales-stats aria-live="polite"></section> : <>
       <section class="sales-list-context">
         <div><h1>{queue ? '来源核对' : '我的客户'}</h1><span class="sales-context-count" data-list-count></span></div>
         {queue && <span class="sales-meta" data-queue-count></span>}
       </section>
       <form class="business-filter sales-filters" method="dialog" data-sales-list-filter>
-        <label class="sales-filter-search">搜索<input type="search" name="q" value={filters.q} placeholder={queue ? '微信名或已确认的帖子' : '微信名'} maxlength="100" /></label>
+        <label class="sales-filter-search">搜索<input type="search" name="q" value={filters.q} placeholder={queue ? '微信名、微信号或来源' : '微信名或微信号'} maxlength="100" /></label>
         <label>添加月份<select name="month" data-sales-month><option value="">全部月份</option></select></label>
         {ledger && <label>跟进进度<select name="stage"><option value="">全部进度</option>{Object.entries(stages).map(([key, label]) => <option value={key} selected={filters.stage === key}>{label}</option>)}</select></label>}
         {queue && <label>来源状态<select name="source">
@@ -75,16 +74,19 @@ const config = { view, account: Astro.locals.user!.id };
       <div class="sales-data-surface">
         <div class="sales-table-wrap" data-sales-table>
           <table class:list={['sales-table', queue ? 'sales-queue-table' : 'sales-ledger-table']}>
+            <colgroup><col class="sales-col-contact"/><col class="sales-col-time"/><col/>
+              <col class={queue ? 'sales-col-source' : 'sales-col-progress'}/><col class="sales-col-action"/>
+            </colgroup>
             <thead><tr>
-              <th scope="col">微信名</th><th scope="col">添加时间</th><th scope="col">咨询方向</th>
-              {queue ? <><th scope="col">来源</th><th scope="col"><span class="sales-visually-hidden">操作</span></th></> :
-                <><th scope="col">跟进进度</th><th scope="col">是否成交</th></>}
+              <th scope="col">微信名 / 微信号</th><th scope="col">添加时间</th><th scope="col">咨询方向与内容</th>
+              {queue ? <><th scope="col">来源状态</th><th scope="col">操作</th></> :
+                <><th scope="col">跟进进度</th><th scope="col">成交</th></>}
             </tr></thead>
             <tbody data-sales-rows></tbody>
           </table>
         </div>
       </div>
-      <BusinessInspector modal id="sales-trial-inspector" parameter="record" label="客户详情"/>
+      {ledger && <BusinessInspector modal id="sales-trial-inspector" parameter="record" label="客户详情"/>}
     </>}
   </main>
   {(ledger || queue) && <SalesTrialForms role={viewRole(view)} />}

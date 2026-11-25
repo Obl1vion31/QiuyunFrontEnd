@@ -46,7 +46,7 @@ const salesModules = [
 ] as const;
 ---
 <ClientRouter fallback="swap" />
-<aside class="business-sidebar" transition:persist={salesView ? undefined : 'business-console-sidebar'} data-business-console-sidebar data-account-role={Astro.locals.user?.role} data-sales-sidebar={salesView ? '' : undefined}>
+<aside class="business-sidebar" transition:persist={salesView ? 'sales-trial-sidebar' : 'business-console-sidebar'} data-business-console-sidebar data-account-role={Astro.locals.user?.role} data-sales-sidebar={salesView ? '' : undefined}>
   <a class="business-sidebar__brand" href="/" data-astro-reload aria-label={`湫云 · ${title} · 返回首页`}>
     <QiuyunMark />
     <div class="business-sidebar__brand-copy"><span>QIUYUN</span><strong>{title}</strong></div>
@@ -58,7 +58,7 @@ const salesModules = [
         <h2>销售与复盘</h2>
         <div>{salesModules.map(module => {
           const selected = (isStatView(salesView) ? 'monthly' : salesView) === module.view;
-          return <a href={salesHref(module.view)} class:list={{ active: selected }} aria-current={selected ? 'page' : undefined} data-astro-reload>
+          return <a href={salesHref(module.view)} class:list={{ active: selected }} aria-current={selected ? 'page' : undefined} data-sales-nav={module.view} data-astro-prefetch="false">
             <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths[module.icon]} /></svg>
             <strong>{module.label}</strong>
           </a>;
@@ -67,7 +67,7 @@ const salesModules = [
     </nav>
     <div class="business-sidebar__foot">
       <div class="business-sidebar__account"><BusinessAccountMenu /></div>
-      <a class="business-sidebar__hub" href="/business/operations-schedule" data-astro-reload>切换至内容工作台</a>
+      <a class="business-sidebar__hub" href="/business/operations-schedule" data-astro-prefetch="false">切换至内容工作台</a>
       <a class="business-sidebar__hub" href="/" data-astro-reload><span aria-hidden="true">←</span> 返回总枢纽</a>
     </div>
   </> : <>
@@ -91,7 +91,7 @@ const salesModules = [
     </section>)}
 
     <section class="business-sidebar__group"><h2>系统</h2><div>
-    {isAdmin(Astro.locals.user) && <a href={salesHref()} data-astro-reload data-astro-prefetch="false">
+    {isAdmin(Astro.locals.user) && <a href={salesHref()} data-module-href={salesHref()} data-astro-prefetch="false">
       <svg class="business-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><Fragment set:html={iconPaths.review} /></svg>
       <strong>销售工作台</strong>
     </a>}
@@ -117,10 +117,26 @@ const salesModules = [
 
 <script>
   import type { TransitionBeforePreparationEvent } from 'astro:transitions/client';
+  import { isStatView, salesView } from '../sales-trial/model';
 
-  const sidebar = document.querySelector<HTMLElement>('[data-business-console-sidebar]');
-  if (sidebar && !sidebar.hasAttribute('data-sales-sidebar') && !sidebar.dataset.ready) {
+  function initializeSidebar() {
+    const sidebar = document.querySelector<HTMLElement>('[data-business-console-sidebar]');
+    if (!sidebar) return;
+    if (sidebar.hasAttribute('data-sales-sidebar')) {
+      const view = salesView(new URLSearchParams(location.search).get('view'));
+      const key = isStatView(view) ? 'monthly' : view;
+      for (const link of sidebar.querySelectorAll<HTMLAnchorElement>('[data-sales-nav]')) {
+        const selected = key === link.dataset.salesNav;
+        link.classList.toggle('active', selected);
+        if (selected) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      }
+      return;
+    }
+    if (sidebar.dataset.ready) return;
     sidebar.dataset.ready = 'true';
+    const lifecycle = new AbortController();
+    const { signal } = lifecycle;
     const links = [...sidebar.querySelectorAll<HTMLAnchorElement>('a[data-module-id]')];
     let navigationGeneration = 0;
 
@@ -167,7 +183,7 @@ const salesModules = [
       document.documentElement.dataset.unsaved = 'false';
       rememberCurrentLocation();
       selectPath(new URL(link.href).pathname);
-    });
+    }, { signal });
 
     // Astro owns all actual page reads: sidebar, toolbar, GET filters and browser history.
     // Local Inspector history changes never enter this lifecycle and therefore stay quiet.
@@ -184,14 +200,17 @@ const salesModules = [
         try { await loader(); }
         catch (error) { if (generation === navigationGeneration) selectPath(location.pathname); throw error; }
       };
-    });
+    }, { signal });
 
     document.addEventListener('astro:after-swap', () => {
+      if (!sidebar.isConnected) { lifecycle.abort(); return; }
       rememberCurrentLocation();
       restoreModuleHrefs();
       selectPath(location.pathname);
-    });
+    }, { signal });
   }
+  initializeSidebar();
+  document.addEventListener('astro:page-load', initializeSidebar);
 </script>
 
 <style is:global>
@@ -215,6 +234,7 @@ const salesModules = [
   @media(prefers-reduced-motion:reduce){.business-sidebar__nav a,.business-sidebar__settings{transition:none}.business-sidebar__nav a:active,.business-sidebar__settings:active{transform:none}}
   @media(prefers-reduced-transparency:reduce){.business-sidebar{backdrop-filter:none;background:#f7f8f5}}
   @media(max-width:900px){.business-sidebar__nav{overflow:visible;align-content:stretch}}
+  @media(max-width:900px){.business-sidebar[data-sales-sidebar] .business-sidebar__nav{grid-template-columns:repeat(3,1fr)}}
 </style>
 
 <style is:global>

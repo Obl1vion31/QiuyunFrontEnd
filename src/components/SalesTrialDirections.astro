@@ -1,0 +1,24 @@
+---
+import { needs, subjects } from '../sales-trial/model';
+---
+<div class="field-wide sales-directions" data-sales-directions>
+  <div class="sales-directions-list" data-directions-list></div>
+  <template data-direction-template>
+    <fieldset class="sales-direction" data-direction>
+      <legend class="sales-visually-hidden" data-direction-label>咨询方向</legend>
+      <label class="field sales-direction-field"><span>咨询类别</span><select name="need">
+        <option value="">待确认</option>{needs.map(need => <option>{need}</option>)}
+      </select></label>
+      <label class="field sales-direction-field"><span>科目</span><select name="subject">
+        <option value="">待确认</option>{subjects.map(subject => <option>{subject}</option>)}
+      </select></label>
+      <label class="field sales-direction-field sales-direction-product"><span>意向产品</span>
+        <input name="interest" maxlength="70" placeholder="选填，例如小班课" />
+      </label>
+      <button type="button" class="sales-text-action sales-remove-direction" data-sales-remove-direction hidden>移除此方向</button>
+    </fieldset>
+  </template>
+  <button type="button" class="sales-text-action sales-add-direction" data-sales-add-direction>
+    <span aria-hidden="true">+</span> 新增咨询方向
+  </button>
+</div>

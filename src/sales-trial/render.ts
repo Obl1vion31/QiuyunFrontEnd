@@ -1,5 +1,5 @@
-import { dateText, labelSource, monthLabel, people, salesHref, salesToday, sources, stages } from './model';
-import type { Post, Source } from './model';
+import { dateText, directionsOf, labelSource, monthLabel, people, salesHref, salesToday, sources, stages } from './model';
+import type { Direction, Post, Source } from './model';
 import type { readLead, readList, readStats } from './store';
 
 export type LeadView = ReturnType<typeof readLead>;
@@ -13,13 +13,16 @@ export function escapeText(value: unknown) {
 const e = escapeText;
 const status = (value: string, label: string) => `<span class="sales-status sales-status--${e(value)}">${e(label)}</span>`;
 const pair = (label: string, value: string) => `<div><dt>${e(label)}</dt><dd>${e(value || '—')}</dd></div>`;
-const direction = (lead: {need?: string; subject?: string}) => [lead.need, lead.subject].filter(Boolean).join(' · ');
-const consultCell = (row: {need?: string; subject?: string; interest: string}) =>
-  `<span>${e(direction(row) || '待确认')}</span>${row.interest ? `<small>${e(row.interest)}</small>` : ''}`;
+const directionText = (items: Direction[]) =>
+  items.map(item => [item.need, item.subject, item.interest].filter(Boolean).join(' · ')).join(' / ');
+const consultCell = (items: Direction[]) => {
+  const content = directionText(items) || '待确认';
+  return `<span class="sales-consultation-line" title="${e(content)}">${e(content)}</span>`;
+};
 
 function sourceCell(source: Source, post?: Post) {
   if (source.status !== 'confirmed' || !post) return status(source.status, sources[source.status]);
-  return `<span class="sales-post-name">${e(post.title)}</span><small>${e(source.version || '已确认原帖')}</small>`;
+  return `<span class="sales-post-name" title="${e(post.title)}">${e(post.title)}</span>`;
 }
 export function listRows(list: ListView, queue: boolean, filtered: boolean) {
   if (!list.rows.length) {
@@ -28,17 +31,23 @@ export function listRows(list: ListView, queue: boolean, filtered: boolean) {
     return `<tr><td colspan="5" class="sales-empty"><strong>${title}</strong>${hint ? `<span>${hint}</span>` : ''}</td></tr>`;
   }
   return list.rows.map(row => `<tr data-inspector-key="${e(row.id)}">
-    <td><button class="sales-row-title" type="button" data-inspector-trigger title="${e(row.name)}">${e(row.name)}</button></td>
-    <td><time class="sales-time">${e(row.added.slice(0, 10))}<small>${e(row.added.slice(11))}</small></time></td>
-    ${queue ? `<td class="sales-summary-cell">${consultCell(row)}</td>
+    <td><div class="sales-contact-line">
+      ${queue ? `<strong class="sales-row-title" title="${e(row.name)}">${e(row.name)}</strong>` :
+        `<button class="sales-row-title" type="button" data-inspector-trigger title="${e(row.name)}">${e(row.name)}</button>`}
+      ${row.wechatId ? `<span class="sales-wechat-id" title="${e(row.wechatId)}">${e(row.wechatId)}</span>` : ''}
+    </div></td>
+    <td><time class="sales-time" datetime="${e(row.added)}">${e(dateText(row.added))}</time></td>
+    <td>${consultCell(row.directions)}</td>
+    ${queue ? `
       <td>${sourceCell(row.source, row.post)}</td>
-      <td><button class="sales-text-action" type="button" data-inspector-trigger>查看</button></td>` :
-      `<td>${consultCell(row)}</td><td><div class="sales-row-actions">${status(row.stage, stages[row.stage])}
+      <td><button class="sales-row-action" type="button" data-sales-sheet="source" aria-haspopup="dialog">${row.source.status === 'pending' ? '核对来源' : '更正来源'}</button></td>` :
+      `<td><div class="sales-row-actions sales-follow-control">${status(row.stage, stages[row.stage])}
         <button class="sales-row-action" type="button" data-sales-sheet="follow" aria-haspopup="dialog">更新跟进</button></div></td>
-      <td><div class="sales-row-actions"><button class="sales-row-action sales-outcome" type="button" data-sales-sheet="deal" aria-haspopup="dialog"
-        aria-label="${row.latestPayment ? '已成交，修改状态' : '未成交，填写是否成交'}">${status(row.latestPayment ? 'won' : 'new', row.latestPayment ? '已成交' : '未成交')}</button>
-        ${row.latestPayment?.product ? `<span class="sales-outcome-product">${e(row.latestPayment.product)}</span>` : ''}</div>
-        ${row.latestPayment ? `<small><time>${e(row.latestPayment.date)}</time></small>` : ''}</td>`}
+      <td><div class="sales-row-actions">
+        ${row.latestPayment ? status('won', '已成交') : ''}
+        <button class="sales-row-action" type="button" data-sales-sheet="deal" aria-haspopup="dialog"
+          ${row.latestPayment ? 'aria-label="更正成交"' : ''}>${row.latestPayment ? '更正' : '登记成交'}</button>
+      </div></td>`}
   </tr>`).join('');
 }
 export function detailHeader(title: string, context: string) {
@@ -55,30 +64,30 @@ export function leadSummary(lead: ListView['rows'][number] | undefined) {
 }
 export function leadDetail(lead: LeadView) {
   const header = detailHeader(lead.name, '');
-  const basic = `<section><h3>客户资料</h3><dl>${pair('添加微信', dateText(lead.added))}${direction(lead) ? pair('咨询方向', direction(lead)) : ''}${lead.interest ? pair('意向产品', lead.interest) : ''}</dl></section>`;
+  const basic = `<section><div class="sales-inspector-heading"><h3>客户资料</h3>
+    <button class="sales-text-action" type="button" data-sales-sheet="contact">${lead.wechatId ? '编辑微信信息' : '补填微信号'}</button></div>
+    <dl>${pair('微信号', lead.wechatId || '待补填')}${pair('添加微信', dateText(lead.added))}
+    ${lead.directions.map((item, index) => pair(index === 0 ? '咨询方向' : '', directionText([item]))).join('')}</dl></section>`;
   const source = `<section><h3>来源</h3>
-    <dl>${pair('核对结果', labelSource(lead.source, lead.post))}${lead.source.version ? pair('确认版本', lead.source.version) : ''}${lead.source.entry ? pair('确认依据', lead.source.entry) : ''}
+    <dl>${pair('核对结果', labelSource(lead.source, lead.post))}${lead.source.version ? pair('确认版本', lead.source.version) : ''}${lead.source.entry ? pair(lead.source.status === 'other' ? '入口' : '确认依据', lead.source.entry) : ''}
     ${lead.post ? pair('实发时间', dateText(lead.post.published)) + pair('帖子类型', postType(lead.post)) : ''}
     ${lead.post?.promotion ? pair('推广记录', lead.post.promotion.name + ' · ' + lead.post.promotion.stage) : ''}
-    ${lead.source.evidence ? pair('核对说明', lead.source.evidence) : ''}</dl>
-    ${lead.post && 'duplicates' in lead ? `<a class="sales-text-action" href="${e(salesHref('posts', { post: lead.post.id }))}" data-astro-reload>查看样例发布资料</a>` : ''}
+    ${lead.source.evidence ? pair(lead.source.status === 'other' ? '具体来源' : '核对说明', lead.source.evidence) : ''}</dl>
+    ${lead.post ? `<a class="sales-text-action" href="${e(salesHref('posts', { post: lead.post.id }))}">查看样例发布资料</a>` : ''}
   </section>`;
   const history = lead.history.length ? `<details class="sales-history"><summary>业务历史 (${lead.history.length})</summary>
     <ol>${lead.history.map(item => `<li><strong>${e(item.text)}</strong><small>${e(dateText(item.at))} · ${e(people[item.actor])}</small></li>`).join('')}</ol></details>` : '';
-  if ('duplicates' in lead && lead.duplicates) {
-    const duplicates = lead.duplicates.length ? `<section class="sales-duplicate-note"><div class="sales-inspector-heading"><h3>同名登记 (${lead.duplicates.length})</h3>
-      <button class="sales-text-action" type="button" data-sales-sheet="merge">核对合并</button></div>
-      <p>核实是同一个人后，可合并到当前档案。</p></section>` : '';
-    return detailFrame(header, basic + source + duplicates + history, footer(sheetButton('source', lead.source.status === 'pending' ? '核对来源' : '更正来源', true)));
-  }
-  if (!('follows' in lead) || !lead.follows || !lead.payments) return detailFrame(header, basic + source + history);
+  const duplicates = lead.duplicates.length ? `<section class="sales-duplicate-note"><div class="sales-inspector-heading"><h3>疑似重复登记 (${lead.duplicates.length})</h3>
+    <button class="sales-text-action" type="button" data-sales-sheet="merge">核对合并</button></div>
+    <p>核实是同一个人后，可合并到当前档案。</p></section>` : '';
   const follows = lead.follows.length ? `<section><h3>跟进记录 (${lead.follows.length})</h3><ol class="sales-record-timeline">${lead.follows.map(item =>
     `<li><time>${e(item.date)}</time><span class="sales-reply">${e(stages[item.stage])}</span>
-    ${item.interest ? `<p>${e(item.interest)}</p>` : ''}</li>`).join('')}</ol></section>` : '';
+    ${directionsOf(item).map(direction => `<p>${e(directionText([direction]))}</p>`).join('')}</li>`).join('')}</ol></section>` : '';
   const active = lead.payments.filter(payment => !payment.voided);
   const payments = active.length ? `<section><h3>成交记录 (${active.length})</h3><ol class="sales-record-timeline">
     ${active.map(item => `<li><time>${e(item.date)}</time>${item.product ? `<p>${e(item.product)}</p>` : ''}</li>`).join('')}</ol></section>` : '';
-  return detailFrame(header, basic + follows + payments + source + history, footer(sheetButton('follow', '更新跟进') + sheetButton('deal', '是否成交', true)));
+  return detailFrame(header, basic + duplicates + follows + payments + source + history,
+    footer(sheetButton('follow', '更新跟进') + sheetButton('deal', active.length ? '更正成交' : '登记成交', true)));
 }
 export const postType = (post: Post) => post.type === '推广' ? '推广帖' : '非推广';
 export function detailFeedback(kind: 'loading' | 'error') {
@@ -101,14 +110,14 @@ export function statsContent(stats: ReturnType<typeof readStats>, view: 'monthly
     const products = (items: { label: string; count: number }[]) => items.length
       ? items.map(item => `<span class="sales-mix-value">${e(item.label)} <b>${item.count}</b></span>`).join('') : '—';
     return `<div class="sales-section-heading"><div><h1>${e(post?.title ?? '按帖复盘')}</h1><p>${e(caption)} · 试用样例</p></div>
-      ${post ? `<a class="sales-text-action" href="${e(salesHref('posts', { month }))}" data-astro-reload>查看全部帖子</a>` : `<span class="sales-meta">待核对或未确认来源 ${summary.unknownSource} 人</span>`}</div>
+      ${post ? `<a class="sales-text-action" href="${e(salesHref('posts', { month }))}">查看全部帖子</a>` : `<span class="sales-meta">待核对或未确认来源 ${summary.unknownSource} 人</span>`}</div>
       ${post ? `<dl class="sales-post-facts sales-post-overview">${pair('实发时间', dateText(post.published))}
         ${pair('笔记 ID', post.note)}${pair('内容版本', post.versions.join(' / '))}
         ${post.promotion ? pair('推广记录', post.promotion.name + ' · ' + post.promotion.stage) : ''}</dl>` : ''}
       <div class="sales-data-surface"><div class="sales-table-wrap"><table class="sales-table sales-post-stats">
         <thead><tr><th scope="col">帖子</th><th scope="col">新增微信</th><th scope="col">已跟进</th><th scope="col">已付款</th><th scope="col">变现率</th><th scope="col">意向产品</th><th scope="col">成交产品</th></tr></thead>
         <tbody>${stats.postRows.map(row => `<tr>
-          <th scope="row"><a class="sales-text-action" href="${e(salesHref('posts', { post: row.post.id, month }))}" data-astro-reload>${e(row.post.title)}</a><small>${e(row.post.subject)} · ${e(row.post.type)}</small></th>
+          <th scope="row"><a class="sales-text-action" href="${e(salesHref('posts', { post: row.post.id, month }))}">${e(row.post.title)}</a><small>${e(row.post.subject)} · ${e(row.post.type)}</small></th>
           <td>${row.added}</td><td>${row.followed}</td><td>${row.paid}</td><td>${rate(row.paid, row.added)}${row.added ? `<small>${row.paid} / ${row.added} 人</small>` : ''}</td>
           <td>${products(row.interests)}</td><td>${products(row.products)}</td></tr>`).join('')}</tbody>
       </table></div></div>`;

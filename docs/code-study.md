@@ -64,6 +64,8 @@ flowchart LR
 
 ## 共享界面接入
 
+销售视图使用 `BusinessNavigationLoading`、`BusinessConsoleToolbar` 和 `BusinessViewSwitch`。统计切换与月份同在顶栏。来源队列直接打开共用表单 Sheet，客户资料仍由台账 Inspector 展示。试用记录继续使用同一账号的本地存储，单咨询旧档案在读取时兼容，微信号可在资料中补填。
+
 推广发布ID由`publication-note-identity`在原发布Sheet就近展示，完整链接本地预览、短链服务端解析；链接指向另一篇笔记时才展开原表单的生效范围与已有日记录数量。服务端`confirmPublicationNote`在原发布事务保存链接区间，`noteLinkOn`供每日与历史详情按数据日取链接。历史缺链保留原手填，共用身份指纹不包含同ID的来源补齐。
 
 排期单层 Sheet 与所有 modal Inspector 的遮罩点击统一接入 business-dialog.bindBusinessBackdrop，通过主指针起点、拖动及取消判断完整点击，再交回原关闭流程。不要只按 click 的最终坐标判断，浏览器会将内按外放的 click 归到整个 dialog。未保存保护及动画仍由原控制器负责，真实鼠标回归见 tests/inspector-pointer.browser.ts。

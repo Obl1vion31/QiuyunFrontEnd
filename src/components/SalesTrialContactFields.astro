@@ -1,0 +1,10 @@
+---
+interface Props { prefix: string }
+const { prefix } = Astro.props;
+---
+<div class="field"><label for={prefix + '-name'}>微信名<b> *</b></label>
+  <input id={prefix + '-name'} name="name" maxlength="40" autocomplete="off" required />
+</div>
+<div class="field"><label for={prefix + '-wechat'}>微信号<b> *</b></label>
+  <input id={prefix + '-wechat'} name="wechatId" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" required />
+</div>
