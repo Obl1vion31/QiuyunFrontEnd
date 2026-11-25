@@ -1,4 +1,4 @@
-import { dateText, directionsOf, labelSource, monthLabel, people, salesHref, salesToday, sources, stages } from './model';
+import { dateText, directionsOf, labelSource, monthLabel, people, salesHref, salesToday, sourcePostHref, sourcePostLinkLabel, sourceStatus, stages } from './model';
 import type { Direction, Post, Source } from './model';
 import type { readLead, readList, readStats } from './store';
 
@@ -27,7 +27,7 @@ function consultCell(items: Direction[], queue: boolean) {
 }
 
 function sourceCell(source: Source, post?: Post) {
-  if (source.status !== 'confirmed' || !post) return `<span class="sales-source-state">${e(sources[source.status])}</span>`;
+  if (!post) return `<span class="sales-source-state">${e(labelSource(source))}</span>`;
   return `<span class="sales-post-name" title="${e(post.title)}">${e(post.title)}</span>`;
 }
 export function listRows(list: ListView, queue: boolean, filtered: boolean) {
@@ -46,7 +46,7 @@ export function listRows(list: ListView, queue: boolean, filtered: boolean) {
     <td>${consultCell(row.directions, queue)}</td>
     ${queue ? `
       <td>${sourceCell(row.source, row.post)}</td>
-      <td class="sales-centered"><button class="sales-row-action" type="button" data-sales-sheet="source" aria-haspopup="dialog">${row.source.status === 'pending' ? '核对来源' : '更正来源'}</button></td>` :
+      <td class="sales-centered"><button class="sales-row-action" type="button" data-sales-sheet="source" aria-haspopup="dialog">${sourceStatus(row.source) === 'pending' ? '核对来源' : '更正来源'}</button></td>` :
       `<td><div class="sales-row-actions sales-progress">
         <span class="sales-follow-state" data-stage="${e(row.stage)}">${e(stages[row.stage])}</span>
         <button class="sales-row-action" type="button" data-sales-sheet="follow" aria-haspopup="dialog">更新跟进</button>
@@ -80,11 +80,11 @@ export function leadDetail(lead: LeadView) {
   const consultation = `<section><h3>咨询方向与意向产品</h3>
     ${lead.directions.length ? lead.directions.map(item => `<p>${e(directionText(item))}</p>`).join('') : '<p>待确认</p>'}</section>`;
   const source = `<section><h3>来源</h3>
-    <dl>${pair('核对结果', labelSource(lead.source, lead.post))}${lead.source.version ? pair('确认版本', lead.source.version) : ''}${lead.source.entry ? pair(lead.source.status === 'other' ? '入口' : '确认依据', lead.source.entry) : ''}
+    <dl>${pair('核对结果', labelSource(lead.source))}${lead.post && lead.source.version ? pair('确认版本', lead.source.version) : ''}${sourceStatus(lead.source) !== 'pending' && lead.source.entry ? pair(lead.source.status === 'other' ? '入口' : '确认依据', lead.source.entry) : ''}
     ${lead.post ? pair('实发时间', dateText(lead.post.published)) + pair('帖子类型', postType(lead.post)) : ''}
-    ${lead.post?.promotion ? pair('推广记录', lead.post.promotion.name + ' · ' + lead.post.promotion.stage) : ''}
+    ${lead.post?.promotion ? pair('推广记录', lead.post.promotion) : ''}
     ${lead.source.evidence ? pair(lead.source.status === 'other' ? '具体来源' : '核对说明', lead.source.evidence) : ''}</dl>
-    ${lead.post ? `<a class="sales-text-action" href="${e(salesHref('posts', { post: lead.post.id }))}">查看样例发布资料</a>` : ''}
+    ${lead.post ? `<a class="sales-text-action" href="${e(sourcePostHref(lead.post))}" target="_blank" rel="noopener noreferrer">${sourcePostLinkLabel(lead.post)}</a>` : ''}
   </section>`;
   const history = lead.history.length ? `<details class="sales-history"><summary>业务历史 (${lead.history.length})</summary>
     <ol>${lead.history.map(item => `<li><strong>${e(item.text)}</strong><small>${e(dateText(item.at))} · ${e(people[item.actor])}</small></li>`).join('')}</ol></details>` : '';
@@ -108,30 +108,30 @@ export function detailFeedback(kind: 'loading' | 'error') {
 }
 export function postChoice(post: Post) {
   return `<label class="sales-post-choice"><input type="radio" name="candidate" value="${e(post.id)}"><span><strong>${e(post.title)}</strong>
-    <small>${e(post.subject)} · ${e(postType(post))} · ${e(dateText(post.published))}</small></span></label>`;
+    <small>${e(post.subject)} · ${e(postType(post))} · ${e(post.version)} · ${e(dateText(post.published))}</small></span></label>`;
 }
 
 const rate = (count: number, total: number) => total
   ? (count / total * 100).toLocaleString('zh-CN', { maximumFractionDigits: 1 }) + '%' : '—';
 
-export function statsContent(stats: ReturnType<typeof readStats>, view: 'monthly' | 'cohort' | 'posts', post?: Post) {
-  const { summary, month } = stats;
+export function statsContent(stats: ReturnType<typeof readStats>, view: 'monthly' | 'cohort' | 'posts') {
+  const { summary, month, selected: post } = stats;
   const caption = `${monthLabel(month)}${view === 'monthly' ? ' · 按行为发生日期' : '新增 · 截至 ' + salesToday()}`;
   if (view === 'posts') {
     const products = (items: { label: string; count: number }[]) => items.length
       ? items.map(item => `<span class="sales-mix-value">${e(item.label)} <b>${item.count}</b></span>`).join('') : '—';
-    return `<div class="sales-section-heading"><div><h1>${e(post?.title ?? '按帖复盘')}</h1><p>${e(caption)} · 试用样例</p></div>
+    return `<div class="sales-section-heading"><div><h1>${e(post?.title ?? '按帖复盘')}</h1><p>${e(caption)}</p></div>
       ${post ? `<a class="sales-text-action" href="${e(salesHref('posts', { month }))}">查看全部帖子</a>` : `<span class="sales-meta">待核对或未确认来源 ${summary.unknownSource} 人</span>`}</div>
       ${post ? `<dl class="sales-post-facts sales-post-overview">${pair('实发时间', dateText(post.published))}
-        ${pair('笔记 ID', post.note)}${pair('内容版本', post.versions.join(' / '))}
-        ${post.promotion ? pair('推广记录', post.promotion.name + ' · ' + post.promotion.stage) : ''}</dl>` : ''}
-      <div class="sales-data-surface"><div class="sales-table-wrap"><table class="sales-table sales-post-stats">
+        ${pair('笔记 ID', post.note ?? '')}${pair('发布版本', post.version)}
+        ${post.promotion ? pair('推广记录', post.promotion) : ''}</dl>` : ''}
+      ${stats.postRows.length ? `<div class="sales-data-surface"><div class="sales-table-wrap"><table class="sales-table sales-post-stats">
         <thead><tr><th scope="col">帖子</th><th scope="col">新增微信</th><th scope="col">已跟进</th><th scope="col">已付款</th><th scope="col">变现率</th><th scope="col">意向产品</th><th scope="col">成交产品</th></tr></thead>
         <tbody>${stats.postRows.map(row => `<tr>
           <th scope="row"><a class="sales-text-action" href="${e(salesHref('posts', { post: row.post.id, month }))}">${e(row.post.title)}</a><small>${e(row.post.subject)} · ${e(row.post.type)}</small></th>
           <td>${row.added}</td><td>${row.followed}</td><td>${row.paid}</td><td>${rate(row.paid, row.added)}${row.added ? `<small>${row.paid} / ${row.added} 人</small>` : ''}</td>
           <td>${products(row.interests)}</td><td>${products(row.products)}</td></tr>`).join('')}</tbody>
-      </table></div></div>`;
+      </table></div></div>` : '<p class="sales-meta">该月份暂无已核对的来源帖。</p>'}`;
   }
   const title = view === 'monthly' ? '当月销售结果' : '新增客户后续结果';
   const cards = view === 'monthly' ? [

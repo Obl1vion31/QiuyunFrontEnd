@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { provisionAccount } from '../src/auth/provision';
+import { businessDate, businessDateTime } from '../src/scripts/business-date';
+import * as schema from '../src/db/schema';
 import { admin, employee, startFixture } from './auth.fixture';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE!);
@@ -12,6 +14,31 @@ await mkdir(shots, { recursive: true });
 const fixture = await startFixture({ entry: '.tools/serve-vercel.mjs' });
 const origin = fixture.baseURL;
 const sales = origin + '/business/sales';
+const sources = origin + '/api/sales-source-posts';
+const promotedTitle = '来源联调 · 讲义推广';
+const organicTitle = '来源联调 · TMUA 常规答疑';
+const sourcePublishedAt = new Date(Date.now() - 3 * 86_400_000);
+const sourcePublishDay = businessDate(sourcePublishedAt);
+const oldNote = 'a'.repeat(24);
+const currentNote = 'b'.repeat(24);
+const organicNote = 'c'.repeat(24);
+const postUrl = (note: string) => 'https://www.xiaohongshu.com/explore/' + note;
+
+async function sourceFixture(title: string, promoted: boolean, publicationUrl: string, published = true) {
+  const [content] = await fixture.db.insert(schema.operationsContent).values({
+    operationType: promoted ? 'promotion_only' : 'non_promotion_standard',
+  }).returning();
+  const [version] = await fixture.db.insert(schema.operationsContentVersion).values({
+    contentId: content.id, contentName: title, versionNumber: 0, workType: 'new', subjectId: 'tmua',
+  }).returning();
+  const [schedule] = await fixture.db.insert(schema.operationsContentSchedule).values({
+    contentVersionId: version.id, plannedPublishAt: sourcePublishedAt, actualPublishAt: published ? sourcePublishedAt : null,
+    isPromoted: promoted, promotionStatus: promoted ? 'scaling' : 'none', completionStatus: published ? 'on_time' : 'pending',
+    publicationUrl: published ? publicationUrl : null,
+  }).returning();
+  return { content, version, schedule };
+}
+
 const other = { username: 'test_sales_other', password: 'fictional-second-admin-password', role: 'admin' as const };
 const testName = '试用流程验证 A';
 const testWechat = 'wx_trial_a';
@@ -103,6 +130,21 @@ const registration = async (page: any, name: string, wechatId = 'wx_' + randomUU
 
 try {
   await provisionAccount(fixture.db, other);
+  const promo = await sourceFixture(promotedTitle, true, postUrl(currentNote));
+  const organic = await sourceFixture(organicTitle, false, postUrl(organicNote));
+  const short = await sourceFixture('已登记短链的普通帖', false, 'https://xhslink.com/a/saleFixture?ref=stored');
+  await sourceFixture('来源联调 · 待实发排期', false, 'https://xhslink.com/a/unpublished', false);
+  await fixture.db.insert(schema.operationsPromotionCampaign).values({
+    scheduleId: promo.schedule.id, startedOn: sourcePublishDay, currentStage: 'scaling', currentStatus: 'scaling',
+  });
+  await fixture.db.insert(schema.operationsNoteIdOwner).values(
+    [oldNote, currentNote].map(platformNoteId => ({ platformNoteId, contentId: promo.content.id })),
+  );
+  await fixture.db.insert(schema.operationsVersionNoteId).values([
+    { contentId: promo.content.id, versionId: promo.version.id, platformNoteId: oldNote, publicationUrl: postUrl(oldNote), mode: 'initial' },
+    { contentId: promo.content.id, versionId: promo.version.id, platformNoteId: currentNote, publicationUrl: postUrl(currentNote),
+      effectiveOn: businessDate(new Date(Date.now() - 86_400_000)), mode: 'correction' },
+  ]);
   context = await launch();
   let page = context.pages()[0] ?? await context.newPage();
   const video = page.video();
@@ -112,13 +154,37 @@ try {
   track(page);
   const anonymous = await context.request.get(sales, { maxRedirects: 0 });
   assert.equal(anonymous.status(), 302);
+  assert.equal((await context.request.get(sources + '?q=' + oldNote)).status(), 401);
   assert.match(anonymous.headers().location, /^\/login\?next=/);
   await signIn(employee);
   assert.equal((await context.request.get(sales, { maxRedirects: 0 })).status(), 403);
+  assert.equal((await context.request.get(sources + '?q=' + oldNote)).status(), 403);
+  const assistant = await context.request.get(origin + '/api/content-search?q=' + oldNote);
+  assert.equal((await assistant.json()).rows[0].id, promo.schedule.id);
   const staff = await context.request.get(origin + '/business/workspaces', { maxRedirects: 0 });
   assert.equal(staff.headers().location, '/business/operations-schedule');
   await signOut();
   await signIn(admin);
+  const lookup = async (query: string) => {
+    const response = await context!.request.get(sources + '?' + new URLSearchParams({ q: query }));
+    assert.equal(response.status(), 200, await response.text());
+    assert.match(response.headers()['cache-control'], /private, no-store/);
+    return (await response.json()).rows;
+  };
+  const matches = await lookup('来源联调');
+  assert.deepEqual(new Set(matches.map((post: { id: string }) => post.id)), new Set([promo.schedule.id, organic.schedule.id]));
+  const historical = (await lookup(oldNote.toUpperCase()))[0];
+  assert.equal(historical.id, promo.schedule.id);
+  assert.equal(historical.note, oldNote);
+  assert.equal(historical.publication, postUrl(oldNote));
+  assert.equal(historical.published, businessDateTime(sourcePublishedAt));
+  assert.equal(historical.type, '推广');
+  const plain = (await lookup('复制分享文案 ' + postUrl(organicNote) + '?from=fixture'))[0];
+  assert.equal(plain.id, organic.schedule.id);
+  assert.equal(plain.type, '非推广');
+  assert.equal(plain.note, organicNote);
+  assert.equal((await lookup('https://www.xhslink.com/a/saleFixture/?ref=new'))[0].id, short.schedule.id);
+  assert.deepEqual(await lookup('未匹配的来源标题'), []);
   const monthUrl = origin + '/api/monthly-operations?month=' + today.slice(0, 7);
   const baseline = await context.request.get(monthUrl);
   assert.equal(baseline.status(), 200);
@@ -128,6 +194,7 @@ try {
   await page.waitForURL('**/business/workspaces');
   const workspaces = page.getByRole('navigation', { name: '工作台' });
   await workspaces.getByRole('link', { name: /内容工作台/ }).waitFor();
+  assert.equal(await workspaces.getByText('试用', { exact: true }).count(), 0);
   await shot(page, '01-workspace-choice-1440');
   await workspaces.getByRole('link', { name: /销售工作台/ }).click();
   await page.getByText('还没有客户', { exact: true }).waitFor();
@@ -236,12 +303,48 @@ try {
   await pending.getByText('无法确认来源帖', { exact: true }).waitFor();
   await button(pending, '更正来源').click();
   await input(source, 'sourceStatus').selectOption('confirmed');
-  await input(source, 'postQuery').fill('b'.repeat(24));
+  await page.route('**/api/sales-source-posts?*', async (route: any) => {
+    await route.fulfill({ status: 503, json: { message: '查找来源帖暂时不可用，请重试。' } });
+  }, { times: 1 });
+  await input(source, 'postQuery').fill('来源联调');
   await button(source, '查找').click();
-  await source.getByText('样例推广 · 讲义引流 · 放量中', { exact: true }).waitFor();
+  await source.getByText('查找来源帖暂时不可用，请重试。', { exact: true }).waitFor();
+  assert.equal(await input(source, 'postQuery').inputValue(), '来源联调');
+  await shot(page, '29-source-search-failed-1440');
+
+  await page.route('**/api/sales-source-posts?*', async (route: any) => {
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    await route.continue();
+  }, { times: 1 });
+  await button(source, '查找').click();
+  await source.getByText('正在查找来源帖…', { exact: true }).waitFor();
+  await shot(page, '30-source-search-loading-1440');
+  await source.getByRole('radio', { name: new RegExp(organicTitle) }).waitFor();
+  assert.equal(await source.getByRole('radio').count(), 2);
+  await shot(page, '31-source-both-results-1440');
+  await source.getByRole('radio', { name: new RegExp(organicTitle) }).click();
+  const selectedSource = source.locator('[data-selected-post]');
+  await selectedSource.getByText('非推广', { exact: true }).waitFor();
+  assert.equal(await link(selectedSource, '查看原帖').getAttribute('href'), postUrl(organicNote));
+  await shot(page, '32-source-organic-1440');
+  await button(source, '保存来源').click();
+  await pending.getByText(organicTitle, { exact: true }).waitFor();
+
+  await button(pending, '更正来源').click();
+  await input(source, 'postQuery').fill(oldNote);
+  await button(source, '查找').click();
+  await selectedSource.getByText('推广帖', { exact: true }).waitFor();
+  assert.equal(await input(source, 'postId').inputValue(), promo.schedule.id);
+  assert.match(await selectedSource.locator('[data-post-promotion]').innerText(), /放量/);
+  assert.equal(await link(selectedSource, '查看原帖').getAttribute('href'), postUrl(oldNote));
   await shot(page, '06-source-selection-1440');
   await button(source, '保存来源').click();
-  await pending.getByText('试用样例 · 讲义内容与用法', { exact: true }).waitFor();
+  await pending.getByText(promotedTitle, { exact: true }).waitFor();
+  await button(pending, '更正来源').click();
+  await selectedSource.getByText(promotedTitle, { exact: true }).waitFor();
+  await selectedSource.getByText(oldNote, { exact: true }).waitFor();
+  await button(source, '关闭表单').click();
+  await source.waitFor({ state: 'hidden' });
   sourceEnd = (Date.now() - timingOrigin) / 1000;
   await link(page, '销售统计').click();
   await page.locator('.sales-stat-band strong').first().waitFor();
@@ -253,12 +356,12 @@ try {
   assert.deepEqual(await page.locator('.sales-stat-band strong').allTextContents(), ['100%', '100%', '100%']);
   await shot(page, '21-stats-cohort-1440');
   await page.getByRole('radio', { name: '按帖复盘', exact: true }).click();
-  const promoted = page.getByRole('row').filter({ hasText: '试用样例 · 讲义内容与用法' });
+  const promoted = page.getByRole('row').filter({ hasText: promotedTitle });
   await promoted.waitFor();
   assert.equal(await page.locator('[data-preview-stat-switch]').getAttribute('data-persist-test'), 'yes');
   assert.deepEqual((await promoted.getByRole('cell').allTextContents()).slice(0, 3), ['1', '1', '1']);
   await shot(page, '08-post-results-1440');
-  await link(promoted, '试用样例 · 讲义内容与用法').click();
+  await link(promoted, promotedTitle).click();
   await page.locator('.sales-post-overview').waitFor();
   await shot(page, '22-stats-post-details-1440');
   assert.equal(monthlyFacts(await (await context.request.get(monthUrl)).json()), monthlyBefore);
@@ -338,7 +441,7 @@ try {
           workspace.rows.push({ ...absorbed, id: 'fixture-absorbed-grandchild', mergedTo: absorbed.id });
           workspace.rows.push({
             id: 'fixture-old-record', name, added: date + 'T08:30', need: '课程', subject: '旧版科目',
-            interest: '旧版意向', stage: 'new', source: { status: 'pending' }, follows: [], payments: [], history: [],
+            interest: '旧版意向', stage: 'new', source: { status: 'confirmed', postId: 'handout-post' }, follows: [], payments: [], history: [],
           });
           table.put(workspace, key);
         };
@@ -449,15 +552,27 @@ try {
   await input(page.locator('[data-sales-list-filter]'), 'source').selectOption('all');
   await button(page.locator('[data-sales-list-filter]'), '查看').click();
   const queueRows = page.locator('.sales-queue-table tbody tr[data-inspector-key]');
-  await queueRows.filter({ hasText: oldName }).waitFor();
+  const historicalSource = queueRows.filter({ hasText: oldName });
+  await historicalSource.getByText('待重新核对', { exact: true }).waitFor();
   assert.equal(await queueRows.filter({ hasText: testName }).count(), 0);
+  await shot(page, '33-legacy-source-pending-1440');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await button(historicalSource, '核对来源').click();
+  const mobileSource = page.locator('#preview-source[open]');
+  await input(mobileSource, 'postQuery').fill(organicNote);
+  await button(mobileSource, '查找').click();
+  await mobileSource.locator('[data-selected-post]').getByText(organicTitle, { exact: true }).waitFor();
+  await shot(page, '34-source-390');
+  await button(mobileSource, '取消').click();
+  await button(page.locator('[data-business-confirm][open]'), '放弃修改').click();
+  await mobileSource.waitFor({ state: 'hidden' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await link(page, '销售统计').click();
   await page.locator('.sales-stat-band strong').first().waitFor();
   assert.deepEqual(await page.locator('.sales-stat-band strong').allTextContents(), ['3', '0', '0']);
   await page.getByRole('radio', { name: '按帖复盘', exact: true }).click();
-  const deletedPost = page.getByRole('row').filter({ hasText: '试用样例 · 讲义内容与用法' });
-  await deletedPost.waitFor();
-  assert.deepEqual((await deletedPost.getByRole('cell').allTextContents()).slice(0, 3), ['0', '0', '0']);
+  await page.getByText('该月份暂无已核对的来源帖。', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('row').filter({ hasText: promotedTitle }).count(), 0);
   assert.equal(monthlyFacts(await (await context.request.get(monthUrl)).json()), monthlyBefore);
   await link(page, '销售台账').click();
   await button(page, oldName).waitFor();
@@ -504,7 +619,7 @@ try {
       video: await deleteVideo.path(), start: deleteStart, retry: deleteRetry, end: deleteEnd,
     }));
   }
-  console.log('正式运行包通过业务流程、删除的取消／写入中止／重试与清理、并行保存、月度运营隔离及三档桌面检查。');
+  console.log('正式运行包通过推广与非推广查找、历史笔记、分享链接、保存回显、旧记录复核、账号权限及月度运营隔离。');
 } finally {
   await context?.close();
   await fixture.stop();

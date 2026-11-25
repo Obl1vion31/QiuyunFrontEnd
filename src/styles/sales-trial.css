@@ -159,6 +159,7 @@ body.sales-trial {
 .sales-post-results { box-sizing: border-box; width: 100%; margin: 10px 0 0; padding: 10px; border: 1px solid var(--console-line); border-radius: 8px; }
 .sales-post-results legend { padding: 0 4px; color: #425961; font: 500 13px/20px var(--console-font); }
 .sales-trial .sales-post-results .sales-post-choice { display: flex; align-items: start; gap: 10px; padding: 7px 8px; margin: 0; cursor: pointer; }
+.sales-post-results [data-more-posts] { margin: 6px 8px 0; min-height: 30px; }
 .sales-post-choice input { margin: 4px 0 0; accent-color: #2855c6; }
 .sales-post-choice :is(strong,small) { display: block; }
 .sales-post-choice small { color: #536871; font-size: 12px; }
@@ -185,7 +186,6 @@ body.sales-trial {
 .sales-workspace-choice nav a:hover { border-color: #8ba9db; background: #edf3fb; }
 .sales-workspace-choice nav :is(strong,small) { display: block; }
 .sales-workspace-choice nav small { color: #516773; font-size: 13px; }
-.sales-workspace-trial-label { margin-inline-start: 8px; color: #455f83; font: 500 12px/18px var(--console-font); }
 .sales-workspace-choice nav svg { width: 20px; height: 20px; flex: none; color: #254aaf; }
 @media (max-width: 1279px) {
   .sales-col-contact { width: 132px; }

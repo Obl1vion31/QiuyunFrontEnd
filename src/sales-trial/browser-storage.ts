@@ -2,7 +2,7 @@ import type { Workspace } from './store';
 
 const databaseName = 'qiuyun-sales-trial';
 const tableName = 'accounts';
-const readFailure = '本浏览器暂时无法读取试用记录，请检查浏览器存储设置后重试。';
+const readFailure = '本浏览器暂时无法读取销售记录，请检查浏览器存储设置后重试。';
 const writeFailure = '本次未保存，输入已保留。请检查浏览器存储空间后重试。';
 
 function openStorage(): Promise<IDBDatabase> {

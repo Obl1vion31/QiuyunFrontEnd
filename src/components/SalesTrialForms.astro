@@ -47,23 +47,27 @@ const { role } = Astro.props;
         <option value="other">其他来源</option>
       </select></div>
       <section class="field-wide sales-source-picker" data-post-picker>
-        <div class="field"><label for="source-query">查找来源帖子（试用样例）</label><div class="sales-joined-control">
-          <input id="source-query" name="postQuery" placeholder="粘贴分享链接、笔记 ID 或输入标题" autocomplete="off" />
+        <div class="field"><label for="source-query">查找来源帖子</label><div class="sales-joined-control">
+          <input id="source-query" name="postQuery" placeholder="粘贴分享链接、笔记 ID 或输入标题" maxlength="2000" autocomplete="off" />
           <button type="button" class="sales-control-button" data-find-post>查找</button>
         </div></div>
         <p data-post-feedback class="sales-field-note" role="status"></p>
-        <fieldset data-post-results class="sales-post-results" hidden><legend>请选择来源帖子</legend><div data-post-choices></div></fieldset>
+        <fieldset data-post-results class="sales-post-results" hidden><legend>请选择来源帖子</legend><div data-post-choices></div>
+          <button type="button" class="sales-text-action" data-more-posts hidden>查看更多</button>
+        </fieldset>
         <section data-selected-post class="sales-selected-post" aria-label="已选来源帖子" hidden>
           <div class="sales-source-title"><strong></strong><span data-post-type class="sales-status"></span></div>
           <dl class="sales-post-facts">
             <div><dt>实发时间</dt><dd data-post-published></dd></div>
             <div><dt>科目</dt><dd data-post-subject></dd></div>
-            <div><dt>发布版本</dt><dd data-post-versions></dd></div>
+            <div><dt>发布版本</dt><dd data-post-version></dd></div>
+            <div data-post-note-row hidden><dt>笔记 ID</dt><dd data-post-note></dd></div>
             <div data-post-promotion-row hidden><dt>推广记录</dt><dd data-post-promotion></dd></div>
           </dl>
-          <a class="sales-text-action" target="_blank" rel="noopener" data-open-original>查看样例发布资料</a>
+          <a class="sales-text-action" target="_blank" rel="noopener noreferrer" data-open-original>查看原帖</a>
         </section>
         <input type="hidden" name="postId" />
+        <input type="hidden" name="postNote" />
       </section>
       <div class="field field-wide" data-unknown-source hidden>
         <label for="source-unknown-note">核对说明</label>

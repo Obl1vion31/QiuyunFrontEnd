@@ -30,16 +30,17 @@ export interface Post {
   id: string;
   title: string;
   subject: string;
-  type: string;
-  note: string;
+  type: '推广' | '非推广';
+  note: string | null;
   published: string;
-  versions: string[];
-  short: string;
-  promotion?: { name: string; stage: string };
+  plannedMonth: string;
+  version: string;
+  publication: string;
+  promotion?: string;
 }
 export interface Source {
   status: SourceStatus;
-  postId?: string;
+  post?: Post;
   version?: string;
   entry?: string;
   evidence?: string;
@@ -77,7 +78,14 @@ export function directionsOf({ directions, need, subject, interest }: Consultati
   return directions ?? (need || subject || interest ? [{ need, subject, interest }] : []);
 }
 
-export const labelSource = (source: Source, post?: Post) => source.status === 'confirmed' && post ? post.title : sources[source.status];
+export const sourcePost = (source: Source) => source.status === 'confirmed' ? source.post : undefined;
+export const sourceStatus = (source: Source): SourceStatus => source.status === 'confirmed' && !source.post ? 'pending' : source.status;
+export const labelSource = (source: Source) => sourcePost(source)?.title ??
+  (source.status === 'confirmed' ? '待重新核对' : sources[source.status]);
+export function sourcePostHref(post: Post) {
+  return post.publication || '/business/operations-schedule?' + new URLSearchParams({ month: post.plannedMonth, row: post.id });
+}
+export const sourcePostLinkLabel = (post: Post) => post.publication ? '查看原帖' : '查看排期详情';
 export const dateText = (value: string) => value.replace('T', ' ');
 export const activePayments = (lead: Lead) => lead.payments.filter(payment => !payment.voided);
 export const monthLabel = (value: string) => value.slice(0, 4) + ' 年 ' + Number(value.slice(5, 7)) + ' 月';

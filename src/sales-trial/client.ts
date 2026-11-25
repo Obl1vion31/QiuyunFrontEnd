@@ -1,12 +1,14 @@
 import { navigate } from 'astro:transitions/client';
 import { businessConfirm, bindBusinessBackdrop, closeBusinessDialog } from '../scripts/business-dialog';
 import { getInspector } from '../scripts/business-inspector';
-import { dateText, isStatView, monthLabel, salesToday, salesHref } from './model';
+import { readBusiness } from '../scripts/business-read';
+import { readableOperationError } from '../db/business-messages';
+import { dateText, isStatView, monthLabel, salesToday, salesHref, sourcePostHref, sourcePostLinkLabel, sourceStatus } from './model';
 import type { Direction, Post, View } from './model';
 import { detailFeedback, escapeText, leadDetail, leadSummary, listRows, postChoice, postType, statsContent } from './render';
 import type { LeadView, ListView } from './render';
 import { browserWorkspace } from './browser-storage';
-import { deleteLead, filtersFrom, monthOptions, postFor, readLead, readList, readStats, saveLead, searchPosts } from './store';
+import { deleteLead, filtersFrom, monthOptions, readLead, readList, readStats, saveLead } from './store';
 import type { Action, Workspace } from './store';
 
 type Config = { account: string; view: View };
@@ -36,6 +38,9 @@ function start(config: Config) {
   let workspaceGeneration = 0;
   let receiptTimer: ReturnType<typeof setTimeout>;
   let candidates: Post[] = [];
+  let selectedPost: Post | undefined;
+  let nextPostOffset: number | null = null;
+  let postSearch: AbortController | undefined;
   const baselines = new WeakMap<HTMLFormElement, string>();
   const deleting = new Set<string>();
   const pane = document.querySelector<HTMLDialogElement>('#sales-trial-inspector');
@@ -107,7 +112,7 @@ function start(config: Config) {
       );
     }
     if (isStatView(config.view)) {
-      document.querySelector('[data-sales-stats]')!.innerHTML = statsContent(readStats(workspace, filters), config.view, postFor(filters.post));
+      document.querySelector('[data-sales-stats]')!.innerHTML = statsContent(readStats(workspace, filters), config.view);
       return;
     }
     const fresh = readList(workspace, filters, queue);
@@ -179,7 +184,9 @@ function start(config: Config) {
   }
 
   function selectPost(form: HTMLFormElement, post?: Post, version = '', entry = '仅确认帖子') {
+    selectedPost = post;
     field(form, 'postId').value = post?.id ?? '';
+    field(form, 'postNote').value = post?.note ?? '';
     const selected = form.querySelector<HTMLElement>('[data-selected-post]')!;
     selected.hidden = !post;
     setSourcePicker(form);
@@ -190,19 +197,24 @@ function start(config: Config) {
     type.className = 'sales-status sales-status--' + (post.type === '推广' ? 'following' : 'new');
     selected.querySelector('[data-post-published]')!.textContent = dateText(post.published);
     selected.querySelector('[data-post-subject]')!.textContent = post.subject;
-    selected.querySelector('[data-post-versions]')!.textContent = post.versions.join(' / ');
+    selected.querySelector('[data-post-version]')!.textContent = post.version;
+    selected.querySelector<HTMLElement>('[data-post-note-row]')!.hidden = !post.note;
+    selected.querySelector('[data-post-note]')!.textContent = post.note;
     selected.querySelector<HTMLElement>('[data-post-promotion-row]')!.hidden = !post.promotion;
-    selected.querySelector('[data-post-promotion]')!.textContent = post.promotion ? post.promotion.name + ' · ' + post.promotion.stage : '';
-    selected.querySelector<HTMLAnchorElement>('a')!.href = salesHref('posts', { post: post.id });
-    field(form, 'version').innerHTML = '<option value="">仅确认原帖</option>' + post.versions.map(item => '<option>' + escapeText(item) + '</option>').join('');
-    field(form, 'version').value = version;
+    selected.querySelector('[data-post-promotion]')!.textContent = post.promotion ?? '';
+    const link = selected.querySelector<HTMLAnchorElement>('[data-open-original]')!;
+    link.href = sourcePostHref(post);
+    link.textContent = sourcePostLinkLabel(post);
+    const versionInput = field(form, 'version') as HTMLSelectElement;
+    versionInput.replaceChildren(new Option('仅确认原帖', ''), new Option(post.version));
+    versionInput.value = version === post.version ? version : '';
     field(form, 'entry').value = entry;
   }
 
   function storageIssue(error: unknown) {
     if (signal.aborted) return;
     const feedback = document.querySelector<HTMLElement>('[data-sales-storage-error]')!;
-    feedback.textContent = error instanceof Error ? error.message : '本浏览器暂时无法读取试用记录。请重新打开页面。';
+    feedback.textContent = error instanceof Error ? error.message : '本浏览器暂时无法读取销售记录。请重新打开页面。';
     feedback.hidden = false;
   }
   function setSourcePicker(form: HTMLFormElement) {
@@ -219,29 +231,67 @@ function start(config: Config) {
   }
   function choosePost(form: HTMLFormElement, post?: Post) {
     if (!post) return;
-    if (post.id !== field(form, 'postId').value) {
-      field(form, 'evidence').value = '';
-      selectPost(form, post);
-      form.querySelector<HTMLDetailsElement>('[data-source-extra]')!.open = false;
-    }
+    const same = selectedPost?.id === post.id && selectedPost.note === post.note;
+    if (!same && selectedPost) field(form, 'evidence').value = '';
+    selectPost(form, post, same ? field(form, 'version').value : undefined, same ? field(form, 'entry').value : undefined);
+    if (!same) form.querySelector<HTMLDetailsElement>('[data-source-extra]')!.open = false;
     form.querySelector<HTMLElement>('[data-post-results]')!.hidden = true;
     document.documentElement.dataset.unsaved = String(signature(form) !== baselines.get(form));
   }
-  function findPost(form: HTMLFormElement) {
+  function resetPostSearch(form: HTMLFormElement) {
+    postSearch?.abort();
+    nextPostOffset = null;
+    candidates = [];
+    form.querySelector<HTMLElement>('[data-post-results]')!.hidden = true;
+    form.querySelector('[data-post-feedback]')!.textContent = '';
+  }
+  async function findPost(form: HTMLFormElement, append = false) {
+    if (form.dataset.saving) return;
     const input = field(form, 'postQuery');
     const feedback = form.querySelector<HTMLElement>('[data-post-feedback]')!;
+    const picker = form.querySelector<HTMLElement>('[data-post-picker]')!;
     const results = form.querySelector<HTMLElement>('[data-post-results]')!;
     const choices = form.querySelector<HTMLElement>('[data-post-choices]')!;
-    const q = input.value.trim();
-    results.hidden = true;
-    if (!q) { feedback.textContent = '请输入帖子标题、笔记 ID 或分享链接。'; input.focus(); return; }
-    candidates = searchPosts(q);
-    if (candidates.length === 1) choosePost(form, candidates[0]);
-    if (candidates.length > 1) {
-      choices.innerHTML = candidates.map(postChoice).join('');
-      results.hidden = false;
+    const more = form.querySelector<HTMLButtonElement>('[data-more-posts]')!;
+    const query = input.value.trim();
+    const offset = append ? nextPostOffset : 0;
+    if (offset === null) return;
+    if (!append) resetPostSearch(form);
+    if (!query) {
+      feedback.textContent = '请输入帖子标题、笔记 ID 或分享链接。';
+      input.focus();
+      return;
     }
-    feedback.textContent = candidates.length ? '' : '样例中没有匹配的帖子。可以选择「其他来源」记录真实线索。';
+
+    postSearch?.abort();
+    const search = new AbortController();
+    postSearch = search;
+    try {
+      const data = await readBusiness(picker, async read => {
+        const params = new URLSearchParams({ q: query, offset: String(offset) });
+        const response = await fetch('/api/sales-source-posts?' + params, { signal: read.signal });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+        return result as { rows: Post[]; next: number | null };
+      }, { signal: search.signal, label: '正在查找来源帖…' });
+      if (!data) return;
+
+      feedback.textContent = '';
+      nextPostOffset = data.next;
+      if (!append && data.rows.length === 1 && data.next === null) {
+        choosePost(form, data.rows[0]);
+        return;
+      }
+      candidates.push(...data.rows);
+      if (!append) choices.replaceChildren();
+      choices.insertAdjacentHTML('beforeend', data.rows.map(postChoice).join(''));
+      results.hidden = candidates.length === 0;
+      more.hidden = nextPostOffset === null;
+      if (!candidates.length) feedback.textContent = '没有找到匹配的已发布帖子。';
+      else if (append && data.rows.length) choices.querySelectorAll<HTMLInputElement>('input')[candidates.length - data.rows.length]?.focus();
+    } catch (error) {
+      feedback.textContent = readableOperationError(error, '查找来源帖失败，请重试。');
+    }
   }
 
   function labelDirections(group: HTMLElement) {
@@ -311,17 +361,16 @@ function start(config: Config) {
       field(form, 'product').value = current?.product || '';
     }
     if (kind === 'source' && target) {
-      form.querySelector('h2')!.textContent = target.source.status === 'pending' ? '核对来源' : '更正来源';
-      form.querySelector<HTMLElement>('[data-post-results]')!.hidden = true;
-      form.querySelector('[data-post-feedback]')!.textContent = '';
+      form.querySelector('h2')!.textContent = sourceStatus(target.source) === 'pending' ? '核对来源' : '更正来源';
+      resetPostSearch(form);
       form.querySelector<HTMLDetailsElement>('[data-source-extra]')!.open = false;
-      field(form, 'postQuery').value = target.post?.note ?? '';
-      field(form, 'sourceStatus').value = target.source.status === 'pending' ? 'confirmed' : target.source.status;
+      field(form, 'postQuery').value = target.post?.note ?? target.post?.title ?? '';
+      field(form, 'sourceStatus').value = sourceStatus(target.source) === 'pending' ? 'confirmed' : target.source.status;
       field(form, 'evidence').value = target.source.status === 'confirmed' ? target.source.evidence ?? '' : '';
       field(form, 'otherEntry').value = target.source.status === 'other' ? target.source.entry ?? '' : '';
       field(form, 'otherSource').value = target.source.status === 'other' ? target.source.evidence ?? '' : '';
       field(form, 'unknownNote').value = target.source.status === 'unknown' ? target.source.evidence ?? '' : '';
-      selectPost(form, target.post, target.source.version, target.source.entry);
+      selectPost(form, target.post, target.source.version, target.post ? target.source.entry : undefined);
     }
     if (kind === 'merge' && lead && 'duplicates' in lead) {
       const duplicates = lead.duplicates ?? [];
@@ -346,13 +395,15 @@ function start(config: Config) {
     const kind = form.dataset.previewForm as Sheet;
     bindBusinessBackdrop(dialog, () => void dismiss(form), signal);
     dialog.addEventListener('cancel', event => { event.preventDefault(); void dismiss(form); });
-    form.addEventListener('input', () => {
+    form.addEventListener('input', event => {
+      if ((event.target as HTMLInputElement).name === 'postQuery') resetPostSearch(form);
       form.querySelector('[data-save-error]')!.textContent = '';
       document.documentElement.dataset.unsaved = String(signature(form) !== baselines.get(form));
     });
     form.addEventListener('change', event => {
       const input = event.target as HTMLInputElement;
       if (input.name === 'sourceStatus') {
+        resetPostSearch(form);
         form.querySelector<HTMLDetailsElement>('[data-source-extra]')!.open = false;
         setSourcePicker(form);
       }
@@ -364,7 +415,7 @@ function start(config: Config) {
     });
     form.addEventListener('keydown', event => {
       if (event.key === 'Enter' && event.target === form.elements.namedItem('postQuery')) {
-        event.preventDefault(); findPost(form);
+        event.preventDefault(); void findPost(form);
       }
     });
     form.addEventListener('submit', async event => {
@@ -384,6 +435,8 @@ function start(config: Config) {
       )) return;
       const payload = new FormData(form);
       const submitted = signature(form);
+      const source = kind === 'source' ? selectedPost : undefined;
+      if (kind === 'source') postSearch?.abort();
       if (kind === 'deal') payload.set('outcome', revoking ? 'no' : 'yes');
       form.dataset.saving = 'true';
       const submit = form.querySelector<HTMLButtonElement>('.save-button')!;
@@ -391,7 +444,7 @@ function start(config: Config) {
       submit.disabled = true;
       submit.textContent = '保存中…';
       try {
-        const saved = await storage.write(workspace => saveLead(workspace, kind, payload));
+        const saved = await storage.write(workspace => saveLead(workspace, kind, payload, source));
         if (signal.aborted) return;
         document.documentElement.dataset.unsaved = 'false';
         await closeBusinessDialog(dialog);
@@ -445,8 +498,8 @@ function start(config: Config) {
     }
     const cancel = target.closest<HTMLButtonElement>('[data-sales-cancel]');
     if (cancel?.form) { void dismiss(cancel.form); return; }
-    const find = target.closest<HTMLButtonElement>('[data-find-post]');
-    if (find?.form) { findPost(find.form); return; }
+    const find = target.closest<HTMLButtonElement>('[data-find-post],[data-more-posts]');
+    if (find?.form) { void findPost(find.form, find.hasAttribute('data-more-posts')); return; }
     if (target.closest('[data-sales-retry]') && inspector?.selected) { void readDetail(inspector.selected); return; }
     const trigger = target.closest<HTMLButtonElement>('[data-inspector-trigger]');
     const id = trigger?.closest<HTMLElement>('[data-inspector-key]')?.dataset.inspectorKey;

@@ -1,14 +1,11 @@
-import { extractPublicationLink, publicationNoteId } from '../db/publication-link.mjs';
 import { businessDateTime } from '../scripts/business-date';
-import { previewPosts } from './fixture';
-import { activePayments, directionsOf, needs, salesToday, sources, stages, subjects } from './model';
-import type { Direction, Filters, Lead, Need, Role, Source, Stage } from './model';
+import { activePayments, directionsOf, labelSource, needs, salesToday, sourcePost, sourceStatus, sources, stages, subjects } from './model';
+import type { Direction, Filters, Lead, Need, Post, Role, Source, Stage } from './model';
 
 export type Action = 'create' | 'contact' | 'follow' | 'deal' | 'source' | 'merge';
 export interface Workspace { rows: Lead[]; receipts: Map<string, string> }
 
 const active = (rows: Lead[]) => rows.filter(row => !row.mergedTo);
-export const postFor = (postId: string | undefined) => previewPosts.find(post => post.id === postId);
 const nameKey = (name: string) => name.trim().normalize('NFKC').toLowerCase();
 const sortDate = <T extends { date: string }>(items: T[]) =>
   [...items].sort((left, right) => right.date.localeCompare(left.date));
@@ -39,27 +36,28 @@ export function filtersFrom(params: URLSearchParams): Filters {
   const month = params.get('month') ?? '';
   const stage = params.get('stage') ?? '';
   const source = params.get('source') ?? '';
+  const post = params.get('post') ?? '';
   return {
     q: (params.get('q') ?? '').slice(0, 100),
     month: /^\d{4}-(?:0[1-9]|1[0-2])$/.test(month) ? month : '',
     stage: Object.hasOwn(stages, stage) ? stage : '',
     source: source === 'all' || Object.hasOwn(sources, source) ? source : '',
-    post: postFor(params.get('post') ?? '')?.id ?? '',
+    post: /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(post) ? post.toLowerCase() : '',
   };
 }
 export function readList(workspace: Workspace, filters: Filters, queue: boolean) {
   const visible = active(workspace.rows);
   const rows = visible.filter(row => {
-    if (queue && filters.source !== 'all' && row.source.status !== (filters.source || 'pending')) return false;
-    if (filters.q && ![row.name, row.wechatId, postFor(row.source.postId)?.title, row.source.entry, row.source.evidence].some(value => value?.toLowerCase().includes(filters.q.toLowerCase()))) return false;
+    if (queue && filters.source !== 'all' && sourceStatus(row.source) !== (filters.source || 'pending')) return false;
+    if (filters.q && ![row.name, row.wechatId, sourcePost(row.source)?.title, row.source.entry, row.source.evidence].some(value => value?.toLowerCase().includes(filters.q.toLowerCase()))) return false;
     if (filters.month && !row.added.startsWith(filters.month)) return false;
     return !filters.stage || row.stage === filters.stage;
   }).sort((left, right) => right.added.localeCompare(left.added));
   return {
     count: rows.length,
-    waiting: visible.filter(row => row.source.status === 'pending').length,
+    waiting: visible.filter(row => sourceStatus(row.source) === 'pending').length,
     rows: rows.map(row => ({
-      id: row.id, name: row.name, wechatId: row.wechatId, added: row.added, source: row.source, post: postFor(row.source.postId),
+      id: row.id, name: row.name, wechatId: row.wechatId, added: row.added, source: row.source, post: sourcePost(row.source),
       directions: directionsOf(row), stage: row.stage,
       latestPayment: queue ? undefined : sortDate(activePayments(row))[0],
     })),
@@ -73,47 +71,32 @@ function possibleDuplicate(a: Lead, b: Lead) {
 export function readLead(workspace: Workspace, id: string) {
   const lead = getLead(workspace.rows, id);
   return {
-    id: lead.id, name: lead.name, wechatId: lead.wechatId, added: lead.added, source: lead.source, post: postFor(lead.source.postId),
+    id: lead.id, name: lead.name, wechatId: lead.wechatId, added: lead.added, source: lead.source, post: sourcePost(lead.source),
     directions: directionsOf(lead), stage: lead.stage, follows: sortDate(lead.follows), payments: sortDate(lead.payments), history: lead.history,
     duplicates: active(workspace.rows).filter(other => possibleDuplicate(lead, other))
       .map(other => ({ id: other.id, name: other.name, wechatId: other.wechatId, added: other.added })),
   };
 }
 
-export function searchPosts(value: string) {
-  const q = value.trim().slice(0, 250);
-  if (!q) return [];
-  const note = publicationNoteId(q) ?? (/^[\da-f]{24}$/i.test(q) ? q.toLowerCase() : null);
-  const { url } = extractPublicationLink(q);
-  if (note) return previewPosts.filter(post => post.note === note);
-  if (url) {
-    const supplied = new URL(url);
-    return previewPosts.filter(post => {
-      const sample = new URL(post.short);
-      return sample.hostname === supplied.hostname && sample.pathname === supplied.pathname;
-    });
-  }
-  return previewPosts.filter(post => post.title.toLowerCase().includes(q.toLowerCase()));
-}
-
-function changeSource(lead: Lead, form: FormData) {
+function changeSource(lead: Lead, form: FormData, post?: Post) {
   const status = text(form, 'sourceStatus');
   if (status !== 'confirmed' && status !== 'unknown' && status !== 'other') throw new Error('请选择来源核对结果。');
-  const post = postFor(text(form, 'postId'));
   const version = text(form, 'version', 15);
   const entry = text(form, 'entry', 15);
   const otherEntry = status === 'other' ? text(form, 'otherEntry', 80) : '';
   const evidence = text(form, status === 'other' ? 'otherSource' : status === 'unknown' ? 'unknownNote' : 'evidence');
   if (status === 'confirmed') {
-    if (!post) throw new Error('请先选择要关联的帖子。');
-    if (version && !post.versions.includes(version)) throw new Error('所选版本不属于这篇帖子。');
+    if (!post || post.id !== text(form, 'postId') || (post.note ?? '') !== text(form, 'postNote', 24)) {
+      throw new Error('请先选择要关联的帖子。');
+    }
+    if (version && post.version !== version) throw new Error('所选版本不属于这篇帖子。');
     if (!['仅确认帖子', '开口', '留资'].includes(entry)) throw new Error('请选择能确认的来源层级。');
     if ((entry !== '仅确认帖子' || version) && !evidence) throw new Error('请补充判断入口或版本的依据。');
   }
   if (status === 'other' && (!otherEntry || !evidence)) throw new Error('请填写入口和具体来源。');
-  const previous = postFor(lead.source.postId)?.title ?? sources[lead.source.status];
+  const previous = labelSource(lead.source);
   const next: Source = { status, ...(otherEntry ? { entry: otherEntry } : {}), ...(evidence ? { evidence } : {}) };
-  if (next.status === 'confirmed' && post) Object.assign(next, { postId: post.id, entry, ...(version ? { version } : {}) });
+  if (next.status === 'confirmed' && post) Object.assign(next, { post, entry, ...(version ? { version } : {}) });
   lead.source = next;
   addHistory(lead, 'operator', `来源由「${previous}」更新为「${post && next.status === 'confirmed' ? post.title : sources[next.status]}」。`);
 }
@@ -129,7 +112,7 @@ function mergeLead(workspace: Workspace, lead: Lead, duplicateId: string) {
     merged.set(JSON.stringify([item.need, item.subject, item.interest]), item);
   }
   Object.assign(lead, consultation([...merged.values()]));
-  if (lead.source.status !== 'confirmed' && duplicate.source.status === 'confirmed') lead.source = duplicate.source;
+  if (sourceStatus(lead.source) !== 'confirmed' && sourceStatus(duplicate.source) === 'confirmed') lead.source = duplicate.source;
   lead.stage = sortDate(lead.follows)[0]?.stage ?? lead.stage;
   duplicate.mergedTo = lead.id;
   lead.history.push(...duplicate.history);
@@ -185,7 +168,7 @@ function changeDeal(lead: Lead, form: FormData) {
     addHistory(lead, 'seller', '登记了成交。');
   }
 }
-export function saveLead(workspace: Workspace, action: Action, form: FormData) {
+export function saveLead(workspace: Workspace, action: Action, form: FormData, post?: Post) {
   const requestId = text(form, 'requestId', 50);
   const key = action + ':' + requestId;
   const prior = requestId && workspace.receipts.get(key);
@@ -207,7 +190,7 @@ export function saveLead(workspace: Workspace, action: Action, form: FormData) {
     const lead = getLead(workspace.rows, text(form, 'leadId', 50));
     id = lead.id;
     switch (action) {
-      case 'source': changeSource(lead, form); break;
+      case 'source': changeSource(lead, form, post); break;
       case 'merge': mergeLead(workspace, lead, text(form, 'duplicateId', 50)); break;
       case 'contact': {
         const contact = contactFields(form);
@@ -266,7 +249,7 @@ export function readStats(workspace: Workspace, filters: Filters) {
     followed: followed.length, paid: cohort.filter(paid).length, followedPaid: followed.filter(paid).length,
     course: course.length, courseFollowed: course.filter(hasFollow).length,
     unknownNeed: cohort.filter(row => !directionsOf(row).some(item => item.need)).length,
-    unknownSource: cohort.filter(row => ['pending', 'unknown'].includes(row.source.status)).length,
+    unknownSource: cohort.filter(row => ['pending', 'unknown'].includes(sourceStatus(row.source))).length,
   };
   const mix = (values: string[][]) => {
     const counts = new Map<string, number>();
@@ -275,15 +258,26 @@ export function readStats(workspace: Workspace, filters: Filters) {
     }
     return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'zh'));
   };
-  const postRows = previewPosts.filter(post => !filters.post || post.id === filters.post).map(post => {
-    const attributed = cohort.filter(row => row.source.status === 'confirmed' && row.source.postId === post.id);
+  const groups = new Map<string, { post: Post; attributed: Lead[] }>();
+  for (const row of cohort) {
+    const post = sourcePost(row.source);
+    if (!post) continue;
+    const group = groups.get(post.id);
+    if (group) group.attributed.push(row);
+    else groups.set(post.id, { post, attributed: [row] });
+  }
+  const selected = filters.post ? rows.map(row => sourcePost(row.source)).find(post => post?.id === filters.post) : undefined;
+  const selectedGroup = selected && (groups.get(selected.id) ?? { post: selected, attributed: [] });
+  const visible = filters.post ? selectedGroup ? [selectedGroup] : [] :
+    [...groups.values()].sort((a, b) => b.post.published.localeCompare(a.post.published));
+  const postRows = visible.map(({ post, attributed }) => {
     return {
       post, added: attributed.length, followed: attributed.filter(hasFollow).length, paid: attributed.filter(paid).length,
       interests: mix(attributed.map(row => directionsOf(row).map(item => item.interest || item.need || ''))),
       products: mix(attributed.map(row => activePayments(row).filter(payment => payment.date <= today).map(payment => payment.product))),
     };
   });
-  return { month, summary, postRows };
+  return { month, summary, postRows, selected };
 }
 
 export function monthOptions(workspace: Workspace, selected: string) {

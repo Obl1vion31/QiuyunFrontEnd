@@ -1,11 +1,11 @@
 import {readHistoryPeople,delayDaysWithNames} from '../../db/history-people';
 import {readScheduleBusinessHistory} from '../../db/schedule-business-history-read';
-import {effectiveCategoryName} from '../../db/content-config';
+import {contentNoteMatch,contentPosts as posts,contentTitleMatch} from '../../db/content-posts';
 import type {APIRoute} from 'astro';
 import {readVersionNotes} from '../../db/note-identities';
 import {noteIdOn} from '../../db/note-identity-rules';
 import {shanghaiDateKey} from '../../db/promotion-rules.mjs';
-import {and,desc,eq,ilike,inArray,isNull,or,sql} from 'drizzle-orm';
+import {and,desc,eq,inArray,isNull,or,sql} from 'drizzle-orm';
 import {z} from 'zod';
 import {getDb} from '../../db/client';
 import * as s from '../../db/schema';
@@ -15,14 +15,12 @@ import {promotionInspectorHistory} from '../../db/inspector-history';
 import {readScheduleWorkflow,WorkflowError} from '../../db/schedule-workflow';
 import {workflowErrorResponse} from '../../db/workflow-api';
 export const prerender=false;
-const selection={versionId:s.operationsContentVersion.id,cancelledAt:s.operationsContentSchedule.cancelledAt,id:s.operationsContentSchedule.id,contentId:s.operationsContent.id,name:s.operationsContentVersion.contentName,version:s.operationsContentVersion.versionNumber,subject:s.operationsSubject.name,category:effectiveCategoryName(s.operationsContentVersion.subjectId,s.operationsContentVersion.categoryId,s.operationsCategory.name),planned:s.operationsContentSchedule.plannedPublishAt,actual:s.operationsContentSchedule.actualPublishAt,promoted:s.operationsContentSchedule.isPromoted,status:s.operationsContentSchedule.promotionStatus,noteId:s.operationsContent.platformNoteId,document:s.operationsContentVersion.projectDocUrl,publication:s.operationsContentSchedule.publicationUrl,revision:s.operationsContentVersion.revisionSummary};
-function posts(){return getDb().select(selection).from(s.operationsContentSchedule).innerJoin(s.operationsContentVersion,eq(s.operationsContentVersion.id,s.operationsContentSchedule.contentVersionId)).innerJoin(s.operationsContent,eq(s.operationsContent.id,s.operationsContentVersion.contentId)).innerJoin(s.operationsSubject,eq(s.operationsSubject.id,s.operationsContentVersion.subjectId)).leftJoin(s.operationsCategory,eq(s.operationsCategory.id,s.operationsContentVersion.categoryId));}
 export const GET:APIRoute=async({url,locals})=>{
  try{
   const id=url.searchParams.get('id');
   if(!id){const query=(url.searchParams.get('q')??'').trim().slice(0,120),offset=z.coerce.number().int().min(0).max(100000).parse(url.searchParams.get('offset')??0);if(!query)return Response.json({rows:[],next:null});
-   const pattern='%'+query.replace(/[\\%_]/g,'\\$&')+'%';
-   const rows=await posts().where(or(ilike(s.operationsContentVersion.contentName,pattern),sql`exists(select 1 from operations_version_note_id ni where ni.version_id=${s.operationsContentVersion.id} and ni.platform_note_id=${query.toLowerCase()}) OR (${s.operationsContent.platformNoteId}=${query.toLowerCase()} AND NOT EXISTS(select 1 from operations_version_note_id ni where ni.version_id=${s.operationsContentVersion.id}))`)).orderBy(desc(s.operationsContentSchedule.plannedPublishAt),s.operationsContentSchedule.id).limit(21).offset(offset);
+   const rows=await posts().where(or(contentTitleMatch(query),contentNoteMatch(query.toLowerCase())))
+    .orderBy(desc(s.operationsContentSchedule.plannedPublishAt),s.operationsContentSchedule.id).limit(21).offset(offset);
    const notes=await readVersionNotes(getDb(),rows.map(r=>r.versionId));for(const row of rows)row.noteId=noteIdOn(notes.get(row.versionId)!.periods,shanghaiDateKey(new Date()));
    return Response.json({rows:rows.slice(0,20),next:rows.length>20?offset+20:null});
   }
