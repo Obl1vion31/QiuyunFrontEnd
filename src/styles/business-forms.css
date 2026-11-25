@@ -55,6 +55,8 @@ dialog.business-form-dialog { box-sizing:border-box; width:min(var(--form-dialog
 dialog.business-form-dialog::backdrop { background:#07111d73; backdrop-filter:blur(4px); }
 dialog.business-form-dialog[open]{animation:business-dialog-in 220ms cubic-bezier(.2,.8,.2,1)}
 .business-confirm{--form-dialog-width:420px}.business-confirm [data-confirm-message]{margin:0;white-space:pre-wrap}.business-confirm .dialog-actions{min-height:64px}
+dialog.business-confirm[data-confirm-danger] .dialog-actions [data-confirm-accept] { border-color:#96383e; background:#96383e; color:#fff; }
+dialog.business-confirm[data-confirm-danger] .dialog-actions [data-confirm-accept]:hover { border-color:#7e2931; background:#7e2931; }
 @keyframes business-dialog-in{from{opacity:var(--business-enter-opacity,0);transform:var(--business-enter-transform,translateY(8px))}to{opacity:1;transform:none}}
 dialog:is(.business-form-dialog,.business-sheet){--business-exit-transform:translateY(8px)}
 dialog.business-sheet{--business-exit-transform:translateX(28px)}

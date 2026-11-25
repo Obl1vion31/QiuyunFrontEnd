@@ -42,6 +42,43 @@ const shot = async (page: any, name: string, directory = shots) => {
   await page.mouse.move(0, 0);
   await page.screenshot({ path: resolve(directory, name + '.png'), animations: 'disabled' });
 };
+const checkLedgerGeometry = async (page: any) => {
+  const layout = await page.locator('.sales-ledger-table').evaluate((table: HTMLTableElement) => {
+    const headers = [...table.tHead!.rows[0].cells].map(cell => cell.getBoundingClientRect());
+    const surface = table.parentElement!.getBoundingClientRect();
+    const centerX = (rect: DOMRect) => rect.x + rect.width / 2;
+    const centerY = (rect: DOMRect) => rect.y + rect.height / 2;
+    const rows = [...table.tBodies[0].rows].map(row => {
+      const state = row.querySelector('.sales-follow-state')!.getBoundingClientRect();
+      const follow = row.querySelector('[data-sales-sheet="follow"]')!.getBoundingClientRect();
+      const progress = getComputedStyle(row.querySelector('.sales-progress')!);
+      const sale = row.querySelector('[data-sales-deal-group]')!.getBoundingClientRect();
+      const deletion = row.querySelector('[data-sales-delete]')!.getBoundingClientRect();
+      const date = row.querySelector('time')!.getBoundingClientRect();
+      return {
+        gap: follow.left - state.right,
+        stateCenter: Math.abs(centerY(state) - centerY(follow)),
+        progressBorder: progress.borderLeftWidth,
+        saleCenter: Math.abs(centerX(headers[4]) - centerX(sale)),
+        deletionCenter: Math.abs(centerX(headers[5]) - centerX(deletion)),
+        fits: date.right <= headers[1].right && follow.right <= headers[3].right &&
+          sale.right <= headers[4].right && deletion.right <= surface.right,
+      };
+    });
+    return { width: table.getBoundingClientRect().width, columns: headers.map(rect => rect.width), rows };
+  });
+  assert.equal(layout.columns.length, 6);
+  if (layout.width >= 960) {
+    for (const [index, proportion] of [0.17, 0.15, 0.30, 0.19, 0.11, 0.08].entries()) {
+      assert.ok(Math.abs(layout.columns[index] - layout.width * proportion) <= 2, JSON.stringify(layout.columns));
+    }
+  }
+  assert.ok(layout.rows.length);
+  for (const row of layout.rows) {
+    assert.ok(row.gap >= 10 && row.stateCenter <= 1 && row.progressBorder === '0px', JSON.stringify(row));
+    assert.ok(row.saleCenter <= 1 && row.deletionCenter <= 1 && row.fits, JSON.stringify(row));
+  }
+};
 const signIn = async (account: typeof admin | typeof employee | typeof other) => {
   assert.equal((await context!.request.post(origin + '/api/auth/sign-in/username', {
     headers: { Origin: origin }, data: account,
@@ -110,8 +147,10 @@ try {
   const row = page.locator('[data-sales-rows] tr').filter({ has: button(page, testName) });
   await row.waitFor();
   assert.equal(await row.locator('.sales-time').innerText(), today + ' 10:30');
-  assert.equal(await row.locator('.sales-consultation-line').innerText(), '课程 · TMUA · 小班 123');
-  await row.getByText('待跟进', { exact: true }).waitFor();
+  assert.equal(await row.locator('.sales-consultation-line').innerText(), '课程 · TMUA ｜ 小班 123');
+  await row.getByText('待跟进', { exact: true }).click();
+  assert.equal(await page.locator('#sales-trial-inspector[open], #preview-follow[open]').count(), 0);
+  await checkLedgerGeometry(page);
   await shot(page, '04-saved-ledger-1440');
 
   await page.evaluate(() => { Reflect.set(window, 'salesRouterTest', true); });
@@ -144,18 +183,34 @@ try {
   await shot(page, '12-multiple-directions-1440');
   await button(follow, '保存跟进').click();
   await row.getByText('已结束', { exact: true }).waitFor();
-  assert.equal(await row.locator('.sales-consultation-line').innerText(), '课程 · TMUA · 小班 123 / 模考 · ESAT · 模考包');
+  assert.equal(await row.locator('.sales-consultation-line').innerText(), '课程 · TMUA ｜ 小班 123');
+  const more = button(row, '查看另 1 项咨询方向');
+  assert.equal(await more.innerText(), '另 1 项');
+  await more.press('Enter');
+  const directionDetail = page.locator('#sales-trial-inspector[open]');
+  await directionDetail.getByRole('heading', { name: '咨询方向与意向产品', exact: true }).waitFor();
+  await directionDetail.getByText('模考 · ESAT ｜ 模考包', { exact: true }).first().waitFor();
+  await shot(page, '18-detail-directions-1440');
+  await button(directionDetail, '关闭详情').click();
+  await directionDetail.waitFor({ state: 'hidden' });
+  assert.ok(await more.evaluate((node: HTMLElement) => document.activeElement === node));
   await button(row, '登记成交').click();
   const deal = page.locator('#preview-deal[open]');
   assert.equal(await deal.locator('input[type="radio"]').count(), 0);
-  await input(deal, 'product').fill('小班课');
+  await input(deal, 'product').fill('小班 123');
   await shot(page, '05-deal-1440');
   await button(deal, '保存').click();
-  await button(row, '更正成交').waitFor();
+  await button(row, '更正成交').click();
+  await input(deal, 'product').fill('小班课');
+  await shot(page, '19-correct-deal-1440');
+  await button(deal, '保存').click();
+  await deal.waitFor({ state: 'hidden' });
 
   sourceStart = (Date.now() - timingOrigin) / 1000;
   await link(page, '核对来源').click();
   const pending = page.locator('[data-sales-rows] tr').filter({ hasText: testName });
+  await button(pending, '核对来源').waitFor();
+  await shot(page, '20-source-queue-1440');
   await button(pending, '核对来源').click();
   assert.equal(await page.locator('#sales-trial-inspector').count(), 0);
   const source = page.locator('#preview-source[open]');
@@ -195,12 +250,19 @@ try {
   assert.deepEqual(await page.locator('.sales-stat-band strong').allTextContents(), ['1', '1', '1']);
   await shot(page, '07-stats-1440');
   await page.locator('[data-preview-stat-switch]').evaluate((node: HTMLElement) => { node.dataset.persistTest = 'yes'; });
+  await page.getByRole('radio', { name: '同批新增', exact: true }).click();
+  await page.getByRole('heading', { name: '新增客户后续结果', exact: true }).waitFor();
+  assert.deepEqual(await page.locator('.sales-stat-band strong').allTextContents(), ['100%', '100%', '100%']);
+  await shot(page, '21-stats-cohort-1440');
   await page.getByRole('radio', { name: '按帖复盘', exact: true }).click();
   const promoted = page.getByRole('row').filter({ hasText: '试用样例 · 讲义内容与用法' });
   await promoted.waitFor();
   assert.equal(await page.locator('[data-preview-stat-switch]').getAttribute('data-persist-test'), 'yes');
   assert.deepEqual((await promoted.getByRole('cell').allTextContents()).slice(0, 3), ['1', '1', '1']);
   await shot(page, '08-post-results-1440');
+  await link(promoted, '试用样例 · 讲义内容与用法').click();
+  await page.locator('.sales-post-overview').waitFor();
+  await shot(page, '22-stats-post-details-1440');
   assert.equal(monthlyFacts(await (await context.request.get(monthUrl)).json()), monthlyBefore);
 
   await signOut();
@@ -214,6 +276,8 @@ try {
   if (video) await writeFile(resolve(output, 'source-clip.json'), JSON.stringify({ video: await video.path(), start: sourceStart, end: sourceEnd }));
   context = await launch();
   page = context.pages()[0] ?? await context.newPage();
+  const deleteVideo = page.video();
+  const deletionOrigin = Date.now();
   track(page);
   await page.goto(sales);
   if (page.url().includes('/login')) { await signIn(admin); await page.goto(sales); }
@@ -224,20 +288,43 @@ try {
   const alternate = await context.newPage();
   track(alternate);
   await alternate.goto(sales);
+  const longName = '并行验收 B · 微信名较长的测试客户';
   const [draftA, draftB] = await Promise.all([
-    registration(page, '并行验收 B'), registration(alternate, '并行验收 C'),
+    registration(page, longName, 'wx_trial_long_contact_for_browser_verification'),
+    registration(alternate, '并行验收 C'),
   ]);
+  const longInterest = '英语强化与入学考试备考小班，先试听再确定正式上课安排';
+  await input(draftA, 'interest').fill(longInterest);
   await Promise.all([button(draftA, '保存登记').click(), button(draftB, '保存登记').click()]);
-  await button(page, '并行验收 B').waitFor();
+  await button(page, longName).waitFor();
   await button(alternate, '并行验收 C').waitFor();
   await page.reload();
-  await button(page, '并行验收 B').waitFor();
+  await button(page, longName).waitFor();
   await button(page, '并行验收 C').waitFor();
   await alternate.close();
 
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const duplicateName = '同一微信的原登记';
+  const duplicate = await registration(page, duplicateName, testWechat);
+  await button(duplicate, '保存登记').click();
+  await button(page, duplicateName).waitFor();
+  await button(page, testName).click();
+  const mainDetail = page.locator('#sales-trial-inspector[open]');
+  await button(mainDetail, '核对合并').click();
+  const merge = page.locator('#preview-merge[open]');
+  await input(merge, 'duplicateId').selectOption({ index: 1 });
+  await shot(page, '23-check-duplicate-1440');
+  await button(merge, '确认合并').click();
+  const confirm = page.locator('[data-business-confirm][open]');
+  await button(confirm, '合并').click();
+  await merge.waitFor({ state: 'hidden' });
+  await button(page, duplicateName).waitFor({ state: 'detached' });
+  await button(mainDetail, '关闭详情').click();
+  await mainDetail.waitFor({ state: 'hidden' });
+
   // 在隔离账号下写入旧版结构，验证更新可以继续读取，没有微信号的档案可补填。
   const oldName = '旧版试填档案';
-  await page.evaluate(async ({ name, date }: { name: string; date: string }) => {
+  await page.evaluate(async ({ name, date, duplicateName }: { name: string; date: string; duplicateName: string }) => {
     const key = JSON.parse(document.querySelector('#sales-trial-config')!.textContent!).account;
     await new Promise<void>((resolve, reject) => {
       const request = indexedDB.open('qiuyun-sales-trial', 1);
@@ -249,6 +336,8 @@ try {
         const read = table.get(key);
         read.onsuccess = () => {
           const workspace = read.result;
+          const absorbed = workspace.rows.find((row: { name: string }) => row.name === duplicateName);
+          workspace.rows.push({ ...absorbed, id: 'fixture-absorbed-grandchild', mergedTo: absorbed.id });
           workspace.rows.push({
             id: 'fixture-old-record', name, added: date + 'T08:30', need: '课程', subject: '旧版科目',
             interest: '旧版意向', stage: 'new', source: { status: 'pending' }, follows: [], payments: [], history: [],
@@ -259,10 +348,21 @@ try {
         transaction.onabort = () => { db.close(); reject(transaction.error); };
       };
     });
-  }, { name: oldName, date: today });
+  }, { name: oldName, date: today, duplicateName });
   await page.reload();
   const old = page.locator('[data-sales-rows] tr').filter({ has: button(page, oldName) });
-  await old.getByText('课程 · 旧版科目 · 旧版意向', { exact: true }).waitFor();
+  await old.getByText('课程 · 旧版科目 ｜ 旧版意向', { exact: true }).waitFor();
+  await old.getByText('微信号待补', { exact: true }).waitFor();
+  for (const [width, height] of [[1920, 1050], [1440, 1000], [1024, 820]]) {
+    await page.setViewportSize({ width, height });
+    await checkLedgerGeometry(page);
+    await shot(page, '24-ledger-populated-' + width);
+  }
+  await button(page, longName).click();
+  const longDetail = page.locator('#sales-trial-inspector[open]');
+  await longDetail.getByText('课程 · TMUA ｜ ' + longInterest, { exact: true }).waitFor();
+  await button(longDetail, '关闭详情').click();
+  await longDetail.waitFor({ state: 'hidden' });
   await button(old, '更新跟进').click();
   assert.equal(await input(page.locator('#preview-follow[open]'), 'subject').inputValue(), '旧版科目');
   await button(page.locator('#preview-follow[open]'), '关闭表单').click();
@@ -271,41 +371,93 @@ try {
   await button(detail, '补填微信号').click();
   const contact = page.locator('#preview-contact[open]');
   await input(contact, 'wechatId').fill('wx_legacy_fixture');
+  await shot(page, '25-edit-wechat-1024');
   await button(contact, '保存').click();
   await detail.getByText('wx_legacy_fixture', { exact: true }).waitFor();
   await shot(page, '15-legacy-contact-1024');
   await button(detail, '关闭详情').click();
 
-  if (process.env.SALES_TRIAL_DELETE_PROPOSAL === '1') {
-    const proposal = resolve(output, 'proposal');
-    await mkdir(proposal, { recursive: true });
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await button(page, oldName).click();
-    await button(detail, '编辑微信信息').waitFor();
-    await detail.evaluate((node: HTMLElement) => {
-      // 效果图专用。只演示入口和现有确认框，确认事件没有数据写入。
-      const footer = node.querySelector<HTMLElement>('.business-inspector-actions > div')!;
-      footer.style.width = '100%';
-      const action = document.createElement('button');
-      action.type = 'button';
-      action.textContent = '删除客户';
-      action.className = 'business-action-secondary';
-      action.style.cssText = 'margin-inline-end:auto;color:#963c40;border-color:#e0bdc0';
-      footer.prepend(action);
-      action.addEventListener('click', () => {
-        void window.businessConfirm('删除后，该客户将从销售台账、来源核对和销售统计中移除。', {
-          title: '删除「旧版试填档案」？', confirmLabel: '确认删除', cancelLabel: '保留客户',
-        });
-        document.querySelector<HTMLButtonElement>('[data-confirm-accept]')!.style.background = '#9b353c';
-      });
+  await detail.waitFor({ state: 'hidden' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const remove = button(row, '删除「' + testName + '」');
+  const deleteStart = (Date.now() - deletionOrigin) / 1000;
+  await remove.click();
+  assert.ok(await button(confirm, '取消').evaluate((node: HTMLElement) => node === document.activeElement));
+  await confirm.getByText('删除「' + testName + '」？', { exact: true }).waitFor();
+  assert.match(await confirm.locator('[data-confirm-message]').innerText(), /删除不可恢复/);
+  assert.equal(await button(confirm, '确认删除').evaluate((node: HTMLElement) => getComputedStyle(node).backgroundColor), 'rgb(150, 56, 62)');
+  await shot(page, '26-delete-confirmation-1440');
+  await page.keyboard.press('Escape');
+  await confirm.waitFor({ state: 'hidden' });
+  await row.waitFor();
+  assert.ok(await remove.evaluate((node: HTMLElement) => document.activeElement === node));
+
+  // 中止一次真正的 IndexedDB 写入，模拟浏览器拒绝提交。
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (value, key) {
+      const request = original.call(this, value, key);
+      if (this.name === 'accounts') {
+        IDBObjectStore.prototype.put = original;
+        this.transaction.abort();
+      }
+      return request;
+    };
+  });
+  await remove.click();
+  await button(confirm, '确认删除').click();
+  await page.getByRole('alert').filter({ hasText: '删除未保存，客户记录已保留。请重试。' }).waitFor();
+  assert.equal(await remove.isEnabled(), true);
+  assert.ok(await remove.evaluate((node: HTMLElement) => document.activeElement === node));
+  await shot(page, '27-delete-failed-1440');
+  const deleteRetry = (Date.now() - deletionOrigin) / 1000;
+  await remove.click();
+  await button(confirm, '确认删除').click();
+  await row.waitFor({ state: 'detached' });
+  await page.getByRole('status').filter({ hasText: '已删除客户。' }).waitFor();
+  await button(page, longName).waitFor();
+  await button(page, oldName).waitFor();
+  await shot(page, '28-delete-completed-1440');
+  const deleteEnd = (Date.now() - deletionOrigin) / 1000;
+  await page.reload();
+  await button(page, oldName).waitFor();
+  assert.equal(await row.count(), 0);
+  const removedRows = await page.evaluate(async ({ wechat, duplicateName }: { wechat: string; duplicateName: string }) => {
+    const account = JSON.parse(document.querySelector('#sales-trial-config')!.textContent!).account;
+    return new Promise<number>((resolve, reject) => {
+      const open = indexedDB.open('qiuyun-sales-trial', 1);
+      open.onerror = () => reject(open.error);
+      open.onsuccess = () => {
+        const db = open.result;
+        const transaction = db.transaction('accounts', 'readonly');
+        const request = transaction.objectStore('accounts').get(account);
+        transaction.oncomplete = () => {
+          const remaining = request.result.rows.filter((row: { id: string; name: string; wechatId?: string }) =>
+            row.wechatId === wechat || row.name === duplicateName || row.id === 'fixture-absorbed-grandchild');
+          db.close();
+          resolve(remaining.length);
+        };
+        transaction.onabort = () => { db.close(); reject(transaction.error); };
+      };
     });
-    await shot(page, 'delete-entry-1440', proposal);
-    await button(detail, '删除客户').click();
-    await shot(page, 'delete-confirmation-1440', proposal);
-    await button(page.locator('[data-business-confirm][open]'), '保留客户').click();
-    await button(detail, '关闭详情').click();
-    await button(page, oldName).waitFor();
-  }
+  }, { wechat: testWechat, duplicateName });
+  assert.equal(removedRows, 0);
+  await link(page, '核对来源').click();
+  await button(page.locator('[data-sales-list-filter]'), '查看').waitFor();
+  await input(page.locator('[data-sales-list-filter]'), 'source').selectOption('all');
+  await button(page.locator('[data-sales-list-filter]'), '查看').click();
+  const queueRows = page.locator('.sales-queue-table tbody tr[data-inspector-key]');
+  await queueRows.filter({ hasText: oldName }).waitFor();
+  assert.equal(await queueRows.filter({ hasText: testName }).count(), 0);
+  await link(page, '销售统计').click();
+  await page.locator('.sales-stat-band strong').first().waitFor();
+  assert.deepEqual(await page.locator('.sales-stat-band strong').allTextContents(), ['3', '0', '0']);
+  await page.getByRole('radio', { name: '按帖复盘', exact: true }).click();
+  await promoted.waitFor();
+  assert.deepEqual((await promoted.getByRole('cell').allTextContents()).slice(0, 3), ['0', '0', '0']);
+  assert.equal(monthlyFacts(await (await context.request.get(monthUrl)).json()), monthlyBefore);
+  await link(page, '销售台账').click();
+  await button(page, oldName).waitFor();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await button(page, '登记微信').click();
@@ -342,7 +494,14 @@ try {
   await button(page, oldName).waitFor();
   assert.deepEqual(errors, []);
   assert.deepEqual(transmitted, []);
-  console.log('正式运行包通过账号权限、流程、跨刷新和浏览器重开、同浏览器账号隔离、并行保存、月度运营隔离及三档截图检查。');
+  if (deleteVideo) {
+    await context.close();
+    context = undefined;
+    await writeFile(resolve(output, 'delete-clip.json'), JSON.stringify({
+      video: await deleteVideo.path(), start: deleteStart, retry: deleteRetry, end: deleteEnd,
+    }));
+  }
+  console.log('正式运行包通过业务流程、删除的取消／写入中止／重试与清理、并行保存、月度运营隔离及三档桌面检查。');
 } finally {
   await context?.close();
   await fixture.stop();

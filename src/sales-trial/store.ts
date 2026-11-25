@@ -32,7 +32,7 @@ function addHistory(lead: Lead, actor: Role, description: string) {
 }
 function getLead(rows: Lead[], id: string) {
   const lead = rows.find(row => row.id === id && !row.mergedTo);
-  if (!lead) throw new Error('这条记录已合并或暂不可用。');
+  if (!lead) throw new Error('这条记录已删除、合并或暂不可用。');
   return lead;
 }
 export function filtersFrom(params: URLSearchParams): Filters {
@@ -232,6 +232,22 @@ export function saveLead(workspace: Workspace, action: Action, form: FormData) {
   }
   if (requestId) workspace.receipts.set(key, id);
   return id;
+}
+
+export function deleteLead(workspace: Workspace, id: string) {
+  const lead = workspace.rows.find(row => row.id === id);
+  if (!lead) return 'already-deleted';
+  if (lead.mergedTo) return 'merged';
+
+  // 合并保留了原记录，逐层移除属于当前档案的原登记。
+  const removed = new Set([id]);
+  for (const target of removed) {
+    for (const row of workspace.rows) {
+      if (row.mergedTo === target) removed.add(row.id);
+    }
+  }
+  workspace.rows = workspace.rows.filter(row => !removed.has(row.id));
+  return 'deleted';
 }
 
 export function readStats(workspace: Workspace, filters: Filters) {

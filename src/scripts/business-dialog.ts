@@ -1,6 +1,6 @@
 import { navigate } from 'astro:transitions/client';
 
-export type ConfirmOptions = { title?:string; confirmLabel?:string; cancelLabel?:string; dismissible?:boolean };
+export type ConfirmOptions = { title?:string; confirmLabel?:string; cancelLabel?:string; dismissible?:boolean; danger?:boolean };
 declare global { interface Window { businessConfirm:typeof businessConfirm; businessDateTime:(value:Date|string)=>string;__businessHistoryPop?:(event:PopStateEvent)=>boolean;__businessConfirmedReload?:boolean } }
 /** 用户已确认放弃当前页输入，避免刷新时重复出现原生离开确认。 */
 export function reloadBusinessPage(){
@@ -24,10 +24,13 @@ export function businessConfirm(message:string, options:ConfirmOptions = {}):Pro
   const accept=dialog.querySelector<HTMLButtonElement>('[data-confirm-accept]')!;
   cancel.textContent=options.cancelLabel??'继续编辑'; accept.textContent=options.confirmLabel??'放弃修改';
   cancel.hidden=options.dismissible===false;
+  dialog.toggleAttribute('data-confirm-danger', options.danger === true);
   pending=new Promise<boolean>(resolve=>{
     const finish=async(value:boolean)=>{
       dialog.removeEventListener('cancel',onCancel);cancel.onclick=null;accept.onclick=null;
-      await closeBusinessDialog(dialog);pending=undefined;
+      await closeBusinessDialog(dialog);
+      dialog.removeAttribute('data-confirm-danger');
+      pending=undefined;
       if(source?.isConnected)source.focus({preventScroll:true});resolve(value);
     };
     const onCancel=(event:Event)=>{event.preventDefault();if(options.dismissible!==false)void finish(false);};

@@ -6,8 +6,8 @@ import type { Direction, Post, View } from './model';
 import { detailFeedback, escapeText, leadDetail, leadSummary, listRows, postChoice, postType, statsContent } from './render';
 import type { LeadView, ListView } from './render';
 import { browserWorkspace } from './browser-storage';
-import { filtersFrom, monthOptions, postFor, readLead, readList, readStats, saveLead, searchPosts } from './store';
-import type { Action } from './store';
+import { deleteLead, filtersFrom, monthOptions, postFor, readLead, readList, readStats, saveLead, searchPosts } from './store';
+import type { Action, Workspace } from './store';
 
 type Config = { account: string; view: View };
 type Sheet = Action;
@@ -37,6 +37,7 @@ function start(config: Config) {
   let receiptTimer: ReturnType<typeof setTimeout>;
   let candidates: Post[] = [];
   const baselines = new WeakMap<HTMLFormElement, string>();
+  const deleting = new Set<string>();
   const pane = document.querySelector<HTMLDialogElement>('#sales-trial-inspector');
   const queue = config.view === 'queue';
   const forms = [...document.querySelectorAll<HTMLFormElement>('form[data-preview-form]')];
@@ -45,12 +46,14 @@ function start(config: Config) {
     lifecycle.abort();
   }, { once: true, signal });
 
-  function receipt(message: string) {
+  function receipt(message: string, error = false) {
     const spot = document.querySelector<HTMLElement>('[data-sales-receipt]')!;
     clearTimeout(receiptTimer);
+    spot.setAttribute('role', error ? 'alert' : 'status');
+    spot.toggleAttribute('data-error', error);
     spot.textContent = message;
     spot.hidden = false;
-    receiptTimer = setTimeout(() => { spot.hidden = true; }, 3400);
+    receiptTimer = setTimeout(() => { spot.hidden = true; }, error ? 6500 : 3400);
   }
   function showDetail(html: string) {
     if (!pane) return;
@@ -90,9 +93,9 @@ function start(config: Config) {
   });
   const recordTrigger = (id: string) => document.querySelector<HTMLElement>('[data-inspector-key="' + CSS.escape(id) + '"] [data-inspector-trigger]');
 
-  async function refreshWorkspace() {
+  async function refreshWorkspace(snapshot?: Workspace) {
     const generation = ++workspaceGeneration;
-    const workspace = await storage.read();
+    const workspace = snapshot ?? await storage.read();
     if (signal.aborted || generation !== workspaceGeneration) return;
     document.querySelector<HTMLElement>('[data-sales-storage-error]')!.hidden = true;
     const month = document.querySelector<HTMLSelectElement>('[data-sales-month]');
@@ -125,6 +128,54 @@ function start(config: Config) {
     const badge = document.querySelector('[data-queue-count]');
     if (badge) badge.textContent = '待核对 (' + fresh.waiting + ')';
     list = fresh;
+  }
+
+  async function removeCustomer(button: HTMLButtonElement) {
+    const id = button.closest<HTMLElement>('[data-inspector-key]')?.dataset.inspectorKey;
+    const row = list?.rows.find(item => item.id === id);
+    if (!row || deleting.has(row.id)) return;
+
+    deleting.add(row.id);
+    try {
+      const confirmed = await businessConfirm(
+        '删除后，该客户将从销售台账、来源核对和销售统计中移除。删除不可恢复。',
+        { title: '删除「' + row.name + '」？', confirmLabel: '确认删除', cancelLabel: '取消', danger: true },
+      );
+      if (!confirmed || signal.aborted) return;
+
+      button.disabled = true;
+      button.textContent = '删除中';
+      button.setAttribute('aria-busy', 'true');
+      const position = list?.rows.findIndex(item => item.id === row.id) ?? -1;
+      let saved: { workspace: Workspace; outcome: ReturnType<typeof deleteLead> };
+      try {
+        saved = await storage.write(workspace => ({ workspace, outcome: deleteLead(workspace, row.id) }));
+      } catch {
+        if (!signal.aborted) {
+          receipt('删除未保存，客户记录已保留。请重试。', true);
+          button.disabled = false;
+          button.focus({ preventScroll: true });
+        }
+        return;
+      }
+
+      if (signal.aborted) return;
+      await refreshWorkspace(saved.workspace);
+      if (saved.outcome === 'deleted') receipt('已删除客户。');
+      else if (saved.outcome === 'already-deleted') receipt('该客户已删除，列表已刷新。');
+      else receipt('该客户已合并，请在列表中核对。', true);
+      const remaining = list?.rows ?? [];
+      const neighbor = remaining[Math.min(Math.max(0, position), remaining.length - 1)];
+      const focus = neighbor ? recordTrigger(neighbor.id) : document.querySelector<HTMLElement>('[data-sales-sheet="create"]');
+      focus?.focus({ preventScroll: true });
+    } finally {
+      deleting.delete(row.id);
+      if (button.isConnected) {
+        button.disabled = false;
+        button.textContent = '删除';
+        button.removeAttribute('aria-busy');
+      }
+    }
   }
 
   function selectPost(form: HTMLFormElement, post?: Post, version = '', entry = '仅确认帖子') {
@@ -329,7 +380,7 @@ function start(config: Config) {
       }
       const revoking = kind === 'deal' && (event as SubmitEvent).submitter?.hasAttribute('data-sales-revoke');
       if (revoking && !await businessConfirm(
-        '撤销后，这位客户将从成交统计中移出。', { title: '撤销成交', confirmLabel: '确认撤销', cancelLabel: '继续编辑' },
+        '撤销后，这位客户将从成交统计中移出。', { title: '撤销成交', confirmLabel: '确认撤销', cancelLabel: '继续编辑', danger: true },
       )) return;
       const payload = new FormData(form);
       const submitted = signature(form);
@@ -384,6 +435,8 @@ function start(config: Config) {
       document.documentElement.dataset.unsaved = String(signature(directionButton.form) !== baselines.get(directionButton.form));
       return;
     }
+    const remove = target.closest<HTMLButtonElement>('[data-sales-delete]');
+    if (remove) { void removeCustomer(remove); return; }
     const edit = target.closest<HTMLButtonElement>('[data-sales-sheet]');
     if (edit) {
       const id = edit.closest<HTMLElement>('[data-inspector-key]')?.dataset.inspectorKey;
@@ -395,10 +448,9 @@ function start(config: Config) {
     const find = target.closest<HTMLButtonElement>('[data-find-post]');
     if (find?.form) { findPost(find.form); return; }
     if (target.closest('[data-sales-retry]') && inspector?.selected) { void readDetail(inspector.selected); return; }
-    const row = target.closest<HTMLElement>('[data-inspector-key]');
-    if (!row || !inspector || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-    const button = target.closest<HTMLElement>('[data-inspector-trigger]');
-    inspector.open(row.dataset.inspectorKey!, button ?? row.querySelector<HTMLElement>('[data-inspector-trigger]'));
+    const trigger = target.closest<HTMLButtonElement>('[data-inspector-trigger]');
+    const id = trigger?.closest<HTMLElement>('[data-inspector-key]')?.dataset.inspectorKey;
+    if (id && trigger) inspector?.open(id, trigger);
   }, { signal });
   const statSwitch = document.querySelector('[data-preview-stat-switch]');
   statSwitch?.querySelectorAll<HTMLInputElement>('input').forEach(input => { input.checked = input.value === config.view; });

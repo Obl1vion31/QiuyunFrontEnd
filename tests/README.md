@@ -8,7 +8,7 @@
 
 ## 本轮如何选择检查
 
-`tests/sales-trial.browser.ts` 在正式 Vercel 运行包和隔离 PGlite 验证账号入口、登记默认状态及微信号、多个咨询方向、成交、三种来源、共享加载、旧记录、刷新与重开、两账号与并行保存、网络边界和月度事实对照。运行用 `node --import tsx`，依赖 `.tools/serve-vercel.mjs`、`PLAYWRIGHT_MODULE` 和本机 Chromium，可用 `SALES_TRIAL_CHROMIUM` 指定，`SALES_TRIAL_DIR` 指定证据目录。 `SALES_TRIAL_RECORD=1` 保留源核对录屏，`SALES_TRIAL_DELETE_PROPOSAL=1` 截取删除方案效果图。
+`tests/sales-trial.browser.ts` 在正式 Vercel 运行包和隔离 PGlite 验证账号入口、登记默认状态及微信号、多个咨询方向、成交、三种来源、共享加载、旧记录、刷新与重开、两账号与并行保存、删除取消／事务中止／重试和合并档案清理、网络边界和月度事实对照。检查三档桌面的列宽及成交和删除中心。运行用 `node --import tsx`，依赖 `.tools/serve-vercel.mjs`、`PLAYWRIGHT_MODULE` 和本机 Chromium，可用 `SALES_TRIAL_CHROMIUM` 指定，`SALES_TRIAL_DIR` 指定证据目录。 `SALES_TRIAL_RECORD=1` 保留来源核对与删除操作录屏。
 
 `tests/meeting-grace.browser.ts` 在实际Vercel包与隔离数据库验证01:30／04:59:59可定稿、页面跨05:00锁定及服务端拒绝；复现V2会前草稿同号会后定稿、取消、两项旧文字为空、冻结指标／旧版不变、原生效日推广安排及自动PDF。桌面1440／1024及员工查看，`MEETING_GRACE_DIR`指定产物；默认连接本机PostgreSQL，资源受限时`MEETING_GRACE_PGLITE=1`使用仓库已有PGlite协议夹具。边界与原修订／回溯规则由`meeting-version-workflow.test.ts`覆盖。
 

@@ -59,10 +59,10 @@ const config = { view, account: Astro.locals.user!.id };
         {queue && <span class="sales-meta" data-queue-count></span>}
       </section>
       <form class="business-filter sales-filters" method="dialog" data-sales-list-filter>
-        <label class="sales-filter-search">搜索<input type="search" name="q" value={filters.q} placeholder={queue ? '微信名、微信号或来源' : '微信名或微信号'} maxlength="100" /></label>
-        <label>添加月份<select name="month" data-sales-month><option value="">全部月份</option></select></label>
-        {ledger && <label>跟进进度<select name="stage"><option value="">全部进度</option>{Object.entries(stages).map(([key, label]) => <option value={key} selected={filters.stage === key}>{label}</option>)}</select></label>}
-        {queue && <label>来源状态<select name="source">
+        <label class="sales-filter-search"><span class="sales-visually-hidden">搜索</span><input type="search" name="q" value={filters.q} placeholder={queue ? '微信名、微信号或来源' : '微信名或微信号'} maxlength="100" /></label>
+        <label><span class="sales-visually-hidden">添加月份</span><select name="month" data-sales-month><option value="">全部月份</option></select></label>
+        {ledger && <label><span class="sales-visually-hidden">跟进进度</span><select name="stage"><option value="">全部进度</option>{Object.entries(stages).map(([key, label]) => <option value={key} selected={filters.stage === key}>{label}</option>)}</select></label>}
+        {queue && <label><span class="sales-visually-hidden">来源状态</span><select name="source">
           {Object.entries(sources).map(([key,label]) => <option value={key} selected={(filters.source || 'pending') === key}>{label}</option>)}
           <option value="all" selected={filters.source === 'all'}>全部状态</option>
         </select></label>}
@@ -74,13 +74,17 @@ const config = { view, account: Astro.locals.user!.id };
       <div class="sales-data-surface">
         <div class="sales-table-wrap" data-sales-table>
           <table class:list={['sales-table', queue ? 'sales-queue-table' : 'sales-ledger-table']}>
-            <colgroup><col class="sales-col-contact"/><col class="sales-col-time"/><col/>
-              <col class={queue ? 'sales-col-source' : 'sales-col-progress'}/><col class="sales-col-action"/>
+            <colgroup>
+              <col class="sales-col-contact"/><col class="sales-col-time"/><col class="sales-col-consultation"/>
+              {queue ? <col class="sales-col-source"/> : <><col class="sales-col-progress"/><col class="sales-col-deal"/></>}
+              <col class="sales-col-action"/>
             </colgroup>
             <thead><tr>
-              <th scope="col">微信名 / 微信号</th><th scope="col">添加时间</th><th scope="col">咨询方向与内容</th>
-              {queue ? <><th scope="col">来源状态</th><th scope="col">操作</th></> :
-                <><th scope="col">跟进进度</th><th scope="col">成交</th></>}
+              <th scope="col">微信名 / 微信号</th>
+              <th scope="col">添加时间</th>
+              <th scope="col">咨询方向与意向产品</th>
+              {queue ? <th scope="col">来源状态</th> : <><th scope="col">跟进进度</th><th scope="col" class="sales-centered">成交</th></>}
+              <th scope="col" class="sales-centered">操作</th>
             </tr></thead>
             <tbody data-sales-rows></tbody>
           </table>

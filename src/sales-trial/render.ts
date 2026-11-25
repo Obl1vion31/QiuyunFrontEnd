@@ -11,43 +11,53 @@ export function escapeText(value: unknown) {
   })[character] ?? character);
 }
 const e = escapeText;
-const status = (value: string, label: string) => `<span class="sales-status sales-status--${e(value)}">${e(label)}</span>`;
 const pair = (label: string, value: string) => `<div><dt>${e(label)}</dt><dd>${e(value || '—')}</dd></div>`;
-const directionText = (items: Direction[]) =>
-  items.map(item => [item.need, item.subject, item.interest].filter(Boolean).join(' · ')).join(' / ');
-const consultCell = (items: Direction[]) => {
-  const content = directionText(items) || '待确认';
-  return `<span class="sales-consultation-line" title="${e(content)}">${e(content)}</span>`;
-};
+function directionText(item: Direction) {
+  const direction = [item.need, item.subject].filter(Boolean).join(' · ');
+  return [direction, item.interest].filter(Boolean).join(' ｜ ');
+}
+function consultCell(items: Direction[], queue: boolean) {
+  const directions = items.map(directionText);
+  const content = (queue ? directions.join(' / ') : directions[0]) || '待确认';
+  const extra = directions.length - 1;
+  return `<div class="sales-consultation"><span class="sales-consultation-line" title="${e(content)}">${e(content)}</span>
+    ${!queue && extra > 0 ? `<button class="sales-row-action sales-more-directions" type="button" data-inspector-trigger
+      aria-label="查看另 ${extra} 项咨询方向" aria-haspopup="dialog">另 ${extra} 项</button>` : ''}
+  </div>`;
+}
 
 function sourceCell(source: Source, post?: Post) {
-  if (source.status !== 'confirmed' || !post) return status(source.status, sources[source.status]);
+  if (source.status !== 'confirmed' || !post) return `<span class="sales-source-state">${e(sources[source.status])}</span>`;
   return `<span class="sales-post-name" title="${e(post.title)}">${e(post.title)}</span>`;
 }
 export function listRows(list: ListView, queue: boolean, filtered: boolean) {
   if (!list.rows.length) {
     const title = queue ? '当前没有符合条件的来源记录' : filtered ? '未找到客户' : '还没有客户';
     const hint = filtered ? '可更改筛选条件后再查看。' : queue ? '' : '点右上角「登记微信」添加第一位客户。';
-    return `<tr><td colspan="5" class="sales-empty"><strong>${title}</strong>${hint ? `<span>${hint}</span>` : ''}</td></tr>`;
+    return `<tr><td colspan="${queue ? 5 : 6}" class="sales-empty"><strong>${title}</strong>${hint ? `<span>${hint}</span>` : ''}</td></tr>`;
   }
   return list.rows.map(row => `<tr data-inspector-key="${e(row.id)}">
     <td><div class="sales-contact-line">
       ${queue ? `<strong class="sales-row-title" title="${e(row.name)}">${e(row.name)}</strong>` :
         `<button class="sales-row-title" type="button" data-inspector-trigger title="${e(row.name)}">${e(row.name)}</button>`}
-      ${row.wechatId ? `<span class="sales-wechat-id" title="${e(row.wechatId)}">${e(row.wechatId)}</span>` : ''}
+      <span class="sales-wechat-id" title="${e(row.wechatId || '微信号待补')}">${e(row.wechatId || '微信号待补')}</span>
     </div></td>
     <td><time class="sales-time" datetime="${e(row.added)}">${e(dateText(row.added))}</time></td>
-    <td>${consultCell(row.directions)}</td>
+    <td>${consultCell(row.directions, queue)}</td>
     ${queue ? `
       <td>${sourceCell(row.source, row.post)}</td>
-      <td><button class="sales-row-action" type="button" data-sales-sheet="source" aria-haspopup="dialog">${row.source.status === 'pending' ? '核对来源' : '更正来源'}</button></td>` :
-      `<td><div class="sales-row-actions sales-follow-control">${status(row.stage, stages[row.stage])}
-        <button class="sales-row-action" type="button" data-sales-sheet="follow" aria-haspopup="dialog">更新跟进</button></div></td>
-      <td><div class="sales-row-actions">
-        ${row.latestPayment ? status('won', '已成交') : ''}
+      <td class="sales-centered"><button class="sales-row-action" type="button" data-sales-sheet="source" aria-haspopup="dialog">${row.source.status === 'pending' ? '核对来源' : '更正来源'}</button></td>` :
+      `<td><div class="sales-row-actions sales-progress">
+        <span class="sales-follow-state" data-stage="${e(row.stage)}">${e(stages[row.stage])}</span>
+        <button class="sales-row-action" type="button" data-sales-sheet="follow" aria-haspopup="dialog">更新跟进</button>
+      </div></td>
+      <td class="sales-centered"><div class="sales-row-actions" data-sales-deal-group>
+        ${row.latestPayment ? '<span class="sales-paid-label">已成交</span>' : ''}
         <button class="sales-row-action" type="button" data-sales-sheet="deal" aria-haspopup="dialog"
           ${row.latestPayment ? 'aria-label="更正成交"' : ''}>${row.latestPayment ? '更正' : '登记成交'}</button>
-      </div></td>`}
+      </div></td>
+      <td class="sales-centered"><button class="sales-row-action sales-row-delete" type="button" data-sales-delete
+        aria-label="删除「${e(row.name)}」" aria-haspopup="dialog">删除</button></td>`}
   </tr>`).join('');
 }
 export function detailHeader(title: string, context: string) {
@@ -60,14 +70,15 @@ const sheetButton = (target: string, label: string, primary = false) =>
 
 export function leadSummary(lead: ListView['rows'][number] | undefined) {
   if (!lead) return detailFrame(detailHeader('客户详情', ''), '');
-  return detailFrame(detailHeader(lead.name, ''), `<section><h3>客户资料</h3><dl>${pair('添加微信', dateText(lead.added))}${pair('来源', labelSource(lead.source, lead.post))}</dl></section>`);
+  return detailFrame(detailHeader(lead.name, ''), `<section><h3>客户资料</h3><dl>${pair('微信号', lead.wechatId || '待补填')}${pair('添加时间', dateText(lead.added))}</dl></section>`);
 }
 export function leadDetail(lead: LeadView) {
   const header = detailHeader(lead.name, '');
   const basic = `<section><div class="sales-inspector-heading"><h3>客户资料</h3>
     <button class="sales-text-action" type="button" data-sales-sheet="contact">${lead.wechatId ? '编辑微信信息' : '补填微信号'}</button></div>
-    <dl>${pair('微信号', lead.wechatId || '待补填')}${pair('添加微信', dateText(lead.added))}
-    ${lead.directions.map((item, index) => pair(index === 0 ? '咨询方向' : '', directionText([item]))).join('')}</dl></section>`;
+    <dl>${pair('微信号', lead.wechatId || '待补填')}${pair('添加时间', dateText(lead.added))}</dl></section>`;
+  const consultation = `<section><h3>咨询方向与意向产品</h3>
+    ${lead.directions.length ? lead.directions.map(item => `<p>${e(directionText(item))}</p>`).join('') : '<p>待确认</p>'}</section>`;
   const source = `<section><h3>来源</h3>
     <dl>${pair('核对结果', labelSource(lead.source, lead.post))}${lead.source.version ? pair('确认版本', lead.source.version) : ''}${lead.source.entry ? pair(lead.source.status === 'other' ? '入口' : '确认依据', lead.source.entry) : ''}
     ${lead.post ? pair('实发时间', dateText(lead.post.published)) + pair('帖子类型', postType(lead.post)) : ''}
@@ -82,11 +93,11 @@ export function leadDetail(lead: LeadView) {
     <p>核实是同一个人后，可合并到当前档案。</p></section>` : '';
   const follows = lead.follows.length ? `<section><h3>跟进记录 (${lead.follows.length})</h3><ol class="sales-record-timeline">${lead.follows.map(item =>
     `<li><time>${e(item.date)}</time><span class="sales-reply">${e(stages[item.stage])}</span>
-    ${directionsOf(item).map(direction => `<p>${e(directionText([direction]))}</p>`).join('')}</li>`).join('')}</ol></section>` : '';
+    ${directionsOf(item).map(direction => `<p>${e(directionText(direction))}</p>`).join('')}</li>`).join('')}</ol></section>` : '';
   const active = lead.payments.filter(payment => !payment.voided);
   const payments = active.length ? `<section><h3>成交记录 (${active.length})</h3><ol class="sales-record-timeline">
     ${active.map(item => `<li><time>${e(item.date)}</time>${item.product ? `<p>${e(item.product)}</p>` : ''}</li>`).join('')}</ol></section>` : '';
-  return detailFrame(header, basic + duplicates + follows + payments + source + history,
+  return detailFrame(header, basic + consultation + duplicates + follows + payments + source + history,
     footer(sheetButton('follow', '更新跟进') + sheetButton('deal', active.length ? '更正成交' : '登记成交', true)));
 }
 export const postType = (post: Post) => post.type === '推广' ? '推广帖' : '非推广';
