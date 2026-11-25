@@ -327,6 +327,10 @@ try {
   await page.locator('[data-sales-month]').waitFor({ state: 'visible' });
   await shot(page, '16-stats-390');
   await page.setViewportSize({ width: 1024, height: 820 });
+  const switchBounds = await page.locator('[data-preview-stat-switch]').boundingBox();
+  const filterBounds = await page.locator('[data-sales-stat-filter]').boundingBox();
+  assert.ok(switchBounds && filterBounds && switchBounds.x + switchBounds.width + 8 <= filterBounds.x,
+    'the statistics mode switch and filter leave a clear gap at 1024px');
   await shot(page, '17-stats-1024');
   await link(page, '切换至内容工作台').click();
   await page.waitForURL('**/business/operations-schedule');

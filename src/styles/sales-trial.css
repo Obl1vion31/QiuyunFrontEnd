@@ -20,7 +20,6 @@ body.sales-trial {
 .sales-filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin: 0; }
 .sales-filters label { display: grid; gap: 5px; min-width: 115px; color: #43575f; font: 500 13px/20px var(--console-font); }
 .sales-trial .sales-stat-filters { display: flex; align-items: center; gap: 10px; margin: 0; }
-.sales-stat-view .business-toolbar { grid-template-columns: minmax(0,1fr) auto minmax(268px,1fr); }
 .sales-stat-filters label { flex: none; color: #43575f; font: 500 13px/20px var(--console-font); white-space: nowrap; }
 .sales-filters .sales-filter-search { width: min(260px,100%); }
 .sales-trial .sales-filters :is(input,select),.sales-trial .sales-stat-filters select {
@@ -185,8 +184,13 @@ body.sales-trial {
   .sales-table :is(th,td):first-child { padding-left: 12px; }
   .sales-table :is(th,td):last-child { padding-right: 12px; }
 }
-@media (min-width: 901px) and (max-width: 1040px) {
-  .sales-stat-view .business-toolbar { column-gap: 12px; }
+@media (min-width: 971px) {
+  body.sales-stat-view .business-toolbar {
+    grid-template-columns: minmax(0,1fr) auto minmax(max-content,1fr);
+  }
+}
+@media (min-width: 971px) and (max-width: 1040px) {
+  body.sales-stat-view .business-toolbar { column-gap: 12px; }
 }
 @media (max-width: 900px) {
   .sales-trial-content { gap: 12px; padding-bottom: 86px; }
@@ -194,7 +198,6 @@ body.sales-trial {
   .sales-filters { gap: 8px; }
   .sales-filters .sales-filter-search { width: 100%; }
   .sales-filters label { min-width: 104px; }
-  .sales-stat-view .business-toolbar { grid-template-columns: minmax(0,1fr) auto; }
   .sales-trial .sales-stat-filters { gap: 6px; }
   .sales-stat-filters label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .sales-stat-band > div { padding: 10px 9px; min-height: 88px; }
