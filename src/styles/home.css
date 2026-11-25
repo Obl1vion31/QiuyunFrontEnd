@@ -279,6 +279,48 @@ footer>.shell {
   font-size:13px
 }
 }
+@media(max-width:960px) {
+  .workflow__inner,.systems__inner {
+    grid-template-columns:minmax(0,1fr);
+    row-gap:24px
+  }
+}
+@media(max-width:600px) {
+  .workflow__inner,.systems__inner {
+    width:calc(100% - 40px);
+    padding-block:40px
+  }
+  .workflow__track {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:16px
+  }
+  .systems__list article {
+    grid-template-columns:minmax(0,1fr) auto;
+    row-gap:4px;
+    min-height:0
+  }
+  .systems__list :is(.entry-tag,article>div) {
+    grid-column:1
+  }
+  .systems__list :is(.entry-action,.entry-status) {
+    grid-column:2;
+    grid-row:1 / span 2
+  }
+  .systems__list .entry-action {
+    height:44px
+  }
+}
+@media(max-width:359px) {
+  .systems__list article {
+    grid-template-columns:minmax(0,1fr);
+    justify-items:start;
+    row-gap:8px
+  }
+  .systems__list :is(.entry-action,.entry-status) {
+    grid-column:1;
+    grid-row:auto
+  }
+}
 @media(prefers-reduced-motion:reduce) {
 * {
   scroll-behavior:auto!important;
