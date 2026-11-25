@@ -17,6 +17,7 @@
 | 数据表、字段、版本和生命周期 | [数据模型](data-model/DATA-MODEL.md) |
 | 本地预览、公网发布与回滚 | [部署指南](deployment.md) |
 | 聚光应用回调、管理员授权及服务端凭据 | [第三方接入说明](../src/integrations/README.md) |
+| 销售工作台、企微客服联调、话术评测与反馈 | [企业微信客服工作流](sales-ai-workflow.md) |
 | 已保存的阶段计划和交付记录 | [历史归档](archive/README.md) |
 
 ## 维护约定
