@@ -46,8 +46,6 @@ const checkLedgerGeometry = async (page: any) => {
   const layout = await page.locator('.sales-ledger-table').evaluate((table: HTMLTableElement) => {
     const headers = [...table.tHead!.rows[0].cells].map(cell => cell.getBoundingClientRect());
     const surface = table.parentElement!.getBoundingClientRect();
-    const centerX = (rect: DOMRect) => rect.x + rect.width / 2;
-    const centerY = (rect: DOMRect) => rect.y + rect.height / 2;
     const rows = [...table.tBodies[0].rows].map(row => {
       const state = row.querySelector('.sales-follow-state')!.getBoundingClientRect();
       const follow = row.querySelector('[data-sales-sheet="follow"]')!.getBoundingClientRect();
@@ -57,10 +55,10 @@ const checkLedgerGeometry = async (page: any) => {
       const date = row.querySelector('time')!.getBoundingClientRect();
       return {
         gap: follow.left - state.right,
-        stateCenter: Math.abs(centerY(state) - centerY(follow)),
+        stateCenter: Math.abs(state.y - follow.y + (state.height - follow.height) / 2),
         progressBorder: progress.borderLeftWidth,
-        saleCenter: Math.abs(centerX(headers[4]) - centerX(sale)),
-        deletionCenter: Math.abs(centerX(headers[5]) - centerX(deletion)),
+        saleCenter: Math.abs(headers[4].x - sale.x + (headers[4].width - sale.width) / 2),
+        deletionCenter: Math.abs(headers[5].x - deletion.x + (headers[5].width - deletion.width) / 2),
         fits: date.right <= headers[1].right && follow.right <= headers[3].right &&
           sale.right <= headers[4].right && deletion.right <= surface.right,
       };
@@ -379,7 +377,8 @@ try {
 
   await detail.waitFor({ state: 'hidden' });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const remove = button(row, '删除「' + testName + '」');
+  const deletedRow = page.locator('.sales-ledger-table tbody tr').filter({ has: button(page, testName) });
+  const remove = button(deletedRow, '删除「' + testName + '」');
   const deleteStart = (Date.now() - deletionOrigin) / 1000;
   await remove.click();
   assert.ok(await button(confirm, '取消').evaluate((node: HTMLElement) => node === document.activeElement));
@@ -389,7 +388,7 @@ try {
   await shot(page, '26-delete-confirmation-1440');
   await page.keyboard.press('Escape');
   await confirm.waitFor({ state: 'hidden' });
-  await row.waitFor();
+  await deletedRow.waitFor();
   assert.ok(await remove.evaluate((node: HTMLElement) => document.activeElement === node));
 
   // 中止一次真正的 IndexedDB 写入，模拟浏览器拒绝提交。
@@ -413,7 +412,7 @@ try {
   const deleteRetry = (Date.now() - deletionOrigin) / 1000;
   await remove.click();
   await button(confirm, '确认删除').click();
-  await row.waitFor({ state: 'detached' });
+  await deletedRow.waitFor({ state: 'detached' });
   await page.getByRole('status').filter({ hasText: '已删除客户。' }).waitFor();
   await button(page, longName).waitFor();
   await button(page, oldName).waitFor();
@@ -421,7 +420,7 @@ try {
   const deleteEnd = (Date.now() - deletionOrigin) / 1000;
   await page.reload();
   await button(page, oldName).waitFor();
-  assert.equal(await row.count(), 0);
+  assert.equal(await deletedRow.count(), 0);
   const removedRows = await page.evaluate(async ({ wechat, duplicateName }: { wechat: string; duplicateName: string }) => {
     const account = JSON.parse(document.querySelector('#sales-trial-config')!.textContent!).account;
     return new Promise<number>((resolve, reject) => {
@@ -453,8 +452,9 @@ try {
   await page.locator('.sales-stat-band strong').first().waitFor();
   assert.deepEqual(await page.locator('.sales-stat-band strong').allTextContents(), ['3', '0', '0']);
   await page.getByRole('radio', { name: '按帖复盘', exact: true }).click();
-  await promoted.waitFor();
-  assert.deepEqual((await promoted.getByRole('cell').allTextContents()).slice(0, 3), ['0', '0', '0']);
+  const deletedPost = page.getByRole('row').filter({ hasText: '试用样例 · 讲义内容与用法' });
+  await deletedPost.waitFor();
+  assert.deepEqual((await deletedPost.getByRole('cell').allTextContents()).slice(0, 3), ['0', '0', '0']);
   assert.equal(monthlyFacts(await (await context.request.get(monthUrl)).json()), monthlyBefore);
   await link(page, '销售台账').click();
   await button(page, oldName).waitFor();

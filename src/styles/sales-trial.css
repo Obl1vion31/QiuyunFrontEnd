@@ -102,7 +102,7 @@ body.sales-trial {
 .sales-stat-band span { font-weight: 600; }
 .sales-stat-band small { color: #526871; font-size: 13px; }
 .sales-cohort-counts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px 14px; margin: 0; padding: 12px 16px; background: #f7fbfcbd; border-radius: 12px; }
-.sales-cohort-counts div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.sales-cohort-counts div { display: flex; align-items: baseline; justify-content: center; gap: 8px; min-width: 0; }
 .sales-cohort-counts dt { color: #415960; }
 .sales-cohort-counts dd { margin: 0; font-weight: 600; }
 .sales-mix-value { display: block; white-space: nowrap; }
@@ -138,7 +138,7 @@ body.sales-trial {
 .sales-quick-dialog .field { min-width: 0; }
 .sales-quick-dialog .field-wide { grid-column: 1/-1; }
 .sales-quick-dialog [data-sheet-customer] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin-bottom: 16px; background: transparent; }
-.sales-quick-dialog [data-preview-form="deal"] [data-sheet-customer] { background: #eaf1f5; }
+.sales-quick-dialog [data-preview-form="deal"] [data-sheet-customer] { padding: 8px 10px; border-radius: 8px; background: #eaf1f5; }
 .sales-quick-dialog [data-sheet-customer] strong { font-weight: 600; }
 .sales-quick-dialog [data-sheet-customer] span { color: #4d6168; font-size: 13px; }
 .sales-revoke-deal { margin-top: 14px; color: #923b3e; }
@@ -189,15 +189,19 @@ body.sales-trial {
 .sales-workspace-choice nav svg { width: 20px; height: 20px; flex: none; color: #254aaf; }
 @media (max-width: 1279px) {
   .sales-col-contact { width: 132px; }
-  .sales-col-time { width: 144px; }
+  .sales-col-time { width: 142px; }
   .sales-col-consultation { width: auto; }
-  .sales-col-progress { width: 146px; }
-  .sales-col-deal { width: 98px; }
+  .sales-col-progress { width: 136px; }
+  .sales-col-deal { width: 92px; }
   .sales-col-source { width: 162px; }
-  .sales-ledger-table .sales-col-action { width: 62px; }
+  .sales-ledger-table .sales-col-action { width: 52px; }
   .sales-queue-table .sales-col-action { width: 92px; }
   .sales-table td,.sales-table th { padding-inline: 9px; }
   .sales-table :is(th,td):first-child { padding-left: 12px; }
+  .sales-contact-line { display: grid; grid-template-columns: minmax(0,1fr); gap: 1px; }
+  .sales-contact-line .sales-row-title { max-width: 100%; line-height: 18px; }
+  .sales-wechat-id { line-height: 16px; }
+  .sales-consultation-line { font-size: 13px; }
 }
 @media (min-width: 971px) {
   body.sales-stat-view .business-toolbar {

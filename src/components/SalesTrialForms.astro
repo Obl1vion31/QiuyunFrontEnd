@@ -33,7 +33,7 @@ const { role } = Astro.props;
     </div>
     <button class="sales-text-action sales-revoke-deal" type="submit" data-sales-revoke hidden>撤销成交</button>
   </SalesTrialSheet>
-  <SalesTrialSheet kind="merge" title="核对重复登记" save="确认合并">
+  <SalesTrialSheet kind="merge" title="核对重复登记" save="确认合并" compact>
     <div class="form-grid"><div class="field field-wide"><label for="merge-id">将下列登记合并到当前档案<b> *</b></label><select id="merge-id" name="duplicateId" required></select>
       <em>合并后保留最早添加时间、已有跟进和付款。请先确认两条登记属于同一位客户。</em></div></div>
   </SalesTrialSheet>
