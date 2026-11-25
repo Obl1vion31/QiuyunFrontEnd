@@ -220,9 +220,6 @@ ol {
   color:#75838b;
   background:#edf0ee
 }
-.systems__list article:hover {
-  background:#e7edef50
-}
 footer {
   background:var(--night);
   color:#b0bdc7;
