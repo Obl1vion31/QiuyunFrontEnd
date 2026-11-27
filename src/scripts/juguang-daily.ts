@@ -1,6 +1,7 @@
 import {readableOperationError} from '../db/business-messages';
 import {readBusiness} from './business-read';
 import {businessDateTime} from './business-date';
+import {clearNativeValidation} from './business-validation';
 import {juguangMetricFields,promotionClickRate,type JuguangMetricPreview,type JuguangMetricSource} from '../integrations/juguang-metric-types';
 
 type Batch={rows:Array<JuguangMetricPreview|{key:string;metricId:string|null;message:string;waiting?:boolean}>;message?:string};
@@ -49,9 +50,22 @@ function initialize() {
         const result=await readBusiness(feedback,()=>readBatch(form.dataset.juguangDate!),{label:form.classList.contains('review-pilot-grid')?'读取':'读取中…'});
         if(!result || !form.isConnected || form.dataset.juguangSaving==='true'||(field('platformNoteId')?.value??'')!==noteAtStart)return;
         const row=result.rows.find(row=>row.key===form.dataset.juguangPilot);
-        if(!row || !('source' in row)){readError=row?.message??'尚无对应报表，原数据已保留。';waiting=!!row?.waiting;return;}
+        if(!row || !('source' in row)){
+          readError=row?.message??'尚无对应报表，原数据已保留。';waiting=!!row?.waiting;
+          if(waiting&&!source){
+            const filled:string[]=[];
+            for(const name of juguangMetricFields)if(!touched.has(name)&&field(name).value===''){
+              field(name).value='0';clearNativeValidation(field(name));filled.push(name);
+            }
+            if(filled.length){
+              readError='聚光暂无这一天的报表，空白投放指标已填 0，请核对后保存。';
+              form.dispatchEvent(new CustomEvent('business:juguang-preview',{detail:{fields:filled}}));
+            }
+          }
+          return;
+        }
         source=row.source;const filled:string[]=[];
-        for(const name of juguangMetricFields)if(!touched.has(name)){field(name).value=name==='spend'?source.original[name].toFixed(2):String(source.original[name]);filled.push(name);}
+        for(const name of juguangMetricFields)if(!touched.has(name)){field(name).value=name==='spend'?source.original[name].toFixed(2):String(source.original[name]);clearNativeValidation(field(name));filled.push(name);}
         field('juguangReceipt').value=row.receipt;
         const original=source.original;
         form.dataset.juguangPending=String(!persistedSource || persistedSource.noteId!==source.noteId || persistedSource.mappingFingerprint!==source.mappingFingerprint || juguangMetricFields.some(name=>persistedSource.original[name]!==original[name]));

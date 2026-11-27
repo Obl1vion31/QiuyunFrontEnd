@@ -8,6 +8,8 @@
 
 ## 本轮如何选择检查
 
+`tests/juguang-empty-report.browser.ts` 用实际 Vercel 包和 PGlite 隔离夹具核对空报表只补空白投放零值、手动值保留、慢读后原生校验、单条／历史零值保存、官方零来源、断网／授权失效不自动补零、员工批量事务回滚与重试。`EMPTY_REPORT_DIR` 指定证据目录，复用聚光协议夹具；显式测试标记只允许本机 PGlite，正式数据库不使用该入口。
+
 `tests/sales-trial.browser.ts` 在正式 Vercel 运行包和隔离 PGlite 验证账号入口、登记默认状态及微信号、多个咨询方向、成交、三种来源、真实发布记录的推广／非推广搜索、历史笔记和分享链接、慢读及重试、旧样例回到待重新核对、共享加载、旧记录、刷新与重开、两账号与并行保存、删除取消／事务中止／重试和合并档案清理、网络边界和月度事实对照。检查三档桌面的列宽及成交和删除中心。运行用 `node --import tsx`，依赖 `.tools/serve-vercel.mjs`、`PLAYWRIGHT_MODULE` 和本机 Chromium，可用 `SALES_TRIAL_CHROMIUM` 指定，`SALES_TRIAL_DIR` 指定证据目录。 `SALES_TRIAL_RECORD=1` 保留来源核对与删除操作录屏。
 
 `tests/meeting-grace.browser.ts` 在实际Vercel包与隔离数据库验证01:30／04:59:59可定稿、页面跨05:00锁定及服务端拒绝；复现V2会前草稿同号会后定稿、取消、两项旧文字为空、冻结指标／旧版不变、原生效日推广安排及自动PDF。桌面1440／1024及员工查看，`MEETING_GRACE_DIR`指定产物；默认连接本机PostgreSQL，资源受限时`MEETING_GRACE_PGLITE=1`使用仓库已有PGlite协议夹具。边界与原修订／回溯规则由`meeting-version-workflow.test.ts`覆盖。

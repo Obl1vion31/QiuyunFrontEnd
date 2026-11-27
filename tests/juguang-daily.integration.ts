@@ -77,7 +77,7 @@ try {
  await mode({reports:pilotReports});data=await preview(boss.cookie);row=data.rows.find((r:any)=>r.metricId===one.metric.id);await writeFile(clock,'2026-11-16T05:01:00Z');await patch(boss.cookie,one.metric.id,body(saved,row),409);await writeFile(clock,'2026-11-16T04:00:00Z');
  data=await preview(boss.cookie);row=data.rows.find((r:any)=>r.metricId===one.metric.id);await db.update(s.operationsContent).set({platformNoteId:'aaaaaaaaaaaaaaaaaaaaaaaa'}).where(eq(s.operationsContent.id,one.post.content.id));await patch(boss.cookie,one.metric.id,body(saved,row),409);
  await patch(boss.cookie,closed.metric.id,body(closed.metric,undefined,{impressionCount:3,clickCount:0}),422);
- checks.push('一小时读取凭证过期、日期ID变化和无来源写入均拒绝，输入由浏览器保留供重读');
+ checks.push('一小时读取凭证过期、日期ID变化和无来源非零写入均拒绝，输入由浏览器保留供重读');
  const afterStrategies=await Promise.all([db.select().from(s.operationsPromotionCampaign),db.select().from(s.operationsPromotionStage),db.select().from(s.operationsPromotionDayDecision),db.select().from(s.operationsContentSchedule),db.select().from(s.operationsReviewMeetingVersion)]);
  assert.deepEqual(afterStrategies,strategies,'API不能决定策略、状态、日期、阶段或会议');assert.equal((await db.select().from(s.operationsPromotionDailyMetric)).length,3);checks.push('所有API读数与保存不改推广策略、次日安排、阶段、结束日期或冻结例会');
  await mkdir('.tools/test-artifacts/juguang-daily-pilot',{recursive:true});await writeFile('.tools/test-artifacts/juguang-daily-pilot/integration.json',JSON.stringify({passed:true,checks},null,2));console.log(checks.join('\n'));

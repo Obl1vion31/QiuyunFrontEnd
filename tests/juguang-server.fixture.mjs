@@ -1,6 +1,8 @@
 /** 仅隔离测试的上游协议夹具，实际页面、路由、加密与数据库均运行正式实现。 */
 import {readFile,appendFile} from 'node:fs/promises';
-if(process.env.NODE_ENV!=='test'||!new URL(process.env.DATABASE_URL).pathname.startsWith('/qiuyun_test_'))throw new Error('ISOLATED_TEST_ONLY');
+const database=new URL(process.env.DATABASE_URL);
+const localPGlite=process.env.JUGUANG_PGLITE_TEST==='1'&&database.hostname==='127.0.0.1'&&database.pathname==='/postgres';
+if(process.env.NODE_ENV!=='test'||!database.pathname.startsWith('/qiuyun_test_')&&!localPGlite)throw new Error('ISOLATED_TEST_ONLY');
 const original=globalThis.fetch;
 globalThis.fetch=async(input,init)=>{
  const url=String(input);

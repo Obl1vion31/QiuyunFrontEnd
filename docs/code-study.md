@@ -380,3 +380,5 @@ WeeklyReviewCards按contentId分组，selectWeeklyMaterial把同帖对照及未�
 validation-messages 在字段错误和首条校验错误输出处补齐中文与业务字段名，保留原校验、字段键和响应状态。浏览器未知网络／解析异常使用 readableOperationError 与当前操作的兜底说明；明确成功后的读取失败继续保留已保存的事实。站内确认仍调用 businessConfirm，按钮写明实际动作。
 
 浏览器默认约束由 `business-validation.ts` 接入登录及公共 Frame，复用 `validation-messages.ts` 的字段名和中文说明；只替换提示文字，输入／更改／重置时清除该入口设置的提示，不清除业务自定义校验。周会主动校验使用同一说明函数。
+
+聚光空报表零值由 `juguang-daily.ts` 的等待态只回填空白投放字段，共用 `business:juguang-preview` 更新原草稿；回填通过 `clearNativeValidation` 仅清除该共享入口留下的默认校验提示。保存端 `juguangDailyChanges` 对无来源的曝光0／点击0放行，不生成聚光来源，单条、批量、历史与残留共用；错误态不走默认零。

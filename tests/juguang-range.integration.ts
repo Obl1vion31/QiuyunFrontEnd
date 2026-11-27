@@ -83,6 +83,6 @@ try{
  await mode({reports:{11:[]}});assert.match((await preview(b)).message,/尚无/);
  await mode({badResponse:{total_count:1,data_list:[report(b.note!,'2026-10-02')]}});await call('/api/promotion-daily/juguang-preview?date=2026-10-01',undefined,503);
  await mode({badResponse:{total_count:2,data_list:[report(b.note!,'2026-10-01'),report(b.note!,'2026-10-01')]}});await call('/api/promotion-daily/juguang-preview?date=2026-10-01',undefined,503);
- checks.push('同日笔记归属冲突不分配，缺报表不补零，串日与重复上游行整体拒绝');
+ checks.push('同日笔记归属冲突不分配，缺报表返回待填写说明且不写事实，串日与重复上游行整体拒绝');
  await mkdir('.tools/test-artifacts/juguang-rollout',{recursive:true});await writeFile('.tools/test-artifacts/juguang-rollout/integration-range.json',JSON.stringify({passed:true,checks},null,2));console.log(checks.join('\n'));
 }catch(e){console.error(f.logs().slice(-2200));throw e;}finally{await f.stop();}

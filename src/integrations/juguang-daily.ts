@@ -84,7 +84,7 @@ async function readNoteReport(date:string){
  if(result.error)throw new JuguangError('JUGUANG_'+('code' in result?result.code:'UNAVAILABLE'),result.error+' 原数据已保留。',503);
  return result.rows;
 }
-/** 按授权账户＋日期＋版本当天有效笔记ID读取；缺报表、缺ID和多重归属均不补零。 */
+/** 按授权账户＋日期＋版本当天有效笔记ID读取；空报表允许零值，缺ID和归属冲突仍需核对。 */
 export async function readJuguangDailyPreview(date:string,sessionId:string,campaignIds:string[]=[],draftNoteIds:Record<string,string>={}){
  requireDate(date);
  const identities=await dailyIdentities(getDb(),date,campaignIds);
@@ -96,7 +96,7 @@ export async function readJuguangDailyPreview(date:string,sessionId:string,campa
   if(!noteId)return {...base,message:'请先补齐当天笔记 ID。'};
   if(identities.some(i=>i.campaignId!==identity.campaignId&&i.noteId?.toLowerCase()===noteId.toLowerCase()))return {...base,message:'这一天有多条推广记录共用同一笔记 ID，请先核对归属。'};
   const matched=rows.filter(r=>r.values.note_id.toLowerCase()===noteId.toLowerCase());
-  if(!matched.length)return {...base,waiting:true as const,message:'聚光尚无这一天的笔记报表，保留原数据。'};
+  if(!matched.length)return {...base,waiting:true as const,message:'聚光暂无这一天的报表，可按 0 填写并保存。已有输入保留。'};
   const sum=(key:'fee'|'impression'|'click'|'initiative_message'|'msg_leads_num')=>matched.reduce((total,row)=>total+(key==='fee'?Math.round(row.values.fee*100):row.values[key]),0);
   const original:JuguangMetricValues={spend:sum('fee')/100,impressionCount:sum('impression'),clickCount:sum('click'),platformOpenCount:sum('initiative_message'),platformLeadCount:sum('msg_leads_num')};
   if(original.clickCount>original.impressionCount||Object.entries(original).some(([key,value])=>value>(key==='spend'?9999999999.99:2147483647)))throw new WorkflowError('聚光指标超出可保存范围，原数据已保留。',503);
@@ -110,7 +110,11 @@ export async function juguangDailyChanges(db:Database|Transaction,metric:Juguang
  const submitted=input.impressionCount!=null||input.clickCount!=null||!!input.juguangReceipt;
  if(!isJuguangMetricDate(metric.metricDate)){if(submitted)requireDate(metric.metricDate);return {};}
  let source=input.juguangReceipt?verifyReceipt(input.juguangReceipt,sessionId,metric):metric.juguangSource;
- if(!source){if(submitted)throw new WorkflowError('请先读取聚光数据，再保存曝光量与点击量。',422);return {};}
+ if(!source){
+  if(!submitted)return {};
+  if(input.impressionCount===0&&input.clickCount===0)return {impressionCount:0,clickCount:0,clickRate:null};
+  throw new WorkflowError('没有聚光来源时，曝光量和点击量可同时填 0；填写其他数值前，请先读取聚光数据。',422);
+ }
  const identities=await dailyIdentities(db,metric.metricDate,[metric.campaignId]),identity=identities.find(i=>i.campaignId===metric.campaignId);
  const expectedNoteId=identity?.noteId??(!metric.id?metric.draftNoteId:null);
  if(!identity||expectedNoteId!==source.noteId||identity.mappingFingerprint!==source.mappingFingerprint||identities.some(i=>i.campaignId!==metric.campaignId&&i.noteId===expectedNoteId))throw new WorkflowError('当天笔记 ID 或推广归属已变化，请重新读取聚光；当前输入已保留。',409);
