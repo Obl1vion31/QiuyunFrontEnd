@@ -1,0 +1,40 @@
+{
+  "origin": "https://qiuyun-frontend.vercel.app",
+  "results": [
+    {
+      "path": "/login",
+      "status": 200
+    },
+    {
+      "path": "/business/daily-promotion-review?view=daily",
+      "status": 302
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200
+    },
+    {
+      "path": "/api/promotion-daily/juguang-preview?date=2026-11-20",
+      "status": 401
+    },
+    {
+      "path": "/api/promotion-daily",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "file": "daily-promotion-review.astro_astro_type_script_index_0_lang.Bmbvv4gA.js",
+      "sha256": "434f938a3b7556fbdfb398aeb6e466f848a75fdd871fa57f191ca22c3d45f11c"
+    },
+    {
+      "file": "business-validation.DrwyKWSv.js",
+      "sha256": "daac51c6f312071749d5f001f5210aa2a0dd0f70709ec9497320fa7e37bc89f5"
+    }
+  ],
+  "cronCount": 3,
+  "sourceCommit": "f13933de52559ecea8236b585a290b80e44489e6",
+  "deploymentId": "dpl_2oF35TwhNoyjDrcHApH6R9x1HNRk",
+  "archiveFiles": 2031,
+  "liveReadOnlyCheck": "正式页三条暂无报表记录的五项投放指标为0，实际人数和次日安排仍待填；未执行生产业务保存。"
+}
